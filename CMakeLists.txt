@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-project(mountains CXX C)
+project(maze CXX C)
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
@@ -113,7 +113,7 @@ if (EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2 -s USE_SDL_IMAGE=2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_FREETYPE=1")
 
-  add_executable(mountains ${SOURCE_FILES} ${HEADER_FILES})
+  add_executable(maze ${SOURCE_FILES} ${HEADER_FILES})
 
   set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/html)
   set(ASSETS_BUILD_PATH ${PROJECT_SOURCE_DIR}/build)
@@ -123,25 +123,25 @@ if (EMSCRIPTEN)
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL_IMAGE=2 -s \"SDL2_IMAGE_FORMATS=['jpg','png']\"")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_FREETYPE=1")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} --preload-file ${ASSETS_BUILD_PATH}/assets@assets")
-  set_target_properties(mountains PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
+  set_target_properties(maze PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
-  target_include_directories(mountains PUBLIC src)
-  target_include_directories(mountains PRIVATE ${easyloggingpp_SOURCE_DIR}/src/)
+  target_include_directories(maze PUBLIC src)
+  target_include_directories(maze PRIVATE ${easyloggingpp_SOURCE_DIR}/src/)
 
-  target_link_libraries(mountains PRIVATE assimp)
-  target_link_libraries(mountains PRIVATE ${easyloggingpp_SOURCE_DIR}/src/easylogging++.cc)
-  target_link_libraries(mountains PRIVATE glad)
-  target_link_libraries(mountains PRIVATE glm::glm)
+  target_link_libraries(maze PRIVATE assimp)
+  target_link_libraries(maze PRIVATE ${easyloggingpp_SOURCE_DIR}/src/easylogging++.cc)
+  target_link_libraries(maze PRIVATE glad)
+  target_link_libraries(maze PRIVATE glm::glm)
 
   add_custom_command(
-          TARGET mountains PRE_BUILD
+          TARGET maze PRE_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_SOURCE_DIR}/assets ${ASSETS_BUILD_PATH}/assets
           COMMENT "Copying assets" VERBATIM
           DEPENDS ${ASSETS})
 
   add_custom_command(
-          TARGET mountains PRE_BUILD
+          TARGET maze PRE_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_SOURCE_DIR}/src/shaders ${ASSETS_BUILD_PATH}/assets/shaders
           COMMENT "Copying shaders" VERBATIM
@@ -164,11 +164,10 @@ else ()
   conan_cmake_configure(REQUIRES
           assimp/5.2.2
           easyloggingpp/9.97.0
-          freetype/2.11.1
+          freetype/2.12.1
           glm/0.9.9.8
           sdl/2.26.0
-          sdl_image/2.0.5
-          zlib/1.2.12
+          stb/cci.20220909
           GENERATORS cmake_find_package)
 
   conan_cmake_autodetect(settings)
@@ -194,38 +193,38 @@ else ()
   # cmake_print_variables(SDL2_INCLUDE_DIR)
   # cmake_print_variables(SDL2_LIBRARY)
 
-  add_executable(mountains ${SOURCE_FILES} ${HEADER_FILES})
+  add_executable(maze ${SOURCE_FILES} ${HEADER_FILES})
 
   if (MSVC)
-    target_compile_options(mountains PUBLIC "/Zi")
-    target_link_options(mountains PUBLIC "/INCREMENTAL")
+    target_compile_options(maze PUBLIC "/Zi")
+    target_link_options(maze PUBLIC "/INCREMENTAL")
   endif ()
 
-  target_include_directories(mountains PUBLIC src)
+  target_include_directories(maze PUBLIC src)
 
-  target_link_libraries(mountains PRIVATE Freetype::Freetype)
-  target_link_libraries(mountains PRIVATE OpenGL::GL)
-  target_link_libraries(mountains PRIVATE SDL2::SDL2)
-  target_link_libraries(mountains PRIVATE SDL2_image::SDL2_image)
-  target_link_libraries(mountains PRIVATE assimp::assimp)
-  target_link_libraries(mountains PRIVATE easyloggingpp::easyloggingpp)
-  target_link_libraries(mountains PRIVATE glad)
-  target_link_libraries(mountains PRIVATE glm::glm)
+  target_link_libraries(maze PRIVATE Freetype::Freetype)
+  target_link_libraries(maze PRIVATE OpenGL::GL)
+  target_link_libraries(maze PRIVATE SDL2::SDL2)
+  target_link_libraries(maze PRIVATE SDL2_image::SDL2_image)
+  target_link_libraries(maze PRIVATE assimp::assimp)
+  target_link_libraries(maze PRIVATE easyloggingpp::easyloggingpp)
+  target_link_libraries(maze PRIVATE glad)
+  target_link_libraries(maze PRIVATE glm::glm)
 
   set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build)
   set(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
   add_custom_command(
-          TARGET mountains POST_BUILD
+          TARGET maze POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:mountains>/assets
+          ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:maze>/assets
           COMMENT "Copying assets" VERBATIM
           DEPENDS ${ASSETS})
 
   add_custom_command(
-          TARGET mountains POST_BUILD
+          TARGET maze POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_SOURCE_DIR}/src/shaders $<TARGET_FILE_DIR:mountains>/assets/shaders
+          ${CMAKE_SOURCE_DIR}/src/shaders $<TARGET_FILE_DIR:maze>/assets/shaders
           COMMENT "Copying shaders" VERBATIM
           DEPENDS ${SHADERS})
 endif ()

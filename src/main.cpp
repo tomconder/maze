@@ -4,29 +4,29 @@
 #include <SDL.h>
 
 #include "easylogging++.h"
-#include "mountains.h"
+#include "maze.h"
 
 INITIALIZE_EASYLOGGINGPP
 
-std::unique_ptr<Mountains> mountains;
+std::unique_ptr<Maze> maze;
 
 // loop iteration is broken out like this for emscripten
 bool iterateLoop()
 {
-    return mountains->iterateLoop();
+    return maze->iterateLoop();
 }
 
 extern "C" int main(int argc, char *args[])
 {
     START_EASYLOGGINGPP(argc, args);
 
-    mountains = std::make_unique<Mountains>();
+    maze = std::make_unique<Maze>();
 
-    if (mountains->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == globals::Retcode::FAIL) {
+    if (maze->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == globals::Retcode::FAIL) {
         return 1;
     }
 
-    if (mountains->start() == globals::Retcode::FAIL) {
+    if (maze->start() == globals::Retcode::FAIL) {
         return 1;
     }
 

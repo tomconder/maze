@@ -1,5 +1,5 @@
-#ifndef INCLUDE_MOUNTAINS_H
-#define INCLUDE_MOUNTAINS_H
+#ifndef INCLUDE_MAZE_H
+#define INCLUDE_MAZE_H
 
 #include "core/engine.h"
 #include "core/gamecamera.h"
@@ -8,10 +8,10 @@
 #include <memory>
 #include <string>
 
-class Mountains : public Engine
+class Maze : public Engine
 {
   public:
-    Mountains();
+    Maze();
 
     bool onUserCreate() override;
     bool onUserUpdate(Uint32 elapsedTime) override;
@@ -23,4 +23,4 @@ class Mountains : public Engine
     std::unique_ptr<OpenGLSprite> sprite;
 };
 
-#endif // INCLUDE_MOUNTAINS_H
+#endif // INCLUDE_MAZE_H

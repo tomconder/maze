@@ -7,9 +7,9 @@
 #endif
 
 #include <SDL.h>
-#include <SDL_image.h>
 
 #include "easylogging++.h"
+#include "stb_image.h"
 
 std::map<std::string, std::shared_ptr<OpenGLFont>, std::less<>> OpenGLResourceManager::fonts;
 std::map<std::string, std::shared_ptr<OpenGLModel>, std::less<>> OpenGLResourceManager::meshes;
@@ -172,7 +172,29 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
 
     LOG(INFO) << "Loading texture: " << name;
 
-    SDL_Surface *surface = IMG_Load(name.c_str());
+    int bytesPerPixel;
+    int height;
+    int width;
+
+    void *data = stbi_load(name.c_str(), &width, &height, &bytesPerPixel, 0);
+
+    int pitch = (width * bytesPerPixel + 3) & ~3;
+
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+    Uint32 Rmask = 0x000000FF;
+    Uint32 Gmask = 0x0000FF00;
+    Uint32 Bmask = 0x00FF0000;
+    Uint32 Amask = (bytesPerPixel == 4) ? 0xFF000000 : 0;
+#else
+    Uint32 s = (bytesPerPixel == 4) ? 0 : 8;
+    Uint32 Rmask = 0xFF000000 >> s;
+    Uint32 Gmask = 0x00FF0000 >> s;
+    Uint32 Bmask = 0x0000FF00 >> s;
+    Uint32 Amask = 0x000000FF >> s;
+#endif
+
+    SDL_Surface *surface =
+        SDL_CreateRGBSurfaceFrom(data, width, height, bytesPerPixel * 8, pitch, Rmask, Gmask, Bmask, Amask);
     if (surface == nullptr) {
         LOG(ERROR) << "Unable to load texture: " << path;
         return nullptr;

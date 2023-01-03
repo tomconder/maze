@@ -1,4 +1,4 @@
-#include "mountains.h"
+#include "maze.h"
 
 #ifdef EMSCRIPTEN
 #include <new>
@@ -11,18 +11,18 @@
 
 #define KEY_PRESSED_OR_HOLD(key) input.wasKeyPressed(key) || input.isKeyHeld(key)
 
-Mountains::Mountains()
+Maze::Maze()
 {
-    appName = "Mountains";
+    appName = "Maze";
 }
 
-bool Mountains::onUserCreate()
+bool Maze::onUserCreate()
 {
     OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
     OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
     OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
 
-    OpenGLResourceManager::loadMesh("assets/models/mountains.obj", "mountains");
+    OpenGLResourceManager::loadMesh("assets/models/mountains.obj", "Maze");
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
@@ -50,7 +50,7 @@ bool Mountains::onUserCreate()
     return true;
 }
 
-bool Mountains::onUserUpdate(Uint32 elapsedTime)
+bool Maze::onUserUpdate(Uint32 elapsedTime)
 {
     if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE)) {
         return false;
@@ -81,7 +81,7 @@ bool Mountains::onUserUpdate(Uint32 elapsedTime)
     auto model = glm::mat4(1.f);
     shader->setMat4("model", model);
 
-    OpenGLResourceManager::getMesh("mountains")->render();
+    OpenGLResourceManager::getMesh("Maze")->render();
 
     sprite->render("coffee", glm::vec2(10.f, 10.f), glm::vec2(64.f, 64.f));
 
@@ -90,7 +90,7 @@ bool Mountains::onUserUpdate(Uint32 elapsedTime)
     return true;
 }
 
-bool Mountains::onUserResize(int width, int height)
+bool Maze::onUserResize(int width, int height)
 {
     camera->setViewportSize(width, height);
 
@@ -106,7 +106,7 @@ bool Mountains::onUserResize(int width, int height)
     return true;
 }
 
-bool Mountains::onUserDestroy()
+bool Maze::onUserDestroy()
 {
     return true;
 }

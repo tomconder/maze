@@ -5,7 +5,6 @@
 #endif
 
 #include <SDL.h>
-#include <SDL_image.h>
 #include <glm/vec3.hpp>
 
 #include <array>
@@ -24,7 +23,7 @@ globals::Retcode Engine::construct(int width, int height)
     screenHeight = height;
 
     if (screenWidth == 0 || screenHeight == 0) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Mountains", "Screen height or width cannot be zero", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero", nullptr);
         LOG(ERROR) << "Screen height or width cannot be zero";
         return globals::Retcode::FAIL;
     }
@@ -36,20 +35,14 @@ globals::Retcode Engine::start()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
         LOG(ERROR) << "Unable to initialize SDL: " << SDL_GetError();
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Mountains", "Unable to initialize SDL", nullptr);
-        return globals::Retcode::FAIL;
-    }
-
-    if (int flags = IMG_INIT_PNG | IMG_INIT_JPG; IMG_Init(flags) != flags) {
-        LOG(ERROR) << "Unable to initialize SDL image: " << IMG_GetError();
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Mountains", "Unable to initialize SDL image", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
         return globals::Retcode::FAIL;
     }
 
     SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Mountains", "Could not create window", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         LOG(ERROR) << "Could not create window: " << SDL_GetError();
         return globals::Retcode::FAIL;
     }
