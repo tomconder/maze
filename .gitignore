@@ -67,4 +67,4 @@ out/
 # Local History for Visual Studio Code
 .history/
 
-!assets/**/*.obj
+!game/assets/**/*.obj
