@@ -1,0 +1,6 @@
+#ifndef MAZE_VERSION_H
+#define MAZE_VERSION_H
+
+#define MAZE_VERSION "@maze_VERSION@"
+
+#endif // MAZE_VERSION_H
