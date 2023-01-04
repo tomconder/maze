@@ -21,8 +21,9 @@ extern "C" int main(int argc, char *args[])
     el::Configurations logConf;
     logConf.setToDefault();
     logConf.setGlobally(el::ConfigurationType::Filename, "log.txt");
-    logConf.setGlobally(el::ConfigurationType::Format, "%datetime{%Y-%M-%d %H:%m:%s.%g} %level %msg");
-    logConf.setGlobally(el::ConfigurationType::SubsecondPrecision, "4");
+    logConf.setGlobally(el::ConfigurationType::Format,
+                        "%level %datetime{%Y-%M-%d %H:%m:%s,%g} [%logger] %fbase - %msg");
+    logConf.setGlobally(el::ConfigurationType::SubsecondPrecision, "3");
     logConf.setGlobally(el::ConfigurationType::LogFlushThreshold, "100");
     // Max Log File Size = 10 Mb
     logConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "10485760");
