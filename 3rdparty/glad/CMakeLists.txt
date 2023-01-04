@@ -1,7 +1,5 @@
 include(GNUInstallDirs)
 
-project(glad C)
-
 file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/include/*.h)
 

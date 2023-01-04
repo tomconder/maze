@@ -1,7 +1,5 @@
 # Sponge Engine
 
-project(sponge CXX)
-
 include(GNUInstallDirs)
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false

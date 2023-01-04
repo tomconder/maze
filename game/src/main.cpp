@@ -2,6 +2,7 @@
 #include <emscripten/emscripten.h>
 #endif
 
+#define ELPP_NO_DEFAULT_LOG_FILE
 #include "easylogging++.h"
 #include "maze.h"
 
@@ -17,7 +18,16 @@ bool iterateLoop()
 
 extern "C" int main(int argc, char *args[])
 {
-    START_EASYLOGGINGPP(argc, args);
+    el::Configurations logConf;
+    logConf.setToDefault();
+    logConf.setGlobally(el::ConfigurationType::Filename, "log.txt");
+    logConf.setGlobally(el::ConfigurationType::Format, "%datetime{%Y-%M-%d %H:%m:%s.%g} %level %msg");
+    logConf.setGlobally(el::ConfigurationType::SubsecondPrecision, "4");
+    logConf.setGlobally(el::ConfigurationType::LogFlushThreshold, "100");
+    // Max Log File Size = 10 Mb
+    logConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "10485760");
+
+    el::Loggers::reconfigureAllLoggers(logConf);
 
     maze = std::make_unique<Maze>();
 
