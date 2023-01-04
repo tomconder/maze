@@ -1,10 +1,10 @@
 # Game
 
-file(GLOB HEADER_FILES LIST_DIRECTORIES false
-        src/*.h)
+file(GLOB HEADER_FILES LIST_DIRECTORIES false src/*.h)
 
-file(GLOB SOURCE_FILES LIST_DIRECTORIES false
-        src/*.cpp)
+file(GLOB SOURCE_FILES LIST_DIRECTORIES false src/*.cpp)
+
+file(GLOB ASSETS LIST_DIRECTORIES false assets/*)
 
 # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
 
@@ -63,12 +63,6 @@ target_link_libraries(maze PRIVATE easyloggingpp::easyloggingpp)
 target_link_libraries(maze PRIVATE glad)
 target_link_libraries(maze PRIVATE glm::glm)
 
-file(GLOB ASSETS LIST_DIRECTORIES false assets/*)
-
-file(GLOB SHADERS LIST_DIRECTORIES false
-        src/shaders/*.frag
-        src/shaders/*.vert)
-
 install(TARGETS maze
         BUNDLE DESTINATION bin
         RUNTIME DESTINATION bin
@@ -80,4 +74,5 @@ add_custom_command(
         TARGET maze POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/build/assets
-        COMMENT "Copying assets" VERBATIM)
+        COMMENT "Copying assets" VERBATIM
+        DEPENDS ${ASSETS})

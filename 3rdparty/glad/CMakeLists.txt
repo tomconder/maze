@@ -6,7 +6,6 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/*.c)
 
-#add_library(glad ${HEADER_FILES} ${SOURCE_FILES})
 add_library(glad EXCLUDE_FROM_ALL src/gl.c)
 
 target_include_directories(glad PUBLIC include)

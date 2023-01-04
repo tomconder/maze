@@ -32,17 +32,6 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif ()
 
-mark_as_advanced(
-        MAZE_LIB_DIRECTORY
-        MAZE_BIN_DIRECTORY
-)
-
-set(MAZE_LIB_DIRECTORY "lib${LIB_SUFFIX}" CACHE STRING "Install path for libraries, e.g. 'lib64' on some 64-bit Linux distros.")
-set(MAZE_BIN_DIRECTORY "bin" CACHE STRING "Install path for binaries")
-
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_PREFIX}/${MAZE_LIB_DIRECTORY}")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
 add_subdirectory(3rdparty)
 
 add_subdirectory(sponge)

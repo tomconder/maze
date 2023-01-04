@@ -12,6 +12,10 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/platform/opengl/*.cpp
         src/renderer/*.cpp)
 
+file(GLOB SHADERS LIST_DIRECTORIES false
+        shaders/*.frag
+        shaders/*.vert)
+
 # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
 
 if (NOT EXISTS "${CMAKE_BINARY_DIR}/sponge/conan.cmake")
@@ -86,6 +90,6 @@ install(FILES ${HEADER_FILES} DESTINATION sponge)
 add_custom_command(
         TARGET sponge POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders ${CMAKE_SOURCE_DIR}/build/assets/shaders
-        COMMENT "Copying shaders" VERBATIM)
-
+        ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_SOURCE_DIR}/build/assets/shaders
+        COMMENT "Copying shaders" VERBATIM
+        DEPENDS ${SHADERS})
