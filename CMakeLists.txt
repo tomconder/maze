@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-project(maze VERSION 1.0)
+set(MAZE_VERSION 1.0)
+# increment this when we break backwards compatibility
+set(MAZE_SOVERSION 1)
+
+project(maze VERSION ${MAZE_VERSION})
+
 
 message(STATUS "Configuring maze ${maze_VERSION}")
 configure_file(cmake/version.h.in version.h @ONLY)

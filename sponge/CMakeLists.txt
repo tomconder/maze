@@ -1,5 +1,9 @@
 # Sponge Engine
 
+project(sponge CXX)
+
+include(GNUInstallDirs)
+
 file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/*.h
         src/core/*.h
@@ -79,13 +83,14 @@ target_link_libraries(sponge PRIVATE glad)
 target_link_libraries(sponge PRIVATE glm::glm)
 
 install(TARGETS sponge
-        BUNDLE DESTINATION bin
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        FRAMEWORK DESTINATION lib)
+        BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(FILES ${HEADER_FILES} DESTINATION sponge)
+install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_custom_command(
         TARGET sponge POST_BUILD
