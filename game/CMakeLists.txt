@@ -22,7 +22,8 @@ conan_cmake_configure(REQUIRES
         easyloggingpp/9.97.0
         freetype/2.12.1
         glm/0.9.9.8
-        sdl/2.26.0
+        sdl/2.26.1
+        zlib/1.2.13
         GENERATORS cmake_find_package)
 
 conan_cmake_autodetect(settings)
@@ -34,6 +35,7 @@ conan_cmake_install(PATH_OR_REFERENCE .
         SETTINGS ${settings})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
 find_package(Freetype REQUIRED)
 find_package(SDL2 REQUIRED)
@@ -66,8 +68,6 @@ file(GLOB ASSETS LIST_DIRECTORIES false assets/*)
 file(GLOB SHADERS LIST_DIRECTORIES false
         src/shaders/*.frag
         src/shaders/*.vert)
-
-message(STATUS "^^ copying assets")
 
 install(TARGETS maze
         BUNDLE DESTINATION bin
