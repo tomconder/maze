@@ -23,7 +23,8 @@ globals::Retcode Engine::construct(int width, int height)
     screenHeight = height;
 
     if (screenWidth == 0 || screenHeight == 0) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
+                                 nullptr);
         LOG(ERROR) << "Screen height or width cannot be zero";
         return globals::Retcode::FAIL;
     }
