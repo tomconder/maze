@@ -15,8 +15,8 @@ class Engine
     Engine();
     virtual ~Engine() = default;
 
-    globals::Retcode construct(int width, int height);
-    globals::Retcode start();
+    int construct(int width, int height);
+    int start();
 
     bool iterateLoop();
 

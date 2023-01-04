@@ -17,7 +17,7 @@ Engine::Engine() : appName("undefined")
     screenHeight = globals::SCREEN_HEIGHT;
 }
 
-globals::Retcode Engine::construct(int width, int height)
+int Engine::construct(int width, int height)
 {
     screenWidth = width;
     screenHeight = height;
@@ -26,18 +26,18 @@ globals::Retcode Engine::construct(int width, int height)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
                                  nullptr);
         LOG(ERROR) << "Screen height or width cannot be zero";
-        return globals::Retcode::FAIL;
+        return 0;
     }
 
-    return globals::Retcode::OK;
+    return 1;
 }
 
-globals::Retcode Engine::start()
+int Engine::start()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
         LOG(ERROR) << "Unable to initialize SDL: " << SDL_GetError();
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
-        return globals::Retcode::FAIL;
+        return 0;
     }
 
     SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -45,7 +45,7 @@ globals::Retcode Engine::start()
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         LOG(ERROR) << "Could not create window: " << SDL_GetError();
-        return globals::Retcode::FAIL;
+        return 0;
     }
 
     graphics = std::make_unique<OpenGLContext>(window);
@@ -56,12 +56,12 @@ globals::Retcode Engine::start()
 
     if (!onUserCreate()) {
         SDL_DestroyWindow(window);
-        return globals::Retcode::OK;
+        return 1;
     }
 
     lastUpdateTime = SDL_GetTicks();
 
-    return globals::Retcode::OK;
+    return 1;
 }
 
 bool Engine::iterateLoop()

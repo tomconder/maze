@@ -21,11 +21,11 @@ extern "C" int main(int argc, char *args[])
 
     maze = std::make_unique<Maze>();
 
-    if (maze->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == globals::Retcode::FAIL) {
+    if (maze->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == 0) {
         return 1;
     }
 
-    if (maze->start() == globals::Retcode::FAIL) {
+    if (maze->start() == 0) {
         return 1;
     }
 
