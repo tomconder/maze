@@ -124,7 +124,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
 {
     assert(!path.empty());
 
-    LOG(INFO) << "Loading font: " << path;
+    CLOG(INFO, "sponge") << "Loading font: " << path;
 
     auto font = std::make_shared<OpenGLFont>();
     font->load(path, 24);
@@ -136,7 +136,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMeshFromFile(const std::
 {
     assert(!path.empty());
 
-    LOG(INFO) << "Loading mesh: " << path;
+    CLOG(INFO, "sponge") << "Loading mesh: " << path;
 
     auto mesh = std::make_shared<OpenGLModel>();
     mesh->load(path);
@@ -148,7 +148,7 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path)
 {
     assert(!path.empty());
 
-    LOG(INFO) << "Loading shader: " << path;
+    CLOG(INFO, "sponge") << "Loading shader: " << path;
 
     std::string code;
     if (std::ifstream stream(path, std::ios::in); stream.is_open()) {
@@ -157,7 +157,7 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path)
         code = sstr.str();
         stream.close();
     } else {
-        LOG(ERROR) << "Unable to open " << path << ". Are you in the right directory?";
+        CLOG(ERROR, "sponge") << "Unable to open " << path << ". Are you in the right directory?";
     }
 
     return code;
@@ -170,7 +170,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     auto name = path;
     std::replace(name.begin(), name.end(), '\\', '/');
 
-    LOG(INFO) << "Loading texture: " << name;
+    CLOG(INFO, "sponge") << "Loading texture: " << name;
 
     int bytesPerPixel;
     int height;
@@ -196,7 +196,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     SDL_Surface *surface =
         SDL_CreateRGBSurfaceFrom(data, width, height, bytesPerPixel * 8, pitch, Rmask, Gmask, Bmask, Amask);
     if (surface == nullptr) {
-        LOG(ERROR) << "Unable to load texture: " << path;
+        CLOG(ERROR, "sponge") << "Unable to load texture: " << path;
         return nullptr;
     }
 

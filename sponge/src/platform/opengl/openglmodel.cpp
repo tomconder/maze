@@ -21,7 +21,7 @@ void OpenGLModel::load(const std::string &path)
                   aiProcess_JoinIdenticalVertices | aiProcess_RemoveRedundantMaterials | aiProcess_SplitLargeMeshes |
                   aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        LOG(ERROR) << "Unable to load model: " << path;
+        CLOG(ERROR, "sponge") << "Unable to load model: " << path;
         return;
     }
 

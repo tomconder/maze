@@ -43,14 +43,14 @@ void OpenGLFont::load(const std::string &path, unsigned int fontSize)
 
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
-        LOG(ERROR) << "Unable to initialize FreeType library";
+        CLOG(ERROR, "sponge") << "Unable to initialize FreeType library";
         FT_Done_FreeType(ft);
         return;
     }
 
     FT_Face face;
     if (FT_New_Face(ft, path.c_str(), 0, &face)) {
-        LOG(ERROR) << "Unable to load font " << path.c_str();
+        CLOG(ERROR, "sponge") << "Unable to load font " << path.c_str();
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
         return;
@@ -62,7 +62,7 @@ void OpenGLFont::load(const std::string &path, unsigned int fontSize)
 
     for (unsigned char c = 0; c < 128; c++) {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            LOG(ERROR) << "Unable to load glyph: " << c;
+            CLOG(ERROR, "sponge") << "Unable to load glyph: " << c;
             continue;
         }
 

@@ -31,7 +31,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window)
 
     SDL_GLContext context = SDL_GL_CreateContext(window);
     if (context == nullptr) {
-        LOG(ERROR) << "OpenGL context could not be created: " << SDL_GetError();
+        CLOG(ERROR, "sponge") << "OpenGL context could not be created: " << SDL_GetError();
         return;
     }
 
@@ -42,7 +42,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window)
 #endif
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
-        LOG(ERROR) << "Could not be set up OpenGL context for rendering: " << SDL_GetError();
+        CLOG(ERROR, "sponge") << "Could not be set up OpenGL context for rendering: " << SDL_GetError();
         return;
     }
 
@@ -96,5 +96,5 @@ void OpenGLContext::setVSync(int interval)
         }
     }
 
-    LOG(ERROR) << "Unable to set vsync: " << SDL_GetError();
+    CLOG(ERROR, "sponge") << "Unable to set vsync: " << SDL_GetError();
 }

@@ -45,6 +45,8 @@ find_package(glm REQUIRED)
 
 add_executable(maze ${SOURCE_FILES} ${HEADER_FILES})
 
+target_compile_features(maze PRIVATE cxx_std_17)
+
 if (MSVC)
   target_compile_options(maze PUBLIC "/Zi")
   target_link_options(maze PUBLIC "/INCREMENTAL")

@@ -2,7 +2,6 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#define ELPP_NO_DEFAULT_LOG_FILE
 #include "easylogging++.h"
 #include "maze.h"
 
@@ -18,6 +17,8 @@ bool iterateLoop()
 
 extern "C" int main(int argc, char *args[])
 {
+    el::Loggers::addFlag(el::LoggingFlag::CreateLoggerAutomatically);
+
     el::Configurations logConf;
     logConf.setToDefault();
     logConf.setGlobally(el::ConfigurationType::Filename, "log.txt");
@@ -25,10 +26,12 @@ extern "C" int main(int argc, char *args[])
                         "%level %datetime{%Y-%M-%d %H:%m:%s,%g} [%logger] %fbase - %msg");
     logConf.setGlobally(el::ConfigurationType::SubsecondPrecision, "3");
     logConf.setGlobally(el::ConfigurationType::LogFlushThreshold, "100");
-    // Max Log File Size = 10 Mb
-    logConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "10485760");
+    // Max Log File Size = 2 Mb
+    logConf.setGlobally(el::ConfigurationType::MaxLogFileSize, "2097152");
 
-    el::Loggers::reconfigureAllLoggers(logConf);
+    el::Loggers::setDefaultConfigurations(logConf, true);
+
+    LOG(INFO) << "Starting maze";
 
     maze = std::make_unique<Maze>();
 
@@ -40,6 +43,8 @@ extern "C" int main(int argc, char *args[])
         return 1;
     }
 
+    LOG(INFO) << "Iterating loop";
+
 #ifdef EMSCRIPTEN
     emscripten_set_main_loop((em_callback_func)iterateLoop, 60, true);
 #else
@@ -48,6 +53,8 @@ extern "C" int main(int argc, char *args[])
         quit = iterateLoop();
     }
 #endif
+
+    LOG(INFO) << "Shutting down";
 
     return 0;
 }
