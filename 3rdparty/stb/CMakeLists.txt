@@ -1,16 +1,12 @@
 include(GNUInstallDirs)
 
-file(GLOB HEADER_FILES LIST_DIRECTORIES false
-        src/include/*.h)
+file(GLOB HEADER_FILES LIST_DIRECTORIES false include/stb_image.h)
 
-file(GLOB SOURCE_FILES LIST_DIRECTORIES false
-        src/*.c)
+add_library(stb INTERFACE EXCLUDE_FROM_ALL ${HEADER_FILES})
 
-add_library(glad STATIC EXCLUDE_FROM_ALL src/gl.c)
+target_include_directories(stb INTERFACE include)
 
-target_include_directories(glad PUBLIC include)
-
-install(TARGETS glad
+install(TARGETS stb
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

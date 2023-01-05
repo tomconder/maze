@@ -35,7 +35,6 @@ conan_cmake_configure(REQUIRES
         freetype/2.12.1
         glm/0.9.9.8
         sdl/2.26.1
-        stb/cci.20210910
         zlib/1.2.13
         GENERATORS cmake_find_package
         OPTIONS
@@ -124,7 +123,6 @@ find_package(SDL2 REQUIRED)
 find_package(assimp REQUIRED)
 find_package(easyloggingpp REQUIRED)
 find_package(glm REQUIRED)
-find_package(stb REQUIRED)
 
 # for debugging
 # include(CMakePrintHelpers)
@@ -147,7 +145,7 @@ target_link_libraries(sponge PRIVATE assimp::assimp)
 target_link_libraries(sponge PRIVATE easyloggingpp::easyloggingpp)
 target_link_libraries(sponge PRIVATE glad)
 target_link_libraries(sponge PRIVATE glm::glm)
-target_link_libraries(sponge PRIVATE stb::stb)
+target_link_libraries(sponge PRIVATE stb)
 
 install(TARGETS sponge
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
