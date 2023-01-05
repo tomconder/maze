@@ -37,7 +37,75 @@ conan_cmake_configure(REQUIRES
         sdl/2.26.1
         stb/cci.20210910
         zlib/1.2.13
-        GENERATORS cmake_find_package)
+        GENERATORS cmake_find_package
+        OPTIONS
+        assimp:double_precision=True
+        assimp:with_3d=False
+        assimp:with_3ds=False
+        assimp:with_3ds_exporter=False
+        assimp:with_3mf=False
+        assimp:with_3mf_exporter=False
+        assimp:with_ac=False
+        assimp:with_amf=False
+        assimp:with_ase=False
+        assimp:with_assbin=False
+        assimp:with_assbin_exporter=False
+        assimp:with_assjson_exporter=False
+        assimp:with_assxml_exporter=False
+        assimp:with_b3d=False
+        assimp:with_blend=False
+        assimp:with_bvh=False
+        assimp:with_cob=False
+        assimp:with_collada=False
+        assimp:with_collada_exporter=False
+        assimp:with_csm=False
+        assimp:with_dxf=False
+        assimp:with_fbx=False
+        assimp:with_fbx_exporter=False
+        assimp:with_gltf=False
+        assimp:with_gltf_exporter=False
+        assimp:with_hmp=False
+        assimp:with_ifc=False
+        assimp:with_iqm=False
+        assimp:with_irr=False
+        assimp:with_irrmesh=False
+        assimp:with_lwo=False
+        assimp:with_lws=False
+        assimp:with_m3d=False
+        assimp:with_m3d_exporter=False
+        assimp:with_md2=False
+        assimp:with_md3=False
+        assimp:with_md5=False
+        assimp:with_mdc=False
+        assimp:with_mdl=False
+        assimp:with_mmd=False
+        assimp:with_ms3d=False
+        assimp:with_ndo=False
+        assimp:with_nff=False
+        assimp:with_obj=True
+        assimp:with_obj_exporter=False
+        assimp:with_off=False
+        assimp:with_ogre=False
+        assimp:with_opengex=False
+        assimp:with_opengex_exporter=False
+        assimp:with_pbrt_exporter=False
+        assimp:with_ply=False
+        assimp:with_ply_exporter=False
+        assimp:with_q3d=False
+        assimp:with_raw=False
+        assimp:with_sib=False
+        assimp:with_smd=False
+        assimp:with_step=False
+        assimp:with_step_exporter=False
+        assimp:with_stl=False
+        assimp:with_stl_exporter=False
+        assimp:with_terragen=False
+        assimp:with_x3d=False
+        assimp:with_x3d_exporter=False
+        assimp:with_x=False
+        assimp:with_x_exporter=False
+        assimp:with_xgl=False
+        easyloggingpp:enable_default_logfile=False)
 
 conan_cmake_autodetect(settings)
 
@@ -53,10 +121,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
-find_package(stb REQUIRED)
 find_package(assimp REQUIRED)
 find_package(easyloggingpp REQUIRED)
 find_package(glm REQUIRED)
+find_package(stb REQUIRED)
 
 # for debugging
 # include(CMakePrintHelpers)
@@ -79,6 +147,7 @@ target_link_libraries(sponge PRIVATE assimp::assimp)
 target_link_libraries(sponge PRIVATE easyloggingpp::easyloggingpp)
 target_link_libraries(sponge PRIVATE glad)
 target_link_libraries(sponge PRIVATE glm::glm)
+target_link_libraries(sponge PRIVATE stb::stb)
 
 install(TARGETS sponge
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
