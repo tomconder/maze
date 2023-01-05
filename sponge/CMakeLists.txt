@@ -145,7 +145,7 @@ target_link_libraries(sponge PRIVATE assimp::assimp)
 target_link_libraries(sponge PRIVATE easyloggingpp::easyloggingpp)
 target_link_libraries(sponge PRIVATE glad)
 target_link_libraries(sponge PRIVATE glm::glm)
-target_link_libraries(sponge PRIVATE stb)
+target_link_libraries(sponge PRIVATE stb_image)
 
 install(TARGETS sponge
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}

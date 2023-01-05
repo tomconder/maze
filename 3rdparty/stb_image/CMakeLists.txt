@@ -2,11 +2,11 @@ include(GNUInstallDirs)
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false include/stb_image.h)
 
-add_library(stb INTERFACE EXCLUDE_FROM_ALL ${HEADER_FILES})
+add_library(stb_image INTERFACE EXCLUDE_FROM_ALL ${HEADER_FILES})
 
-target_include_directories(stb INTERFACE include)
+target_include_directories(stb_image INTERFACE include)
 
-install(TARGETS stb
+install(TARGETS stb_image
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

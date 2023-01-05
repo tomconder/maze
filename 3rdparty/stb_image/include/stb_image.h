@@ -119,7 +119,7 @@ RECENT REVISION HISTORY:
                      Jacko Dirks
 
   To add your name to the credits, pick a random blank space in the middle and fill it.
-  80% of merge conflicts on stb PRs are due to people adding their name at the end
+  80% of merge conflicts on stb_image PRs are due to people adding their name at the end
   of the credits.
 */
 
@@ -219,7 +219,7 @@ RECENT REVISION HISTORY:
 //
 // Philosophy
 //
-// stb libraries are designed with the following priorities:
+// stb_image libraries are designed with the following priorities:
 //
 //    1. easy to use
 //    2. easy to maintain
@@ -229,7 +229,7 @@ RECENT REVISION HISTORY:
 // and for best performance I may provide less-easy-to-use APIs that give higher
 // performance, in addition to the easy-to-use ones. Nevertheless, it's important
 // to keep in mind that from the standpoint of you, a client of this library,
-// all you care about is #1 and #3, and stb libraries DO NOT emphasize #3 above all.
+// all you care about is #1 and #3, and stb_image libraries DO NOT emphasize #3 above all.
 //
 // Some secondary priorities arise directly from the first two, some of which
 // provide more explicit reasons why performance can't be emphasized.
@@ -7167,7 +7167,7 @@ static int stbi__pic_test(stbi__context *s)
 #endif
 
 // *************************************************************************************************
-// GIF loader -- public domain by Jean-Marc Lienher -- simplified/shrunk by stb
+// GIF loader -- public domain by Jean-Marc Lienher -- simplified/shrunk by stb_image
 
 #ifndef STBI_NO_GIF
 typedef struct
@@ -8504,15 +8504,15 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
       2.01  (2015-01-17) fix various warnings; suppress SIMD on gcc 32-bit without -msse2
       2.00b (2014-12-25) fix STBI_MALLOC in progressive JPEG
       2.00  (2014-12-25) optimize JPG, including x86 SSE2 & NEON SIMD (ryg)
-                         progressive JPEG (stb)
+                         progressive JPEG (stb_image)
                          PGM/PPM support (Ken Miller)
                          STBI_MALLOC,STBI_REALLOC,STBI_FREE
                          GIF bugfix -- seemingly never worked
                          STBI_NO_*, STBI_ONLY_*
       1.48  (2014-12-14) fix incorrectly-named assert()
-      1.47  (2014-12-14) 1/2/4-bit PNG support, both direct and paletted (Omar Cornut & stb)
+      1.47  (2014-12-14) 1/2/4-bit PNG support, both direct and paletted (Omar Cornut & stb_image)
                          optimize PNG (ryg)
-                         fix bug in interlaced PNG with user-specified channel count (stb)
+                         fix bug in interlaced PNG with user-specified channel count (stb_image)
       1.46  (2014-08-26)
               fix broken tRNS chunk (colorkey-style transparency) in non-paletted PNG
       1.45  (2014-08-16)
