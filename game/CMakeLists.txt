@@ -43,29 +43,31 @@ find_package(assimp REQUIRED)
 find_package(easyloggingpp REQUIRED)
 find_package(glm REQUIRED)
 
-add_executable(maze ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 
-target_compile_features(maze PRIVATE cxx_std_17)
+set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
+
+target_compile_features(game PRIVATE cxx_std_17)
 
 if (MSVC)
-  target_compile_options(maze PUBLIC "/Zi")
-  target_link_options(maze PUBLIC "/INCREMENTAL")
+  target_compile_options(game PUBLIC "/Zi")
+  target_link_options(game PUBLIC "/INCREMENTAL")
 endif ()
 
-target_include_directories(maze PUBLIC src)
-target_include_directories(maze PUBLIC ${PROJECT_BINARY_DIR})
-target_include_directories(maze PUBLIC ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/sponge/src/)
+target_include_directories(game PUBLIC src)
+target_include_directories(game PUBLIC ${PROJECT_BINARY_DIR})
+target_include_directories(game PUBLIC ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/sponge/src/)
 
-target_link_libraries(maze PUBLIC glad)
-target_link_libraries(maze PUBLIC sponge)
-target_link_libraries(maze PRIVATE Freetype::Freetype)
-target_link_libraries(maze PRIVATE SDL2::SDL2)
-target_link_libraries(maze PRIVATE assimp::assimp)
-target_link_libraries(maze PRIVATE easyloggingpp::easyloggingpp)
-target_link_libraries(maze PRIVATE glad)
-target_link_libraries(maze PRIVATE glm::glm)
+target_link_libraries(game PUBLIC glad)
+target_link_libraries(game PUBLIC sponge)
+target_link_libraries(game PRIVATE Freetype::Freetype)
+target_link_libraries(game PRIVATE SDL2::SDL2)
+target_link_libraries(game PRIVATE assimp::assimp)
+target_link_libraries(game PRIVATE easyloggingpp::easyloggingpp)
+target_link_libraries(game PRIVATE glad)
+target_link_libraries(game PRIVATE glm::glm)
 
-install(TARGETS maze
+install(TARGETS game
         BUNDLE DESTINATION bin
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
@@ -73,7 +75,7 @@ install(TARGETS maze
         FRAMEWORK DESTINATION lib)
 
 add_custom_command(
-        TARGET maze POST_BUILD
+        TARGET game POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/build/assets
         COMMENT "Copying assets" VERBATIM
