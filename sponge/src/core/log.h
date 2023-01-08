@@ -7,6 +7,7 @@ class Log
 {
   public:
     static void init();
+    static void shutdown() { spdlog::shutdown(); }
 
     static std::shared_ptr<spdlog::logger> &getAppLogger()
     {
