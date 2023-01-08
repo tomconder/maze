@@ -42,7 +42,7 @@ extern "C" int main(int argc, char *args[])
 
     SPONGE_INFO("Shutting down");
 
-    spdlog::shutdown();
+    Log::shutdown();
 
     return 0;
 }
