@@ -74,11 +74,11 @@ if (EMSCRIPTEN)
   target_include_directories(game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.cpp)
 
   target_link_libraries(game PRIVATE assimp)
-  target_link_libraries(game PRIVATE easyloggingpp)
   target_link_libraries(game PRIVATE glad)
   target_link_libraries(game PRIVATE glm::glm)
   target_link_libraries(game PRIVATE sponge)
   target_link_libraries(game PRIVATE stb_image)
+  target_link_libraries(game PRIVATE spdlog)
 
   add_custom_command(
           TARGET game PRE_BUILD
@@ -140,9 +140,9 @@ else ()
   target_link_libraries(game PRIVATE Freetype::Freetype)
   target_link_libraries(game PRIVATE SDL2::SDL2)
   target_link_libraries(game PRIVATE assimp::assimp)
-  target_link_libraries(game PRIVATE easyloggingpp)
   target_link_libraries(game PRIVATE glm::glm)
   target_link_libraries(game PRIVATE stb_image)
+  target_link_libraries(game PRIVATE spdlog)
 
   install(TARGETS game
           BUNDLE DESTINATION bin

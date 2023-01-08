@@ -8,7 +8,6 @@
 
 #include <cstddef>
 
-#include "easylogging++.h"
 #include "openglresourcemanager.h"
 
 OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices,

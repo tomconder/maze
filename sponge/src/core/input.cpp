@@ -1,7 +1,5 @@
 #include "input.h"
 
-#include "easylogging++.h"
-
 void Input::beginFrame()
 {
     pressedKeys.clear();

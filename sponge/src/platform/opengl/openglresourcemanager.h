@@ -1,6 +1,7 @@
 #ifndef INCLUDE_OPENGLRESOURCEMANAGER_H
 #define INCLUDE_OPENGLRESOURCEMANAGER_H
 
+#include <fstream>
 #include <map>
 #include <memory>
 #include <string>

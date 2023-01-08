@@ -78,9 +78,9 @@ if (EMSCRIPTEN)
   target_include_directories(sponge PUBLIC src)
 
   target_link_libraries(sponge PRIVATE assimp)
-  target_link_libraries(sponge PRIVATE easyloggingpp)
   target_link_libraries(sponge PRIVATE glad)
   target_link_libraries(sponge PRIVATE glm::glm)
+  target_link_libraries(sponge PRIVATE spdlog)
   target_link_libraries(sponge PRIVATE stb_image)
 
   add_custom_command(
@@ -211,10 +211,10 @@ else ()
   target_link_libraries(sponge PRIVATE OpenGL::GL)
   target_link_libraries(sponge PRIVATE SDL2::SDL2)
   target_link_libraries(sponge PRIVATE assimp::assimp)
-  target_link_libraries(sponge PRIVATE easyloggingpp)
   target_link_libraries(sponge PRIVATE glad)
   target_link_libraries(sponge PRIVATE glm::glm)
   target_link_libraries(sponge PRIVATE stb_image)
+  target_link_libraries(sponge PRIVATE spdlog)
 
   install(TARGETS sponge
           BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
