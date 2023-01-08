@@ -17,7 +17,7 @@ void Log::init()
     spdlog::set_default_logger(console);
 
     auto colorFormatter = std::make_unique<spdlog::pattern_formatter>();
-    colorFormatter->add_flag<LogFlag>('*').set_pattern("%^%*%$ %Y-%m-%d %T,%e [%n] %s:%# - %v");
+    colorFormatter->add_flag<LogFlag>('*').set_pattern("%^%*%$ %T,%e [%n] %s:%# - %v");
     logSinks[0]->set_formatter(std::move(colorFormatter));
 
     auto fileFormatter = std::make_unique<spdlog::pattern_formatter>();
