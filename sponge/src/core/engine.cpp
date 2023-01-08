@@ -9,7 +9,7 @@
 
 #include <array>
 
-#include "easylogging++.h"
+#include "core/log.h"
 
 Engine::Engine() : appName("undefined")
 {
@@ -25,7 +25,7 @@ int Engine::construct(int width, int height)
     if (screenWidth == 0 || screenHeight == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
                                  nullptr);
-        CLOG(ERROR, "sponge") << "Screen height or width cannot be zero";
+        SPONGE_CORE_ERROR("Screen height or width cannot be zero");
         return 0;
     }
 
@@ -35,7 +35,7 @@ int Engine::construct(int width, int height)
 int Engine::start()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
-        CLOG(ERROR, "sponge") << "Unable to initialize SDL: " << SDL_GetError();
+        SPONGE_CORE_ERROR("Unable to initialize SDL: {}", SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
         return 0;
     }
@@ -44,7 +44,7 @@ int Engine::start()
                                           screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
-        CLOG(ERROR, "sponge") << "Could not create window: " << SDL_GetError();
+        SPONGE_CORE_ERROR("Could not create window: {}", SDL_GetError());
         return 0;
     }
 

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <sstream>
 
-#include "easylogging++.h"
+#include "core/log.h"
 #include <glm/gtc/type_ptr.hpp>
 
 void OpenGLShader::compileAndLink(const std::string &vertexSource, const std::string &fragmentSource)
@@ -11,7 +11,7 @@ void OpenGLShader::compileAndLink(const std::string &vertexSource, const std::st
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
-    CLOG(INFO, "sponge") << "Building program";
+    SPONGE_CORE_INFO("Building program");
 
     GLuint vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
@@ -41,7 +41,7 @@ GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source)
     GLuint id = glCreateShader(type);
     assert(id != 0);
 
-    CLOG(INFO, "sponge") << "Compiling shader";
+    SPONGE_CORE_INFO("Compiling shader");
 
     char const *shader = source.c_str();
     glShaderSource(id, 1, &shader, nullptr);
@@ -56,7 +56,7 @@ GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source)
             std::string message;
             message.resize(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            CLOG(ERROR, "sponge") << message;
+            SPONGE_CORE_ERROR(message);
             glDeleteShader(id);
             return 0;
         }
@@ -72,7 +72,7 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs)
     glAttachShader(id, vs);
     glAttachShader(id, fs);
 
-    CLOG(INFO, "sponge") << "Linking program";
+    SPONGE_CORE_INFO("Linking program");
 
     glLinkProgram(id);
 
@@ -86,7 +86,7 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs)
             std::string message;
             message.resize(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            CLOG(ERROR, "sponge") << message;
+            SPONGE_CORE_ERROR(message);
         }
     }
 

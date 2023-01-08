@@ -6,7 +6,6 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "easylogging++.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include "version.h"
 

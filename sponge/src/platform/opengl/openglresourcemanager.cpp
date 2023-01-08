@@ -8,7 +8,7 @@
 
 #include <SDL.h>
 
-#include "easylogging++.h"
+#include "core/log.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -125,7 +125,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
 {
     assert(!path.empty());
 
-    CLOG(INFO, "sponge") << "Loading font: " << path;
+    SPONGE_CORE_INFO("Loading font: {}", path);
 
     auto font = std::make_shared<OpenGLFont>();
     font->load(path, 24);
@@ -137,7 +137,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMeshFromFile(const std::
 {
     assert(!path.empty());
 
-    CLOG(INFO, "sponge") << "Loading mesh: " << path;
+    SPONGE_CORE_INFO("Loading mesh: {}", path);
 
     auto mesh = std::make_shared<OpenGLModel>();
     mesh->load(path);
@@ -149,7 +149,7 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path)
 {
     assert(!path.empty());
 
-    CLOG(INFO, "sponge") << "Loading shader: " << path;
+    SPONGE_CORE_INFO("Loading shader: {}", path);
 
     std::string code;
     if (std::ifstream stream(path, std::ios::in); stream.is_open()) {
@@ -158,7 +158,7 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path)
         code = sstr.str();
         stream.close();
     } else {
-        CLOG(ERROR, "sponge") << "Unable to open " << path << ". Are you in the right directory?";
+        SPONGE_CORE_ERROR("Unable to open {}", path);
     }
 
     return code;
@@ -171,7 +171,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     auto name = path;
     std::replace(name.begin(), name.end(), '\\', '/');
 
-    CLOG(INFO, "sponge") << "Loading texture: " << name;
+    SPONGE_CORE_INFO("Loading texture: {}", name);
 
     int bytesPerPixel;
     int height;
@@ -197,7 +197,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     SDL_Surface *surface =
         SDL_CreateRGBSurfaceFrom(data, width, height, bytesPerPixel * 8, pitch, Rmask, Gmask, Bmask, Amask);
     if (surface == nullptr) {
-        CLOG(ERROR, "sponge") << "Unable to load texture: " << path;
+        SPONGE_CORE_ERROR("Unable to load texture: {}", path);
         return nullptr;
     }
 

@@ -6,7 +6,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
-#include "easylogging++.h"
+#include "core/log.h"
 #include "openglresourcemanager.h"
 
 void OpenGLModel::load(const std::string &path)
@@ -21,7 +21,7 @@ void OpenGLModel::load(const std::string &path)
                   aiProcess_JoinIdenticalVertices | aiProcess_RemoveRedundantMaterials | aiProcess_SplitLargeMeshes |
                   aiProcess_Triangulate);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        CLOG(ERROR, "sponge") << "Unable to load model: " << path;
+        SPONGE_CORE_ERROR("Unable to load model: {}", path);
         return;
     }
 
