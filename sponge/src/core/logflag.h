@@ -11,13 +11,13 @@ class LogFlag : public spdlog::custom_flag_formatter
 };
 
 #if !defined(LOGFLAG_LEVEL_NAMES)
-#define LOGFLAG_LEVEL_NAME_TRACE    spdlog::string_view_t("TRACE   ", 8)
-#define LOGFLAG_LEVEL_NAME_DEBUG    spdlog::string_view_t("DEBUG   ", 8)
-#define LOGFLAG_LEVEL_NAME_INFO     spdlog::string_view_t("INFO    ", 8)
-#define LOGFLAG_LEVEL_NAME_WARNING  spdlog::string_view_t("WARNING ", 8)
-#define LOGFLAG_LEVEL_NAME_ERROR    spdlog::string_view_t("ERROR   ", 8)
-#define LOGFLAG_LEVEL_NAME_CRITICAL spdlog::string_view_t("CRITICAL", 8)
-#define LOGFLAG_LEVEL_NAME_OFF      spdlog::string_view_t("OFF     ", 8)
+#define LOGFLAG_LEVEL_NAME_TRACE    spdlog::string_view_t("TRACE", 5)
+#define LOGFLAG_LEVEL_NAME_DEBUG    spdlog::string_view_t("DEBUG", 5)
+#define LOGFLAG_LEVEL_NAME_INFO     spdlog::string_view_t("INFO ", 5)
+#define LOGFLAG_LEVEL_NAME_WARNING  spdlog::string_view_t("WARN ", 5)
+#define LOGFLAG_LEVEL_NAME_ERROR    spdlog::string_view_t("ERROR", 5)
+#define LOGFLAG_LEVEL_NAME_CRITICAL spdlog::string_view_t("CRIT ", 5)
+#define LOGFLAG_LEVEL_NAME_OFF      spdlog::string_view_t("OFF  ", 5)
 
 #define LOGFLAG_LEVEL_NAMES                                                                                            \
     {                                                                                                                  \

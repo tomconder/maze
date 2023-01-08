@@ -125,7 +125,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
 {
     assert(!path.empty());
 
-    SPONGE_CORE_INFO("Loading font: {}", path);
+    SPONGE_CORE_INFO("Loading font from file '{0}'", path);
 
     auto font = std::make_shared<OpenGLFont>();
     font->load(path, 24);
@@ -137,7 +137,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMeshFromFile(const std::
 {
     assert(!path.empty());
 
-    SPONGE_CORE_INFO("Loading mesh: {}", path);
+    SPONGE_CORE_INFO("Loading mesh from file '{0}'", path);
 
     auto mesh = std::make_shared<OpenGLModel>();
     mesh->load(path);
@@ -149,16 +149,16 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path)
 {
     assert(!path.empty());
 
-    SPONGE_CORE_INFO("Loading shader: {}", path);
+    SPONGE_CORE_INFO("Loading shader from file '{0}'", path);
 
     std::string code;
-    if (std::ifstream stream(path, std::ios::in); stream.is_open()) {
+    if (std::ifstream stream(path, std::ios::in | std::ios::binary); stream.is_open()) {
         std::stringstream sstr;
         sstr << stream.rdbuf();
         code = sstr.str();
         stream.close();
     } else {
-        SPONGE_CORE_ERROR("Unable to open {}", path);
+        SPONGE_CORE_ERROR("Unable to open file '{0}'", path);
     }
 
     return code;
@@ -171,7 +171,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     auto name = path;
     std::replace(name.begin(), name.end(), '\\', '/');
 
-    SPONGE_CORE_INFO("Loading texture: {}", name);
+    SPONGE_CORE_INFO("Loading texture from file '{0}'", name);
 
     int bytesPerPixel;
     int height;
@@ -197,7 +197,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     SDL_Surface *surface =
         SDL_CreateRGBSurfaceFrom(data, width, height, bytesPerPixel * 8, pitch, Rmask, Gmask, Bmask, Amask);
     if (surface == nullptr) {
-        SPONGE_CORE_ERROR("Unable to load texture: {}", path);
+        SPONGE_CORE_ERROR("Unable to load texture from file '{0}'", path);
         return nullptr;
     }
 

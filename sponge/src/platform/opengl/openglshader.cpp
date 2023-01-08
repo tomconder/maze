@@ -53,10 +53,9 @@ GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source)
         int length;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         if (length > 0) {
-            std::string message;
-            message.resize(length);
+            std::vector<GLchar> message(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR(message);
+            SPONGE_CORE_ERROR("Shader compiling failed: {0}", message.data());
             glDeleteShader(id);
             return 0;
         }
@@ -83,10 +82,9 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs)
         int length;
         glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
         if (length > 0) {
-            std::string message;
-            message.resize(length);
+            std::vector<GLchar> message(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR(message);
+            SPONGE_CORE_ERROR("Shader linking failed: {0}", message.data());
         }
     }
 
