@@ -27,7 +27,7 @@ bool Maze::onUserCreate()
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
-    OpenGLResourceManager::loadFont("assets/fonts/LeagueGothic-Regular.ttf", "gothic");
+    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/LeagueGothic-Regular.ttf", "gothic");
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();

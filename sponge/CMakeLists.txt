@@ -14,10 +14,6 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/platform/opengl/*.cpp
         src/renderer/*.cpp)
 
-file(GLOB SHADERS LIST_DIRECTORIES false
-        shaders/*.frag
-        shaders/*.vert)
-
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")
 
@@ -82,13 +78,6 @@ if (EMSCRIPTEN)
   target_link_libraries(sponge PRIVATE glm::glm)
   target_link_libraries(sponge PRIVATE spdlog)
   target_link_libraries(sponge PRIVATE stb_image)
-
-  add_custom_command(
-          TARGET sponge PRE_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_SOURCE_DIR}/build/assets/shaders
-          COMMENT "Copying shaders" VERBATIM
-          DEPENDS ${SHADERS})
 else ()
   # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
 
@@ -225,11 +214,4 @@ else ()
           INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-  add_custom_command(
-          TARGET sponge POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/shaders ${CMAKE_SOURCE_DIR}/build/assets/shaders
-          COMMENT "Copying shaders to ${CMAKE_SOURCE_DIR}/build/assets/shaders" VERBATIM
-          DEPENDS ${SHADERS})
 endif ()
