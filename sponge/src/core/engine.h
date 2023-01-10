@@ -9,9 +9,8 @@
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglrendererapi.h"
 
-class Engine
-{
-  public:
+class Engine {
+   public:
     Engine();
     virtual ~Engine() = default;
 
@@ -38,8 +37,8 @@ class Engine
     int w = 0;
     int h = 0;
 
-  private:
+   private:
     void adjustAspectRatio(int eventW, int eventH);
 };
 
-#endif // INCLUDE_ENGINE_H
+#endif  // INCLUDE_ENGINE_H

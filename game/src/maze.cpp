@@ -11,14 +11,12 @@
 
 #define KEY_PRESSED_OR_HOLD(key) input.wasKeyPressed(key) || input.isKeyHeld(key)
 
-Maze::Maze()
-{
+Maze::Maze() {
     std::string base = "Maze ";
     appName = base + MAZE_VERSION;
 }
 
-bool Maze::onUserCreate()
-{
+bool Maze::onUserCreate() {
     OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
     OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
     OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
@@ -51,8 +49,7 @@ bool Maze::onUserCreate()
     return true;
 }
 
-bool Maze::onUserUpdate(Uint32 elapsedTime)
-{
+bool Maze::onUserUpdate(Uint32 elapsedTime) {
     if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE)) {
         return false;
     }
@@ -91,8 +88,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime)
     return true;
 }
 
-bool Maze::onUserResize(int width, int height)
-{
+bool Maze::onUserResize(int width, int height) {
     camera->setViewportSize(width, height);
 
     glm::mat projection = camera->getProjection();
@@ -107,7 +103,6 @@ bool Maze::onUserResize(int width, int height)
     return true;
 }
 
-bool Maze::onUserDestroy()
-{
+bool Maze::onUserDestroy() {
     return true;
 }

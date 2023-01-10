@@ -3,9 +3,8 @@
 
 #include <string>
 
-class Texture
-{
-  public:
+class Texture {
+   public:
     virtual ~Texture() = default;
 
     virtual uint32_t getWidth() const = 0;
@@ -15,4 +14,4 @@ class Texture
     virtual void bind() const = 0;
 };
 
-#endif // INCLUDE_TEXTURE_H
+#endif  // INCLUDE_TEXTURE_H

@@ -3,12 +3,11 @@
 
 #include "glm/vec4.hpp"
 
-class GraphicsContext
-{
-  public:
+class GraphicsContext {
+   public:
     virtual ~GraphicsContext() = default;
 
     virtual void flip() = 0;
 };
 
-#endif // INCLUDE_GRAPHICS_CONTEXT_H
+#endif  // INCLUDE_GRAPHICS_CONTEXT_H

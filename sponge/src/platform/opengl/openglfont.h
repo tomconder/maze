@@ -1,11 +1,11 @@
 #ifndef INCLUDE_OPENGLFONT_H
 #define INCLUDE_OPENGLFONT_H
 
+#include <ft2build.h>
+
 #include <map>
 #include <memory>
 #include <string>
-
-#include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <SDL.h>
@@ -17,17 +17,15 @@
 #include "opengltexture.h"
 #include "openglvertexarray.h"
 
-struct Character
-{
+struct Character {
     unsigned int id;
     glm::ivec2 size;
     glm::ivec2 bearing;
     unsigned int advance;
 };
 
-class OpenGLFont
-{
-  public:
+class OpenGLFont {
+   public:
     OpenGLFont();
     void load(const std::string &path, unsigned int fontSize);
 
@@ -39,4 +37,4 @@ class OpenGLFont
     std::map<unsigned char, Character> Characters;
 };
 
-#endif // INCLUDE_OPENGLFONT_H
+#endif  // INCLUDE_OPENGLFONT_H

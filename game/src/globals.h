@@ -3,10 +3,9 @@
 
 #define UNUSED(x) (void)(x)
 
-namespace globals
-{
+namespace globals {
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
-} // namespace globals
+}  // namespace globals
 
-#endif // INCLUDE_GLOBALS_H
+#endif  // INCLUDE_GLOBALS_H

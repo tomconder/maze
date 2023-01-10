@@ -7,9 +7,8 @@
 #include "openglvertexarray.h"
 #include "renderer/sprite.h"
 
-class OpenGLSprite : public Sprite
-{
-  public:
+class OpenGLSprite : public Sprite {
+   public:
     OpenGLSprite();
 
     void render(const std::string &name, glm::vec2 position, glm::vec2 size) const;
@@ -18,4 +17,4 @@ class OpenGLSprite : public Sprite
     std::unique_ptr<OpenGLVertexArray> vao;
 };
 
-#endif // INCLUDE_OPENGLSPRITE_H
+#endif  // INCLUDE_OPENGLSPRITE_H
