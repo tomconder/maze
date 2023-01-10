@@ -11,9 +11,8 @@
 #include "openglshader.h"
 #include "opengltexture.h"
 
-class OpenGLResourceManager
-{
-  public:
+class OpenGLResourceManager {
+   public:
     static std::shared_ptr<OpenGLFont> getFont(const std::string &name);
     static std::shared_ptr<OpenGLFont> loadFont(const std::string &path, const std::string &name);
 
@@ -28,7 +27,7 @@ class OpenGLResourceManager
     static std::shared_ptr<OpenGLTexture> loadTexture(const std::string &path, const std::string &name);
     static std::shared_ptr<OpenGLTexture> loadTextureWithType(const std::string &path, const std::string &typeName);
 
-  private:
+   private:
     OpenGLResourceManager() = default;
 
     static std::shared_ptr<OpenGLFont> loadFontFromFile(const std::string &path);
@@ -42,4 +41,4 @@ class OpenGLResourceManager
     static std::map<std::string, std::shared_ptr<OpenGLTexture>, std::less<>> textures;
 };
 
-#endif // INCLUDE_OPENGLRESOURCEMANAGER_H
+#endif  // INCLUDE_OPENGLRESOURCEMANAGER_H

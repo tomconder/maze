@@ -8,13 +8,11 @@
 std::unique_ptr<Maze> maze;
 
 // loop iteration is broken out like this for emscripten
-bool iterateLoop()
-{
+bool iterateLoop() {
     return maze->iterateLoop();
 }
 
-extern "C" int main(int argc, char *args[])
-{
+extern "C" int main(int argc, char *args[]) {
     Log::init();
 
     SPONGE_INFO("Starting maze");

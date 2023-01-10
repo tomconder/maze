@@ -11,15 +11,13 @@
 
 #include "renderer/shader.h"
 
-class OpenGLShader : public Shader
-{
-  public:
+class OpenGLShader : public Shader {
+   public:
     OpenGLShader() = default;
     ~OpenGLShader() override;
 
     void compileAndLink(const std::string &vertexSource, const std::string &fragmentSource);
-    GLuint getId() const
-    {
+    GLuint getId() const {
         return program;
     };
 
@@ -31,11 +29,11 @@ class OpenGLShader : public Shader
     void setInteger(const std::string &name, int value) override;
     void setMat4(const std::string &name, glm::mat4 value) override;
 
-  private:
+   private:
     static GLuint compileShader(GLenum type, const std::string &file);
     static GLuint linkProgram(GLuint vs, GLuint fs);
 
     GLuint program = 0;
 };
 
-#endif // INCLUDE_OPENGL_SHADER_H
+#endif  // INCLUDE_OPENGL_SHADER_H

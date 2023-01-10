@@ -6,15 +6,14 @@
 
 struct SDL_Window;
 
-class OpenGLContext : public GraphicsContext
-{
-  public:
+class OpenGLContext : public GraphicsContext {
+   public:
     explicit OpenGLContext(SDL_Window *window);
     ~OpenGLContext() override;
 
     void flip() override;
 
-  private:
+   private:
     SDL_Window *window = nullptr;
     int width;
     int height;
@@ -23,4 +22,4 @@ class OpenGLContext : public GraphicsContext
     void setVSync(int interval);
 };
 
-#endif // INCLUDE_OPENGL_CONTEXT_H
+#endif  // INCLUDE_OPENGL_CONTEXT_H

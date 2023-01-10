@@ -3,22 +3,23 @@
 
 #include <spdlog/spdlog.h>
 
-class Log
-{
-  public:
-    static void init();
-    static void shutdown() { spdlog::shutdown(); }
+static const char *const SPONGE_LOG_FILE = "log.txt";
 
-    static std::shared_ptr<spdlog::logger> &getAppLogger()
-    {
+class Log {
+   public:
+    static void init();
+    static void shutdown() {
+        spdlog::shutdown();
+    }
+
+    static std::shared_ptr<spdlog::logger> &getAppLogger() {
         return appLogger;
     }
-    static std::shared_ptr<spdlog::logger> &getCoreLogger()
-    {
+    static std::shared_ptr<spdlog::logger> &getCoreLogger() {
         return coreLogger;
     }
 
-  private:
+   private:
     static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> appLogger;
 };
@@ -35,4 +36,4 @@ class Log
 #define SPONGE_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getAppLogger(), __VA_ARGS__)
 
-#endif // MAZE_LOG_H
+#endif  // MAZE_LOG_H

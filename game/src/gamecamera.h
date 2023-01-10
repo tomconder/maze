@@ -7,9 +7,8 @@
 #include "globals.h"
 #include "renderer/camera.h"
 
-class GameCamera : public Camera
-{
-  public:
+class GameCamera : public Camera {
+   public:
     GameCamera() = default;
     GameCamera(float fov, float width, float height, float zNear, float zFar);
 
@@ -17,28 +16,23 @@ class GameCamera : public Camera
 
     void setViewportSize(int viewportWidth, int viewportHeight);
 
-    const glm::mat4 &getProjection() const
-    {
+    const glm::mat4 &getProjection() const {
         return projection;
     }
-    const glm::mat4 &getViewMatrix() const
-    {
+    const glm::mat4 &getViewMatrix() const {
         return view;
     }
 
     glm::quat getOrientation() const;
-    float getPitch() const
-    {
+    float getPitch() const {
         return pitch;
     }
-    float getYaw() const
-    {
+    float getYaw() const {
         return yaw;
     }
 
     void setPosition(const glm::vec3 &position);
-    glm::vec3 getPosition()
-    {
+    glm::vec3 getPosition() {
         return cameraPos;
     }
 
@@ -50,7 +44,7 @@ class GameCamera : public Camera
     void mouseMove(const glm::vec2 &offset);
     void mouseScroll(const glm::vec2 &offset);
 
-  private:
+   private:
     void updateProjection();
     void updateView();
 
@@ -74,4 +68,4 @@ class GameCamera : public Camera
     glm::vec3 cameraFront = { 0.0f, 0.0f, -1.0f };
 };
 
-#endif // INCLUDE_GAMECAMERA_H
+#endif  // INCLUDE_GAMECAMERA_H

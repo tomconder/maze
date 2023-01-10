@@ -1,17 +1,17 @@
 #include "log.h"
-#include "logflag.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include "logflag.h"
+
 std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::appLogger;
 
-void Log::init()
-{
+void Log::init() {
     std::vector<spdlog::sink_ptr> logSinks;
     logSinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-    logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("log.txt", true));
+    logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(SPONGE_LOG_FILE, true));
 
     auto console = spdlog::stdout_color_mt("console");
     spdlog::set_default_logger(console);

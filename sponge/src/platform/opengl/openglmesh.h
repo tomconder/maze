@@ -9,9 +9,8 @@
 #include "openglvertexarray.h"
 #include "renderer/mesh.h"
 
-class OpenGLMesh : public Mesh
-{
-  public:
+class OpenGLMesh : public Mesh {
+   public:
     OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices,
                const std::vector<std::shared_ptr<OpenGLTexture>> &textures);
     void render() const;
@@ -22,4 +21,4 @@ class OpenGLMesh : public Mesh
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
 
-#endif // INCLUDE_OPENGLMESH_H
+#endif  // INCLUDE_OPENGLMESH_H
