@@ -9,6 +9,9 @@
 void OpenGLRendererAPI::init() {
     glEnable(GL_DEPTH_TEST);
 
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_STENCIL_TEST);
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
