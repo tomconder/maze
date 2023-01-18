@@ -87,7 +87,7 @@ void OpenGLMesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, (GLint) indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
