@@ -1,5 +1,4 @@
-#ifndef INCLUDE_MAZE_H
-#define INCLUDE_MAZE_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -21,5 +20,3 @@ class Maze : public Engine {
     std::unique_ptr<GameCamera> camera;
     std::unique_ptr<OpenGLSprite> sprite;
 };
-
-#endif  // INCLUDE_MAZE_H

@@ -1,5 +1,4 @@
-#ifndef INCLUDE_MESH_H
-#define INCLUDE_MESH_H
+#pragma once
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -19,5 +18,3 @@ class Mesh {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 };
-
-#endif  // INCLUDE_MESH_H

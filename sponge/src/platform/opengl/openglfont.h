@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGLFONT_H
-#define INCLUDE_OPENGLFONT_H
-
 #include <ft2build.h>
 
 #include <map>
@@ -38,5 +35,3 @@ class OpenGLFont {
 
     std::map<unsigned char, Character> Characters;
 };
-
-#endif  // INCLUDE_OPENGLFONT_H

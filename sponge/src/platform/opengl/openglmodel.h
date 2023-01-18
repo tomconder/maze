@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGLMODEL_H
-#define INCLUDE_OPENGLMODEL_H
-
 #include <assimp/scene.h>
 
 #include <memory>
@@ -27,5 +24,3 @@ class OpenGLModel {
                                                                             const std::string &typeName);
     void processNode(const aiNode *node, const aiScene *scene);
 };
-
-#endif  // INCLUDE_OPENGLMODEL_H

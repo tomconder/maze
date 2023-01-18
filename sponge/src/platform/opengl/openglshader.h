@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGL_SHADER_H
-#define INCLUDE_OPENGL_SHADER_H
-
 #include <string>
 
 #include "gl.h"
@@ -32,5 +29,3 @@ class OpenGLShader : public Shader {
 
     GLuint program = 0;
 };
-
-#endif  // INCLUDE_OPENGL_SHADER_H

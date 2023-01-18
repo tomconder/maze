@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGLTEXTURE_H
-#define INCLUDE_OPENGLTEXTURE_H
-
 #include <string>
 
 #include "gl.h"
@@ -40,5 +37,3 @@ class OpenGLTexture : public Texture {
     GLenum format = 0;
     std::string type;
 };
-
-#endif  // INCLUDE_OPENGLTEXTURE_H

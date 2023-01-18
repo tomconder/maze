@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGL_CONTEXT_H
-#define INCLUDE_OPENGL_CONTEXT_H
-
 #include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
@@ -24,5 +21,3 @@ class OpenGLContext : public GraphicsContext {
 
     void setVSync(int interval);
 };
-
-#endif  // INCLUDE_OPENGL_CONTEXT_H

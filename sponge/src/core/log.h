@@ -1,5 +1,4 @@
-#ifndef MAZE_LOG_H
-#define MAZE_LOG_H
+#pragma once
 
 #include <spdlog/spdlog.h>
 
@@ -35,5 +34,3 @@ class Log {
 #define SPONGE_WARN(...)     SPDLOG_LOGGER_WARN(Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getAppLogger(), __VA_ARGS__)
-
-#endif  // MAZE_LOG_H

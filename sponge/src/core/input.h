@@ -1,5 +1,4 @@
-#ifndef INCLUDE_INPUT_H
-#define INCLUDE_INPUT_H
+#pragma once
 
 #include <SDL.h>
 
@@ -38,5 +37,3 @@ class Input {
     glm::vec2 scrollDelta = { 0.f, 0.f };
     float lastScrollTimestamp = 0.f;
 };
-
-#endif  // INCLUDE_INPUT_H

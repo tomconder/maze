@@ -1,5 +1,4 @@
-#ifndef INCLUDE_ENGINE_H
-#define INCLUDE_ENGINE_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -40,5 +39,3 @@ class Engine {
    private:
     void adjustAspectRatio(int eventW, int eventH);
 };
-
-#endif  // INCLUDE_ENGINE_H

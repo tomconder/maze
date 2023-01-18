@@ -1,5 +1,4 @@
-#ifndef MAZE_LOGFLAG_H
-#define MAZE_LOGFLAG_H
+#pragma once
 
 #include <spdlog/pattern_formatter.h>
 
@@ -24,5 +23,3 @@ class LogFlag : public spdlog::custom_flag_formatter {
             LOGFLAG_LEVEL_NAME_ERROR, LOGFLAG_LEVEL_NAME_CRITICAL, LOGFLAG_LEVEL_NAME_OFF                        \
     }
 #endif
-
-#endif  // MAZE_LOGFLAG_H

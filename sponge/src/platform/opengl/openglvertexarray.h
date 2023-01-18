@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef INCLUDE_OPENGLVERTEXARRAY_H
-#define INCLUDE_OPENGLVERTEXARRAY_H
-
 #include <SDL.h>
 
 #include "gl.h"
@@ -18,5 +15,3 @@ class OpenGLVertexArray : public VertexArray {
    private:
     uint32_t id = 0;
 };
-
-#endif  // INCLUDE_OPENGLVERTEXARRAY_H
