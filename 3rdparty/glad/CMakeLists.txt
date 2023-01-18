@@ -2,11 +2,7 @@ include(GNUInstallDirs)
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false src/include/*.h)
 
-if (EMSCRIPTEN)
-  set(SOURCE_FILES src/gles2.c)
-else ()
-  set(SOURCE_FILES src/gl.c)
-endif ()
+set(SOURCE_FILES src/glad.c)
 
 add_library(glad STATIC EXCLUDE_FROM_ALL ${SOURCE_FILES})
 

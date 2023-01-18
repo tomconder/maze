@@ -1,11 +1,5 @@
 #include "openglmesh.h"
 
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
-
 #include <cstddef>
 
 #include "openglresourcemanager.h"

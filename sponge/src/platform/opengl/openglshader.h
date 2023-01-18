@@ -1,14 +1,11 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGL_SHADER_H
 #define INCLUDE_OPENGL_SHADER_H
 
 #include <string>
 
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
-
+#include "gl.h"
 #include "renderer/shader.h"
 
 class OpenGLShader : public Shader {

@@ -1,8 +1,11 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGLVERTEXARRAY_H
 #define INCLUDE_OPENGLVERTEXARRAY_H
 
 #include <SDL.h>
 
+#include "gl.h"
 #include "renderer/vertexarray.h"
 
 class OpenGLVertexArray : public VertexArray {

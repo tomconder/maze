@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGLSPRITE_H
 #define INCLUDE_OPENGLSPRITE_H
 

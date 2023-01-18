@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGLFONT_H
 #define INCLUDE_OPENGLFONT_H
 

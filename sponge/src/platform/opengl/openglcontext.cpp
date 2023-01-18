@@ -1,11 +1,6 @@
 #include "openglcontext.h"
 
 #include <SDL.h>
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
 
 #include "core/log.h"
 #include "globals.h"
@@ -33,11 +28,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
         return;
     }
 
-#ifdef EMSCRIPTEN
-    gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
-#else
-    gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
-#endif
+    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR("Could not be set up OpenGL context for rendering: {}", SDL_GetError());

@@ -1,11 +1,5 @@
 #include "openglelementbuffer.h"
 
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
-
 OpenGLElementBuffer::OpenGLElementBuffer(uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);

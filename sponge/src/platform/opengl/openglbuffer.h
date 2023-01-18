@@ -1,8 +1,11 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGLBUFFER_H
 #define INCLUDE_OPENGLBUFFER_H
 
 #include <SDL.h>
 
+#include "gl.h"
 #include "renderer/buffer.h"
 
 class OpenGLBuffer : public Buffer {

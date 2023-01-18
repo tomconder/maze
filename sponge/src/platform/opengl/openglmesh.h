@@ -1,8 +1,11 @@
+#pragma once
+
 #ifndef INCLUDE_OPENGLMESH_H
 #define INCLUDE_OPENGLMESH_H
 
 #include <memory>
 
+#include "gl.h"
 #include "openglbuffer.h"
 #include "openglelementbuffer.h"
 #include "opengltexture.h"
