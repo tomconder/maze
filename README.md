@@ -1,6 +1,6 @@
 # Maze
 
-Load and display a maze.
+Load and display a maze. In 3D.
 
 ## Installing
 
