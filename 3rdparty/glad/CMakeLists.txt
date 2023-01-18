@@ -8,6 +8,8 @@ add_library(glad STATIC EXCLUDE_FROM_ALL ${SOURCE_FILES})
 
 target_include_directories(glad PUBLIC include)
 
+target_precompile_headers(glad PRIVATE ${HEADER_FILES})
+
 install(TARGETS glad
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

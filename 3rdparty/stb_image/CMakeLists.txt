@@ -6,6 +6,8 @@ add_library(stb_image INTERFACE EXCLUDE_FROM_ALL ${HEADER_FILES})
 
 target_include_directories(stb_image INTERFACE include)
 
+target_precompile_headers(stb_image INTERFACE ${HEADER_FILES})
+
 install(TARGETS stb_image
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

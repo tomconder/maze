@@ -6,6 +6,8 @@ add_library(spdlog INTERFACE EXCLUDE_FROM_ALL)
 
 target_include_directories(spdlog INTERFACE include)
 
+target_precompile_headers(spdlog PRIVATE ${HEADER_FILES})
+
 install(TARGETS spdlog
         BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
