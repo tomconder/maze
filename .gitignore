@@ -1,4 +1,5 @@
 /build/
+/site/
 
 ### CMake template
 CMakeLists.txt.user
