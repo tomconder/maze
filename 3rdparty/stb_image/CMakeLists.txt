@@ -2,7 +2,7 @@ include(GNUInstallDirs)
 
 set(HEADER_FILES include/stb_image.h)
 
-add_library(stb_image INTERFACE EXCLUDE_FROM_ALL ${HEADER_FILES})
+add_library(stb_image INTERFACE EXCLUDE_FROM_ALL)
 
 target_include_directories(stb_image INTERFACE include)
 
