@@ -1,8 +1,6 @@
 # Maze
 
-Load and display a maze.
-
-> For more information please check out the [full documentation](https://tomconder.github.io/maze/)
+Load and display a maze. In 3D.
 
 ## Installing
 
