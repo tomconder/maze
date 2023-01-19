@@ -18,7 +18,7 @@ OpenGLSprite::OpenGLSprite() {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(vertices.data(), sizeof(vertices));
+    vbo = std::make_unique<OpenGLBuffer>(vertices.data(), (GLuint)sizeof(vertices));
     vbo->bind();
 
     GLuint program = OpenGLResourceManager::getShader("sprite")->getId();

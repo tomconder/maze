@@ -14,10 +14,10 @@ OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<un
     vao->bind();
 
     vbo = std::make_unique<OpenGLBuffer>(reinterpret_cast<const float *>(vertices.data()),
-                                         vertices.size() * sizeof(Vertex));
+                                         (GLuint)vertices.size() * (GLuint)sizeof(Vertex));
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(indices.data(), indices.size() * sizeof(unsigned int));
+    ebo = std::make_unique<OpenGLElementBuffer>(indices.data(), (GLuint)indices.size() * (GLuint)sizeof(unsigned int));
     ebo->bind();
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
@@ -81,7 +81,7 @@ void OpenGLMesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, (GLint) indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);

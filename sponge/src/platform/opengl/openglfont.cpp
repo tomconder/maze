@@ -21,7 +21,7 @@ OpenGLFont::OpenGLFont() {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(sizeof(float) * 6 * 4);
+    vbo = std::make_unique<OpenGLBuffer>((GLuint)sizeof(float) * 6 * 4);
     vbo->bind();
 
     GLuint program = shader->getId();
