@@ -51,7 +51,11 @@ int Engine::start() {
         return 0;
     }
 
-    graphics = std::make_unique<OpenGLContext>(window);
+#ifdef EMSCRIPTEN
+    graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
+#else
+    graphics = std::make_unique<OpenGLContext>(window, "OpenGL");
+#endif
 
     graphics->logGlVersion();
     graphics->logStaticOpenGLInfo();

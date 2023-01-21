@@ -16,9 +16,9 @@
 #endif
 
 #include <iomanip>
-#include <iostream>
+#include <utility>
 
-OpenGLContext::OpenGLContext(SDL_Window *window) {
+OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -26,14 +26,25 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef EMSCRIPTEN
-    const std::pair<int, int> glVersions[7]{ { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } };
-    glName = "OpenGL ES";
+    const std::array<std::pair<int, int>, 7> glVersions{
+        { { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } }
+    };
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #else
-    const std::pair<int, int> glVersions[13]{ { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
-                                              { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 1 }, { 2, 0 } };
-    glName = "OpenGL";
+    const std::array<std::pair<int, int>, 13> glVersions{ { { 4, 6 },
+                                                            { 4, 5 },
+                                                            { 4, 4 },
+                                                            { 4, 3 },
+                                                            { 4, 2 },
+                                                            { 4, 1 },
+                                                            { 4, 0 },
+                                                            { 3, 3 },
+                                                            { 3, 2 },
+                                                            { 3, 1 },
+                                                            { 3, 0 },
+                                                            { 2, 1 },
+                                                            { 2, 0 } } };
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 #endif
@@ -140,7 +151,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
             v.emplace_back("VSync");
         }
         if (isTargetTexture) {
-            v.emplace_back("TT");
+            v.emplace_back("TTex");
         }
 
         auto flags = v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(), [](auto &a, auto &b) {
@@ -155,25 +166,25 @@ void OpenGLContext::logOpenGLContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     std::stringstream ss;
-    ss << std::setw(20) << std::left << "OpenGL Version: " << glGetString(GL_VERSION);
+    ss << std::setw(20) << std::left << "OpenGL version: " << glGetString(GL_VERSION);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+    ss << std::setw(20) << std::left << "OpenGL glsl: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL Renderer: " << glGetString(GL_RENDERER);
+    ss << std::setw(20) << std::left << "OpenGL renderer: " << glGetString(GL_RENDERER);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL Vendor: " << glGetString(GL_VENDOR);
+    ss << std::setw(20) << std::left << "OpenGL vendor: " << glGetString(GL_VENDOR);
     SPONGE_CORE_INFO(ss.str());
 
     GLint extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL #EXT: " << extensions;
+    ss << std::setw(20) << std::left << "OpenGL extensions: " << extensions;
     SPONGE_CORE_DEBUG(ss.str());
 }
 
@@ -188,19 +199,17 @@ void OpenGLContext::setVSync(int interval) {
     // 1 for updates synchronized with the vertical retrace
     // -1 for adaptive vsync
 
-    SPONGE_CORE_DEBUG("Setting vsync to {}", interval);
-
     if (SDL_GL_SetSwapInterval(interval) == 0) {
         syncInterval = interval;
+        SPONGE_CORE_DEBUG("Set vsync to {}", syncInterval);
         return;
     }
 
-    if (interval == -1) {
-        //  the system does not support adaptive vsync, so try with vsync
-        if (SDL_GL_SetSwapInterval(1) == 0) {
-            syncInterval = 1;
-            return;
-        }
+    //  the system does not support adaptive vsync, so try with vsync
+    if (interval == -1 && SDL_GL_SetSwapInterval(1) == 0) {
+        syncInterval = 1;
+        SPONGE_CORE_DEBUG("Set vsync to {}", syncInterval);
+        return;
     }
 
     SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
