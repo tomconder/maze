@@ -38,18 +38,21 @@ class GameCamera : public Camera {
     void moveForward(unsigned int delta);
     void moveBackward(unsigned int delta);
     void strafeLeft(unsigned int delta);
+
     void strafeRight(unsigned int delta);
 
     void mouseMove(const glm::vec2 &offset);
+
     void mouseScroll(const glm::vec2 &offset);
 
-   private:
+private:
     void updateProjection();
+
     void updateView();
 
     float fov = 45.0f;
-    float zNear = 1.0f;
-    float zFar = 1000.0f;
+    const float zCullDistanceNear = 0.01f;
+    const float zCullDistanceFar = 1000.0f;
 
     float pitch = 0.0f;
     float yaw = -90.0f;

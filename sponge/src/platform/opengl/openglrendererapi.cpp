@@ -1,17 +1,18 @@
 #include "openglrendererapi.h"
 
 void OpenGLRendererAPI::init() {
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
 
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_STENCIL_TEST);
 
-    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
 
-    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
 }
 
 void OpenGLRendererAPI::setViewport(int32_t x, int32_t y, int32_t width, int32_t height) {

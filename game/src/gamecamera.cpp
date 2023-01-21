@@ -6,17 +6,17 @@
 #include <glm/gtx/quaternion.hpp>
 
 GameCamera::GameCamera(float fov, float width, float height, float zNear, float zFar)
-    : fov(fov), width(width), height(height), zNear(zNear), zFar(zFar) {
+        : fov(fov), width(width), height(height), zCullDistanceNear(zNear), zCullDistanceFar(zFar) {
     updateProjection();
 
-    glm::vec3 front = { std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)), std::sin(glm::radians(pitch)),
-                        std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch)) };
+    glm::vec3 front = {std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)), std::sin(glm::radians(pitch)),
+                       std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch))};
     cameraFront = glm::normalize(front);
     updateView();
 }
 
 void GameCamera::updateProjection() {
-    projection = glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
+    projection = glm::perspectiveFov(glm::radians(fov), width, height, zCullDistanceNear, zCullDistanceFar);
 }
 
 void GameCamera::updateView() {
