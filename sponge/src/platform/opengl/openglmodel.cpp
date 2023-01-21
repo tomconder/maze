@@ -112,7 +112,7 @@ std::vector<std::shared_ptr<OpenGLTexture>> OpenGLModel::loadMaterialTextures(co
         aiString str;
         mat->GetTexture(textureType, i, &str);
 
-        std::string filename = std::string("assets/models/") + std::string(str.C_Str());
+        std::string filename = std::string("assets/meshes/") + std::string(str.C_Str());
         auto texture = OpenGLResourceManager::loadTextureWithType(filename, typeName);
 
         textures.push_back(texture);

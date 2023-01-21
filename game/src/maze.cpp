@@ -21,7 +21,7 @@ bool Maze::onUserCreate() {
     OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
     OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
 
-    OpenGLResourceManager::loadMesh("assets/models/mountains.obj", "Maze");
+    OpenGLResourceManager::loadMesh("assets/meshes/mountains.obj", "Maze");
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
