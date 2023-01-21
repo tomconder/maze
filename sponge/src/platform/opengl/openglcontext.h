@@ -4,19 +4,31 @@
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
 
+#include <string>
+
 struct SDL_Window;
 
 class OpenGLContext : public GraphicsContext {
-   public:
+public:
     explicit OpenGLContext(SDL_Window *window);
+
     ~OpenGLContext() override;
 
     void flip() override;
 
-   private:
+    void logGlVersion() const;
+
+    static void logGraphicsDriverInfo();
+
+    static void logOpenGLContextInfo();
+
+    static void logStaticOpenGLInfo();
+
+private:
     SDL_Window *window = nullptr;
     int width;
     int height;
+    std::string glName;
     int syncInterval = 0;
 
     void setVSync(int interval);

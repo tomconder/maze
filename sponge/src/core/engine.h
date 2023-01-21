@@ -9,18 +9,25 @@
 #include "platform/opengl/openglrendererapi.h"
 
 class Engine {
-   public:
+public:
     Engine();
+
     virtual ~Engine() = default;
 
     int construct(int width, int height);
+
     int start();
 
     bool iterateLoop();
 
+    void logSDLVersion() const;
+
     virtual bool onUserCreate();
+
     virtual bool onUserUpdate(Uint32 elapsedTime);
+
     virtual bool onUserDestroy();
+
     virtual bool onUserResize(int width, int height);
 
     Input input;
