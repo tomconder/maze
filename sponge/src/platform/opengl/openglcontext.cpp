@@ -24,24 +24,51 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef EMSCRIPTEN
+    const std::pair<int, int> glVersions[7]
+     {{3, 2}, {3, 1}, {3, 0},
+      {2, 2}, {2, 1}, {2, 0},
+      {1, 1}
+    };
     glName = "OpenGL ES";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #else
+    const std::pair<int, int> glVersions[13]
+            {{4, 6},
+             {4, 5},
+             {4, 4},
+             {4, 3},
+             {4, 2},
+             {4, 1},
+             {4, 0},
+             {3, 3},
+             {3, 2},
+             {3, 1},
+             {3, 0},
+             {2, 1},
+             {2, 0}
+            };
     glName = "OpenGL";
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 #endif
 
     SPONGE_CORE_INFO("Creating OpenGL context");
 
-    SDL_GLContext context = SDL_GL_CreateContext(window);
+    SDL_GLContext context = nullptr;
+
+    // try to create versions
+    for (auto &version: glVersions) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.first);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.second);
+        context = SDL_GL_CreateContext(window);
+        if (context != nullptr) {
+            break;
+        }
+    }
+
     if (context == nullptr) {
-        SPONGE_CORE_ERROR("OpenGL context could not be created: {}", SDL_GetError());
+        SPONGE_CORE_CRITICAL("OpenGL context could not be created: {}", SDL_GetError());
         return;
     }
 
