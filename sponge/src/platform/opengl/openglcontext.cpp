@@ -19,6 +19,8 @@
 #include <iostream>
 
 OpenGLContext::OpenGLContext(SDL_Window *window) {
+    SPONGE_CORE_INFO("Initializing OpenGL");
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -51,7 +53,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
     }
 
     if (context == nullptr) {
-        SPONGE_CORE_CRITICAL("OpenGL context could not be created: {}", SDL_GetError());
+        SPONGE_CORE_ERROR("OpenGL context could not be created: {}", SDL_GetError());
         return;
     }
 
@@ -185,6 +187,8 @@ void OpenGLContext::setVSync(int interval) {
     // 0 for immediate updates
     // 1 for updates synchronized with the vertical retrace
     // -1 for adaptive vsync
+
+    SPONGE_CORE_DEBUG("Setting vsync to {}", interval);
 
     if (SDL_GL_SetSwapInterval(interval) == 0) {
         syncInterval = interval;

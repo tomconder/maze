@@ -20,7 +20,7 @@ class Engine {
 
     bool iterateLoop();
 
-    void logSDLVersion() const;
+    static void logSDLVersion();
 
     virtual bool onUserCreate();
 
