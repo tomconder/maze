@@ -113,6 +113,13 @@ void OpenGLContext::logGlVersion() const {
     SPONGE_CORE_INFO("Created {} context: {}.{}", glName, majorVersion, minorVersion);
 }
 
+void OpenGLContext::toggleFullscreen() {
+    isFullScreen = !isFullScreen;
+    if (SDL_SetWindowFullscreen(window, isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) < 0) {
+        SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
+    }
+}
+
 void OpenGLContext::logGraphicsDriverInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 

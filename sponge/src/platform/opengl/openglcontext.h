@@ -9,7 +9,7 @@
 struct SDL_Window;
 
 class OpenGLContext : public GraphicsContext {
-   public:
+public:
     explicit OpenGLContext(SDL_Window *window, std::string name);
 
     ~OpenGLContext() override;
@@ -18,18 +18,21 @@ class OpenGLContext : public GraphicsContext {
 
     void logGlVersion() const;
 
+    void toggleFullscreen();
+
     static void logGraphicsDriverInfo();
 
     static void logOpenGLContextInfo();
 
     static void logStaticOpenGLInfo();
 
-   private:
+private:
     SDL_Window *window = nullptr;
     int width;
     int height;
     std::string glName;
     int syncInterval = 0;
+    bool isFullScreen = false;
 
     void setVSync(int interval);
 };
