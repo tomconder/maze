@@ -9,7 +9,7 @@
 struct SDL_Window;
 
 class OpenGLContext : public GraphicsContext {
-public:
+   public:
     explicit OpenGLContext(SDL_Window *window, std::string name);
 
     ~OpenGLContext() override;
@@ -26,7 +26,7 @@ public:
 
     static void logStaticOpenGLInfo();
 
-private:
+   private:
     SDL_Window *window = nullptr;
     int width;
     int height;
