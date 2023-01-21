@@ -7,8 +7,8 @@
 #include <SDL.h>
 
 #include <array>
-#include <sstream>
 #include <glm/vec3.hpp>
+#include <sstream>
 
 #include "core/log.h"
 
@@ -42,9 +42,9 @@ int Engine::start() {
 
     logSDLVersion();
 
-    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                          screenWidth, screenHeight,
-                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    SDL_Window *window =
+        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight,
+                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_ERROR("Could not create window: {}", SDL_GetError());
@@ -60,7 +60,7 @@ int Engine::start() {
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
-    renderer->setClearColor(glm::vec4{0.36f, 0.36f, 0.36f, 1.0f});
+    renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
 
     if (!onUserCreate()) {
         SDL_DestroyWindow(window);
@@ -143,15 +143,11 @@ void Engine::logSDLVersion() const {
         ss << "(" << revision << ")";
     }
 
-    SPONGE_CORE_DEBUG("SDL Version (Compiled): {}.{}.{} {}",
-                      static_cast<int>(compiled.major),
-                      static_cast<int>(compiled.minor),
-                      static_cast<int>(compiled.patch),
+    SPONGE_CORE_DEBUG("SDL Version (Compiled): {}.{}.{} {}", static_cast<int>(compiled.major),
+                      static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
                       !revision.empty() ? ss.str() : "");
 
-    SPONGE_CORE_DEBUG("SDL Version (Runtime): {}.{}.{}",
-                      static_cast<int>(linked.major),
-                      static_cast<int>(linked.minor),
+    SPONGE_CORE_DEBUG("SDL Version (Runtime): {}.{}.{}", static_cast<int>(linked.major), static_cast<int>(linked.minor),
                       static_cast<int>(linked.patch));
 }
 

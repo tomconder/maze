@@ -9,7 +9,7 @@
 #include "platform/opengl/openglrendererapi.h"
 
 class Engine {
-public:
+   public:
     Engine();
 
     virtual ~Engine() = default;

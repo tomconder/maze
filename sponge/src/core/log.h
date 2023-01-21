@@ -7,7 +7,7 @@
 static const char *const SPONGE_LOG_FILE = "log.txt";
 
 class Log {
-public:
+   public:
     static void init();
 
     static void shutdown() {

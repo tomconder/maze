@@ -1,15 +1,15 @@
 #pragma once
 
+#include <string>
+
 #include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
 
-#include <string>
-
 struct SDL_Window;
 
 class OpenGLContext : public GraphicsContext {
-public:
+   public:
     explicit OpenGLContext(SDL_Window *window);
 
     ~OpenGLContext() override;
@@ -24,7 +24,7 @@ public:
 
     static void logStaticOpenGLInfo();
 
-private:
+   private:
     SDL_Window *window = nullptr;
     int width;
     int height;

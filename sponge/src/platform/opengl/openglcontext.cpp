@@ -2,12 +2,12 @@
 
 #include <SDL.h>
 
+#include <cassert>
+#include <numeric>
+#include <sstream>
+
 #include "core/log.h"
 #include "globals.h"
-
-#include <cassert>
-#include <sstream>
-#include <numeric>
 
 #ifdef EMSCRIPTEN
 
@@ -15,8 +15,8 @@
 
 #endif
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 OpenGLContext::OpenGLContext(SDL_Window *window) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -24,30 +24,13 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef EMSCRIPTEN
-    const std::pair<int, int> glVersions[7]
-     {{3, 2}, {3, 1}, {3, 0},
-      {2, 2}, {2, 1}, {2, 0},
-      {1, 1}
-    };
+    const std::pair<int, int> glVersions[7]{ { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } };
     glName = "OpenGL ES";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #else
-    const std::pair<int, int> glVersions[13]
-            {{4, 6},
-             {4, 5},
-             {4, 4},
-             {4, 3},
-             {4, 2},
-             {4, 1},
-             {4, 0},
-             {3, 3},
-             {3, 2},
-             {3, 1},
-             {3, 0},
-             {2, 1},
-             {2, 0}
-            };
+    const std::pair<int, int> glVersions[13]{ { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
+                                              { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 1 }, { 2, 0 } };
     glName = "OpenGL";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -57,8 +40,8 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
 
     SDL_GLContext context = nullptr;
 
-    // try to create versions
-    for (auto &version: glVersions) {
+    // create context trying different versions
+    for (auto &version : glVersions) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.first);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.second);
         context = SDL_GL_CreateContext(window);
@@ -72,7 +55,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window) {
         return;
     }
 
-    gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
+    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR("Could not be set up OpenGL context for rendering: {}", SDL_GetError());
@@ -145,13 +128,22 @@ void OpenGLContext::logGraphicsDriverInfo() {
         std::vector<std::string> v;
         v.reserve(4);
 
-        if (isSoftware) { v.emplace_back("SW"); }
-        if (isHardware) { v.emplace_back("HW"); }
-        if (isVSyncEnabled) { v.emplace_back("VSync"); }
-        if (isTargetTexture) { v.emplace_back("TT"); }
+        if (isSoftware) {
+            v.emplace_back("SW");
+        }
+        if (isHardware) {
+            v.emplace_back("HW");
+        }
+        if (isVSyncEnabled) {
+            v.emplace_back("VSync");
+        }
+        if (isTargetTexture) {
+            v.emplace_back("TT");
+        }
 
-        auto flags = v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(),
-                                                      [](auto &a, auto &b) { return a.append(", ").append(b); });
+        auto flags = v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(), [](auto &a, auto &b) {
+            return a.append(", ").append(b);
+        });
 
         SPONGE_CORE_DEBUG("Render driver #{}: {:<10} [{}]", i, info.name, flags.c_str());
     }
