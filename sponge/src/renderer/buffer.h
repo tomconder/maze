@@ -1,5 +1,4 @@
-#ifndef INCLUDE_BUFFER_H
-#define INCLUDE_BUFFER_H
+#pragma once
 
 class Buffer {
    public:
@@ -9,5 +8,3 @@ class Buffer {
 
     virtual void setData(const unsigned char *data, uint32_t size) = 0;
 };
-
-#endif  // INCLUDE_BUFFER_H

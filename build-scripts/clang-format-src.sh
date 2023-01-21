@@ -1,11 +1,15 @@
 #!/bin/sh
 
-cd "$(dirname $0)/../sponge/src"
+pushd . > /dev/null
+cd "../sponge/src"
 echo "Running clang-format in $(pwd)"
 find . -regex '.*\.[chm]p*' -exec clang-format -i {} \;
+popd > /dev/null
 
-cd "$(dirname $0)/../game/src"
+pushd . > /dev/null
+cd "../game/src"
 echo "Running clang-format in $(pwd)"
 find . -regex '.*\.[chm]p*' -exec clang-format -i {} \;
+popd > /dev/null
 
 echo "clang-format complete!"

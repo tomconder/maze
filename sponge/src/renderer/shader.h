@@ -1,5 +1,4 @@
-#ifndef INCLUDE_SHADER_H
-#define INCLUDE_SHADER_H
+#pragma once
 
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
@@ -17,5 +16,3 @@ class Shader {
     virtual void setInteger(const std::string &name, int value) = 0;
     virtual void setMat4(const std::string &name, glm::mat4 value) = 0;
 };
-
-#endif  // INCLUDE_SHADER_H

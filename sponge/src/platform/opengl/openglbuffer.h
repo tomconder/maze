@@ -1,8 +1,8 @@
-#ifndef INCLUDE_OPENGLBUFFER_H
-#define INCLUDE_OPENGLBUFFER_H
+#pragma once
 
 #include <SDL.h>
 
+#include "gl.h"
 #include "renderer/buffer.h"
 
 class OpenGLBuffer : public Buffer {
@@ -17,5 +17,3 @@ class OpenGLBuffer : public Buffer {
    private:
     uint32_t id = 0;
 };
-
-#endif  // INCLUDE_OPENGLBUFFER_H

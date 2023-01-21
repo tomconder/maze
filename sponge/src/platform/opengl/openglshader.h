@@ -1,14 +1,8 @@
-#ifndef INCLUDE_OPENGL_SHADER_H
-#define INCLUDE_OPENGL_SHADER_H
+#pragma once
 
 #include <string>
 
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
-
+#include "gl.h"
 #include "renderer/shader.h"
 
 class OpenGLShader : public Shader {
@@ -35,5 +29,3 @@ class OpenGLShader : public Shader {
 
     GLuint program = 0;
 };
-
-#endif  // INCLUDE_OPENGL_SHADER_H

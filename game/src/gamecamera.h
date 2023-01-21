@@ -1,5 +1,4 @@
-#ifndef INCLUDE_GAMECAMERA_H
-#define INCLUDE_GAMECAMERA_H
+#pragma once
 
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/mat4x4.hpp>
@@ -67,5 +66,3 @@ class GameCamera : public Camera {
     glm::vec3 up = { 0.0f, 1.0f, 0.0f };
     glm::vec3 cameraFront = { 0.0f, 0.0f, -1.0f };
 };
-
-#endif  // INCLUDE_GAMECAMERA_H

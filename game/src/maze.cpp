@@ -50,7 +50,7 @@ bool Maze::onUserCreate() {
 }
 
 bool Maze::onUserUpdate(Uint32 elapsedTime) {
-    if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE)) {
+    if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE) || input.wasKeyPressed(SDL_SCANCODE_Q)) {
         return false;
     }
 
@@ -62,6 +62,10 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         camera->strafeLeft(elapsedTime);
     } else if (KEY_PRESSED_OR_HOLD(SDL_SCANCODE_D) || KEY_PRESSED_OR_HOLD(SDL_SCANCODE_RIGHT)) {
         camera->strafeRight(elapsedTime);
+    }
+
+    if (input.wasKeyPressed(SDL_SCANCODE_F)) {
+        graphics->toggleFullscreen();
     }
 
     if (input.isButtonPressed()) {

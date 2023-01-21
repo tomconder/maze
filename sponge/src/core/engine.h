@@ -1,5 +1,4 @@
-#ifndef INCLUDE_ENGINE_H
-#define INCLUDE_ENGINE_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -12,16 +11,23 @@
 class Engine {
    public:
     Engine();
+
     virtual ~Engine() = default;
 
     int construct(int width, int height);
+
     int start();
 
     bool iterateLoop();
 
+    static void logSDLVersion();
+
     virtual bool onUserCreate();
+
     virtual bool onUserUpdate(Uint32 elapsedTime);
+
     virtual bool onUserDestroy();
+
     virtual bool onUserResize(int width, int height);
 
     Input input;
@@ -40,5 +46,3 @@ class Engine {
    private:
     void adjustAspectRatio(int eventW, int eventH);
 };
-
-#endif  // INCLUDE_ENGINE_H

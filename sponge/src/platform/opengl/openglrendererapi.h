@@ -1,6 +1,6 @@
-#ifndef INCLUDE_OPENGLRENDERERAPI_H
-#define INCLUDE_OPENGLRENDERERAPI_H
+#pragma once
 
+#include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/rendererapi.h"
 
@@ -12,5 +12,3 @@ class OpenGLRendererAPI : public RendererAPI {
     void setClearColor(const glm::vec4 &color) override;
     void clear() override;
 };
-
-#endif  // INCLUDE_OPENGLRENDERERAPI_H

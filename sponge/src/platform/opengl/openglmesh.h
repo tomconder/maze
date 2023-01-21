@@ -1,8 +1,8 @@
-#ifndef INCLUDE_OPENGLMESH_H
-#define INCLUDE_OPENGLMESH_H
+#pragma once
 
 #include <memory>
 
+#include "gl.h"
 #include "openglbuffer.h"
 #include "openglelementbuffer.h"
 #include "opengltexture.h"
@@ -20,5 +20,3 @@ class OpenGLMesh : public Mesh {
     std::unique_ptr<OpenGLVertexArray> vao;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
-
-#endif  // INCLUDE_OPENGLMESH_H

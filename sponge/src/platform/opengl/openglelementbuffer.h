@@ -1,8 +1,8 @@
-#ifndef INCLUDE_OPENGLELEMENTBUFFER_H
-#define INCLUDE_OPENGLELEMENTBUFFER_H
+#pragma once
 
 #include <SDL.h>
 
+#include "gl.h"
 #include "renderer/buffer.h"
 
 class OpenGLElementBuffer : public Buffer {
@@ -17,5 +17,3 @@ class OpenGLElementBuffer : public Buffer {
    private:
     uint32_t id = 0;
 };
-
-#endif  // INCLUDE_OPENGLELEMENTBUFFER_H

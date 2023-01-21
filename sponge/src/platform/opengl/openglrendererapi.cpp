@@ -1,11 +1,5 @@
 #include "openglrendererapi.h"
 
-#ifdef EMSCRIPTEN
-#include <glad/gles2.h>
-#else
-#include <glad/gl.h>
-#endif
-
 void OpenGLRendererAPI::init() {
     glEnable(GL_DEPTH_TEST);
 

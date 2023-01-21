@@ -1,5 +1,4 @@
-#ifndef INCLUDE_OPENGLRESOURCEMANAGER_H
-#define INCLUDE_OPENGLRESOURCEMANAGER_H
+#pragma once
 
 #include <fstream>
 #include <map>
@@ -40,5 +39,3 @@ class OpenGLResourceManager {
     static std::map<std::string, std::shared_ptr<OpenGLShader>, std::less<>> shaders;
     static std::map<std::string, std::shared_ptr<OpenGLTexture>, std::less<>> textures;
 };
-
-#endif  // INCLUDE_OPENGLRESOURCEMANAGER_H

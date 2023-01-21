@@ -1,5 +1,6 @@
-/build/
 /site/
+/build/
+/venv/
 
 ### CMake template
 CMakeLists.txt.user

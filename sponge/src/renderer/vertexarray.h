@@ -1,5 +1,4 @@
-#ifndef INCLUDE_VERTEXARRAY_H
-#define INCLUDE_VERTEXARRAY_H
+#pragma once
 
 class VertexArray {
    public:
@@ -7,5 +6,3 @@ class VertexArray {
 
     virtual void bind() const = 0;
 };
-
-#endif  // INCLUDE_VERTEXARRAY_H

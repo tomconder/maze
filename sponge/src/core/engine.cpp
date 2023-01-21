@@ -8,6 +8,7 @@
 
 #include <array>
 #include <glm/vec3.hpp>
+#include <sstream>
 
 #include "core/log.h"
 
@@ -31,21 +32,35 @@ int Engine::construct(int width, int height) {
 }
 
 int Engine::start() {
+    SPONGE_CORE_INFO("Initializing SDL");
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
-        SPONGE_CORE_ERROR("Unable to initialize SDL: {}", SDL_GetError());
+        SPONGE_CORE_CRITICAL("Unable to initialize SDL: {}", SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
         return 0;
     }
 
-    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                          screenWidth, screenHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    logSDLVersion();
+
+    SDL_Window *window =
+        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight,
+                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
-        SPONGE_CORE_ERROR("Could not create window: {}", SDL_GetError());
+        SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
         return 0;
     }
 
-    graphics = std::make_unique<OpenGLContext>(window);
+#ifdef EMSCRIPTEN
+    graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
+#else
+    graphics = std::make_unique<OpenGLContext>(window, "OpenGL");
+#endif
+
+    graphics->logGlVersion();
+    graphics->logStaticOpenGLInfo();
+    graphics->logGraphicsDriverInfo();
+    graphics->logOpenGLContextInfo();
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
@@ -117,6 +132,27 @@ bool Engine::iterateLoop() {
     }
 
     return false;
+}
+
+void Engine::logSDLVersion() {
+    SDL_version compiled;
+    SDL_version linked;
+
+    SDL_VERSION(&compiled);
+    SDL_GetVersion(&linked);
+
+    std::string revision = SDL_GetRevision();
+    std::stringstream ss;
+    if (!revision.empty()) {
+        ss << "(" << revision << ")";
+    }
+
+    SPONGE_CORE_DEBUG("SDL Version (Compiled): {}.{}.{} {}", static_cast<int>(compiled.major),
+                      static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
+                      !revision.empty() ? ss.str() : "");
+
+    SPONGE_CORE_DEBUG("SDL Version (Runtime): {}.{}.{}", static_cast<int>(linked.major), static_cast<int>(linked.minor),
+                      static_cast<int>(linked.patch));
 }
 
 bool Engine::onUserCreate() {

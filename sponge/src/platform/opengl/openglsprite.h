@@ -1,5 +1,4 @@
-#ifndef INCLUDE_OPENGLSPRITE_H
-#define INCLUDE_OPENGLSPRITE_H
+#pragma once
 
 #include <memory>
 
@@ -16,5 +15,3 @@ class OpenGLSprite : public Sprite {
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
 };
-
-#endif  // INCLUDE_OPENGLSPRITE_H
