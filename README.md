@@ -4,6 +4,16 @@ Load and display a maze.
 
 > For more information please check out the [full documentation](https://tomconder.github.io/maze/)
 
+## Project Organization
+
+    maze
+      + 3rdparty        # third party dependencies
+      + build-scripts   # build utility scripts 
+      + cmake           # cmake specific files
+      + docs            # documentation
+      + game            # source files for maze   
+      + sponge          # source files for sponge game engine
+      
 ## Installing
 
 Clone this repository.
