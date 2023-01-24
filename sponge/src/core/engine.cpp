@@ -43,8 +43,9 @@ int Engine::start() {
     logSDLVersion();
 
     SDL_Window *window =
-        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+            SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth,
+                             screenHeight,
+                             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
@@ -64,7 +65,7 @@ int Engine::start() {
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
-    renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
+    renderer->setClearColor(glm::vec4{0.36f, 0.36f, 0.36f, 1.0f});
 
     if (!onUserCreate()) {
         SDL_DestroyWindow(window);
@@ -72,6 +73,8 @@ int Engine::start() {
     }
 
     lastUpdateTime = SDL_GetTicks();
+
+    SDL_ShowWindow(window);
 
     return 1;
 }
