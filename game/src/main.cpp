@@ -30,7 +30,7 @@ extern "C" int main(int argc, char *args[]) {
     SPONGE_INFO("Iterating loop");
 
 #ifdef EMSCRIPTEN
-    emscripten_set_main_loop((em_callback_func)iterateLoop, 60, true);
+    emscripten_set_main_loop((em_callback_func) iterateLoop, 0, false);
 #else
     bool quit = false;
     while (!quit) {
