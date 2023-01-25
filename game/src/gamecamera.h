@@ -45,7 +45,7 @@ class GameCamera : public Camera {
 
     void mouseScroll(const glm::vec2 &offset);
 
-private:
+   private:
     void updateProjection();
 
     void updateView();
