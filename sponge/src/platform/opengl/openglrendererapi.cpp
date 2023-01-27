@@ -18,11 +18,11 @@ static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity,
 }
 
 void OpenGLRendererAPI::init() {
-#ifndef EMSCRIPTEN
-    glDebugMessageCallback(glLogMessage, nullptr);
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-#endif
+    if (glDebugMessageCallback != nullptr) {
+        glDebugMessageCallback(glLogMessage, nullptr);
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    }
 
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
