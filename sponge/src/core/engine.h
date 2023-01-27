@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "globals.h"
 #include "input.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglrendererapi.h"
@@ -41,3 +40,5 @@ class Engine {
     int w = 0;
     int h = 0;
 };
+
+#define UNUSED(x) (void)(x)

@@ -28,8 +28,8 @@ class OpenGLContext : public GraphicsContext {
 
    private:
     SDL_Window *window = nullptr;
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
     std::string glName;
     int syncInterval = 0;
     bool isFullScreen = false;
