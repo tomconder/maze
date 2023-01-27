@@ -10,7 +10,7 @@ struct SDL_Window;
 
 class OpenGLContext : public GraphicsContext {
    public:
-    explicit OpenGLContext(SDL_Window *window, std::string name);
+    OpenGLContext(SDL_Window *window, const std::string &name);
 
     ~OpenGLContext() override;
 

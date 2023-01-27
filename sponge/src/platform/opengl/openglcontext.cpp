@@ -17,7 +17,7 @@
 #include <iomanip>
 #include <utility>
 
-OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
+OpenGLContext::OpenGLContext(SDL_Window *window, const std::string &name) : glName(name) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
