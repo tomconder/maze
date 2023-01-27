@@ -32,28 +32,28 @@ OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<un
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
     }
 
-    location = static_cast<GLuint>(glGetAttribLocation(program, "normal"));
+    location = glGetAttribLocation(program, "normal");
     if (location != -1) {
         auto position = static_cast<GLuint>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
     }
 
-    location = static_cast<GLuint>(glGetAttribLocation(program, "texCoord"));
+    location = glGetAttribLocation(program, "texCoord");
     if (location != -1) {
         auto position = static_cast<GLuint>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
     }
 
-    location = static_cast<GLuint>(glGetAttribLocation(program, "tangent"));
+    location = glGetAttribLocation(program, "tangent");
     if (location != -1) {
         auto position = static_cast<GLuint>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
     }
 
-    location = static_cast<GLuint>(glGetAttribLocation(program, "biTangent"));
+    location = glGetAttribLocation(program, "biTangent");
     if (location != -1) {
         auto position = static_cast<GLuint>(location);
         glEnableVertexAttribArray(position);
