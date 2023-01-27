@@ -8,7 +8,7 @@
 
 class OpenGLSprite : public Sprite {
    public:
-    OpenGLSprite();
+    OpenGLSprite(int screenWidth, int screenHeight);
 
     void render(const std::string &name, glm::vec2 position, glm::vec2 size) const;
 

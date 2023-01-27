@@ -9,7 +9,7 @@
 
 class Maze : public Engine {
    public:
-    Maze();
+    Maze(int screenWidth, int screenHeight);
 
     bool onUserCreate() override;
     bool onUserUpdate(Uint32 elapsedTime) override;

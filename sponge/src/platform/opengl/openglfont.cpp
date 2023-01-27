@@ -7,15 +7,13 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "core/log.h"
-#include "globals.h"
 #include "openglresourcemanager.h"
 
-OpenGLFont::OpenGLFont() {
+OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
 
-    auto projection =
-        glm::ortho(0.f, static_cast<float>(globals::SCREEN_WIDTH), 0.f, static_cast<float>(globals::SCREEN_HEIGHT));
+    auto projection = glm::ortho(0.f, static_cast<float>(screenWidth), 0.f, static_cast<float>(screenHeight));
     shader->setMat4("projection", projection);
 
     vao = std::make_unique<OpenGLVertexArray>();

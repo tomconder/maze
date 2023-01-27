@@ -22,7 +22,8 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(const std::string &na
     return fonts.at(name);
 }
 
-std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &path, const std::string &name) {
+std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &path, const std::string &name,
+                                                            int screenWidth, int screenHeight) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -30,7 +31,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
         return fonts[name];
     }
 
-    std::shared_ptr<OpenGLFont> font = loadFontFromFile(path);
+    std::shared_ptr<OpenGLFont> font = loadFontFromFile(path, screenWidth, screenHeight);
     fonts[name] = font;
 
     return font;
@@ -111,12 +112,13 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureWithType(const 
     return texture;
 }
 
-std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::string &path) {
+std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::string &path, int screenWidth,
+                                                                    int screenHeight) {
     assert(!path.empty());
 
     SPONGE_CORE_INFO("Loading font file: {0}", path);
 
-    auto font = std::make_shared<OpenGLFont>();
+    auto font = std::make_shared<OpenGLFont>(screenWidth, screenHeight);
     font->load(path, 24);
 
     return font;

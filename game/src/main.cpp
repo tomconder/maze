@@ -17,9 +17,9 @@ extern "C" int main(int argc, char *args[]) {
 
     SPONGE_INFO("Starting maze");
 
-    maze = std::make_unique<Maze>();
+    maze = std::make_unique<Maze>(1600, 900);
 
-    if (maze->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == 0) {
+    if (maze->construct() == 0) {
         return 1;
     }
 

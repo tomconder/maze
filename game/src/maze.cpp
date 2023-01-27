@@ -6,14 +6,18 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
+#include "core/log.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include "version.h"
 
 #define KEY_PRESSED_OR_HOLD(key) input.wasKeyPressed(key) || input.isKeyHeld(key)
 
-Maze::Maze() {
+Maze::Maze(int screenWidth, int screenHeight) {
     std::string base = "Maze ";
     appName = base + MAZE_VERSION;
+    SPONGE_INFO("Maze {}", MAZE_VERSION);
+    w = screenWidth;
+    h = screenHeight;
 }
 
 bool Maze::onUserCreate() {
@@ -25,13 +29,16 @@ bool Maze::onUserCreate() {
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
-    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/LeagueGothic-Regular.ttf", "gothic");
+    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/LeagueGothic-Regular.ttf", "gothic", w, h);
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
 
-    camera = std::make_unique<GameCamera>(80.0f, static_cast<float>(screenWidth), static_cast<float>(screenHeight), 1.f,
-                                          18000.0f);
+    SPONGE_INFO("Setting camera for {}x{}", w, h);
+    adjustAspectRatio(w, h);
+    renderer->setViewport(offsetx, offsety, w, h);
+
+    camera = std::make_unique<GameCamera>(80.0f, static_cast<float>(w), static_cast<float>(h), 1.f, 18000.0f);
 
     camera->setPosition(glm::vec3(0.f, 40.f, 70.f));
 
@@ -44,7 +51,7 @@ bool Maze::onUserCreate() {
     shader->setFloat3("lightPos", glm::vec3(40.f, 40.f, 40.f));
     shader->setFloat("ambientStrength", 0.2f);
 
-    sprite = std::make_unique<OpenGLSprite>();
+    sprite = std::make_unique<OpenGLSprite>(w, h);
 
     return true;
 }
@@ -66,6 +73,18 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 
     if (input.wasKeyPressed(SDL_SCANCODE_F)) {
         graphics->toggleFullscreen();
+    }
+
+    if (input.wasKeyPressed(SDL_SCANCODE_KP_PLUS)) {
+        // bump up text size
+        SPONGE_DEBUG("Text size up");
+    } else if (input.wasKeyPressed(SDL_SCANCODE_KP_MINUS)) {
+        // bump down text size
+        SPONGE_DEBUG("Text size down");
+
+    } else if (input.wasKeyPressed(SDL_SCANCODE_KP_0)) {
+        // reset text size
+        SPONGE_DEBUG("Text size reset");
     }
 
     if (input.isButtonPressed()) {

@@ -3,7 +3,6 @@
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/mat4x4.hpp>
 
-#include "globals.h"
 #include "renderer/camera.h"
 
 class GameCamera : public Camera {
@@ -59,8 +58,8 @@ class GameCamera : public Camera {
 
     float cameraSpeed = 0.1f;
 
-    float width = globals::SCREEN_WIDTH * 1.0f;
-    float height = globals::SCREEN_HEIGHT * 1.0f;
+    float width = 0.0f;
+    float height = 0.0f;
 
     glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
