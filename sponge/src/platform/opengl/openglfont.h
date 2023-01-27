@@ -2,9 +2,9 @@
 
 #include <ft2build.h>
 
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include FT_FREETYPE_H
 
 #include <SDL.h>
@@ -33,5 +33,5 @@ class OpenGLFont {
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
 
-    std::map<unsigned char, Character> Characters;
+    std::unordered_map<unsigned char, Character> Characters;
 };

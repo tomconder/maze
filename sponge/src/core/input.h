@@ -3,7 +3,7 @@
 #include <SDL.h>
 
 #include <glm/vec2.hpp>
-#include <map>
+#include <unordered_map>
 
 class Input {
    public:
@@ -28,9 +28,9 @@ class Input {
     glm::vec2 getScrollDelta();
 
    private:
-    std::map<SDL_Scancode, bool> heldKeys;
-    std::map<SDL_Scancode, bool> pressedKeys;
-    std::map<SDL_Scancode, bool> releasedKeys;
+    std::unordered_map<SDL_Scancode, bool> heldKeys;
+    std::unordered_map<SDL_Scancode, bool> pressedKeys;
+    std::unordered_map<SDL_Scancode, bool> releasedKeys;
 
     bool buttonPressed = false;
     glm::vec2 moveDelta = { 0.f, 0.f };

@@ -12,10 +12,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-std::map<std::string, std::shared_ptr<OpenGLFont>, std::less<>> OpenGLResourceManager::fonts;
-std::map<std::string, std::shared_ptr<OpenGLModel>, std::less<>> OpenGLResourceManager::meshes;
-std::map<std::string, std::shared_ptr<OpenGLShader>, std::less<>> OpenGLResourceManager::shaders;
-std::map<std::string, std::shared_ptr<OpenGLTexture>, std::less<>> OpenGLResourceManager::textures;
+std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> OpenGLResourceManager::fonts;
+std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> OpenGLResourceManager::meshes;
+std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> OpenGLResourceManager::shaders;
+std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>> OpenGLResourceManager::textures;
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(const std::string &name) {
     assert(!name.empty());
@@ -27,11 +27,11 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
     assert(!name.empty());
 
     if (fonts.find(name) != fonts.end()) {
-        return fonts.at(name);
+        return fonts[name];
     }
 
     std::shared_ptr<OpenGLFont> font = loadFontFromFile(path);
-    fonts.try_emplace(name, font);
+    fonts[name] = font;
 
     return font;
 }
@@ -46,11 +46,11 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMesh(const std::string &
     assert(!name.empty());
 
     if (meshes.find(name) != meshes.end()) {
-        return meshes.at(name);
+        return meshes[name];
     }
 
     std::shared_ptr<OpenGLModel> mesh = loadMeshFromFile(path);
-    meshes.try_emplace(name, mesh);
+    meshes[name] = mesh;
 
     return mesh;
 }
@@ -72,7 +72,7 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(const std::strin
 
     auto shader = std::make_shared<OpenGLShader>(name, vertexSource, fragmentSource);
 
-    shaders.try_emplace(shader->getName(), shader);
+    shaders[shader->getName()] = shader;
     return shader;
 }
 
@@ -86,11 +86,11 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(const std::str
     assert(!name.empty());
 
     if (textures.find(name) != textures.end()) {
-        return textures.at(name);
+        return textures[name];
     }
 
     std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
-    textures.try_emplace(name, texture);
+    textures[name] = texture;
 
     return texture;
 }
@@ -101,12 +101,12 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureWithType(const 
     assert(!typeName.empty());
 
     if (textures.find(path) != textures.end()) {
-        return textures.at(path);
+        return textures[path];
     }
 
     std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
     texture->setType(typeName);
-    textures.try_emplace(path, texture);
+    textures[path] = texture;
 
     return texture;
 }
