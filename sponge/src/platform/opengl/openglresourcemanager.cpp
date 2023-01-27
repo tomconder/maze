@@ -70,10 +70,9 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(const std::strin
     std::string vertexSource = loadSourceFromFile(vertexShader);
     std::string fragmentSource = loadSourceFromFile(fragmentShader);
 
-    auto shader = std::make_shared<OpenGLShader>();
-    shader->compileAndLink(vertexSource, fragmentSource);
+    auto shader = std::make_shared<OpenGLShader>(name, vertexSource, fragmentSource);
 
-    shaders.try_emplace(name, shader);
+    shaders.try_emplace(shader->getName(), shader);
     return shader;
 }
 

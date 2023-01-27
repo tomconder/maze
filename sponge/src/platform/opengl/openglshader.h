@@ -7,25 +7,30 @@
 
 class OpenGLShader : public Shader {
    public:
-    OpenGLShader() = default;
-    ~OpenGLShader() override;
+    OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource);
+    virtual ~OpenGLShader() override;
 
-    void compileAndLink(const std::string &vertexSource, const std::string &fragmentSource);
+    virtual void bind() const override;
+    virtual void unbind() const override;
+
+    virtual void setBoolean(const std::string &name, bool value) override;
+    virtual void setFloat(const std::string &name, float value) override;
+    virtual void setFloat3(const std::string &name, const glm::vec3 &value) override;
+    virtual void setInteger(const std::string &name, int value) override;
+    virtual void setMat4(const std::string &name, const glm::mat4 &value) override;
+
+    virtual const std::string &getName() const override {
+        return name;
+    };
+
     GLuint getId() const {
         return program;
     };
-
-    OpenGLShader *bind() override;
-
-    void setBoolean(const std::string &name, bool value) override;
-    void setFloat(const std::string &name, float value) override;
-    void setFloat3(const std::string &name, glm::vec3 value) override;
-    void setInteger(const std::string &name, int value) override;
-    void setMat4(const std::string &name, glm::mat4 value) override;
 
    private:
     static GLuint compileShader(GLenum type, const std::string &file);
     static GLuint linkProgram(GLuint vs, GLuint fs);
 
     GLuint program = 0;
+    std::string name;
 };

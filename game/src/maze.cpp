@@ -96,13 +96,19 @@ bool Maze::onUserResize(int width, int height) {
     camera->setViewportSize(width, height);
 
     glm::mat projection = camera->getProjection();
-    OpenGLResourceManager::getShader("shader")->bind()->setMat4("projection", projection);
+    auto shader = OpenGLResourceManager::getShader("shader");
+    shader->bind();
+    shader->setMat4("projection", projection);
 
     projection = glm::ortho(0.f, static_cast<float>(width), static_cast<float>(height), 0.f, -1.f, 1.f);
-    OpenGLResourceManager::getShader("sprite")->bind()->setMat4("projection", projection);
+    shader = OpenGLResourceManager::getShader("sprite");
+    shader->bind();
+    shader->setMat4("projection", projection);
 
     projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
-    OpenGLResourceManager::getShader("text")->bind()->setMat4("projection", projection);
+    shader = OpenGLResourceManager::getShader("text");
+    shader->bind();
+    shader->setMat4("projection", projection);
 
     return true;
 }
