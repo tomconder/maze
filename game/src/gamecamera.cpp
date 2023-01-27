@@ -1,6 +1,5 @@
 #include "gamecamera.h"
 
-#include <cmath>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -9,8 +8,8 @@ GameCamera::GameCamera(float fov, float width, float height, float zNear, float 
     : fov(fov), width(width), height(height), zCullDistanceNear(zNear), zCullDistanceFar(zFar) {
     updateProjection();
 
-    glm::vec3 front = { std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)), std::sin(glm::radians(pitch)),
-                        std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch)) };
+    glm::vec3 front = { glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)), glm::sin(glm::radians(pitch)),
+                        glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch)) };
     cameraFront = glm::normalize(front);
     updateView();
 }
