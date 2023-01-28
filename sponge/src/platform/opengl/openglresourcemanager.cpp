@@ -37,6 +37,21 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
     return font;
 }
 
+std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadBMFont(const std::string &path, const std::string &name,
+                                                              int screenWidth, int screenHeight) {
+    assert(!path.empty());
+    assert(!name.empty());
+
+    if (fonts.find(name) != fonts.end()) {
+        return fonts[name];
+    }
+
+    std::shared_ptr<OpenGLFont> font = loadBMFontFromFile(path, screenWidth, screenHeight);
+    fonts[name] = font;
+
+    return font;
+}
+
 std::shared_ptr<OpenGLModel> OpenGLResourceManager::getMesh(const std::string &name) {
     assert(!name.empty());
     return meshes.at(name);
@@ -120,6 +135,18 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
 
     auto font = std::make_shared<OpenGLFont>(screenWidth, screenHeight);
     font->load(path, 24);
+
+    return font;
+}
+
+std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadBMFontFromFile(const std::string &path, int screenWidth,
+                                                                      int screenHeight) {
+    assert(!path.empty());
+
+    SPONGE_CORE_INFO("Loading BM font file: {0}", path);
+
+    auto font = std::make_shared<OpenGLFont>(screenWidth, screenHeight);
+    font->loadFromBMFile(path, 24);
 
     return font;
 }
