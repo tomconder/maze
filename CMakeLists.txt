@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15)
 
 set(MAZE_VERSION 1.0.0)
 # increment this when we break backwards compatibility
