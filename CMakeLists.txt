@@ -1,13 +1,36 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(MAZE_VERSION 1.0.0)
+set(MAZE_VERSION 1.0)
 # increment this when we break backwards compatibility
 set(MAZE_SOVERSION 1)
 
-project(maze VERSION ${MAZE_VERSION})
+project(maze
+        VERSION ${MAZE_VERSION}
+        DESCRIPTION "A nice walk in a maze"
+        HOMEPAGE_URL "https://gitub.com/tomconder/maze"
+        )
+
+set(COPYRIGHT "Copyright 2023 Tom Conder")
+
+# accommodate missing version number values
+string(APPEND VERSION ${PROJECT_VERSION_MAJOR})
+if (PROJECT_VERSION_MINOR)
+  string(APPEND VERSION ",${PROJECT_VERSION_MINOR}")
+else()
+  string(APPEND VERSION ",0")
+endif ()
+if (PROJECT_VERSION_PATCH)
+  string(APPEND VERSION ",${PROJECT_VERSION_PATCH}")
+else()
+  string(APPEND VERSION ",0")
+endif ()
+if (PROJECT_VERSION_TWEAK)
+  string(APPEND VERSION ",${PROJECT_VERSION_TWEAK}")
+else()
+  string(APPEND VERSION ",0")
+endif ()
 
 message(STATUS "Configuring maze ${maze_VERSION}")
-configure_file(cmake/version.h.in version.h @ONLY)
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
