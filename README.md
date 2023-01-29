@@ -28,3 +28,5 @@ to [install conan](https://docs.conan.io/en/latest/installation.html).
 ```
 pip install conan
 ```
+
+Install CMake.
