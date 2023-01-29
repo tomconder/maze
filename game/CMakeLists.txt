@@ -107,7 +107,7 @@ if (EMSCRIPTEN)
   add_custom_command(
           TARGET game PRE_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/build/assets
+          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${ASSETS_BUILD_PATH}/assets
           COMMENT "Copying assets" VERBATIM
           DEPENDS ${ASSETS})
 else ()
@@ -190,6 +190,9 @@ else ()
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib
           FRAMEWORK DESTINATION lib)
+
+  # CMake provides a standalone bundle application to fix up shared libraries found in the app bundle
+  # See https://cmake.org/cmake/help/latest/module/BundleUtilities.html
 
   add_custom_command(
           TARGET game POST_BUILD
