@@ -3,42 +3,42 @@
 #ifndef MazeIcon
 #define MazeIcon 1
 #endif
-#ifndef VERSION
-#define VERSION 1
-#endif
 
 #define ICO "maze.ico"
 
 MazeIcon ICON DISCARDABLE ICO
 
-#define EXE         "${CMAKE_PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
-#define NAME        "${CMAKE_PROJECT_NAME}"
-#define DESCRIPTION NAME
-#define HOMEPAGE    "@maze_HOMEPAGE_URL@"
-#define LICENSE     "MIT License"
-#define COPYRIGHT   "${COPYRIGHT}"
-#define VERSION \
-    $ {         \
-        VERSION \
-    }
-#define VERSION_STR "@maze_VERSION@\0"
+#define EXE                 "${CMAKE_PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
+#define NAME                "${CMAKE_PROJECT_NAME}"
+#define DESCRIPTION         NAME
+#define HOMEPAGE            "@maze_HOMEPAGE_URL@"
+#define LICENSE             "MIT License"
+#define COPYRIGHT           "${COPYRIGHT}"
+#define VERSION_INFO        ${VERSION}
+#define VERSION_INFO_STR    "@maze_VERSION@\0"
 
-    1 VERSIONINFO FILEVERSION VERSION PRODUCTVERSION VERSION
-        // FILEFLAGSMASK 0x17L
-        // #ifdef _DEBUG
-        //     FILEFLAGS 0x1L
-        // #else
-        //     FILEFLAGS 0x0L
-        // #endif
+1 VERSIONINFO
+FILEVERSION VERSION_INFO
+PRODUCTVERSION VERSION_INFO
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "FileDescription",    DESCRIPTION
+            VALUE "FileVersion",        VERSION_INFO
+            VALUE "Homepage",           HOMEPAGE
+            VALUE "InternalName",       NAME
+            VALUE "LegalCopyright",     COPYRIGHT
+            VALUE "License",            LICENSE
+            VALUE "OriginalFilename",   EXE
+            VALUE "ProductName",        NAME
+            VALUE "ProductVersion",     VERSION_INFO_STR
+        END
+    END
 
-        // FILEOS 0x4L
-        // FILETYPE 0x1L
-        // FILESUBTYPE 0x0L
-        BEGIN BLOCK "StringFileInfo" BEGIN BLOCK "040904E4" BEGIN VALUE "FileDescription",
-    DESCRIPTION VALUE "FileVersion", VERSION_STR VALUE "Homepage", HOMEPAGE VALUE "InternalName",
-    NAME VALUE "LegalCopyright", COPYRIGHT VALUE "License", LICENSE VALUE "OriginalFilename", EXE VALUE "ProductName",
-    NAME VALUE "ProductVersion",
-    VERSION_STR END END
-
-        BLOCK "VarFileInfo" BEGIN VALUE "Translation",
-    0x0, 1252 END END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1252
+    END
+END
