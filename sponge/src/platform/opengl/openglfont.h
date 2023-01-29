@@ -27,7 +27,7 @@ class OpenGLFont {
    public:
     OpenGLFont(int screenWidth, int screenHeight);
     void load(const std::string &path, unsigned int fontSize);
-    void loadFromBMFile(const std::string &path, unsigned int fontSize);
+    void loadFromBMFile(const std::string &path);
 
     void renderText(const std::string &text, float x, float y, glm::vec3 color);
 
