@@ -5,9 +5,12 @@
 #endif
 
 #include <glm/ext/matrix_clip_space.hpp>
+#include <regex>
+#include <sstream>
 
 #include "core/log.h"
 #include "openglresourcemanager.h"
+#include "spdlog/fmt/bundled/ranges.h"
 
 OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
     auto shader = OpenGLResourceManager::getShader("text");
@@ -85,6 +88,96 @@ void OpenGLFont::load(const std::string &path, unsigned int fontSize) {
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
+}
+
+void OpenGLFont::loadFromBMFile(const std::string &path, unsigned int fontSize) {
+    assert(!path.empty());
+
+    SPONGE_CORE_DEBUG("loadFromBMFile: {}", path);
+
+    std::string code;
+    if (std::ifstream stream(path, std::ios::in | std::ios::binary); stream.is_open()) {
+        std::stringstream sstr;
+        sstr << stream.rdbuf();
+        code = sstr.str();
+        std::string s;
+        stream.close();
+    } else {
+        SPONGE_CORE_ERROR("Unable to open file: {}", path);
+    }
+
+    auto const re = std::regex{ "\\s+" };
+    auto const vec = std::vector<std::string>(std::sregex_token_iterator{ begin(code), end(code), re, -1 },
+                                              std::sregex_token_iterator{});
+    // SPONGE_CORE_DEBUG("Font file: {}", fmt::join(vec, ", "));
+
+    // id = ch.id
+    // x = left position of ch in texture
+    // y = top position of ch in texture
+    // width = ch.size.x
+    // height = ch.size.y
+    // xadvance = ch.advance
+    // xoffset = ch.bearing.x
+    // yoffset = ch.bearing.y
+
+    enum class State { info, common, page, chars, kerning, none };
+    State state = State::none;
+
+    std::vector<std::string> info;
+    std::vector<std::string> common;
+    std::vector<std::string> page;
+    std::vector<std::string> chars;
+    std::vector<std::string> kernings;
+
+    for (auto i : vec) {
+        if (i == "info") {
+            state = State::info;
+        } else if (i == "common") {
+            state = State::common;
+        } else if (i == "page") {
+            state = State::page;
+        } else if (i == "chars") {
+            state = State::chars;
+        } else if (i == "kernings") {
+            state = State::kerning;
+        } else {
+            if (state == State::info) {
+                info.push_back(i);
+            } else if (state == State::common) {
+                common.push_back(i);
+            } else if (state == State::page) {
+                page.push_back(i);
+            } else if (state == State::chars) {
+                if (i.rfind("count=", 0) == 0) {
+                    size_t pos = i.find_last_of('=');
+                    if (pos != std::string::npos) {
+                        auto size = std::stoi(i.substr(pos + 1));
+                        SPONGE_CORE_DEBUG("Font file: CHARS reserving size = {}", size);
+                        chars.reserve(size);
+                    }
+                } else {
+                    chars.push_back(i);
+                }
+            } else if (state == State::kerning) {
+                if (i.rfind("count=", 0) == 0) {
+                    size_t pos = i.find_last_of('=');
+                    if (pos != std::string::npos) {
+                        auto size = std::stoi(i.substr(pos + 1));
+                        SPONGE_CORE_DEBUG("Font file: KERNINGS reserving size = {}", size);
+                        kernings.reserve(size);
+                    }
+                } else {
+                    kernings.push_back(i);
+                }
+            }
+        }
+    }
+
+    SPONGE_CORE_DEBUG("Font file: INFO {}", fmt::join(info, ", "));
+    SPONGE_CORE_DEBUG("Font file: COMMON {}", fmt::join(common, ", "));
+    SPONGE_CORE_DEBUG("Font file: PAGE {}", fmt::join(page, ", "));
+    SPONGE_CORE_DEBUG("Font file: CHAR {}", fmt::join(chars, ", "));
+    SPONGE_CORE_DEBUG("Font file: KERNING {}", fmt::join(kernings, ", "));
 }
 
 void OpenGLFont::renderText(const std::string &text, float x, float y, glm::vec3 color) {
