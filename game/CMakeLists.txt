@@ -1,5 +1,3 @@
-# Game
-
 include(GNUInstallDirs)
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/version.h.in version.h)
@@ -109,7 +107,7 @@ if (EMSCRIPTEN)
   add_custom_command(
           TARGET game PRE_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/build/assets
+          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${ASSETS_BUILD_PATH}/assets
           COMMENT "Copying assets" VERBATIM
           DEPENDS ${ASSETS})
 else ()
@@ -151,6 +149,16 @@ else ()
   if (WIN32)
     add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
     target_include_directories(game PRIVATE assets/icons)
+  elseif(APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE maze.icns)
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${CMAKE_PROJECT_NAME})
+    set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION})
+    set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
+
+    set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/assets/icons/maze.icns")
+    set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES} ${app_icon_macos} assets)
   else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
   endif ()
@@ -183,10 +191,13 @@ else ()
           ARCHIVE DESTINATION lib
           FRAMEWORK DESTINATION lib)
 
+  # CMake provides a standalone bundle application to fix up shared libraries found in the app bundle
+  # See https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+
   add_custom_command(
           TARGET game POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${CMAKE_SOURCE_DIR}/build/assets
+          ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
           COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets" VERBATIM
           DEPENDS ${ASSETS})
 endif ()
