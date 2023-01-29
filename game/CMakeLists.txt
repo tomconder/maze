@@ -1,5 +1,10 @@
 # Game
 
+include(GNUInstallDirs)
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/version.h.in version.h)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/maze.rc.in maze.rc)
+
 file(GLOB HEADER_FILES LIST_DIRECTORIES false src/*.h)
 
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false src/*.cpp)
@@ -69,7 +74,7 @@ if (EMSCRIPTEN)
   set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
   target_include_directories(game PUBLIC src)
-  target_include_directories(game PUBLIC ${PROJECT_BINARY_DIR})
+  target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
   target_include_directories(game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.h)
   target_include_directories(game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.cpp)
 
@@ -122,7 +127,13 @@ else ()
   find_package(assimp REQUIRED)
   find_package(glm REQUIRED)
 
-  add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
+  if (WIN32)
+    add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
+    target_include_directories(game PRIVATE assets/icons)
+  else ()
+    add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
+  endif ()
+
   set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
 
   target_compile_features(game PRIVATE cxx_std_17)
@@ -133,7 +144,7 @@ else ()
   endif ()
 
   target_include_directories(game PUBLIC src)
-  target_include_directories(game PUBLIC ${PROJECT_BINARY_DIR})
+  target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
   target_link_libraries(game PUBLIC glad)
   target_link_libraries(game PUBLIC sponge)
