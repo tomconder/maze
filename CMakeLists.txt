@@ -12,24 +12,6 @@ project(maze
 
 set(COPYRIGHT "Copyright 2023 Tom Conder")
 
-# accommodate missing version number values
-string(APPEND VERSION ${PROJECT_VERSION_MAJOR})
-if (PROJECT_VERSION_MINOR)
-  string(APPEND VERSION ",${PROJECT_VERSION_MINOR}")
-else()
-  string(APPEND VERSION ",0")
-endif ()
-if (PROJECT_VERSION_PATCH)
-  string(APPEND VERSION ",${PROJECT_VERSION_PATCH}")
-else()
-  string(APPEND VERSION ",0")
-endif ()
-if (PROJECT_VERSION_TWEAK)
-  string(APPEND VERSION ",${PROJECT_VERSION_TWEAK}")
-else()
-  string(APPEND VERSION ",0")
-endif ()
-
 message(STATUS "Configuring maze ${maze_VERSION}")
 
 if (NOT CMAKE_CXX_STANDARD)

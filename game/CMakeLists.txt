@@ -3,7 +3,28 @@
 include(GNUInstallDirs)
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/version.h.in version.h)
-configure_file(${CMAKE_SOURCE_DIR}/cmake/maze.rc.in maze.rc)
+
+if (WIN32)
+  # accommodate missing version number values
+  string(APPEND VERSION ${PROJECT_VERSION_MAJOR})
+  if (PROJECT_VERSION_MINOR)
+    string(APPEND VERSION ",${PROJECT_VERSION_MINOR}")
+  else()
+    string(APPEND VERSION ",0")
+  endif ()
+  if (PROJECT_VERSION_PATCH)
+    string(APPEND VERSION ",${PROJECT_VERSION_PATCH}")
+  else()
+    string(APPEND VERSION ",0")
+  endif ()
+  if (PROJECT_VERSION_TWEAK)
+    string(APPEND VERSION ",${PROJECT_VERSION_TWEAK}")
+  else()
+    string(APPEND VERSION ",0")
+  endif ()
+
+  configure_file(${CMAKE_SOURCE_DIR}/cmake/maze.rc.in maze.rc)
+endif()
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false src/*.h)
 
