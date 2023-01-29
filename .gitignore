@@ -70,3 +70,4 @@ out/
 .history/
 
 !game/assets/**/*.obj
+.DS_Store
