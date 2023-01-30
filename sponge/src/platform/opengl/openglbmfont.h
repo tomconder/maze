@@ -22,17 +22,15 @@ class OpenGLBMFont {
    public:
     OpenGLBMFont(int screenWidth, int screenHeight);
     void load(const std::string &path);
+    void log() const;
 
     // TODO: render
     // void renderText(const std::string &text, float x, float y, glm::vec3 color);
 
-    std::string textureFileName;
-
+   private:
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
 
     std::unordered_map<glm::uint32, BMCharacter> fontChars;
-
-   private:
-    void logChars() const;
+    std::unordered_map<glm::uint32, std::shared_ptr<OpenGLTexture>> textures;
 };

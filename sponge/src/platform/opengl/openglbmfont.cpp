@@ -50,6 +50,18 @@ void OpenGLBMFont::load(const std::string& path) {
         return 0;
     };
 
+    auto nextString = [](std::stringstream& sstream) {
+        std::string s;
+        sstream >> s;
+        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+            auto str = s.substr(pos + 1);
+            str.erase(str.begin());
+            str.erase(str.end() - 1);
+            return str;
+        }
+        return std::string{};
+    };
+
     while (!stream.eof()) {
         std::string line;
         std::stringstream lineStream;
@@ -59,9 +71,19 @@ void OpenGLBMFont::load(const std::string& path) {
         std::string info;
         lineStream >> info;
 
+        if (info == "page") {
+            glm::uint32 id = nextValue(lineStream);
+            std::string name = nextString(lineStream);
+
+            auto pos = path.find_last_of('/');
+            auto fontFolder = path.substr(0, pos + 1);
+            auto texture = OpenGLResourceManager::loadTextureWithType(fontFolder + name, "font");
+            textures[id] = texture;
+        }
+
         if (info == "chars") {
             glm::uint32 size = nextValue(lineStream);
-            SPONGE_CORE_DEBUG("Reserving char map to size {}", size);
+            SPONGE_CORE_DEBUG("Setting characters map size to {}", size);
             fontChars.reserve(size);
         }
 
@@ -77,11 +99,14 @@ void OpenGLBMFont::load(const std::string& path) {
             fontChars[id].page = nextValue(lineStream);
         }
     }
-
-    logChars();
 }
 
-void OpenGLBMFont::logChars() const {
+void OpenGLBMFont::log() const {
+    for (const auto& [id, texture] : textures) {
+        SPONGE_CORE_DEBUG("Font file: PAGE {:>3} {} {}x{}", id, texture->getType(), texture->getWidth(),
+                          texture->getHeight());
+    }
+
     for (const auto& [key, value] : fontChars) {
         SPONGE_CORE_DEBUG(
             "Font file: CHAR {:>3} x={:>3} y={:>3} width={:>2} height={:>3} xoffset={:2} yoffset={:3} xadvance={:>2} "
