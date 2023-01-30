@@ -7,8 +7,6 @@
 #include <unordered_map>
 #include FT_FREETYPE_H
 
-#include <SDL.h>
-
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
@@ -27,7 +25,6 @@ class OpenGLFont {
    public:
     OpenGLFont(int screenWidth, int screenHeight);
     void load(const std::string &path, unsigned int fontSize);
-    void loadFromBMFile(const std::string &path);
 
     void renderText(const std::string &text, float x, float y, glm::vec3 color);
 

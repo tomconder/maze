@@ -12,6 +12,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+std::unordered_map<std::string, std::shared_ptr<OpenGLBMFont>> OpenGLResourceManager::bmfonts;
 std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> OpenGLResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> OpenGLResourceManager::meshes;
 std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> OpenGLResourceManager::shaders;
@@ -37,17 +38,17 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
     return font;
 }
 
-std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadBMFont(const std::string &path, const std::string &name,
-                                                              int screenWidth, int screenHeight) {
+std::shared_ptr<OpenGLBMFont> OpenGLResourceManager::loadBMFont(const std::string &path, const std::string &name,
+                                                                int screenWidth, int screenHeight) {
     assert(!path.empty());
     assert(!name.empty());
 
     if (fonts.find(name) != fonts.end()) {
-        return fonts[name];
+        return bmfonts[name];
     }
 
-    std::shared_ptr<OpenGLFont> font = loadBMFontFromFile(path, screenWidth, screenHeight);
-    fonts[name] = font;
+    std::shared_ptr<OpenGLBMFont> font = loadBMFontFromFile(path, screenWidth, screenHeight);
+    bmfonts[name] = font;
 
     return font;
 }
@@ -139,14 +140,14 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
     return font;
 }
 
-std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadBMFontFromFile(const std::string &path, int screenWidth,
-                                                                      int screenHeight) {
+std::shared_ptr<OpenGLBMFont> OpenGLResourceManager::loadBMFontFromFile(const std::string &path, int screenWidth,
+                                                                        int screenHeight) {
     assert(!path.empty());
 
     SPONGE_CORE_INFO("Loading BM font file: {0}", path);
 
-    auto font = std::make_shared<OpenGLFont>(screenWidth, screenHeight);
-    font->loadFromBMFile(path);
+    auto font = std::make_shared<OpenGLBMFont>(screenWidth, screenHeight);
+    font->load(path);
 
     return font;
 }

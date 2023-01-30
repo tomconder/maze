@@ -1,7 +1,5 @@
 #include "openglfont.h"
 
-#include "openglbmfontparser.h"
-
 #ifdef EMSCRIPTEN
 #include <new>
 #endif
@@ -88,11 +86,6 @@ void OpenGLFont::load(const std::string& path, unsigned int fontSize) {
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
-}
-
-void OpenGLFont::loadFromBMFile(const std::string& path) {
-    auto parser = std::make_unique<OpenGLBMFontParser>();
-    parser->parse(path);
 }
 
 void OpenGLFont::renderText(const std::string& text, float x, float y, glm::vec3 color) {
