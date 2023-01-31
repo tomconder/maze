@@ -16,6 +16,7 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLFont> getFont(const std::string &name);
     static std::shared_ptr<OpenGLFont> loadFont(const std::string &path, const std::string &name, int screenWidth,
                                                 int screenHeight);
+    static std::shared_ptr<OpenGLBMFont> getBMFont(const std::string &name);
     static std::shared_ptr<OpenGLBMFont> loadBMFont(const std::string &path, const std::string &name, int screenWidth,
                                                     int screenHeight);
 

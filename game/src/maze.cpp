@@ -24,14 +24,14 @@ bool Maze::onUserCreate() {
     OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
     OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
     OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
+    OpenGLResourceManager::loadShader("assets/shaders/bmtext.vert", "assets/shaders/bmtext.frag", "bmtext");
 
     OpenGLResourceManager::loadMesh("assets/meshes/mountains.obj", "Maze");
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
-    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/LeagueGothic-Regular.ttf", "gothic", w, h);
-
     OpenGLResourceManager::loadBMFont("assets/fonts/league-gothic/league-gothic.fnt", "league-gothic", w, h);
+    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/LeagueGothic-Regular.ttf", "gothic", w, h);
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
@@ -108,6 +108,10 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 
     sprite->render("coffee", glm::vec2(w - 68.f, h - 68.f), glm::vec2(64.f, 64.f));
 
+    OpenGLResourceManager::getBMFont("league-gothic")
+        ->renderText("Press [f] to toggle full-screen", w / 2.0f - 294.0f, h / 2.0f + 68.0f,
+                     glm::vec3(1.0, 0.6f, 0.0f));
+
     OpenGLResourceManager::getFont("gothic")->renderText("Press [Q] to exit", 7.0, h - 28.0,
                                                          glm::vec3(0.5, 0.9f, 1.0f));
 
@@ -129,6 +133,11 @@ bool Maze::onUserResize(int width, int height) {
 
     projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
     shader = OpenGLResourceManager::getShader("text");
+    shader->bind();
+    shader->setMat4("projection", projection);
+
+    projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
+    shader = OpenGLResourceManager::getShader("bmtext");
     shader->bind();
     shader->setMat4("projection", projection);
 

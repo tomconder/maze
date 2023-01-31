@@ -38,6 +38,11 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
     return font;
 }
 
+std::shared_ptr<OpenGLBMFont> OpenGLResourceManager::getBMFont(const std::string &name) {
+    assert(!name.empty());
+    return bmfonts.at(name);
+}
+
 std::shared_ptr<OpenGLBMFont> OpenGLResourceManager::loadBMFont(const std::string &path, const std::string &name,
                                                                 int screenWidth, int screenHeight) {
     assert(!path.empty());

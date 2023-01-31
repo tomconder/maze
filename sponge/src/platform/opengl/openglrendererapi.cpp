@@ -92,10 +92,6 @@ void OpenGLRendererAPI::init() {
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
-
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glEnable(GL_TEXTURE_2D);
 }
 
 void OpenGLRendererAPI::setViewport(int32_t x, int32_t y, int32_t width, int32_t height) {
