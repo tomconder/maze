@@ -6,5 +6,5 @@ class Buffer {
 
     virtual void bind() const = 0;
 
-    virtual void setData(const unsigned char *data, uint32_t size) = 0;
+    virtual void setData(const unsigned int *data, uint32_t size) = 0;
 };

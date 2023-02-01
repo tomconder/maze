@@ -21,8 +21,11 @@ OpenGLBMFont::OpenGLBMFont(int screenWidth, int screenHeight) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>((GLuint)sizeof(float) * 6 * 4);
+    vbo = std::make_unique<OpenGLBuffer>(static_cast<GLuint>(sizeof(float) * 16));
     vbo->bind();
+
+    ebo = std::make_unique<OpenGLElementBuffer>(static_cast<GLuint>(sizeof(GLuint) * 6));
+    ebo->bind();
 
     GLuint program = shader->getId();
     auto position = static_cast<GLuint>(glGetAttribLocation(program, "vertex"));
@@ -152,17 +155,22 @@ void OpenGLBMFont::renderText(const std::string& text, float x, float y, Uint32 
             xpos,     ypos + h, texx,        texy,         //
             xpos,     ypos,     texx,        texy + texh,  //
             xpos + w, ypos,     texx + texw, texy + texh,  //
-
-            xpos,     ypos + h, texx,        texy,         //
-            xpos + w, ypos,     texx + texw, texy + texh,  //
             xpos + w, ypos + h, texx + texw, texy          //
         };
+
+        auto indices = std::vector<GLuint>{
+            0, 1, 2,  //
+            0, 2, 3   //
+        };
+
+        ebo->bind();
+        ebo->setData(indices.data(), (GLuint)indices.size() * (GLuint)sizeof(GLuint));
 
         vbo->bind();
         glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
 
         x += static_cast<float>(ch.xadvance) * scale;
     }

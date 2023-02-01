@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "openglbuffer.h"
+#include "openglelementbuffer.h"
 #include "opengltexture.h"
 #include "openglvertexarray.h"
 
@@ -30,6 +31,7 @@ class OpenGLBMFont {
    private:
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
+    std::unique_ptr<OpenGLElementBuffer> ebo;
 
     std::unordered_map<glm::uint32, BMCharacter> fontChars;
 
