@@ -81,6 +81,11 @@ void OpenGLBMFont::load(const std::string& path) {
         std::string str;
         lineStream >> str;
 
+        if (str == "info") {
+            face = nextString(lineStream);
+            size = nextFloat(lineStream);
+        }
+
         if (str == "common") {
             lineHeight = nextFloat(lineStream);
             base = nextFloat(lineStream);
@@ -99,12 +104,6 @@ void OpenGLBMFont::load(const std::string& path) {
             auto texture = OpenGLResourceManager::loadTexture(fontFolder + name, textureName);
         }
 
-        if (str == "chars") {
-            glm::uint32 size = nextInt(lineStream);
-            SPONGE_CORE_DEBUG("Setting characters map size to {}", size);
-            fontChars.reserve(size);
-        }
-
         if (str == "char") {
             glm::uint32 id = nextInt(lineStream);
             fontChars[id].loc.x = nextFloat(lineStream);
@@ -119,10 +118,13 @@ void OpenGLBMFont::load(const std::string& path) {
     }
 }
 
-void OpenGLBMFont::renderText(const std::string& text, float x, float y, glm::vec3 color) {
+void OpenGLBMFont::renderText(const std::string& text, float x, float y, Uint32 targetSize, glm::vec3 color) {
+    auto fontSize = static_cast<float>(targetSize);
+
     auto shader = OpenGLResourceManager::getShader("bmtext");
     shader->bind();
     shader->setFloat3("textColor", color);
+    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
 
     glActiveTexture(GL_TEXTURE0);
     auto tex = OpenGLResourceManager::getTexture(textureName);
@@ -130,8 +132,7 @@ void OpenGLBMFont::renderText(const std::string& text, float x, float y, glm::ve
 
     vao->bind();
 
-    // TOMC float scale = font_size / base;
-    float scale = 1.f;
+    float scale = fontSize / size;
 
     for (const char& c : text) {
         auto ch = fontChars[c];
@@ -169,6 +170,8 @@ void OpenGLBMFont::renderText(const std::string& text, float x, float y, glm::ve
 }
 
 void OpenGLBMFont::log() const {
+    SPONGE_CORE_DEBUG("Font file: INFO face={} size={}", face, size);
+
     SPONGE_CORE_DEBUG("Font file: COMMON lineHeight={:>3} base={:>3} scaleW={:>2} scaleH={:>3} pages={:2}", lineHeight,
                       base, scaleW, scaleH, pages);
 

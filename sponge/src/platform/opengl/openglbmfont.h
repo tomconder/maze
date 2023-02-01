@@ -23,7 +23,7 @@ class OpenGLBMFont {
    public:
     OpenGLBMFont(int screenWidth, int screenHeight);
     void load(const std::string &path);
-    void renderText(const std::string &text, float x, float y, glm::vec3 color);
+    void renderText(const std::string &text, float x, float y, Uint32 targetSize, glm::vec3 color);
 
     void log() const;
 
@@ -32,6 +32,11 @@ class OpenGLBMFont {
     std::unique_ptr<OpenGLVertexArray> vao;
 
     std::unordered_map<glm::uint32, BMCharacter> fontChars;
+
+    // the name of font
+    std::string face;
+    // the size of the font
+    float size;
 
     // the distance in pixels between each line of text
     float lineHeight;
