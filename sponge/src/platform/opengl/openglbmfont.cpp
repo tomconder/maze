@@ -148,16 +148,18 @@ void OpenGLBMFont::renderText(const std::string& text, float x, float y, Uint32 
         auto texh = ch.height / scaleH;
         auto texw = ch.width / scaleW;
 
-        float vertices[6][4] = { { xpos, ypos + h, texx, texy },
-                                 { xpos, ypos, texx, texy + texh },
-                                 { xpos + w, ypos, texx + texw, texy + texh },
+        auto vertices = std::vector<float>{
+            xpos,     ypos + h, texx,        texy,         //
+            xpos,     ypos,     texx,        texy + texh,  //
+            xpos + w, ypos,     texx + texw, texy + texh,  //
 
-                                 { xpos, ypos + h, texx, texy },
-                                 { xpos + w, ypos, texx + texw, texy + texh },
-                                 { xpos + w, ypos + h, texx + texw, texy } };
+            xpos,     ypos + h, texx,        texy,         //
+            xpos + w, ypos,     texx + texw, texy + texh,  //
+            xpos + w, ypos + h, texx + texw, texy          //
+        };
 
         vbo->bind();
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         glDrawArrays(GL_TRIANGLES, 0, 6);

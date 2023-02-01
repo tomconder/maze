@@ -18,7 +18,7 @@ extern "C" int main(int argc, char *args[]) {
     SPONGE_INFO("Starting maze");
 
 #ifdef EMSCRIPTEN
-    maze = std::make_unique<Maze>(640, 480);
+    maze = std::make_unique<Maze>(800, 600);
 #else
     maze = std::make_unique<Maze>(1600, 900);
 #endif
