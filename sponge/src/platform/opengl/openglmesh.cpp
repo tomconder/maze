@@ -14,48 +14,49 @@ OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<un
     vao->bind();
 
     vbo = std::make_unique<OpenGLBuffer>(reinterpret_cast<const float *>(vertices.data()),
-                                         (GLuint)vertices.size() * (GLuint)sizeof(Vertex));
+                                         (uint32_t)vertices.size() * (uint32_t)sizeof(Vertex));
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(indices.data(), (GLuint)indices.size() * (GLuint)sizeof(unsigned int));
+    ebo = std::make_unique<OpenGLElementBuffer>(indices.data(),
+                                                (uint32_t)indices.size() * (uint32_t)sizeof(unsigned int));
     ebo->bind();
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
 
-    GLuint program = shader->getId();
+    uint32_t program = shader->getId();
 
     auto location = glGetAttribLocation(program, "position");
     if (location != -1) {
-        auto position = static_cast<GLuint>(location);
+        auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
     }
 
     location = glGetAttribLocation(program, "normal");
     if (location != -1) {
-        auto position = static_cast<GLuint>(location);
+        auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
     }
 
     location = glGetAttribLocation(program, "texCoord");
     if (location != -1) {
-        auto position = static_cast<GLuint>(location);
+        auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
     }
 
     location = glGetAttribLocation(program, "tangent");
     if (location != -1) {
-        auto position = static_cast<GLuint>(location);
+        auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, tangent));
     }
 
     location = glGetAttribLocation(program, "biTangent");
     if (location != -1) {
-        auto position = static_cast<GLuint>(location);
+        auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, biTangent));
     }

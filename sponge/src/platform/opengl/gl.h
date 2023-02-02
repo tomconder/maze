@@ -9,3 +9,4 @@
 #endif
 
 #include <glad/glad.h>
+#include <stdint.h>

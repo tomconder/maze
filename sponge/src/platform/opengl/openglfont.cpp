@@ -20,14 +20,14 @@ OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<GLuint>(sizeof(float)) * 16);
+    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<GLuint>(sizeof(GLuint)) * 6);
+    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
-    GLuint program = shader->getId();
-    auto position = static_cast<GLuint>(glGetAttribLocation(program, "vertex"));
+    uint32_t program = shader->getId();
+    auto position = static_cast<uint32_t>(glGetAttribLocation(program, "vertex"));
     glEnableVertexAttribArray(position);
     glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
 
@@ -95,7 +95,7 @@ void OpenGLFont::load(const std::string& path) {
         }
 
         if (str == "page") {
-            glm::uint32 id = nextInt(lineStream);
+            uint32_t id = nextInt(lineStream);
             std::string name = nextString(lineStream);
 
             auto pos = path.find_last_of('/');
@@ -105,7 +105,7 @@ void OpenGLFont::load(const std::string& path) {
         }
 
         if (str == "char") {
-            glm::uint32 id = nextInt(lineStream);
+            uint32_t id = nextInt(lineStream);
             fontChars[id].loc.x = nextFloat(lineStream);
             fontChars[id].loc.y = nextFloat(lineStream);
             fontChars[id].width = nextFloat(lineStream);
@@ -117,8 +117,8 @@ void OpenGLFont::load(const std::string& path) {
         }
 
         if (str == "kerning") {
-            glm::uint32 first = nextInt(lineStream);
-            glm::uint32 second = nextInt(lineStream);
+            uint32_t first = nextInt(lineStream);
+            uint32_t second = nextInt(lineStream);
             float amount = nextFloat(lineStream);
             std::string key = std::to_string(first) + "." + std::to_string(second);
             kerning[key] = amount;
@@ -126,14 +126,14 @@ void OpenGLFont::load(const std::string& path) {
     }
 }
 
-void OpenGLFont::renderText(const std::string& text, float x, float y, Uint32 targetSize, glm::vec3 color) {
+void OpenGLFont::renderText(const std::string& text, float x, float y, uint32_t targetSize, glm::vec3 color) {
     const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
     const std::string str = text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::vector<float> batchVertices;
-    std::vector<GLuint> batchIndices;
-    GLuint numIndices = 0;
+    std::vector<uint32_t> batchIndices;
+    uint32_t numIndices = 0;
     char prev = 0;
 
     for (const char& c : str) {
@@ -159,7 +159,7 @@ void OpenGLFont::renderText(const std::string& text, float x, float y, Uint32 ta
 
         batchVertices.insert(batchVertices.end(), vertices.begin(), vertices.end());
 
-        auto indices = std::vector<GLuint>{
+        auto indices = std::vector<uint32_t>{
             numIndices, numIndices + 1, numIndices + 2,  //
             numIndices, numIndices + 2, numIndices + 3   //
         };
@@ -191,7 +191,7 @@ void OpenGLFont::renderText(const std::string& text, float x, float y, Uint32 ta
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     ebo->bind();
-    ebo->setData(batchIndices.data(), static_cast<GLsizeiptr>(batchIndices.size() * sizeof(GLuint)));
+    ebo->setData(batchIndices.data(), static_cast<GLsizeiptr>(batchIndices.size() * sizeof(uint32_t)));
 
     glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
 

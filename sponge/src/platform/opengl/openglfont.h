@@ -17,14 +17,14 @@ struct Character {
     float height;
     glm::vec2 offset;
     float xadvance;
-    glm::uint32 page;
+    uint32_t page;
 };
 
 class OpenGLFont {
    public:
     OpenGLFont(int screenWidth, int screenHeight);
     void load(const std::string &path);
-    void renderText(const std::string &text, float x, float y, Uint32 targetSize, glm::vec3 color);
+    void renderText(const std::string &text, float x, float y, uint32_t targetSize, glm::vec3 color);
 
     void log() const;
 
@@ -52,7 +52,7 @@ class OpenGLFont {
     float scaleH;
 
     // the number of texture pages included in the font
-    glm::uint32 pages;
+    uint32_t pages;
     // the name of the texture page in the resource manager
     std::string textureName;
 };
