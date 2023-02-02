@@ -116,7 +116,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
                                                                     int screenHeight) {
     assert(!path.empty());
 
-    SPONGE_CORE_INFO("Loading BM font file: {0}", path);
+    SPONGE_CORE_INFO("Loading font file: {0}", path);
 
     auto font = std::make_shared<OpenGLFont>(screenWidth, screenHeight);
     font->load(path);
