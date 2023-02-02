@@ -37,16 +37,13 @@ class GameCamera : public Camera {
     void moveForward(unsigned int delta);
     void moveBackward(unsigned int delta);
     void strafeLeft(unsigned int delta);
-
     void strafeRight(unsigned int delta);
 
     void mouseMove(const glm::vec2 &offset);
-
     void mouseScroll(const glm::vec2 &offset);
 
    private:
     void updateProjection();
-
     void updateView();
 
     float fov = 45.0f;

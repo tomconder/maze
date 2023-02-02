@@ -14,7 +14,7 @@ class OpenGLResourceManager {
    public:
     static std::shared_ptr<OpenGLFont> getFont(const std::string &name);
     static std::shared_ptr<OpenGLFont> loadFont(const std::string &path, const std::string &name, int screenWidth,
-                                                    int screenHeight);
+                                                int screenHeight);
 
     static std::shared_ptr<OpenGLModel> getMesh(const std::string &name);
     static std::shared_ptr<OpenGLModel> loadMesh(const std::string &path, const std::string &name);
