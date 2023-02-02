@@ -61,13 +61,11 @@ if (EMSCRIPTEN)
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_FREETYPE=1")
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -O2 -s ALLOW_MEMORY_GROWTH=1")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2")
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_FREETYPE=1")
 
   set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
@@ -92,7 +90,6 @@ else ()
 
   conan_cmake_configure(REQUIRES
           assimp/5.2.2
-          freetype/2.12.1
           glm/0.9.9.8
           sdl/2.26.1
           zlib/1.2.13
@@ -176,7 +173,6 @@ else ()
 
   set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-  find_package(Freetype REQUIRED)
   find_package(OpenGL REQUIRED)
   find_package(SDL2 REQUIRED)
   find_package(assimp REQUIRED)
@@ -196,7 +192,6 @@ else ()
 
   target_include_directories(sponge PUBLIC src)
 
-  target_link_libraries(sponge PRIVATE Freetype::Freetype)
   target_link_libraries(sponge PRIVATE OpenGL::GL)
   target_link_libraries(sponge PRIVATE SDL2::SDL2)
   target_link_libraries(sponge PRIVATE assimp::assimp)
