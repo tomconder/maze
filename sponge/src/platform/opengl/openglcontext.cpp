@@ -7,7 +7,6 @@
 #include <sstream>
 
 #include "core/log.h"
-#include "globals.h"
 
 #ifdef EMSCRIPTEN
 
@@ -18,7 +17,7 @@
 #include <iomanip>
 #include <utility>
 
-OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
+OpenGLContext::OpenGLContext(SDL_Window *window, const std::string &name) : glName(name) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -86,9 +85,6 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
     if (window != nullptr) {
         SDL_GetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
-    } else {
-        width = globals::SCREEN_WIDTH;
-        height = globals::SCREEN_HEIGHT;
     }
 }
 

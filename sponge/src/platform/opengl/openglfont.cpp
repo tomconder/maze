@@ -5,125 +5,211 @@
 #endif
 
 #include <glm/ext/matrix_clip_space.hpp>
+#include <sstream>
 
 #include "core/log.h"
-#include "globals.h"
 #include "openglresourcemanager.h"
 
-OpenGLFont::OpenGLFont() {
+OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
 
-    auto projection =
-        glm::ortho(0.f, static_cast<float>(globals::SCREEN_WIDTH), 0.f, static_cast<float>(globals::SCREEN_HEIGHT));
+    auto projection = glm::ortho(0.f, static_cast<float>(screenWidth), 0.f, static_cast<float>(screenHeight));
     shader->setMat4("projection", projection);
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>((GLuint)sizeof(float) * 6 * 4);
+    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<GLuint>(sizeof(float)) * 16);
     vbo->bind();
+
+    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<GLuint>(sizeof(GLuint)) * 6);
+    ebo->bind();
 
     GLuint program = shader->getId();
     auto position = static_cast<GLuint>(glGetAttribLocation(program, "vertex"));
     glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
-void OpenGLFont::load(const std::string &path, unsigned int fontSize) {
+void OpenGLFont::load(const std::string& path) {
     assert(!path.empty());
 
-    Characters.clear();
+    std::ifstream stream(path, std::ios::in | std::ios::binary);
+    assert(stream.good());
 
-    FT_Library ft;
-    if (FT_Init_FreeType(&ft)) {
-        SPONGE_CORE_ERROR("Unable to initialize FreeType library");
-        FT_Done_FreeType(ft);
-        return;
-    }
+    auto nextInt = [](std::stringstream& sstream) {
+        std::string s;
+        sstream >> s;
+        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+            return std::stoi(s.substr(pos + 1));
+        }
+        return 0;
+    };
 
-    FT_Face face;
-    if (FT_New_Face(ft, path.c_str(), 0, &face)) {
-        SPONGE_CORE_ERROR("Unable to load font: {}", path.c_str());
-        FT_Done_Face(face);
-        FT_Done_FreeType(ft);
-        return;
-    }
+    auto nextFloat = [](std::stringstream& sstream) {
+        std::string s;
+        sstream >> s;
+        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+            return std::stof(s.substr(pos + 1));
+        }
+        return 0.f;
+    };
 
-    FT_Set_Pixel_Sizes(face, 0, fontSize);
+    auto nextString = [](std::stringstream& sstream) {
+        std::string s;
+        sstream >> s;
+        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+            auto str = s.substr(pos + 1);
+            // remove the surrounding quotes
+            str.erase(str.begin());
+            str.erase(str.end() - 1);
+            return str;
+        }
+        return std::string{};
+    };
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // disable byte-alignment restriction
+    while (!stream.eof()) {
+        std::string line;
+        std::stringstream lineStream;
+        std::getline(stream, line);
+        lineStream << line;
 
-    for (unsigned char c = 0; c < 128; c++) {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            SPONGE_CORE_ERROR("Unable to load glyph: {}", c);
-            continue;
+        std::string str;
+        lineStream >> str;
+
+        if (str == "info") {
+            face = nextString(lineStream);
+            size = nextFloat(lineStream);
         }
 
-        unsigned int id;
-        glGenTextures(1, &id);
-        glBindTexture(GL_TEXTURE_2D, id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, static_cast<int>(face->glyph->bitmap.width),
-                     static_cast<int>(face->glyph->bitmap.rows), 0, GL_RED, GL_UNSIGNED_BYTE,
-                     face->glyph->bitmap.buffer);
+        if (str == "common") {
+            lineHeight = nextFloat(lineStream);
+            base = nextFloat(lineStream);
+            scaleW = nextFloat(lineStream);
+            scaleH = nextFloat(lineStream);
+            pages = nextInt(lineStream);
+        }
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        if (str == "page") {
+            glm::uint32 id = nextInt(lineStream);
+            std::string name = nextString(lineStream);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            auto pos = path.find_last_of('/');
+            auto fontFolder = path.substr(0, pos + 1);
+            textureName = "font";
+            auto texture = OpenGLResourceManager::loadTexture(fontFolder + name, textureName);
+        }
 
-        Character character = { id, glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-                                glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-                                static_cast<unsigned int>(face->glyph->advance.x) };
+        if (str == "char") {
+            glm::uint32 id = nextInt(lineStream);
+            fontChars[id].loc.x = nextFloat(lineStream);
+            fontChars[id].loc.y = nextFloat(lineStream);
+            fontChars[id].width = nextFloat(lineStream);
+            fontChars[id].height = nextFloat(lineStream);
+            fontChars[id].offset.x = nextFloat(lineStream);
+            fontChars[id].offset.y = nextFloat(lineStream);
+            fontChars[id].xadvance = nextInt(lineStream);
+            fontChars[id].page = nextInt(lineStream);
+        }
 
-        Characters.try_emplace(c, character);
+        if (str == "kerning") {
+            glm::uint32 first = nextInt(lineStream);
+            glm::uint32 second = nextInt(lineStream);
+            glm::int32 amount = nextInt(lineStream);
+            std::string key = std::to_string(first) + "." + std::to_string(second);
+            kerning[key] = amount;
+        }
     }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    FT_Done_Face(face);
-    FT_Done_FreeType(ft);
 }
 
-void OpenGLFont::renderText(const std::string &text, float x, float y, glm::vec3 color) {
+void OpenGLFont::renderText(const std::string& text, float x, float y, Uint32 targetSize, glm::vec3 color) {
+    const auto fontSize = static_cast<float>(targetSize);
+    const float scale = fontSize / size;
+    const std::string str = text.length() > maxLength ? text.substr(0, maxLength) : text;
+
+    std::vector<float> batchVertices;
+    std::vector<GLuint> batchIndices;
+    GLuint numIndices = 0;
+    char prev = 0;
+
+    for (const char& c : str) {
+        auto ch = fontChars[c];
+
+        auto xpos = x + ch.offset.x * scale;
+        auto ypos = y - (ch.height + ch.offset.y) * scale;
+
+        auto w = ch.width * scale;
+        auto h = ch.height * scale;
+
+        auto texx = ch.loc.x / scaleW;
+        auto texy = ch.loc.y / scaleH;
+        auto texh = ch.height / scaleH;
+        auto texw = ch.width / scaleW;
+
+        auto vertices = std::vector<float>{
+            xpos,     ypos + h, texx,        texy,         //
+            xpos,     ypos,     texx,        texy + texh,  //
+            xpos + w, ypos,     texx + texw, texy + texh,  //
+            xpos + w, ypos + h, texx + texw, texy          //
+        };
+
+        batchVertices.insert(batchVertices.end(), vertices.begin(), vertices.end());
+
+        auto indices = std::vector<GLuint>{
+            numIndices, numIndices + 1, numIndices + 2,  //
+            numIndices, numIndices + 2, numIndices + 3   //
+        };
+
+        batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
+
+        x += static_cast<float>(ch.xadvance) * scale;
+        numIndices += 4;
+
+        if (prev != 0) {
+            x += static_cast<float>(kerning[std::to_string(prev) + "." + std::to_string(c)]) * scale;
+        }
+        prev = c;
+    }
+
+    vao->bind();
+
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setFloat3("textColor", color);
+    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
 
     glActiveTexture(GL_TEXTURE0);
-    vao->bind();
+    auto tex = OpenGLResourceManager::getTexture(textureName);
+    tex->bind();
 
-    float scale = 1.f;
+    vbo->bind();
+    vbo->setData(batchVertices.data(), static_cast<GLsizeiptr>(batchVertices.size() * sizeof(float)));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    for (const char &c : text) {
-        Character ch = Characters[c];
+    ebo->bind();
+    ebo->setData(batchIndices.data(), static_cast<GLsizeiptr>(batchIndices.size() * sizeof(GLuint)));
 
-        float xpos = x + static_cast<float>(ch.bearing.x) * scale;
-        float ypos = y - static_cast<float>(ch.size.y - ch.bearing.y) * scale;
+    glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
 
-        float w = static_cast<float>(ch.size.x) * scale;
-        float h = static_cast<float>(ch.size.y) * scale;
-
-        float vertices[6][4] = { { xpos, ypos + h, 0.0f, 0.0f },    { xpos, ypos, 0.0f, 1.0f },
-                                 { xpos + w, ypos, 1.0f, 1.0f },
-
-                                 { xpos, ypos + h, 0.0f, 0.0f },    { xpos + w, ypos, 1.0f, 1.0f },
-                                 { xpos + w, ypos + h, 1.0f, 0.0f } };
-
-        glBindTexture(GL_TEXTURE_2D, ch.id);
-
-        vbo->bind();
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        x += static_cast<float>(ch.advance >> 6) * scale;
-    }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void OpenGLFont::log() const {
+    SPONGE_CORE_DEBUG("Font file: INFO face={} size={}", face, size);
+
+    SPONGE_CORE_DEBUG("Font file: COMMON lineHeight={:>3} base={:>3} scaleW={:>2} scaleH={:>3} pages={:2}", lineHeight,
+                      base, scaleW, scaleH, pages);
+
+    for (const auto& [key, value] : fontChars) {
+        SPONGE_CORE_DEBUG(
+            "Font file: CHAR {:>3} x={:>3} y={:>3} width={:>2} height={:>3} xoffset={:2} yoffset={:3} xadvance={:>2} "
+            "page={}",
+            key, value.loc.x, value.loc.y, value.width, value.height, value.offset.x, value.offset.y, value.xadvance,
+            value.page);
+    }
 }

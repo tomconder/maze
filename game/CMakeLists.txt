@@ -78,7 +78,6 @@ if (EMSCRIPTEN)
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_FREETYPE=1")
 
   add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
   set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
@@ -88,7 +87,6 @@ if (EMSCRIPTEN)
 
   set(TARGET_LINK_PROPERTIES "-std=c++17 -O2 -s ALLOW_MEMORY_GROWTH=1")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2")
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_FREETYPE=1")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} --preload-file ${ASSETS_BUILD_PATH}/assets@assets")
   set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
@@ -124,7 +122,6 @@ else ()
 
   conan_cmake_configure(REQUIRES
           assimp/5.2.2
-          freetype/2.12.1
           glm/0.9.9.8
           sdl/2.26.1
           zlib/1.2.13
@@ -141,7 +138,6 @@ else ()
   set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
-  find_package(Freetype REQUIRED)
   find_package(SDL2 REQUIRED)
   find_package(assimp REQUIRED)
   find_package(glm REQUIRED)
@@ -177,7 +173,6 @@ else ()
 
   target_link_libraries(game PUBLIC glad)
   target_link_libraries(game PUBLIC sponge)
-  target_link_libraries(game PRIVATE Freetype::Freetype)
   target_link_libraries(game PRIVATE SDL2::SDL2)
   target_link_libraries(game PRIVATE assimp::assimp)
   target_link_libraries(game PRIVATE glm::glm)

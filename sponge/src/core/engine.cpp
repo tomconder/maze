@@ -12,16 +12,8 @@
 
 #include "core/log.h"
 
-Engine::Engine() : appName("undefined") {
-    screenWidth = globals::SCREEN_WIDTH;
-    screenHeight = globals::SCREEN_HEIGHT;
-}
-
-int Engine::construct(int width, int height) {
-    screenWidth = width;
-    screenHeight = height;
-
-    if (screenWidth == 0 || screenHeight == 0) {
+int Engine::construct() {
+    if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
                                  nullptr);
         SPONGE_CORE_ERROR("Screen height or width cannot be zero");
@@ -42,9 +34,8 @@ int Engine::start() {
 
     logSDLVersion();
 
-    SDL_Window *window =
-        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
+                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
@@ -72,6 +63,8 @@ int Engine::start() {
     }
 
     lastUpdateTime = SDL_GetTicks();
+
+    SDL_ShowWindow(window);
 
     return 1;
 }

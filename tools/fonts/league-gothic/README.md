@@ -1,5 +1,5 @@
-league-gothic
-===
+# league-gothic
+
 _by [Caroline Hadilaksono](https://www.hadilaksono.com/), [Micah Rich](https://micahrich.com/), & [Tyler Finck](https://www.tylerfinck.com/)_
 
 [League Gothic](https://github.com/theleagueof/league-gothic) is a revival of an old classic, and one of our favorite
@@ -13,3 +13,10 @@ We decided to make our own version, and contribute it to the Open Source Type Mo
 Thanks to a commission from the fine & patient folks over at [WND.com](https://www.wnd.com/), it’s been revised &
 updated with contributions from Micah Rich, Tyler Finck, and [Dannci](https://twitter.com/dannci), who contributed extra
 glyphs.
+
+## Generating fonts
+
+```
+npm install -g msdf-bmfont-xml
+msdf-bmfont -o league-gothic.png -m "512,512" -s 96 -t msdf -f txt path\to\font.ttf
+```

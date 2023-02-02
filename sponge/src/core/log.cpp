@@ -5,8 +5,9 @@
 
 #include "logflag.h"
 
-std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::appLogger;
+std::shared_ptr<spdlog::logger> Log::coreLogger;
+std::shared_ptr<spdlog::logger> Log::glLogger;
 
 void Log::init() {
     std::vector<spdlog::sink_ptr> logSinks;
@@ -17,7 +18,7 @@ void Log::init() {
     spdlog::set_default_logger(console);
 
     auto colorFormatter = std::make_unique<spdlog::pattern_formatter>();
-    colorFormatter->add_flag<LogFlag>('*').set_pattern("%^%*%$ %T,%e [%n] %s:%# - %v");
+    colorFormatter->add_flag<LogFlag>('*').set_pattern("%^%* %T,%e [%n] %s:%# - %v%$");
     logSinks[0]->set_formatter(std::move(colorFormatter));
 
     auto fileFormatter = std::make_unique<spdlog::pattern_formatter>();
@@ -33,4 +34,9 @@ void Log::init() {
     spdlog::register_logger(appLogger);
     appLogger->set_level(spdlog::level::trace);
     appLogger->flush_on(spdlog::level::trace);
+
+    glLogger = std::make_shared<spdlog::logger>("OPENGL", begin(logSinks), end(logSinks));
+    spdlog::register_logger(glLogger);
+    glLogger->set_level(spdlog::level::trace);
+    glLogger->flush_on(spdlog::level::trace);
 }

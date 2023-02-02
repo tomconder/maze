@@ -3,18 +3,15 @@
 #include <memory>
 #include <string>
 
-#include "globals.h"
 #include "input.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglrendererapi.h"
 
 class Engine {
    public:
-    Engine();
-
     virtual ~Engine() = default;
 
-    int construct(int width, int height);
+    int construct();
 
     int start();
 
@@ -30,10 +27,10 @@ class Engine {
 
     virtual bool onUserResize(int width, int height);
 
+    void adjustAspectRatio(int eventW, int eventH);
+
     Input input;
     Uint32 lastUpdateTime = 0;
-    int screenHeight;
-    int screenWidth;
     std::string appName = "undefined";
     std::unique_ptr<OpenGLContext> graphics;
     std::unique_ptr<OpenGLRendererAPI> renderer;
@@ -42,7 +39,6 @@ class Engine {
     int offsety = 0;
     int w = 0;
     int h = 0;
-
-   private:
-    void adjustAspectRatio(int eventW, int eventH);
 };
+
+#define UNUSED(x) (void)(x)

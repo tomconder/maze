@@ -22,9 +22,14 @@ class Log {
         return coreLogger;
     }
 
+    static std::shared_ptr<spdlog::logger> &getGlLogger() {
+        return glLogger;
+    }
+
    private:
-    static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> appLogger;
+    static std::shared_ptr<spdlog::logger> coreLogger;
+    static std::shared_ptr<spdlog::logger> glLogger;
 };
 
 #define SPONGE_CORE_TRACE(...)    SPDLOG_LOGGER_TRACE(Log::getCoreLogger(), __VA_ARGS__)
@@ -33,6 +38,13 @@ class Log {
 #define SPONGE_CORE_WARN(...)     SPDLOG_LOGGER_WARN(Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getCoreLogger(), __VA_ARGS__)
+
+#define SPONGE_GL_TRACE(...)    SPDLOG_LOGGER_TRACE(Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_DEBUG(...)    SPDLOG_LOGGER_DEBUG(Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_INFO(...)     SPDLOG_LOGGER_INFO(Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_WARN(...)     SPDLOG_LOGGER_WARN(Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getGlLogger(), __VA_ARGS__)
 
 #define SPONGE_TRACE(...)    SPDLOG_LOGGER_TRACE(Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_DEBUG(...)    SPDLOG_LOGGER_DEBUG(Log::getAppLogger(), __VA_ARGS__)

@@ -4,16 +4,17 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "globals.h"
 #include "openglresourcemanager.h"
 
-OpenGLSprite::OpenGLSprite() {
+OpenGLSprite::OpenGLSprite(int screenWidth, int screenHeight) {
     std::array<float, 24> vertices = { 0.f, 1.f, 0.f, 1.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f,
                                        0.f, 1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 1.f, 0.f };
 
-    glm::mat4 projection = glm::ortho(0.f, globals::SCREEN_WIDTH * 1.f, globals::SCREEN_HEIGHT * 1.f, 0.f, -1.f, 1.f);
+    glm::mat4 projection = glm::ortho(0.f, screenWidth * 1.f, screenHeight * 1.f, 0.f, -1.f, 1.f);
 
-    OpenGLResourceManager::getShader("sprite")->bind()->setMat4("projection", projection);
+    auto shader = OpenGLResourceManager::getShader("sprite");
+    shader->bind();
+    shader->setMat4("projection", projection);
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();

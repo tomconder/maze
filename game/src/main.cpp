@@ -17,9 +17,13 @@ extern "C" int main(int argc, char *args[]) {
 
     SPONGE_INFO("Starting maze");
 
-    maze = std::make_unique<Maze>();
+#ifdef EMSCRIPTEN
+    maze = std::make_unique<Maze>(800, 600);
+#else
+    maze = std::make_unique<Maze>(1600, 900);
+#endif
 
-    if (maze->construct(globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT) == 0) {
+    if (maze->construct() == 0) {
         return 1;
     }
 
@@ -30,7 +34,7 @@ extern "C" int main(int argc, char *args[]) {
     SPONGE_INFO("Iterating loop");
 
 #ifdef EMSCRIPTEN
-    emscripten_set_main_loop((em_callback_func)iterateLoop, 0, false);
+    emscripten_set_main_loop((em_callback_func)iterateLoop, 0, true);
 #else
     bool quit = false;
     while (!quit) {

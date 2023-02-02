@@ -6,7 +6,8 @@
 
 #include "core/log.h"
 
-void OpenGLShader::compileAndLink(const std::string &vertexSource, const std::string &fragmentSource) {
+OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource)
+    : name(name) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
@@ -28,9 +29,12 @@ OpenGLShader::~OpenGLShader() {
     glDeleteProgram(program);
 }
 
-OpenGLShader *OpenGLShader::bind() {
+void OpenGLShader::bind() const {
     glUseProgram(program);
-    return this;
+}
+
+void OpenGLShader::unbind() const {
+    glUseProgram(0);
 }
 
 GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source) {
@@ -96,7 +100,7 @@ void OpenGLShader::setFloat(const std::string &name, float value) {
     glUniform1f(glGetUniformLocation(program, name.c_str()), value);
 }
 
-void OpenGLShader::setFloat3(const std::string &name, glm::vec3 value) {
+void OpenGLShader::setFloat3(const std::string &name, const glm::vec3 &value) {
     glUniform3f(glGetUniformLocation(program, name.c_str()), value.x, value.y, value.z);
 }
 
@@ -104,6 +108,6 @@ void OpenGLShader::setInteger(const std::string &name, int value) {
     glUniform1i(glGetUniformLocation(program, name.c_str()), value);
 }
 
-void OpenGLShader::setMat4(const std::string &name, glm::mat4 value) {
+void OpenGLShader::setMat4(const std::string &name, const glm::mat4 &value) {
     glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
