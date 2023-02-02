@@ -12,7 +12,7 @@ class OpenGLBuffer : public Buffer {
     ~OpenGLBuffer() override;
 
     void bind() const override;
-    void setData(const unsigned int *data, uint32_t size) override;
+    void setData(const float *data, uint32_t size);
 
    private:
     uint32_t id = 0;

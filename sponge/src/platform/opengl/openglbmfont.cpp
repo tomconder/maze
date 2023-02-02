@@ -21,10 +21,10 @@ OpenGLBMFont::OpenGLBMFont(int screenWidth, int screenHeight) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<GLuint>(sizeof(float) * 16));
+    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<GLuint>(sizeof(float)) * 16);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(static_cast<GLuint>(sizeof(GLuint) * 6));
+    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<GLuint>(sizeof(GLuint)) * 6);
     ebo->bind();
 
     GLuint program = shader->getId();
@@ -122,22 +122,15 @@ void OpenGLBMFont::load(const std::string& path) {
 }
 
 void OpenGLBMFont::renderText(const std::string& text, float x, float y, Uint32 targetSize, glm::vec3 color) {
-    auto fontSize = static_cast<float>(targetSize);
+    const auto fontSize = static_cast<float>(targetSize);
+    const float scale = fontSize / size;
+    const std::string str = text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    auto shader = OpenGLResourceManager::getShader("bmtext");
-    shader->bind();
-    shader->setFloat3("textColor", color);
-    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
+    std::vector<float> batchVertices;
+    std::vector<GLuint> batchIndices;
+    GLuint numIndices = 0;
 
-    glActiveTexture(GL_TEXTURE0);
-    auto tex = OpenGLResourceManager::getTexture(textureName);
-    tex->bind();
-
-    vao->bind();
-
-    float scale = fontSize / size;
-
-    for (const char& c : text) {
+    for (const char& c : str) {
         auto ch = fontChars[c];
 
         auto xpos = x + ch.offset.x * scale;
@@ -158,22 +151,38 @@ void OpenGLBMFont::renderText(const std::string& text, float x, float y, Uint32 
             xpos + w, ypos + h, texx + texw, texy          //
         };
 
+        batchVertices.insert(batchVertices.end(), vertices.begin(), vertices.end());
+
         auto indices = std::vector<GLuint>{
-            0, 1, 2,  //
-            0, 2, 3   //
+            numIndices, numIndices + 1, numIndices + 2,  //
+            numIndices, numIndices + 2, numIndices + 3   //
         };
 
-        ebo->bind();
-        ebo->setData(indices.data(), (GLuint)indices.size() * (GLuint)sizeof(GLuint));
-
-        vbo->bind();
-        glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
+        batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 
         x += static_cast<float>(ch.xadvance) * scale;
+        numIndices += 4;
     }
+
+    vao->bind();
+
+    auto shader = OpenGLResourceManager::getShader("bmtext");
+    shader->bind();
+    shader->setFloat3("textColor", color);
+    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
+
+    glActiveTexture(GL_TEXTURE0);
+    auto tex = OpenGLResourceManager::getTexture(textureName);
+    tex->bind();
+
+    vbo->bind();
+    vbo->setData(batchVertices.data(), static_cast<GLsizeiptr>(batchVertices.size() * sizeof(float)));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    ebo->bind();
+    ebo->setData(batchIndices.data(), static_cast<GLsizeiptr>(batchIndices.size() * sizeof(GLuint)));
+
+    glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

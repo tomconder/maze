@@ -29,6 +29,7 @@ class OpenGLBMFont {
     void log() const;
 
    private:
+    const uint32_t maxLength = 256;
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
     std::unique_ptr<OpenGLElementBuffer> ebo;
