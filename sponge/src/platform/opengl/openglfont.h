@@ -1,35 +1,57 @@
 #pragma once
 
-#include <ft2build.h>
-
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include FT_FREETYPE_H
-
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 
 #include "openglbuffer.h"
+#include "openglelementbuffer.h"
 #include "opengltexture.h"
 #include "openglvertexarray.h"
 
 struct Character {
-    unsigned int id;
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-    unsigned int advance;
+    glm::vec2 loc;
+    float width;
+    float height;
+    glm::vec2 offset;
+    glm::int32 xadvance;
+    glm::uint32 page;
 };
 
 class OpenGLFont {
    public:
     OpenGLFont(int screenWidth, int screenHeight);
-    void load(const std::string &path, unsigned int fontSize);
+    void load(const std::string &path);
+    void renderText(const std::string &text, float x, float y, Uint32 targetSize, glm::vec3 color);
 
-    void renderText(const std::string &text, float x, float y, glm::vec3 color);
+    void log() const;
 
+   private:
+    const uint32_t maxLength = 256;
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
+    std::unique_ptr<OpenGLElementBuffer> ebo;
 
-    std::unordered_map<unsigned char, Character> Characters;
+    std::unordered_map<glm::uint32, Character> fontChars;
+
+    // the name of font
+    std::string face;
+    // the size of the font
+    float size;
+
+    // the distance in pixels between each line of text
+    float lineHeight;
+    // the number of pixels from the absolute top of the line to the base of the characters
+    float base;
+    // the width of the texture, normally used to scale the x pos of the character image
+    float scaleW;
+    // the height of the texture, normally used to scale the y pos of the character image
+    float scaleH;
+
+    // the number of texture pages included in the font
+    glm::uint32 pages;
+    // the name of the texture page in the resource manager
+    std::string textureName;
 };
