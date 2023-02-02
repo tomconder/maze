@@ -95,12 +95,6 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     sprite->render("coffee", glm::vec2(w - 68.f, h - 68.f), glm::vec2(64.f, 64.f));
 
     OpenGLResourceManager::getFont("league-gothic")
-        ->renderText(
-            "Set to 1 if the monochrome characters have been packed into each of the texture channels. In this case "
-            "alphaChnl describes what is stored in each channel",
-            w / 2.0f - 400.0f, h / 2.0f + 68.0f, 28, glm::vec3(1.0, 0.6f, 0.0f));
-
-    OpenGLResourceManager::getFont("league-gothic")
         ->renderText("Press [Q] to exit", 7.0, h - 28.0, 28, glm::vec3(0.5, 0.9f, 1.0f));
 
     return true;

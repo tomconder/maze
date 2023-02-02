@@ -35,6 +35,7 @@ class OpenGLFont {
     std::unique_ptr<OpenGLElementBuffer> ebo;
 
     std::unordered_map<glm::uint32, Character> fontChars;
+    std::unordered_map<std::string, int> kerning;
 
     // the name of font
     std::string face;
