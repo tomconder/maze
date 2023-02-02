@@ -16,7 +16,7 @@ struct Character {
     float width;
     float height;
     glm::vec2 offset;
-    glm::int32 xadvance;
+    float xadvance;
     glm::uint32 page;
 };
 
@@ -35,7 +35,7 @@ class OpenGLFont {
     std::unique_ptr<OpenGLElementBuffer> ebo;
 
     std::unordered_map<glm::uint32, Character> fontChars;
-    std::unordered_map<std::string, int> kerning;
+    std::unordered_map<std::string, float> kerning;
 
     // the name of font
     std::string face;

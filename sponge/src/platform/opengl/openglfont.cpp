@@ -112,14 +112,14 @@ void OpenGLFont::load(const std::string& path) {
             fontChars[id].height = nextFloat(lineStream);
             fontChars[id].offset.x = nextFloat(lineStream);
             fontChars[id].offset.y = nextFloat(lineStream);
-            fontChars[id].xadvance = nextInt(lineStream);
+            fontChars[id].xadvance = nextFloat(lineStream);
             fontChars[id].page = nextInt(lineStream);
         }
 
         if (str == "kerning") {
             glm::uint32 first = nextInt(lineStream);
             glm::uint32 second = nextInt(lineStream);
-            glm::int32 amount = nextInt(lineStream);
+            float amount = nextFloat(lineStream);
             std::string key = std::to_string(first) + "." + std::to_string(second);
             kerning[key] = amount;
         }
@@ -166,11 +166,11 @@ void OpenGLFont::renderText(const std::string& text, float x, float y, Uint32 ta
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 
-        x += static_cast<float>(ch.xadvance) * scale;
+        x += ch.xadvance * scale;
         numIndices += 4;
 
         if (prev != 0) {
-            x += static_cast<float>(kerning[std::to_string(prev) + "." + std::to_string(c)]) * scale;
+            x += kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
         }
         prev = c;
     }
