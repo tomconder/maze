@@ -103,5 +103,7 @@ void OpenGLRendererAPI::setClearColor(const glm::vec4& color) {
 }
 
 void OpenGLRendererAPI::clear() {
+    // this prevents an NVIDIA program/shader state performance warning: shader is being recompiled based on GL state.
+    glUseProgram(0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
