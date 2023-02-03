@@ -19,16 +19,58 @@ void OpenGLModel::load(const std::string &path) {
 
     meshes.clear();
 
+#if USE_TINYOBJ
+    auto baseDir = [](const std::string &filepath) {
+        auto pos = filepath.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            return filepath.substr(0, pos);
+        }
+        return std::string{};
+    };
+
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn;
+    std::string err;
+
+    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), baseDir(path).c_str());
+    if (!warn.empty()) {
+        SPONGE_CORE_WARN(warn);
+    }
+
+    if (!err.empty()) {
+        SPONGE_CORE_ERROR(err);
+    }
+
+    if (!ret) {
+        SPONGE_CORE_ERROR("Unable to load model: {}", path);
+        return;
+    }
+
+    SPONGE_CORE_DEBUG("# of vertices   = {}", (int)(attrib.vertices.size()) / 3);
+    SPONGE_CORE_DEBUG("# of normals    = {}", (int)(attrib.normals.size()) / 3);
+    SPONGE_CORE_DEBUG("# of tex coords = {}", (int)(attrib.texcoords.size()) / 2);
+    SPONGE_CORE_DEBUG("# of materials  = {}", (int)materials.size());
+    SPONGE_CORE_DEBUG("# of shapes     = {}", (int)shapes.size());
+#else
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_GenNormals);
+    const aiScene *scene = importer.ReadFile(path, 0);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         SPONGE_CORE_ERROR("Unable to load model: {}", path);
         return;
     }
 
+    importer.ApplyPostProcessing(aiProcess_GenNormals);
+
     processNode(scene->mRootNode, scene);
+#endif
 }
 
+// TODO calculate normal
+// normal = glm::normalize(glm::cross(p[i+2]-p[i], p[i+1] - p[i]))
+
+#if !USE_TINYOBJ
 void OpenGLModel::processNode(const aiNode *node, const aiScene *scene) {
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
@@ -122,6 +164,7 @@ std::vector<std::shared_ptr<OpenGLTexture>> OpenGLModel::loadMaterialTextures(co
 
     return textures;
 }
+#endif
 
 void OpenGLModel::render() {
     for (auto it = std::begin(meshes); it != std::end(meshes); ++it) {
