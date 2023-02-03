@@ -20,10 +20,7 @@ void OpenGLModel::load(const std::string &path) {
     meshes.clear();
 
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(
-        path, aiProcess_CalcTangentSpace | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_ImproveCacheLocality |
-                  aiProcess_JoinIdenticalVertices | aiProcess_RemoveRedundantMaterials | aiProcess_SplitLargeMeshes |
-                  aiProcess_Triangulate);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_GenNormals);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         SPONGE_CORE_ERROR("Unable to load model: {}", path);
         return;

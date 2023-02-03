@@ -28,8 +28,8 @@ class OpenGLShader : public Shader {
     };
 
    private:
-    static GLuint compileShader(GLenum type, const std::string &file);
-    static GLuint linkProgram(GLuint vs, GLuint fs);
+    GLuint compileShader(GLenum type, const std::string &file);
+    GLuint linkProgram(GLuint vs, GLuint fs);
 
     GLuint program = 0;
     std::string name;
