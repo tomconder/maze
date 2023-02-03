@@ -1,21 +1,5 @@
-include(GNUInstallDirs)
+add_library(glad EXCLUDE_FROM_ALL src/glad.c)
 
-file(GLOB HEADER_FILES LIST_DIRECTORIES false src/include/*.h)
-
-set(SOURCE_FILES src/glad.c)
-
-add_library(glad STATIC EXCLUDE_FROM_ALL ${SOURCE_FILES})
-
-target_include_directories(glad PUBLIC include)
-
-target_precompile_headers(glad PRIVATE ${HEADER_FILES})
-
-install(TARGETS glad
-        BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+target_include_directories(glad PUBLIC include include)
 
 install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

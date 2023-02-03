@@ -101,6 +101,7 @@ if (EMSCRIPTEN)
   target_link_libraries(game PRIVATE sponge)
   target_link_libraries(game PRIVATE stb_image)
   target_link_libraries(game PRIVATE spdlog)
+  target_link_libraries(game PRIVATE tinyobjloader)
 
   add_custom_command(
           TARGET game PRE_BUILD
@@ -178,6 +179,7 @@ else ()
   target_link_libraries(game PRIVATE glm::glm)
   target_link_libraries(game PRIVATE stb_image)
   target_link_libraries(game PRIVATE spdlog)
+  target_link_libraries(game PRIVATE tinyobjloader)
 
   install(TARGETS game
           BUNDLE DESTINATION bin

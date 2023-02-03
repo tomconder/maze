@@ -76,6 +76,7 @@ if (EMSCRIPTEN)
   target_link_libraries(sponge PRIVATE glm::glm)
   target_link_libraries(sponge PRIVATE spdlog)
   target_link_libraries(sponge PRIVATE stb_image)
+  target_link_libraries(sponge PRIVATE tinyobjloader)
 else ()
   # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
 
@@ -197,8 +198,9 @@ else ()
   target_link_libraries(sponge PRIVATE assimp::assimp)
   target_link_libraries(sponge PRIVATE glad)
   target_link_libraries(sponge PRIVATE glm::glm)
-  target_link_libraries(sponge PRIVATE stb_image)
   target_link_libraries(sponge PRIVATE spdlog)
+  target_link_libraries(sponge PRIVATE stb_image)
+  target_link_libraries(sponge PRIVATE tinyobjloader)
 
   install(TARGETS sponge
           BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
