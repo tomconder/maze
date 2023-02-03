@@ -97,17 +97,21 @@ OpenGLMesh OpenGLModel::processMesh(const aiMesh *mesh, const aiScene *scene) {
             vertex.normal = glmVec3;
         }
 
-        if (mesh->mTextureCoords[0]) {
+        if (mesh->mTextureCoords[0] != nullptr) {
             glm::vec2 glmVec2 = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
             vertex.texCoords = glmVec2;
-
-            glmVec3 = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-            vertex.tangent = glmVec3;
-
-            glmVec3 = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-            vertex.biTangent = glmVec3;
         } else {
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
+        }
+
+        if (mesh->mTangents != nullptr) {
+            glmVec3 = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+            vertex.tangent = glmVec3;
+        }
+
+        if (mesh->mBitangents != nullptr) {
+            glmVec3 = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+            vertex.biTangent = glmVec3;
         }
 
         vertices.push_back(vertex);
