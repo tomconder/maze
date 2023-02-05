@@ -30,9 +30,9 @@ class OpenGLModel {
                                                                             const std::string &typeName);
     void processNode(const aiNode *node, const aiScene *scene);
 #else
-    void process(const tinyobj::attrib_t& attrib, const std::vector<tinyobj::shape_t>& shapes,
+    void process(tinyobj::attrib_t& attrib, std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials);
-    static OpenGLMesh processMesh(const tinyobj::attrib_t& attrib, const tinyobj::mesh_t& mesh,
+    static OpenGLMesh processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
                                   const std::vector<tinyobj::material_t>& materials);
     static std::shared_ptr<OpenGLTexture> loadMaterialTextures(const tinyobj::material_t& material);
 #endif

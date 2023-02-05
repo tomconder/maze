@@ -13,7 +13,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
-// #define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
 void OpenGLModel::load(const std::string &path) {
@@ -59,25 +59,21 @@ void OpenGLModel::load(const std::string &path) {
         return;
     }
 
-    //    importer.ApplyPostProcessing(aiProcess_GenNormals | aiProcess_OptimizeMeshes |
-    //    aiProcess_ImproveCacheLocality);
+    importer.ApplyPostProcessing(aiProcess_GenNormals);
 
     processNode(scene->mRootNode, scene);
 #endif
 }
 
-// TODO calculate normal
-// normal = glm::normalize(glm::cross(p[i+2]-p[i], p[i+1] - p[i]))
-
 #if USE_TINYOBJ
-void OpenGLModel::process(const tinyobj::attrib_t &attrib, const std::vector<tinyobj::shape_t> &shapes,
+void OpenGLModel::process(tinyobj::attrib_t &attrib, std::vector<tinyobj::shape_t> &shapes,
                           const std::vector<tinyobj::material_t> &materials) {
-    for (const auto &shape : shapes) {
+    for (auto &shape : shapes) {
         meshes.push_back(processMesh(attrib, shape.mesh, materials));
     }
 }
 
-OpenGLMesh OpenGLModel::processMesh(const tinyobj::attrib_t &attrib, const tinyobj::mesh_t &mesh,
+OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &mesh,
                                     const std::vector<tinyobj::material_t> &materials) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
@@ -112,6 +108,19 @@ OpenGLMesh OpenGLModel::processMesh(const tinyobj::attrib_t &attrib, const tinyo
         indices.push_back(numIndices++);
     }
 
+    // recalculate normals since they may be missing
+    for (auto j = 0; j < vertices.size(); j += 3) {
+        auto p0 = vertices[j + 0].position;
+        auto p1 = vertices[j + 1].position;
+        auto p2 = vertices[j + 2].position;
+
+        auto normal = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+
+        vertices[j + 0].normal = normal;
+        vertices[j + 1].normal = normal;
+        vertices[j + 2].normal = normal;
+    }
+
     // process materials
     for (auto id : mesh.material_ids) {
         if (id >= 0) {
@@ -126,10 +135,18 @@ OpenGLMesh OpenGLModel::processMesh(const tinyobj::attrib_t &attrib, const tinyo
 std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::material_t &material) {
     std::shared_ptr<OpenGLTexture> texture;
 
-    auto str = material.diffuse_texname;
+    auto baseName = [](const std::string &filepath) {
+        auto pos = filepath.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            return filepath.substr(pos + 1, filepath.length());
+        }
+        return filepath;
+    };
 
-    std::string filename = std::string("assets/meshes/") + str;
-    return OpenGLResourceManager::loadTexture(filename, str);
+    auto name = baseName(material.diffuse_texname);
+
+    std::string filename = std::string("assets/meshes/") + name;
+    return OpenGLResourceManager::loadTexture(filename, name);
 }
 #endif
 
