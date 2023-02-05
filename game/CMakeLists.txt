@@ -95,7 +95,6 @@ else ()
   conan_cmake_configure(REQUIRES
           glm/0.9.9.8
           sdl/2.26.1
-          zlib/1.2.13
           GENERATORS cmake_find_package)
 
   conan_cmake_autodetect(settings)
