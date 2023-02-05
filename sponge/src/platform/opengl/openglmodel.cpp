@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "core/log.h"
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
 #include "openglresourcemanager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -48,11 +50,7 @@ void OpenGLModel::load(const std::string &path) {
         return;
     }
 
-    SPONGE_CORE_DEBUG("# of vertices   = {}", (int)(attrib.vertices.size()) / 3);
-    SPONGE_CORE_DEBUG("# of normals    = {}", (int)(attrib.normals.size()) / 3);
-    SPONGE_CORE_DEBUG("# of tex coords = {}", (int)(attrib.texcoords.size()) / 2);
-    SPONGE_CORE_DEBUG("# of materials  = {}", (int)materials.size());
-    SPONGE_CORE_DEBUG("# of shapes     = {}", (int)shapes.size());
+    process(attrib, shapes, materials);
 #else
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, 0);
@@ -61,7 +59,8 @@ void OpenGLModel::load(const std::string &path) {
         return;
     }
 
-    importer.ApplyPostProcessing(aiProcess_GenNormals);
+    //    importer.ApplyPostProcessing(aiProcess_GenNormals | aiProcess_OptimizeMeshes |
+    //    aiProcess_ImproveCacheLocality);
 
     processNode(scene->mRootNode, scene);
 #endif
@@ -69,6 +68,70 @@ void OpenGLModel::load(const std::string &path) {
 
 // TODO calculate normal
 // normal = glm::normalize(glm::cross(p[i+2]-p[i], p[i+1] - p[i]))
+
+#if USE_TINYOBJ
+void OpenGLModel::process(const tinyobj::attrib_t &attrib, const std::vector<tinyobj::shape_t> &shapes,
+                          const std::vector<tinyobj::material_t> &materials) {
+    for (const auto &shape : shapes) {
+        meshes.push_back(processMesh(attrib, shape.mesh, materials));
+    }
+}
+
+OpenGLMesh OpenGLModel::processMesh(const tinyobj::attrib_t &attrib, const tinyobj::mesh_t &mesh,
+                                    const std::vector<tinyobj::material_t> &materials) {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<std::shared_ptr<OpenGLTexture>> textures;
+
+    // vertices
+    auto numIndices = 0;
+    vertices.reserve(mesh.indices.size());
+    indices.reserve(mesh.indices.size());
+    for (auto index : mesh.indices) {
+        Vertex vertex{};
+
+        auto i = index.vertex_index;
+        vertex.position = glm::vec3{ attrib.vertices[i * 3 + 0],  //
+                                     attrib.vertices[i * 3 + 1],  //
+                                     attrib.vertices[i * 3 + 2] };
+
+        i = index.texcoord_index;
+        if (i >= 0) {
+            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
+                                          attrib.texcoords[i * 2 + 1] };
+        }
+
+        i = index.normal_index;
+        if (i >= 0) {
+            vertex.normal = glm::vec3{ attrib.normals[i * 3 + 0],  //
+                                       attrib.normals[i * 3 + 1],  //
+                                       attrib.normals[i * 3 + 2] };
+        }
+
+        vertices.push_back(vertex);
+        indices.push_back(numIndices++);
+    }
+
+    // process materials
+    for (auto id : mesh.material_ids) {
+        if (id >= 0) {
+            const auto &material = materials[id];
+            textures.push_back(loadMaterialTextures(material));
+        }
+    }
+
+    return { vertices, indices, textures };
+}
+
+std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::material_t &material) {
+    std::shared_ptr<OpenGLTexture> texture;
+
+    auto str = material.diffuse_texname;
+
+    std::string filename = std::string("assets/meshes/") + str;
+    return OpenGLResourceManager::loadTexture(filename, str);
+}
+#endif
 
 #if !USE_TINYOBJ
 void OpenGLModel::processNode(const aiNode *node, const aiScene *scene) {
@@ -139,14 +202,14 @@ OpenGLMesh OpenGLModel::processMesh(const aiMesh *mesh, const aiScene *scene) {
     auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. specular maps
-    auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    //    auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    //    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+    //    auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    //    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
-    auto heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+    //    auto heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    //    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
     return { vertices, indices, textures };
 }

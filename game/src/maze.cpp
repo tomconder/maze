@@ -49,7 +49,7 @@ bool Maze::onUserCreate() {
     shader->setMat4("projection", projection);
 
     shader->setFloat3("lightPos", glm::vec3(40.f, 40.f, 40.f));
-    shader->setFloat("ambientStrength", 0.2f);
+    shader->setFloat("ambientStrength", 0.3f);
 
     sprite = std::make_unique<OpenGLSprite>(w, h);
 
