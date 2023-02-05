@@ -49,7 +49,7 @@ bool Maze::onUserCreate() {
     shader->setMat4("projection", projection);
 
     shader->setFloat3("lightPos", glm::vec3(40.f, 40.f, 40.f));
-    shader->setFloat("ambientStrength", 0.2f);
+    shader->setFloat("ambientStrength", 0.3f);
 
     sprite = std::make_unique<OpenGLSprite>(w, h);
 
@@ -107,16 +107,19 @@ bool Maze::onUserResize(int width, int height) {
     auto shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
     shader->setMat4("projection", projection);
+    shader->unbind();
 
     projection = glm::ortho(0.f, static_cast<float>(width), static_cast<float>(height), 0.f, -1.f, 1.f);
     shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
     shader->setMat4("projection", projection);
+    shader->unbind();
 
     projection = glm::ortho(0.f, static_cast<float>(width), 0.f, static_cast<float>(height));
     shader = OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setMat4("projection", projection);
+    shader->unbind();
 
     return true;
 }

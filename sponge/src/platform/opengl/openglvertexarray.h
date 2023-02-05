@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL.h>
-
 #include "gl.h"
 #include "renderer/vertexarray.h"
 
