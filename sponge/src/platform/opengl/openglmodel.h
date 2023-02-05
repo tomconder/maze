@@ -15,7 +15,7 @@
 
 class OpenGLModel {
    public:
-    void load(const std::string &path);
+    void load(const std::string& path);
     void render();
 
     std::vector<OpenGLMesh> meshes;
