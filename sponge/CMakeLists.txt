@@ -17,20 +17,6 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")
 
-  # 01/2022 - use fetchcontent since conan's support for emscripten on windows is poor
-  include(FetchContent)
-
-  # glm
-  fetchcontent_declare(
-          glm
-          GIT_REPOSITORY https://github.com/g-truc/glm.git
-          GIT_TAG 06ed280db4e274fa5e1f36d5ea4f7dfd654ff9b0
-  )
-  fetchcontent_makeavailable(glm)
-  if (NOT glm_POPULATED)
-    fetchcontent_populate(glm)
-  endif ()
-
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
 
@@ -61,7 +47,6 @@ else ()
   include(${CMAKE_BINARY_DIR}/sponge/conan.cmake)
 
   conan_cmake_configure(REQUIRES
-          glm/0.9.9.8
           sdl/2.26.1
           GENERATORS cmake_find_package)
 
@@ -78,7 +63,6 @@ else ()
 
   find_package(OpenGL REQUIRED)
   find_package(SDL2 REQUIRED)
-  find_package(glm REQUIRED)
 
   # for debugging
   # include(CMakePrintHelpers)

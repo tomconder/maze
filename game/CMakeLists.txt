@@ -33,20 +33,6 @@ file(GLOB ASSETS LIST_DIRECTORIES false assets/*)
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building game for Emscripten")
 
-  # 01/2022 - use fetchcontent since conan's support for emscripten on windows is poor
-  include(FetchContent)
-
-  # glm
-  fetchcontent_declare(
-          glm
-          GIT_REPOSITORY https://github.com/g-truc/glm.git
-          GIT_TAG 06ed280db4e274fa5e1f36d5ea4f7dfd654ff9b0
-  )
-  fetchcontent_makeavailable(glm)
-  if (NOT glm_POPULATED)
-    fetchcontent_populate(glm)
-  endif ()
-
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
@@ -93,7 +79,6 @@ else ()
   include(${CMAKE_BINARY_DIR}/game/conan.cmake)
 
   conan_cmake_configure(REQUIRES
-          glm/0.9.9.8
           sdl/2.26.1
           GENERATORS cmake_find_package)
 
@@ -109,7 +94,6 @@ else ()
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
   find_package(SDL2 REQUIRED)
-  find_package(glm REQUIRED)
 
   if (WIN32)
     add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
