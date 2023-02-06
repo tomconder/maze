@@ -166,6 +166,10 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
     int width;
 
     void *data = stbi_load(name.c_str(), &width, &height, &bytesPerPixel, 0);
+    if (data == nullptr) {
+        SPONGE_CORE_ERROR("Unable to open path: {}", path);
+        return std::make_shared<OpenGLTexture>();
+    }
 
     int pitch = (width * bytesPerPixel + 3) & ~3;
 

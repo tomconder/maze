@@ -105,11 +105,8 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
     }
 
     // process materials
-    for (auto id : mesh.material_ids) {
-        if (id >= 0) {
-            const auto &material = materials[id];
-            textures.push_back(loadMaterialTextures(material));
-        }
+    for (const auto &material : materials) {
+        textures.push_back(loadMaterialTextures(material));
     }
 
     return { vertices, indices, textures };
@@ -129,7 +126,7 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::
     auto name = baseName(material.diffuse_texname);
 
     std::string filename = std::string("assets/meshes/") + name;
-    return OpenGLResourceManager::loadTexture(filename, name);
+    return OpenGLResourceManager::loadTextureWithType(filename, "texture_diffuse");
 }
 
 void OpenGLModel::render() {
