@@ -10,7 +10,7 @@ OpenGLSprite::OpenGLSprite(int screenWidth, int screenHeight) {
     std::array<float, 24> vertices = { 0.f, 1.f, 0.f, 1.f, 1.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f,
                                        0.f, 1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 1.f, 0.f };
 
-    glm::mat4 projection = glm::ortho(0.f, screenWidth * 1.f, screenHeight * 1.f, 0.f, -1.f, 1.f);
+    glm::mat4 projection = glm::ortho(0.f, screenWidth * 1.f, screenHeight * 1.f, 0.f);
 
     auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();

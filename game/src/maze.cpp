@@ -109,7 +109,7 @@ bool Maze::onUserResize(int width, int height) {
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    projection = glm::ortho(0.f, static_cast<float>(width), static_cast<float>(height), 0.f, -1.f, 1.f);
+    projection = glm::ortho(0.f, static_cast<float>(width), static_cast<float>(height), 0.f);
     shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
     shader->setMat4("projection", projection);
