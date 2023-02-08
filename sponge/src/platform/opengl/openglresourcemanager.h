@@ -16,8 +16,8 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLFont> loadFont(const std::string &path, const std::string &name, int screenWidth,
                                                 int screenHeight);
 
-    static std::shared_ptr<OpenGLModel> getMesh(const std::string &name);
-    static std::shared_ptr<OpenGLModel> loadMesh(const std::string &path, const std::string &name);
+    static std::shared_ptr<OpenGLModel> getModel(const std::string &name);
+    static std::shared_ptr<OpenGLModel> loadModel(const std::string &path, const std::string &name);
 
     static std::shared_ptr<OpenGLShader> loadShader(const std::string &vertexShader, const std::string &fragmentShader,
                                                     const std::string &name);
@@ -31,12 +31,12 @@ class OpenGLResourceManager {
     OpenGLResourceManager() = default;
 
     static std::shared_ptr<OpenGLFont> loadFontFromFile(const std::string &path, int screenWidth, int screenHeight);
-    static std::shared_ptr<OpenGLModel> loadMeshFromFile(const std::string &path);
+    static std::shared_ptr<OpenGLModel> loadModelFromFile(const std::string &path);
     static std::string loadSourceFromFile(const std::string &path);
     static std::shared_ptr<OpenGLTexture> loadTextureFromFile(const std::string &path);
 
     static std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> fonts;
-    static std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> meshes;
+    static std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> models;
     static std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>> textures;
 };

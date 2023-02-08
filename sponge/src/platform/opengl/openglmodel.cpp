@@ -77,7 +77,7 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
         i = index.texcoord_index;
         if (i >= 0) {
             vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
-                                          attrib.texcoords[i * 2 + 1] };
+                                          1.0f - attrib.texcoords[i * 2 + 1] };
         }
 
         i = index.normal_index;
@@ -104,9 +104,11 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
         vertices[j + 2].normal = normal;
     }
 
-    // process materials
-    for (const auto &material : materials) {
-        textures.push_back(loadMaterialTextures(material));
+    if (mesh.material_ids.size() > 0) {
+        auto id = mesh.material_ids[0];
+        if (id != -1) {
+            textures.push_back(loadMaterialTextures(materials[id]));
+        }
     }
 
     return { vertices, indices, textures };
@@ -123,10 +125,10 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::
         return filepath;
     };
 
-    auto name = baseName(material.diffuse_texname);
+    auto name = material.diffuse_texname;
 
-    std::string filename = std::string("assets/meshes/") + name;
-    return OpenGLResourceManager::loadTextureWithType(filename, "texture_diffuse");
+    std::string filename = std::string("assets/models/") + baseName(name);
+    return OpenGLResourceManager::loadTexture(filename, name);
 }
 
 void OpenGLModel::render() {

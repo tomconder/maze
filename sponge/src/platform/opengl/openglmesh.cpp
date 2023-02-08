@@ -70,30 +70,12 @@ void OpenGLMesh::render() const {
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
 
-    unsigned int diffuseNumber = 1;
-    unsigned int specularNumber = 1;
-    unsigned int normalNumber = 1;
-    unsigned int heightNumber = 1;
-    for (int i = 0; i < textures.size(); i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
+    glActiveTexture(GL_TEXTURE0);
 
-        std::string number;
-        std::string name = textures[i]->getType();
-        if (name == "texture_diffuse") {
-            number = std::to_string(diffuseNumber++);
-        } else if (name == "texture_specular") {
-            number = std::to_string(specularNumber++);
-        } else if (name == "texture_normal") {
-            number = std::to_string(normalNumber++);
-        } else if (name == "texture_height") {
-            number = std::to_string(heightNumber++);
-        }
-
-        shader->setInteger(name + number, i);
-        textures[i]->bind();
-    }
-
-    if (textures.empty()) {
+    if (!textures.empty()) {
+        shader->setInteger("texture_diffuse1", 0);
+        textures[0]->bind();
+    } else {
         shader->setBoolean("hasNoTexture", true);
     }
 
