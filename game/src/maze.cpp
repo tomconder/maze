@@ -25,7 +25,7 @@ bool Maze::onUserCreate() {
     OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
     OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
 
-    OpenGLResourceManager::loadMesh("assets/meshes/mountains.obj", "Maze");
+    OpenGLResourceManager::loadModel("assets/models/mountains.obj", "Maze");
 
     OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
@@ -90,7 +90,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     auto model = glm::mat4(1.f);
     shader->setMat4("model", model);
 
-    OpenGLResourceManager::getMesh("Maze")->render();
+    OpenGLResourceManager::getModel("Maze")->render();
 
     sprite->render("coffee", glm::vec2(w - 68.f, h - 68.f), glm::vec2(64.f, 64.f));
 

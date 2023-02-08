@@ -13,7 +13,7 @@
 #include "stb_image.h"
 
 std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> OpenGLResourceManager::fonts;
-std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> OpenGLResourceManager::meshes;
+std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> OpenGLResourceManager::models;
 std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> OpenGLResourceManager::shaders;
 std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>> OpenGLResourceManager::textures;
 
@@ -37,21 +37,21 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
     return font;
 }
 
-std::shared_ptr<OpenGLModel> OpenGLResourceManager::getMesh(const std::string &name) {
+std::shared_ptr<OpenGLModel> OpenGLResourceManager::getModel(const std::string &name) {
     assert(!name.empty());
-    return meshes.at(name);
+    return models.at(name);
 }
 
-std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMesh(const std::string &path, const std::string &name) {
+std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(const std::string &path, const std::string &name) {
     assert(!path.empty());
     assert(!name.empty());
 
-    if (meshes.find(name) != meshes.end()) {
-        return meshes[name];
+    if (models.find(name) != models.end()) {
+        return models[name];
     }
 
-    std::shared_ptr<OpenGLModel> mesh = loadMeshFromFile(path);
-    meshes[name] = mesh;
+    std::shared_ptr<OpenGLModel> mesh = loadModelFromFile(path);
+    models[name] = mesh;
 
     return mesh;
 }
@@ -124,7 +124,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
     return font;
 }
 
-std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadMeshFromFile(const std::string &path) {
+std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModelFromFile(const std::string &path) {
     assert(!path.empty());
 
     SPONGE_CORE_INFO("Loading mesh file: {0}", path);
@@ -156,48 +156,50 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path) {
 std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const std::string &path) {
     assert(!path.empty());
 
+    auto texture = std::make_shared<OpenGLTexture>();
+
     auto name = path;
     std::replace(name.begin(), name.end(), '\\', '/');
 
     SPONGE_CORE_INFO("Loading texture file: {0}", name);
 
-    int bytesPerPixel;
+    int origFormat;
+    int depth = 32;
     int height;
     int width;
+    int channels = STBI_rgb_alpha;
 
-    void *data = stbi_load(name.c_str(), &width, &height, &bytesPerPixel, 0);
+    void *data = stbi_load(name.c_str(), &width, &height, &origFormat, channels);
     if (data == nullptr) {
-        SPONGE_CORE_ERROR("Unable to open path: {}", path);
-        return std::make_shared<OpenGLTexture>();
+        SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}", path, stbi_failure_reason());
+        return texture;
     }
 
-    int pitch = (width * bytesPerPixel + 3) & ~3;
-
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-    Uint32 Rmask = 0x000000FF;
-    Uint32 Gmask = 0x0000FF00;
-    Uint32 Bmask = 0x00FF0000;
-    Uint32 Amask = (bytesPerPixel == 4) ? 0xFF000000 : 0;
+    Uint32 rmask = 0x000000FF;
+    Uint32 gmask = 0x0000FF00;
+    Uint32 bmask = 0x00FF0000;
+    Uint32 amask = 0xFF000000;
 #else
-    Uint32 s = (bytesPerPixel == 4) ? 0 : 8;
-    Uint32 Rmask = 0xFF000000 >> s;
-    Uint32 Gmask = 0x00FF0000 >> s;
-    Uint32 Bmask = 0x0000FF00 >> s;
-    Uint32 Amask = 0x000000FF >> s;
+    Uint32 rmask = 0xFF000000;
+    Uint32 gmask = 0x00FF0000;
+    Uint32 bmask = 0x0000FF00;
+    Uint32 amask = 0x000000FF;
 #endif
 
     SDL_Surface *surface =
-        SDL_CreateRGBSurfaceFrom(data, width, height, bytesPerPixel * 8, pitch, Rmask, Gmask, Bmask, Amask);
+        SDL_CreateRGBSurfaceFrom(data, width, height, depth, channels * width, rmask, gmask, bmask, amask);
     if (surface == nullptr) {
         SPONGE_CORE_ERROR("Unable to load texture file: {0}", path);
-        return nullptr;
+        stbi_image_free(data);
+        return texture;
     }
 
-    auto texture = std::make_shared<OpenGLTexture>();
     texture->generate(surface->w, surface->h, surface->format->BytesPerPixel,
                       static_cast<unsigned char *>(surface->pixels));
 
     SDL_FreeSurface(surface);
+    stbi_image_free(data);
 
     return texture;
 }
