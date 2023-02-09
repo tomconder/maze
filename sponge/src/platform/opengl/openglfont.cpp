@@ -17,13 +17,13 @@ OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
     auto projection = glm::ortho(0.f, static_cast<float>(screenWidth), 0.f, static_cast<float>(screenHeight));
     shader->setMat4("projection", projection);
 
-    vao = new OpenGLVertexArray();
+    vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = new OpenGLBuffer{ maxLength * static_cast<uint32_t>(sizeof(float)) * 16 };
+    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    ebo = new OpenGLElementBuffer{ maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6 };
+    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
     uint32_t program = shader->getId();
@@ -212,10 +212,4 @@ void OpenGLFont::log() const {
             key, value.loc.x, value.loc.y, value.width, value.height, value.offset.x, value.offset.y, value.xadvance,
             value.page);
     }
-}
-
-OpenGLFont::~OpenGLFont() {
-    delete ebo;
-    delete vao;
-    delete vbo;
 }

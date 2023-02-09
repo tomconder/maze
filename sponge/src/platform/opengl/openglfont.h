@@ -23,7 +23,6 @@ struct Character {
 class OpenGLFont {
    public:
     OpenGLFont(int screenWidth, int screenHeight);
-    ~OpenGLFont();
     void load(const std::string& path);
     void renderText(const std::string& text, float x, float y, uint32_t targetSize, glm::vec3 color);
 
@@ -31,9 +30,9 @@ class OpenGLFont {
 
    private:
     const uint32_t maxLength = 256;
-    OpenGLBuffer* vbo;
-    OpenGLVertexArray* vao;
-    OpenGLElementBuffer* ebo;
+    std::unique_ptr<OpenGLBuffer> vbo;
+    std::unique_ptr<OpenGLVertexArray> vao;
+    std::unique_ptr<OpenGLElementBuffer> ebo;
 
     std::unordered_map<glm::uint32, Character> fontChars;
     std::unordered_map<std::string, float> kerning;
