@@ -1,3 +1,3 @@
-add_library(spdlog INTERFACE EXCLUDE_FROM_ALL)
+add_library(spdlog INTERFACE)
 
 target_include_directories(spdlog INTERFACE include)

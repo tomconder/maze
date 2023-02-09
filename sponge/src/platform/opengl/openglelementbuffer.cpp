@@ -20,7 +20,7 @@ void OpenGLElementBuffer::bind() const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
 }
 
-void OpenGLElementBuffer::setData(const unsigned int *data, uint32_t size) {
+void OpenGLElementBuffer::setData(const unsigned int *data, uint32_t size) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, data);
 }

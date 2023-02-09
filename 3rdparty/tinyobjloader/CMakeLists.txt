@@ -1,3 +1,3 @@
-add_library(tinyobjloader INTERFACE EXCLUDE_FROM_ALL)
+add_library(tinyobjloader INTERFACE)
 
 target_include_directories(tinyobjloader INTERFACE include)

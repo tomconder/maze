@@ -10,7 +10,7 @@ class OpenGLElementBuffer : public Buffer {
     ~OpenGLElementBuffer() override;
 
     void bind() const override;
-    void setData(const unsigned int *data, uint32_t size);
+    void setData(const unsigned int *data, uint32_t size) const;
 
    private:
     uint32_t id = 0;
