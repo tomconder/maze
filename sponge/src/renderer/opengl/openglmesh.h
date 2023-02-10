@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "gl.h"
 #include "openglbuffer.h"
 #include "openglelementbuffer.h"

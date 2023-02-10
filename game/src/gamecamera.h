@@ -3,7 +3,7 @@
 #include <glm/ext/quaternion_float.hpp>
 #include <glm/mat4x4.hpp>
 
-#include "renderer/camera.h"
+#include "scene/camera.h"
 
 class GameCamera : public Camera {
    public:

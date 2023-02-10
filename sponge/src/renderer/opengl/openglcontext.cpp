@@ -6,8 +6,6 @@
 #include <numeric>
 #include <sstream>
 
-#include "core/log.h"
-
 #ifdef EMSCRIPTEN
 
 #include <utility>

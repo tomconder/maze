@@ -4,8 +4,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
-#include "core/log.h"
-
 OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource)
     : name(name) {
     assert(!vertexSource.empty());

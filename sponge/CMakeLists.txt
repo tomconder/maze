@@ -3,16 +3,24 @@
 include(GNUInstallDirs)
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false
-        src/*.h
         src/core/*.h
-        src/platform/opengl/*.h
-        src/renderer/*.h)
+        src/event/*.h
+        src/input/*.h
+        src/platform/*.h
+        src/platform/sdl/*.h
+        src/renderer/*.h
+        src/renderer/opengl/*.h
+        src/scene/*.h)
 
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
-        src/*.cpp
         src/core/*.cpp
-        src/platform/opengl/*.cpp
-        src/renderer/*.cpp)
+        src/event/*.cpp
+        src/input/*.cpp
+        src/platform/*.cpp
+        src/platform/sdl/*.cpp
+        src/renderer/*.cpp
+        src/renderer/opengl/*.cpp
+        src/scene/*.cpp)
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")

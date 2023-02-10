@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/log.h"
 #include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/rendererapi.h"

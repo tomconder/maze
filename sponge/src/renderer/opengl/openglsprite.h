@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "openglbuffer.h"
 #include "openglvertexarray.h"
 #include "renderer/sprite.h"
