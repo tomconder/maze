@@ -39,7 +39,7 @@ bool Maze::onUserCreate() {
     adjustAspectRatio(w, h);
     renderer->setViewport(offsetx, offsety, w, h);
 
-    camera = std::make_unique<GameCamera>(80.0f, static_cast<float>(w), static_cast<float>(h), 1.f, 18000.0f);
+    camera = std::make_unique<GameCamera>(80.0f, static_cast<float>(w), static_cast<float>(h), 0.01f, 18000.0f);
 
     camera->setPosition(glm::vec3(0.f, 40.f, 70.f));
 
