@@ -129,7 +129,7 @@ void SDLEngine::logSDLVersion() {
     SDL_version compiled;
     SDL_version linked;
 
-    SDL_VERSION(&compiled);
+    SDL_VERSION(&compiled)
     SDL_GetVersion(&linked);
 
     std::string revision = SDL_GetRevision();

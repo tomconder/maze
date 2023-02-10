@@ -93,10 +93,11 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 
     OpenGLResourceManager::getModel("Maze")->render();
 
-    sprite->render("coffee", glm::vec2(w - 68.f, h - 68.f), glm::vec2(64.f, 64.f));
+    sprite->render("coffee", glm::vec2(static_cast<float>(w) - 68.f, static_cast<float>(h) - 68.f),
+                   glm::vec2(64.f, 64.f));
 
     OpenGLResourceManager::getFont("league-gothic")
-        ->renderText("Press [Q] to exit", 12.0, h - 12.0, 28, glm::vec3(0.5, 0.9f, 1.0f));
+        ->renderText("Press [Q] to exit", 12.f, static_cast<float>(h) - 12.f, 28, glm::vec3(0.5, 0.9f, 1.0f));
 
     return true;
 }
