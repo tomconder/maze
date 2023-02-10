@@ -10,8 +10,6 @@
 #include <glm/vec3.hpp>
 #include <sstream>
 
-#include "core/log.h"
-
 int Engine::construct() {
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
@@ -71,8 +69,8 @@ int Engine::start() {
 
 bool Engine::iterateLoop() {
     SDL_Event event;
-    Uint32 currentTime;
-    Uint32 elapsedTime;
+    uint32_t currentTime;
+    uint32_t elapsedTime;
 
     input.beginFrame();
 
@@ -152,7 +150,7 @@ bool Engine::onUserCreate() {
     return true;
 }
 
-bool Engine::onUserUpdate(Uint32 elapsedTime) {
+bool Engine::onUserUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
     return true;
 }

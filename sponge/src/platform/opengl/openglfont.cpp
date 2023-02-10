@@ -7,7 +7,6 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
 
-#include "core/log.h"
 #include "openglresourcemanager.h"
 
 OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
