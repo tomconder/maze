@@ -4,8 +4,8 @@
 
 #include "base.h"
 #include "input.h"
-#include "platform/opengl/openglcontext.h"
-#include "platform/opengl/openglrendererapi.h"
+#include "renderer/opengl/openglcontext.h"
+#include "renderer/opengl/openglrendererapi.h"
 
 class Engine {
    public:

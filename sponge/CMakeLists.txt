@@ -5,14 +5,16 @@ include(GNUInstallDirs)
 file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/*.h
         src/core/*.h
-        src/platform/opengl/*.h
-        src/renderer/*.h)
+        src/platform/*.h
+        src/renderer/*.h
+        src/renderer/opengl/*.h)
 
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/*.cpp
         src/core/*.cpp
-        src/platform/opengl/*.cpp
-        src/renderer/*.cpp)
+        src/platform/*.cpp
+        src/renderer/*.cpp
+        src/renderer/opengl/*.cpp)
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")

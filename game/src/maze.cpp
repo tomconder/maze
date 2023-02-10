@@ -7,7 +7,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "core/log.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "renderer/opengl/openglresourcemanager.h"
 #include "version.h"
 
 #define KEY_PRESSED_OR_HOLD(key) input.wasKeyPressed(key) || input.isKeyHeld(key)

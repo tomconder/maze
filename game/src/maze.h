@@ -5,7 +5,7 @@
 
 #include "core/engine.h"
 #include "gamecamera.h"
-#include "platform/opengl/openglsprite.h"
+#include "renderer/opengl/openglsprite.h"
 
 class Maze : public Engine {
    public:
