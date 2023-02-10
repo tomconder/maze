@@ -3,11 +3,11 @@
 #include <memory>
 #include <string>
 
-#include "core/engine.h"
 #include "gamecamera.h"
+#include "platform/sdl/sdlengine.h"
 #include "renderer/opengl/openglsprite.h"
 
-class Maze : public Engine {
+class Maze : public SDLEngine {
    public:
     Maze(int screenWidth, int screenHeight);
 

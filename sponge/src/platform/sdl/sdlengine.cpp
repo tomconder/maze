@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "sdlengine.h"
 
 #ifdef EMSCRIPTEN
 #include <emscripten/emscripten.h>
@@ -10,7 +10,7 @@
 #include <glm/vec3.hpp>
 #include <sstream>
 
-int Engine::construct() {
+int SDLEngine::construct() const {
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
                                  nullptr);
@@ -21,7 +21,7 @@ int Engine::construct() {
     return 1;
 }
 
-int Engine::start() {
+int SDLEngine::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
@@ -67,7 +67,7 @@ int Engine::start() {
     return 1;
 }
 
-bool Engine::iterateLoop() {
+bool SDLEngine::iterateLoop() {
     SDL_Event event;
     uint32_t currentTime;
     uint32_t elapsedTime;
@@ -125,7 +125,7 @@ bool Engine::iterateLoop() {
     return false;
 }
 
-void Engine::logSDLVersion() {
+void SDLEngine::logSDLVersion() {
     SDL_version compiled;
     SDL_version linked;
 
@@ -146,26 +146,26 @@ void Engine::logSDLVersion() {
                       static_cast<int>(linked.patch));
 }
 
-bool Engine::onUserCreate() {
+bool SDLEngine::onUserCreate() {
     return true;
 }
 
-bool Engine::onUserUpdate(uint32_t elapsedTime) {
+bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
     return true;
 }
 
-bool Engine::onUserResize(int width, int height) {
+bool SDLEngine::onUserResize(int width, int height) {
     UNUSED(width);
     UNUSED(height);
     return true;
 }
 
-bool Engine::onUserDestroy() {
+bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-void Engine::adjustAspectRatio(int eventW, int eventH) {
+void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
     const std::array<glm::vec3, 5> ratios = {
         glm::vec3{ 32.f, 9.f, 32.f / 9.f },    //
         glm::vec3{ 21.f, 9.f, 21.f / 9.f },    //

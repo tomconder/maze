@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 
 #include "core/log.h"
+#include "platform/sdl/sdlengine.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include "version.h"
 

@@ -11,34 +11,17 @@ class Engine {
    public:
     virtual ~Engine() = default;
 
-    int construct();
+    virtual int construct() const = 0;
 
-    int start();
+    virtual int start() = 0;
 
-    bool iterateLoop();
+    virtual bool iterateLoop() = 0;
 
-    static void logSDLVersion();
+    virtual bool onUserCreate() = 0;
 
-    virtual bool onUserCreate();
+    virtual bool onUserUpdate(Uint32 elapsedTime) = 0;
 
-    virtual bool onUserUpdate(Uint32 elapsedTime);
+    virtual bool onUserDestroy() = 0;
 
-    virtual bool onUserDestroy();
-
-    virtual bool onUserResize(int width, int height);
-
-    void adjustAspectRatio(int eventW, int eventH);
-
-    Input input;
-    Uint32 lastUpdateTime = 0;
-    std::string appName = "undefined";
-    std::unique_ptr<OpenGLContext> graphics;
-    std::unique_ptr<OpenGLRendererAPI> renderer;
-
-    int offsetx = 0;
-    int offsety = 0;
-    int w = 0;
-    int h = 0;
+    virtual bool onUserResize(int width, int height) = 0;
 };
-
-#define UNUSED(x) (void)(x)
