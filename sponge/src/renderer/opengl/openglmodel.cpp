@@ -12,15 +12,14 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-void OpenGLModel::load(const std::string &path) {
+void OpenGLModel::load(std::string_view path) {
     assert(!path.empty());
 
     meshes.clear();
 
-    auto baseDir = [](const std::string &filepath) {
-        auto pos = filepath.find_last_of("/\\");
-        if (pos != std::string::npos) {
-            return filepath.substr(0, pos);
+    auto baseDir = [](std::string_view filepath) {
+        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
+            return std::string{ filepath.substr(0, pos) };
         }
         return std::string{};
     };
@@ -31,7 +30,7 @@ void OpenGLModel::load(const std::string &path) {
     std::string warn;
     std::string err;
 
-    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), baseDir(path).c_str());
+    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.data(), baseDir(path).c_str());
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
     }
@@ -87,7 +86,8 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
         }
 
         vertices.push_back(vertex);
-        indices.push_back(numIndices++);
+        indices.push_back(numIndices);
+        numIndices++;
     }
 
     // recalculate normals since they may be missing
@@ -103,7 +103,7 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
         vertices[j + 2].normal = normal;
     }
 
-    if (mesh.material_ids.size() > 0) {
+    if (!mesh.material_ids.empty()) {
         auto id = mesh.material_ids[0];
         if (id != -1) {
             textures.push_back(loadMaterialTextures(materials[id]));
@@ -117,14 +117,13 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string &filepath) {
-        auto pos = filepath.find_last_of("/\\");
-        if (pos != std::string::npos) {
+        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
             return filepath.substr(pos + 1, filepath.length());
         }
         return filepath;
     };
 
-    auto name = material.diffuse_texname;
+    const auto &name = material.diffuse_texname;
 
     std::string filename = std::string("assets/models/") + baseName(name);
     return OpenGLResourceManager::loadTexture(filename, name);

@@ -5,6 +5,9 @@ static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity,
     std::string source_str;
     std::string type_str;
 
+    UNUSED(length);
+    UNUSED(userParam);
+
     switch (source) {
         case GL_DEBUG_SOURCE_API:
             source_str = "API";

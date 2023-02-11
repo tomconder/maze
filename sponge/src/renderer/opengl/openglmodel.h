@@ -7,14 +7,11 @@
 #include "opengltexture.h"
 #include "renderer/mesh.h"
 
-#define USE_TINYOBJ 1
-#if USE_TINYOBJ
 #include "tiny_obj_loader.h"
-#endif
 
 class OpenGLModel {
    public:
-    void load(const std::string& path);
+    void load(std::string_view path);
     void render();
 
     std::vector<OpenGLMesh> meshes;

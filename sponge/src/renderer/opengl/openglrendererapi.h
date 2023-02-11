@@ -12,3 +12,5 @@ class OpenGLRendererAPI : public RendererAPI {
     void setClearColor(const glm::vec4 &color) override;
     void clear() override;
 };
+
+#define UNUSED(x) (void)(x)

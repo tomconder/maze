@@ -55,3 +55,5 @@ class OpenGLFont {
     // the name of the texture page in the resource manager
     std::string textureName;
 };
+
+#define UNUSED(x) (void)(x)

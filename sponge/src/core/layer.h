@@ -7,8 +7,11 @@ class Layer {
     Layer();
     virtual ~Layer() = default;
 
-    virtual void onAttach() {}
-    virtual void onDetach() {}
-    virtual void onUpdate(uint32_t elapsedTime) {}
+    virtual void onAttach() { /* virtual */
+    }
+    virtual void onDetach() { /* virtual */
+    }
+    virtual void onUpdate(uint32_t elapsedTime) { /* virtual */
+    }
     // virtual void onEvent() {Event& event}
 };

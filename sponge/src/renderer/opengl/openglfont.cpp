@@ -95,11 +95,12 @@ void OpenGLFont::load(const std::string& path) {
 
         if (str == "page") {
             uint32_t id = nextInt(lineStream);
+            UNUSED(id);
             std::string name = nextString(lineStream);
 
             auto pos = path.find_last_of('/');
             auto fontFolder = path.substr(0, pos + 1);
-            textureName = "font";
+            textureName = name;
             auto texture = OpenGLResourceManager::loadTexture(fontFolder + name, textureName);
         }
 

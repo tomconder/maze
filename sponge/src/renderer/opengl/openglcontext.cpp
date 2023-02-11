@@ -51,9 +51,9 @@ OpenGLContext::OpenGLContext(SDL_Window *window, const std::string &name) : glNa
     SDL_GLContext context = nullptr;
 
     // create context trying different versions
-    for (auto &version : glVersions) {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version.first);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version.second);
+    for (const auto &[major, minor] : glVersions) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
         context = SDL_GL_CreateContext(window);
         if (context != nullptr) {
             break;

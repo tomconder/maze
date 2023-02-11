@@ -47,9 +47,9 @@ int SDLEngine::start() {
 #endif
 
     graphics->logGlVersion();
-    graphics->logStaticOpenGLInfo();
-    graphics->logGraphicsDriverInfo();
-    graphics->logOpenGLContextInfo();
+    OpenGLContext::logStaticOpenGLInfo();
+    OpenGLContext::logGraphicsDriverInfo();
+    OpenGLContext::logOpenGLContextInfo();
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
