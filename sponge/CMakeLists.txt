@@ -3,6 +3,7 @@
 include(GNUInstallDirs)
 
 file(GLOB HEADER_FILES LIST_DIRECTORIES false
+        src/*.h
         src/core/*.h
         src/event/*.h
         src/input/*.h
@@ -13,6 +14,7 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/scene/*.h)
 
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
+        src/*.cpp
         src/core/*.cpp
         src/event/*.cpp
         src/input/*.cpp
@@ -29,6 +31,11 @@ if (EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
+
+  # pre-compiled header support
+  message(STATUS "Compiling using pre-compiled header support")
+  target_precompile_headers(sponge PUBLIC src/spongepch.h)
+  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -O2 -s ALLOW_MEMORY_GROWTH=1")
   set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2")
@@ -78,6 +85,11 @@ else ()
   # cmake_print_variables(SDL2_LIBRARY)
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
+
+  # pre-compiled header support
+  message(STATUS "Compiling using pre-compiled header support")
+  target_precompile_headers(sponge PUBLIC src/spongepch.h)
+  set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
   if (MSVC)
     target_compile_options(sponge PUBLIC "/Zi")
