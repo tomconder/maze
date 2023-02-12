@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <utility>
 
-OpenGLContext::OpenGLContext(SDL_Window *window, const std::string &name) : glName(name) {
+OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -23,13 +23,13 @@ OpenGLContext::OpenGLContext(SDL_Window *window, const std::string &name) : glNa
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef EMSCRIPTEN
-    const std::array<std::pair<int, int>, 7> glVersions{
+    const std::array<std::tuple<int, int>, 7> glVersions{
         { { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } }
     };
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #else
-    const std::array<std::pair<int, int>, 13> glVersions{ { { 4, 6 },
+    const std::array<std::tuple<int, int>, 13> glVersions{ { { 4, 6 },
                                                             { 4, 5 },
                                                             { 4, 4 },
                                                             { 4, 3 },
