@@ -14,7 +14,6 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/scene/*.h)
 
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
-        src/*.cpp
         src/core/*.cpp
         src/event/*.cpp
         src/input/*.cpp
@@ -23,6 +22,10 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/renderer/*.cpp
         src/renderer/opengl/*.cpp
         src/scene/*.cpp)
+
+if (MSVC)
+  list(APPEND SOURCES src/spongepch.cpp)
+endif()
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")
