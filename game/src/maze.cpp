@@ -6,8 +6,8 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "core/log.h"
 #include "core/keycode.h"
+#include "core/log.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include "version.h"
 
@@ -76,11 +76,13 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         graphics->toggleFullscreen();
     }
 
-    if (input.isButtonPressed()) {
+    if (input.isButtonPressed() && input.wasMouseMoved()) {
         camera->mouseMove(input.getMoveDelta());
     }
 
-    camera->mouseScroll(input.getScrollDelta());
+    if (input.wasMouseScrolled()) {
+        camera->mouseScroll(input.getScrollDelta());
+    }
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();

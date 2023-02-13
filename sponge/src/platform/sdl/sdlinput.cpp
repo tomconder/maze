@@ -1,4 +1,5 @@
 #include "sdlinput.h"
+
 #include "core/keycode.h"
 #include "core/mousecode.h"
 
@@ -125,18 +126,21 @@ void SDLInput::initializeKeyMap() {
     keymap[SDL_SCANCODE_KP_ENTER] = KeyCode::KPEnter;
     keymap[SDL_SCANCODE_KP_EQUALS] = KeyCode::KPEqual;
 
-//    keymap[SDL_SCANCODE_X] = KeyCode::LeftShift;
-//    keymap[SDL_SCANCODE_X] = KeyCode::LeftControl;
-//    keymap[SDL_SCANCODE_X] = KeyCode::LeftAlt;
-//    keymap[SDL_SCANCODE_X] = KeyCode::LeftSuper;
-//    keymap[SDL_SCANCODE_X] = KeyCode::RightShift;
-//    keymap[SDL_SCANCODE_X] = KeyCode::RightControl;
-//    keymap[SDL_SCANCODE_X] = KeyCode::RightAlt;
-//    keymap[SDL_SCANCODE_X] = KeyCode::RightSuper;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::LeftShift;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::LeftControl;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::LeftAlt;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::LeftSuper;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::RightShift;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::RightControl;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::RightAlt;
+    //    keymap[SDL_SCANCODE_X] = KeyCode::RightSuper;
     keymap[SDL_SCANCODE_MENU] = KeyCode::Menu;
 }
 
 void SDLInput::beginFrame() {
+    mouseMoved = false;
+    mouseScrolled = false;
+
     pressedKeys.clear();
     releasedKeys.clear();
 }
@@ -177,28 +181,17 @@ void SDLInput::mouseButtonUp(const MouseButtonReleasedEvent &event) {
     }
 }
 
-bool SDLInput::isButtonPressed() const {
-    return buttonPressed;
-}
-
 void SDLInput::mouseMove(const MouseMovedEvent &event) {
+    mouseMoved = true;
     moveDelta = { event.getX(), event.getY() };
 }
 
 void SDLInput::mouseScroll(const MouseScrolledEvent &event) {
-    scrollDelta.x = event.getXOffset();
-    scrollDelta.y = event.getYOffset();
+    mouseScrolled = true;
+    scrollDelta = { event.getXOffset(), event.getYOffset() };
 }
 
-glm::vec2 SDLInput::getScrollDelta() {
-    if (lastScrollX < scrollDelta.x) {
-        lastScrollX = scrollDelta.x;
-        return scrollDelta;
-    }
-    return glm::vec2(0.f);
-}
-
-KeyCode SDLInput::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
+KeyCode SDLInput::mapScanCodeToKeyCode(const SDL_Scancode &scancode) {
     return keymap[scancode];
 }
 

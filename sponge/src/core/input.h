@@ -20,8 +20,8 @@ class Input {
     virtual void mouseButtonUp(const MouseButtonReleasedEvent &event) = 0;
 
     virtual bool isButtonPressed() const = 0;
-    virtual void mouseMove(const MouseMovedEvent &event) =0;
-    virtual void mouseScroll(const MouseScrolledEvent &event) =0;
+    virtual void mouseMove(const MouseMovedEvent &event) = 0;
+    virtual void mouseScroll(const MouseScrolledEvent &event) = 0;
 
     virtual glm::vec2 getMoveDelta() const = 0;
     virtual glm::vec2 getScrollDelta() = 0;

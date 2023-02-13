@@ -25,18 +25,12 @@ enum EventCategory {
     EventCategoryMouseButton = BIT(4)
 };
 
-#define EVENT_CLASS_TYPE(type)                        \
-    static EventType getStaticType() {                \
-        return EventType::type;                       \
-    }                                                 \
-    virtual EventType getEventType() const override { \
-        return getStaticType();                       \
-    }
+#define EVENT_CLASS_TYPE(type)                                   \
+    static EventType getStaticType() { return EventType::type; } \
+    virtual EventType getEventType() const override { return getStaticType(); }
 
-#define EVENT_CLASS_CATEGORY(category)              \
-    virtual int getCategoryFlags() const override { \
-        return category;                            \
-    }
+#define EVENT_CLASS_CATEGORY(category) \
+    virtual int getCategoryFlags() const override { return category; }
 
 class Event {
    public:
