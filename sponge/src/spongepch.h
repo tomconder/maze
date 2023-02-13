@@ -35,3 +35,10 @@
 // spdlog
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #include <spdlog/spdlog.h>
+
+// glad
+#ifdef EMSCRIPTEN
+#define GLAD_GLES2_IMPLEMENTATION
+#endif
+
+#include <glad/glad.h>
