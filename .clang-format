@@ -22,5 +22,7 @@ Language: Cpp
 ColumnLimit: 120
 Standard: c++17
 
+ReflowComments: true
+
 UseCRLF: false
 UseTab: Never
