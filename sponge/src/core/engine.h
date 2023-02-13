@@ -19,7 +19,7 @@ class Engine {
 
     virtual bool onUserCreate() = 0;
 
-    virtual bool onUserUpdate(Uint32 elapsedTime) = 0;
+    virtual bool onUserUpdate(uint32_t elapsedTime) = 0;
 
     virtual bool onUserDestroy() = 0;
 

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "SDL.h"
 #include "core/input.h"
 #include "glm/vec2.hpp"
 
@@ -18,9 +19,6 @@ class SDLInput : public Input {
     bool wasKeyReleased(KeyCode key) override;
     bool wasMouseScrolled() {
         return mouseScrolled;
-    }
-    bool wasMouseMoved() {
-        return mouseMoved;
     }
 
     void mouseButtonDown(const MouseButtonPressedEvent &event) override;
@@ -50,10 +48,8 @@ class SDLInput : public Input {
     std::unordered_map<SDL_Scancode, KeyCode> keymap;
 
     bool buttonPressed = false;
-    bool mouseMoved = false;
     bool mouseScrolled = false;
     glm::vec2 moveDelta = { 0.f, 0.f };
     glm::vec2 scrollDelta = { 0.f, 0.f };
-    float lastScrollX = 0.f;
     void initializeKeyMap();
 };

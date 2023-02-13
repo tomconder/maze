@@ -76,7 +76,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         graphics->toggleFullscreen();
     }
 
-    if (input.isButtonPressed() && input.wasMouseMoved()) {
+    if (input.isButtonPressed()) {
         camera->mouseMove(input.getMoveDelta());
     }
 

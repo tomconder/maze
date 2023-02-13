@@ -138,7 +138,6 @@ void SDLInput::initializeKeyMap() {
 }
 
 void SDLInput::beginFrame() {
-    mouseMoved = false;
     mouseScrolled = false;
 
     pressedKeys.clear();
@@ -182,7 +181,6 @@ void SDLInput::mouseButtonUp(const MouseButtonReleasedEvent &event) {
 }
 
 void SDLInput::mouseMove(const MouseMovedEvent &event) {
-    mouseMoved = true;
     moveDelta = { event.getX(), event.getY() };
 }
 
