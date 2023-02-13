@@ -64,7 +64,7 @@ void SDLInput::initializeKeyMap() {
     keymap[SDL_SCANCODE_INTERNATIONAL1] = KeyCode::World1;
     keymap[SDL_SCANCODE_INTERNATIONAL2] = KeyCode::World2;
 
-    keymap[SDL_SCANCODE_ESCAPE] = KeyCode::Escape;
+    keymap[SDL_SCANCODE_ESCAPE] = KeyCode::FEscape;
     keymap[SDL_SCANCODE_RETURN] = KeyCode::Enter;
     keymap[SDL_SCANCODE_TAB] = KeyCode::Tab;
     keymap[SDL_SCANCODE_BACKSPACE] = KeyCode::Backspace;

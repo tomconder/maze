@@ -63,7 +63,7 @@ enum KeyCode : uint16_t {
     World2 = 162,
 
     // Function keys
-    Escape = 256,
+    FEscape = 256,
     Enter = 257,
     Tab = 258,
     Backspace = 259,

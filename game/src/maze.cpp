@@ -58,7 +58,7 @@ bool Maze::onUserCreate() {
 }
 
 bool Maze::onUserUpdate(Uint32 elapsedTime) {
-    if (input.wasKeyPressed(KeyCode::Escape) || input.wasKeyPressed(KeyCode::Q)) {
+    if (input.wasKeyPressed(KeyCode::FEscape) || input.wasKeyPressed(KeyCode::Q)) {
         return false;
     }
 
