@@ -1,26 +1,37 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
 #include <functional>
 #include <iomanip>
-#include <iostream>
 #include <memory>
 #include <numeric>
+#include <utility>
+
+// string
+#include <iostream>
 #include <sstream>
 #include <string>
+
+// containers
+#include <array>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "SDL.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/mat4x4.hpp"
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
+// glm
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
+// SDL
+#include <SDL.h>
+
+// spdlog
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
