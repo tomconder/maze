@@ -1,5 +1,6 @@
 #include "sdlinput.h"
 #include "core/keycode.h"
+#include "core/mousecode.h"
 
 SDLInput::SDLInput() {
     initializeKeyMap();
@@ -185,7 +186,8 @@ void SDLInput::mouseMove(const MouseMovedEvent &event) {
 }
 
 void SDLInput::mouseScroll(const MouseScrolledEvent &event) {
-    scrollDelta = { event.getXOffset(), event.getYOffset() };
+    scrollDelta.x = event.getXOffset();
+    scrollDelta.y = event.getYOffset();
 }
 
 glm::vec2 SDLInput::getScrollDelta() {
@@ -198,4 +200,8 @@ glm::vec2 SDLInput::getScrollDelta() {
 
 KeyCode SDLInput::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
     return keymap[scancode];
+}
+
+MouseCode SDLInput::mapMouseButton(uint8_t index) {
+    return index - 1;
 }

@@ -22,16 +22,17 @@ class SDLInput : public Input {
     void mouseButtonUp(const MouseButtonReleasedEvent &event) override;
 
     // TODO change this to take button as a parameter
-    [[nodiscard]] bool isButtonPressed() const override;
+    bool isButtonPressed() const override;
     void mouseMove(const MouseMovedEvent &event) override;
     void mouseScroll(const MouseScrolledEvent &event) override;
 
-    [[nodiscard]] glm::vec2 getMoveDelta() const override {
+    glm::vec2 getMoveDelta() const override {
         return moveDelta;
     }
     glm::vec2 getScrollDelta() override;
 
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
+    MouseCode mapMouseButton(uint8_t index);
 
    private:
     std::unordered_map<KeyCode, bool> heldKeys;

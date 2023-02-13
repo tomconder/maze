@@ -93,13 +93,14 @@ bool SDLEngine::iterateLoop() {
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN) {
-            input.mouseButtonDown({ event.button.button });
+            input.mouseButtonDown({ input.mapMouseButton(event.button.button)  });
         } else if (event.type == SDL_MOUSEBUTTONUP) {
-            input.mouseButtonUp({ event.button.button });
+            input.mouseButtonUp({ input.mapMouseButton(event.button.button) });
         } else if (event.type == SDL_MOUSEMOTION) {
-            input.mouseMove({ static_cast<float>(event.motion.x), static_cast<float>(event.motion.y) });
+            input.mouseMove({ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) });
         } else if (event.type == SDL_MOUSEWHEEL) {
-            input.mouseScroll({ static_cast<float>(event.wheel.x), static_cast<float>(event.wheel.y) });
+            SPONGE_CORE_DEBUG("Mouse Wheel: {} {}", event.wheel.preciseX, event.wheel.preciseY);
+            input.mouseScroll({ event.wheel.preciseX, event.wheel.preciseY });
         }
     }
 
