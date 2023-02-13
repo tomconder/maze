@@ -17,5 +17,5 @@ Use magick to create a ico file
 ## Creating Icon for Mac
 Use `iconutils` that is provided by Apple.
 ```text
-iconutils --convert icns --out maze.icns maze.iconset
+iconutil --convert icns --out maze.icns maze.iconset
 ```
