@@ -6,7 +6,6 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/*.h
         src/core/*.h
         src/event/*.h
-        src/input/*.h
         src/platform/*.h
         src/platform/sdl/*.h
         src/renderer/*.h
@@ -16,7 +15,6 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
 file(GLOB SOURCE_FILES LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/input/*.cpp
         src/platform/*.cpp
         src/platform/sdl/*.cpp
         src/renderer/*.cpp

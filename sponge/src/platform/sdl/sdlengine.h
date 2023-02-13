@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/engine.h"
+#include "sdlinput.h"
 
 class SDLEngine : public Engine {
    public:
@@ -22,7 +23,7 @@ class SDLEngine : public Engine {
 
     static void logSDLVersion();
 
-    Input input;
+    SDLInput input;
     Uint32 lastUpdateTime = 0;
     std::string appName = "undefined";
     std::unique_ptr<OpenGLContext> graphics;

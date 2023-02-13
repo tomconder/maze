@@ -3,7 +3,7 @@
 #include <string>
 
 #include "base.h"
-#include "input/input.h"
+#include "input.h"
 #include "renderer/opengl/openglcontext.h"
 #include "renderer/opengl/openglrendererapi.h"
 
