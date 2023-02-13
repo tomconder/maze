@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "SDL.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/vec2.hpp"
