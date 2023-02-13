@@ -96,6 +96,7 @@ else ()
   find_package(SDL2 REQUIRED)
 
   if (WIN32)
+    set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
     add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
     target_include_directories(game PRIVATE assets/icons)
   elseif (APPLE)
