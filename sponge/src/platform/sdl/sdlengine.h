@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/engine.h"
+#include "sdlinput.h"
 
 class SDLEngine : public Engine {
    public:
@@ -12,7 +13,7 @@ class SDLEngine : public Engine {
 
     bool onUserCreate() override;
 
-    bool onUserUpdate(Uint32 elapsedTime) override;
+    bool onUserUpdate(uint32_t elapsedTime) override;
 
     bool onUserDestroy() override;
 
@@ -22,8 +23,8 @@ class SDLEngine : public Engine {
 
     static void logSDLVersion();
 
-    Input input;
-    Uint32 lastUpdateTime = 0;
+    SDLInput input;
+    uint32_t lastUpdateTime = 0;
     std::string appName = "undefined";
     std::unique_ptr<OpenGLContext> graphics;
     std::unique_ptr<OpenGLRendererAPI> renderer;

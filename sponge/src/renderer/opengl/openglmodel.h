@@ -6,7 +6,6 @@
 #include "openglmesh.h"
 #include "opengltexture.h"
 #include "renderer/mesh.h"
-
 #include "tiny_obj_loader.h"
 
 class OpenGLModel {

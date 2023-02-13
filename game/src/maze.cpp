@@ -6,8 +6,8 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
+#include "core/keycode.h"
 #include "core/log.h"
-#include "platform/sdl/sdlengine.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include "version.h"
 
@@ -58,21 +58,21 @@ bool Maze::onUserCreate() {
 }
 
 bool Maze::onUserUpdate(Uint32 elapsedTime) {
-    if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE) || input.wasKeyPressed(SDL_SCANCODE_Q)) {
+    if (input.wasKeyPressed(KeyCode::Escape) || input.wasKeyPressed(KeyCode::Q)) {
         return false;
     }
 
-    if (KEY_PRESSED_OR_HOLD(SDL_SCANCODE_W) || KEY_PRESSED_OR_HOLD(SDL_SCANCODE_UP)) {
+    if (KEY_PRESSED_OR_HOLD(KeyCode::W) || KEY_PRESSED_OR_HOLD(KeyCode::Up)) {
         camera->moveForward(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(SDL_SCANCODE_S) || KEY_PRESSED_OR_HOLD(SDL_SCANCODE_DOWN)) {
+    } else if (KEY_PRESSED_OR_HOLD(KeyCode::S) || KEY_PRESSED_OR_HOLD(KeyCode::Down)) {
         camera->moveBackward(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(SDL_SCANCODE_A) || KEY_PRESSED_OR_HOLD(SDL_SCANCODE_LEFT)) {
+    } else if (KEY_PRESSED_OR_HOLD(KeyCode::A) || KEY_PRESSED_OR_HOLD(KeyCode::Left)) {
         camera->strafeLeft(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(SDL_SCANCODE_D) || KEY_PRESSED_OR_HOLD(SDL_SCANCODE_RIGHT)) {
+    } else if (KEY_PRESSED_OR_HOLD(KeyCode::D) || KEY_PRESSED_OR_HOLD(KeyCode::Right)) {
         camera->strafeRight(elapsedTime);
     }
 
-    if (input.wasKeyPressed(SDL_SCANCODE_F)) {
+    if (input.wasKeyPressed(KeyCode::F)) {
         graphics->toggleFullscreen();
     }
 
@@ -80,7 +80,9 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         camera->mouseMove(input.getMoveDelta());
     }
 
-    camera->mouseScroll(input.getScrollDelta());
+    if (input.wasMouseScrolled()) {
+        camera->mouseScroll(input.getScrollDelta());
+    }
 
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();

@@ -10,6 +10,8 @@
 #include <glm/vec3.hpp>
 #include <sstream>
 
+#include "core/keycode.h"
+
 int SDLEngine::construct() const {
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
@@ -84,20 +86,20 @@ bool SDLEngine::iterateLoop() {
             onUserResize(w, h);
         } else if (event.type == SDL_KEYDOWN) {
             if (event.key.repeat == 0) {
-                input.keyDown(event.key);
+                input.keyDown({ input.mapScanCodeToKeyCode(event.key.keysym.scancode) });
             }
         } else if (event.type == SDL_KEYUP) {
-            input.keyUp(event.key);
+            input.keyUp({ input.mapScanCodeToKeyCode(event.key.keysym.scancode) });
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN) {
-            input.mouseButtonDown(event.button);
+            input.mouseButtonDown({ input.mapMouseButton(event.button.button) });
         } else if (event.type == SDL_MOUSEBUTTONUP) {
-            input.mouseButtonUp(event.button);
+            input.mouseButtonUp({ input.mapMouseButton(event.button.button) });
         } else if (event.type == SDL_MOUSEMOTION) {
-            input.mouseMove(event.motion);
+            input.mouseMove({ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) });
         } else if (event.type == SDL_MOUSEWHEEL) {
-            input.mouseScroll(event.wheel);
+            input.mouseScroll({ event.wheel.preciseX, event.wheel.preciseY });
         }
     }
 
