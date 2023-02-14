@@ -46,13 +46,10 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
 
-    glActiveTexture(GL_TEXTURE0);
     auto tex = OpenGLResourceManager::getTexture(name);
     tex->bind();
 
-    vbo->bind();
     vbo->setData(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(float)));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
 

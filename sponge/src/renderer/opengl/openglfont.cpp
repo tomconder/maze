@@ -184,15 +184,11 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
     shader->setFloat3("textColor", color);
     shader->setFloat("screenPxRange", fontSize / size * 4.0f);
 
-    glActiveTexture(GL_TEXTURE0);
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
-    vbo->bind();
     vbo->setData(batchVertices.data(), static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    ebo->bind();
     ebo->setData(batchIndices.data(), static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);

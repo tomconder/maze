@@ -71,8 +71,6 @@ void OpenGLMesh::render() const {
     std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
 
-    glActiveTexture(GL_TEXTURE0);
-
     if (!textures.empty()) {
         shader->setInteger("texture_diffuse1", 0);
         textures[0]->bind();
@@ -82,6 +80,4 @@ void OpenGLMesh::render() const {
 
     glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE0);
 }
