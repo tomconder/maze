@@ -21,7 +21,7 @@ OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<un
                                                 (uint32_t)indices.size() * (uint32_t)sizeof(unsigned int));
     ebo->bind();
 
-    std::shared_ptr<OpenGLShader> shader = OpenGLResourceManager::getShader("shader");
+    auto shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
 
     uint32_t program = shader->getId();
@@ -61,6 +61,7 @@ OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<un
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, biTangent));
     }
 
+    shader->unbind();
     glBindVertexArray(0);
 }
 

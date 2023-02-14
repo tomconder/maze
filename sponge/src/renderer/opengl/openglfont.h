@@ -21,9 +21,9 @@ struct Character {
 
 class OpenGLFont {
    public:
-    OpenGLFont(int screenWidth, int screenHeight);
+    OpenGLFont();
     void load(const std::string& path);
-    void renderText(const std::string& text, float x, float y, uint32_t targetSize, glm::vec3 color);
+    void render(const std::string& text, const glm::vec2& position, uint32_t targetSize, const glm::vec3& color);
 
     void log() const;
 

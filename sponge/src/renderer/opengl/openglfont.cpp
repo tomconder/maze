@@ -9,12 +9,9 @@
 
 #include "openglresourcemanager.h"
 
-OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
+OpenGLFont::OpenGLFont() {
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
-
-    auto projection = glm::ortho(0.f, static_cast<float>(screenWidth), 0.f, static_cast<float>(screenHeight));
-    shader->setMat4("projection", projection);
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
@@ -32,6 +29,8 @@ OpenGLFont::OpenGLFont(int screenWidth, int screenHeight) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    shader->unbind();
 }
 
 void OpenGLFont::load(const std::string& path) {
@@ -126,7 +125,8 @@ void OpenGLFont::load(const std::string& path) {
     }
 }
 
-void OpenGLFont::renderText(const std::string& text, float x, float y, uint32_t targetSize, glm::vec3 color) {
+void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint32_t targetSize,
+                        const glm::vec3& color) {
     const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
     const std::string str = text.length() > maxLength ? text.substr(0, maxLength) : text;
@@ -136,11 +136,13 @@ void OpenGLFont::renderText(const std::string& text, float x, float y, uint32_t 
     uint32_t numIndices = 0;
     char prev = 0;
 
+    auto x = position.x;
+
     for (const char& c : str) {
         auto ch = fontChars[c];
 
         auto xpos = x + ch.offset.x * scale;
-        auto ypos = y - (ch.height + ch.offset.y) * scale;
+        auto ypos = position.y - (ch.height + ch.offset.y) * scale;
 
         auto w = ch.width * scale;
         auto h = ch.height * scale;
@@ -187,16 +189,15 @@ void OpenGLFont::renderText(const std::string& text, float x, float y, uint32_t 
     tex->bind();
 
     vbo->bind();
-    vbo->setData(batchVertices.data(), static_cast<GLsizeiptr>(batchVertices.size() * sizeof(float)));
+    vbo->setData(batchVertices.data(), static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     ebo->bind();
-    ebo->setData(batchIndices.data(), static_cast<GLsizeiptr>(batchIndices.size() * sizeof(uint32_t)));
+    ebo->setData(batchIndices.data(), static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void OpenGLFont::log() const {

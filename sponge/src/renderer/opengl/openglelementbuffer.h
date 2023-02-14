@@ -6,11 +6,11 @@
 class OpenGLElementBuffer : public Buffer {
    public:
     explicit OpenGLElementBuffer(uint32_t size);
-    OpenGLElementBuffer(const unsigned int *indices, uint32_t size);
+    OpenGLElementBuffer(const uint32_t *indices, uint32_t size);
     ~OpenGLElementBuffer() override;
 
     void bind() const override;
-    void setData(const unsigned int *data, uint32_t size) const;
+    void setData(const uint32_t *data, uint32_t size) const;
 
    private:
     uint32_t id = 0;

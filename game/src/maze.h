@@ -6,6 +6,7 @@
 #include "gamecamera.h"
 #include "platform/sdl/sdlengine.h"
 #include "renderer/opengl/openglsprite.h"
+#include "scene/orthocamera.h"
 
 class Maze : public SDLEngine {
    public:
@@ -18,5 +19,6 @@ class Maze : public SDLEngine {
 
    private:
     std::unique_ptr<GameCamera> camera;
-    std::unique_ptr<OpenGLSprite> sprite;
+    std::unique_ptr<OrthoCamera> orthoCamera;
+    std::unique_ptr<OpenGLSprite> logo;
 };
