@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glm/ext/quaternion_float.hpp>
 #include <glm/mat4x4.hpp>
 
 #include "scene/camera.h"
@@ -14,19 +13,8 @@ class GameCamera : public Camera {
 
     void setViewportSize(int viewportWidth, int viewportHeight);
 
-    const glm::mat4 &getProjection() const {
-        return projection;
-    }
-    const glm::mat4 &getViewMatrix() const {
-        return view;
-    }
-
-    glm::quat getOrientation() const;
-    float getPitch() const {
-        return pitch;
-    }
-    float getYaw() const {
-        return yaw;
+    const glm::mat4 &getMVP() const {
+        return mvp;
     }
 
     void setPosition(const glm::vec3 &position);
@@ -46,22 +34,26 @@ class GameCamera : public Camera {
     void updateProjection();
     void updateView();
 
-    float fov = 45.0f;
-    const float zCullDistanceNear = 0.01f;
-    const float zCullDistanceFar = 1000.0f;
+    float fov = 45.f;
+    const float zNear = 1.f;
+    const float zFar = 1000.f;
 
-    float pitch = 0.0f;
-    float yaw = -90.0f;
+    float pitch = 0.f;
+    float yaw = -90.f;
 
     float cameraSpeed = 0.1f;
 
-    float width = 0.0f;
-    float height = 0.0f;
+    float width = 0.f;
+    float height = 0.f;
 
-    glm::mat4 projection = glm::mat4(1.0f);
-    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.f);
+    glm::mat4 view = glm::mat4(1.f);
+    glm::mat4 model = glm::mat4(1.f);
 
-    glm::vec3 cameraPos = { 0.0f, 0.0f, 1.0f };
-    glm::vec3 up = { 0.0f, 1.0f, 0.0f };
-    glm::vec3 cameraFront = { 0.0f, 0.0f, -1.0f };
+    // mvp = model * view * projection
+    glm::mat4 mvp = glm::mat4(1.f);
+
+    glm::vec3 cameraPos = { 0.f, 0.f, 1.f };
+    glm::vec3 up = { 0.f, 1.f, 0.f };
+    glm::vec3 cameraFront = { 0.f, 0.f, -1.f };
 };

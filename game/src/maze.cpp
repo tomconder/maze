@@ -40,9 +40,6 @@ bool Maze::onUserCreate() {
     camera = std::make_unique<GameCamera>(80.0f, static_cast<float>(w), static_cast<float>(h), 1.f, 18000.0f);
     camera->setPosition(glm::vec3(0.f, 40.f, 70.f));
 
-    shader->setMat4("view", camera->getViewMatrix());
-    shader->setMat4("projection", camera->getProjection());
-
     shader->setFloat3("lightPos", glm::vec3(40.f, 40.f, 40.f));
     shader->setFloat("ambientStrength", 0.3f);
     shader->unbind();
@@ -93,12 +90,8 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 
     auto shader = OpenGLResourceManager::getShader("shader");
     shader->bind();
-    shader->setMat4("view", camera->getViewMatrix());
-    shader->setMat4("projection", camera->getProjection());
     shader->setFloat3("viewPos", camera->getPosition());
-
-    auto model = glm::mat4(1.f);
-    shader->setMat4("model", model);
+    shader->setMat4("mvp", camera->getMVP());
     shader->unbind();
 
     OpenGLResourceManager::getModel("Maze")->render();
@@ -114,16 +107,10 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 bool Maze::onUserResize(int width, int height) {
     camera->setViewportSize(width, height);
 
-    glm::mat projection = camera->getProjection();
-    auto shader = OpenGLResourceManager::getShader("shader");
-    shader->bind();
-    shader->setMat4("projection", projection);
-    shader->unbind();
-
     orthoCamera->setWidthAndHeight(width, height);
 
-    projection = orthoCamera->getProjection();
-    shader = OpenGLResourceManager::getShader("sprite");
+    auto projection = orthoCamera->getProjection();
+    auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

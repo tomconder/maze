@@ -2,10 +2,9 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 GameCamera::GameCamera(float fov, float width, float height, float zNear, float zFar)
-    : fov(fov), width(width), height(height), zCullDistanceNear(zNear), zCullDistanceFar(zFar) {
+    : fov(fov), width(width), height(height), zNear(zNear), zFar(zFar) {
     updateProjection();
 
     glm::vec3 front = { glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)), glm::sin(glm::radians(pitch)),
@@ -15,15 +14,13 @@ GameCamera::GameCamera(float fov, float width, float height, float zNear, float 
 }
 
 void GameCamera::updateProjection() {
-    projection = glm::perspectiveFov(glm::radians(fov), width, height, zCullDistanceNear, zCullDistanceFar);
+    projection = glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
+    mvp = projection * view;
 }
 
 void GameCamera::updateView() {
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-}
-
-glm::quat GameCamera::getOrientation() const {
-    return { glm::vec3(-pitch, -yaw, 0.0f) };
+    mvp = projection * view;
 }
 
 void GameCamera::setViewportSize(int viewportWidth, int viewportHeight) {
