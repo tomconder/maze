@@ -33,7 +33,11 @@
 #include <SDL.h>
 
 // spdlog
+#if !NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#else
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
+#endif
 #include <spdlog/spdlog.h>
 
 // glad
