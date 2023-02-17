@@ -202,6 +202,8 @@ void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
         h = static_cast<int>(aspectRatioHeight * width / aspectRatioWidth);
     }
 
+    SPONGE_CORE_DEBUG("Resizing to {}x{}", w, h);
+
     offsetx = (eventW - w) / 2;
     offsety = (eventH - h) / 2;
 }
