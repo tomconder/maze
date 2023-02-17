@@ -191,6 +191,8 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
 
     ebo->setData(batchIndices.data(), static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
+    glClear(GL_DEPTH_BUFFER_BIT);
+
     glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
