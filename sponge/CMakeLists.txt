@@ -23,7 +23,7 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
 
 if (MSVC)
   list(APPEND SOURCES src/spongepch.cpp)
-endif()
+endif ()
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")
@@ -52,28 +52,6 @@ if (EMSCRIPTEN)
   target_link_libraries(sponge PRIVATE tinyobjloader)
 else ()
   # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
-
-  if (NOT EXISTS "${CMAKE_BINARY_DIR}/sponge/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
-            "${CMAKE_BINARY_DIR}/sponge/conan.cmake"
-            TLS_VERIFY ON)
-  endif ()
-
-  include(${CMAKE_BINARY_DIR}/sponge/conan.cmake)
-
-  conan_cmake_configure(REQUIRES
-          sdl/2.26.1
-          GENERATORS cmake_find_package)
-
-  conan_cmake_autodetect(settings)
-
-  conan_cmake_install(PATH_OR_REFERENCE .
-          CMAKE_TARGETS
-          OUTPUT_FOLDER ${CMAKE_CURRENT_BINARY_DIR}
-          BUILD missing
-          REMOTE conancenter
-          SETTINGS ${settings})
 
   set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
