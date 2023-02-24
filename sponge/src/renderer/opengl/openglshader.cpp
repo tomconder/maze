@@ -72,7 +72,7 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs) {
     glAttachShader(id, vs);
     glAttachShader(id, fs);
 
-    SPONGE_CORE_DEBUG("Linking shaders: program = {}, shader = {}", id, name);
+    SPONGE_CORE_DEBUG("Linking shader [{}]: program = {}", name, id);
 
     glLinkProgram(id);
 
