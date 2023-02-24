@@ -29,6 +29,8 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(const std::string &p
         return fonts[name];
     }
 
+    SPONGE_CORE_INFO("Loading font file: {}", path);
+
     std::shared_ptr<OpenGLFont> font = loadFontFromFile(path);
     fonts[name] = font;
 
@@ -48,6 +50,8 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(const std::string 
         return models[name];
     }
 
+    SPONGE_CORE_INFO("Loading mesh file: {}", path);
+
     std::shared_ptr<OpenGLModel> mesh = loadModelFromFile(path);
     models[name] = mesh;
 
@@ -66,12 +70,19 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(const std::strin
     assert(!fragmentShader.empty());
     assert(!name.empty());
 
+    if (shaders.find(name) != shaders.end()) {
+        return shaders[name];
+    }
+
+    SPONGE_CORE_INFO("Loading vertex shader file: {}", vertexShader);
     std::string vertexSource = loadSourceFromFile(vertexShader);
+
+    SPONGE_CORE_INFO("Loading fragment shader file: {}", fragmentShader);
     std::string fragmentSource = loadSourceFromFile(fragmentShader);
 
     auto shader = std::make_shared<OpenGLShader>(name, vertexSource, fragmentSource);
 
-    shaders[shader->getName()] = shader;
+    shaders[name] = shader;
     return shader;
 }
 
@@ -88,32 +99,16 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(const std::str
         return textures[name];
     }
 
+    SPONGE_CORE_INFO("Loading texture file: {}", name);
+
     std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
     textures[name] = texture;
 
     return texture;
 }
 
-std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureWithType(const std::string &path,
-                                                                          const std::string &typeName) {
-    assert(!path.empty());
-    assert(!typeName.empty());
-
-    if (textures.find(path) != textures.end()) {
-        return textures[path];
-    }
-
-    std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
-    texture->setType(typeName);
-    textures[path] = texture;
-
-    return texture;
-}
-
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::string &path) {
     assert(!path.empty());
-
-    SPONGE_CORE_INFO("Loading font file: {0}", path);
 
     auto font = std::make_shared<OpenGLFont>();
     font->load(path);
@@ -124,8 +119,6 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(const std::s
 std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModelFromFile(const std::string &path) {
     assert(!path.empty());
 
-    SPONGE_CORE_INFO("Loading mesh file: {0}", path);
-
     auto mesh = std::make_shared<OpenGLModel>();
     mesh->load(path);
 
@@ -134,8 +127,6 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModelFromFile(const std:
 
 std::string OpenGLResourceManager::loadSourceFromFile(const std::string &path) {
     assert(!path.empty());
-
-    SPONGE_CORE_INFO("Loading shader file: {0}", path);
 
     std::string code;
     if (std::ifstream stream(path, std::ios::in | std::ios::binary); stream.is_open()) {
@@ -157,8 +148,6 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
 
     auto name = path;
     std::replace(name.begin(), name.end(), '\\', '/');
-
-    SPONGE_CORE_INFO("Loading texture file: {0}", name);
 
     int origFormat;
     int depth = 32;
