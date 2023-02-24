@@ -9,7 +9,7 @@ OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSou
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
-    SPONGE_CORE_DEBUG("Building program for shader = {}", name);
+    SPONGE_CORE_DEBUG("Building program for shader [{}]", name);
 
     GLuint vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
@@ -40,9 +40,9 @@ GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source)
     assert(id != 0);
 
     if (type == GL_VERTEX_SHADER) {
-        SPONGE_CORE_DEBUG("Compiling vertex shader for shader = {}", name);
+        SPONGE_CORE_DEBUG("Compiling vertex shader for shader [{}]", name);
     } else {
-        SPONGE_CORE_DEBUG("Compiling fragment shader for shader = {}", name);
+        SPONGE_CORE_DEBUG("Compiling fragment shader for shader [{}]", name);
     }
 
     char const *shader = source.c_str();
@@ -72,7 +72,7 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs) {
     glAttachShader(id, vs);
     glAttachShader(id, fs);
 
-    SPONGE_CORE_DEBUG("Linking shaders: program = {}, shader = {}", id, name);
+    SPONGE_CORE_DEBUG("Linking shader [{}]: program = {}", name, id);
 
     glLinkProgram(id);
 
