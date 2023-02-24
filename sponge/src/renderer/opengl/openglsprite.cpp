@@ -6,6 +6,8 @@
 
 #include "openglresourcemanager.h"
 
+namespace Sponge {
+
 OpenGLSprite::OpenGLSprite(const std::string &name) {
     this->name = name;
 
@@ -58,3 +60,5 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     glBindVertexArray(0);
     shader->unbind();
 }
+
+}  // namespace Sponge

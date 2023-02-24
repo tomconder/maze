@@ -2,6 +2,8 @@
 
 #include "base.h"
 
+namespace Sponge {
+
 using MouseCode = uint16_t;
 
 // inspired by glfw3.h
@@ -21,3 +23,5 @@ enum : MouseCode {
     ButtonRight = Button1,
     ButtonMiddle = Button2
 };
+
+}  // namespace Sponge

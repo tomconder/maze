@@ -3,6 +3,8 @@
 #include "core/keycode.h"
 #include "event.h"
 
+namespace Sponge {
+
 class KeyEvent : public Event {
    public:
     KeyCode getKeyCode() const {
@@ -44,3 +46,5 @@ class KeyTypedEvent : public KeyEvent {
 
     EVENT_CLASS_TYPE(KeyTyped)
 };
+
+}  // namespace Sponge

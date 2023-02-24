@@ -12,6 +12,8 @@
 
 #include "core/keycode.h"
 
+namespace Sponge {
+
 int SDLEngine::construct() const {
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
@@ -207,3 +209,5 @@ void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
     offsetx = (eventW - w) / 2;
     offsety = (eventH - h) / 2;
 }
+
+}  // namespace Sponge

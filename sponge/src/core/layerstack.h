@@ -3,6 +3,8 @@
 #include "core/base.h"
 #include "layer.h"
 
+namespace Sponge {
+
 class LayerStack {
    public:
     LayerStack() = default;
@@ -30,3 +32,5 @@ class LayerStack {
     std::vector<Layer*> layers;
     uint32_t layerInsertIndex = 0;
 };
+
+}  // namespace Sponge

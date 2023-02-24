@@ -2,6 +2,8 @@
 
 #include "event.h"
 
+namespace Sponge {
+
 class EventDispatcher {
    public:
     EventDispatcher(Event& event) : event(event){};
@@ -18,3 +20,5 @@ class EventDispatcher {
    private:
     Event& event;
 };
+
+}  // namespace Sponge

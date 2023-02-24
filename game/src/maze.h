@@ -4,11 +4,9 @@
 #include <string>
 
 #include "gamecamera.h"
-#include "platform/sdl/sdlengine.h"
-#include "renderer/opengl/openglsprite.h"
-#include "scene/orthocamera.h"
+#include "sponge.h"
 
-class Maze : public SDLEngine {
+class Maze : public Sponge::SDLEngine {
    public:
     Maze(int screenWidth, int screenHeight);
 
@@ -19,6 +17,6 @@ class Maze : public SDLEngine {
 
    private:
     std::unique_ptr<GameCamera> camera;
-    std::unique_ptr<OrthoCamera> orthoCamera;
-    std::unique_ptr<OpenGLSprite> logo;
+    std::unique_ptr<Sponge::OrthoCamera> orthoCamera;
+    std::unique_ptr<Sponge::OpenGLSprite> logo;
 };

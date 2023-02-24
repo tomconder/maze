@@ -2,6 +2,8 @@
 
 #include "core/base.h"
 
+namespace Sponge {
+
 class Layer {
    public:
     Layer();
@@ -15,3 +17,5 @@ class Layer {
     }
     // virtual void onEvent() {Event& event}
 };
+
+}  // namespace Sponge

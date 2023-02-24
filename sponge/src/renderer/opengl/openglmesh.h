@@ -7,6 +7,8 @@
 #include "openglvertexarray.h"
 #include "renderer/mesh.h"
 
+namespace Sponge {
+
 class OpenGLMesh : public Mesh {
    public:
     OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices,
@@ -18,3 +20,5 @@ class OpenGLMesh : public Mesh {
     std::unique_ptr<OpenGLVertexArray> vao;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
+
+}  // namespace Sponge

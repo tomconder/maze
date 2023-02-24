@@ -2,6 +2,8 @@
 
 #include "core/base.h"
 
+namespace Sponge {
+
 enum class EventType {
     None = 0,
     WindowClose,
@@ -51,3 +53,5 @@ class Event {
         return getCategoryFlags() & category;
     }
 };
+
+}  // namespace Sponge

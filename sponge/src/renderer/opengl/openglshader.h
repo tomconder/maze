@@ -5,6 +5,8 @@
 #include "gl.h"
 #include "renderer/shader.h"
 
+namespace Sponge {
+
 class OpenGLShader : public Shader {
    public:
     OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource);
@@ -34,3 +36,5 @@ class OpenGLShader : public Shader {
     GLuint program = 0;
     std::string name;
 };
+
+}  // namespace Sponge

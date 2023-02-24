@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace Sponge {
+
 class Texture {
    public:
     virtual ~Texture() = default;
@@ -12,3 +14,5 @@ class Texture {
 
     virtual void bind() const = 0;
 };
+
+}  // namespace Sponge

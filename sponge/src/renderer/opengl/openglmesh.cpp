@@ -4,6 +4,8 @@
 
 #include "openglresourcemanager.h"
 
+namespace Sponge {
+
 OpenGLMesh::OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices,
                        const std::vector<std::shared_ptr<OpenGLTexture>> &textures)
     : textures(textures) {
@@ -81,3 +83,5 @@ void OpenGLMesh::render() const {
     glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
+
+}  // namespace Sponge

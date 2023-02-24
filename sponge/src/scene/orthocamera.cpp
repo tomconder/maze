@@ -2,6 +2,8 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
+namespace Sponge {
+
 OrthoCamera::OrthoCamera(float width, float height) {
     updateProjection(width, height);
 }
@@ -13,3 +15,5 @@ void OrthoCamera::setWidthAndHeight(int width, int height) {
 void OrthoCamera::updateProjection(float width, float height) {
     projection = glm::ortho(0.f, width, 0.f, height, -1.f, 1.f);
 }
+
+}  // namespace Sponge

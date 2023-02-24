@@ -3,6 +3,8 @@
 #include "core/keycode.h"
 #include "core/mousecode.h"
 
+namespace Sponge {
+
 SDLInput::SDLInput() {
     initializeKeyMap();
 }
@@ -196,3 +198,5 @@ KeyCode SDLInput::mapScanCodeToKeyCode(const SDL_Scancode &scancode) {
 MouseCode SDLInput::mapMouseButton(uint8_t index) {
     return index - 1;
 }
+
+}  // namespace Sponge

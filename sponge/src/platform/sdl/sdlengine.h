@@ -3,6 +3,8 @@
 #include "core/engine.h"
 #include "sdlinput.h"
 
+namespace Sponge {
+
 class SDLEngine : public Engine {
    public:
     int construct() const override;
@@ -34,5 +36,7 @@ class SDLEngine : public Engine {
     int w = 0;
     int h = 0;
 };
+
+}  // namespace Sponge
 
 #define UNUSED(x) (void)(x)

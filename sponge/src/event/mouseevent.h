@@ -1,6 +1,8 @@
 #include "core/mousecode.h"
 #include "event.h"
 
+namespace Sponge {
+
 class MouseMovedEvent : public Event {
    public:
     MouseMovedEvent(const float x, const float y) : mouseX(x), mouseY(y) {}
@@ -63,3 +65,5 @@ class MouseButtonReleasedEvent : public MouseButtonEvent {
 
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
+
+}  // namespace Sponge

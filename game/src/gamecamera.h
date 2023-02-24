@@ -2,9 +2,9 @@
 
 #include <glm/mat4x4.hpp>
 
-#include "scene/camera.h"
+#include "sponge.h"
 
-class GameCamera : public Camera {
+class GameCamera : public Sponge::Camera {
    public:
     GameCamera() = default;
     GameCamera(float fov, float width, float height, float zNear, float zFar);

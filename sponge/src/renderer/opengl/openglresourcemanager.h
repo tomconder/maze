@@ -9,6 +9,8 @@
 #include "openglshader.h"
 #include "opengltexture.h"
 
+namespace Sponge {
+
 class OpenGLResourceManager {
    public:
     static std::shared_ptr<OpenGLFont> getFont(const std::string &name);
@@ -37,3 +39,5 @@ class OpenGLResourceManager {
     static std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>> textures;
 };
+
+}  // namespace Sponge

@@ -7,13 +7,13 @@
 #include <sstream>
 
 #ifdef EMSCRIPTEN
-
 #include <utility>
-
 #endif
 
 #include <iomanip>
 #include <utility>
+
+namespace Sponge {
 
 OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
@@ -222,3 +222,5 @@ void OpenGLContext::setVSync(int interval) {
 
     SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
 }
+
+}  // namespace Sponge

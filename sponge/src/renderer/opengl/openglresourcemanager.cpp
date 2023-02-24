@@ -11,6 +11,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+namespace Sponge {
+
 std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> OpenGLResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> OpenGLResourceManager::models;
 std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> OpenGLResourceManager::shaders;
@@ -189,3 +191,5 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(const 
 
     return texture;
 }
+
+}  // namespace Sponge

@@ -9,6 +9,8 @@
 
 #include "openglresourcemanager.h"
 
+namespace Sponge {
+
 OpenGLFont::OpenGLFont() {
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
@@ -212,3 +214,5 @@ void OpenGLFont::log() const {
             value.page);
     }
 }
+
+}  // namespace Sponge

@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
+namespace Sponge {
+
 OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource)
     : name(name) {
     assert(!vertexSource.empty());
@@ -113,3 +115,5 @@ void OpenGLShader::setInteger(const std::string &uname, int value) {
 void OpenGLShader::setMat4(const std::string &uname, const glm::mat4 &value) {
     glUniformMatrix4fv(glGetUniformLocation(program, uname.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
+
+}  // namespace Sponge

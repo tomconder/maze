@@ -7,6 +7,8 @@
 #include "renderer/opengl/openglcontext.h"
 #include "renderer/opengl/openglrendererapi.h"
 
+namespace Sponge {
+
 class Engine {
    public:
     virtual ~Engine() = default;
@@ -25,3 +27,5 @@ class Engine {
 
     virtual bool onUserResize(int width, int height) = 0;
 };
+
+}  // namespace Sponge

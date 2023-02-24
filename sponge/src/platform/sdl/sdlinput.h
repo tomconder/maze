@@ -6,6 +6,8 @@
 #include "core/input.h"
 #include "glm/vec2.hpp"
 
+namespace Sponge {
+
 class SDLInput : public Input {
    public:
     SDLInput();
@@ -53,3 +55,5 @@ class SDLInput : public Input {
     glm::vec2 scrollDelta = { 0.f, 0.f };
     void initializeKeyMap();
 };
+
+}  // namespace Sponge

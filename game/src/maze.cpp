@@ -4,9 +4,7 @@
 #include <new>
 #endif
 
-#include "core/keycode.h"
-#include "core/log.h"
-#include "renderer/opengl/openglresourcemanager.h"
+#include "sponge.h"
 #include "version.h"
 
 #define KEY_PRESSED_OR_HOLD(key) input.wasKeyPressed(key) || input.isKeyHeld(key)
@@ -20,17 +18,17 @@ Maze::Maze(int screenWidth, int screenHeight) {
 }
 
 bool Maze::onUserCreate() {
-    OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
-    OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
-    OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
+    Sponge::OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
+    Sponge::OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", "sprite");
+    Sponge::OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", "text");
 
-    OpenGLResourceManager::loadModel("assets/models/mountains.obj", "Maze");
+    Sponge::OpenGLResourceManager::loadModel("assets/models/mountains.obj", "Maze");
 
-    OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
+    Sponge::OpenGLResourceManager::loadTexture("assets/images/coffee.png", "coffee");
 
-    OpenGLResourceManager::loadFont("assets/fonts/league-gothic/league-gothic.fnt", "league-gothic");
+    Sponge::OpenGLResourceManager::loadFont("assets/fonts/league-gothic/league-gothic.fnt", "league-gothic");
 
-    auto shader = OpenGLResourceManager::getShader("shader");
+    auto shader = Sponge::OpenGLResourceManager::getShader("shader");
     shader->bind();
 
     SPONGE_INFO("Setting camera for {}x{}", w, h);
@@ -44,16 +42,16 @@ bool Maze::onUserCreate() {
     shader->setFloat("ambientStrength", 0.3f);
     shader->unbind();
 
-    logo = std::make_unique<OpenGLSprite>("coffee");
+    logo = std::make_unique<Sponge::OpenGLSprite>("coffee");
 
-    orthoCamera = std::make_unique<OrthoCamera>(static_cast<float>(w), static_cast<float>(h));
+    orthoCamera = std::make_unique<Sponge::OrthoCamera>(static_cast<float>(w), static_cast<float>(h));
 
-    shader = OpenGLResourceManager::getShader("sprite");
+    shader = Sponge::OpenGLResourceManager::getShader("sprite");
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = OpenGLResourceManager::getShader("text");
+    shader = Sponge::OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -62,21 +60,21 @@ bool Maze::onUserCreate() {
 }
 
 bool Maze::onUserUpdate(Uint32 elapsedTime) {
-    if (input.wasKeyPressed(KeyCode::FEscape) || input.wasKeyPressed(KeyCode::Q)) {
+    if (input.wasKeyPressed(Sponge::KeyCode::FEscape) || input.wasKeyPressed(Sponge::KeyCode::Q)) {
         return false;
     }
 
-    if (KEY_PRESSED_OR_HOLD(KeyCode::W) || KEY_PRESSED_OR_HOLD(KeyCode::Up)) {
+    if (KEY_PRESSED_OR_HOLD(Sponge::KeyCode::W) || KEY_PRESSED_OR_HOLD(Sponge::KeyCode::Up)) {
         camera->moveForward(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(KeyCode::S) || KEY_PRESSED_OR_HOLD(KeyCode::Down)) {
+    } else if (KEY_PRESSED_OR_HOLD(Sponge::KeyCode::S) || KEY_PRESSED_OR_HOLD(Sponge::KeyCode::Down)) {
         camera->moveBackward(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(KeyCode::A) || KEY_PRESSED_OR_HOLD(KeyCode::Left)) {
+    } else if (KEY_PRESSED_OR_HOLD(Sponge::KeyCode::A) || KEY_PRESSED_OR_HOLD(Sponge::KeyCode::Left)) {
         camera->strafeLeft(elapsedTime);
-    } else if (KEY_PRESSED_OR_HOLD(KeyCode::D) || KEY_PRESSED_OR_HOLD(KeyCode::Right)) {
+    } else if (KEY_PRESSED_OR_HOLD(Sponge::KeyCode::D) || KEY_PRESSED_OR_HOLD(Sponge::KeyCode::Right)) {
         camera->strafeRight(elapsedTime);
     }
 
-    if (input.wasKeyPressed(KeyCode::F)) {
+    if (input.wasKeyPressed(Sponge::KeyCode::F)) {
         graphics->toggleFullscreen();
     }
 
@@ -88,17 +86,17 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         camera->mouseScroll(input.getScrollDelta());
     }
 
-    auto shader = OpenGLResourceManager::getShader("shader");
+    auto shader = Sponge::OpenGLResourceManager::getShader("shader");
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
     shader->unbind();
 
-    OpenGLResourceManager::getModel("Maze")->render();
+    Sponge::OpenGLResourceManager::getModel("Maze")->render();
 
     logo->render({ static_cast<float>(w) - 76.f, 12.f }, { 64.f, 64.f });
 
-    OpenGLResourceManager::getFont("league-gothic")
+    Sponge::OpenGLResourceManager::getFont("league-gothic")
         ->render("Press [Q] to exit", { 12.f, static_cast<float>(h) - 12.f }, 28, { 0.5, 0.9f, 1.0f });
 
     return true;
@@ -110,12 +108,12 @@ bool Maze::onUserResize(int width, int height) {
     orthoCamera->setWidthAndHeight(width, height);
 
     auto projection = orthoCamera->getProjection();
-    auto shader = OpenGLResourceManager::getShader("sprite");
+    auto shader = Sponge::OpenGLResourceManager::getShader("sprite");
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = OpenGLResourceManager::getShader("text");
+    shader = Sponge::OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

@@ -2,6 +2,8 @@
 
 #include "base.h"
 
+namespace Sponge {
+
 // inspired by glfw3.h
 enum KeyCode : uint16_t {
     // Printable keys
@@ -136,3 +138,5 @@ enum KeyCode : uint16_t {
     RightSuper = 347,
     Menu = 348
 };
+
+}  // namespace Sponge

@@ -5,6 +5,8 @@
 #include "keycode.h"
 #include "mousecode.h"
 
+namespace Sponge {
+
 class Input {
    public:
     virtual ~Input() = default;
@@ -26,3 +28,5 @@ class Input {
     virtual glm::vec2 getMoveDelta() const = 0;
     virtual glm::vec2 getScrollDelta() = 0;
 };
+
+}  // namespace Sponge

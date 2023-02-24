@@ -5,6 +5,8 @@
 #include "openglvertexarray.h"
 #include "renderer/sprite.h"
 
+namespace Sponge {
+
 class OpenGLSprite : public Sprite {
    public:
     explicit OpenGLSprite(const std::string &name);
@@ -23,3 +25,5 @@ class OpenGLSprite : public Sprite {
 
     std::string name;
 };
+
+}  // namespace Sponge

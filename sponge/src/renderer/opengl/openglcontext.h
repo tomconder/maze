@@ -8,6 +8,8 @@
 
 struct SDL_Window;
 
+namespace Sponge {
+
 class OpenGLContext : public GraphicsContext {
    public:
     OpenGLContext(SDL_Window *window, std::string name);
@@ -36,3 +38,5 @@ class OpenGLContext : public GraphicsContext {
 
     void setVSync(int interval);
 };
+
+}  // namespace Sponge

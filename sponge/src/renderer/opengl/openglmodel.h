@@ -8,6 +8,8 @@
 #include "renderer/mesh.h"
 #include "tiny_obj_loader.h"
 
+namespace Sponge {
+
 class OpenGLModel {
    public:
     void load(std::string_view path);
@@ -22,3 +24,5 @@ class OpenGLModel {
                                   const std::vector<tinyobj::material_t>& materials);
     static std::shared_ptr<OpenGLTexture> loadMaterialTextures(const tinyobj::material_t& material);
 };
+
+}  // namespace Sponge

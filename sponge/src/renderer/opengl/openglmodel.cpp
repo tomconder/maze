@@ -12,6 +12,8 @@
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
+namespace Sponge {
+
 void OpenGLModel::load(std::string_view path) {
     assert(!path.empty());
 
@@ -134,3 +136,5 @@ void OpenGLModel::render() {
         it->render();
     }
 }
+
+}  // namespace Sponge

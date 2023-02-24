@@ -3,6 +3,8 @@
 #include "gl.h"
 #include "renderer/buffer.h"
 
+namespace Sponge {
+
 class OpenGLElementBuffer : public Buffer {
    public:
     explicit OpenGLElementBuffer(uint32_t size);
@@ -15,3 +17,5 @@ class OpenGLElementBuffer : public Buffer {
    private:
     uint32_t id = 0;
 };
+
+}  // namespace Sponge

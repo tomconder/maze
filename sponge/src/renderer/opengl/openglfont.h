@@ -10,6 +10,8 @@
 #include "opengltexture.h"
 #include "openglvertexarray.h"
 
+namespace Sponge {
+
 struct Character {
     glm::vec2 loc;
     float width;
@@ -55,5 +57,7 @@ class OpenGLFont {
     // the name of the texture page in the resource manager
     std::string textureName;
 };
+
+}  // namespace Sponge
 
 #define UNUSED(x) (void)(x)

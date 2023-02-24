@@ -5,6 +5,8 @@
 
 #include "camera.h"
 
+namespace Sponge {
+
 class OrthoCamera : public Camera {
    public:
     OrthoCamera(float width, float height);
@@ -21,3 +23,5 @@ class OrthoCamera : public Camera {
 
     glm::mat4 projection = glm::mat4(1.f);
 };
+
+}  // namespace Sponge

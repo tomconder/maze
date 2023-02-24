@@ -2,8 +2,8 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include "core/log.h"
 #include "maze.h"
+#include "sponge.h"
 
 std::unique_ptr<Maze> maze;
 
@@ -13,7 +13,7 @@ bool iterateLoop() {
 }
 
 extern "C" int main(int argc, char *args[]) {
-    Log::init();
+    Sponge::Log::init();
 
     SPONGE_INFO("Starting maze");
 
@@ -44,7 +44,7 @@ extern "C" int main(int argc, char *args[]) {
 
     SPONGE_INFO("Shutting down");
 
-    Log::shutdown();
+    Sponge::Log::shutdown();
 
     return 0;
 }

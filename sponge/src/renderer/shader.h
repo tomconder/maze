@@ -4,6 +4,8 @@
 #include <glm/vec3.hpp>
 #include <string>
 
+namespace Sponge {
+
 class Shader {
    public:
     virtual ~Shader() = default;
@@ -19,3 +21,5 @@ class Shader {
 
     virtual const std::string &getName() const = 0;
 };
+
+}  // namespace Sponge
