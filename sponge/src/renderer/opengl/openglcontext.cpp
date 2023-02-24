@@ -118,17 +118,19 @@ void OpenGLContext::logGraphicsDriverInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     const auto numVideoDrivers = SDL_GetNumVideoDrivers();
-    SPONGE_CORE_DEBUG("Found {} video drivers", numVideoDrivers);
+    SPONGE_CORE_DEBUG("Video Driver Info [{}]:", numVideoDrivers);
 
     const std::string currentVideoDriver(SDL_GetCurrentVideoDriver());
     for (int i = 0; i < numVideoDrivers; i++) {
         const std::string videoDriver(SDL_GetVideoDriver(i));
-        SPONGE_CORE_DEBUG("Video driver #{}: {} {}", i, videoDriver,
-                          currentVideoDriver == videoDriver ? "(current)" : "");
+        std::stringstream ss;
+        ss << "  #" << std::setw(2) << i << ": " << videoDriver
+           << (currentVideoDriver == videoDriver ? " (current)" : "");
+        SPONGE_CORE_DEBUG(ss.str());
     }
 
     const int numRenderDrivers = SDL_GetNumRenderDrivers();
-    SPONGE_CORE_DEBUG("Found {} render drivers", numRenderDrivers);
+    SPONGE_CORE_INFO("Render Driver Info [{}]:", numRenderDrivers);
 
     SDL_RendererInfo info;
     for (int i = 0; i < numRenderDrivers; ++i) {
@@ -159,33 +161,38 @@ void OpenGLContext::logGraphicsDriverInfo() {
             return a.append(", ").append(b);
         });
 
-        SPONGE_CORE_DEBUG("Render driver #{}: {:<10} [{}]", i, info.name, flags.c_str());
+        std::stringstream ss;
+        ss << "  #" << std::setw(2) << i << ": " << std::setw(10) << std::left << info.name << " [" << flags.c_str()
+           << "]";
+        SPONGE_CORE_DEBUG(ss.str());
     }
 }
 
 void OpenGLContext::logOpenGLContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
+    SPONGE_CORE_INFO("OpenGL Info:");
+
     std::stringstream ss;
-    ss << std::setw(20) << std::left << "OpenGL version: " << glGetString(GL_VERSION);
+    ss << std::setw(20) << std::left << "  Version: " << glGetString(GL_VERSION);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL glsl: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+    ss << std::setw(20) << std::left << "  GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL renderer: " << glGetString(GL_RENDERER);
+    ss << std::setw(20) << std::left << "  Renderer: " << glGetString(GL_RENDERER);
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL vendor: " << glGetString(GL_VENDOR);
+    ss << std::setw(20) << std::left << "  Vendor: " << glGetString(GL_VENDOR);
     SPONGE_CORE_INFO(ss.str());
 
     GLint extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
-    ss << std::setw(20) << std::left << "OpenGL extensions: " << extensions;
+    ss << std::setw(20) << std::left << "  Extensions: " << extensions;
     SPONGE_CORE_DEBUG(ss.str());
 }
 

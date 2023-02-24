@@ -23,7 +23,6 @@ class OpenGLResourceManager {
 
     static std::shared_ptr<OpenGLTexture> getTexture(const std::string &name);
     static std::shared_ptr<OpenGLTexture> loadTexture(const std::string &path, const std::string &name);
-    static std::shared_ptr<OpenGLTexture> loadTextureWithType(const std::string &path, const std::string &typeName);
 
    private:
     OpenGLResourceManager() = default;
