@@ -134,7 +134,6 @@ void SDLEngine::logSDLVersion() {
     SDL_version linked;
 
     SDL_VERSION(&compiled)
-    SDL_GetVersion(&linked);
 
     std::string revision = SDL_GetRevision();
     std::stringstream ss;
@@ -146,8 +145,10 @@ void SDLEngine::logSDLVersion() {
                       static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
                       !revision.empty() ? ss.str() : "");
 
-    SPONGE_CORE_DEBUG("SDL Version (Runtime): {}.{}.{}", static_cast<int>(linked.major), static_cast<int>(linked.minor),
-                      static_cast<int>(linked.patch));
+    SDL_GetVersion(&linked);
+
+    SPONGE_CORE_DEBUG("SDL Version (Runtime) : {}.{}.{}", static_cast<int>(linked.major),
+                      static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
 
 bool SDLEngine::onUserCreate() {
