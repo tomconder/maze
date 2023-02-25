@@ -130,7 +130,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
     }
 
     const int numRenderDrivers = SDL_GetNumRenderDrivers();
-    SPONGE_CORE_INFO("Render Driver Info [{}]:", numRenderDrivers);
+    SPONGE_CORE_DEBUG("Render Driver Info [{}]:", numRenderDrivers);
 
     SDL_RendererInfo info;
     for (int i = 0; i < numRenderDrivers; ++i) {
