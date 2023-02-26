@@ -2,9 +2,9 @@
 
 #include <string>
 
-#include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
+#include "renderer/opengl/gl.h"
 
 struct SDL_Window;
 

@@ -1,4 +1,4 @@
-#include "openglvertexarray.h"
+#include "renderer/opengl/openglvertexarray.h"
 
 namespace Sponge {
 

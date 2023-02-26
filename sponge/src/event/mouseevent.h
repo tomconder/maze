@@ -1,5 +1,7 @@
+#pragma once
+
 #include "core/mousecode.h"
-#include "event.h"
+#include "event/event.h"
 
 namespace Sponge {
 

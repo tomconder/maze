@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/vertexarray.h"
 
 namespace Sponge {

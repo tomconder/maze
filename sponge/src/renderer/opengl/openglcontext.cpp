@@ -1,4 +1,4 @@
-#include "openglcontext.h"
+#include "renderer/opengl/openglcontext.h"
 
 #include <SDL.h>
 

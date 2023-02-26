@@ -1,4 +1,4 @@
-#include "openglrendererapi.h"
+#include "renderer/opengl/openglrendererapi.h"
 
 namespace Sponge {
 

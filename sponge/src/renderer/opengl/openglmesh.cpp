@@ -1,8 +1,8 @@
-#include "openglmesh.h"
+#include "renderer/opengl/openglmesh.h"
 
 #include <cstddef>
 
-#include "openglresourcemanager.h"
+#include "renderer/opengl/openglresourcemanager.h"
 
 namespace Sponge {
 

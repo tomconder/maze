@@ -1,15 +1,13 @@
-#include "orthocamera.h"
+#include "scene/orthocamera.h"
 
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace Sponge {
 
-OrthoCamera::OrthoCamera(float width, float height) {
-    updateProjection(width, height);
-}
-
-void OrthoCamera::setWidthAndHeight(int width, int height) {
-    updateProjection(static_cast<float>(width), static_cast<float>(height));
+void OrthoCamera::setWidthAndHeight(uint32_t width, uint32_t height) {
+    w = static_cast<float>(width);
+    h = static_cast<float>(height);
+    updateProjection(w, h);
 }
 
 void OrthoCamera::updateProjection(float width, float height) {

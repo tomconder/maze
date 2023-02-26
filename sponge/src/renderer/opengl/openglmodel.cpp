@@ -1,11 +1,11 @@
-#include "openglmodel.h"
+#include "renderer/opengl/openglmodel.h"
 
 #include <cassert>
 #include <vector>
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-#include "openglresourcemanager.h"
+#include "renderer/opengl/openglresourcemanager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation

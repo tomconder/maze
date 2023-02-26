@@ -2,8 +2,9 @@
 
 #include <string>
 
-#include "base.h"
-#include "input.h"
+#include "core/base.h"
+#include "core/input.h"
+#include "event/event.h"
 #include "renderer/opengl/openglcontext.h"
 #include "renderer/opengl/openglrendererapi.h"
 
@@ -14,18 +15,14 @@ class Engine {
     virtual ~Engine() = default;
 
     virtual int construct() const = 0;
-
     virtual int start() = 0;
-
     virtual bool iterateLoop() = 0;
 
     virtual bool onUserCreate() = 0;
-
     virtual bool onUserUpdate(uint32_t elapsedTime) = 0;
-
     virtual bool onUserDestroy() = 0;
 
-    virtual bool onUserResize(int width, int height) = 0;
+    virtual bool onEvent(Event& event) = 0;
 };
 
 }  // namespace Sponge

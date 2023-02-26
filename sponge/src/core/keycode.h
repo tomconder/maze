@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base.h"
+#include "core/base.h"
 
 namespace Sponge {
 
@@ -65,7 +65,7 @@ enum KeyCode : uint16_t {
     World2 = 162,
 
     // Function keys
-    FEscape = 256,
+    Escape = 256,
     Enter = 257,
     Tab = 258,
     Backspace = 259,
