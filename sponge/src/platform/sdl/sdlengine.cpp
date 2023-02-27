@@ -331,8 +331,8 @@ MouseCode SDLEngine::mapMouseButton(uint8_t index) {
 
 void SDLEngine::processEvent(SDL_Event &event) {
     if (event.type == SDL_QUIT) {
-        auto event = WindowCloseEvent{};
-        onEvent(event);
+        auto closeEvent = WindowCloseEvent{};
+        onEvent(closeEvent);
     } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
