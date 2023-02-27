@@ -360,7 +360,13 @@ void SDLEngine::processEvent(SDL_Event &event) {
             MouseMovedEvent{ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
-        auto mouseEvent = MouseScrolledEvent{ event.wheel.preciseX, event.wheel.preciseY };
+        auto wheelx = static_cast<float>(event.wheel.preciseX);
+        auto wheely = static_cast<float>(event.wheel.preciseY);
+#ifdef EMSCRIPTEN
+        wheelx /= 100.f;
+#endif
+
+        auto mouseEvent = MouseScrolledEvent{ wheelx, wheely };
         onEvent(mouseEvent);
     }
 }
