@@ -1,7 +1,9 @@
 #pragma once
 
 #include "core/base.h"
-#include "layer.h"
+#include "core/layer.h"
+
+namespace Sponge {
 
 class LayerStack {
    public:
@@ -30,3 +32,5 @@ class LayerStack {
     std::vector<Layer*> layers;
     uint32_t layerInsertIndex = 0;
 };
+
+}  // namespace Sponge

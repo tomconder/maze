@@ -2,11 +2,13 @@
 
 #include <string>
 
-#include "gl.h"
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
+#include "renderer/opengl/gl.h"
 
 struct SDL_Window;
+
+namespace Sponge {
 
 class OpenGLContext : public GraphicsContext {
    public:
@@ -36,3 +38,5 @@ class OpenGLContext : public GraphicsContext {
 
     void setVSync(int interval);
 };
+
+}  // namespace Sponge

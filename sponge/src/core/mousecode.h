@@ -1,6 +1,8 @@
 #pragma once
 
-#include "base.h"
+#include "core/base.h"
+
+namespace Sponge {
 
 using MouseCode = uint16_t;
 
@@ -21,3 +23,5 @@ enum : MouseCode {
     ButtonRight = Button1,
     ButtonMiddle = Button2
 };
+
+}  // namespace Sponge

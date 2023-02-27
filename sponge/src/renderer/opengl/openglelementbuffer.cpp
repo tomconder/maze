@@ -1,4 +1,6 @@
-#include "openglelementbuffer.h"
+#include "renderer/opengl/openglelementbuffer.h"
+
+namespace Sponge {
 
 OpenGLElementBuffer::OpenGLElementBuffer(uint32_t size) {
     glGenBuffers(1, &id);
@@ -24,3 +26,5 @@ void OpenGLElementBuffer::setData(const uint32_t *data, uint32_t size) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, data);
 }
+
+}  // namespace Sponge

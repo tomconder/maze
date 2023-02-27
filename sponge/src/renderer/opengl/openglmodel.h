@@ -1,12 +1,15 @@
 #pragma once
 
+#include <tiny_obj_loader.h>
+
 #include <string>
 #include <vector>
 
-#include "openglmesh.h"
-#include "opengltexture.h"
 #include "renderer/mesh.h"
-#include "tiny_obj_loader.h"
+#include "renderer/opengl/openglmesh.h"
+#include "renderer/opengl/opengltexture.h"
+
+namespace Sponge {
 
 class OpenGLModel {
    public:
@@ -22,3 +25,5 @@ class OpenGLModel {
                                   const std::vector<tinyobj::material_t>& materials);
     static std::shared_ptr<OpenGLTexture> loadMaterialTextures(const tinyobj::material_t& material);
 };
+
+}  // namespace Sponge

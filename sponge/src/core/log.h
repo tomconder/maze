@@ -11,6 +11,8 @@
 
 static const char *const SPONGE_LOG_FILE = "log.txt";
 
+namespace Sponge {
+
 class Log {
    public:
     static void init();
@@ -51,9 +53,11 @@ class Log {
 #define SPONGE_GL_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getGlLogger(), __VA_ARGS__)
 
-#define SPONGE_TRACE(...)    SPDLOG_LOGGER_TRACE(Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_DEBUG(...)    SPDLOG_LOGGER_DEBUG(Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_INFO(...)     SPDLOG_LOGGER_INFO(Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_WARN(...)     SPDLOG_LOGGER_WARN(Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_ERROR(...)    SPDLOG_LOGGER_ERROR(Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Log::getAppLogger(), __VA_ARGS__)
+}  // namespace Sponge
+
+#define SPONGE_TRACE(...)    SPDLOG_LOGGER_TRACE(Sponge::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_DEBUG(...)    SPDLOG_LOGGER_DEBUG(Sponge::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_INFO(...)     SPDLOG_LOGGER_INFO(Sponge::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_WARN(...)     SPDLOG_LOGGER_WARN(Sponge::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_ERROR(...)    SPDLOG_LOGGER_ERROR(Sponge::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_CRITICAL(...) SPDLOG_LOGGER_CRITICAL(Sponge::Log::getAppLogger(), __VA_ARGS__)

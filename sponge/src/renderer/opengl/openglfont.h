@@ -5,10 +5,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "openglbuffer.h"
-#include "openglelementbuffer.h"
-#include "opengltexture.h"
-#include "openglvertexarray.h"
+#include "renderer/opengl/openglbuffer.h"
+#include "renderer/opengl/openglelementbuffer.h"
+#include "renderer/opengl/opengltexture.h"
+#include "renderer/opengl/openglvertexarray.h"
+
+namespace Sponge {
 
 struct Character {
     glm::vec2 loc;
@@ -55,5 +57,7 @@ class OpenGLFont {
     // the name of the texture page in the resource manager
     std::string textureName;
 };
+
+}  // namespace Sponge
 
 #define UNUSED(x) (void)(x)

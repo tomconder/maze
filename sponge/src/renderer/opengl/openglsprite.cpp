@@ -1,10 +1,12 @@
-#include "openglsprite.h"
+#include "renderer/opengl/openglsprite.h"
 
 #include <array>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 #include "openglresourcemanager.h"
+
+namespace Sponge {
 
 OpenGLSprite::OpenGLSprite(const std::string &name) {
     this->name = name;
@@ -58,3 +60,5 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     glBindVertexArray(0);
     shader->unbind();
 }
+
+}  // namespace Sponge

@@ -2,8 +2,10 @@
 
 #include <string>
 
-#include "gl.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/shader.h"
+
+namespace Sponge {
 
 class OpenGLShader : public Shader {
    public:
@@ -34,3 +36,5 @@ class OpenGLShader : public Shader {
     GLuint program = 0;
     std::string name;
 };
+
+}  // namespace Sponge

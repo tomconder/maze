@@ -1,9 +1,11 @@
-#include "log.h"
+#include "core/log.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include "logflag.h"
+#include "core/logflag.h"
+
+namespace Sponge {
 
 std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
@@ -40,3 +42,5 @@ void Log::init() {
     glLogger->set_level(spdlog::level::trace);
     glLogger->flush_on(spdlog::level::trace);
 }
+
+}  // namespace Sponge

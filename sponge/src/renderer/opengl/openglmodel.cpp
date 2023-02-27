@@ -1,16 +1,18 @@
-#include "openglmodel.h"
+#include "renderer/opengl/openglmodel.h"
 
 #include <cassert>
 #include <vector>
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-#include "openglresourcemanager.h"
+#include "renderer/opengl/openglresourcemanager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
+
+namespace Sponge {
 
 void OpenGLModel::load(std::string_view path) {
     assert(!path.empty());
@@ -134,3 +136,5 @@ void OpenGLModel::render() {
         it->render();
     }
 }
+
+}  // namespace Sponge

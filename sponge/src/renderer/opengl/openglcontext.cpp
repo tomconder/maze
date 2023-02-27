@@ -1,4 +1,4 @@
-#include "openglcontext.h"
+#include "renderer/opengl/openglcontext.h"
 
 #include <SDL.h>
 
@@ -7,13 +7,13 @@
 #include <sstream>
 
 #ifdef EMSCRIPTEN
-
 #include <utility>
-
 #endif
 
 #include <iomanip>
 #include <utility>
+
+namespace Sponge {
 
 OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
@@ -130,7 +130,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
     }
 
     const int numRenderDrivers = SDL_GetNumRenderDrivers();
-    SPONGE_CORE_INFO("Render Driver Info [{}]:", numRenderDrivers);
+    SPONGE_CORE_DEBUG("Render Driver Info [{}]:", numRenderDrivers);
 
     SDL_RendererInfo info;
     for (int i = 0; i < numRenderDrivers; ++i) {
@@ -222,3 +222,5 @@ void OpenGLContext::setVSync(int interval) {
 
     SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
 }
+
+}  // namespace Sponge

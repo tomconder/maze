@@ -1,6 +1,8 @@
 #pragma once
 
-#include "event.h"
+#include "event/event.h"
+
+namespace Sponge {
 
 class WindowResizeEvent : public Event {
    public:
@@ -35,3 +37,5 @@ class WindowFullscreenEvent : public Event {
     EVENT_CLASS_TYPE(WindowFullscreen)
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
+
+}  // namespace Sponge

@@ -1,5 +1,9 @@
+#pragma once
+
 #include "core/mousecode.h"
-#include "event.h"
+#include "event/event.h"
+
+namespace Sponge {
 
 class MouseMovedEvent : public Event {
    public:
@@ -63,3 +67,5 @@ class MouseButtonReleasedEvent : public MouseButtonEvent {
 
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
+
+}  // namespace Sponge

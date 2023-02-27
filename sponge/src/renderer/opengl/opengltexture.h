@@ -2,8 +2,10 @@
 
 #include <string>
 
-#include "gl.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/texture.h"
+
+namespace Sponge {
 
 class OpenGLTexture : public Texture {
    public:
@@ -37,3 +39,5 @@ class OpenGLTexture : public Texture {
     GLenum format = 0;
     std::string type;
 };
+
+}  // namespace Sponge

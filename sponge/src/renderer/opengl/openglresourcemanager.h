@@ -4,10 +4,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "openglfont.h"
-#include "openglmodel.h"
-#include "openglshader.h"
-#include "opengltexture.h"
+#include "renderer/opengl/openglfont.h"
+#include "renderer/opengl/openglmodel.h"
+#include "renderer/opengl/openglshader.h"
+#include "renderer/opengl/opengltexture.h"
+
+namespace Sponge {
 
 class OpenGLResourceManager {
    public:
@@ -37,3 +39,5 @@ class OpenGLResourceManager {
     static std::unordered_map<std::string, std::shared_ptr<OpenGLShader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>> textures;
 };
+
+}  // namespace Sponge

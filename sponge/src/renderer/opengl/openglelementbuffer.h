@@ -1,7 +1,9 @@
 #pragma once
 
-#include "gl.h"
 #include "renderer/buffer.h"
+#include "renderer/opengl/gl.h"
+
+namespace Sponge {
 
 class OpenGLElementBuffer : public Buffer {
    public:
@@ -15,3 +17,5 @@ class OpenGLElementBuffer : public Buffer {
    private:
     uint32_t id = 0;
 };
+
+}  // namespace Sponge

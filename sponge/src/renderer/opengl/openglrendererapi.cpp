@@ -1,4 +1,6 @@
-#include "openglrendererapi.h"
+#include "renderer/opengl/openglrendererapi.h"
+
+namespace Sponge {
 
 static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
                          const void* userParam) {
@@ -108,3 +110,5 @@ void OpenGLRendererAPI::setClearColor(const glm::vec4& color) {
 void OpenGLRendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+
+}  // namespace Sponge

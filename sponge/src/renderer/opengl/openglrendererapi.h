@@ -1,8 +1,10 @@
 #pragma once
 
-#include "gl.h"
 #include "glm/vec4.hpp"
+#include "renderer/opengl/gl.h"
 #include "renderer/rendererapi.h"
+
+namespace Sponge {
 
 class OpenGLRendererAPI : public RendererAPI {
    public:
@@ -12,5 +14,7 @@ class OpenGLRendererAPI : public RendererAPI {
     void setClearColor(const glm::vec4 &color) override;
     void clear() override;
 };
+
+}  // namespace Sponge
 
 #define UNUSED(x) (void)(x)

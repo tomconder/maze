@@ -4,21 +4,26 @@
 #include <string>
 
 #include "gamecamera.h"
-#include "platform/sdl/sdlengine.h"
-#include "renderer/opengl/openglsprite.h"
-#include "scene/orthocamera.h"
+#include "hudlayer.h"
+#include "mazelayer.h"
+#include "sponge.h"
 
-class Maze : public SDLEngine {
+class Maze : public Sponge::SDLEngine {
    public:
     Maze(int screenWidth, int screenHeight);
 
     bool onUserCreate() override;
-    bool onUserUpdate(Uint32 elapsedTime) override;
     bool onUserDestroy() override;
-    bool onUserResize(int width, int height) override;
+    bool onUserUpdate(Uint32 elapsedTime) override;
+
+    bool onEvent(Sponge::Event& event) override;
+    bool onKeyPressed(Sponge::KeyPressedEvent& event);
+    bool onWindowClose(Sponge::WindowCloseEvent& event);
+    bool onWindowResize(Sponge::WindowResizeEvent& event);
 
    private:
-    std::unique_ptr<GameCamera> camera;
-    std::unique_ptr<OrthoCamera> orthoCamera;
-    std::unique_ptr<OpenGLSprite> logo;
+    std::unique_ptr<HUDLayer> hudLayer;
+    std::unique_ptr<MazeLayer> mazeLayer;
+
+    bool isRunning = true;
 };

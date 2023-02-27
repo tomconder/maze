@@ -1,4 +1,6 @@
-#include "openglvertexarray.h"
+#include "renderer/opengl/openglvertexarray.h"
+
+namespace Sponge {
 
 OpenGLVertexArray::OpenGLVertexArray() {
     glGenVertexArrays(1, &id);
@@ -11,3 +13,5 @@ OpenGLVertexArray::~OpenGLVertexArray() {
 void OpenGLVertexArray::bind() const {
     glBindVertexArray(id);
 }
+
+}  // namespace Sponge

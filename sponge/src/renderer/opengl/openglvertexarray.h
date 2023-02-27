@@ -1,7 +1,9 @@
 #pragma once
 
-#include "gl.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/vertexarray.h"
+
+namespace Sponge {
 
 class OpenGLVertexArray : public VertexArray {
    public:
@@ -13,3 +15,5 @@ class OpenGLVertexArray : public VertexArray {
    private:
     uint32_t id = 0;
 };
+
+}  // namespace Sponge

@@ -3,16 +3,6 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-GameCamera::GameCamera(float fov, float width, float height, float zNear, float zFar)
-    : fov(fov), width(width), height(height), zNear(zNear), zFar(zFar) {
-    updateProjection();
-
-    glm::vec3 front = { glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)), glm::sin(glm::radians(pitch)),
-                        glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch)) };
-    cameraFront = glm::normalize(front);
-    updateView();
-}
-
 void GameCamera::updateProjection() {
     projection = glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
     mvp = projection * view;
@@ -23,7 +13,7 @@ void GameCamera::updateView() {
     mvp = projection * view;
 }
 
-void GameCamera::setViewportSize(int viewportWidth, int viewportHeight) {
+void GameCamera::setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight) {
     width = static_cast<float>(viewportWidth);
     height = static_cast<float>(viewportHeight);
     updateProjection();

@@ -1,4 +1,4 @@
-#include "openglfont.h"
+#include "renderer/opengl/openglfont.h"
 
 #ifdef EMSCRIPTEN
 #include <new>
@@ -7,7 +7,9 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
 
-#include "openglresourcemanager.h"
+#include "renderer/opengl/openglresourcemanager.h"
+
+namespace Sponge {
 
 OpenGLFont::OpenGLFont() {
     auto shader = OpenGLResourceManager::getShader("text");
@@ -212,3 +214,5 @@ void OpenGLFont::log() const {
             value.page);
     }
 }
+
+}  // namespace Sponge

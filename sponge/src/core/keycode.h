@@ -1,6 +1,8 @@
 #pragma once
 
-#include "base.h"
+#include "core/base.h"
+
+namespace Sponge {
 
 // inspired by glfw3.h
 enum KeyCode : uint16_t {
@@ -63,7 +65,7 @@ enum KeyCode : uint16_t {
     World2 = 162,
 
     // Function keys
-    FEscape = 256,
+    Escape = 256,
     Enter = 257,
     Tab = 258,
     Backspace = 259,
@@ -136,3 +138,5 @@ enum KeyCode : uint16_t {
     RightSuper = 347,
     Menu = 348
 };
+
+}  // namespace Sponge
