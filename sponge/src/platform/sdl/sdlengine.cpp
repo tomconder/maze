@@ -39,8 +39,9 @@ int SDLEngine::start() {
 
     logSDLVersion();
 
-    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
-                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+    SDL_Window *window =
+        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
+                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
@@ -84,6 +85,12 @@ bool SDLEngine::iterateLoop() {
     bool quit = false;
     if (SDL_PollEvent(&event) != 0) {
         processEvent(event);
+        if (event.type == SDL_QUIT) {
+            quit = true;
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            quit = true;
+        }
     }
 
     renderer->clear();
@@ -330,10 +337,7 @@ MouseCode SDLEngine::mapMouseButton(uint8_t index) {
 }
 
 void SDLEngine::processEvent(SDL_Event &event) {
-    if (event.type == SDL_QUIT) {
-        auto closeEvent = WindowCloseEvent{};
-        onEvent(closeEvent);
-    } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
 
