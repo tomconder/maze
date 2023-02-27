@@ -25,9 +25,10 @@ void HUDLayer::onDetach() {
     // nothing
 }
 
-void HUDLayer::onUpdate(uint32_t elapsedTime) {
+bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     logo->render({ orthoCamera->getWidth() - 76.f, 12.f }, { 64.f, 64.f });
     font->render("Press [Q] to exit", { 12.f, orthoCamera->getHeight() - 12.f }, 28, { 0.5, 0.9f, 1.0f });
+    return true;
 }
 
 void HUDLayer::onEvent(Sponge::Event& event) {
@@ -36,8 +37,8 @@ void HUDLayer::onEvent(Sponge::Event& event) {
     dispatcher.dispatch<Sponge::WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 }
 
-void HUDLayer::onResize(uint32_t width, uint32_t height) {
-    orthoCamera->setWidthAndHeight(width, height);
+bool HUDLayer::onWindowResize(Sponge::WindowResizeEvent& event) {
+    orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     auto projection = orthoCamera->getProjection();
     auto shader = Sponge::OpenGLResourceManager::getShader(SPRITE_SHADER);
@@ -49,9 +50,6 @@ void HUDLayer::onResize(uint32_t width, uint32_t height) {
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
-}
 
-bool HUDLayer::onWindowResize(Sponge::WindowResizeEvent& event) {
-    onResize(event.getWidth(), event.getHeight());
     return false;
 }

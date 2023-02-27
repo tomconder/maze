@@ -7,6 +7,7 @@
 #include "core/input.h"
 #include "core/keycode.h"
 #include "core/layer.h"
+#include "core/layerstack.h"
 #include "core/log.h"
 #include "core/mousecode.h"
 #include "event/applicationevent.h"

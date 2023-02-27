@@ -4,12 +4,15 @@
 
 #include "core/engine.h"
 #include "core/keycode.h"
+#include "core/layer.h"
+#include "core/layerstack.h"
 #include "core/mousecode.h"
 
 namespace Sponge {
 
 class SDLEngine : public Engine {
    public:
+    SDLEngine();
     int construct() const override;
 
     int start() override;
@@ -19,9 +22,12 @@ class SDLEngine : public Engine {
     bool onUserUpdate(uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
-    bool onEvent(Event &event) override;
+    void onEvent(Event &event) override;
 
     void adjustAspectRatio(int eventW, int eventH);
+
+    void pushOverlay(Layer *layer);
+    void pushLayer(Layer *layer);
 
     static void logSDLVersion();
 
@@ -37,6 +43,7 @@ class SDLEngine : public Engine {
    private:
     uint32_t lastUpdateTime = 0;
     std::unordered_map<SDL_Scancode, KeyCode> keymap;
+    Sponge::LayerStack *layerStack;
 
     void initializeKeyMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode &scancode);

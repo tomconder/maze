@@ -12,8 +12,7 @@ class HUDLayer : public Sponge::Layer {
     void onAttach() override;
     void onDetach() override;
     void onEvent(Sponge::Event& event) override;
-    void onResize(uint32_t width, uint32_t height) override;
-    void onUpdate(uint32_t elapsedTime) override;
+    bool onUpdate(uint32_t elapsedTime) override;
 
    private:
     std::shared_ptr<Sponge::OpenGLFont> font;

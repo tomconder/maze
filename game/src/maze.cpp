@@ -21,15 +21,11 @@ bool Maze::onUserCreate() {
     SPONGE_INFO("Setting camera for {}x{}", w, h);
     renderer->setViewport(offsetx, offsety, w, h);
 
-    // TODO use layer stack
+    pushOverlay(new HUDLayer());
+    pushLayer(new MazeLayer());
 
-    hudLayer = std::make_unique<HUDLayer>();
-    hudLayer->onAttach();
-    hudLayer->onResize(w, h);
-
-    mazeLayer = std::make_unique<MazeLayer>();
-    mazeLayer->onAttach();
-    mazeLayer->onResize(w, h);
+    auto resizeEvent = Sponge::WindowResizeEvent{ static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
+    onEvent(resizeEvent);
 
     return true;
 }
@@ -39,10 +35,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         return false;
     }
 
-    // TODO use layer stack
-
-    mazeLayer->onUpdate(elapsedTime);
-    hudLayer->onUpdate(elapsedTime);
+    Sponge::SDLEngine::onUserUpdate(elapsedTime);
 
     return true;
 }
@@ -50,13 +43,15 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 bool Maze::onKeyPressed(Sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == Sponge::KeyCode::Escape || event.getKeyCode() == Sponge::KeyCode::Q) {
         isRunning = false;
+        return true;
     }
 
     if (event.getKeyCode() == Sponge::KeyCode::F) {
         graphics->toggleFullscreen();
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 bool Maze::onWindowClose(Sponge::WindowCloseEvent& event) {
@@ -69,31 +64,10 @@ bool Maze::onUserDestroy() {
     return true;
 }
 
-bool Maze::onEvent(Sponge::Event& event) {
+void Maze::onEvent(Sponge::Event& event) {
     Sponge::EventDispatcher dispatcher(event);
     dispatcher.dispatch<Sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
-
-    // TODO: replace with LayerStack
-
-    //    for (auto it = layerStack.end(); it != layerStack.begin(); )
-    //    {
-    //        (*--it)->onEvent(event);
-    //        if (event.handled) {
-    //            break;
-    //        }
-    //    }
-
-    hudLayer->onEvent(event);
-    if (event.handled) {
-        return true;
-    }
-
-    mazeLayer->onEvent(event);
-    if (event.handled) {
-        return true;
-    }
-
     dispatcher.dispatch<Sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
 
-    return true;
+    Sponge::SDLEngine::onEvent(event);
 }

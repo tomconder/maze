@@ -19,11 +19,7 @@ void MazeLayer::onDetach() {
     // nothing
 }
 
-void MazeLayer::onResize(uint32_t width, uint32_t height) {
-    camera->setViewportSize(width, height);
-}
-
-void MazeLayer::onUpdate(uint32_t elapsedTime) {
+bool MazeLayer::onUpdate(uint32_t elapsedTime) {
     if (Sponge::Input::isKeyPressed(Sponge::KeyCode::W) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Up)) {
         camera->moveForward(elapsedTime);
     } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::S) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Down)) {
@@ -41,6 +37,8 @@ void MazeLayer::onUpdate(uint32_t elapsedTime) {
     shader->unbind();
 
     Sponge::OpenGLResourceManager::getModel("Maze")->render();
+
+    return true;
 }
 
 void MazeLayer::onEvent(Sponge::Event& event) {
@@ -64,6 +62,6 @@ bool MazeLayer::onMouseScrolled(Sponge::MouseScrolledEvent& event) {
 }
 
 bool MazeLayer::onWindowResize(Sponge::WindowResizeEvent& event) {
-    onResize(event.getWidth(), event.getHeight());
+    camera->setViewportSize(event.getWidth(), event.getHeight());
     return false;
 }

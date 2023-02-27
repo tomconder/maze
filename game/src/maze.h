@@ -16,14 +16,10 @@ class Maze : public Sponge::SDLEngine {
     bool onUserDestroy() override;
     bool onUserUpdate(Uint32 elapsedTime) override;
 
-    bool onEvent(Sponge::Event& event) override;
+    void onEvent(Sponge::Event& event) override;
     bool onKeyPressed(Sponge::KeyPressedEvent& event);
     bool onWindowClose(Sponge::WindowCloseEvent& event);
-    bool onWindowResize(Sponge::WindowResizeEvent& event);
 
    private:
-    std::unique_ptr<HUDLayer> hudLayer;
-    std::unique_ptr<MazeLayer> mazeLayer;
-
     bool isRunning = true;
 };

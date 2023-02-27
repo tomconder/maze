@@ -22,7 +22,7 @@ class Engine {
     virtual bool onUserUpdate(uint32_t elapsedTime) = 0;
     virtual bool onUserDestroy() = 0;
 
-    virtual bool onEvent(Event& event) = 0;
+    virtual void onEvent(Event& event) = 0;
 };
 
 }  // namespace Sponge

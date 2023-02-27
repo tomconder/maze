@@ -10,12 +10,14 @@
 #include <glm/vec3.hpp>
 #include <sstream>
 
-#include "core/keycode.h"
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 
 namespace Sponge {
+SDLEngine::SDLEngine() {
+    layerStack = new LayerStack();
+}
 
 int SDLEngine::construct() const {
     if (w == 0 || h == 0) {
@@ -144,17 +146,29 @@ bool SDLEngine::onUserCreate() {
 }
 
 bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
-    UNUSED(elapsedTime);
-    return true;
+    bool result = true;
+
+    for (auto layer : *layerStack) {
+        if (!layer->onUpdate(elapsedTime)) {
+            result = false;
+            break;
+        }
+    }
+
+    return result;
 }
 
 bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-bool SDLEngine::onEvent(Event &event) {
-    UNUSED(event);
-    return false;
+void SDLEngine::onEvent(Event &event) {
+    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+        if (event.handled) {
+            break;
+        }
+        (*it)->onEvent(event);
+    }
 }
 
 void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
@@ -196,6 +210,16 @@ void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
 
     offsetx = (eventW - w) / 2;
     offsety = (eventH - h) / 2;
+}
+
+void SDLEngine::pushOverlay(Layer *layer) {
+    layerStack->pushOverlay(layer);
+    layer->onAttach();
+}
+
+void SDLEngine::pushLayer(Layer *layer) {
+    layerStack->pushLayer(layer);
+    layer->onAttach();
 }
 
 void SDLEngine::initializeKeyMap() {
@@ -374,5 +398,4 @@ void SDLEngine::processEvent(SDL_Event &event) {
         onEvent(mouseEvent);
     }
 }
-
 }  // namespace Sponge
