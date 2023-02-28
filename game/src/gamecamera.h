@@ -6,12 +6,8 @@
 
 class GameCamera : public Sponge::Camera {
    public:
-    GameCamera() = default;
-    GameCamera(float fov, float width, float height, float zNear, float zFar);
-
-    ~GameCamera() override = default;
-
-    void setViewportSize(int viewportWidth, int viewportHeight);
+    GameCamera();
+    void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
 
     const glm::mat4 &getMVP() const {
         return mvp;
@@ -35,8 +31,8 @@ class GameCamera : public Sponge::Camera {
     void updateView();
 
     float fov = 45.f;
-    const float zNear = 1.f;
-    const float zFar = 1000.f;
+    float zNear = 1.f;
+    float zFar = 18000.f;
 
     float pitch = 0.f;
     float yaw = -90.f;

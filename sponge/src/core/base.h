@@ -2,6 +2,6 @@
 
 #include <cstdint>
 
-#include "log.h"
+#include "core/log.h"
 
 #define BIT(x) (1 << x)

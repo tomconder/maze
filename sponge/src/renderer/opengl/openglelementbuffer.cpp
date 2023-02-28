@@ -1,4 +1,4 @@
-#include "openglelementbuffer.h"
+#include "renderer/opengl/openglelementbuffer.h"
 
 namespace Sponge {
 

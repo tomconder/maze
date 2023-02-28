@@ -1,8 +1,8 @@
 #pragma once
 
-#include "openglbuffer.h"
-#include "openglelementbuffer.h"
-#include "openglvertexarray.h"
+#include "renderer/opengl/openglbuffer.h"
+#include "renderer/opengl/openglelementbuffer.h"
+#include "renderer/opengl/openglvertexarray.h"
 #include "renderer/sprite.h"
 
 namespace Sponge {

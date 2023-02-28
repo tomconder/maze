@@ -1,4 +1,4 @@
-#include "opengltexture.h"
+#include "renderer/opengl/opengltexture.h"
 
 namespace Sponge {
 

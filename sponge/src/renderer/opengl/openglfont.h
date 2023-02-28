@@ -5,10 +5,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "openglbuffer.h"
-#include "openglelementbuffer.h"
-#include "opengltexture.h"
-#include "openglvertexarray.h"
+#include "renderer/opengl/openglbuffer.h"
+#include "renderer/opengl/openglelementbuffer.h"
+#include "renderer/opengl/opengltexture.h"
+#include "renderer/opengl/openglvertexarray.h"
 
 namespace Sponge {
 

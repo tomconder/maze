@@ -4,6 +4,8 @@
 #include <string>
 
 #include "gamecamera.h"
+#include "hudlayer.h"
+#include "mazelayer.h"
 #include "sponge.h"
 
 class Maze : public Sponge::SDLEngine {
@@ -11,12 +13,13 @@ class Maze : public Sponge::SDLEngine {
     Maze(int screenWidth, int screenHeight);
 
     bool onUserCreate() override;
-    bool onUserUpdate(Uint32 elapsedTime) override;
     bool onUserDestroy() override;
-    bool onUserResize(int width, int height) override;
+    bool onUserUpdate(Uint32 elapsedTime) override;
+
+    void onEvent(Sponge::Event& event) override;
+    bool onKeyPressed(Sponge::KeyPressedEvent& event);
+    bool onWindowClose(Sponge::WindowCloseEvent& event);
 
    private:
-    std::unique_ptr<GameCamera> camera;
-    std::unique_ptr<Sponge::OrthoCamera> orthoCamera;
-    std::unique_ptr<Sponge::OpenGLSprite> logo;
+    bool isRunning = true;
 };

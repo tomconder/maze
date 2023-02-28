@@ -1,4 +1,4 @@
-#include "openglsprite.h"
+#include "renderer/opengl/openglsprite.h"
 
 #include <array>
 #include <glm/ext/matrix_clip_space.hpp>

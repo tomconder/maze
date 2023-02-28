@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gl.h"
 #include "glm/vec4.hpp"
+#include "renderer/opengl/gl.h"
 #include "renderer/rendererapi.h"
 
 namespace Sponge {

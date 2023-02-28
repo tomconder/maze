@@ -4,10 +4,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "openglfont.h"
-#include "openglmodel.h"
-#include "openglshader.h"
-#include "opengltexture.h"
+#include "renderer/opengl/openglfont.h"
+#include "renderer/opengl/openglmodel.h"
+#include "renderer/opengl/openglshader.h"
+#include "renderer/opengl/opengltexture.h"
 
 namespace Sponge {
 

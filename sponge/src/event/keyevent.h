@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/keycode.h"
-#include "event.h"
+#include "event/event.h"
 
 namespace Sponge {
 

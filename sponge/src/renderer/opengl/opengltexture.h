@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "gl.h"
+#include "renderer/opengl/gl.h"
 #include "renderer/texture.h"
 
 namespace Sponge {
