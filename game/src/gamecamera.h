@@ -6,6 +6,7 @@
 
 class GameCamera : public Sponge::Camera {
    public:
+    GameCamera();
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
 
     const glm::mat4 &getMVP() const {

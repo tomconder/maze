@@ -3,6 +3,10 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+GameCamera::GameCamera() {
+    updateView();
+}
+
 void GameCamera::updateProjection() {
     projection = glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
     mvp = projection * view;
