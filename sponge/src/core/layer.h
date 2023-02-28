@@ -7,7 +7,6 @@ namespace Sponge {
 
 class Layer {
    public:
-    Layer();
     virtual ~Layer() = default;
 
     virtual void onAttach() = 0;
