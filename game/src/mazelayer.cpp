@@ -20,13 +20,17 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(uint32_t elapsedTime) {
-    if (Sponge::Input::isKeyPressed(Sponge::KeyCode::W) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Up)) {
+    if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_W) ||
+        Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Up)) {
         camera->moveForward(elapsedTime);
-    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::S) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Down)) {
+    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_S) ||
+               Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Down)) {
         camera->moveBackward(elapsedTime);
-    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::A) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Left)) {
+    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_A) ||
+               Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Left)) {
         camera->strafeLeft(elapsedTime);
-    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::D) || Sponge::Input::isKeyPressed(Sponge::KeyCode::Right)) {
+    } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_D) ||
+               Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Right)) {
         camera->strafeRight(elapsedTime);
     }
 

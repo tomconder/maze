@@ -39,12 +39,12 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
 }
 
 bool Maze::onKeyPressed(Sponge::KeyPressedEvent& event) {
-    if (event.getKeyCode() == Sponge::KeyCode::Escape || event.getKeyCode() == Sponge::KeyCode::Q) {
+    if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_Escape || event.getKeyCode() == Sponge::KeyCode::SpongeKey_Q) {
         isRunning = false;
         return true;
     }
 
-    if (event.getKeyCode() == Sponge::KeyCode::F) {
+    if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_F) {
         graphics->toggleFullscreen();
         return true;
     }
