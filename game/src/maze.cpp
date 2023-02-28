@@ -35,9 +35,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         return false;
     }
 
-    Sponge::SDLEngine::onUserUpdate(elapsedTime);
-
-    return true;
+    return Sponge::SDLEngine::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onKeyPressed(Sponge::KeyPressedEvent& event) {
