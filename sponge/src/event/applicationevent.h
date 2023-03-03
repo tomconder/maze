@@ -8,10 +8,10 @@ class WindowResizeEvent : public Event {
    public:
     WindowResizeEvent(uint32_t width, uint32_t height) : width(width), height(height) {}
 
-    uint32_t getWidth() {
+    uint32_t getWidth() const {
         return width;
     }
-    uint32_t getHeight() {
+    uint32_t getHeight() const {
         return height;
     }
 
@@ -19,7 +19,8 @@ class WindowResizeEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
    private:
-    uint32_t width, height;
+    uint32_t width;
+    uint32_t height;
 };
 
 class WindowCloseEvent : public Event {

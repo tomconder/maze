@@ -5,7 +5,7 @@
 namespace Sponge {
 
 // inspired by glfw3.h
-enum KeyCode : uint16_t {
+enum class KeyCode : uint16_t {
     SpongeKey_None = 0,
 
     // Printable keys

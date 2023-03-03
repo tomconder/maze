@@ -13,7 +13,7 @@ class Layer {
     virtual void onDetach() = 0;
     virtual bool onUpdate(uint32_t elapsedTime) = 0;
 
-    virtual void onEvent(Event& event) {}
+    virtual void onEvent(Event& event) { /* optional */ }
 };
 
 }  // namespace Sponge

@@ -53,19 +53,19 @@ void MazeLayer::onEvent(Sponge::Event& event) {
     dispatcher.dispatch<Sponge::WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 }
 
-bool MazeLayer::onMouseMoved(Sponge::MouseMovedEvent& event) {
+bool MazeLayer::onMouseMoved(const Sponge::MouseMovedEvent& event) {
     if (Sponge::Input::isButtonPressed()) {
         camera->mouseMove({ event.getX(), event.getY() });
     }
     return true;
 }
 
-bool MazeLayer::onMouseScrolled(Sponge::MouseScrolledEvent& event) {
+bool MazeLayer::onMouseScrolled(const Sponge::MouseScrolledEvent& event) {
     camera->mouseScroll({ event.getXOffset(), event.getYOffset() });
     return true;
 }
 
-bool MazeLayer::onWindowResize(Sponge::WindowResizeEvent& event) {
+bool MazeLayer::onWindowResize(const Sponge::WindowResizeEvent& event) {
     camera->setViewportSize(event.getWidth(), event.getHeight());
     return false;
 }
