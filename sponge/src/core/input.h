@@ -7,6 +7,8 @@ namespace Sponge {
 
 class Input {
    public:
+    virtual ~Input() = default;
+
     static bool isKeyPressed(KeyCode key) {
         return instance->isKeyPressedImpl(key);
     }

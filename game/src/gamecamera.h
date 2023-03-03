@@ -14,7 +14,7 @@ class GameCamera : public Sponge::Camera {
     }
 
     void setPosition(const glm::vec3 &position);
-    glm::vec3 getPosition() {
+    glm::vec3 getPosition() const {
         return cameraPos;
     }
 
