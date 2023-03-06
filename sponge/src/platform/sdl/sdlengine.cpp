@@ -196,8 +196,7 @@ void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
     auto width = static_cast<float>(eventW);
     auto height = static_cast<float>(eventH);
 
-    float newAspectRatio = width / height;
-    if (newAspectRatio > aspectRatio) {
+    if (float newAspectRatio = width / height; newAspectRatio > aspectRatio) {
         w = static_cast<int>(aspectRatioWidth * height / aspectRatioHeight);
         h = eventH;
     } else {
@@ -391,8 +390,8 @@ void SDLEngine::processEvent(SDL_Event &event) {
             MouseMovedEvent{ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
-        auto wheelx = static_cast<float>(event.wheel.preciseX);
-        auto wheely = static_cast<float>(event.wheel.preciseY);
+        auto wheelx = event.wheel.preciseX;
+        auto wheely = event.wheel.preciseY;
 #ifdef EMSCRIPTEN
         wheelx /= 100.f;
 #endif

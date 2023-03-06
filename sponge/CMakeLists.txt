@@ -23,7 +23,7 @@ file(GLOB SOURCE_FILES LIST_DIRECTORIES false
 
 if (MSVC)
   list(APPEND SOURCES src/spongepch.cpp)
-endif()
+endif ()
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")

@@ -37,7 +37,7 @@ void HUDLayer::onEvent(Sponge::Event& event) {
     dispatcher.dispatch<Sponge::WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 }
 
-bool HUDLayer::onWindowResize(Sponge::WindowResizeEvent& event) {
+bool HUDLayer::onWindowResize(const Sponge::WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     auto projection = orthoCamera->getProjection();

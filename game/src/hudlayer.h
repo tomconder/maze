@@ -19,5 +19,5 @@ class HUDLayer : public Sponge::Layer {
     std::shared_ptr<Sponge::OpenGLSprite> logo;
     std::unique_ptr<Sponge::OrthoCamera> orthoCamera;
 
-    bool onWindowResize(Sponge::WindowResizeEvent& event);
+    bool onWindowResize(const Sponge::WindowResizeEvent& event);
 };

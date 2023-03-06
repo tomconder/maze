@@ -7,7 +7,9 @@ static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity,
     std::string source_str;
     std::string type_str;
 
+    UNUSED(id);
     UNUSED(length);
+    UNUSED(message);
     UNUSED(userParam);
 
     switch (source) {
@@ -72,6 +74,8 @@ static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity,
             SPONGE_GL_INFO("{} {} [{}]: {}", source_str, type_str, id, message);
             break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
+            break;
+        default:
             break;
     }
 }

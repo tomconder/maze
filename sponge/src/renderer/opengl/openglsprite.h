@@ -9,7 +9,7 @@ namespace Sponge {
 
 class OpenGLSprite : public Sprite {
    public:
-    explicit OpenGLSprite(const std::string &name);
+    explicit OpenGLSprite(std::string_view name);
 
     void render(glm::vec2 position, glm::vec2 size) const override;
 
