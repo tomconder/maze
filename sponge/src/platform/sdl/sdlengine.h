@@ -43,7 +43,9 @@ class SDLEngine : public Engine {
    private:
     uint32_t lastUpdateTime = 0;
     Sponge::LayerStack *layerStack;
+    std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap;
 
+    void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode &scancode);
     MouseCode mapMouseButton(uint8_t index);
     void processEvent(SDL_Event &event);
