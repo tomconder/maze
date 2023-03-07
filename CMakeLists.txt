@@ -4,25 +4,29 @@ set(MAZE_VERSION 1.0)
 # increment this when we break backwards compatibility
 set(MAZE_SOVERSION 1)
 
+# this needs to be done before calling 'project'
+if (APPLE)
+  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
+endif ()
+
 project(maze
         VERSION ${MAZE_VERSION}
         DESCRIPTION "A nice walk in a maze"
         HOMEPAGE_URL "https://gitub.com/tomconder/maze"
-        )
+        LANGUAGES C CXX)
 
 set(COPYRIGHT "Copyright 2023 Tom Conder")
 
 message(STATUS "Configuring maze ${maze_VERSION}")
 
 if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
+  set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
 endif ()
 
 if (CMAKE_CXX_STANDARD LESS 17)
   message(WARNING "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++17")
 endif ()
 
-# set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -38,8 +42,11 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
 
   # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif ()
+
+# Generate compile_commands.json to help work with clang based tools
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(3rdparty)
 
