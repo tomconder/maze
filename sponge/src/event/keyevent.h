@@ -14,14 +14,16 @@ class KeyEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
 
    protected:
-    KeyEvent(const KeyCode keyCode) : keyCode(keyCode) {}
+    explicit KeyEvent(const KeyCode keyCode) : keyCode(keyCode) {}
 
+   private:
     KeyCode keyCode;
 };
 
 class KeyPressedEvent : public KeyEvent {
    public:
-    KeyPressedEvent(const KeyCode keycode, bool isRepeated = false) : KeyEvent(keycode), isRepeated(isRepeated) {}
+    explicit KeyPressedEvent(const KeyCode keycode, bool isRepeated = false)
+        : KeyEvent(keycode), isRepeated(isRepeated) {}
 
     bool isHeld() const {
         return isRepeated;
@@ -35,14 +37,14 @@ class KeyPressedEvent : public KeyEvent {
 
 class KeyReleasedEvent : public KeyEvent {
    public:
-    KeyReleasedEvent(const KeyCode keycode) : KeyEvent(keycode) {}
+    explicit KeyReleasedEvent(const KeyCode keycode) : KeyEvent(keycode) {}
 
     EVENT_CLASS_TYPE(KeyReleased)
 };
 
 class KeyTypedEvent : public KeyEvent {
    public:
-    KeyTypedEvent(const KeyCode keycode) : KeyEvent(keycode) {}
+    explicit KeyTypedEvent(const KeyCode keycode) : KeyEvent(keycode) {}
 
     EVENT_CLASS_TYPE(KeyTyped)
 };

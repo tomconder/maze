@@ -17,6 +17,7 @@
 namespace Sponge {
 SDLEngine::SDLEngine() {
     layerStack = new LayerStack();
+    initializeKeyCodeMap();
 }
 
 int SDLEngine::construct() const {
@@ -41,9 +42,8 @@ int SDLEngine::start() {
 
     logSDLVersion();
 
-    SDL_Window *window =
-        SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
+                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
@@ -195,8 +195,7 @@ void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
     auto width = static_cast<float>(eventW);
     auto height = static_cast<float>(eventH);
 
-    float newAspectRatio = width / height;
-    if (newAspectRatio > aspectRatio) {
+    if (float newAspectRatio = width / height; newAspectRatio > aspectRatio) {
         w = static_cast<int>(aspectRatioWidth * height / aspectRatioHeight);
         h = eventH;
     } else {
@@ -220,257 +219,142 @@ void SDLEngine::pushLayer(Layer *layer) {
     layer->onAttach();
 }
 
+void SDLEngine::initializeKeyCodeMap() {
+    keyCodeMap[SDL_SCANCODE_SPACE] = KeyCode::SpongeKey_Space;
+    keyCodeMap[SDL_SCANCODE_APOSTROPHE] = KeyCode::SpongeKey_Apostrophe;
+    keyCodeMap[SDL_SCANCODE_COMMA] = KeyCode::SpongeKey_Comma;
+    keyCodeMap[SDL_SCANCODE_MINUS] = KeyCode::SpongeKey_Minus;
+    keyCodeMap[SDL_SCANCODE_PERIOD] = KeyCode::SpongeKey_Period;
+    keyCodeMap[SDL_SCANCODE_SLASH] = KeyCode::SpongeKey_Slash;
+
+    keyCodeMap[SDL_SCANCODE_0] = KeyCode::SpongeKey_D0;
+    keyCodeMap[SDL_SCANCODE_1] = KeyCode::SpongeKey_D1;
+    keyCodeMap[SDL_SCANCODE_2] = KeyCode::SpongeKey_D2;
+    keyCodeMap[SDL_SCANCODE_3] = KeyCode::SpongeKey_D3;
+    keyCodeMap[SDL_SCANCODE_4] = KeyCode::SpongeKey_D4;
+    keyCodeMap[SDL_SCANCODE_5] = KeyCode::SpongeKey_D5;
+    keyCodeMap[SDL_SCANCODE_6] = KeyCode::SpongeKey_D6;
+    keyCodeMap[SDL_SCANCODE_7] = KeyCode::SpongeKey_D7;
+    keyCodeMap[SDL_SCANCODE_8] = KeyCode::SpongeKey_D8;
+    keyCodeMap[SDL_SCANCODE_9] = KeyCode::SpongeKey_D9;
+
+    keyCodeMap[SDL_SCANCODE_SEMICOLON] = KeyCode::SpongeKey_Semicolon;
+    keyCodeMap[SDL_SCANCODE_EQUALS] = KeyCode::SpongeKey_Equal;
+
+    keyCodeMap[SDL_SCANCODE_A] = KeyCode::SpongeKey_A;
+    keyCodeMap[SDL_SCANCODE_B] = KeyCode::SpongeKey_B;
+    keyCodeMap[SDL_SCANCODE_C] = KeyCode::SpongeKey_C;
+    keyCodeMap[SDL_SCANCODE_D] = KeyCode::SpongeKey_D;
+    keyCodeMap[SDL_SCANCODE_E] = KeyCode::SpongeKey_E;
+    keyCodeMap[SDL_SCANCODE_F] = KeyCode::SpongeKey_F;
+    keyCodeMap[SDL_SCANCODE_G] = KeyCode::SpongeKey_G;
+    keyCodeMap[SDL_SCANCODE_H] = KeyCode::SpongeKey_H;
+    keyCodeMap[SDL_SCANCODE_I] = KeyCode::SpongeKey_I;
+    keyCodeMap[SDL_SCANCODE_J] = KeyCode::SpongeKey_J;
+    keyCodeMap[SDL_SCANCODE_K] = KeyCode::SpongeKey_K;
+    keyCodeMap[SDL_SCANCODE_L] = KeyCode::SpongeKey_L;
+    keyCodeMap[SDL_SCANCODE_M] = KeyCode::SpongeKey_M;
+    keyCodeMap[SDL_SCANCODE_N] = KeyCode::SpongeKey_N;
+    keyCodeMap[SDL_SCANCODE_O] = KeyCode::SpongeKey_O;
+    keyCodeMap[SDL_SCANCODE_P] = KeyCode::SpongeKey_P;
+    keyCodeMap[SDL_SCANCODE_Q] = KeyCode::SpongeKey_Q;
+    keyCodeMap[SDL_SCANCODE_R] = KeyCode::SpongeKey_R;
+    keyCodeMap[SDL_SCANCODE_S] = KeyCode::SpongeKey_S;
+    keyCodeMap[SDL_SCANCODE_T] = KeyCode::SpongeKey_T;
+    keyCodeMap[SDL_SCANCODE_U] = KeyCode::SpongeKey_U;
+    keyCodeMap[SDL_SCANCODE_V] = KeyCode::SpongeKey_V;
+    keyCodeMap[SDL_SCANCODE_W] = KeyCode::SpongeKey_W;
+    keyCodeMap[SDL_SCANCODE_X] = KeyCode::SpongeKey_X;
+    keyCodeMap[SDL_SCANCODE_Y] = KeyCode::SpongeKey_Y;
+    keyCodeMap[SDL_SCANCODE_Z] = KeyCode::SpongeKey_Z;
+
+    keyCodeMap[SDL_SCANCODE_LEFTBRACKET] = KeyCode::SpongeKey_LeftBracket;
+    keyCodeMap[SDL_SCANCODE_BACKSLASH] = KeyCode::SpongeKey_Backslash;
+    keyCodeMap[SDL_SCANCODE_RIGHTBRACKET] = KeyCode::SpongeKey_RightBracket;
+    keyCodeMap[SDL_SCANCODE_GRAVE] = KeyCode::SpongeKey_GraveAccent;
+
+    keyCodeMap[SDL_SCANCODE_INTERNATIONAL1] = KeyCode::SpongeKey_World1;
+    keyCodeMap[SDL_SCANCODE_INTERNATIONAL2] = KeyCode::SpongeKey_World2;
+
+    keyCodeMap[SDL_SCANCODE_ESCAPE] = KeyCode::SpongeKey_Escape;
+    keyCodeMap[SDL_SCANCODE_RETURN] = KeyCode::SpongeKey_Enter;
+    keyCodeMap[SDL_SCANCODE_TAB] = KeyCode::SpongeKey_Tab;
+    keyCodeMap[SDL_SCANCODE_BACKSPACE] = KeyCode::SpongeKey_Backspace;
+    keyCodeMap[SDL_SCANCODE_INSERT] = KeyCode::SpongeKey_Insert;
+    keyCodeMap[SDL_SCANCODE_DELETE] = KeyCode::SpongeKey_Delete;
+    keyCodeMap[SDL_SCANCODE_RIGHT] = KeyCode::SpongeKey_Right;
+    keyCodeMap[SDL_SCANCODE_LEFT] = KeyCode::SpongeKey_Left;
+    keyCodeMap[SDL_SCANCODE_DOWN] = KeyCode::SpongeKey_Down;
+    keyCodeMap[SDL_SCANCODE_UP] = KeyCode::SpongeKey_Up;
+    keyCodeMap[SDL_SCANCODE_PAGEUP] = KeyCode::SpongeKey_PageUp;
+    keyCodeMap[SDL_SCANCODE_PAGEDOWN] = KeyCode::SpongeKey_PageDown;
+    keyCodeMap[SDL_SCANCODE_HOME] = KeyCode::SpongeKey_Home;
+    keyCodeMap[SDL_SCANCODE_END] = KeyCode::SpongeKey_End;
+    keyCodeMap[SDL_SCANCODE_CAPSLOCK] = KeyCode::SpongeKey_CapsLock;
+    keyCodeMap[SDL_SCANCODE_SCROLLLOCK] = KeyCode::SpongeKey_ScrollLock;
+    keyCodeMap[SDL_SCANCODE_NUMLOCKCLEAR] = KeyCode::SpongeKey_NumLock;
+    keyCodeMap[SDL_SCANCODE_PRINTSCREEN] = KeyCode::SpongeKey_PrintScreen;
+    keyCodeMap[SDL_SCANCODE_PAUSE] = KeyCode::SpongeKey_Pause;
+    keyCodeMap[SDL_SCANCODE_F1] = KeyCode::SpongeKey_F1;
+    keyCodeMap[SDL_SCANCODE_F2] = KeyCode::SpongeKey_F2;
+    keyCodeMap[SDL_SCANCODE_F3] = KeyCode::SpongeKey_F3;
+    keyCodeMap[SDL_SCANCODE_F4] = KeyCode::SpongeKey_F4;
+    keyCodeMap[SDL_SCANCODE_F5] = KeyCode::SpongeKey_F5;
+    keyCodeMap[SDL_SCANCODE_F6] = KeyCode::SpongeKey_F6;
+    keyCodeMap[SDL_SCANCODE_F7] = KeyCode::SpongeKey_F7;
+    keyCodeMap[SDL_SCANCODE_F8] = KeyCode::SpongeKey_F8;
+    keyCodeMap[SDL_SCANCODE_F9] = KeyCode::SpongeKey_F9;
+    keyCodeMap[SDL_SCANCODE_F10] = KeyCode::SpongeKey_F10;
+    keyCodeMap[SDL_SCANCODE_F11] = KeyCode::SpongeKey_F11;
+    keyCodeMap[SDL_SCANCODE_F12] = KeyCode::SpongeKey_F12;
+    keyCodeMap[SDL_SCANCODE_F13] = KeyCode::SpongeKey_F13;
+    keyCodeMap[SDL_SCANCODE_F14] = KeyCode::SpongeKey_F14;
+    keyCodeMap[SDL_SCANCODE_F15] = KeyCode::SpongeKey_F15;
+    keyCodeMap[SDL_SCANCODE_F16] = KeyCode::SpongeKey_F16;
+    keyCodeMap[SDL_SCANCODE_F17] = KeyCode::SpongeKey_F17;
+    keyCodeMap[SDL_SCANCODE_F18] = KeyCode::SpongeKey_F18;
+    keyCodeMap[SDL_SCANCODE_F19] = KeyCode::SpongeKey_F19;
+    keyCodeMap[SDL_SCANCODE_F20] = KeyCode::SpongeKey_F20;
+    keyCodeMap[SDL_SCANCODE_F21] = KeyCode::SpongeKey_F21;
+    keyCodeMap[SDL_SCANCODE_F22] = KeyCode::SpongeKey_F22;
+    keyCodeMap[SDL_SCANCODE_F23] = KeyCode::SpongeKey_F23;
+    keyCodeMap[SDL_SCANCODE_F24] = KeyCode::SpongeKey_F24;
+
+    keyCodeMap[SDL_SCANCODE_KP_0] = KeyCode::SpongeKey_KP0;
+    keyCodeMap[SDL_SCANCODE_KP_1] = KeyCode::SpongeKey_KP1;
+    keyCodeMap[SDL_SCANCODE_KP_2] = KeyCode::SpongeKey_KP2;
+    keyCodeMap[SDL_SCANCODE_KP_3] = KeyCode::SpongeKey_KP3;
+    keyCodeMap[SDL_SCANCODE_KP_4] = KeyCode::SpongeKey_KP4;
+    keyCodeMap[SDL_SCANCODE_KP_5] = KeyCode::SpongeKey_KP5;
+    keyCodeMap[SDL_SCANCODE_KP_6] = KeyCode::SpongeKey_KP6;
+    keyCodeMap[SDL_SCANCODE_KP_7] = KeyCode::SpongeKey_KP7;
+    keyCodeMap[SDL_SCANCODE_KP_8] = KeyCode::SpongeKey_KP8;
+    keyCodeMap[SDL_SCANCODE_KP_9] = KeyCode::SpongeKey_KP9;
+    keyCodeMap[SDL_SCANCODE_KP_DECIMAL] = KeyCode::SpongeKey_KPDecimal;
+    keyCodeMap[SDL_SCANCODE_KP_DIVIDE] = KeyCode::SpongeKey_KPDivide;
+    keyCodeMap[SDL_SCANCODE_KP_MULTIPLY] = KeyCode::SpongeKey_KPMultiply;
+    keyCodeMap[SDL_SCANCODE_KP_MINUS] = KeyCode::SpongeKey_KPSubtract;
+    keyCodeMap[SDL_SCANCODE_KP_PLUS] = KeyCode::SpongeKey_KPAdd;
+    keyCodeMap[SDL_SCANCODE_KP_ENTER] = KeyCode::SpongeKey_KPEnter;
+    keyCodeMap[SDL_SCANCODE_KP_EQUALS] = KeyCode::SpongeKey_KPEqual;
+
+    keyCodeMap[SDL_SCANCODE_LSHIFT] = KeyCode::SpongeKey_LeftShift;
+    keyCodeMap[SDL_SCANCODE_LCTRL] = KeyCode::SpongeKey_LeftControl;
+    keyCodeMap[SDL_SCANCODE_LALT] = KeyCode::SpongeKey_LeftAlt;
+    keyCodeMap[SDL_SCANCODE_LGUI] = KeyCode::SpongeKey_LeftSuper;
+    keyCodeMap[SDL_SCANCODE_RSHIFT] = KeyCode::SpongeKey_RightShift;
+    keyCodeMap[SDL_SCANCODE_RCTRL] = KeyCode::SpongeKey_RightControl;
+    keyCodeMap[SDL_SCANCODE_RALT] = KeyCode::SpongeKey_RightAlt;
+    keyCodeMap[SDL_SCANCODE_RGUI] = KeyCode::SpongeKey_RightSuper;
+    keyCodeMap[SDL_SCANCODE_MENU] = KeyCode::SpongeKey_Menu;
+}
+
 KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode &scancode) {
-    switch (scancode) {
-        case SDL_SCANCODE_SPACE:
-            return KeyCode::SpongeKey_Space;
-        case SDL_SCANCODE_APOSTROPHE:
-            return KeyCode::SpongeKey_Apostrophe;
-        case SDL_SCANCODE_COMMA:
-            return KeyCode::SpongeKey_Comma;
-        case SDL_SCANCODE_MINUS:
-            return KeyCode::SpongeKey_Minus;
-        case SDL_SCANCODE_PERIOD:
-            return KeyCode::SpongeKey_Period;
-        case SDL_SCANCODE_SLASH:
-            return KeyCode::SpongeKey_Slash;
-
-        case SDL_SCANCODE_0:
-            return KeyCode::SpongeKey_D0;
-        case SDL_SCANCODE_1:
-            return KeyCode::SpongeKey_D1;
-        case SDL_SCANCODE_2:
-            return KeyCode::SpongeKey_D2;
-        case SDL_SCANCODE_3:
-            return KeyCode::SpongeKey_D3;
-        case SDL_SCANCODE_4:
-            return KeyCode::SpongeKey_D4;
-        case SDL_SCANCODE_5:
-            return KeyCode::SpongeKey_D5;
-        case SDL_SCANCODE_6:
-            return KeyCode::SpongeKey_D6;
-        case SDL_SCANCODE_7:
-            return KeyCode::SpongeKey_D7;
-        case SDL_SCANCODE_8:
-            return KeyCode::SpongeKey_D8;
-        case SDL_SCANCODE_9:
-            return KeyCode::SpongeKey_D9;
-
-        case SDL_SCANCODE_SEMICOLON:
-            return KeyCode::SpongeKey_Semicolon;
-        case SDL_SCANCODE_EQUALS:
-            return KeyCode::SpongeKey_Equal;
-
-        case SDL_SCANCODE_A:
-            return KeyCode::SpongeKey_A;
-        case SDL_SCANCODE_B:
-            return KeyCode::SpongeKey_B;
-        case SDL_SCANCODE_C:
-            return KeyCode::SpongeKey_C;
-        case SDL_SCANCODE_D:
-            return KeyCode::SpongeKey_D;
-        case SDL_SCANCODE_E:
-            return KeyCode::SpongeKey_E;
-        case SDL_SCANCODE_F:
-            return KeyCode::SpongeKey_F;
-        case SDL_SCANCODE_G:
-            return KeyCode::SpongeKey_G;
-        case SDL_SCANCODE_H:
-            return KeyCode::SpongeKey_H;
-        case SDL_SCANCODE_I:
-            return KeyCode::SpongeKey_I;
-        case SDL_SCANCODE_J:
-            return KeyCode::SpongeKey_J;
-        case SDL_SCANCODE_K:
-            return KeyCode::SpongeKey_K;
-        case SDL_SCANCODE_L:
-            return KeyCode::SpongeKey_L;
-        case SDL_SCANCODE_M:
-            return KeyCode::SpongeKey_M;
-        case SDL_SCANCODE_N:
-            return KeyCode::SpongeKey_N;
-        case SDL_SCANCODE_O:
-            return KeyCode::SpongeKey_O;
-        case SDL_SCANCODE_P:
-            return KeyCode::SpongeKey_P;
-        case SDL_SCANCODE_Q:
-            return KeyCode::SpongeKey_Q;
-        case SDL_SCANCODE_R:
-            return KeyCode::SpongeKey_R;
-        case SDL_SCANCODE_S:
-            return KeyCode::SpongeKey_S;
-        case SDL_SCANCODE_T:
-            return KeyCode::SpongeKey_T;
-        case SDL_SCANCODE_U:
-            return KeyCode::SpongeKey_U;
-        case SDL_SCANCODE_V:
-            return KeyCode::SpongeKey_V;
-        case SDL_SCANCODE_W:
-            return KeyCode::SpongeKey_W;
-        case SDL_SCANCODE_X:
-            return KeyCode::SpongeKey_X;
-        case SDL_SCANCODE_Y:
-            return KeyCode::SpongeKey_Y;
-        case SDL_SCANCODE_Z:
-            return KeyCode::SpongeKey_Z;
-
-        case SDL_SCANCODE_LEFTBRACKET:
-            return KeyCode::SpongeKey_LeftBracket;
-        case SDL_SCANCODE_BACKSLASH:
-            return KeyCode::SpongeKey_Backslash;
-        case SDL_SCANCODE_RIGHTBRACKET:
-            return KeyCode::SpongeKey_RightBracket;
-        case SDL_SCANCODE_GRAVE:
-            return KeyCode::SpongeKey_GraveAccent;
-
-        case SDL_SCANCODE_INTERNATIONAL1:
-            return KeyCode::SpongeKey_World1;
-        case SDL_SCANCODE_INTERNATIONAL2:
-            return KeyCode::SpongeKey_World2;
-
-        case SDL_SCANCODE_ESCAPE:
-            return KeyCode::SpongeKey_Escape;
-        case SDL_SCANCODE_RETURN:
-            return KeyCode::SpongeKey_Enter;
-        case SDL_SCANCODE_TAB:
-            return KeyCode::SpongeKey_Tab;
-        case SDL_SCANCODE_BACKSPACE:
-            return KeyCode::SpongeKey_Backspace;
-        case SDL_SCANCODE_INSERT:
-            return KeyCode::SpongeKey_Insert;
-        case SDL_SCANCODE_DELETE:
-            return KeyCode::SpongeKey_Delete;
-        case SDL_SCANCODE_RIGHT:
-            return KeyCode::SpongeKey_Right;
-        case SDL_SCANCODE_LEFT:
-            return KeyCode::SpongeKey_Left;
-        case SDL_SCANCODE_DOWN:
-            return KeyCode::SpongeKey_Down;
-        case SDL_SCANCODE_UP:
-            return KeyCode::SpongeKey_Up;
-        case SDL_SCANCODE_PAGEUP:
-            return KeyCode::SpongeKey_PageUp;
-        case SDL_SCANCODE_PAGEDOWN:
-            return KeyCode::SpongeKey_PageDown;
-        case SDL_SCANCODE_HOME:
-            return KeyCode::SpongeKey_Home;
-        case SDL_SCANCODE_END:
-            return KeyCode::SpongeKey_End;
-        case SDL_SCANCODE_CAPSLOCK:
-            return KeyCode::SpongeKey_CapsLock;
-        case SDL_SCANCODE_SCROLLLOCK:
-            return KeyCode::SpongeKey_ScrollLock;
-        case SDL_SCANCODE_NUMLOCKCLEAR:
-            return KeyCode::SpongeKey_NumLock;
-        case SDL_SCANCODE_PRINTSCREEN:
-            return KeyCode::SpongeKey_PrintScreen;
-        case SDL_SCANCODE_PAUSE:
-            return KeyCode::SpongeKey_Pause;
-        case SDL_SCANCODE_F1:
-            return KeyCode::SpongeKey_F1;
-        case SDL_SCANCODE_F2:
-            return KeyCode::SpongeKey_F2;
-        case SDL_SCANCODE_F3:
-            return KeyCode::SpongeKey_F3;
-        case SDL_SCANCODE_F4:
-            return KeyCode::SpongeKey_F4;
-        case SDL_SCANCODE_F5:
-            return KeyCode::SpongeKey_F5;
-        case SDL_SCANCODE_F6:
-            return KeyCode::SpongeKey_F6;
-        case SDL_SCANCODE_F7:
-            return KeyCode::SpongeKey_F7;
-        case SDL_SCANCODE_F8:
-            return KeyCode::SpongeKey_F8;
-        case SDL_SCANCODE_F9:
-            return KeyCode::SpongeKey_F9;
-        case SDL_SCANCODE_F10:
-            return KeyCode::SpongeKey_F10;
-        case SDL_SCANCODE_F11:
-            return KeyCode::SpongeKey_F11;
-        case SDL_SCANCODE_F12:
-            return KeyCode::SpongeKey_F12;
-        case SDL_SCANCODE_F13:
-            return KeyCode::SpongeKey_F13;
-        case SDL_SCANCODE_F14:
-            return KeyCode::SpongeKey_F14;
-        case SDL_SCANCODE_F15:
-            return KeyCode::SpongeKey_F15;
-        case SDL_SCANCODE_F16:
-            return KeyCode::SpongeKey_F16;
-        case SDL_SCANCODE_F17:
-            return KeyCode::SpongeKey_F17;
-        case SDL_SCANCODE_F18:
-            return KeyCode::SpongeKey_F18;
-        case SDL_SCANCODE_F19:
-            return KeyCode::SpongeKey_F19;
-        case SDL_SCANCODE_F20:
-            return KeyCode::SpongeKey_F20;
-        case SDL_SCANCODE_F21:
-            return KeyCode::SpongeKey_F21;
-        case SDL_SCANCODE_F22:
-            return KeyCode::SpongeKey_F22;
-        case SDL_SCANCODE_F23:
-            return KeyCode::SpongeKey_F23;
-        case SDL_SCANCODE_F24:
-            return KeyCode::SpongeKey_F24;
-
-        case SDL_SCANCODE_KP_0:
-            return KeyCode::SpongeKey_KP0;
-        case SDL_SCANCODE_KP_1:
-            return KeyCode::SpongeKey_KP1;
-        case SDL_SCANCODE_KP_2:
-            return KeyCode::SpongeKey_KP2;
-        case SDL_SCANCODE_KP_3:
-            return KeyCode::SpongeKey_KP3;
-        case SDL_SCANCODE_KP_4:
-            return KeyCode::SpongeKey_KP4;
-        case SDL_SCANCODE_KP_5:
-            return KeyCode::SpongeKey_KP5;
-        case SDL_SCANCODE_KP_6:
-            return KeyCode::SpongeKey_KP6;
-        case SDL_SCANCODE_KP_7:
-            return KeyCode::SpongeKey_KP7;
-        case SDL_SCANCODE_KP_8:
-            return KeyCode::SpongeKey_KP8;
-        case SDL_SCANCODE_KP_9:
-            return KeyCode::SpongeKey_KP9;
-        case SDL_SCANCODE_KP_DECIMAL:
-            return KeyCode::SpongeKey_KPDecimal;
-        case SDL_SCANCODE_KP_DIVIDE:
-            return KeyCode::SpongeKey_KPDivide;
-        case SDL_SCANCODE_KP_MULTIPLY:
-            return KeyCode::SpongeKey_KPMultiply;
-        case SDL_SCANCODE_KP_MINUS:
-            return KeyCode::SpongeKey_KPSubtract;
-        case SDL_SCANCODE_KP_PLUS:
-            return KeyCode::SpongeKey_KPAdd;
-        case SDL_SCANCODE_KP_ENTER:
-            return KeyCode::SpongeKey_KPEnter;
-        case SDL_SCANCODE_KP_EQUALS:
-            return KeyCode::SpongeKey_KPEqual;
-
-        case SDL_SCANCODE_LSHIFT:
-            return KeyCode::SpongeKey_LeftShift;
-        case SDL_SCANCODE_LCTRL:
-            return KeyCode::SpongeKey_LeftControl;
-        case SDL_SCANCODE_LALT:
-            return KeyCode::SpongeKey_LeftAlt;
-        case SDL_SCANCODE_LGUI:
-            return KeyCode::SpongeKey_LeftSuper;
-        case SDL_SCANCODE_RSHIFT:
-            return KeyCode::SpongeKey_RightShift;
-        case SDL_SCANCODE_RCTRL:
-            return KeyCode::SpongeKey_RightControl;
-        case SDL_SCANCODE_RALT:
-            return KeyCode::SpongeKey_RightAlt;
-        case SDL_SCANCODE_RGUI:
-            return KeyCode::SpongeKey_RightSuper;
-        case SDL_SCANCODE_MENU:
-            return KeyCode::SpongeKey_Menu;
-        default:
-            return KeyCode::SpongeKey_None;
+    auto result = keyCodeMap.find(scancode);
+    if (keyCodeMap.find(scancode) == keyCodeMap.end()) {
+        return KeyCode::SpongeKey_None;
     }
+    return result->second;
 }
 
 MouseCode SDLEngine::mapMouseButton(uint8_t index) {
@@ -505,8 +389,8 @@ void SDLEngine::processEvent(SDL_Event &event) {
             MouseMovedEvent{ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
-        auto wheelx = static_cast<float>(event.wheel.preciseX);
-        auto wheely = static_cast<float>(event.wheel.preciseY);
+        auto wheelx = event.wheel.preciseX;
+        auto wheely = event.wheel.preciseY;
 #ifdef EMSCRIPTEN
         wheelx /= 100.f;
 #endif

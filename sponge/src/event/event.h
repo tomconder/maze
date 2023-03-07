@@ -30,18 +30,12 @@ enum EventCategory {
 #define BIND_EVENT_FN(fn) \
     [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
-#define EVENT_CLASS_TYPE(type)                \
-    static EventType getStaticType() {        \
-        return EventType::type;               \
-    }                                         \
-    EventType getEventType() const override { \
-        return getStaticType();               \
-    }
+#define EVENT_CLASS_TYPE(type)                                   \
+    static EventType getStaticType() { return EventType::type; } \
+    EventType getEventType() const override { return getStaticType(); }
 
-#define EVENT_CLASS_CATEGORY(category)      \
-    int getCategoryFlags() const override { \
-        return category;                    \
-    }
+#define EVENT_CLASS_CATEGORY(category) \
+    int getCategoryFlags() const override { return category; }
 
 class Event {
    public:
@@ -59,7 +53,7 @@ class Event {
 
 class EventDispatcher {
    public:
-    EventDispatcher(Event& event) : event(event){};
+    explicit EventDispatcher(Event& event) : event(event){};
 
     template <typename T, typename F>
     bool dispatch(const F& func) {

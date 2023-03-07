@@ -8,9 +8,7 @@
 
 namespace Sponge {
 
-OpenGLSprite::OpenGLSprite(const std::string &name) {
-    this->name = name;
-
+OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
     auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
 
@@ -24,8 +22,7 @@ OpenGLSprite::OpenGLSprite(const std::string &name) {
     ebo->bind();
 
     uint32_t program = shader->getId();
-    auto location = glGetAttribLocation(program, "vertex");
-    if (location != -1) {
+    if (auto location = glGetAttribLocation(program, "vertex"); location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)nullptr);

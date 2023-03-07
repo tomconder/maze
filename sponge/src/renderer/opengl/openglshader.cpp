@@ -41,11 +41,7 @@ GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source)
     GLuint id = glCreateShader(type);
     assert(id != 0);
 
-    if (type == GL_VERTEX_SHADER) {
-        SPONGE_CORE_DEBUG("Compiling vertex shader for shader [{}]", name);
-    } else {
-        SPONGE_CORE_DEBUG("Compiling fragment shader for shader [{}]", name);
-    }
+    SPONGE_CORE_DEBUG("Compiling {} shader for shader [{}]", type == GL_VERTEX_SHADER ? "vertex" : "fragment", name);
 
     char const *shader = source.c_str();
     glShaderSource(id, 1, &shader, nullptr);
