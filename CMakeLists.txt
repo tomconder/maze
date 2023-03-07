@@ -4,11 +4,6 @@ set(MAZE_VERSION 1.0)
 # increment this when we break backwards compatibility
 set(MAZE_SOVERSION 1)
 
-# this needs to be done before calling 'project'
-if (APPLE)
-  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "")
-endif ()
-
 project(maze
         VERSION ${MAZE_VERSION}
         DESCRIPTION "A nice walk in a maze"
@@ -20,7 +15,7 @@ set(COPYRIGHT "Copyright 2023 Tom Conder")
 message(STATUS "Configuring maze ${maze_VERSION}")
 
 if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
+  set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
 endif ()
 
 if (CMAKE_CXX_STANDARD LESS 17)

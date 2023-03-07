@@ -12,6 +12,7 @@
 
 #include <iomanip>
 #include <utility>
+#include <numeric>
 
 namespace Sponge {
 
