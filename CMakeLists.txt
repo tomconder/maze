@@ -15,7 +15,7 @@ set(COPYRIGHT "Copyright 2023 Tom Conder")
 message(STATUS "Configuring maze ${maze_VERSION}")
 
 if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17 CACHE STRING "")
+  set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
 endif ()
 
 if (CMAKE_CXX_STANDARD LESS 17)

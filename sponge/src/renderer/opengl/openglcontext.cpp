@@ -10,9 +10,10 @@
 #include <utility>
 #endif
 
+#include <spdlog/fmt/fmt.h>
+
 #include <iomanip>
 #include <utility>
-#include <numeric>
 
 namespace Sponge {
 
@@ -125,8 +126,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
     for (int i = 0; i < numVideoDrivers; i++) {
         const std::string videoDriver(SDL_GetVideoDriver(i));
         std::stringstream ss;
-        ss << "  #" << std::setw(2) << i << ": " << videoDriver
-           << (currentVideoDriver == videoDriver ? " (current)" : "");
+        ss << fmt::format("  #{:>2}: {} {}", i, videoDriver, (currentVideoDriver == videoDriver ? " (current)" : ""));
         SPONGE_CORE_DEBUG(ss.str());
     }
 
@@ -158,13 +158,14 @@ void OpenGLContext::logGraphicsDriverInfo() {
             v.emplace_back("TTex");
         }
 
-        auto flags = v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(), [](auto &a, auto &b) {
-            return a.append(", ").append(b);
-        });
+        auto flags =
+            v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(), [](std::string a, std::string b) {
+                return std::move(a) + ", " + std::move(b);
+            });
 
         std::stringstream ss;
-        ss << "  #" << std::setw(2) << i << ": " << std::setw(10) << std::left << info.name << " [" << flags.c_str()
-           << "]";
+
+        ss << fmt::format("  #{:>2}: {:10} [{}]", i, info.name, flags.c_str());
         SPONGE_CORE_DEBUG(ss.str());
     }
 }
@@ -175,25 +176,26 @@ void OpenGLContext::logOpenGLContextInfo() {
     SPONGE_CORE_INFO("OpenGL Info:");
 
     std::stringstream ss;
-    ss << std::setw(20) << std::left << "  Version: " << glGetString(GL_VERSION);
+    ss << fmt::format("  {:14} {}", "Version:", (const char *)glGetString(GL_VERSION));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "  GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+    ss << fmt::format("  {:14} {}", "GLSL:", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "  Renderer: " << glGetString(GL_RENDERER);
+    ss << fmt::format("  {:14} {}", "Renderer:", (const char *)glGetString(GL_RENDERER));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << std::setw(20) << std::left << "  Vendor: " << glGetString(GL_VENDOR);
+    ss << fmt::format("  {:14} {}", "Vendor:", (const char *)glGetString(GL_VENDOR));
+
     SPONGE_CORE_INFO(ss.str());
 
     GLint extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
-    ss << std::setw(20) << std::left << "  Extensions: " << extensions;
+    ss << fmt::format("  {:14} {}", "Extensions:", extensions);
     SPONGE_CORE_DEBUG(ss.str());
 }
 
