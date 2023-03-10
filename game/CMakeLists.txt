@@ -24,11 +24,20 @@ if (WIN32)
   configure_file(${CMAKE_SOURCE_DIR}/cmake/maze.rc.in maze.rc)
 endif ()
 
-file(GLOB HEADER_FILES LIST_DIRECTORIES false src/*.h)
+file(
+        GLOB HEADER_FILES
+        LIST_DIRECTORIES false
+        src/*.h)
 
-file(GLOB SOURCE_FILES LIST_DIRECTORIES false src/*.cpp)
+file(
+        GLOB SOURCE_FILES
+        LIST_DIRECTORIES false
+        src/*.cpp)
 
-file(GLOB ASSETS LIST_DIRECTORIES false assets/*)
+file(
+        GLOB ASSETS
+        LIST_DIRECTORIES false
+        assets/*)
 
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building game for Emscripten")
@@ -44,14 +53,20 @@ if (EMSCRIPTEN)
   set(ASSETS_BUILD_PATH ${PROJECT_SOURCE_DIR}/build)
 
   set(TARGET_LINK_PROPERTIES "-std=c++17 -O2 -s ALLOW_MEMORY_GROWTH=1")
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2")
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} --preload-file ${ASSETS_BUILD_PATH}/assets@assets")
+  set(TARGET_LINK_PROPERTIES
+          "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
+          )
+  set(TARGET_LINK_PROPERTIES
+          "${TARGET_LINK_PROPERTIES} --preload-file ${ASSETS_BUILD_PATH}/assets@assets"
+          )
   set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
   target_include_directories(game PUBLIC src)
   target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-  target_include_directories(game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.h)
-  target_include_directories(game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.cpp)
+  target_include_directories(
+          game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.h)
+  target_include_directories(
+          game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.cpp)
 
   target_link_libraries(game PRIVATE glad)
   target_link_libraries(game PRIVATE glm::glm)
@@ -61,34 +76,43 @@ if (EMSCRIPTEN)
   target_link_libraries(game PRIVATE tinyobjloader)
 
   add_custom_command(
-          TARGET game PRE_BUILD
+          TARGET game
+          PRE_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_CURRENT_SOURCE_DIR}/assets ${ASSETS_BUILD_PATH}/assets
-          COMMENT "Copying assets" VERBATIM
-          DEPENDS ${ASSETS})
+          COMMENT "Copying assets"
+          VERBATIM DEPENDS ${ASSETS})
 else ()
-  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
+  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual
+  # studio toolchain
 
   if (NOT EXISTS "${CMAKE_BINARY_DIR}/game/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/game/conan.cmake"
+    message(
+            STATUS
+            "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(
+            DOWNLOAD
+            "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/game/conan.cmake"
             "${CMAKE_BINARY_DIR}/game/conan.cmake"
             TLS_VERIFY ON)
   endif ()
 
   include(${CMAKE_BINARY_DIR}/game/conan.cmake)
 
-  conan_cmake_configure(REQUIRES
-          sdl/2.26.1
-          GENERATORS cmake_find_package)
+  conan_cmake_configure(REQUIRES sdl/2.26.1 GENERATORS cmake_find_package)
 
   conan_cmake_autodetect(settings)
 
-  conan_cmake_install(PATH_OR_REFERENCE .
+  conan_cmake_install(
+          PATH_OR_REFERENCE
+          .
           CMAKE_TARGETS
-          BUILD missing
-          REMOTE conancenter
-          SETTINGS ${settings})
+          BUILD
+          missing
+          REMOTE
+          conancenter
+          SETTINGS
+          ${settings})
 
   set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
@@ -107,8 +131,11 @@ else ()
     set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
 
     set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/assets/icons/maze.icns")
-    set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources" SKIP_PRECOMPILE_HEADERS ON)
-    add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES} ${app_icon_macos} assets)
+    set_source_files_properties(
+            ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+            SKIP_PRECOMPILE_HEADERS ON)
+    add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
+            ${app_icon_macos} assets)
   else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
   endif ()
@@ -133,20 +160,23 @@ else ()
   target_link_libraries(game PRIVATE spdlog)
   target_link_libraries(game PRIVATE tinyobjloader)
 
-  install(TARGETS game
+  install(
+          TARGETS game
           BUNDLE DESTINATION bin
           RUNTIME DESTINATION bin
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib
           FRAMEWORK DESTINATION lib)
 
-  # CMake provides a standalone bundle application to fix up shared libraries found in the app bundle
-  # See https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+  # CMake provides a standalone bundle application to fix up shared libraries
+  # found in the app bundle See
+  # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
 
   add_custom_command(
-          TARGET game POST_BUILD
+          TARGET game
+          POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
-          COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets" VERBATIM
-          DEPENDS ${ASSETS})
+          COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets"
+          VERBATIM DEPENDS ${ASSETS})
 endif ()

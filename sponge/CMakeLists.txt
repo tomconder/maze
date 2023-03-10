@@ -2,7 +2,9 @@
 
 include(GNUInstallDirs)
 
-file(GLOB HEADER_FILES LIST_DIRECTORIES false
+file(
+        GLOB HEADER_FILES
+        LIST_DIRECTORIES false
         src/*.h
         src/core/*.h
         src/event/*.h
@@ -12,7 +14,9 @@ file(GLOB HEADER_FILES LIST_DIRECTORIES false
         src/renderer/opengl/*.h
         src/scene/*.h)
 
-file(GLOB SOURCE_FILES LIST_DIRECTORIES false
+file(
+        GLOB SOURCE_FILES
+        LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
         src/platform/*.cpp
@@ -38,8 +42,11 @@ if (EMSCRIPTEN)
   target_precompile_headers(sponge PUBLIC src/spongepch.h)
   set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -O2 -s ALLOW_MEMORY_GROWTH=1")
-  set(TARGET_LINK_PROPERTIES "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2")
+  set(TARGET_LINK_PROPERTIES
+          "${TARGET_LINK_PROPERTIES} -O2 -s ALLOW_MEMORY_GROWTH=1")
+  set(TARGET_LINK_PROPERTIES
+          "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
+          )
 
   set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
@@ -51,39 +58,46 @@ if (EMSCRIPTEN)
   target_link_libraries(sponge PRIVATE stb_image)
   target_link_libraries(sponge PRIVATE tinyobjloader)
 else ()
-  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual studio toolchain
+  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual
+  # studio toolchain
 
   if (NOT EXISTS "${CMAKE_BINARY_DIR}/sponge/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
+    message(
+            STATUS
+            "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(
+            DOWNLOAD
+            "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
             "${CMAKE_BINARY_DIR}/sponge/conan.cmake"
             TLS_VERIFY ON)
   endif ()
 
   include(${CMAKE_BINARY_DIR}/sponge/conan.cmake)
 
-  conan_cmake_configure(REQUIRES
-          sdl/2.26.1
-          GENERATORS cmake_find_package)
+  conan_cmake_configure(REQUIRES sdl/2.26.1 GENERATORS cmake_find_package)
 
   conan_cmake_autodetect(settings)
 
-  conan_cmake_install(PATH_OR_REFERENCE .
+  conan_cmake_install(
+          PATH_OR_REFERENCE
+          .
           CMAKE_TARGETS
-          OUTPUT_FOLDER ${CMAKE_CURRENT_BINARY_DIR}
-          BUILD missing
-          REMOTE conancenter
-          SETTINGS ${settings})
+          OUTPUT_FOLDER
+          ${CMAKE_CURRENT_BINARY_DIR}
+          BUILD
+          missing
+          REMOTE
+          conancenter
+          SETTINGS
+          ${settings})
 
   set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
   find_package(OpenGL REQUIRED)
   find_package(SDL2 REQUIRED)
 
-  # for debugging
-  # include(CMakePrintHelpers)
-  # cmake_print_variables(SDL2_INCLUDE_DIR)
-  # cmake_print_variables(SDL2_LIBRARY)
+  # for debugging include(CMakePrintHelpers)
+  # cmake_print_variables(SDL2_INCLUDE_DIR) cmake_print_variables(SDL2_LIBRARY)
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
@@ -107,13 +121,15 @@ else ()
   target_link_libraries(sponge PRIVATE stb_image)
   target_link_libraries(sponge PRIVATE tinyobjloader)
 
-  install(TARGETS sponge
+  install(
+          TARGETS sponge
           BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
           FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+          INCLUDES
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif ()
