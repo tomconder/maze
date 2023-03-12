@@ -17,9 +17,10 @@ class Maze : public Sponge::SDLEngine {
     bool onUserUpdate(Uint32 elapsedTime) override;
 
     void onEvent(Sponge::Event& event) override;
-    bool onKeyPressed(Sponge::KeyPressedEvent& event);
-    bool onWindowClose(Sponge::WindowCloseEvent& event);
 
    private:
     bool isRunning = true;
+
+    bool onKeyPressed(const Sponge::KeyPressedEvent& event);
+    bool onWindowClose(const Sponge::WindowCloseEvent& event);
 };

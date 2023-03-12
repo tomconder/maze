@@ -38,7 +38,19 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     return Sponge::SDLEngine::onUserUpdate(elapsedTime);
 }
 
-bool Maze::onKeyPressed(Sponge::KeyPressedEvent& event) {
+bool Maze::onUserDestroy() {
+    return true;
+}
+
+void Maze::onEvent(Sponge::Event& event) {
+    Sponge::EventDispatcher dispatcher(event);
+    dispatcher.dispatch<Sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<Sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+
+    Sponge::SDLEngine::onEvent(event);
+}
+
+bool Maze::onKeyPressed(const Sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_Escape || event.getKeyCode() == Sponge::KeyCode::SpongeKey_Q) {
         isRunning = false;
         return true;
@@ -52,20 +64,8 @@ bool Maze::onKeyPressed(Sponge::KeyPressedEvent& event) {
     return false;
 }
 
-bool Maze::onWindowClose(Sponge::WindowCloseEvent& event) {
+bool Maze::onWindowClose(const Sponge::WindowCloseEvent& event) {
     UNUSED(event);
     isRunning = false;
     return true;
-}
-
-bool Maze::onUserDestroy() {
-    return true;
-}
-
-void Maze::onEvent(Sponge::Event& event) {
-    Sponge::EventDispatcher dispatcher(event);
-    dispatcher.dispatch<Sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
-    dispatcher.dispatch<Sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
-
-    Sponge::SDLEngine::onEvent(event);
 }
