@@ -13,6 +13,9 @@ bool iterateLoop() {
 }
 
 extern "C" int main(int argc, char *args[]) {
+    UNUSED(argc);
+    UNUSED(args);
+
     Sponge::Log::init();
 
     SPONGE_INFO("Starting maze");
