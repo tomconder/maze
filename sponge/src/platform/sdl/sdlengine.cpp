@@ -20,24 +20,24 @@ SDLEngine::SDLEngine() {
     initializeKeyCodeMap();
 }
 
-int SDLEngine::construct() const {
+bool SDLEngine::construct() const {
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
                                  nullptr);
         SPONGE_CORE_ERROR("Screen height or width cannot be zero");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int SDLEngine::start() {
+bool SDLEngine::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
         SPONGE_CORE_CRITICAL("Unable to initialize SDL: {}", SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
-        return 0;
+        return false;
     }
 
     logSDLVersion();
@@ -47,7 +47,7 @@ int SDLEngine::start() {
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
-        return 0;
+        return false;
     }
 
 #ifdef EMSCRIPTEN
@@ -67,14 +67,14 @@ int SDLEngine::start() {
 
     if (!onUserCreate()) {
         SDL_DestroyWindow(window);
-        return 1;
+        return false;
     }
 
     lastUpdateTime = SDL_GetTicks();
 
     SDL_ShowWindow(window);
 
-    return 1;
+    return true;
 }
 
 bool SDLEngine::iterateLoop() {

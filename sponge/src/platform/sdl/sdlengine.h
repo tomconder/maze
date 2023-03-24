@@ -13,9 +13,9 @@ namespace Sponge {
 class SDLEngine : public Engine {
    public:
     SDLEngine();
-    int construct() const override;
+    bool construct() const override;
 
-    int start() override;
+    bool start() override;
     bool iterateLoop() override;
 
     bool onUserCreate() override;
