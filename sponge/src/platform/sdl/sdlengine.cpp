@@ -129,13 +129,13 @@ void SDLEngine::logSDLVersion() {
         ss << "(" << revision << ")";
     }
 
-    SPONGE_CORE_DEBUG("SDL Version (Compiled): {}.{}.{} {}", static_cast<int>(compiled.major),
+    SPONGE_CORE_DEBUG("SDL Version [Compiled]: {}.{}.{} {}", static_cast<int>(compiled.major),
                       static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
                       !revision.empty() ? ss.str() : "");
 
     SDL_GetVersion(&linked);
 
-    SPONGE_CORE_DEBUG("SDL Version (Runtime) : {}.{}.{}", static_cast<int>(linked.major),
+    SPONGE_CORE_DEBUG("SDL Version [Runtime] : {}.{}.{}", static_cast<int>(linked.major),
                       static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
 

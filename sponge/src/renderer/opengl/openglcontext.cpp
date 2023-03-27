@@ -126,7 +126,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
     for (int i = 0; i < numVideoDrivers; i++) {
         const std::string videoDriver(SDL_GetVideoDriver(i));
         std::stringstream ss;
-        ss << fmt::format("  #{:>2}: {} {}", i, videoDriver, (currentVideoDriver == videoDriver ? " (current)" : ""));
+        ss << fmt::format("  #{}: {} {}", i, videoDriver, (currentVideoDriver == videoDriver ? "[current]" : ""));
         SPONGE_CORE_DEBUG(ss.str());
     }
 
@@ -165,7 +165,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
 
         std::stringstream ss;
 
-        ss << fmt::format("  #{:>2}: {:10} [{}]", i, info.name, flags.c_str());
+        ss << fmt::format("  #{}: {:10} [{}]", i, info.name, flags.c_str());
         SPONGE_CORE_DEBUG(ss.str());
     }
 }
