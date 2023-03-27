@@ -12,26 +12,23 @@ bool iterateLoop() {
     return maze->iterateLoop();
 }
 
-extern "C" int main(int argc, char *args[]) {
-    UNUSED(argc);
-    UNUSED(args);
-
+bool startup(State &state, uint16_t startWidth, uint16_t startHeight) {
     Sponge::Log::init();
 
     SPONGE_INFO("Starting maze");
 
-#ifdef EMSCRIPTEN
-    maze = std::make_unique<Maze>(800, 600);
-#else
-    maze = std::make_unique<Maze>(1600, 900);
-#endif
+    state.name = "Maze";
+    state.startWidth = startWidth;
+    state.startHeight = startHeight;
+
+    maze = std::make_unique<Maze>(state);
 
     if (maze->construct() == 0) {
-        return 1;
+        return false;
     }
 
     if (maze->start() == 0) {
-        return 1;
+        return false;
     }
 
     SPONGE_INFO("Iterating loop");
@@ -45,9 +42,32 @@ extern "C" int main(int argc, char *args[]) {
     }
 #endif
 
+    return true;
+}
+
+bool shutdown(const State &state) {
+    UNUSED(state);
+
     SPONGE_INFO("Shutting down");
 
     Sponge::Log::shutdown();
+
+    return true;
+}
+
+extern "C" int main(int argc, char *args[]) {
+    UNUSED(argc);
+    UNUSED(args);
+
+    State state;
+
+#ifdef EMSCRIPTEN
+    startup(state, 800, 600);
+#else
+    startup(state, 1600, 900);
+#endif
+
+    shutdown(state);
 
     return 0;
 }

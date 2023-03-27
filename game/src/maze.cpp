@@ -7,12 +7,11 @@
 #include "sponge.h"
 #include "version.h"
 
-Maze::Maze(int screenWidth, int screenHeight) {
-    std::string base = "Maze ";
-    appName = base + MAZE_VERSION;
-    SPONGE_INFO("Maze {}", MAZE_VERSION);
-    w = screenWidth;
-    h = screenHeight;
+Maze::Maze(const State& state) {
+    appName = state.name + " " + MAZE_VERSION;
+    SPONGE_INFO("{} {}", state.name, MAZE_VERSION);
+    w = state.startWidth;
+    h = state.startHeight;
 }
 
 bool Maze::onUserCreate() {
