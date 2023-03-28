@@ -14,7 +14,6 @@ class Engine {
    public:
     virtual ~Engine() = default;
 
-    virtual bool construct() const = 0;
     virtual bool start() = 0;
     virtual bool iterateLoop() = 0;
 

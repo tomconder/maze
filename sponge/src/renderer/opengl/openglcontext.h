@@ -16,11 +16,11 @@ class OpenGLContext : public GraphicsContext {
 
     ~OpenGLContext() override;
 
-    void flip() override;
+    void flip(void *window) override;
 
     void logGlVersion() const;
 
-    void toggleFullscreen();
+    void toggleFullscreen(void *window);
 
     static void logGraphicsDriverInfo();
 
@@ -29,14 +29,12 @@ class OpenGLContext : public GraphicsContext {
     static void logStaticOpenGLInfo();
 
    private:
-    SDL_Window *window = nullptr;
+    // SDL_Window *window = nullptr;
     int width = 0;
     int height = 0;
     std::string glName;
     int syncInterval = 0;
     bool isFullScreen = false;
-
-    void setVSync(int interval);
 };
 
 }  // namespace Sponge

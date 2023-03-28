@@ -74,14 +74,6 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
         return;
     }
 
-#ifdef EMSCRIPTEN
-    setVSync(0);
-#else
-    setVSync(-1);
-#endif
-
-    this->window = window;
-
     if (window != nullptr) {
         SDL_GetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -93,11 +85,11 @@ OpenGLContext::~OpenGLContext() {
     SDL_GL_DeleteContext(context);
 }
 
-void OpenGLContext::flip() {
+void OpenGLContext::flip(void *window) {
     if (window == nullptr) {
         return;
     }
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(static_cast<SDL_Window *>(window));
 }
 
 void OpenGLContext::logGlVersion() const {
@@ -109,9 +101,14 @@ void OpenGLContext::logGlVersion() const {
     SPONGE_CORE_INFO("Created {} context: {}.{}", glName, majorVersion, minorVersion);
 }
 
-void OpenGLContext::toggleFullscreen() {
+void OpenGLContext::toggleFullscreen(void *window) {
+    if (window == nullptr) {
+        return;
+    }
+
     isFullScreen = !isFullScreen;
-    if (SDL_SetWindowFullscreen(window, isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) < 0) {
+    if (SDL_SetWindowFullscreen(static_cast<SDL_Window *>(window), isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) <
+        0) {
         SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
     }
 }
@@ -203,27 +200,6 @@ void OpenGLContext::logStaticOpenGLInfo() {
 #ifdef GL_GLEXT_VERSION
     SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
-}
-
-void OpenGLContext::setVSync(int interval) {
-    // 0 for immediate updates
-    // 1 for updates synchronized with the vertical retrace
-    // -1 for adaptive vsync
-
-    if (SDL_GL_SetSwapInterval(interval) == 0) {
-        syncInterval = interval;
-        SPONGE_CORE_DEBUG("Set vsync to {}", syncInterval);
-        return;
-    }
-
-    //  the system does not support adaptive vsync, so try with vsync
-    if (interval == -1 && SDL_GL_SetSwapInterval(1) == 0) {
-        syncInterval = 1;
-        SPONGE_CORE_DEBUG("Set vsync to {}", syncInterval);
-        return;
-    }
-
-    SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
 }
 
 }  // namespace Sponge

@@ -7,24 +7,9 @@
 #include "sponge.h"
 #include "version.h"
 
-Maze::Maze(const State& state) {
-    appName = state.name + " " + MAZE_VERSION;
-    SPONGE_INFO("{} {}", state.name, MAZE_VERSION);
-    w = state.startWidth;
-    h = state.startHeight;
-}
-
 bool Maze::onUserCreate() {
-    adjustAspectRatio(w, h);
-
-    SPONGE_INFO("Setting camera for {}x{}", w, h);
-    renderer->setViewport(offsetx, offsety, w, h);
-
     pushOverlay(new HUDLayer());
     pushLayer(new MazeLayer());
-
-    auto resizeEvent = Sponge::WindowResizeEvent{ static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
-    onEvent(resizeEvent);
 
     return true;
 }
@@ -56,7 +41,7 @@ bool Maze::onKeyPressed(const Sponge::KeyPressedEvent& event) {
     }
 
     if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_F) {
-        graphics->toggleFullscreen();
+        toggleFullscreen();
         return true;
     }
 

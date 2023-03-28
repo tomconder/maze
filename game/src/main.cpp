@@ -4,6 +4,7 @@
 
 #include "maze.h"
 #include "sponge.h"
+#include "version.h"
 
 std::unique_ptr<Maze> maze;
 
@@ -12,18 +13,28 @@ bool iterateLoop() {
     return maze->iterateLoop();
 }
 
-bool startup(State &state, uint16_t startWidth, uint16_t startHeight) {
+bool startup() {
     Sponge::Log::init();
 
     SPONGE_INFO("Starting maze");
 
-    state.name = "Maze";
-    state.startWidth = startWidth;
-    state.startHeight = startHeight;
+    maze = std::make_unique<Maze>();
 
-    maze = std::make_unique<Maze>(state);
+    std::string appName = "Maze ";
+    appName += MAZE_VERSION;
 
-    if (maze->construct() == 0) {
+    uint32_t width;
+    uint32_t height;
+
+#ifdef EMSCRIPTEN
+    width = 800;
+    height = 600;
+#else
+    width = 1600;
+    height = 900;
+#endif
+
+    if (maze->construct(appName, width, height) == 0) {
         return false;
     }
 
@@ -45,9 +56,7 @@ bool startup(State &state, uint16_t startWidth, uint16_t startHeight) {
     return true;
 }
 
-bool shutdown(const State &state) {
-    UNUSED(state);
-
+bool shutdown() {
     SPONGE_INFO("Shutting down");
 
     Sponge::Log::shutdown();
@@ -59,15 +68,13 @@ extern "C" int main(int argc, char *args[]) {
     UNUSED(argc);
     UNUSED(args);
 
-    State state;
-
 #ifdef EMSCRIPTEN
-    startup(state, 800, 600);
+    startup();
 #else
-    startup(state, 1600, 900);
+    startup();
 #endif
 
-    shutdown(state);
+    shutdown();
 
     return 0;
 }

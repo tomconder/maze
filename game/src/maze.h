@@ -16,8 +16,6 @@ struct State {
 
 class Maze : public Sponge::SDLEngine {
    public:
-    explicit Maze(const State& state);
-
     bool onUserCreate() override;
     bool onUserDestroy() override;
     bool onUserUpdate(Uint32 elapsedTime) override;
