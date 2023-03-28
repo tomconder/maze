@@ -14,7 +14,7 @@ namespace Sponge {
 class SDLEngine : public Engine {
    public:
     SDLEngine();
-    bool construct(std::string_view appName, uint32_t width, uint32_t height);
+    bool construct(std::string_view name, uint32_t width, uint32_t height);
 
     bool start() override;
     bool iterateLoop() override;
@@ -25,7 +25,7 @@ class SDLEngine : public Engine {
 
     void onEvent(Event &event) override;
 
-    void adjustAspectRatio(int eventW, int eventH);
+    void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
     void pushOverlay(Layer *layer);
     void pushLayer(Layer *layer);
@@ -46,7 +46,7 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    Sponge::LayerStack *layerStack;
+    LayerStack *layerStack;
     std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();

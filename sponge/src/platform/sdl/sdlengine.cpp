@@ -21,10 +21,11 @@ SDLEngine::SDLEngine() {
     initializeKeyCodeMap();
 }
 
-bool SDLEngine::construct(std::string_view appName, uint32_t width, uint32_t height) {
-    SPONGE_INFO("{}", appName);
+bool SDLEngine::construct(std::string_view name, uint32_t width, uint32_t height) {
+    SPONGE_CORE_INFO("{}", name);
     w = width;
     h = height;
+    appName = name;
 
     if (w == 0 || h == 0) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.data(), "Screen height or width cannot be zero",
@@ -48,7 +49,7 @@ bool SDLEngine::start() {
     logSDLVersion();
 
     WindowProps windowProps;
-    windowProps.title = "Maze";
+    windowProps.title = appName;
     windowProps.width = w;
     windowProps.height = h;
 
@@ -77,7 +78,8 @@ bool SDLEngine::start() {
     renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
 
     adjustAspectRatio(w, h);
-    renderer->setViewport(offsetx, offsety, w, h);
+    renderer->setViewport(static_cast<int32_t>(offsetx), static_cast<int32_t>(offsety), static_cast<int32_t>(w),
+                          static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -85,7 +87,7 @@ bool SDLEngine::start() {
 
     lastUpdateTime = SDL_GetTicks();
 
-    auto resizeEvent = Sponge::WindowResizeEvent{ w, h };
+    auto resizeEvent = WindowResizeEvent{ w, h };
     onEvent(resizeEvent);
 
     SDL_ShowWindow(window);
@@ -185,7 +187,7 @@ void SDLEngine::onEvent(Event &event) {
     }
 }
 
-void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
+void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     const std::array<glm::vec3, 5> ratios = {
         glm::vec3{ 32.f, 9.f, 32.f / 9.f },    //
         glm::vec3{ 21.f, 9.f, 21.f / 9.f },    //

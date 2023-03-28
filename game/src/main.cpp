@@ -16,22 +16,19 @@ bool iterateLoop() {
 bool startup() {
     Sponge::Log::init();
 
-    SPONGE_INFO("Starting maze");
+    SPONGE_INFO("Starting game");
 
     maze = std::make_unique<Maze>();
 
     std::string appName = "Maze ";
     appName += MAZE_VERSION;
 
-    uint32_t width;
-    uint32_t height;
-
 #ifdef EMSCRIPTEN
-    width = 800;
-    height = 600;
+    uint32_t width = 800;
+    uint32_t height = 600;
 #else
-    width = 1600;
-    height = 900;
+    uint32_t width = 1600;
+    uint32_t height = 900;
 #endif
 
     if (maze->construct(appName, width, height) == 0) {
