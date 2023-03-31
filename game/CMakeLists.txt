@@ -83,41 +83,17 @@ if (EMSCRIPTEN)
           COMMENT "Copying assets"
           VERBATIM DEPENDS ${ASSETS})
 else ()
-  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual
-  # studio toolchain
-
-  if (NOT EXISTS "${CMAKE_BINARY_DIR}/game/conan.cmake")
-    message(
-            STATUS
-            "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(
-            DOWNLOAD
-            "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/game/conan.cmake"
-            "${CMAKE_BINARY_DIR}/game/conan.cmake"
-            TLS_VERIFY ON)
-  endif ()
-
-  include(${CMAKE_BINARY_DIR}/game/conan.cmake)
-
-  conan_cmake_configure(REQUIRES sdl/2.26.1 GENERATORS cmake_find_package)
-
-  conan_cmake_autodetect(settings)
-
-  conan_cmake_install(
-          PATH_OR_REFERENCE
-          .
-          CMAKE_TARGETS
-          BUILD
-          missing
-          REMOTE
-          conancenter
-          SETTINGS
-          ${settings})
-
-  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
+  #  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
-  find_package(SDL2 REQUIRED)
+  find_package(OpenGL REQUIRED)
+  find_package(SDL2 CONFIG REQUIRED)
+  find_package(Stb REQUIRED)
+  find_package(glad CONFIG REQUIRED)
+  find_package(glm CONFIG REQUIRED)
+  find_package(spdlog CONFIG REQUIRED)
+  find_package(tinyobjloader CONFIG REQUIRED)
+
 
   if (WIN32)
     set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
@@ -151,14 +127,15 @@ else ()
 
   target_include_directories(game PUBLIC src)
   target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+  target_include_directories(game PRIVATE ${Stb_INCLUDE_DIR})
 
-  target_link_libraries(game PUBLIC glad)
-  target_link_libraries(game PUBLIC sponge)
-  target_link_libraries(game PRIVATE SDL2::SDL2)
+  target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
+  target_link_libraries(game PRIVATE OpenGL::GL)
+  target_link_libraries(game PRIVATE glad::glad)
   target_link_libraries(game PRIVATE glm::glm)
-  target_link_libraries(game PRIVATE stb_image)
-  target_link_libraries(game PRIVATE spdlog)
-  target_link_libraries(game PRIVATE tinyobjloader)
+  target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+  target_link_libraries(game PRIVATE tinyobjloader::tinyobjloader)
+  target_link_libraries(game PUBLIC sponge)
 
   install(
           TARGETS game
