@@ -30,6 +30,12 @@ if (MSVC)
 endif ()
 
 if (EMSCRIPTEN)
+  find_package(glad CONFIG REQUIRED)
+  find_package(Stb REQUIRED)
+  find_package(glm CONFIG REQUIRED)
+  find_package(spdlog CONFIG REQUIRED)
+  find_package(tinyobjloader CONFIG REQUIRED)
+
   message(STATUS "Emscripten: Building sponge for Emscripten")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
@@ -51,12 +57,12 @@ if (EMSCRIPTEN)
   set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
   target_include_directories(sponge PUBLIC src)
+  target_include_directories(sponge PRIVATE ${Stb_INCLUDE_DIR})
 
   target_link_libraries(sponge PRIVATE glad::glad)
   target_link_libraries(sponge PRIVATE glm::glm)
-  target_link_libraries(sponge PRIVATE spdlog)
-  target_link_libraries(sponge PRIVATE stb_image)
-  target_link_libraries(sponge PRIVATE tinyobjloader)
+  target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+  target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
 else ()
   find_package(OpenGL REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)

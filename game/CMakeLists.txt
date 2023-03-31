@@ -42,6 +42,12 @@ file(
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building game for Emscripten")
 
+  find_package(glad CONFIG REQUIRED)
+  find_package(Stb REQUIRED)
+  find_package(glm CONFIG REQUIRED)
+  find_package(spdlog CONFIG REQUIRED)
+  find_package(tinyobjloader CONFIG REQUIRED)
+
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
@@ -63,17 +69,13 @@ if (EMSCRIPTEN)
 
   target_include_directories(game PUBLIC src)
   target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-  target_include_directories(
-          game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.h)
-  target_include_directories(
-          game PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb_image/src/stb_image.cpp)
+  target_include_directories(game PRIVATE ${Stb_INCLUDE_DIR})
 
-  target_link_libraries(game PRIVATE glad)
+  target_link_libraries(game PRIVATE glad::glad)
   target_link_libraries(game PRIVATE glm::glm)
+  target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
   target_link_libraries(game PRIVATE sponge)
-  target_link_libraries(game PRIVATE stb_image)
-  target_link_libraries(game PRIVATE spdlog)
-  target_link_libraries(game PRIVATE tinyobjloader)
+  target_link_libraries(game PRIVATE tinyobjloader::tinyobjloader)
 
   add_custom_command(
           TARGET game
@@ -83,7 +85,6 @@ if (EMSCRIPTEN)
           COMMENT "Copying assets"
           VERBATIM DEPENDS ${ASSETS})
 else ()
-  #  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
   find_package(OpenGL REQUIRED)
