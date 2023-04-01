@@ -29,7 +29,6 @@ class OpenGLContext : public GraphicsContext {
     static void logStaticOpenGLInfo();
 
    private:
-    // SDL_Window *window = nullptr;
     int width = 0;
     int height = 0;
     std::string glName;
