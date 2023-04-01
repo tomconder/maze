@@ -13,7 +13,6 @@ namespace Sponge {
 class OpenGLContext : public GraphicsContext {
    public:
     OpenGLContext(SDL_Window *window, std::string name);
-
     ~OpenGLContext() override;
 
     void flip(void *window) override;
@@ -32,7 +31,6 @@ class OpenGLContext : public GraphicsContext {
     int width = 0;
     int height = 0;
     std::string glName;
-    int syncInterval = 0;
     bool isFullScreen = false;
 };
 
