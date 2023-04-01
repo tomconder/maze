@@ -7,15 +7,16 @@
 #include "core/layer.h"
 #include "core/layerstack.h"
 #include "core/mousecode.h"
+#include "platform/sdl/sdlwindow.h"
 
 namespace Sponge {
 
 class SDLEngine : public Engine {
    public:
     SDLEngine();
-    int construct() const override;
+    bool construct(std::string_view name, uint32_t width, uint32_t height);
 
-    int start() override;
+    bool start() override;
     bool iterateLoop() override;
 
     bool onUserCreate() override;
@@ -24,25 +25,28 @@ class SDLEngine : public Engine {
 
     void onEvent(Event &event) override;
 
-    void adjustAspectRatio(int eventW, int eventH);
+    void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
     void pushOverlay(Layer *layer);
     void pushLayer(Layer *layer);
 
     static void logSDLVersion();
 
+    void toggleFullscreen();
+
+   private:
     std::string appName = "undefined";
     std::unique_ptr<OpenGLContext> graphics;
     std::unique_ptr<OpenGLRendererAPI> renderer;
+    std::unique_ptr<SDLWindow> sdlWindow;
 
-    int offsetx = 0;
-    int offsety = 0;
-    int w = 0;
-    int h = 0;
+    uint32_t offsetx = 0;
+    uint32_t offsety = 0;
+    uint32_t w = 0;
+    uint32_t h = 0;
 
-   private:
     uint32_t lastUpdateTime = 0;
-    Sponge::LayerStack *layerStack;
+    LayerStack *layerStack;
     std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();

@@ -26,7 +26,7 @@ file(
         src/scene/*.cpp)
 
 if (MSVC)
-  list(APPEND SOURCES src/spongepch.cpp)
+  list(APPEND SOURCE_FILES src/spongepch.cpp)
 endif ()
 
 if (EMSCRIPTEN)

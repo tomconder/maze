@@ -8,7 +8,7 @@ class GraphicsContext {
    public:
     virtual ~GraphicsContext() = default;
 
-    virtual void flip() = 0;
+    virtual void flip(void *window) = 0;
 };
 
 }  // namespace Sponge

@@ -8,10 +8,14 @@
 #include "mazelayer.h"
 #include "sponge.h"
 
+struct State {
+    uint16_t startWidth;
+    uint16_t startHeight;
+    std::string name;
+};
+
 class Maze : public Sponge::SDLEngine {
    public:
-    Maze(int screenWidth, int screenHeight);
-
     bool onUserCreate() override;
     bool onUserDestroy() override;
     bool onUserUpdate(Uint32 elapsedTime) override;
