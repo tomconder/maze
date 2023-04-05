@@ -17,6 +17,8 @@ jobs:
 
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
 
       #      - name: Run CMake consuming CMakePreset.json and run vcpkg to build dependencies
       #        uses: lukka/run-cmake@v10
