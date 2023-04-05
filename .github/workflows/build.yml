@@ -5,6 +5,7 @@ on:
       - main
   pull_request:
     types: [ opened, synchronize, reopened ]
+
 jobs:
   build:
     name: Build and analyze
@@ -12,16 +13,27 @@ jobs:
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
+      - uses: lukka/get-cmake@latest
+
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+
+      #      - name: Run CMake consuming CMakePreset.json and run vcpkg to build dependencies
+      #        uses: lukka/run-cmake@v10
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
+
       - name: Run build-wrapper
         run: |
           New-Item -ItemType directory -Path build
           cmake -S . -B build
           build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Release
+
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
