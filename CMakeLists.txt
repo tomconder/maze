@@ -53,8 +53,6 @@ endif ()
 # Generate compile_commands.json to help work with clang based tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(3rdparty)
-
 add_subdirectory(sponge)
 
 add_subdirectory(game)

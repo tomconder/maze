@@ -4,6 +4,7 @@
 
 #include "maze.h"
 #include "sponge.h"
+#include "version.h"
 
 std::unique_ptr<Maze> maze;
 
@@ -12,26 +13,30 @@ bool iterateLoop() {
     return maze->iterateLoop();
 }
 
-extern "C" int main(int argc, char *args[]) {
-    UNUSED(argc);
-    UNUSED(args);
-
+bool startup() {
     Sponge::Log::init();
 
-    SPONGE_INFO("Starting maze");
+    SPONGE_INFO("Starting game");
+
+    maze = std::make_unique<Maze>();
+
+    std::string appName = "Maze ";
+    appName += MAZE_VERSION;
 
 #ifdef EMSCRIPTEN
-    maze = std::make_unique<Maze>(800, 600);
+    uint32_t width = 800;
+    uint32_t height = 600;
 #else
-    maze = std::make_unique<Maze>(1600, 900);
+    uint32_t width = 1600;
+    uint32_t height = 900;
 #endif
 
-    if (maze->construct() == 0) {
-        return 1;
+    if (maze->construct(appName, width, height) == 0) {
+        return false;
     }
 
     if (maze->start() == 0) {
-        return 1;
+        return false;
     }
 
     SPONGE_INFO("Iterating loop");
@@ -45,9 +50,28 @@ extern "C" int main(int argc, char *args[]) {
     }
 #endif
 
+    return true;
+}
+
+bool shutdown() {
     SPONGE_INFO("Shutting down");
 
     Sponge::Log::shutdown();
+
+    return true;
+}
+
+extern "C" int main(int argc, char *args[]) {
+    UNUSED(argc);
+    UNUSED(args);
+
+#ifdef EMSCRIPTEN
+    startup();
+#else
+    startup();
+#endif
+
+    shutdown();
 
     return 0;
 }

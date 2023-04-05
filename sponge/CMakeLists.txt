@@ -26,10 +26,16 @@ file(
         src/scene/*.cpp)
 
 if (MSVC)
-  list(APPEND SOURCES src/spongepch.cpp)
+  list(APPEND SOURCE_FILES src/spongepch.cpp)
 endif ()
 
 if (EMSCRIPTEN)
+  find_package(glad CONFIG REQUIRED)
+  find_package(Stb REQUIRED)
+  find_package(glm CONFIG REQUIRED)
+  find_package(spdlog CONFIG REQUIRED)
+  find_package(tinyobjloader CONFIG REQUIRED)
+
   message(STATUS "Emscripten: Building sponge for Emscripten")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
@@ -51,53 +57,20 @@ if (EMSCRIPTEN)
   set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
   target_include_directories(sponge PUBLIC src)
+  target_include_directories(sponge PRIVATE ${Stb_INCLUDE_DIR})
 
-  target_link_libraries(sponge PRIVATE glad)
+  target_link_libraries(sponge PRIVATE glad::glad)
   target_link_libraries(sponge PRIVATE glm::glm)
-  target_link_libraries(sponge PRIVATE spdlog)
-  target_link_libraries(sponge PRIVATE stb_image)
-  target_link_libraries(sponge PRIVATE tinyobjloader)
+  target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+  target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
 else ()
-  # 01/2022 - conan does not pre-build cygwin gcc so you must target the visual
-  # studio toolchain
-
-  if (NOT EXISTS "${CMAKE_BINARY_DIR}/sponge/conan.cmake")
-    message(
-            STATUS
-            "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(
-            DOWNLOAD
-            "https://raw.githubusercontent.com/conan-io/cmake-conan/0.18.1/conan.cmake"
-            "${CMAKE_BINARY_DIR}/sponge/conan.cmake"
-            TLS_VERIFY ON)
-  endif ()
-
-  include(${CMAKE_BINARY_DIR}/sponge/conan.cmake)
-
-  conan_cmake_configure(REQUIRES sdl/2.26.1 GENERATORS cmake_find_package)
-
-  conan_cmake_autodetect(settings)
-
-  conan_cmake_install(
-          PATH_OR_REFERENCE
-          .
-          CMAKE_TARGETS
-          OUTPUT_FOLDER
-          ${CMAKE_CURRENT_BINARY_DIR}
-          BUILD
-          missing
-          REMOTE
-          conancenter
-          SETTINGS
-          ${settings})
-
-  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR})
-
   find_package(OpenGL REQUIRED)
-  find_package(SDL2 REQUIRED)
-
-  # for debugging include(CMakePrintHelpers)
-  # cmake_print_variables(SDL2_INCLUDE_DIR) cmake_print_variables(SDL2_LIBRARY)
+  find_package(SDL2 CONFIG REQUIRED)
+  find_package(Stb REQUIRED)
+  find_package(glad CONFIG REQUIRED)
+  find_package(glm CONFIG REQUIRED)
+  find_package(spdlog CONFIG REQUIRED)
+  find_package(tinyobjloader CONFIG REQUIRED)
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
@@ -112,14 +85,14 @@ else ()
   endif ()
 
   target_include_directories(sponge PUBLIC src)
+  target_include_directories(sponge PRIVATE ${Stb_INCLUDE_DIR})
 
+  target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
   target_link_libraries(sponge PRIVATE OpenGL::GL)
-  target_link_libraries(sponge PRIVATE SDL2::SDL2)
-  target_link_libraries(sponge PRIVATE glad)
+  target_link_libraries(sponge PRIVATE glad::glad)
   target_link_libraries(sponge PRIVATE glm::glm)
-  target_link_libraries(sponge PRIVATE spdlog)
-  target_link_libraries(sponge PRIVATE stb_image)
-  target_link_libraries(sponge PRIVATE tinyobjloader)
+  target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+  target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
 
   install(
           TARGETS sponge

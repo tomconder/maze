@@ -13,6 +13,7 @@
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
+#include "platform/sdl/sdlwindow.h"
 
 namespace Sponge {
 SDLEngine::SDLEngine() {
@@ -20,35 +21,40 @@ SDLEngine::SDLEngine() {
     initializeKeyCodeMap();
 }
 
-int SDLEngine::construct() const {
+bool SDLEngine::construct(std::string_view name, uint32_t width, uint32_t height) {
+    SPONGE_CORE_INFO("{}", name);
+    w = width;
+    h = height;
+    appName = name;
+
     if (w == 0 || h == 0) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Screen height or width cannot be zero",
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.data(), "Screen height or width cannot be zero",
                                  nullptr);
         SPONGE_CORE_ERROR("Screen height or width cannot be zero");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int SDLEngine::start() {
+bool SDLEngine::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
         SPONGE_CORE_CRITICAL("Unable to initialize SDL: {}", SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
-        return 0;
+        return false;
     }
 
     logSDLVersion();
 
-    SDL_Window *window = SDL_CreateWindow(appName.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h,
-                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
-    if (window == nullptr) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Could not create window", nullptr);
-        SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
-        return 0;
-    }
+    WindowProps windowProps;
+    windowProps.title = appName;
+    windowProps.width = w;
+    windowProps.height = h;
+
+    sdlWindow = std::make_unique<SDLWindow>(windowProps);
+    SDL_Window *window = (SDL_Window *)sdlWindow->getNativeWindow();
 
 #ifdef EMSCRIPTEN
     graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
@@ -61,20 +67,32 @@ int SDLEngine::start() {
     OpenGLContext::logGraphicsDriverInfo();
     OpenGLContext::logOpenGLContextInfo();
 
+#ifdef EMSCRIPTEN
+    sdlWindow->setVSync(false);
+#else
+    sdlWindow->setVSync(true);
+#endif
+
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
 
+    adjustAspectRatio(w, h);
+    renderer->setViewport(static_cast<int32_t>(offsetx), static_cast<int32_t>(offsety), static_cast<int32_t>(w),
+                          static_cast<int32_t>(h));
+
     if (!onUserCreate()) {
-        SDL_DestroyWindow(window);
-        return 1;
+        return false;
     }
 
     lastUpdateTime = SDL_GetTicks();
 
+    auto resizeEvent = WindowResizeEvent{ w, h };
+    onEvent(resizeEvent);
+
     SDL_ShowWindow(window);
 
-    return 1;
+    return true;
 }
 
 bool SDLEngine::iterateLoop() {
@@ -103,7 +121,7 @@ bool SDLEngine::iterateLoop() {
         quit = true;
     }
 
-    graphics->flip();
+    graphics->flip(sdlWindow->getNativeWindow());
 
     if (quit && onUserDestroy()) {
 #ifdef EMSCRIPTEN
@@ -169,7 +187,7 @@ void SDLEngine::onEvent(Event &event) {
     }
 }
 
-void SDLEngine::adjustAspectRatio(int eventW, int eventH) {
+void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     const std::array<glm::vec3, 5> ratios = {
         glm::vec3{ 32.f, 9.f, 32.f / 9.f },    //
         glm::vec3{ 21.f, 9.f, 21.f / 9.f },    //
@@ -366,7 +384,7 @@ void SDLEngine::processEvent(SDL_Event &event) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
 
-        auto resizeEvent = WindowResizeEvent{ static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
+        auto resizeEvent = WindowResizeEvent{ w, h };
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
@@ -399,4 +417,9 @@ void SDLEngine::processEvent(SDL_Event &event) {
         onEvent(mouseEvent);
     }
 }
+
+void SDLEngine::toggleFullscreen() {
+    graphics->toggleFullscreen(sdlWindow->getNativeWindow());
+}
+
 }  // namespace Sponge
