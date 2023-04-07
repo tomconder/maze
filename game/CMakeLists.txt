@@ -49,21 +49,21 @@ if (EMSCRIPTEN)
   find_package(tinyobjloader CONFIG REQUIRED)
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
 
   add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
   set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
 
-  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/html)
-  set(ASSETS_BUILD_PATH ${PROJECT_SOURCE_DIR}/build)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze/html)
+  set(ASSETS_BUILD_PATH ${CMAKE_BINARY_DIR}/maze)
 
   set(TARGET_LINK_PROPERTIES "-std=c++17 -O2 -s ALLOW_MEMORY_GROWTH=1")
   set(TARGET_LINK_PROPERTIES
           "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
           )
   set(TARGET_LINK_PROPERTIES
-          "${TARGET_LINK_PROPERTIES} --preload-file ${ASSETS_BUILD_PATH}/assets@assets"
+          "${TARGET_LINK_PROPERTIES} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@assets"
           )
   set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
@@ -76,16 +76,8 @@ if (EMSCRIPTEN)
   target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
   target_link_libraries(game PRIVATE sponge)
   target_link_libraries(game PRIVATE tinyobjloader::tinyobjloader)
-
-  add_custom_command(
-          TARGET game
-          PRE_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy_directory
-          ${CMAKE_CURRENT_SOURCE_DIR}/assets ${ASSETS_BUILD_PATH}/assets
-          COMMENT "Copying assets"
-          VERBATIM DEPENDS ${ASSETS})
 else ()
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
+  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
   find_package(OpenGL REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
@@ -94,7 +86,6 @@ else ()
   find_package(glm CONFIG REQUIRED)
   find_package(spdlog CONFIG REQUIRED)
   find_package(tinyobjloader CONFIG REQUIRED)
-
 
   if (WIN32)
     set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
