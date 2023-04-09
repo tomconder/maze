@@ -29,13 +29,13 @@ if(MSVC)
   list(APPEND SOURCE_FILES src/spongepch.cpp)
 endif()
 
-if(EMSCRIPTEN)
-  find_package(glad CONFIG REQUIRED)
-  find_package(Stb REQUIRED)
-  find_package(glm CONFIG REQUIRED)
-  find_package(spdlog CONFIG REQUIRED)
-  find_package(tinyobjloader CONFIG REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(Stb REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
 
+if(EMSCRIPTEN)
   message(STATUS "Emscripten: Building sponge for Emscripten")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
@@ -66,11 +66,6 @@ if(EMSCRIPTEN)
 else()
   find_package(OpenGL REQUIRED)
   find_package(SDL2 CONFIG REQUIRED)
-  find_package(Stb REQUIRED)
-  find_package(glad CONFIG REQUIRED)
-  find_package(glm CONFIG REQUIRED)
-  find_package(spdlog CONFIG REQUIRED)
-  find_package(tinyobjloader CONFIG REQUIRED)
 
   add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
@@ -93,16 +88,4 @@ else()
   target_link_libraries(sponge PRIVATE glm::glm)
   target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
   target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
-
-  install(
-    TARGETS sponge
-    BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    INCLUDES
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-  install(FILES ${HEADER_FILES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
