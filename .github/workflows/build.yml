@@ -23,7 +23,6 @@ jobs:
         with:
           vcpkgJsonGlob: 'vcpkg.json'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: 'c9f906558f9bb12ee9811d6edc98ec9255c6cda5'
 
       - name: Prints output of run-vcpkg's action
         run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
