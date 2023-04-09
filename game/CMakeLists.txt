@@ -39,12 +39,11 @@ file(
         LIST_DIRECTORIES false
         assets/*)
 
+find_package(glm CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+
 if (EMSCRIPTEN)
   message(STATUS "Emscripten: Building game for Emscripten")
-
-  find_package(Stb REQUIRED)
-  find_package(glm CONFIG REQUIRED)
-  find_package(spdlog CONFIG REQUIRED)
 
   set(CMAKE_EXECUTABLE_SUFFIX ".html")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
@@ -56,7 +55,7 @@ if (EMSCRIPTEN)
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze/html)
   set(ASSETS_BUILD_PATH ${CMAKE_BINARY_DIR}/maze)
 
-  set(TARGET_LINK_PROPERTIES "-std=c++17 -O2 -s ALLOW_MEMORY_GROWTH=1")
+  set(TARGET_LINK_PROPERTIES "-std=c++17 -O3 -s ALLOW_MEMORY_GROWTH=1")
   set(TARGET_LINK_PROPERTIES
           "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
           )
@@ -67,7 +66,6 @@ if (EMSCRIPTEN)
 
   target_include_directories(game PUBLIC src)
   target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-  target_include_directories(game PRIVATE ${Stb_INCLUDE_DIR})
 
   target_link_libraries(game PRIVATE glm::glm)
   target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
@@ -76,8 +74,6 @@ else ()
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
   find_package(SDL2 CONFIG REQUIRED)
-  find_package(glm CONFIG REQUIRED)
-  find_package(spdlog CONFIG REQUIRED)
 
   if (WIN32)
     set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
@@ -111,20 +107,11 @@ else ()
 
   target_include_directories(game PUBLIC src)
   target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-  target_include_directories(game PRIVATE ${Stb_INCLUDE_DIR})
 
   target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
   target_link_libraries(game PRIVATE glm::glm)
   target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
   target_link_libraries(game PUBLIC sponge)
-
-  install(
-          TARGETS game
-          BUNDLE DESTINATION bin
-          RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib
-          FRAMEWORK DESTINATION lib)
 
   # CMake provides a standalone bundle application to fix up shared libraries
   # found in the app bundle See
