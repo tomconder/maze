@@ -141,21 +141,6 @@
       "displayName": "Default",
       "configurePreset": "osx-debug",
       "description": "Vanilla build"
-    },
-    {
-      "name": "verbose-build-linux",
-      "displayName": "Verbose Build",
-      "description": "Passes -v to Ninja",
-      "configurePreset": "linux-debug",
-      "nativeToolOptions": [
-        "-v"
-      ]
-    },
-    {
-      "name": "verbose-build-windows",
-      "displayName": "Verbose Build",
-      "configurePreset": "x64-debug",
-      "inherits": "verbose-build-linux"
     }
   ],
   "testPresets": [
