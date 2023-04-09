@@ -13,6 +13,10 @@ jobs:
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
       - uses: lukka/get-cmake@latest
       
       - uses: ilammy/msvc-dev-cmd@v1
@@ -21,7 +25,6 @@ jobs:
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
-          vcpkgJsonGlob: 'vcpkg.json'
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
           vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
@@ -31,10 +34,6 @@ jobs:
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
-
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Run build-wrapper
         run: |
