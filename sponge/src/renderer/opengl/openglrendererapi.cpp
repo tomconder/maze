@@ -2,8 +2,8 @@
 
 namespace Sponge {
 
-static void glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
-                         const void* userParam) {
+static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                                  const GLchar* message, const void* userParam) {
     std::string source_str;
     std::string type_str;
 
