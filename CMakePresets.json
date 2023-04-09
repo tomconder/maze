@@ -133,6 +133,12 @@
       "description": "Vanilla build"
     },
     {
+      "name": "default-build-osx",
+      "displayName": "Default",
+      "configurePreset": "osx-debug",
+      "description": "Vanilla build"
+    },
+    {
       "name": "verbose-build-linux",
       "displayName": "Verbose Build",
       "description": "Passes -v to Ninja",
