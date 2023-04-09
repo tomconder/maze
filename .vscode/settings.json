@@ -1,4 +1,0 @@
-{
-  "sonarlint.pathToCompileCommands": "${workspaceFolder}\\cmake-build-vscode\\compile_commands.json",
-  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-}
