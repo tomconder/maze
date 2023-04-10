@@ -36,6 +36,8 @@ jobs:
         uses: SonarSource/sonarcloud-github-c-cpp@v1
 
       - name: Run build-wrapper
+        env:
+          VCPKG_ROOT: '${{ runner.workspace }}/b/vcpkg'
         run: |
           New-Item -ItemType directory -Path build
           cmake -S . -B build
