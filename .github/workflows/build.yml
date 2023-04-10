@@ -39,8 +39,6 @@ jobs:
         env:
           VCPKG_ROOT: '${{ runner.workspace }}/b/vcpkg'
         run: |
-          New-Item -ItemType directory -Path build
-          cmake -S . -B build
           build-wrapper-win-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --preset x64-release
 
       - name: Run sonar-scanner
