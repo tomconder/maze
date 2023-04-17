@@ -14,26 +14,27 @@ jobs:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - uses: lukka/get-cmake@latest
+      - name: Dump the content of $RUNNER_TEMP
+        run: find $RUNNER_TEMP
+        shell: bash
+      - name: Dump the content of $RUNNER_WORKSPACE
+        run: find $RUNNER_WORKSPACE
+        shell: bash
       
-      - uses: ilammy/msvc-dev-cmd@v1
-
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
-          vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-      - name: Prints output of run-vcpkg's action
-        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
 
       - name: Run CMake for configure
         uses: lukka/run-cmake@v10
         with:
           configurePreset: x64-release
           configurePresetAdditionalArgs: "['-DCMAKE_BUILD_TYPE=Release']"
+          buildPreset: default-build-windows
+          buildPresetAdditionalArgs: "['--config Release']"
