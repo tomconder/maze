@@ -32,8 +32,10 @@ export VCPKG_ROOT <path to vcpkg>
 
 [Install CMake](https://cmake.org/install/), a cross-platform build system.
 
-Now you can use a preset to compile `maze`. Possible values are: x64-debug, x64-release, emscripten, osx-debug, osx-release, linux-debug, linux-release
+Now you can use a preset to compile `maze`. Possible values are: `x64-debug`, `x64-release`, `emscripten`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
 ```
 cmake --preset x64-debug
 cmake --build out/build/x64-debug --target game
 ```
+
+If you want to compile with Emscripten, please use the included emsdk_env script to set the value for `EMSDK`
