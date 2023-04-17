@@ -28,7 +28,6 @@ jobs:
           vcpkgDirectory: '${{ runner.workspace }}/b/vcpkg'
           vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          runVcpkgInstall: true
 
       - name: Prints output of run-vcpkg's action
         run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}'"
