@@ -34,8 +34,10 @@ export VCPKG_ROOT <path to vcpkg>
 
 Now you can use a preset to compile `maze`. Possible values are: `x64-debug`, `x64-release`, `emscripten`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
 ```
-cmake --preset x64-debug
-cmake --build out/build/x64-debug --target game
+cmake -DCMAKE_BUILD_TYPE=Release --preset x64-release
+cmake --build out/build/x64-release --target game --config Release
 ```
 
 If you want to compile with Emscripten, please use the included emsdk_env script to set the value for `EMSDK`
+
+The maze executable will be found in the build directory: `out\build\x64-release\maze\Release\maze.exe`
