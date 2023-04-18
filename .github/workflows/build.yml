@@ -23,13 +23,13 @@ jobs:
         run: find $RUNNER_WORKSPACE
         shell: bash
       
-      - name: Setup vcpkg (it does not install any package yet)
-        uses: lukka/run-vcpkg@v11
-        id: runvcpkg
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+#      - name: Setup vcpkg (it does not install any package yet)
+#        uses: lukka/run-vcpkg@v11
+#        id: runvcpkg
+#        with:
+#          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+#          vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
+#          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Run CMake for configure
         uses: lukka/run-cmake@v10
