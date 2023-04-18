@@ -12,25 +12,29 @@ jobs:
     runs-on: windows-latest
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
-      VCPKG_ROOT: ${{VCPKG_INSTALLATION_ROOT}}
     steps:
       - uses: actions/checkout@v3
 
       - uses: lukka/get-cmake@latest
+
       - name: Dump the content of $RUNNER_TEMP
         run: find $RUNNER_TEMP
         shell: bash
+
       - name: Dump the content of $RUNNER_WORKSPACE
         run: find $RUNNER_WORKSPACE
         shell: bash
       
-#      - name: Setup vcpkg (it does not install any package yet)
-#        uses: lukka/run-vcpkg@v11
-#        id: runvcpkg
-#        with:
-#          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-#          vcpkgGitCommitId: 'a7b6122f6b6504d16d96117336a0562693579933'
-#          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+          
+      - name: Dump the GitHub context
+        run: echo '${{ toJSON(github) }}'
 
       - name: Run CMake for configure
         uses: lukka/run-cmake@v10
