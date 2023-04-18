@@ -23,10 +23,6 @@
       "displayName": "Windows x64 - Debug",
       "description": "Sets debug build type and x64 arch",
       "inherits": "base",
-      "generator": "Visual Studio 15 2017",
-      "toolset": {
-        "value": "host=x64"
-      },
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -125,37 +121,35 @@
   ],
   "buildPresets": [
     {
-      "name": "default-build-linux",
-      "displayName": "Default",
-      "configurePreset": "linux-debug",
-      "description": "Vanilla build"
+      "name": "build-linux",
+      "displayName": "build linux",
+      "configurePreset": "linux-release",
+      "description": "Build linux"
     },
     {
-      "name": "default-build-windows",
-      "displayName": "Default",
-      "configurePreset": "x64-debug",
-      "description": "Vanilla build"
+      "name": "build-windows",
+      "displayName": "build windows",
+      "configurePreset": "x64-release",
+      "description": "Build windows"
     },
     {
-      "name": "default-build-osx",
-      "displayName": "Default",
-      "configurePreset": "osx-debug",
-      "description": "Vanilla build"
+      "name": "build-emscripten",
+      "displayName": "build emscripten",
+      "configurePreset": "emscripten",
+      "description": "Build emscripten"
     }
   ],
   "testPresets": [
     {
-      "name": "core-test-linux",
-      "description": "Enable output on failure",
-      "configurePreset": "linux-debug",
+      "name": "linux",
+      "configurePreset": "linux-release",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "core-test-windows",
-      "inherits": "core-test-linux",
-      "configurePreset": "x64-debug"
+      "name": "windows",
+      "configurePreset": "x64-release"
     }
   ]
 }
