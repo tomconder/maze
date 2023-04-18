@@ -37,7 +37,11 @@ Now you can use a preset to compile `maze`. Possible values are: `x64-debug`, `x
 cmake -DCMAKE_BUILD_TYPE=Release --preset x64-release
 cmake --build out/build/x64-release --target game --config Release
 ```
-
+Or, for Linux
+```
+cmake --preset linux-release
+cmake --build --preset build-linux
+```
 If you want to compile with Emscripten, please use the included emsdk_env script to set the value for `EMSDK`
 
 The maze executable will be found in the build directory: `out\build\x64-release\maze\Release\maze.exe`
