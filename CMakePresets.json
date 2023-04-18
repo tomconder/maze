@@ -133,6 +133,12 @@
       "description": "Build windows"
     },
     {
+      "name": "build-osx",
+      "displayName": "build osx",
+      "configurePreset": "osx-release",
+      "description": "Build osx"
+    },
+    {
       "name": "build-emscripten",
       "displayName": "build emscripten",
       "configurePreset": "emscripten",
@@ -150,6 +156,10 @@
     {
       "name": "windows",
       "configurePreset": "x64-release"
+    },
+    {
+      "name": "osx",
+      "configurePreset": "osx-release"
     }
   ]
 }
