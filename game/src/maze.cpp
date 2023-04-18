@@ -5,7 +5,6 @@
 #endif
 
 #include "sponge.h"
-#include "version.h"
 
 bool Maze::onUserCreate() {
     pushOverlay(new HUDLayer());
