@@ -37,6 +37,14 @@
       }
     },
     {
+      "name": "x64-debug-vscode",
+      "displayName": "Windows x64 - Debug - VS Code",
+      "description": "Sets debug build type and x64 arch",
+      "inherits": "x64-debug",
+      "generator": "Visual Studio 17 2022",
+      "toolset": "host=x64"
+    },
+    {
       "name": "x64-release",
       "displayName": "Windows x64 - Release",
       "description": "Sets release build type",
@@ -44,6 +52,14 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "x64-release-vscode",
+      "displayName": "Windows x64 - Release - VS Code",
+      "description": "Sets debug build type and x64 arch",
+      "inherits": "x64-release",
+      "generator": "Visual Studio 17 2022",
+      "toolset": "host=x64"
     },
     {
       "name": "emscripten",
@@ -131,6 +147,12 @@
       "displayName": "build windows",
       "configurePreset": "x64-release",
       "description": "Build windows"
+    },
+    {
+      "name": "build-windows-vscode",
+      "displayName": "build windows",
+      "configurePreset": "x64-release-vscode",
+      "description": "Build windows (VS Code)"
     },
     {
       "name": "build-osx",
