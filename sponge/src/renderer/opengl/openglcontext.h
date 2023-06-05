@@ -16,7 +16,7 @@ class OpenGLContext : public GraphicsContext {
 
     void flip(void* window) override;
 
-    void logGlVersion() const;
+    static void logGlVersion();
 
     void toggleFullscreen(void* window);
 
