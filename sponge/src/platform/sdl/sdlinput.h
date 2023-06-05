@@ -1,8 +1,7 @@
 #pragma once
 
-#include <SDL.h>
-
 #include "core/input.h"
+#include <SDL.h>
 
 namespace Sponge {
 

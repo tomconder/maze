@@ -22,7 +22,7 @@ class Input {
     virtual bool isButtonPressedImpl() = 0;
 
    private:
-    static Input *instance;
+    static Input* instance;
 };
 
 }  // namespace Sponge

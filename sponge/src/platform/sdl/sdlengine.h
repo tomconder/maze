@@ -1,13 +1,12 @@
 #pragma once
 
-#include <SDL.h>
-
 #include "core/engine.h"
 #include "core/keycode.h"
 #include "core/layer.h"
 #include "core/layerstack.h"
 #include "core/mousecode.h"
 #include "platform/sdl/sdlwindow.h"
+#include <SDL.h>
 
 namespace Sponge {
 
@@ -23,12 +22,12 @@ class SDLEngine : public Engine {
     bool onUserUpdate(uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
-    void onEvent(Event &event) override;
+    void onEvent(Event& event) override;
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(Layer *layer);
-    void pushLayer(Layer *layer);
+    void pushOverlay(Layer* layer);
+    void pushLayer(Layer* layer);
 
     static void logSDLVersion();
 
@@ -46,13 +45,13 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    LayerStack *layerStack;
+    LayerStack* layerStack;
     std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
-    KeyCode mapScanCodeToKeyCode(const SDL_Scancode &scancode);
+    KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
     MouseCode mapMouseButton(uint8_t index);
-    void processEvent(SDL_Event &event);
+    void processEvent(SDL_Event& event);
 };
 
 }  // namespace Sponge

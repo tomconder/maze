@@ -1,11 +1,9 @@
 #include "renderer/opengl/openglmodel.h"
-
-#include <cassert>
-#include <vector>
-
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "renderer/opengl/openglresourcemanager.h"
+#include <cassert>
+#include <vector>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
@@ -49,15 +47,15 @@ void OpenGLModel::load(std::string_view path) {
     process(attrib, shapes, materials);
 }
 
-void OpenGLModel::process(tinyobj::attrib_t &attrib, std::vector<tinyobj::shape_t> &shapes,
-                          const std::vector<tinyobj::material_t> &materials) {
-    for (auto &shape : shapes) {
+void OpenGLModel::process(tinyobj::attrib_t& attrib, std::vector<tinyobj::shape_t>& shapes,
+                          const std::vector<tinyobj::material_t>& materials) {
+    for (auto& shape : shapes) {
         meshes.push_back(processMesh(attrib, shape.mesh, materials));
     }
 }
 
-OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &mesh,
-                                    const std::vector<tinyobj::material_t> &materials) {
+OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+                                    const std::vector<tinyobj::material_t>& materials) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
@@ -115,17 +113,17 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t &attrib, tinyobj::mesh_t &
     return { vertices, indices, textures };
 }
 
-std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::material_t &material) {
+std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::material_t& material) {
     std::shared_ptr<OpenGLTexture> texture;
 
-    auto baseName = [](const std::string &filepath) {
+    auto baseName = [](const std::string& filepath) {
         if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
             return filepath.substr(pos + 1, filepath.length());
         }
         return filepath;
     };
 
-    const auto &name = material.diffuse_texname;
+    const auto& name = material.diffuse_texname;
 
     std::string filename = std::string("assets/models/") + baseName(name);
     return OpenGLResourceManager::loadTexture(filename, name);

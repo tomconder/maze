@@ -1,10 +1,8 @@
 #include "renderer/opengl/openglsprite.h"
-
-#include <array>
+#include "openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
-
-#include "openglresourcemanager.h"
+#include <array>
 
 namespace Sponge {
 
@@ -25,7 +23,7 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
     if (auto location = glGetAttribLocation(program, "vertex"); location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)nullptr);
+        glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)nullptr);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

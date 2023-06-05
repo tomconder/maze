@@ -61,7 +61,7 @@ bool shutdown() {
     return true;
 }
 
-extern "C" int main(int argc, char *args[]) {
+extern "C" int main(int argc, char* args[]) {
     UNUSED(argc);
     UNUSED(args);
 

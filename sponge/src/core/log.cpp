@@ -1,9 +1,7 @@
 #include "core/log.h"
-
+#include "core/logflag.h"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
-#include "core/logflag.h"
 
 namespace Sponge {
 

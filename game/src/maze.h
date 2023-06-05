@@ -1,12 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "gamecamera.h"
 #include "hudlayer.h"
 #include "mazelayer.h"
 #include "sponge.h"
+#include <memory>
+#include <string>
 
 class Maze : public Sponge::SDLEngine {
    public:

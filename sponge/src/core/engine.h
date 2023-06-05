@@ -1,12 +1,11 @@
 #pragma once
 
-#include <string>
-
 #include "core/base.h"
 #include "core/input.h"
 #include "event/event.h"
 #include "renderer/opengl/openglcontext.h"
 #include "renderer/opengl/openglrendererapi.h"
+#include <string>
 
 namespace Sponge {
 

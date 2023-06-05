@@ -4,10 +4,9 @@
 #include <new>
 #endif
 
+#include "renderer/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
-
-#include "renderer/opengl/openglresourcemanager.h"
 
 namespace Sponge {
 

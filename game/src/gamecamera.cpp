@@ -1,5 +1,4 @@
 #include "gamecamera.h"
-
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -23,7 +22,7 @@ void GameCamera::setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight
     updateProjection();
 }
 
-void GameCamera::setPosition(const glm::vec3 &position) {
+void GameCamera::setPosition(const glm::vec3& position) {
     cameraPos = position;
     updateView();
 }
@@ -48,7 +47,7 @@ void GameCamera::strafeRight(unsigned int delta) {
     updateView();
 }
 
-void GameCamera::mouseMove(const glm::vec2 &offset) {
+void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x * cameraSpeed;
     pitch += offset.y * cameraSpeed;
 
@@ -63,7 +62,7 @@ void GameCamera::mouseMove(const glm::vec2 &offset) {
     updateView();
 }
 
-void GameCamera::mouseScroll(const glm::vec2 &offset) {
+void GameCamera::mouseScroll(const glm::vec2& offset) {
     if (offset.y == 0) {
         return;
     }

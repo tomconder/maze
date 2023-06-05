@@ -2,6 +2,27 @@ BasedOnStyle: Google
 
 IndentWidth: 4
 
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+QualifierAlignment: Left
+
+IncludeBlocks: Merge
+IncludeCategories:
+  # Matches common headers first, but sorts them after project includes
+  - Regex: '^\"sponge/'     # project includes should sort first
+    Priority: -1
+  - Regex: '^\"game/' # project internals second
+    Priority: 1000
+  - Regex: '^\"'         # And then includes from other projects or the system
+    Priority: 1500
+  - Regex: '^<.*/.*'
+    Priority: 2000
+  - Regex: '^<.*.hpp>'
+    Priority: 3000
+  - Regex: '^<[^/]*>'
+    Priority: 4000
+
 AlignConsecutiveMacros: Consecutive
 
 AllowAllArgumentsOnNextLine: true

@@ -9,7 +9,7 @@
 #include "spdlog/spdlog.h"
 #endif
 
-static const char *const SPONGE_LOG_FILE = "log.txt";
+static const char* const SPONGE_LOG_FILE = "log.txt";
 
 namespace Sponge {
 
@@ -21,15 +21,15 @@ class Log {
         spdlog::shutdown();
     }
 
-    static std::shared_ptr<spdlog::logger> &getAppLogger() {
+    static std::shared_ptr<spdlog::logger>& getAppLogger() {
         return appLogger;
     }
 
-    static std::shared_ptr<spdlog::logger> &getCoreLogger() {
+    static std::shared_ptr<spdlog::logger>& getCoreLogger() {
         return coreLogger;
     }
 
-    static std::shared_ptr<spdlog::logger> &getGlLogger() {
+    static std::shared_ptr<spdlog::logger>& getGlLogger() {
         return glLogger;
     }
 

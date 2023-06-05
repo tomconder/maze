@@ -1,13 +1,11 @@
 #pragma once
 
-#include <tiny_obj_loader.h>
-
-#include <string>
-#include <vector>
-
 #include "renderer/mesh.h"
 #include "renderer/opengl/openglmesh.h"
 #include "renderer/opengl/opengltexture.h"
+#include <string>
+#include <tiny_obj_loader.h>
+#include <vector>
 
 namespace Sponge {
 

@@ -4,16 +4,14 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include <SDL.h>
-
-#include <array>
-#include <glm/vec3.hpp>
-#include <sstream>
-
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 #include "platform/sdl/sdlwindow.h"
+#include <glm/vec3.hpp>
+#include <SDL.h>
+#include <array>
+#include <sstream>
 
 namespace Sponge {
 SDLEngine::SDLEngine() {
@@ -54,7 +52,7 @@ bool SDLEngine::start() {
     windowProps.height = h;
 
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
-    SDL_Window *window = (SDL_Window *)sdlWindow->getNativeWindow();
+    SDL_Window* window = (SDL_Window*)sdlWindow->getNativeWindow();
 
 #ifdef EMSCRIPTEN
     graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
@@ -178,7 +176,7 @@ bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-void SDLEngine::onEvent(Event &event) {
+void SDLEngine::onEvent(Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
         if (event.handled) {
             break;
@@ -227,12 +225,12 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void SDLEngine::pushOverlay(Layer *layer) {
+void SDLEngine::pushOverlay(Layer* layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
 }
 
-void SDLEngine::pushLayer(Layer *layer) {
+void SDLEngine::pushLayer(Layer* layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
 }
@@ -367,7 +365,7 @@ void SDLEngine::initializeKeyCodeMap() {
     keyCodeMap[SDL_SCANCODE_MENU] = KeyCode::SpongeKey_Menu;
 }
 
-KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode &scancode) {
+KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
     auto result = keyCodeMap.find(scancode);
     if (keyCodeMap.find(scancode) == keyCodeMap.end()) {
         return KeyCode::SpongeKey_None;
@@ -379,7 +377,7 @@ MouseCode SDLEngine::mapMouseButton(uint8_t index) {
     return index - 1;
 }
 
-void SDLEngine::processEvent(SDL_Event &event) {
+void SDLEngine::processEvent(SDL_Event& event) {
     if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);

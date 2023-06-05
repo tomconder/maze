@@ -1,14 +1,13 @@
 #pragma once
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <string>
-#include <unordered_map>
-
 #include "renderer/opengl/openglbuffer.h"
 #include "renderer/opengl/openglelementbuffer.h"
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <string>
+#include <unordered_map>
 
 namespace Sponge {
 

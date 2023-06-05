@@ -1,7 +1,5 @@
 #include "renderer/opengl/openglcontext.h"
-
 #include <SDL.h>
-
 #include <cassert>
 #include <numeric>
 #include <sstream>
@@ -11,13 +9,12 @@
 #endif
 
 #include <spdlog/fmt/fmt.h>
-
 #include <iomanip>
 #include <utility>
 
 namespace Sponge {
 
-OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
+OpenGLContext::OpenGLContext(SDL_Window* window, std::string name) : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -53,7 +50,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
     SDL_GLContext context = nullptr;
 
     // create context trying different versions
-    for (const auto &[major, minor] : glVersions) {
+    for (const auto& [major, minor] : glVersions) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
         context = SDL_GL_CreateContext(window);
@@ -85,11 +82,11 @@ OpenGLContext::~OpenGLContext() {
     SDL_GL_DeleteContext(context);
 }
 
-void OpenGLContext::flip(void *window) {
+void OpenGLContext::flip(void* window) {
     if (window == nullptr) {
         return;
     }
-    SDL_GL_SwapWindow(static_cast<SDL_Window *>(window));
+    SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
 void OpenGLContext::logGlVersion() const {
@@ -101,13 +98,13 @@ void OpenGLContext::logGlVersion() const {
     SPONGE_CORE_INFO("Created {} context: {}.{}", glName, majorVersion, minorVersion);
 }
 
-void OpenGLContext::toggleFullscreen(void *window) {
+void OpenGLContext::toggleFullscreen(void* window) {
     if (window == nullptr) {
         return;
     }
 
     isFullScreen = !isFullScreen;
-    if (SDL_SetWindowFullscreen(static_cast<SDL_Window *>(window), isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) <
+    if (SDL_SetWindowFullscreen(static_cast<SDL_Window*>(window), isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) <
         0) {
         SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
     }
@@ -173,19 +170,19 @@ void OpenGLContext::logOpenGLContextInfo() {
     SPONGE_CORE_INFO("OpenGL Info:");
 
     std::stringstream ss;
-    ss << fmt::format("  {:14} {}", "Version:", (const char *)glGetString(GL_VERSION));
+    ss << fmt::format("  {:14} {}", "Version:", (const char*)glGetString(GL_VERSION));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "GLSL:", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    ss << fmt::format("  {:14} {}", "GLSL:", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Renderer:", (const char *)glGetString(GL_RENDERER));
+    ss << fmt::format("  {:14} {}", "Renderer:", (const char*)glGetString(GL_RENDERER));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Vendor:", (const char *)glGetString(GL_VENDOR));
+    ss << fmt::format("  {:14} {}", "Vendor:", (const char*)glGetString(GL_VENDOR));
 
     SPONGE_CORE_INFO(ss.str());
 
