@@ -16,17 +16,21 @@ void SDLWindow::init(const WindowProps& props) {
     data.height = props.height;
 
     if (props.title.empty()) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Sponge", "Title cannot be empty", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Sponge",
+                                 "Title cannot be empty", nullptr);
         SPONGE_CORE_CRITICAL("Title cannot be empty");
     }
 
-    SPONGE_CORE_INFO("Creating window {} {}x{}", props.title, props.width, props.height);
+    SPONGE_CORE_INFO("Creating window {} {}x{}", props.title, props.width,
+                     props.height);
 
-    window = SDL_CreateWindow(props.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              static_cast<int>(props.width), static_cast<int>(props.height),
-                              SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+    window = SDL_CreateWindow(
+        props.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        static_cast<int>(props.width), static_cast<int>(props.height),
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
     if (window == nullptr) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(), "Could not create window", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(),
+                                 "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
     }
 }

@@ -8,7 +8,8 @@ OpenGLElementBuffer::OpenGLElementBuffer(uint32_t size) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 }
 
-OpenGLElementBuffer::OpenGLElementBuffer(const uint32_t* indices, uint32_t size) {
+OpenGLElementBuffer::OpenGLElementBuffer(const uint32_t* indices,
+                                         uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_DYNAMIC_DRAW);

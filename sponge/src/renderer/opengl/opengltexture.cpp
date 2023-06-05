@@ -6,7 +6,8 @@ OpenGLTexture::OpenGLTexture() {
     glGenTextures(1, &id);
 }
 
-void OpenGLTexture::generate(uint32_t textureWidth, uint32_t textureHeight, uint32_t bytesPerPixel,
+void OpenGLTexture::generate(uint32_t textureWidth, uint32_t textureHeight,
+                             uint32_t bytesPerPixel,
                              const unsigned char* data) {
     glBindTexture(GL_TEXTURE_2D, id);
 
@@ -18,7 +19,8 @@ void OpenGLTexture::generate(uint32_t textureWidth, uint32_t textureHeight, uint
         format = GL_RGBA;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, textureWidth, textureHeight, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, textureWidth, textureHeight, 0,
+                 format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);

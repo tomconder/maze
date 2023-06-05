@@ -30,7 +30,8 @@ void OpenGLModel::load(std::string_view path) {
     std::string warn;
     std::string err;
 
-    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.data(), baseDir(path).c_str());
+    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                                path.data(), baseDir(path).c_str());
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
     }
@@ -47,15 +48,17 @@ void OpenGLModel::load(std::string_view path) {
     process(attrib, shapes, materials);
 }
 
-void OpenGLModel::process(tinyobj::attrib_t& attrib, std::vector<tinyobj::shape_t>& shapes,
+void OpenGLModel::process(tinyobj::attrib_t& attrib,
+                          std::vector<tinyobj::shape_t>& shapes,
                           const std::vector<tinyobj::material_t>& materials) {
     for (auto& shape : shapes) {
         meshes.push_back(processMesh(attrib, shape.mesh, materials));
     }
 }
 
-OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-                                    const std::vector<tinyobj::material_t>& materials) {
+OpenGLMesh OpenGLModel::processMesh(
+    tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+    const std::vector<tinyobj::material_t>& materials) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
@@ -113,7 +116,8 @@ OpenGLMesh OpenGLModel::processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& 
     return { vertices, indices, textures };
 }
 
-std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(const tinyobj::material_t& material) {
+std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
+    const tinyobj::material_t& material) {
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string& filepath) {

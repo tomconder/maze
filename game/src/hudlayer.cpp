@@ -3,16 +3,14 @@
 void HUDLayer::onAttach() {
     orthoCamera = std::make_unique<Sponge::OrthoCamera>();
 
-    auto shader =
-        Sponge::OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", TEXT_SHADER);
+    auto shader = Sponge::OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", TEXT_SHADER);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     font = Sponge::OpenGLResourceManager::loadFont("assets/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
 
-    shader = Sponge::OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag",
-                                                       SPRITE_SHADER);
+    shader = Sponge::OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", SPRITE_SHADER);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

@@ -20,8 +20,7 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(uint32_t elapsedTime) {
-    if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_W) ||
-        Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Up)) {
+    if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_W) || Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Up)) {
         camera->moveForward(elapsedTime);
     } else if (Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_S) ||
                Sponge::Input::isKeyPressed(Sponge::KeyCode::SpongeKey_Down)) {

@@ -35,15 +35,3 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 
 Cpp11BracedListStyle: false
-
----
-Language: Cpp
-# No length limit, in case it breaks macros, you can
-# disable it with /* clang-format off/on */ comments
-ColumnLimit: 120
-Standard: c++17
-
-ReflowComments: true
-
-UseCRLF: false
-UseTab: Never

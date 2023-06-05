@@ -6,7 +6,8 @@ namespace Sponge {
 
 class WindowResizeEvent : public Event {
    public:
-    WindowResizeEvent(uint32_t width, uint32_t height) : width(width), height(height) {}
+    WindowResizeEvent(uint32_t width, uint32_t height)
+        : width(width), height(height) {}
 
     uint32_t getWidth() const {
         return width;

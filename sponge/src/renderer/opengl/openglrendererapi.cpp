@@ -2,8 +2,10 @@
 
 namespace Sponge {
 
-static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                                  const GLchar* message, const void* userParam) {
+static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id,
+                                  GLenum severity, GLsizei length,
+                                  const GLchar* message,
+                                  const void* userParam) {
     std::string source_str;
     std::string type_str;
 
@@ -65,7 +67,8 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id, GLenum 
 
     switch (severity) {
         case GL_DEBUG_SEVERITY_HIGH:
-            SPONGE_GL_ERROR("{} {} [{}]: {}", source_str, type_str, id, message);
+            SPONGE_GL_ERROR("{} {} [{}]: {}", source_str, type_str, id,
+                            message);
             break;
         case GL_DEBUG_SEVERITY_MEDIUM:
             SPONGE_GL_WARN("{} {} [{}]: {}", source_str, type_str, id, message);
@@ -86,7 +89,9 @@ void OpenGLRendererAPI::init() {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         // do not want driver notification spam
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+                              GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
+                              GL_FALSE);
     }
 
     glDepthFunc(GL_LEQUAL);
@@ -103,7 +108,8 @@ void OpenGLRendererAPI::init() {
     glEnable(GL_BLEND);
 }
 
-void OpenGLRendererAPI::setViewport(int32_t x, int32_t y, int32_t width, int32_t height) {
+void OpenGLRendererAPI::setViewport(int32_t x, int32_t y, int32_t width,
+                                    int32_t height) {
     glViewport(x, y, width, height);
 }
 

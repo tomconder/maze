@@ -11,7 +11,8 @@ class OpenGLTexture : public Texture {
     OpenGLTexture();
     ~OpenGLTexture() override;
 
-    void generate(uint32_t textureWidth, uint32_t textureHeight, uint32_t bytesPerPixel, const unsigned char* data);
+    void generate(uint32_t textureWidth, uint32_t textureHeight,
+                  uint32_t bytesPerPixel, const unsigned char* data);
 
     uint32_t getWidth() const override {
         return width;

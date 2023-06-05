@@ -24,7 +24,8 @@ class OpenGLFont {
    public:
     OpenGLFont();
     void load(const std::string& path);
-    void render(const std::string& text, const glm::vec2& position, uint32_t targetSize, const glm::vec3& color);
+    void render(const std::string& text, const glm::vec2& position,
+                uint32_t targetSize, const glm::vec3& color);
 
     void log() const;
 
@@ -44,11 +45,14 @@ class OpenGLFont {
 
     // the distance in pixels between each line of text
     float lineHeight = 0.f;
-    // the number of pixels from the absolute top of the line to the base of the characters
+    // the number of pixels from the absolute top of the line to the base of the
+    // characters
     float base = 0.f;
-    // the width of the texture, normally used to scale the x pos of the character image
+    // the width of the texture, normally used to scale the x pos of the
+    // character image
     float scaleW = 1.f;
-    // the height of the texture, normally used to scale the y pos of the character image
+    // the height of the texture, normally used to scale the y pos of the
+    // character image
     float scaleH = 1.f;
 
     // the number of texture pages included in the font
