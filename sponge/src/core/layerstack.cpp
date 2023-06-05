@@ -1,6 +1,6 @@
 #include "core/layerstack.h"
 
-namespace Sponge {
+namespace sponge {
 
 LayerStack::~LayerStack() {
     for (auto layer : layers) {
@@ -36,4 +36,4 @@ void LayerStack::popOverlay(Layer* overlay) {
     }
 }
 
-}  // namespace Sponge
+}  // namespace sponge

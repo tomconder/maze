@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace Sponge {
+namespace sponge {
 
 enum class EventType {
     None = 0,
@@ -76,4 +76,4 @@ class EventDispatcher {
     Event& event;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

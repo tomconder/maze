@@ -11,7 +11,7 @@
 
 static const char* const SPONGE_LOG_FILE = "log.txt";
 
-namespace Sponge {
+namespace sponge {
 
 class Log {
    public:
@@ -63,17 +63,17 @@ class Log {
 #define SPONGE_GL_CRITICAL(...) \
     SPDLOG_LOGGER_CRITICAL(Log::getGlLogger(), __VA_ARGS__)
 
-}  // namespace Sponge
+}  // namespace sponge
 
 #define SPONGE_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_TRACE(sponge::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_DEBUG(sponge::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_INFO(...) \
-    SPDLOG_LOGGER_INFO(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_INFO(sponge::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_WARN(...) \
-    SPDLOG_LOGGER_WARN(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_WARN(sponge::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_ERROR(sponge::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(Sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_CRITICAL(sponge::Log::getAppLogger(), __VA_ARGS__)

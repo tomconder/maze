@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <utility>
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
     : glName(std::move(name)) {
@@ -216,4 +216,4 @@ void OpenGLContext::logStaticOpenGLInfo() {
 #endif
 }
 
-}  // namespace Sponge
+}  // namespace sponge

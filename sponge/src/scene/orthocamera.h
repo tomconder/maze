@@ -4,7 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
-namespace Sponge {
+namespace sponge {
 
 class OrthoCamera : public Camera {
    public:
@@ -31,4 +31,4 @@ class OrthoCamera : public Camera {
     float h;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

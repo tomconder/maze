@@ -3,7 +3,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace Sponge {
+namespace sponge {
 
 std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
@@ -48,4 +48,4 @@ void Log::init() {
     glLogger->flush_on(spdlog::level::trace);
 }
 
-}  // namespace Sponge
+}  // namespace sponge

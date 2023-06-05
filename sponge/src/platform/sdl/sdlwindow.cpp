@@ -1,6 +1,6 @@
 #include "platform/sdl/sdlwindow.h"
 
-namespace Sponge {
+namespace sponge {
 
 SDLWindow::SDLWindow(const WindowProps& props) {
     init(props);
@@ -59,4 +59,4 @@ bool SDLWindow::isVSync() const {
     return data.vsync;
 }
 
-}  // namespace Sponge
+}  // namespace sponge

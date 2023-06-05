@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class Shader {
    public:
@@ -22,4 +22,4 @@ class Shader {
     virtual const std::string& getName() const = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

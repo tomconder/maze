@@ -3,7 +3,7 @@
 #include <cassert>
 #include <sstream>
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLShader::OpenGLShader(const std::string& name,
                            const std::string& vertexSource,
@@ -118,4 +118,4 @@ void OpenGLShader::setMat4(const std::string& uname, const glm::mat4& value) {
                        GL_FALSE, glm::value_ptr(value));
 }
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -1,6 +1,6 @@
 #include "renderer/opengl/openglrendererapi.h"
 
-namespace Sponge {
+namespace sponge {
 
 static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id,
                                   GLenum severity, GLsizei length,
@@ -121,4 +121,4 @@ void OpenGLRendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-}  // namespace Sponge
+}  // namespace sponge

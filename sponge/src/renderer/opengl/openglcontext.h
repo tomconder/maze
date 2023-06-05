@@ -7,7 +7,7 @@
 
 struct SDL_Window;
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLContext : public GraphicsContext {
    public:
@@ -33,4 +33,4 @@ class OpenGLContext : public GraphicsContext {
     bool isFullScreen = false;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

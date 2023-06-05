@@ -10,7 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-namespace Sponge {
+namespace sponge {
 
 std::unordered_map<std::string, std::shared_ptr<OpenGLFont>>
     OpenGLResourceManager::fonts;
@@ -210,4 +210,4 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     return texture;
 }
 
-}  // namespace Sponge
+}  // namespace sponge

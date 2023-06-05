@@ -4,7 +4,7 @@
 #include "renderer/opengl/gl.h"
 #include "renderer/rendererapi.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLRendererAPI : public RendererAPI {
    public:
@@ -16,6 +16,6 @@ class OpenGLRendererAPI : public RendererAPI {
     void clear() override;
 };
 
-}  // namespace Sponge
+}  // namespace sponge
 
 #define UNUSED(x) (void)(x)

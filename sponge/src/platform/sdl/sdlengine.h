@@ -8,7 +8,7 @@
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
 
-namespace Sponge {
+namespace sponge {
 
 class SDLEngine : public Engine {
    public:
@@ -54,6 +54,6 @@ class SDLEngine : public Engine {
     void processEvent(SDL_Event& event);
 };
 
-}  // namespace Sponge
+}  // namespace sponge
 
 #define UNUSED(x) (void)(x)

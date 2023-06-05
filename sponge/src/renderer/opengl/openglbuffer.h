@@ -3,7 +3,7 @@
 #include "renderer/buffer.h"
 #include "renderer/opengl/gl.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLBuffer : public Buffer {
    public:
@@ -18,4 +18,4 @@ class OpenGLBuffer : public Buffer {
     uint32_t id = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

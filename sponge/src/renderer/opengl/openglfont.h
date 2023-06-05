@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace Sponge {
+namespace sponge {
 
 struct Character {
     glm::vec2 loc;
@@ -61,6 +61,6 @@ class OpenGLFont {
     std::string textureName;
 };
 
-}  // namespace Sponge
+}  // namespace sponge
 
 #define UNUSED(x) (void)(x)

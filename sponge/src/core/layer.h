@@ -3,7 +3,7 @@
 #include "core/base.h"
 #include "event/event.h"
 
-namespace Sponge {
+namespace sponge {
 
 class Layer {
    public:
@@ -15,4 +15,4 @@ class Layer {
     virtual void onEvent(Event& event) = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

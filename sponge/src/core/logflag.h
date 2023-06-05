@@ -2,7 +2,7 @@
 
 #include <spdlog/pattern_formatter.h>
 
-namespace Sponge {
+namespace sponge {
 
 class LogFlag : public spdlog::custom_flag_formatter {
    public:
@@ -11,7 +11,7 @@ class LogFlag : public spdlog::custom_flag_formatter {
     std::unique_ptr<custom_flag_formatter> clone() const override;
 };
 
-}  // namespace Sponge
+}  // namespace sponge
 
 #if !defined(LOGFLAG_LEVEL_NAMES)
 #define LOGFLAG_LEVEL_NAME_TRACE    spdlog::string_view_t("TRACE", 5)

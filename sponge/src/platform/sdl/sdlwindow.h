@@ -3,7 +3,7 @@
 #include "core/window.h"
 #include <SDL.h>
 
-namespace Sponge {
+namespace sponge {
 
 struct WindowData {
     std::string title;
@@ -41,4 +41,4 @@ class SDLWindow : public Window {
     SDL_Window* window = nullptr;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

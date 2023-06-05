@@ -7,7 +7,7 @@
 #include "renderer/opengl/openglrendererapi.h"
 #include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class Engine {
    public:
@@ -23,4 +23,4 @@ class Engine {
     virtual void onEvent(Event& event) = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -18,28 +18,28 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         return false;
     }
 
-    return Sponge::SDLEngine::onUserUpdate(elapsedTime);
+    return sponge::SDLEngine::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onUserDestroy() {
     return true;
 }
 
-void Maze::onEvent(Sponge::Event& event) {
-    Sponge::EventDispatcher dispatcher(event);
-    dispatcher.dispatch<Sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
-    dispatcher.dispatch<Sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+void Maze::onEvent(sponge::Event& event) {
+    sponge::EventDispatcher dispatcher(event);
+    dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 
-    Sponge::SDLEngine::onEvent(event);
+    sponge::SDLEngine::onEvent(event);
 }
 
-bool Maze::onKeyPressed(const Sponge::KeyPressedEvent& event) {
-    if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_Escape || event.getKeyCode() == Sponge::KeyCode::SpongeKey_Q) {
+bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape || event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
         isRunning = false;
         return true;
     }
 
-    if (event.getKeyCode() == Sponge::KeyCode::SpongeKey_F) {
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_F) {
         toggleFullscreen();
         return true;
     }
@@ -47,7 +47,7 @@ bool Maze::onKeyPressed(const Sponge::KeyPressedEvent& event) {
     return false;
 }
 
-bool Maze::onWindowClose(const Sponge::WindowCloseEvent& event) {
+bool Maze::onWindowClose(const sponge::WindowCloseEvent& event) {
     UNUSED(event);
     isRunning = false;
     return true;

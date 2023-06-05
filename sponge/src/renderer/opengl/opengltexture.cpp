@@ -1,6 +1,6 @@
 #include "renderer/opengl/opengltexture.h"
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLTexture::OpenGLTexture() {
     glGenTextures(1, &id);
@@ -42,4 +42,4 @@ void OpenGLTexture::bind() const {
     glBindTexture(GL_TEXTURE_2D, id);
 }
 
-}  // namespace Sponge
+}  // namespace sponge

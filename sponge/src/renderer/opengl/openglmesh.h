@@ -7,7 +7,7 @@
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLMesh : public Mesh {
    public:
@@ -22,4 +22,4 @@ class OpenGLMesh : public Mesh {
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

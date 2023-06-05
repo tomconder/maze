@@ -2,7 +2,7 @@
 
 #include "glm/vec4.hpp"
 
-namespace Sponge {
+namespace sponge {
 
 class RendererAPI {
    public:
@@ -17,4 +17,4 @@ class RendererAPI {
     virtual void clear() = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

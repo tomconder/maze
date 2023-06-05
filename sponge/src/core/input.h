@@ -3,7 +3,7 @@
 #include "core/keycode.h"
 #include "glm/vec2.hpp"
 
-namespace Sponge {
+namespace sponge {
 
 class Input {
    public:
@@ -25,4 +25,4 @@ class Input {
     static Input* instance;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

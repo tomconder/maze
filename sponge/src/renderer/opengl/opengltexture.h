@@ -4,7 +4,7 @@
 #include "renderer/texture.h"
 #include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLTexture : public Texture {
    public:
@@ -40,4 +40,4 @@ class OpenGLTexture : public Texture {
     std::string type;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

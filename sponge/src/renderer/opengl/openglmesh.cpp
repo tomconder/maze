@@ -2,7 +2,7 @@
 #include "renderer/opengl/openglresourcemanager.h"
 #include <cstddef>
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLMesh::OpenGLMesh(
     const std::vector<Vertex>& vertices,
@@ -93,4 +93,4 @@ void OpenGLMesh::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace Sponge
+}  // namespace sponge

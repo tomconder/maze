@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLResourceManager {
    public:
@@ -48,4 +48,4 @@ class OpenGLResourceManager {
         textures;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

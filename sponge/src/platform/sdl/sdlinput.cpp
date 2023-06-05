@@ -1,6 +1,6 @@
 #include "platform/sdl/sdlinput.h"
 
-namespace Sponge {
+namespace sponge {
 
 Input* Input::instance = new SDLInput();
 
@@ -152,4 +152,4 @@ const SDL_Scancode& SDLInput::mapKeyCodeToScanCode(KeyCode key) {
     return scanCodeMap[key];
 }
 
-}  // namespace Sponge
+}  // namespace sponge

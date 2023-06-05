@@ -8,7 +8,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLFont::OpenGLFont() {
     auto shader = OpenGLResourceManager::getShader("text");
@@ -229,4 +229,4 @@ void OpenGLFont::log() const {
     }
 }
 
-}  // namespace Sponge
+}  // namespace sponge

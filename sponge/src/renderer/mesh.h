@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace Sponge {
+namespace sponge {
 
 struct Vertex {
     glm::vec3 position;
@@ -21,4 +21,4 @@ class Mesh {
     std::vector<unsigned int> indices;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

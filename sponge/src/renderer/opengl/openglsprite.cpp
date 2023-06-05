@@ -4,7 +4,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <array>
 
-namespace Sponge {
+namespace sponge {
 
 OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
     auto shader = OpenGLResourceManager::getShader("sprite");
@@ -64,4 +64,4 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     shader->unbind();
 }
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -7,7 +7,7 @@
 #include <tiny_obj_loader.h>
 #include <vector>
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLModel {
    public:
@@ -27,4 +27,4 @@ class OpenGLModel {
         const tinyobj::material_t& material);
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -4,7 +4,7 @@
 #include "renderer/shader.h"
 #include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLShader : public Shader {
    public:
@@ -37,4 +37,4 @@ class OpenGLShader : public Shader {
     std::string name;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

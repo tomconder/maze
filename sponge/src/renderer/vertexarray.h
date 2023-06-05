@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Sponge {
+namespace sponge {
 
 class VertexArray {
    public:
@@ -9,4 +9,4 @@ class VertexArray {
     virtual void bind() const = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace Sponge {
+namespace sponge {
 
 class WindowProps {
    public:
@@ -24,4 +24,4 @@ class Window {
     virtual void* getNativeWindow() const = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

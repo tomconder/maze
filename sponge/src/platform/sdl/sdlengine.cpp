@@ -13,7 +13,7 @@
 #include <array>
 #include <sstream>
 
-namespace Sponge {
+namespace sponge {
 SDLEngine::SDLEngine() {
     layerStack = new LayerStack();
     initializeKeyCodeMap();
@@ -436,4 +436,4 @@ void SDLEngine::toggleFullscreen() {
     graphics->toggleFullscreen(sdlWindow->getNativeWindow());
 }
 
-}  // namespace Sponge
+}  // namespace sponge
