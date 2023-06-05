@@ -2,13 +2,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 #include <sstream>
+#include <utility>
 
 namespace sponge {
 
-OpenGLShader::OpenGLShader(const std::string& name,
-                           const std::string& vertexSource,
+OpenGLShader::OpenGLShader(std::string name, const std::string& vertexSource,
                            const std::string& fragmentSource)
-    : name(name) {
+    : name(std::move(name)) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 

@@ -25,7 +25,7 @@ class OrthoCamera : public Camera {
    private:
     void updateProjection(float width, float height);
 
-    glm::mat4 projection = glm::mat4(1.f);
+    glm::mat4 projection = glm::mat4(1.F);
 
     float w;
     float h;

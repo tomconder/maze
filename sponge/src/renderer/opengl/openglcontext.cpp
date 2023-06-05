@@ -68,7 +68,7 @@ OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
         return;
     }
 
-    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
+    gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress));
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR(
@@ -95,7 +95,7 @@ void OpenGLContext::flip(void* window) {
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
-void OpenGLContext::logGlVersion() const {
+void OpenGLContext::logGlVersion() {
     auto minorVersion = 0;
     auto majorVersion = 0;
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
@@ -141,10 +141,10 @@ void OpenGLContext::logGraphicsDriverInfo() {
     for (int i = 0; i < numRenderDrivers; ++i) {
         SDL_GetRenderDriverInfo(i, &info);
 
-        bool isSoftware = info.flags & SDL_RENDERER_SOFTWARE;
-        bool isHardware = info.flags & SDL_RENDERER_ACCELERATED;
-        bool isVSyncEnabled = info.flags & SDL_RENDERER_PRESENTVSYNC;
-        bool isTargetTexture = info.flags & SDL_RENDERER_TARGETTEXTURE;
+        bool isSoftware = (info.flags & SDL_RENDERER_SOFTWARE) != 0u;
+        bool isHardware = (info.flags & SDL_RENDERER_ACCELERATED) != 0u;
+        bool isVSyncEnabled = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0u;
+        bool isTargetTexture = (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0u;
 
         std::vector<std::string> v;
         v.reserve(4);
@@ -183,23 +183,24 @@ void OpenGLContext::logOpenGLContextInfo() {
     SPONGE_CORE_INFO("OpenGL Info:");
 
     std::stringstream ss;
-    ss << fmt::format("  {:14} {}",
-                      "Version:", (const char*)glGetString(GL_VERSION));
+    ss << fmt::format("  {:14} {}", "Version:",
+                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
     ss << fmt::format("  {:14} {}", "GLSL:",
-                      (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+                      reinterpret_cast<const char*>(
+                          glGetString(GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}",
-                      "Renderer:", (const char*)glGetString(GL_RENDERER));
+    ss << fmt::format("  {:14} {}", "Renderer:",
+                      reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}",
-                      "Vendor:", (const char*)glGetString(GL_VENDOR));
+    ss << fmt::format("  {:14} {}", "Vendor:",
+                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
     SPONGE_CORE_INFO(ss.str());
 

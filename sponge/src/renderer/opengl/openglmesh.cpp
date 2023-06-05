@@ -17,12 +17,13 @@ OpenGLMesh::OpenGLMesh(
 
     vbo = std::make_unique<OpenGLBuffer>(
         reinterpret_cast<const float*>(vertices.data()),
-        (uint32_t)vertices.size() * (uint32_t)sizeof(Vertex));
+        static_cast<uint32_t>(vertices.size()) *
+            static_cast<uint32_t>(sizeof(Vertex)));
     vbo->bind();
 
     ebo = std::make_unique<OpenGLElementBuffer>(
-        indices.data(),
-        (uint32_t)indices.size() * (uint32_t)sizeof(unsigned int));
+        indices.data(), static_cast<uint32_t>(indices.size()) *
+                            static_cast<uint32_t>(sizeof(unsigned int)));
     ebo->bind();
 
     auto shader = OpenGLResourceManager::getShader("shader");
@@ -88,8 +89,8 @@ void OpenGLMesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT,
-                   nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLint>(indices.size()),
+                   GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 

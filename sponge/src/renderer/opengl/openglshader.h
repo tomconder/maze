@@ -8,7 +8,7 @@ namespace sponge {
 
 class OpenGLShader : public Shader {
    public:
-    OpenGLShader(const std::string& name, const std::string& vertexSource,
+    OpenGLShader(std::string name, const std::string& vertexSource,
                  const std::string& fragmentSource);
     ~OpenGLShader() override;
 
@@ -30,8 +30,8 @@ class OpenGLShader : public Shader {
     };
 
    private:
-    GLuint compileShader(GLenum type, const std::string& file);
-    GLuint linkProgram(GLuint vs, GLuint fs);
+    static GLuint compileShader(GLenum type, const std::string& file);
+    static GLuint linkProgram(GLuint vs, GLuint fs);
 
     GLuint program = 0;
     std::string name;

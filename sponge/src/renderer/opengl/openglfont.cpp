@@ -59,7 +59,7 @@ void OpenGLFont::load(const std::string& path) {
         if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stof(s.substr(pos + 1));
         }
-        return 0.f;
+        return 0.F;
     };
 
     auto nextString = [](std::stringstream& sstream) {
@@ -192,7 +192,7 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setFloat3("textColor", color);
-    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
+    shader->setFloat("screenPxRange", fontSize / size * 4.0F);
 
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
@@ -205,8 +205,8 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT,
-                   nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLint>(batchIndices.size()),
+                   GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
 }

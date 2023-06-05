@@ -78,7 +78,7 @@ OpenGLMesh OpenGLModel::processMesh(
         i = index.texcoord_index;
         if (i >= 0) {
             vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
-                                          1.0f - attrib.texcoords[i * 2 + 1] };
+                                          1.0F - attrib.texcoords[i * 2 + 1] };
         }
 
         i = index.normal_index;

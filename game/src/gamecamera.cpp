@@ -51,7 +51,7 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x * cameraSpeed;
     pitch += offset.y * cameraSpeed;
 
-    pitch = glm::clamp(pitch, -89.f, 89.f);
+    pitch = glm::clamp(pitch, -89.F, 89.F);
 
     glm::vec3 front;
     front.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
@@ -68,6 +68,6 @@ void GameCamera::mouseScroll(const glm::vec2& offset) {
     }
 
     fov -= offset.y * 5;
-    fov = glm::clamp(fov, 30.f, 120.0f);
+    fov = glm::clamp(fov, 30.F, 120.0F);
     updateProjection();
 }

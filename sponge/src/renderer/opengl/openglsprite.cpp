@@ -38,10 +38,10 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
 
 void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     std::array<float, 16> vertices = {
-        position.x,          position.y + size.y, 0.f, 0.f,  //
-        position.x,          position.y,          0.f, 1.f,  //
-        position.x + size.x, position.y,          1.f, 1.f,  //
-        position.x + size.x, position.y + size.y, 1.f, 0.f
+        position.x,          position.y + size.y, 0.F, 0.F,  //
+        position.x,          position.y,          0.F, 1.F,  //
+        position.x + size.x, position.y,          1.F, 1.F,  //
+        position.x + size.x, position.y + size.y, 1.F, 0.F
     };
 
     vao->bind();
@@ -57,8 +57,8 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, (GLint)indices.size(), GL_UNSIGNED_INT,
-                   nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLint>(indices.size()),
+                   GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
     shader->unbind();

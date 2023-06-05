@@ -3,7 +3,7 @@
 namespace sponge {
 
 LayerStack::~LayerStack() {
-    for (auto layer : layers) {
+    for (auto* layer : layers) {
         layer->onDetach();
         delete layer;
     }

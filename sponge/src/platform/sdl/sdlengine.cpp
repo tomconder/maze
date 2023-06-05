@@ -55,7 +55,7 @@ bool SDLEngine::start() {
     windowProps.height = h;
 
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
-    SDL_Window* window = (SDL_Window*)sdlWindow->getNativeWindow();
+    auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
 #ifdef EMSCRIPTEN
     graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
@@ -76,7 +76,7 @@ bool SDLEngine::start() {
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
-    renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
+    renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
     adjustAspectRatio(w, h);
     renderer->setViewport(static_cast<int32_t>(offsetx),
@@ -169,7 +169,7 @@ bool SDLEngine::onUserCreate() {
 bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     bool result = true;
 
-    for (auto layer : *layerStack) {
+    for (auto* layer : *layerStack) {
         if (!layer->onUpdate(elapsedTime)) {
             result = false;
             break;
@@ -194,11 +194,11 @@ void SDLEngine::onEvent(Event& event) {
 
 void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     const std::array<glm::vec3, 5> ratios = {
-        glm::vec3{ 32.f, 9.f, 32.f / 9.f },    //
-        glm::vec3{ 21.f, 9.f, 21.f / 9.f },    //
-        glm::vec3{ 16.f, 9.f, 16.f / 9.f },    //
-        glm::vec3{ 16.f, 10.f, 16.f / 10.f },  //
-        glm::vec3{ 4.f, 3.f, 4.f / 3.f }       //
+        glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
+        glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
+        glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
+        glm::vec3{ 16.F, 10.F, 16.F / 10.F },  //
+        glm::vec3{ 4.F, 3.F, 4.F / 3.F }       //
     };
 
     // attempt to find the closest matching aspect ratio

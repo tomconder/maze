@@ -1,17 +1,19 @@
 #include "mazelayer.h"
 
 void MazeLayer::onAttach() {
-    sponge::OpenGLResourceManager::loadShader("assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
-    sponge::OpenGLResourceManager::loadModel("assets/models/mountains.obj", "Maze");
+    sponge::OpenGLResourceManager::loadShader(
+        "assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
+    sponge::OpenGLResourceManager::loadModel("assets/models/mountains.obj",
+                                             "Maze");
 
     camera = std::make_unique<GameCamera>();
-    camera->setPosition(glm::vec3(0.f, 40.f, 70.f));
+    camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
 
     auto shader = sponge::OpenGLResourceManager::getShader("shader");
     shader->bind();
 
-    shader->setFloat3("lightPos", glm::vec3(40.f, 40.f, 40.f));
-    shader->setFloat("ambientStrength", 0.3f);
+    shader->setFloat3("lightPos", glm::vec3(40.F, 40.F, 40.F));
+    shader->setFloat("ambientStrength", 0.3F);
     shader->unbind();
 }
 

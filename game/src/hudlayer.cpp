@@ -26,8 +26,9 @@ void HUDLayer::onDetach() {
 bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    logo->render({ orthoCamera->getWidth() - 76.f, 12.f }, { 64.f, 64.f });
-    font->render("Press [Q] to exit", { 12.f, orthoCamera->getHeight() - 12.f }, 28, { 0.5, 0.9f, 1.0f });
+    logo->render({ orthoCamera->getWidth() - 76.F, 12.F }, { 64.F, 64.F });
+    font->render("Press [Q] to exit", { 12.F, orthoCamera->getHeight() - 12.F },
+                 28, { 0.5, 0.9F, 1.0F });
     return true;
 }
 
