@@ -1,25 +1,24 @@
 #pragma once
 
-#include <string>
-
 #include "glm/vec4.hpp"
 #include "renderer/graphicscontext.h"
 #include "renderer/opengl/gl.h"
+#include <string>
 
 struct SDL_Window;
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLContext : public GraphicsContext {
    public:
-    OpenGLContext(SDL_Window *window, std::string name);
+    OpenGLContext(SDL_Window* window, std::string name);
     ~OpenGLContext() override;
 
-    void flip(void *window) override;
+    void flip(void* window) override;
 
-    void logGlVersion() const;
+    static void logGlVersion();
 
-    void toggleFullscreen(void *window);
+    void toggleFullscreen(void* window);
 
     static void logGraphicsDriverInfo();
 
@@ -34,4 +33,4 @@ class OpenGLContext : public GraphicsContext {
     bool isFullScreen = false;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

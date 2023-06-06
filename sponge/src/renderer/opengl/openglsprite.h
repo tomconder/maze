@@ -5,7 +5,7 @@
 #include "renderer/opengl/openglvertexarray.h"
 #include "renderer/sprite.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLSprite : public Sprite {
    public:
@@ -26,4 +26,4 @@ class OpenGLSprite : public Sprite {
     std::string name;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -3,7 +3,7 @@
 #include "core/keycode.h"
 #include "glm/vec2.hpp"
 
-namespace Sponge {
+namespace sponge {
 
 class Input {
    public:
@@ -22,7 +22,7 @@ class Input {
     virtual bool isButtonPressedImpl() = 0;
 
    private:
-    static Input *instance;
+    static Input* instance;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

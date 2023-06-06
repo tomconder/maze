@@ -4,31 +4,31 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include <SDL.h>
-
-#include <array>
-#include <glm/vec3.hpp>
-#include <sstream>
-
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 #include "platform/sdl/sdlwindow.h"
+#include <glm/vec3.hpp>
+#include <SDL.h>
+#include <array>
+#include <sstream>
 
-namespace Sponge {
+namespace sponge {
 SDLEngine::SDLEngine() {
     layerStack = new LayerStack();
     initializeKeyCodeMap();
 }
 
-bool SDLEngine::construct(std::string_view name, uint32_t width, uint32_t height) {
+bool SDLEngine::construct(std::string_view name, uint32_t width,
+                          uint32_t height) {
     SPONGE_CORE_INFO("{}", name);
     w = width;
     h = height;
     appName = name;
 
     if (w == 0 || h == 0) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.data(), "Screen height or width cannot be zero",
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.data(),
+                                 "Screen height or width cannot be zero",
                                  nullptr);
         SPONGE_CORE_ERROR("Screen height or width cannot be zero");
         return false;
@@ -42,7 +42,8 @@ bool SDLEngine::start() {
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
         SPONGE_CORE_CRITICAL("Unable to initialize SDL: {}", SDL_GetError());
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(), "Unable to initialize SDL", nullptr);
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(),
+                                 "Unable to initialize SDL", nullptr);
         return false;
     }
 
@@ -54,7 +55,7 @@ bool SDLEngine::start() {
     windowProps.height = h;
 
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
-    SDL_Window *window = (SDL_Window *)sdlWindow->getNativeWindow();
+    auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
 #ifdef EMSCRIPTEN
     graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
@@ -75,11 +76,12 @@ bool SDLEngine::start() {
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
-    renderer->setClearColor(glm::vec4{ 0.36f, 0.36f, 0.36f, 1.0f });
+    renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
     adjustAspectRatio(w, h);
-    renderer->setViewport(static_cast<int32_t>(offsetx), static_cast<int32_t>(offsety), static_cast<int32_t>(w),
-                          static_cast<int32_t>(h));
+    renderer->setViewport(static_cast<int32_t>(offsetx),
+                          static_cast<int32_t>(offsety),
+                          static_cast<int32_t>(w), static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -106,7 +108,8 @@ bool SDLEngine::iterateLoop() {
         if (event.type == SDL_QUIT) {
             quit = true;
         }
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+        if (event.type == SDL_WINDOWEVENT &&
+            event.window.event == SDL_WINDOWEVENT_CLOSE) {
             quit = true;
         }
     }
@@ -147,14 +150,16 @@ void SDLEngine::logSDLVersion() {
         ss << "(" << revision << ")";
     }
 
-    SPONGE_CORE_DEBUG("SDL Version [Compiled]: {}.{}.{} {}", static_cast<int>(compiled.major),
-                      static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
-                      !revision.empty() ? ss.str() : "");
+    SPONGE_CORE_DEBUG(
+        "SDL Version [Compiled]: {}.{}.{} {}", static_cast<int>(compiled.major),
+        static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
+        !revision.empty() ? ss.str() : "");
 
     SDL_GetVersion(&linked);
 
-    SPONGE_CORE_DEBUG("SDL Version [Runtime] : {}.{}.{}", static_cast<int>(linked.major),
-                      static_cast<int>(linked.minor), static_cast<int>(linked.patch));
+    SPONGE_CORE_DEBUG(
+        "SDL Version [Runtime] : {}.{}.{}", static_cast<int>(linked.major),
+        static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
 
 bool SDLEngine::onUserCreate() {
@@ -164,7 +169,7 @@ bool SDLEngine::onUserCreate() {
 bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     bool result = true;
 
-    for (auto layer : *layerStack) {
+    for (auto* layer : *layerStack) {
         if (!layer->onUpdate(elapsedTime)) {
             result = false;
             break;
@@ -178,7 +183,7 @@ bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-void SDLEngine::onEvent(Event &event) {
+void SDLEngine::onEvent(Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
         if (event.handled) {
             break;
@@ -189,16 +194,19 @@ void SDLEngine::onEvent(Event &event) {
 
 void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     const std::array<glm::vec3, 5> ratios = {
-        glm::vec3{ 32.f, 9.f, 32.f / 9.f },    //
-        glm::vec3{ 21.f, 9.f, 21.f / 9.f },    //
-        glm::vec3{ 16.f, 9.f, 16.f / 9.f },    //
-        glm::vec3{ 16.f, 10.f, 16.f / 10.f },  //
-        glm::vec3{ 4.f, 3.f, 4.f / 3.f }       //
+        glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
+        glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
+        glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
+        glm::vec3{ 16.F, 10.F, 16.F / 10.F },  //
+        glm::vec3{ 4.F, 3.F, 4.F / 3.F }       //
     };
 
     // attempt to find the closest matching aspect ratio
-    float proposedRatio = static_cast<float>(eventW) / static_cast<float>(eventH);
-    auto exceedsRatio = [&proposedRatio](glm::vec3 i) { return proposedRatio >= i.z; };
+    float proposedRatio =
+        static_cast<float>(eventW) / static_cast<float>(eventH);
+    auto exceedsRatio = [&proposedRatio](glm::vec3 i) {
+        return proposedRatio >= i.z;
+    };
     auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == std::end(ratios)) {
         --ratio;
@@ -227,12 +235,12 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void SDLEngine::pushOverlay(Layer *layer) {
+void SDLEngine::pushOverlay(Layer* layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
 }
 
-void SDLEngine::pushLayer(Layer *layer) {
+void SDLEngine::pushLayer(Layer* layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
 }
@@ -367,7 +375,7 @@ void SDLEngine::initializeKeyCodeMap() {
     keyCodeMap[SDL_SCANCODE_MENU] = KeyCode::SpongeKey_Menu;
 }
 
-KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode &scancode) {
+KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
     auto result = keyCodeMap.find(scancode);
     if (keyCodeMap.find(scancode) == keyCodeMap.end()) {
         return KeyCode::SpongeKey_None;
@@ -379,8 +387,9 @@ MouseCode SDLEngine::mapMouseButton(uint8_t index) {
     return index - 1;
 }
 
-void SDLEngine::processEvent(SDL_Event &event) {
-    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+void SDLEngine::processEvent(SDL_Event& event) {
+    if (event.type == SDL_WINDOWEVENT &&
+        event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
 
@@ -388,23 +397,28 @@ void SDLEngine::processEvent(SDL_Event &event) {
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
-            auto keyEvent = KeyPressedEvent{ mapScanCodeToKeyCode(event.key.keysym.scancode) };
+            auto keyEvent = KeyPressedEvent{ mapScanCodeToKeyCode(
+                event.key.keysym.scancode) };
             onEvent(keyEvent);
         }
     } else if (event.type == SDL_KEYUP) {
-        auto keyEvent = KeyReleasedEvent{ mapScanCodeToKeyCode(event.key.keysym.scancode) };
+        auto keyEvent =
+            KeyReleasedEvent{ mapScanCodeToKeyCode(event.key.keysym.scancode) };
         onEvent(keyEvent);
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        auto mouseEvent = MouseButtonPressedEvent{ mapMouseButton(event.button.button) };
+        auto mouseEvent =
+            MouseButtonPressedEvent{ mapMouseButton(event.button.button) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
-        auto mouseEvent = MouseButtonReleasedEvent{ mapMouseButton(event.button.button) };
+        auto mouseEvent =
+            MouseButtonReleasedEvent{ mapMouseButton(event.button.button) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEMOTION) {
         auto mouseEvent =
-            MouseMovedEvent{ static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel) };
+            MouseMovedEvent{ static_cast<float>(event.motion.xrel),
+                             static_cast<float>(event.motion.yrel) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;
@@ -422,4 +436,4 @@ void SDLEngine::toggleFullscreen() {
     graphics->toggleFullscreen(sdlWindow->getNativeWindow());
 }
 
-}  // namespace Sponge
+}  // namespace sponge

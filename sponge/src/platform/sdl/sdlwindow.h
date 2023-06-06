@@ -1,10 +1,9 @@
 #pragma once
 
+#include "core/window.h"
 #include <SDL.h>
 
-#include "core/window.h"
-
-namespace Sponge {
+namespace sponge {
 
 struct WindowData {
     std::string title;
@@ -15,7 +14,7 @@ struct WindowData {
 
 class SDLWindow : public Window {
    public:
-    explicit SDLWindow(const WindowProps &props);
+    explicit SDLWindow(const WindowProps& props);
     ~SDLWindow() noexcept override;
 
     uint32_t getWidth() const override {
@@ -30,16 +29,16 @@ class SDLWindow : public Window {
 
     bool isVSync() const override;
 
-    void *getNativeWindow() const override {
+    void* getNativeWindow() const override {
         return window;
     }
 
    private:
-    void init(const WindowProps &props);
+    void init(const WindowProps& props);
     void shutdown();
 
     WindowData data;
-    SDL_Window *window = nullptr;
+    SDL_Window* window = nullptr;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

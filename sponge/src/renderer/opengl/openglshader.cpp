@@ -1,13 +1,14 @@
 #include "renderer/opengl/openglshader.h"
-
-#include <cassert>
 #include <glm/gtc/type_ptr.hpp>
+#include <cassert>
 #include <sstream>
+#include <utility>
 
-namespace Sponge {
+namespace sponge {
 
-OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource, const std::string &fragmentSource)
-    : name(name) {
+OpenGLShader::OpenGLShader(std::string name, const std::string& vertexSource,
+                           const std::string& fragmentSource)
+    : name(std::move(name)) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
@@ -37,13 +38,15 @@ void OpenGLShader::unbind() const {
     glUseProgram(0);
 }
 
-GLuint OpenGLShader::compileShader(const GLenum type, const std::string &source) {
+GLuint OpenGLShader::compileShader(const GLenum type,
+                                   const std::string& source) {
     GLuint id = glCreateShader(type);
     assert(id != 0);
 
-    SPONGE_CORE_DEBUG("Compiling {} shader for shader [{}]", type == GL_VERTEX_SHADER ? "vertex" : "fragment", name);
+    SPONGE_CORE_DEBUG("Compiling {} shader for shader [{}]",
+                      type == GL_VERTEX_SHADER ? "vertex" : "fragment", name);
 
-    char const *shader = source.c_str();
+    const char* shader = source.c_str();
     glShaderSource(id, 1, &shader, nullptr);
     glCompileShader(id);
 
@@ -92,24 +95,27 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs) {
     return id;
 }
 
-void OpenGLShader::setBoolean(const std::string &uname, bool value) {
-    glUniform1i(glGetUniformLocation(program, uname.c_str()), static_cast<int>(value));
+void OpenGLShader::setBoolean(const std::string& uname, bool value) {
+    glUniform1i(glGetUniformLocation(program, uname.c_str()),
+                static_cast<int>(value));
 }
 
-void OpenGLShader::setFloat(const std::string &uname, float value) {
+void OpenGLShader::setFloat(const std::string& uname, float value) {
     glUniform1f(glGetUniformLocation(program, uname.c_str()), value);
 }
 
-void OpenGLShader::setFloat3(const std::string &uname, const glm::vec3 &value) {
-    glUniform3f(glGetUniformLocation(program, uname.c_str()), value.x, value.y, value.z);
+void OpenGLShader::setFloat3(const std::string& uname, const glm::vec3& value) {
+    glUniform3f(glGetUniformLocation(program, uname.c_str()), value.x, value.y,
+                value.z);
 }
 
-void OpenGLShader::setInteger(const std::string &uname, int value) {
+void OpenGLShader::setInteger(const std::string& uname, int value) {
     glUniform1i(glGetUniformLocation(program, uname.c_str()), value);
 }
 
-void OpenGLShader::setMat4(const std::string &uname, const glm::mat4 &value) {
-    glUniformMatrix4fv(glGetUniformLocation(program, uname.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+void OpenGLShader::setMat4(const std::string& uname, const glm::mat4& value) {
+    glUniformMatrix4fv(glGetUniformLocation(program, uname.c_str()), 1,
+                       GL_FALSE, glm::value_ptr(value));
 }
 
-}  // namespace Sponge
+}  // namespace sponge

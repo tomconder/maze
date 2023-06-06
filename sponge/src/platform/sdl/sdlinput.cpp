@@ -1,6 +1,6 @@
 #include "platform/sdl/sdlinput.h"
 
-namespace Sponge {
+namespace sponge {
 
 Input* Input::instance = new SDLInput();
 
@@ -10,7 +10,7 @@ SDLInput::SDLInput() {
 
 bool SDLInput::isKeyPressedImpl(KeyCode key) {
     const Uint8* state = SDL_GetKeyboardState(nullptr);
-    return state[mapKeyCodeToScanCode(key)];
+    return state[mapKeyCodeToScanCode(key)] != 0u;
 }
 
 bool SDLInput::isButtonPressedImpl() {
@@ -152,4 +152,4 @@ const SDL_Scancode& SDLInput::mapKeyCodeToScanCode(KeyCode key) {
     return scanCodeMap[key];
 }
 
-}  // namespace Sponge
+}  // namespace sponge

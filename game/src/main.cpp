@@ -14,7 +14,7 @@ bool iterateLoop() {
 }
 
 bool startup() {
-    Sponge::Log::init();
+    sponge::Log::init();
 
     SPONGE_INFO("Starting game");
 
@@ -56,12 +56,12 @@ bool startup() {
 bool shutdown() {
     SPONGE_INFO("Shutting down");
 
-    Sponge::Log::shutdown();
+    sponge::Log::shutdown();
 
     return true;
 }
 
-extern "C" int main(int argc, char *args[]) {
+extern "C" int main(int argc, char* args[]) {
     UNUSED(argc);
     UNUSED(args);
 

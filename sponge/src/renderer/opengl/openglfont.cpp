@@ -4,12 +4,11 @@
 #include <new>
 #endif
 
+#include "renderer/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
 
-#include "renderer/opengl/openglresourcemanager.h"
-
-namespace Sponge {
+namespace sponge {
 
 OpenGLFont::OpenGLFont() {
     auto shader = OpenGLResourceManager::getShader("text");
@@ -18,16 +17,20 @@ OpenGLFont::OpenGLFont() {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
+    vbo = std::make_unique<OpenGLBuffer>(
+        maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
+    ebo = std::make_unique<OpenGLElementBuffer>(
+        maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
     uint32_t program = shader->getId();
-    auto position = static_cast<uint32_t>(glGetAttribLocation(program, "vertex"));
+    auto position =
+        static_cast<uint32_t>(glGetAttribLocation(program, "vertex"));
     glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
+    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
+                          nullptr);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -56,7 +59,7 @@ void OpenGLFont::load(const std::string& path) {
         if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stof(s.substr(pos + 1));
         }
-        return 0.f;
+        return 0.F;
     };
 
     auto nextString = [](std::stringstream& sstream) {
@@ -102,7 +105,8 @@ void OpenGLFont::load(const std::string& path) {
             auto pos = path.find_last_of('/');
             auto fontFolder = path.substr(0, pos + 1);
             textureName = name;
-            auto texture = OpenGLResourceManager::loadTexture(fontFolder + name, textureName);
+            auto texture = OpenGLResourceManager::loadTexture(fontFolder + name,
+                                                              textureName);
         }
 
         if (str == "char") {
@@ -121,17 +125,19 @@ void OpenGLFont::load(const std::string& path) {
             uint32_t first = nextInt(lineStream);
             uint32_t second = nextInt(lineStream);
             float amount = nextFloat(lineStream);
-            std::string key = std::to_string(first) + "." + std::to_string(second);
+            std::string key =
+                std::to_string(first) + "." + std::to_string(second);
             kerning[key] = amount;
         }
     }
 }
 
-void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint32_t targetSize,
-                        const glm::vec3& color) {
+void OpenGLFont::render(const std::string& text, const glm::vec2& position,
+                        uint32_t targetSize, const glm::vec3& color) {
     const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
-    const std::string str = text.length() > maxLength ? text.substr(0, maxLength) : text;
+    const std::string str =
+        text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::vector<float> batchVertices;
     std::vector<uint32_t> batchIndices;
@@ -161,7 +167,8 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
             xpos + w, ypos + h, texx + texw, texy          //
         };
 
-        batchVertices.insert(batchVertices.end(), vertices.begin(), vertices.end());
+        batchVertices.insert(batchVertices.end(), vertices.begin(),
+                             vertices.end());
 
         auto indices = std::vector<uint32_t>{
             numIndices, numIndices + 1, numIndices + 2,  //
@@ -174,7 +181,8 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
         numIndices += 4;
 
         if (prev != 0) {
-            x += kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
+            x +=
+                kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
         }
         prev = c;
     }
@@ -184,18 +192,21 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
     auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setFloat3("textColor", color);
-    shader->setFloat("screenPxRange", fontSize / size * 4.0f);
+    shader->setFloat("screenPxRange", fontSize / size * 4.0F);
 
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
-    vbo->setData(batchVertices.data(), static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
+    vbo->setData(batchVertices.data(),
+                 static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
 
-    ebo->setData(batchIndices.data(), static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
+    ebo->setData(batchIndices.data(),
+                 static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLES, (GLint)batchIndices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLint>(batchIndices.size()),
+                   GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
 }
@@ -203,16 +214,19 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position, uint
 void OpenGLFont::log() const {
     SPONGE_CORE_DEBUG("Font file: INFO face={} size={}", face, size);
 
-    SPONGE_CORE_DEBUG("Font file: COMMON lineHeight={:>3} base={:>3} scaleW={:>2} scaleH={:>3} pages={:2}", lineHeight,
-                      base, scaleW, scaleH, pages);
+    SPONGE_CORE_DEBUG(
+        "Font file: COMMON lineHeight={:>3} base={:>3} scaleW={:>2} "
+        "scaleH={:>3} pages={:2}",
+        lineHeight, base, scaleW, scaleH, pages);
 
     for (const auto& [key, value] : fontChars) {
         SPONGE_CORE_DEBUG(
-            "Font file: CHAR {:>3} x={:>3} y={:>3} width={:>2} height={:>3} xoffset={:2} yoffset={:3} xadvance={:>2} "
+            "Font file: CHAR {:>3} x={:>3} y={:>3} width={:>2} height={:>3} "
+            "xoffset={:2} yoffset={:3} xadvance={:>2} "
             "page={}",
-            key, value.loc.x, value.loc.y, value.width, value.height, value.offset.x, value.offset.y, value.xadvance,
-            value.page);
+            key, value.loc.x, value.loc.y, value.width, value.height,
+            value.offset.x, value.offset.y, value.xadvance, value.page);
     }
 }
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -7,12 +7,13 @@
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLMesh : public Mesh {
    public:
-    OpenGLMesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices,
-               const std::vector<std::shared_ptr<OpenGLTexture>> &textures);
+    OpenGLMesh(const std::vector<Vertex>& vertices,
+               const std::vector<unsigned int>& indices,
+               const std::vector<std::shared_ptr<OpenGLTexture>>& textures);
     void render() const;
 
     std::unique_ptr<OpenGLBuffer> vbo;
@@ -21,4 +22,4 @@ class OpenGLMesh : public Mesh {
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

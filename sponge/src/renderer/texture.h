@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class Texture {
    public:
@@ -15,4 +15,4 @@ class Texture {
     virtual void bind() const = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

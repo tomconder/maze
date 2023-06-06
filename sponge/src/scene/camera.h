@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Sponge {
+namespace sponge {
 
 class Camera {
    public:
@@ -8,4 +8,4 @@ class Camera {
     virtual ~Camera() = default;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -1,7 +1,5 @@
 #include "renderer/opengl/openglcontext.h"
-
 #include <SDL.h>
-
 #include <cassert>
 #include <numeric>
 #include <sstream>
@@ -11,13 +9,13 @@
 #endif
 
 #include <spdlog/fmt/fmt.h>
-
 #include <iomanip>
 #include <utility>
 
-namespace Sponge {
+namespace sponge {
 
-OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std::move(name)) {
+OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
+    : glName(std::move(name)) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -44,8 +42,10 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
                                                              { 3, 0 },
                                                              { 2, 1 },
                                                              { 2, 0 } } };
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                        SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
+                        SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 #endif
 
     SPONGE_CORE_INFO("Creating OpenGL context");
@@ -53,7 +53,7 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
     SDL_GLContext context = nullptr;
 
     // create context trying different versions
-    for (const auto &[major, minor] : glVersions) {
+    for (const auto& [major, minor] : glVersions) {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
         context = SDL_GL_CreateContext(window);
@@ -63,14 +63,17 @@ OpenGLContext::OpenGLContext(SDL_Window *window, std::string name) : glName(std:
     }
 
     if (context == nullptr) {
-        SPONGE_CORE_ERROR("OpenGL context could not be created: {}", SDL_GetError());
+        SPONGE_CORE_ERROR("OpenGL context could not be created: {}",
+                          SDL_GetError());
         return;
     }
 
-    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
+    gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress));
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
-        SPONGE_CORE_ERROR("Could not be set up OpenGL context for rendering: {}", SDL_GetError());
+        SPONGE_CORE_ERROR(
+            "Could not be set up OpenGL context for rendering: {}",
+            SDL_GetError());
         return;
     }
 
@@ -85,30 +88,32 @@ OpenGLContext::~OpenGLContext() {
     SDL_GL_DeleteContext(context);
 }
 
-void OpenGLContext::flip(void *window) {
+void OpenGLContext::flip(void* window) {
     if (window == nullptr) {
         return;
     }
-    SDL_GL_SwapWindow(static_cast<SDL_Window *>(window));
+    SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
-void OpenGLContext::logGlVersion() const {
+void OpenGLContext::logGlVersion() {
     auto minorVersion = 0;
     auto majorVersion = 0;
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
     glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 
-    SPONGE_CORE_INFO("Created {} context: {}.{}", glName, majorVersion, minorVersion);
+    SPONGE_CORE_INFO("Created {} context: {}.{}", glName, majorVersion,
+                     minorVersion);
 }
 
-void OpenGLContext::toggleFullscreen(void *window) {
+void OpenGLContext::toggleFullscreen(void* window) {
     if (window == nullptr) {
         return;
     }
 
     isFullScreen = !isFullScreen;
-    if (SDL_SetWindowFullscreen(static_cast<SDL_Window *>(window), isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) <
-        0) {
+    if (SDL_SetWindowFullscreen(
+            static_cast<SDL_Window*>(window),
+            isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) < 0) {
         SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
     }
 }
@@ -123,7 +128,9 @@ void OpenGLContext::logGraphicsDriverInfo() {
     for (int i = 0; i < numVideoDrivers; i++) {
         const std::string videoDriver(SDL_GetVideoDriver(i));
         std::stringstream ss;
-        ss << fmt::format("  #{}: {} {}", i, videoDriver, (currentVideoDriver == videoDriver ? "[current]" : ""));
+        ss << fmt::format(
+            "  #{}: {} {}", i, videoDriver,
+            (currentVideoDriver == videoDriver ? "[current]" : ""));
         SPONGE_CORE_DEBUG(ss.str());
     }
 
@@ -134,10 +141,10 @@ void OpenGLContext::logGraphicsDriverInfo() {
     for (int i = 0; i < numRenderDrivers; ++i) {
         SDL_GetRenderDriverInfo(i, &info);
 
-        bool isSoftware = info.flags & SDL_RENDERER_SOFTWARE;
-        bool isHardware = info.flags & SDL_RENDERER_ACCELERATED;
-        bool isVSyncEnabled = info.flags & SDL_RENDERER_PRESENTVSYNC;
-        bool isTargetTexture = info.flags & SDL_RENDERER_TARGETTEXTURE;
+        bool isSoftware = (info.flags & SDL_RENDERER_SOFTWARE) != 0u;
+        bool isHardware = (info.flags & SDL_RENDERER_ACCELERATED) != 0u;
+        bool isVSyncEnabled = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0u;
+        bool isTargetTexture = (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0u;
 
         std::vector<std::string> v;
         v.reserve(4);
@@ -156,9 +163,12 @@ void OpenGLContext::logGraphicsDriverInfo() {
         }
 
         auto flags =
-            v.empty() ? "" : std::accumulate(++v.begin(), v.end(), *v.begin(), [](std::string a, std::string b) {
-                return std::move(a) + ", " + std::move(b);
-            });
+            v.empty()
+                ? ""
+                : std::accumulate(++v.begin(), v.end(), *v.begin(),
+                                  [](std::string a, std::string b) {
+                                      return std::move(a) + ", " + std::move(b);
+                                  });
 
         std::stringstream ss;
 
@@ -173,19 +183,24 @@ void OpenGLContext::logOpenGLContextInfo() {
     SPONGE_CORE_INFO("OpenGL Info:");
 
     std::stringstream ss;
-    ss << fmt::format("  {:14} {}", "Version:", (const char *)glGetString(GL_VERSION));
+    ss << fmt::format("  {:14} {}", "Version:",
+                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "GLSL:", (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    ss << fmt::format("  {:14} {}", "GLSL:",
+                      reinterpret_cast<const char*>(
+                          glGetString(GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Renderer:", (const char *)glGetString(GL_RENDERER));
+    ss << fmt::format("  {:14} {}", "Renderer:",
+                      reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Vendor:", (const char *)glGetString(GL_VENDOR));
+    ss << fmt::format("  {:14} {}", "Vendor:",
+                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
     SPONGE_CORE_INFO(ss.str());
 
@@ -202,4 +217,4 @@ void OpenGLContext::logStaticOpenGLInfo() {
 #endif
 }
 
-}  // namespace Sponge
+}  // namespace sponge

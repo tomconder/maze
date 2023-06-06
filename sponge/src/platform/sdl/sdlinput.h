@@ -1,10 +1,9 @@
 #pragma once
 
+#include "core/input.h"
 #include <SDL.h>
 
-#include "core/input.h"
-
-namespace Sponge {
+namespace sponge {
 
 class SDLInput : public Input {
    public:
@@ -21,4 +20,4 @@ class SDLInput : public Input {
     const SDL_Scancode& mapKeyCodeToScanCode(KeyCode key);
 };
 
-}  // namespace Sponge
+}  // namespace sponge

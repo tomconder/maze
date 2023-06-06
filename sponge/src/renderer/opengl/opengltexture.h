@@ -1,18 +1,18 @@
 #pragma once
 
-#include <string>
-
 #include "renderer/opengl/gl.h"
 #include "renderer/texture.h"
+#include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLTexture : public Texture {
    public:
     OpenGLTexture();
     ~OpenGLTexture() override;
 
-    void generate(uint32_t textureWidth, uint32_t textureHeight, uint32_t bytesPerPixel, const unsigned char *data);
+    void generate(uint32_t textureWidth, uint32_t textureHeight,
+                  uint32_t bytesPerPixel, const unsigned char* data);
 
     uint32_t getWidth() const override {
         return width;
@@ -28,7 +28,7 @@ class OpenGLTexture : public Texture {
     };
 
     void bind() const override;
-    void setType(const std::string_view &typeName) {
+    void setType(const std::string_view& typeName) {
         type = typeName;
     }
 
@@ -40,4 +40,4 @@ class OpenGLTexture : public Texture {
     std::string type;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

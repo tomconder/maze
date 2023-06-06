@@ -3,7 +3,7 @@
 #include "renderer/opengl/gl.h"
 #include "renderer/vertexarray.h"
 
-namespace Sponge {
+namespace sponge {
 
 class OpenGLVertexArray : public VertexArray {
    public:
@@ -16,4 +16,4 @@ class OpenGLVertexArray : public VertexArray {
     uint32_t id = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

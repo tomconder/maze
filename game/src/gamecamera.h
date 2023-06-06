@@ -1,19 +1,18 @@
 #pragma once
 
+#include "sponge.h"
 #include <glm/mat4x4.hpp>
 
-#include "sponge.h"
-
-class GameCamera : public Sponge::Camera {
+class GameCamera : public sponge::Camera {
    public:
     GameCamera();
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
 
-    const glm::mat4 &getMVP() const {
+    const glm::mat4& getMVP() const {
         return mvp;
     }
 
-    void setPosition(const glm::vec3 &position);
+    void setPosition(const glm::vec3& position);
     glm::vec3 getPosition() const {
         return cameraPos;
     }
@@ -23,8 +22,8 @@ class GameCamera : public Sponge::Camera {
     void strafeLeft(unsigned int delta);
     void strafeRight(unsigned int delta);
 
-    void mouseMove(const glm::vec2 &offset);
-    void mouseScroll(const glm::vec2 &offset);
+    void mouseMove(const glm::vec2& offset);
+    void mouseScroll(const glm::vec2& offset);
 
    private:
     void updateProjection();

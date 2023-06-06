@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace Sponge {
+namespace sponge {
 
 // inspired by glfw3.h
 enum class KeyCode : uint16_t {
@@ -141,4 +141,4 @@ enum class KeyCode : uint16_t {
     SpongeKey_Menu = 348
 };
 
-}  // namespace Sponge
+}  // namespace sponge

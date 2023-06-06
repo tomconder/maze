@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace Sponge {
+namespace sponge {
 
 using MouseCode = uint16_t;
 
@@ -24,4 +24,4 @@ enum : MouseCode {
     ButtonMiddle = Button2
 };
 
-}  // namespace Sponge
+}  // namespace sponge

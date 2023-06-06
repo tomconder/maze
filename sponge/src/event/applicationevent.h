@@ -2,11 +2,12 @@
 
 #include "event/event.h"
 
-namespace Sponge {
+namespace sponge {
 
 class WindowResizeEvent : public Event {
    public:
-    WindowResizeEvent(uint32_t width, uint32_t height) : width(width), height(height) {}
+    WindowResizeEvent(uint32_t width, uint32_t height)
+        : width(width), height(height) {}
 
     uint32_t getWidth() const {
         return width;
@@ -39,4 +40,4 @@ class WindowFullscreenEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
-}  // namespace Sponge
+}  // namespace sponge

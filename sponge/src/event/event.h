@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace Sponge {
+namespace sponge {
 
 enum class EventType {
     None = 0,
@@ -27,15 +27,23 @@ enum EventCategory {
     EventCategoryMouseButton = BIT(4)
 };
 
-#define BIND_EVENT_FN(fn) \
-    [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
+#define BIND_EVENT_FN(fn)                                       \
+    [this](auto&&... args) -> decltype(auto) {                  \
+        return this->fn(std::forward<decltype(args)>(args)...); \
+    }
 
-#define EVENT_CLASS_TYPE(type)                                   \
-    static EventType getStaticType() { return EventType::type; } \
-    EventType getEventType() const override { return getStaticType(); }
+#define EVENT_CLASS_TYPE(type)                \
+    static EventType getStaticType() {        \
+        return EventType::type;               \
+    }                                         \
+    EventType getEventType() const override { \
+        return getStaticType();               \
+    }
 
-#define EVENT_CLASS_CATEGORY(category) \
-    int getCategoryFlags() const override { return category; }
+#define EVENT_CLASS_CATEGORY(category)      \
+    int getCategoryFlags() const override { \
+        return category;                    \
+    }
 
 class Event {
    public:
@@ -47,7 +55,7 @@ class Event {
     virtual int getCategoryFlags() const = 0;
 
     bool isInCategory(EventCategory category) const {
-        return getCategoryFlags() & category;
+        return (getCategoryFlags() & category) != 0;
     }
 };
 
@@ -68,4 +76,4 @@ class EventDispatcher {
     Event& event;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

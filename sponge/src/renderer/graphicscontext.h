@@ -2,13 +2,13 @@
 
 #include "glm/vec4.hpp"
 
-namespace Sponge {
+namespace sponge {
 
 class GraphicsContext {
    public:
     virtual ~GraphicsContext() = default;
 
-    virtual void flip(void *window) = 0;
+    virtual void flip(void* window) = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

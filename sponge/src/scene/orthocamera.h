@@ -1,11 +1,10 @@
 #pragma once
 
+#include "scene/camera.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
-#include "scene/camera.h"
-
-namespace Sponge {
+namespace sponge {
 
 class OrthoCamera : public Camera {
    public:
@@ -26,10 +25,10 @@ class OrthoCamera : public Camera {
    private:
     void updateProjection(float width, float height);
 
-    glm::mat4 projection = glm::mat4(1.f);
+    glm::mat4 projection = glm::mat4(1.F);
 
     float w;
     float h;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

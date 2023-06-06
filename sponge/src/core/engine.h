@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "core/base.h"
 #include "core/input.h"
 #include "event/event.h"
 #include "renderer/opengl/openglcontext.h"
 #include "renderer/opengl/openglrendererapi.h"
+#include <string>
 
-namespace Sponge {
+namespace sponge {
 
 class Engine {
    public:
@@ -24,4 +23,4 @@ class Engine {
     virtual void onEvent(Event& event) = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Sponge {
+namespace sponge {
 
 class Buffer {
    public:
@@ -9,4 +9,4 @@ class Buffer {
     virtual void bind() const = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

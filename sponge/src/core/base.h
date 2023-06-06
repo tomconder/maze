@@ -1,7 +1,6 @@
 #pragma once
 
+#include "core/log.h"
 #include <cstdint>
 
-#include "core/log.h"
-
-#define BIT(x) (1 << x)
+#define BIT(x) (1 << (x))

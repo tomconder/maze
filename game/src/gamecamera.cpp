@@ -1,5 +1,4 @@
 #include "gamecamera.h"
-
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -23,7 +22,7 @@ void GameCamera::setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight
     updateProjection();
 }
 
-void GameCamera::setPosition(const glm::vec3 &position) {
+void GameCamera::setPosition(const glm::vec3& position) {
     cameraPos = position;
     updateView();
 }
@@ -48,11 +47,11 @@ void GameCamera::strafeRight(unsigned int delta) {
     updateView();
 }
 
-void GameCamera::mouseMove(const glm::vec2 &offset) {
+void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x * cameraSpeed;
     pitch += offset.y * cameraSpeed;
 
-    pitch = glm::clamp(pitch, -89.f, 89.f);
+    pitch = glm::clamp(pitch, -89.F, 89.F);
 
     glm::vec3 front;
     front.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
@@ -63,12 +62,12 @@ void GameCamera::mouseMove(const glm::vec2 &offset) {
     updateView();
 }
 
-void GameCamera::mouseScroll(const glm::vec2 &offset) {
+void GameCamera::mouseScroll(const glm::vec2& offset) {
     if (offset.y == 0) {
         return;
     }
 
     fov -= offset.y * 5;
-    fov = glm::clamp(fov, 30.f, 120.0f);
+    fov = glm::clamp(fov, 30.F, 120.0F);
     updateProjection();
 }

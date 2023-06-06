@@ -3,7 +3,7 @@
 #include "core/base.h"
 #include "core/layer.h"
 
-namespace Sponge {
+namespace sponge {
 
 class LayerStack {
    public:
@@ -33,4 +33,4 @@ class LayerStack {
     uint32_t layerInsertIndex = 0;
 };
 
-}  // namespace Sponge
+}  // namespace sponge

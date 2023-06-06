@@ -3,7 +3,7 @@
 #include "core/keycode.h"
 #include "event/event.h"
 
-namespace Sponge {
+namespace sponge {
 
 class KeyEvent : public Event {
    public:
@@ -49,4 +49,4 @@ class KeyTypedEvent : public KeyEvent {
     EVENT_CLASS_TYPE(KeyTyped)
 };
 
-}  // namespace Sponge
+}  // namespace sponge
