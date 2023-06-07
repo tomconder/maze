@@ -64,9 +64,9 @@ bool SDLEngine::start() {
 #endif
 
     graphics->logGlVersion();
-    OpenGLContext::logStaticOpenGLInfo();
-    OpenGLContext::logGraphicsDriverInfo();
-    OpenGLContext::logOpenGLContextInfo();
+    graphics->logStaticOpenGLInfo();
+    graphics->logGraphicsDriverInfo();
+    graphics->logOpenGLContextInfo();
 
 #ifdef EMSCRIPTEN
     sdlWindow->setVSync(false);

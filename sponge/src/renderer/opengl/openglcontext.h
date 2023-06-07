@@ -16,15 +16,15 @@ class OpenGLContext : public GraphicsContext {
 
     void flip(void* window) override;
 
-    static void logGlVersion();
+    void logGlVersion();
 
     void toggleFullscreen(void* window);
 
-    static void logGraphicsDriverInfo();
+    void logGraphicsDriverInfo();
 
-    static void logOpenGLContextInfo();
+    void logOpenGLContextInfo();
 
-    static void logStaticOpenGLInfo();
+    void logStaticOpenGLInfo();
 
    private:
     int width = 0;
