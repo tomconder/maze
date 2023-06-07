@@ -3,19 +3,24 @@
 void HUDLayer::onAttach() {
     orthoCamera = std::make_unique<sponge::OrthoCamera>();
 
-    auto shader = sponge::OpenGLResourceManager::loadShader("assets/shaders/text.vert", "assets/shaders/text.frag", TEXT_SHADER);
+    auto shader = sponge::OpenGLResourceManager::loadShader(
+        "assets/shaders/text.vert", "assets/shaders/text.frag", TEXT_SHADER);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    font = sponge::OpenGLResourceManager::loadFont("assets/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
+    font = sponge::OpenGLResourceManager::loadFont(
+        "assets/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
 
-    shader = sponge::OpenGLResourceManager::loadShader("assets/shaders/sprite.vert", "assets/shaders/sprite.frag", SPRITE_SHADER);
+    shader = sponge::OpenGLResourceManager::loadShader(
+        "assets/shaders/sprite.vert", "assets/shaders/sprite.frag",
+        SPRITE_SHADER);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    sponge::OpenGLResourceManager::loadTexture("assets/images/coffee.png", COFFEE_TEXTURE);
+    sponge::OpenGLResourceManager::loadTexture("assets/images/coffee.png",
+                                               COFFEE_TEXTURE);
     logo = std::make_unique<sponge::OpenGLSprite>(COFFEE_TEXTURE);
 }
 
@@ -35,7 +40,8 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
 void HUDLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<sponge::WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
+    dispatcher.dispatch<sponge::WindowResizeEvent>(
+        BIND_EVENT_FN(onWindowResize));
 }
 
 bool HUDLayer::onWindowResize(const sponge::WindowResizeEvent& event) {

@@ -34,7 +34,8 @@ void Maze::onEvent(sponge::Event& event) {
 }
 
 bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape || event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
+        event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
         isRunning = false;
         return true;
     }

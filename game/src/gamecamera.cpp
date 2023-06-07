@@ -7,7 +7,8 @@ GameCamera::GameCamera() {
 }
 
 void GameCamera::updateProjection() {
-    projection = glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
+    projection =
+        glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
     mvp = projection * view;
 }
 
@@ -16,7 +17,8 @@ void GameCamera::updateView() {
     mvp = projection * view;
 }
 
-void GameCamera::setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight) {
+void GameCamera::setViewportSize(uint32_t viewportWidth,
+                                 uint32_t viewportHeight) {
     width = static_cast<float>(viewportWidth);
     height = static_cast<float>(viewportHeight);
     updateProjection();
@@ -38,12 +40,14 @@ void GameCamera::moveForward(unsigned int delta) {
 }
 
 void GameCamera::strafeLeft(unsigned int delta) {
-    cameraPos -= glm::normalize(glm::cross(cameraFront, up)) * static_cast<float>(delta) * cameraSpeed;
+    cameraPos -= glm::normalize(glm::cross(cameraFront, up)) *
+                 static_cast<float>(delta) * cameraSpeed;
     updateView();
 }
 
 void GameCamera::strafeRight(unsigned int delta) {
-    cameraPos += glm::normalize(glm::cross(cameraFront, up)) * static_cast<float>(delta) * cameraSpeed;
+    cameraPos += glm::normalize(glm::cross(cameraFront, up)) *
+                 static_cast<float>(delta) * cameraSpeed;
     updateView();
 }
 

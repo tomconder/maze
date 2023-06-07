@@ -22,7 +22,8 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(uint32_t elapsedTime) {
-    if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_W) || sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Up)) {
+    if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_W) ||
+        sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Up)) {
         camera->moveForward(elapsedTime);
     } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_S) ||
                sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Down)) {
@@ -50,8 +51,10 @@ void MazeLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
-    dispatcher.dispatch<sponge::MouseScrolledEvent>(BIND_EVENT_FN(onMouseScrolled));
-    dispatcher.dispatch<sponge::WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
+    dispatcher.dispatch<sponge::MouseScrolledEvent>(
+        BIND_EVENT_FN(onMouseScrolled));
+    dispatcher.dispatch<sponge::WindowResizeEvent>(
+        BIND_EVENT_FN(onWindowResize));
 }
 
 bool MazeLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
