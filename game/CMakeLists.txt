@@ -70,6 +70,8 @@ if (EMSCRIPTEN)
     target_link_libraries(game PRIVATE glm::glm)
     target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
     target_link_libraries(game PRIVATE sponge)
+
+    install(FILES $<TARGET_FILE_DIR:game> DESTINATION .)
 else ()
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
