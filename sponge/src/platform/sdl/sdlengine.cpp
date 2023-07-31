@@ -94,6 +94,8 @@ bool SDLEngine::start() {
 
     SDL_ShowWindow(window);
 
+    SDL_EventState(SDL_TEXTINPUT, SDL_FALSE);
+
     return true;
 }
 
