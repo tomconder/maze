@@ -93,9 +93,29 @@ else ()
                 ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
                 SKIP_PRECOMPILE_HEADERS ON)
         add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
-                ${app_icon_macos} assets)
+                ${app_icon_macos})
+
+        add_custom_command(
+                TARGET game
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+                COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets"
+                VERBATIM DEPENDS ${ASSETS})
+
+        # CMake provides a standalone bundle application to fix up shared libraries
+        # found in the app bundle See
+        # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
     else ()
         add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
+
+        add_custom_command(
+                TARGET game
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
+                COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets"
+                VERBATIM DEPENDS ${ASSETS})
     endif ()
 
     set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
@@ -114,16 +134,4 @@ else ()
     target_link_libraries(game PRIVATE glm::glm)
     target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
     target_link_libraries(game PUBLIC sponge)
-
-    # CMake provides a standalone bundle application to fix up shared libraries
-    # found in the app bundle See
-    # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
-
-    add_custom_command(
-            TARGET game
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
-            COMMENT "Copying assets to ${CMAKE_SOURCE_DIR}/build/assets"
-            VERBATIM DEPENDS ${ASSETS})
 endif ()

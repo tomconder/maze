@@ -1,9 +1,33 @@
 #include "mazelayer.h"
 
+#if __APPLE__
+#include <CoreFoundation/CFBundle.h>
+
+std::string getResourcesDir() {
+    CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
+    char resourcePath[PATH_MAX];
+    if (CFURLGetFileSystemRepresentation(resourceURL, true,
+                                         (UInt8*)resourcePath, PATH_MAX)) {
+        if (resourceURL != NULL) {
+            CFRelease(resourceURL);
+        }
+        return resourcePath;
+    }
+
+    return "../Resources";
+}
+#endif
+
 void MazeLayer::onAttach() {
+#if __APPLE__
+    std::string assetsFolder = getResourcesDir();
+#else
+    std::string assetsFolder = "assets";
+#endif
+
     sponge::OpenGLResourceManager::loadShader(
-        "assets/shaders/shader.vert", "assets/shaders/shader.frag", "shader");
-    sponge::OpenGLResourceManager::loadModel("assets/models/mountains.obj",
+        assetsFolder + "/shaders/shader.vert", assetsFolder + "/shaders/shader.frag", "shader");
+    sponge::OpenGLResourceManager::loadModel(assetsFolder + "/models/mountains.obj",
                                              "Maze");
 
     camera = std::make_unique<GameCamera>();

@@ -9,12 +9,12 @@ std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::glLogger;
 
-void Log::init() {
+void Log::init(std::string_view logfile) {
     std::vector<spdlog::sink_ptr> logSinks;
     logSinks.emplace_back(
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-        SPONGE_LOG_FILE, true));
+        logfile.data(), true));
 
     auto console = spdlog::stdout_color_mt("console");
     spdlog::set_default_logger(console);
