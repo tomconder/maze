@@ -80,7 +80,7 @@ else ()
     if (WIN32)
         set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
         add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
-        target_include_directories(game PRIVATE assets/icons)
+        target_include_directories(game PRIVATE bundle/icons)
     elseif (APPLE)
         set(MACOSX_BUNDLE_ICON_FILE maze.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME ${CMAKE_PROJECT_NAME})
@@ -88,7 +88,7 @@ else ()
         set(MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
 
-        set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/assets/icons/maze.icns")
+        set(app_icon_macos "bundle/icons/maze.icns")
         set_source_files_properties(
                 ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
                 SKIP_PRECOMPILE_HEADERS ON)
