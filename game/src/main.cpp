@@ -18,6 +18,7 @@ bool iterateLoop() {
     return maze->iterateLoop();
 }
 
+#if __APPLE__
 std::string expandTilde(const char* str) {
     if (!str)
         return {};
@@ -42,6 +43,7 @@ std::string settingsPath() {
         throw std::runtime_error("Failed to get settings folder");
     }
 }
+#endif
 
 bool startup() {
 #ifdef __APPLE__
