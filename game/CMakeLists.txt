@@ -58,10 +58,10 @@ if (EMSCRIPTEN)
     set(TARGET_LINK_PROPERTIES "-std=c++17 -O3 -s ALLOW_MEMORY_GROWTH=1")
     set(TARGET_LINK_PROPERTIES
             "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
-            )
+    )
     set(TARGET_LINK_PROPERTIES
             "${TARGET_LINK_PROPERTIES} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@assets"
-            )
+    )
     set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
     target_include_directories(game PUBLIC src)
@@ -108,7 +108,9 @@ else ()
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
     else ()
         add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
+    endif ()
 
+    if (NOT APPLE)
         add_custom_command(
                 TARGET game
                 POST_BUILD
@@ -134,4 +136,15 @@ else ()
     target_link_libraries(game PRIVATE glm::glm)
     target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
     target_link_libraries(game PUBLIC sponge)
+
+    install(TARGETS game BUNDLE DESTINATION .)
+
+    set(APPS "$<TARGET_BUNDLE_DIR:game>")
+
+    install(CODE "
+        set(BU_CHMOD_BUNDLE_ITEMS ON)
+        include(BundleUtilities)
+        fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
+            COMPONENT Runtime
+    )
 endif ()
