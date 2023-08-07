@@ -8,7 +8,6 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
-        src/platform/*.h
         src/platform/sdl/*.h
         src/renderer/*.h
         src/renderer/opengl/*.h
@@ -19,11 +18,17 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/platform/*.cpp
         src/platform/sdl/*.cpp
         src/renderer/*.cpp
         src/renderer/opengl/*.cpp
         src/scene/*.cpp)
+
+if (APPLE)
+    file(GLOB OSX_HEADERS src/platform/osx/*.h)
+    list(APPEND HEADER_FILES ${OSX_HEADERS})
+    file(GLOB OSX_SOURCES src/platform/osx/*.cpp)
+    list(APPEND SOURCE_FILES ${OSX_SOURCES})
+endif ()
 
 if (MSVC)
     list(APPEND SOURCE_FILES src/spongepch.cpp)
@@ -52,7 +57,7 @@ if (EMSCRIPTEN)
             "${TARGET_LINK_PROPERTIES} -O3 -s ALLOW_MEMORY_GROWTH=1")
     set(TARGET_LINK_PROPERTIES
             "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
-            )
+    )
 
     set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 

@@ -6,11 +6,6 @@
 #include "sponge.h"
 #include "version.h"
 
-#if __APPLE__
-#include <glob.h>
-#include <sysdir.h>
-#endif
-
 std::unique_ptr<Maze> maze;
 
 // loop iteration is broken out like this for emscripten
@@ -18,40 +13,8 @@ bool iterateLoop() {
     return maze->iterateLoop();
 }
 
-#if __APPLE__
-std::string expandTilde(const char* str) {
-    if (!str)
-        return {};
-
-    glob_t globbuf;
-    if (glob(str, GLOB_TILDE, nullptr, &globbuf) == 0) {
-        std::string result(globbuf.gl_pathv[0]);
-        globfree(&globbuf);
-        return result;
-    } else {
-        throw std::runtime_error("Unable to expand tilde");
-    }
-}
-
-std::string settingsPath() {
-    char path[PATH_MAX];
-    auto state = sysdir_start_search_path_enumeration(
-        SYSDIR_DIRECTORY_APPLICATION_SUPPORT, SYSDIR_DOMAIN_MASK_USER);
-    if ((state = sysdir_get_next_search_path_enumeration(state, path))) {
-        return expandTilde(path);
-    } else {
-        throw std::runtime_error("Failed to get settings folder");
-    }
-}
-#endif
-
 bool startup() {
-#ifdef __APPLE__
-    std::string logfile = settingsPath() + "/maze/" + SPONGE_LOG_FILE;
-#else
-    std::string logfile = SPONGE_LOG_FILE;
-#endif
-
+    auto logfile = sponge::File::getLogDir() + SPONGE_LOG_FILE;
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");

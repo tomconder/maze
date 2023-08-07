@@ -4,6 +4,7 @@
 
 #include "core/base.h"
 #include "core/engine.h"
+#include "core/file.h"
 #include "core/input.h"
 #include "core/keycode.h"
 #include "core/layer.h"
