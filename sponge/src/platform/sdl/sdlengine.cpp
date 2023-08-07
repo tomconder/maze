@@ -116,17 +116,15 @@ bool SDLEngine::iterateLoop() {
         }
     }
 
-    renderer->clear();
-
     currentTime = SDL_GetTicks();
     elapsedTime = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
+    renderer->clear();
+
     if (!onUserUpdate(elapsedTime)) {
         quit = true;
     }
-
-    graphics->flip(sdlWindow->getNativeWindow());
 
     if (quit && onUserDestroy()) {
 #ifdef EMSCRIPTEN
@@ -136,6 +134,8 @@ bool SDLEngine::iterateLoop() {
 
         return true;
     }
+
+    graphics->flip(sdlWindow->getNativeWindow());
 
     return false;
 }
