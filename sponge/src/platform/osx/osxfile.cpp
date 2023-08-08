@@ -16,7 +16,7 @@ std::string OSXFile::expandTilde(const char* str) {
     throw std::runtime_error("Unable to expand tilde");
 }
 
-std::string OSXFile::getOSXResourceDir() {
+std::string OSXFile::getResourceDir() {
     CFURLRef resourceURL =
         CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
     char resourcePath[PATH_MAX];
@@ -32,7 +32,7 @@ std::string OSXFile::getOSXResourceDir() {
     return "../Resources";
 }
 
-std::string OSXFile::getOSXLogDir() {
+std::string OSXFile::getLogDir() {
     char path[PATH_MAX];
 
     auto state = sysdir_start_search_path_enumeration(

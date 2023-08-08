@@ -6,7 +6,7 @@ std::string File::getLogDir() {
     std::string result = {};
 
 #ifdef __APPLE__
-    result = OSXFile::getOSXLogDir();
+    result = OSXFile::getLogDir();
 #endif
 #ifdef __WINDOWS__
     result = WinFile::getLogDir();
@@ -19,7 +19,7 @@ std::string File::getResourceDir() {
     std::string result = "assets";
 
 #ifdef __APPLE__
-    result = OSXFile::getOSXResourceDir();
+    result = OSXFile::getResourceDir();
 #endif
 
     return result;
