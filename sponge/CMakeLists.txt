@@ -24,6 +24,7 @@ file(
         src/scene/*.cpp)
 
 if (APPLE)
+    message(STATUS "Including OSX platform files")
     file(GLOB OSX_HEADERS src/platform/osx/*.h)
     list(APPEND HEADER_FILES ${OSX_HEADERS})
     file(GLOB OSX_SOURCES src/platform/osx/*.cpp)
@@ -31,7 +32,11 @@ if (APPLE)
 endif ()
 
 if (MSVC)
-    list(APPEND SOURCE_FILES src/spongepch.cpp)
+    message(STATUS "Including Windows platform files")
+    file(GLOB WIN_HEADERS src/platform/windows/*.h)
+    list(APPEND HEADER_FILES ${WIN_HEADERS})
+    file(GLOB WIN_SOURCES src/platform/windows/*.cpp)
+    list(APPEND SOURCE_FILES ${WIN_SOURCES})
 endif ()
 
 find_package(glad CONFIG REQUIRED)
@@ -76,12 +81,18 @@ else ()
 
     # pre-compiled header support
     message(STATUS "Compiling using pre-compiled header support")
+    list(APPEND SOURCE_FILES src/spongepch.cpp)
     target_precompile_headers(sponge PUBLIC src/spongepch.h)
     set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
     if (MSVC)
-        target_compile_options(sponge PUBLIC "/Zi")
-        target_link_options(sponge PUBLIC "/INCREMENTAL")
+        # incremental builds
+        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
+        target_link_options(sponge PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
+
+        # hardening
+        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+        target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
     endif ()
 
     target_include_directories(sponge PUBLIC src)

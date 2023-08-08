@@ -8,6 +8,9 @@ std::string File::getLogDir() {
 #ifdef __APPLE__
     result = OSXFile::getOSXLogDir();
 #endif
+#ifdef __WINDOWS__
+    result = WinFile::getLogDir();
+#endif
 
     return result;
 }

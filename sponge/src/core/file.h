@@ -16,3 +16,7 @@ class File {
 #ifdef __APPLE__
 #include "platform/osx/osxfile.h"
 #endif
+
+#ifdef __WINDOWS__
+#include "platform/windows/winfile.h"
+#endif
