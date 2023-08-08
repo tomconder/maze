@@ -6,11 +6,11 @@ Input* Input::instance = new SDLInput();
 
 SDLInput::SDLInput() {
     initializeScanCodeMap();
+    state = SDL_GetKeyboardState(nullptr);
 }
 
 bool SDLInput::isKeyPressedImpl(KeyCode key) {
-    const Uint8* state = SDL_GetKeyboardState(nullptr);
-    return state[mapKeyCodeToScanCode(key)] != 0u;
+    return state[mapKeyCodeToScanCode(key)] != 0;
 }
 
 bool SDLInput::isButtonPressedImpl() {

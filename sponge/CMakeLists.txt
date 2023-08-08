@@ -8,7 +8,6 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
-        src/platform/*.h
         src/platform/sdl/*.h
         src/renderer/*.h
         src/renderer/opengl/*.h
@@ -19,14 +18,25 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/platform/*.cpp
         src/platform/sdl/*.cpp
         src/renderer/*.cpp
         src/renderer/opengl/*.cpp
         src/scene/*.cpp)
 
+if (APPLE)
+    message(STATUS "Including OSX platform files")
+    file(GLOB OSX_HEADERS src/platform/osx/*.h)
+    list(APPEND HEADER_FILES ${OSX_HEADERS})
+    file(GLOB OSX_SOURCES src/platform/osx/*.cpp)
+    list(APPEND SOURCE_FILES ${OSX_SOURCES})
+endif ()
+
 if (MSVC)
-    list(APPEND SOURCE_FILES src/spongepch.cpp)
+    message(STATUS "Including Windows platform files")
+    file(GLOB WIN_HEADERS src/platform/windows/*.h)
+    list(APPEND HEADER_FILES ${WIN_HEADERS})
+    file(GLOB WIN_SOURCES src/platform/windows/*.cpp)
+    list(APPEND SOURCE_FILES ${WIN_SOURCES})
 endif ()
 
 find_package(glad CONFIG REQUIRED)
@@ -52,7 +62,7 @@ if (EMSCRIPTEN)
             "${TARGET_LINK_PROPERTIES} -O3 -s ALLOW_MEMORY_GROWTH=1")
     set(TARGET_LINK_PROPERTIES
             "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
-            )
+    )
 
     set_target_properties(sponge PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
 
@@ -71,12 +81,18 @@ else ()
 
     # pre-compiled header support
     message(STATUS "Compiling using pre-compiled header support")
+    list(APPEND SOURCE_FILES src/spongepch.cpp)
     target_precompile_headers(sponge PUBLIC src/spongepch.h)
     set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
     if (MSVC)
-        target_compile_options(sponge PUBLIC "/Zi")
-        target_link_options(sponge PUBLIC "/INCREMENTAL")
+        # incremental builds
+        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
+        target_link_options(sponge PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
+
+        # hardening
+        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+        target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
     endif ()
 
     target_include_directories(sponge PUBLIC src)

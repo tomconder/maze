@@ -15,7 +15,7 @@ namespace sponge {
 
 class Log {
    public:
-    static void init();
+    static void init(std::string_view logfile);
 
     static void shutdown() {
         spdlog::shutdown();

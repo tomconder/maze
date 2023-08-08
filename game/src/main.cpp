@@ -14,7 +14,8 @@ bool iterateLoop() {
 }
 
 bool startup() {
-    sponge::Log::init();
+    auto logfile = sponge::File::getLogDir() + SPONGE_LOG_FILE;
+    sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
 

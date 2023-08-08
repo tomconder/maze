@@ -18,6 +18,8 @@ class SDLInput : public Input {
 
     void initializeScanCodeMap();
     const SDL_Scancode& mapKeyCodeToScanCode(KeyCode key);
+
+    const uint8_t* state;
 };
 
 }  // namespace sponge
