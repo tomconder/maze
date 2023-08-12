@@ -15,6 +15,7 @@ on:
 
 env:
   BUILD_TYPE: Release
+  CONFIGURE_PRESET: x64-release
   VCPKG_DEFAULT_TRIPLET: x64-windows
 
 jobs:
@@ -39,7 +40,7 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset x64-release
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{env.CONFIGURE_PRESET}}
       
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
