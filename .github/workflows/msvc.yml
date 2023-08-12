@@ -35,7 +35,7 @@ jobs:
           vcpkgGitCommitId: '9d47b24eacbd1cd94f139457ef6cd35e5d92cc84'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      # use the msvc developer command prompt to give us the default the windows sDK
+      # provide the default windows sdk
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
