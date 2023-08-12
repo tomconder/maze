@@ -26,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # set up build with the most recent versuin of cmake and ninja
       - uses: lukka/get-cmake@latest
 
       - name: Setup vcpkg (it does not install any package yet)
@@ -33,16 +34,10 @@ jobs:
         id: runvcpkg
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
+          vcpkgGitCommitId: '9d47b24eacbd1cd94f139457ef6cd35e5d92cc84'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-#      - name: Run CMake for configure
-#        uses: lukka/run-cmake@v10
-#        with:
-#          configurePreset: x64-release
-#          buildPreset: build-windows
-
-      # Used the Developer Command Prompt to target x64 and use the default the Windows SDK.
+      # use the msvc developer command prompt to give us the default the windows sDK
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
@@ -50,4 +45,3 @@ jobs:
       
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
-
