@@ -36,8 +36,15 @@ jobs:
           vcpkgGitCommitId: '501db0f17ef6df184fcdbfbe0f87cde2313b6ab1'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Run CMake for configure
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: x64-release
-          buildPreset: build-windows
+#      - name: Run CMake for configure
+#        uses: lukka/run-cmake@v10
+#        with:
+#          configurePreset: x64-release
+#          buildPreset: build-windows
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset x64-release
+      
+      - name: Build
+        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
+
