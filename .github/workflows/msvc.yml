@@ -1,18 +1,28 @@
-name: vcpkg-cmake
+name: msvc
+
 on:
   push:
     branches:
-      - main
+    - main
+    - feature/*
+    paths-ignore:
+    - '**.md'
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    branches: [main]
+    paths-ignore:
+    - '**.md'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
   build:
-    name: Build and analyze
     runs-on: windows-latest
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
       VCPKG_DEFAULT_TRIPLET: x64-windows
+
     steps:
       - uses: actions/checkout@v3
 
