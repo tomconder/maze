@@ -124,8 +124,6 @@ else ()
                 COMMENT "Copying assets to bundle content folder"
                 VERBATIM DEPENDS ${ASSETS})
 
-        install(TARGETS game BUNDLE DESTINATION .)
-
         set(APPS "$<TARGET_BUNDLE_DIR:game>")
 
         install(CODE "
@@ -134,6 +132,8 @@ else ()
         fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
                 COMPONENT Runtime
         )
+
+        install(TARGETS game BUNDLE DESTINATION .)
     else ()
         add_custom_command(
                 TARGET game
