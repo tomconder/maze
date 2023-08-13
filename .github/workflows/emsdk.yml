@@ -1,4 +1,4 @@
-name: msvc
+name: emsdk
 
 on:
   push:
