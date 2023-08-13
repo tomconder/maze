@@ -1,0 +1,42 @@
+name: osx
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  CONFIGURE_PRESET: osx-release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # set up build with the most recent versuin of cmake and ninja
+      - uses: lukka/get-cmake@latest
+
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '9d47b24eacbd1cd94f139457ef6cd35e5d92cc84'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Build
+        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
