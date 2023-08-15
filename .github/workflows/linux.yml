@@ -27,6 +27,12 @@ jobs:
       # set up build with the most recent versuin of cmake and ninja
       - uses: lukka/get-cmake@latest
 
+      - name: Install Packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-multilib zip unzip
+          sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
+
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
