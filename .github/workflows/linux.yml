@@ -24,7 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # set up build with the most recent versuin of cmake and ninja
       - uses: lukka/get-cmake@latest
 
       - name: Install Packages

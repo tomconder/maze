@@ -25,7 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # set up build with the most recent versuin of cmake and ninja
       - uses: lukka/get-cmake@latest
 
       - name: Setup vcpkg (it does not install any package yet)
@@ -36,8 +35,8 @@ jobs:
           vcpkgGitCommitId: '9d47b24eacbd1cd94f139457ef6cd35e5d92cc84'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      # provide the default windows sdk
-      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup default windows sdk
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{env.CONFIGURE_PRESET}}
