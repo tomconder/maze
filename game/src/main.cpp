@@ -21,8 +21,12 @@ bool startup() {
 
     maze = std::make_unique<Maze>();
 
-    std::string appName = "Maze ";
-    appName += MAZE_VERSION;
+    std::stringstream ss;
+    ss << fmt::format("{} {} {}", game::project_name, game::project_version,
+                      game::git_sha);
+    std::string appName = ss.str();
+
+    SPONGE_INFO("{}", appName);
 
 #ifdef EMSCRIPTEN
     uint32_t width = 800;

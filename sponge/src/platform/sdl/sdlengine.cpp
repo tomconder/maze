@@ -21,7 +21,6 @@ SDLEngine::SDLEngine() {
 
 bool SDLEngine::construct(std::string_view name, uint32_t width,
                           uint32_t height) {
-    SPONGE_CORE_INFO("{}", name);
     w = width;
     h = height;
     appName = name;
