@@ -15,5 +15,7 @@ class ExitLayer : public sponge::Layer {
     std::shared_ptr<sponge::OpenGLFont> font;
     std::unique_ptr<sponge::OrthoCamera> orthoCamera;
 
+    bool onMouseMoved(const sponge::MouseMovedEvent& event);
+    bool onMouseScrolled(const sponge::MouseScrolledEvent& event);
     bool onWindowResize(const sponge::WindowResizeEvent& event);
 };

@@ -14,18 +14,18 @@ void ExitLayer::onAttach() {
 
     font = sponge::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
-
-    SPONGE_INFO("ExitLayer attached");
 }
 
 void ExitLayer::onDetach() {
     // nothing
-    SPONGE_INFO("ExitLayer detached");
 }
 
 void ExitLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
+    dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
+    dispatcher.dispatch<sponge::MouseScrolledEvent>(
+        BIND_EVENT_FN(onMouseScrolled));
     dispatcher.dispatch<sponge::WindowResizeEvent>(
         BIND_EVENT_FN(onWindowResize));
 }
@@ -69,4 +69,12 @@ bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
     shader->unbind();
 
     return false;
+}
+
+bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
+    return true;
+}
+
+bool ExitLayer::onMouseScrolled(const sponge::MouseScrolledEvent& event) {
+    return true;
 }
