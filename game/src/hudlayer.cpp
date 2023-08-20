@@ -1,5 +1,10 @@
 #include "hudlayer.h"
 
+static const char* const COFFEE_TEXTURE = "coffee";
+static const char* const GOTHIC_FONT = "league-gothic";
+static const char* const SPRITE_SHADER = "sprite";
+static const char* const TEXT_SHADER = "text";
+
 void HUDLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 
@@ -35,7 +40,14 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
     logo->render({ orthoCamera->getWidth() - 76.F, 12.F }, { 64.F, 64.F });
-    font->render("Press [Q] to exit", { 12.F, orthoCamera->getHeight() - 12.F },
+
+    auto shader = sponge::OpenGLResourceManager::getShader(TEXT_SHADER);
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
+
+    font->render("Press [Q] to exit",
+                 { 12.F, static_cast<float>(orthoCamera->getHeight()) - 12.F },
                  28, { 0.5, 0.9F, 1.0F });
     return true;
 }

@@ -28,10 +28,19 @@ class SDLEngine : public Engine {
 
     void pushOverlay(Layer* layer);
     void pushLayer(Layer* layer);
+    void popLayer(Layer* layer);
+    void popOverlay(Layer* layer);
 
     static void logSDLVersion();
 
     void toggleFullscreen();
+
+    uint32_t getHeight() {
+        return h;
+    }
+    uint32_t getWidth() {
+        return w;
+    }
 
    private:
     std::string appName = "undefined";

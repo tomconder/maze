@@ -4,13 +4,14 @@
 namespace sponge {
 
 void OrthoCamera::setWidthAndHeight(uint32_t width, uint32_t height) {
-    w = static_cast<float>(width);
-    h = static_cast<float>(height);
+    w = width;
+    h = height;
     updateProjection(w, h);
 }
 
-void OrthoCamera::updateProjection(float width, float height) {
-    projection = glm::ortho(0.F, width, 0.F, height, -1.F, 1.F);
+void OrthoCamera::updateProjection(uint32_t width, uint32_t height) {
+    projection = glm::ortho(0.F, static_cast<float>(width), 0.F,
+                            static_cast<float>(height), -1.F, 1.F);
 }
 
 }  // namespace sponge

@@ -246,6 +246,14 @@ void SDLEngine::pushLayer(Layer* layer) {
     layer->onAttach();
 }
 
+void SDLEngine::popLayer(Layer* layer) {
+    layerStack->popLayer(layer);
+}
+
+void SDLEngine::popOverlay(Layer* layer) {
+    layerStack->popOverlay(layer);
+}
+
 void SDLEngine::initializeKeyCodeMap() {
     keyCodeMap[SDL_SCANCODE_SPACE] = KeyCode::SpongeKey_Space;
     keyCodeMap[SDL_SCANCODE_APOSTROPHE] = KeyCode::SpongeKey_Apostrophe;

@@ -7,8 +7,8 @@
 #include "sponge.h"
 
 bool Maze::onUserCreate() {
-    pushOverlay(new HUDLayer());
-    pushLayer(new MazeLayer());
+    pushOverlay(hudLayer);
+    pushLayer(mazeLayer);
 
     return true;
 }
@@ -36,7 +36,16 @@ void Maze::onEvent(sponge::Event& event) {
 bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
-        isRunning = false;
+        // isRunning = false;
+        if (hasExit) {
+            popLayer(exitLayer);
+            hasExit = false;
+        } else {
+            pushLayer(exitLayer);
+            exitLayer->setWidthAndHeight(getWidth(), getHeight());
+            hasExit = true;
+        }
+
         return true;
     }
 

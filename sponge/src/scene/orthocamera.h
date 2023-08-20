@@ -14,21 +14,21 @@ class OrthoCamera : public Camera {
 
     void setWidthAndHeight(uint32_t width, uint32_t height);
 
-    float getWidth() const {
+    uint32_t getWidth() const {
         return w;
     }
 
-    float getHeight() const {
+    uint32_t getHeight() const {
         return h;
     }
 
    private:
-    void updateProjection(float width, float height);
+    void updateProjection(uint32_t width, uint32_t height);
 
     glm::mat4 projection = glm::mat4(1.F);
 
-    float w;
-    float h;
+    uint32_t w;
+    uint32_t h;
 };
 
 }  // namespace sponge
