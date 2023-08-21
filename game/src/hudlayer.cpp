@@ -41,11 +41,6 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
 
     logo->render({ orthoCamera->getWidth() - 76.F, 12.F }, { 64.F, 64.F });
 
-    auto shader = sponge::OpenGLResourceManager::getShader(TEXT_SHADER);
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
-
     font->render("Maze",
                  { 12.F, static_cast<float>(orthoCamera->getHeight()) - 12.F },
                  28, { 0.5, 0.9F, 1.0F });
