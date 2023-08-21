@@ -9,8 +9,6 @@ class ExitLayer : public sponge::Layer {
     void onEvent(sponge::Event& event) override;
     bool onUpdate(uint32_t elapsedTime) override;
 
-    void setWidthAndHeight(uint32_t width, uint32_t height);
-
    private:
     std::shared_ptr<sponge::OpenGLFont> font;
     std::unique_ptr<sponge::OrthoCamera> orthoCamera;

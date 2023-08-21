@@ -8,12 +8,7 @@ void ExitLayer::onAttach() {
 
     orthoCamera = std::make_unique<sponge::OrthoCamera>();
 
-    auto shader = sponge::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", TEXT_SHADER);
-
-    font = sponge::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
+    font = sponge::OpenGLResourceManager::getFont(GOTHIC_FONT);
 }
 
 void ExitLayer::onDetach() {
@@ -34,11 +29,6 @@ void ExitLayer::onEvent(sponge::Event& event) {
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto shader = sponge::OpenGLResourceManager::getShader(TEXT_SHADER);
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
-
     font->render("Exit Game?",
                  { static_cast<float>(orthoCamera->getWidth()) / 2.F - 70.F,
                    static_cast<float>(orthoCamera->getHeight()) / 2.F + 136.F },
@@ -50,15 +40,6 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
                  48, { 1.F, 1.F, 1.F });
 
     return true;
-}
-
-void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
-    orthoCamera->setWidthAndHeight(width, height);
-
-    auto shader = sponge::OpenGLResourceManager::getShader(TEXT_SHADER);
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
 }
 
 bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
@@ -73,13 +54,16 @@ bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
 }
 
 bool ExitLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
+    UNUSED(event);
     return true;
 }
 
 bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
+    UNUSED(event);
     return true;
 }
 
 bool ExitLayer::onMouseScrolled(const sponge::MouseScrolledEvent& event) {
+    UNUSED(event);
     return true;
 }
