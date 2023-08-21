@@ -36,6 +36,12 @@ class GameCamera : public sponge::Camera {
     float pitch = 0.f;
     float yaw = -90.f;
 
+#ifdef __MSVC__
+    float keyboardSpeed = 0.1f;
+#else
+    float keyboardSpeed = 1.f;
+#endif
+
     float cameraSpeed = 0.1f;
 
     float width = 0.f;

@@ -30,24 +30,24 @@ void GameCamera::setPosition(const glm::vec3& position) {
 }
 
 void GameCamera::moveBackward(unsigned int delta) {
-    cameraPos -= static_cast<float>(delta) * cameraFront * cameraSpeed;
+    cameraPos -= static_cast<float>(delta) * cameraFront * keyboardSpeed;
     updateView();
 }
 
 void GameCamera::moveForward(unsigned int delta) {
-    cameraPos += static_cast<float>(delta) * cameraFront * cameraSpeed;
+    cameraPos += static_cast<float>(delta) * cameraFront * keyboardSpeed;
     updateView();
 }
 
 void GameCamera::strafeLeft(unsigned int delta) {
     cameraPos -= glm::normalize(glm::cross(cameraFront, up)) *
-                 static_cast<float>(delta) * cameraSpeed;
+                 static_cast<float>(delta) * keyboardSpeed;
     updateView();
 }
 
 void GameCamera::strafeRight(unsigned int delta) {
     cameraPos += glm::normalize(glm::cross(cameraFront, up)) *
-                 static_cast<float>(delta) * cameraSpeed;
+                 static_cast<float>(delta) * keyboardSpeed;
     updateView();
 }
 
