@@ -38,9 +38,13 @@ void ExitLayer::onEvent(sponge::Event& event) {
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
+    quad->render({ 0.F, 0.F },
+                 { orthoCamera->getWidth(), orthoCamera->getHeight() },
+                 { 0.F, 0.F, 0.F, .7F });
+
     quad->render({ orthoCamera->getWidth() * .05F, 0.F },
                  { orthoCamera->getWidth() * .95F, orthoCamera->getHeight() },
-                 { 0.F, 0.F, .2F, .9F });
+                 { 0.F, 0.F, .2F, .7F });
 
     font->render("Exit Game?",
                  { static_cast<float>(orthoCamera->getWidth()) / 2.F - 70.F,

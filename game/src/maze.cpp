@@ -62,10 +62,10 @@ bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
         // isRunning = false;
         if (hasExit) {
-            popLayer(exitLayer);
+            popOverlay(exitLayer);
             hasExit = false;
         } else {
-            pushLayer(exitLayer);
+            pushOverlay(exitLayer);
             exitLayer->setWidthAndHeight(getWidth(), getHeight());
 
             hasExit = true;
