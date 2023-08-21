@@ -23,6 +23,7 @@ void ExitLayer::onDetach() {
 void ExitLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
+    dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
     dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::MouseScrolledEvent>(
         BIND_EVENT_FN(onMouseScrolled));
@@ -69,6 +70,10 @@ bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
     shader->unbind();
 
     return false;
+}
+
+bool ExitLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
+    return true;
 }
 
 bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {

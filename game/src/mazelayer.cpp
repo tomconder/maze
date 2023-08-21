@@ -25,19 +25,7 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(uint32_t elapsedTime) {
-    if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_W) ||
-        sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Up)) {
-        camera->moveForward(elapsedTime);
-    } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_S) ||
-               sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Down)) {
-        camera->moveBackward(elapsedTime);
-    } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_A) ||
-               sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Left)) {
-        camera->strafeLeft(elapsedTime);
-    } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_D) ||
-               sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Right)) {
-        camera->strafeRight(elapsedTime);
-    }
+    UNUSED(elapsedTime);
 
     auto shader = sponge::OpenGLResourceManager::getShader("shader");
     shader->bind();
@@ -53,11 +41,30 @@ bool MazeLayer::onUpdate(uint32_t elapsedTime) {
 void MazeLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
+    dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
     dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::MouseScrolledEvent>(
         BIND_EVENT_FN(onMouseScrolled));
     dispatcher.dispatch<sponge::WindowResizeEvent>(
         BIND_EVENT_FN(onWindowResize));
+}
+
+bool MazeLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_W ||
+        event.getKeyCode() == sponge::KeyCode::SpongeKey_Up) {
+        camera->moveForward(1);
+    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_S ||
+               event.getKeyCode() == sponge::KeyCode::SpongeKey_Down) {
+        camera->moveBackward(1);
+    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_A ||
+               event.getKeyCode() == sponge::KeyCode::SpongeKey_Left) {
+        camera->strafeLeft(1);
+    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_D ||
+               event.getKeyCode() == sponge::KeyCode::SpongeKey_Right) {
+        camera->strafeRight(1);
+    }
+
+    return false;
 }
 
 bool MazeLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {

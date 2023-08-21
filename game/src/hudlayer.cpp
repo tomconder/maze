@@ -46,7 +46,7 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    font->render("Press [Q] to exit",
+    font->render("Maze",
                  { 12.F, static_cast<float>(orthoCamera->getHeight()) - 12.F },
                  28, { 0.5, 0.9F, 1.0F });
     return true;

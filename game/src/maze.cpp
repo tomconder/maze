@@ -18,6 +18,36 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         return false;
     }
 
+    if (elapsedTime > 0) {
+        sponge::KeyPressedEvent event =
+            sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_None };
+
+        if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_W)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_W };
+        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Up)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Up };
+        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_S)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_S };
+        } else if (sponge::Input::isKeyPressed(
+                       sponge::KeyCode::SpongeKey_Down)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Down };
+        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_A)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_A };
+        } else if (sponge::Input::isKeyPressed(
+                       sponge::KeyCode::SpongeKey_Left)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Left };
+        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_D)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_D };
+        } else if (sponge::Input::isKeyPressed(
+                       sponge::KeyCode::SpongeKey_Right)) {
+            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Right };
+        }
+
+        if (event.getKeyCode() != sponge::KeyCode::SpongeKey_None) {
+            onEvent(event);
+        }
+    }
+
     return sponge::SDLEngine::onUserUpdate(elapsedTime);
 }
 
