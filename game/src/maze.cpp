@@ -6,6 +6,11 @@
 
 #include "sponge.h"
 
+#define IS_KEY_PRESSED(event, keycode)              \
+    if (sponge::Input::isKeyPressed(keycode)) {     \
+        event = sponge::KeyPressedEvent{ keycode }; \
+    }
+
 bool Maze::onUserCreate() {
     pushOverlay(hudLayer);
     pushLayer(mazeLayer);
@@ -22,26 +27,15 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
         sponge::KeyPressedEvent event =
             sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_None };
 
-        if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_W)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_W };
-        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_Up)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Up };
-        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_S)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_S };
-        } else if (sponge::Input::isKeyPressed(
-                       sponge::KeyCode::SpongeKey_Down)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Down };
-        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_A)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_A };
-        } else if (sponge::Input::isKeyPressed(
-                       sponge::KeyCode::SpongeKey_Left)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Left };
-        } else if (sponge::Input::isKeyPressed(sponge::KeyCode::SpongeKey_D)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_D };
-        } else if (sponge::Input::isKeyPressed(
-                       sponge::KeyCode::SpongeKey_Right)) {
-            event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_Right };
-        }
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_W)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_A)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_S)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_D)
+
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Up)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Left)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Down)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Right)
 
         if (event.getKeyCode() != sponge::KeyCode::SpongeKey_None) {
             onEvent(event);
