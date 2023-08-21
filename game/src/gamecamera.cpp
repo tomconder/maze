@@ -52,8 +52,8 @@ void GameCamera::strafeRight(unsigned int delta) {
 }
 
 void GameCamera::mouseMove(const glm::vec2& offset) {
-    yaw += offset.x * cameraSpeed;
-    pitch += offset.y * cameraSpeed;
+    yaw += offset.x * mouseSpeed;
+    pitch += offset.y * mouseSpeed;
 
     pitch = glm::clamp(pitch, -89.F, 89.F);
 

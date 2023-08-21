@@ -37,12 +37,16 @@ class GameCamera : public sponge::Camera {
     float yaw = -90.f;
 
 #ifdef __WINDOWS__
-    float keyboardSpeed = 0.1f;
+    float keyboardSpeed = .1f;
 #else
     float keyboardSpeed = 1.f;
 #endif
 
-    float cameraSpeed = 0.1f;
+#ifdef __EMSCRIPTEN__
+    float mouseSpeed = .5f;
+#else
+    float mouseSpeed = .1f;
+#endif
 
     float width = 0.f;
     float height = 0.f;
