@@ -19,7 +19,6 @@ void HUDLayer::onAttach() {
 
     font = sponge::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
-
     shader = sponge::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/sprite.vert",
         assetsFolder + "/shaders/sprite.frag", SPRITE_SHADER);

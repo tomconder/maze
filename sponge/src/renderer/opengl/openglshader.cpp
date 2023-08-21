@@ -109,6 +109,11 @@ void OpenGLShader::setFloat3(const std::string& uname, const glm::vec3& value) {
                 value.z);
 }
 
+void OpenGLShader::setFloat4(const std::string& uname, const glm::vec4& value) {
+    glUniform4f(glGetUniformLocation(program, uname.c_str()), value.x, value.y,
+                value.z, value.a);
+}
+
 void OpenGLShader::setInteger(const std::string& uname, int value) {
     glUniform1i(glGetUniformLocation(program, uname.c_str()), value);
 }

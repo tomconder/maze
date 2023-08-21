@@ -64,5 +64,3 @@ class SDLEngine : public Engine {
 };
 
 }  // namespace sponge
-
-#define UNUSED(x) (void)(x)

@@ -20,6 +20,7 @@
 #include "renderer/buffer.h"
 #include "renderer/graphicscontext.h"
 #include "renderer/mesh.h"
+#include "renderer/opengl/openglquad.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include "renderer/opengl/openglsprite.h"
 #include "renderer/rendererapi.h"
