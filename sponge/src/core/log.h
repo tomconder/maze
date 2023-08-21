@@ -9,8 +9,6 @@
 #include "spdlog/spdlog.h"
 #endif
 
-static const char* const SPONGE_LOG_FILE = "log.txt";
-
 namespace sponge {
 
 class Log {
