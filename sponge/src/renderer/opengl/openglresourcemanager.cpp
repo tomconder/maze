@@ -90,8 +90,7 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
     SPONGE_CORE_INFO("Loading fragment shader file: {}", fragmentShader);
     std::string fragmentSource = loadSourceFromFile(fragmentShader);
 
-    auto shader =
-        std::make_shared<OpenGLShader>(name, vertexSource, fragmentSource);
+    auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource);
 
     shaders[name] = shader;
     return shader;
