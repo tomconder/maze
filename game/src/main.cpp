@@ -7,7 +7,7 @@
 #include "version.h"
 
 std::unique_ptr<Maze> maze;
-std::string_view SPONGE_LOG_FILE = "log.txt";
+constexpr std::string_view spongeLogFile = "log.txt";
 
 // loop iteration is broken out like this for emscripten
 bool iterateLoop() {
@@ -15,7 +15,7 @@ bool iterateLoop() {
 }
 
 bool startup() {
-    auto logfile = sponge::File::getLogDir() + SPONGE_LOG_FILE.data();
+    auto logfile = sponge::File::getLogDir() + spongeLogFile.data();
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
