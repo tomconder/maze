@@ -18,6 +18,9 @@ class OpenGLQuad {
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
     std::unique_ptr<OpenGLElementBuffer> ebo;
+
+    static constexpr uint32_t numIndices = 6;
+    static constexpr uint32_t numVertices = 8;
 };
 
 }  // namespace sponge
