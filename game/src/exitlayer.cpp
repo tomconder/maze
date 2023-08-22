@@ -40,16 +40,16 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 
     quad->render({ orthoCamera->getWidth() * .05F, 0.F },
                  { orthoCamera->getWidth() * .95F, orthoCamera->getHeight() },
-                 { 0.F, 0.F, .2F, .7F });
+                 { 0.F, 0.F, .1F, .7F });
 
     font->render("Exit Game?",
-                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 70.F,
-                   static_cast<float>(orthoCamera->getHeight()) / 2.F + 136.F },
+                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 90.F,
+                   static_cast<float>(orthoCamera->getHeight()) / 2.F - 46.F },
                  48, { 0.3F, 0.3F, 0.3F });
 
     font->render("Exit Game?",
-                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 72.F,
-                   static_cast<float>(orthoCamera->getHeight()) / 2.F + 140.F },
+                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 92.F,
+                   static_cast<float>(orthoCamera->getHeight()) / 2.F - 48.F },
                  48, { 1.F, 1.F, 1.F });
 
     return true;

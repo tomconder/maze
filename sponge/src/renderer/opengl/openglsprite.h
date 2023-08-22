@@ -18,12 +18,10 @@ class OpenGLSprite : public Sprite {
     std::unique_ptr<OpenGLElementBuffer> ebo;
     std::unique_ptr<OpenGLVertexArray> vao;
 
-    const std::vector<uint32_t> indices = std::vector<uint32_t>{
-        0, 1, 2,  //
-        0, 2, 3   //
-    };
-
     std::string name;
+
+    static constexpr uint32_t numIndices = 6;
+    static constexpr uint32_t numVertices = 16;
 };
 
 }  // namespace sponge

@@ -14,9 +14,15 @@ OpenGLQuad::OpenGLQuad() {
                                          numVertices * 2);
     vbo->bind();
 
+    constexpr uint32_t indices[numIndices] = {
+        0, 1, 2,  //
+        0, 2, 3   //
+    };
+
     ebo = std::make_unique<OpenGLElementBuffer>(
-        static_cast<uint32_t>(sizeof(uint32_t)) * numIndices);
+        static_cast<uint32_t>(sizeof(indices)));
     ebo->bind();
+    ebo->setData(indices, static_cast<uint32_t>(sizeof(indices)));
 
     const auto program = shader->getId();
     const auto position =
@@ -40,11 +46,6 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
         bottom.x, bottom.y   //
     };
 
-    constexpr uint32_t indices[numIndices] = {
-        0, 1, 2,  //
-        0, 2, 3   //
-    };
-
     vao->bind();
 
     const auto shader = OpenGLResourceManager::getShader("quad");
@@ -53,13 +54,13 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
-    ebo->setData(indices, static_cast<uint32_t>(sizeof(indices)));
-
     glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
+    glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
 }
 

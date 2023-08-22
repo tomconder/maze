@@ -149,28 +149,28 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
     for (const char& c : str) {
         auto ch = fontChars[c];
 
-        auto xpos = x + ch.offset.x * scale;
-        auto ypos = position.y - (ch.height + ch.offset.y) * scale;
+        const auto xpos = x + ch.offset.x * scale;
+        const auto ypos = position.y + ch.offset.y * scale;
 
-        auto w = ch.width * scale;
-        auto h = ch.height * scale;
+        const auto w = ch.width * scale;
+        const auto h = ch.height * scale;
 
-        auto texx = ch.loc.x / scaleW;
-        auto texy = ch.loc.y / scaleH;
-        auto texh = ch.height / scaleH;
-        auto texw = ch.width / scaleW;
+        const auto texx = ch.loc.x / scaleW;
+        const auto texy = ch.loc.y / scaleH;
+        const auto texh = ch.height / scaleH;
+        const auto texw = ch.width / scaleW;
 
-        auto vertices = std::vector<float>{
-            xpos,     ypos + h, texx,        texy,         //
-            xpos,     ypos,     texx,        texy + texh,  //
-            xpos + w, ypos,     texx + texw, texy + texh,  //
-            xpos + w, ypos + h, texx + texw, texy          //
+        const auto vertices = std::array<float, 16>{
+            xpos,     ypos + h, texx,        texy + texh,  //
+            xpos,     ypos,     texx,        texy,         //
+            xpos + w, ypos,     texx + texw, texy,         //
+            xpos + w, ypos + h, texx + texw, texy + texh   //
         };
 
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        auto indices = std::vector<uint32_t>{
+        const auto indices = std::array<uint32_t, 6>{
             numIndices, numIndices + 1, numIndices + 2,  //
             numIndices, numIndices + 2, numIndices + 3   //
         };
@@ -204,10 +204,12 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);
 
+    glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
 }
 

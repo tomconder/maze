@@ -1,7 +1,6 @@
 #include "renderer/opengl/openglsprite.h"
 #include "openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 #include <array>
 
 namespace sponge {
@@ -17,9 +16,15 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
                                          16);
     vbo->bind();
 
+    constexpr uint32_t indices[numIndices] = {
+        0, 1, 2,  //
+        0, 2, 3   //
+    };
+
     ebo = std::make_unique<OpenGLElementBuffer>(
-        indices.data(), static_cast<uint32_t>(sizeof(uint32_t) * 6));
+        indices, static_cast<uint32_t>(sizeof(indices)));
     ebo->bind();
+    ebo->setData(indices, static_cast<uint32_t>(sizeof(indices)));
 
     uint32_t program = shader->getId();
     if (auto location = glGetAttribLocation(program, "vertex");
@@ -27,7 +32,7 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
-                              4 * sizeof(float), (void*)nullptr);
+                              4 * sizeof(float), nullptr);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -37,30 +42,32 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
 }
 
 void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
-    std::array<float, 16> vertices = {
-        position.x,          position.y + size.y, 0.F, 0.F,  //
-        position.x,          position.y,          0.F, 1.F,  //
-        position.x + size.x, position.y,          1.F, 1.F,  //
-        position.x + size.x, position.y + size.y, 1.F, 0.F
+    const float vertices[numVertices] = {
+        position.x,          position.y + size.y, 0.F, 1.F,  //
+        position.x,          position.y,          0.F, 0.F,  //
+        position.x + size.x, position.y,          1.F, 0.F,  //
+        position.x + size.x, position.y + size.y, 1.F, 1.F
     };
 
     vao->bind();
 
-    auto shader = OpenGLResourceManager::getShader("sprite");
+    const auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
 
-    auto tex = OpenGLResourceManager::getTexture(name);
+    const auto tex = OpenGLResourceManager::getTexture(name);
     tex->bind();
 
-    vbo->setData(vertices.data(),
-                 static_cast<uint32_t>(vertices.size() * sizeof(float)));
+    vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
     glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLint>(indices.size()),
+    glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
+    glEnable(GL_CULL_FACE);
+
     shader->unbind();
 }
 
