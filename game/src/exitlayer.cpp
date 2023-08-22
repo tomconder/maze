@@ -1,21 +1,17 @@
 #include "exitlayer.h"
 
-static const char* const GOTHIC_FONT = "league-gothic";
-static const char* const QUAD_SHADER = "quad";
+constexpr std::string_view gothicFont = "league-gothic";
+constexpr std::string_view quadShader = "quad";
 
 void ExitLayer::onAttach() {
-    auto assetsFolder = sponge::File::getResourceDir();
-
     orthoCamera = std::make_unique<sponge::OrthoCamera>();
 
-    auto shader = sponge::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/quad.vert",
-        assetsFolder + "/shaders/quad.frag", QUAD_SHADER);
+    auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    font = sponge::OpenGLResourceManager::getFont(GOTHIC_FONT);
+    font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
 
     quad = std::make_unique<sponge::OpenGLQuad>();
 }
@@ -62,7 +58,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader = sponge::OpenGLResourceManager::getShader(QUAD_SHADER);
+    auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

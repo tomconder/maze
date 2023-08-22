@@ -1,9 +1,10 @@
 #include "hudlayer.h"
 
-static const char* const COFFEE_TEXTURE = "coffee";
-static const char* const GOTHIC_FONT = "league-gothic";
-static const char* const SPRITE_SHADER = "sprite";
-static const char* const TEXT_SHADER = "text";
+constexpr std::string_view coffeeTexture = "coffee";
+constexpr std::string_view gothicFont = "league-gothic";
+constexpr std::string_view quadShader = "quad";
+constexpr std::string_view spriteShader = "sprite";
+constexpr std::string_view textShader = "text";
 
 void HUDLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
@@ -12,23 +13,31 @@ void HUDLayer::onAttach() {
 
     auto shader = sponge::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", TEXT_SHADER);
+        assetsFolder + "/shaders/text.frag", textShader.data());
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
+
+    shader = sponge::OpenGLResourceManager::loadShader(
+        assetsFolder + "/shaders/quad.vert",
+        assetsFolder + "/shaders/quad.frag", quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     font = sponge::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic/league-gothic.fnt", GOTHIC_FONT);
+        assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
+        gothicFont.data());
     shader = sponge::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/sprite.vert",
-        assetsFolder + "/shaders/sprite.frag", SPRITE_SHADER);
+        assetsFolder + "/shaders/sprite.frag", spriteShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     sponge::OpenGLResourceManager::loadTexture(
-        assetsFolder + "/images/coffee.png", COFFEE_TEXTURE);
-    logo = std::make_unique<sponge::OpenGLSprite>(COFFEE_TEXTURE);
+        assetsFolder + "/images/coffee.png", coffeeTexture.data());
+    logo = std::make_unique<sponge::OpenGLSprite>(coffeeTexture.data());
 }
 
 void HUDLayer::onDetach() {
@@ -57,12 +66,12 @@ bool HUDLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     auto projection = orthoCamera->getProjection();
-    auto shader = sponge::OpenGLResourceManager::getShader(SPRITE_SHADER);
+    auto shader = sponge::OpenGLResourceManager::getShader(spriteShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = sponge::OpenGLResourceManager::getShader(TEXT_SHADER);
+    shader = sponge::OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
