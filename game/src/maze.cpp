@@ -14,6 +14,9 @@
 bool Maze::onUserCreate() {
     pushOverlay(hudLayer);
     pushLayer(mazeLayer);
+    pushOverlay(exitLayer);
+
+    exitLayer->setActive(false);
 
     return true;
 }
@@ -60,14 +63,11 @@ void Maze::onEvent(sponge::Event& event) {
 bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
-        if (hasExit) {
-            popOverlay(exitLayer);
-            hasExit = false;
+        if (exitLayer->isActive()) {
+            exitLayer->setActive(false);
         } else {
-            pushOverlay(exitLayer);
             exitLayer->setWidthAndHeight(getWidth(), getHeight());
-
-            hasExit = true;
+            exitLayer->setActive(true);
         }
 
         return true;

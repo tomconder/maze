@@ -171,9 +171,11 @@ bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     bool result = true;
 
     for (auto* layer : *layerStack) {
-        if (!layer->onUpdate(elapsedTime)) {
-            result = false;
-            break;
+        if (layer->isActive()) {
+            if (!layer->onUpdate(elapsedTime)) {
+                result = false;
+                break;
+            }
         }
     }
 
@@ -186,10 +188,12 @@ bool SDLEngine::onUserDestroy() {
 
 void SDLEngine::onEvent(Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
-        if (event.handled) {
-            break;
+        if ((*it)->isActive()) {
+            if (event.handled) {
+                break;
+            }
+            (*it)->onEvent(event);
         }
-        (*it)->onEvent(event);
     }
 }
 
@@ -239,11 +243,13 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 void SDLEngine::pushOverlay(Layer* layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
+    layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(Layer* layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
+    layer->setActive(true);
 }
 
 void SDLEngine::popLayer(Layer* layer) {

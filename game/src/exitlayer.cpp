@@ -95,7 +95,7 @@ bool ExitLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
 
 bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
     if (cancelButton->isInside({ event.getX(), event.getY() })) {
-        SPONGE_INFO("clicked cancel button");
+        setActive(false);
     }
 
     if (confirmButton->isInside({ event.getX(), event.getY() })) {

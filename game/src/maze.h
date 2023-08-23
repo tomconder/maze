@@ -18,7 +18,6 @@ class Maze : public sponge::SDLEngine {
 
    private:
     bool isRunning = true;
-    bool hasExit = false;
     ExitLayer* exitLayer = new ExitLayer();
     HUDLayer* hudLayer = new HUDLayer();
     MazeLayer* mazeLayer = new MazeLayer();

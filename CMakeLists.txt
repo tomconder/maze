@@ -18,14 +18,14 @@ message(STATUS "Configuring maze ${maze_VERSION}")
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD
-          17
+          20
           CACHE STRING "")
 endif ()
 
-if (CMAKE_CXX_STANDARD LESS 17)
+if (CMAKE_CXX_STANDARD LESS 20)
   message(
           WARNING
-          "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++17"
+          "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++20"
   )
 endif ()
 

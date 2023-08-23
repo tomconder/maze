@@ -13,6 +13,17 @@ class Layer {
     virtual void onAttach() = 0;
     virtual void onDetach() = 0;
     virtual void onEvent(Event& event) = 0;
+
+    bool isActive() {
+        return active;
+    }
+
+    void setActive(bool value) {
+        active = value;
+    }
+
+   private:
+    bool active = true;
 };
 
 }  // namespace sponge
