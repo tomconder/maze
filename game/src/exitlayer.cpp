@@ -19,11 +19,11 @@ void ExitLayer::onAttach() {
     quad = std::make_unique<sponge::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 52, confirmButtonColor,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 54, confirmButtonColor,
         glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 36, cancelButtonColor,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 32, cancelButtonColor,
         glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
@@ -51,7 +51,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, .84F });
 
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
-                 { .32F, .07F, .05F, .9F });
+                 { .52F, .57F, .55F, .9F });
 
     std::string_view message = "Exit the Game?";
     uint32_t length = font->getLength(message, 48);
@@ -60,7 +60,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     confirmButton->onUpdate(elapsedTime);
     cancelButton->onUpdate(elapsedTime);
 
-    return true;
+    return isRunning;
 }
 
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
@@ -75,8 +75,8 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
     const float inWidth = static_cast<float>(width);
     const float inHeight = static_cast<float>(height);
 
-    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 36.F },
-                               { inWidth * .77F, inHeight / 2.F + 72.F });
+    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
+                               { inWidth * .77F, inHeight / 2.F + 78.F });
 
     cancelButton->setPosition(
         { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
@@ -99,7 +99,7 @@ bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
     }
 
     if (confirmButton->isInside({ event.getX(), event.getY() })) {
-        SPONGE_INFO("clicked confirm button");
+        isRunning = false;
     }
 
     return false;

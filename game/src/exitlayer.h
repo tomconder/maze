@@ -29,4 +29,5 @@ class ExitLayer : public sponge::Layer {
     bool onWindowResize(const sponge::WindowResizeEvent& event);
 
     bool hoverCancelButton = false;
+    bool isRunning = true;
 };
