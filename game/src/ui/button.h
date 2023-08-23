@@ -7,14 +7,14 @@ namespace ui {
 class Button {
    public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-           std::string_view message, uint32_t textSize,
+           std::string_view message, uint32_t fontSize,
            const glm::vec4& buttonColor, const glm::vec3& textColor);
 
     bool onUpdate(uint32_t elapsedTime);
     bool isInside(const glm::vec2& position);
+
     void setButtonColor(const glm::vec4& color);
-    void updateTopAndBottom(const glm::vec2& topLeft,
-                            const glm::vec2& bottomRight);
+    void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
    private:
     std::shared_ptr<sponge::OpenGLFont> font;

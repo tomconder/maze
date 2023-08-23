@@ -6,13 +6,13 @@ constexpr std::string_view quadShader = "quad";
 namespace ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               std::string_view message, uint32_t textSize,
+               std::string_view message, uint32_t fontSize,
                const glm::vec4& buttonColor, const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
       buttonColor(buttonColor),
       textColor(textColor),
-      textSize(textSize) {
+      textSize(fontSize) {
     text = std::string_view(message);
     font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
     quad = std::make_unique<sponge::OpenGLQuad>();
@@ -43,8 +43,8 @@ void Button::setButtonColor(const glm::vec4& color) {
     buttonColor.a = color.a;
 }
 
-void Button::updateTopAndBottom(const glm::vec2& topLeft,
-                                const glm::vec2& bottomRight) {
+void Button::setPosition(const glm::vec2& topLeft,
+                         const glm::vec2& bottomRight) {
     top.x = topLeft.x;
     top.y = topLeft.y;
 
