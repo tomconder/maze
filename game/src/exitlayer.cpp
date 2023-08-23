@@ -16,11 +16,11 @@ void ExitLayer::onAttach() {
     quad = std::make_unique<sponge::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F, 0.F }, glm::vec2{ 0.F, 0.F }, "Confirm", 52,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 52,
         glm::vec4{ .05F, .5F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F, 0.F }, glm::vec2{ 0.F, 0.F }, "Cancel", 36,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 36,
         glm::vec4{ .35F, .35F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
