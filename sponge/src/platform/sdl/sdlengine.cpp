@@ -417,8 +417,11 @@ void SDLEngine::processEvent(SDL_Event& event) {
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        auto mouseEvent =
-            MouseButtonPressedEvent{ mapMouseButton(event.button.button) };
+        auto mouseEvent = MouseButtonPressedEvent{
+            mapMouseButton(event.button.button),
+            static_cast<float>(event.motion.x),
+            static_cast<float>(event.motion.y),
+        };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
         auto mouseEvent =
@@ -427,7 +430,9 @@ void SDLEngine::processEvent(SDL_Event& event) {
     } else if (event.type == SDL_MOUSEMOTION) {
         auto mouseEvent =
             MouseMovedEvent{ static_cast<float>(event.motion.xrel),
-                             static_cast<float>(event.motion.yrel) };
+                             static_cast<float>(event.motion.yrel),
+                             static_cast<float>(event.motion.x),
+                             static_cast<float>(event.motion.y) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;

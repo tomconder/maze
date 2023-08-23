@@ -69,7 +69,7 @@ bool MazeLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
 
 bool MazeLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
     if (sponge::Input::isButtonPressed()) {
-        camera->mouseMove({ event.getX(), event.getY() });
+        camera->mouseMove({ event.getXRelative(), event.getYRelative() });
     }
     return true;
 }

@@ -27,8 +27,20 @@ bool Button::onUpdate(uint32_t elapsedTime) {
     return false;
 }
 
-void Button::onEvent(sponge::Event& event) {
-    UNUSED(event);
+bool Button::isInside(const glm::vec2& position) {
+    if (top.x <= position.x && top.y <= position.y && bottom.x >= position.x &&
+        bottom.y >= position.y) {
+        return true;
+    }
+
+    return false;
+}
+
+void Button::setButtonColor(const glm::vec4& color) {
+    buttonColor.r = color.r;
+    buttonColor.g = color.g;
+    buttonColor.b = color.b;
+    buttonColor.a = color.a;
 }
 
 void Button::updateTopAndBottom(const glm::vec2& topLeft,

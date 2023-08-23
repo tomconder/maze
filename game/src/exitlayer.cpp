@@ -32,6 +32,8 @@ void ExitLayer::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::MouseButtonPressedEvent>(
+        BIND_EVENT_FN(onMouseClicked));
     dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::MouseScrolledEvent>(
         BIND_EVENT_FN(onMouseScrolled));
@@ -89,8 +91,31 @@ bool ExitLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
     return true;
 }
 
+bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
+    if (cancelButton->isInside({ event.getX(), event.getY() })) {
+        SPONGE_INFO("clicked cancel button");
+    }
+
+    if (confirmButton->isInside({ event.getX(), event.getY() })) {
+        SPONGE_INFO("clicked confirm button");
+    }
+
+    return false;
+}
+
 bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
-    UNUSED(event);
+    if (!hoverCancelButton &&
+        cancelButton->isInside({ event.getX(), event.getY() })) {
+        hoverCancelButton = true;
+        cancelButton->setButtonColor({ .63F, .63F, .63F, 1.F });
+    }
+
+    if (hoverCancelButton &&
+        !cancelButton->isInside({ event.getX(), event.getY() })) {
+        hoverCancelButton = false;
+        cancelButton->setButtonColor({ .35F, .35F, .35F, 1.F });
+    }
+
     return true;
 }
 

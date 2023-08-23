@@ -11,8 +11,8 @@ class Button {
            const glm::vec4& buttonColor, const glm::vec3& textColor);
 
     bool onUpdate(uint32_t elapsedTime);
-    void onEvent(sponge::Event& event);
-
+    bool isInside(const glm::vec2& position);
+    void setButtonColor(const glm::vec4& color);
     void updateTopAndBottom(const glm::vec2& topLeft,
                             const glm::vec2& bottomRight);
 
