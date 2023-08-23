@@ -34,23 +34,33 @@ void ExitLayer::onEvent(sponge::Event& event) {
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    quad->render({ 0.F, 0.F },
-                 { orthoCamera->getWidth(), orthoCamera->getHeight() },
-                 { 0.F, 0.F, 0.F, .7F });
+    auto width = static_cast<float>(orthoCamera->getWidth());
+    auto height = static_cast<float>(orthoCamera->getHeight());
 
-    quad->render({ orthoCamera->getWidth() * .05F, 0.F },
-                 { orthoCamera->getWidth() * .95F, orthoCamera->getHeight() },
-                 { 0.F, 0.F, .1F, .7F });
+    quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, .84F });
 
-    font->render("Exit Game?",
-                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 90.F,
-                   static_cast<float>(orthoCamera->getHeight()) / 2.F - 46.F },
-                 48, { 0.3F, 0.3F, 0.3F });
+    quad->render({ width * .23F, 0.F }, { width * .77F, height },
+                 { .32F, .07F, .05F, .9F });
 
-    font->render("Exit Game?",
-                 { static_cast<float>(orthoCamera->getWidth()) / 2.F - 92.F,
-                   static_cast<float>(orthoCamera->getHeight()) / 2.F - 48.F },
-                 48, { 1.F, 1.F, 1.F });
+    std::string_view message = "Exit the Game?";
+    auto length = font->getLength(message, 48);
+    font->render(message, { (width - length) / 2.F, height / 2.F - 128.F }, 48, { 1.F, 1.F, 1.F });
+
+    quad->render({ width * .23F, height / 2.F - 36.F },
+                 { width * .77F, height / 2.F + 72.F },
+                 { .05F, .5F, .35F, 1.F });
+
+    length = font->getLength("Confirm", 48);
+    font->render("Confirm", { (width - length) / 2.F, height / 2.F - 2.F }, 48,
+                 { 0.03F, 0.03F, 0.03F });
+
+    quad->render({ width / 2.F - 132.F, height / 2.F + 128.F },
+                 { width / 2.F + 132.F, height / 2.F + 186.F },
+                 { .35F, .35F, .35F, 1.F });
+
+    length = font->getLength("Cancel", 48);
+    font->render("Cancel", { (width - length) / 2.F, height / 2.F + 135.F }, 48,
+                 { 0.03F, 0.03F, 0.03F });
 
     return true;
 }
