@@ -55,7 +55,8 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 
     std::string_view message = "Exit the Game?";
     uint32_t length = font->getLength(message, 48);
-    font->render(message, { (width - length) / 2.F, height / 2.F - 128.F }, 48, { 1.F, 1.F, 1.F });
+    font->render(message, { (width - length) / 2.F, height / 2.F - 128.F }, 48,
+                 { 1.F, 1.F, 1.F });
 
     confirmButton->onUpdate(elapsedTime);
     cancelButton->onUpdate(elapsedTime);
