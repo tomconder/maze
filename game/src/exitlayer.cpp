@@ -2,6 +2,9 @@
 
 constexpr std::string_view gothicFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
+constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
+constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
+constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 
 void ExitLayer::onAttach() {
     orthoCamera = std::make_unique<sponge::OrthoCamera>();
@@ -16,12 +19,12 @@ void ExitLayer::onAttach() {
     quad = std::make_unique<sponge::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 52,
-        glm::vec4{ .05F, .5F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 52, confirmButtonColor,
+        glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 36,
-        glm::vec4{ .35F, .35F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 36, cancelButtonColor,
+        glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
 void ExitLayer::onDetach() {
@@ -106,13 +109,13 @@ bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
     if (!hoverCancelButton &&
         cancelButton->isInside({ event.getX(), event.getY() })) {
         hoverCancelButton = true;
-        cancelButton->setButtonColor({ .63F, .63F, .63F, 1.F });
+        cancelButton->setButtonColor(cancelButtonHoverColor);
     }
 
     if (hoverCancelButton &&
         !cancelButton->isInside({ event.getX(), event.getY() })) {
         hoverCancelButton = false;
-        cancelButton->setButtonColor({ .35F, .35F, .35F, 1.F });
+        cancelButton->setButtonColor(cancelButtonColor);
     }
 
     return true;
