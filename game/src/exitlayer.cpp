@@ -43,23 +43,25 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
                  { .32F, .07F, .05F, .9F });
 
     std::string_view message = "Exit the Game?";
-    auto length = font->getLength(message, 48);
+    uint32_t length = font->getLength(message, 48);
     font->render(message, { (width - length) / 2.F, height / 2.F - 128.F }, 48, { 1.F, 1.F, 1.F });
 
     quad->render({ width * .23F, height / 2.F - 36.F },
                  { width * .77F, height / 2.F + 72.F },
                  { .05F, .5F, .35F, 1.F });
 
-    length = font->getLength("Confirm", 48);
-    font->render("Confirm", { (width - length) / 2.F, height / 2.F - 2.F }, 48,
+    message = "Confirm";
+    length = font->getLength(message, 52);
+    font->render(message, { (width - length) / 2.F, height / 2.F - 2.F }, 52,
                  { 0.03F, 0.03F, 0.03F });
 
-    quad->render({ width / 2.F - 132.F, height / 2.F + 128.F },
+    quad->render({ width / 2.F - 132.F, height / 2.F + 117.F },
                  { width / 2.F + 132.F, height / 2.F + 186.F },
                  { .35F, .35F, .35F, 1.F });
 
-    length = font->getLength("Cancel", 48);
-    font->render("Cancel", { (width - length) / 2.F, height / 2.F + 135.F }, 48,
+    message = "Cancel";
+    length = font->getLength(message, 36);
+    font->render(message, { (width - length) / 2.F, height / 2.F + 135.F }, 36,
                  { 0.03F, 0.03F, 0.03F });
 
     return true;
