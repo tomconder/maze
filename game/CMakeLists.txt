@@ -27,12 +27,14 @@ endif ()
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
-        src/*.h)
+        src/*.h
+        src/ui/*.h)
 
 file(
         GLOB SOURCE_FILES
         LIST_DIRECTORIES false
-        src/*.cpp)
+        src/*.cpp
+        src/ui/*.cpp)
 
 file(
         GLOB ASSETS

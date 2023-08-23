@@ -14,6 +14,14 @@ void ExitLayer::onAttach() {
     font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
 
     quad = std::make_unique<sponge::OpenGLQuad>();
+
+    confirmButton = std::make_unique<ui::Button>(
+        glm::vec2{ 0.F, 0.F }, glm::vec2{ 0.F, 0.F }, "Confirm", 52,
+        glm::vec4{ .05F, .5F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
+
+    cancelButton = std::make_unique<ui::Button>(
+        glm::vec2{ 0.F, 0.F }, glm::vec2{ 0.F, 0.F }, "Cancel", 36,
+        glm::vec4{ .35F, .35F, .35F, 1.F }, glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
 void ExitLayer::onDetach() {
@@ -32,8 +40,6 @@ void ExitLayer::onEvent(sponge::Event& event) {
 }
 
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
-    UNUSED(elapsedTime);
-
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
@@ -46,23 +52,8 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     uint32_t length = font->getLength(message, 48);
     font->render(message, { (width - length) / 2.F, height / 2.F - 128.F }, 48, { 1.F, 1.F, 1.F });
 
-    quad->render({ width * .23F, height / 2.F - 36.F },
-                 { width * .77F, height / 2.F + 72.F },
-                 { .05F, .5F, .35F, 1.F });
-
-    message = "Confirm";
-    length = font->getLength(message, 52);
-    font->render(message, { (width - length) / 2.F, height / 2.F - 2.F }, 52,
-                 { 0.03F, 0.03F, 0.03F });
-
-    quad->render({ width / 2.F - 132.F, height / 2.F + 117.F },
-                 { width / 2.F + 132.F, height / 2.F + 186.F },
-                 { .35F, .35F, .35F, 1.F });
-
-    message = "Cancel";
-    length = font->getLength(message, 36);
-    font->render(message, { (width - length) / 2.F, height / 2.F + 135.F }, 36,
-                 { 0.03F, 0.03F, 0.03F });
+    confirmButton->onUpdate(elapsedTime);
+    cancelButton->onUpdate(elapsedTime);
 
     return true;
 }
@@ -70,10 +61,22 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
+    const auto shader =
+        sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
+
+    const float inWidth = static_cast<float>(width);
+    const float inHeight = static_cast<float>(height);
+
+    confirmButton->updateTopAndBottom(
+        { inWidth * .23F, inHeight / 2.F - 36.F },
+        { inWidth * .77F, inHeight / 2.F + 72.F });
+
+    cancelButton->updateTopAndBottom(
+        { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
+        { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
 }
 
 bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {

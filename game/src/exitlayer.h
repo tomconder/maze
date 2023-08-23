@@ -1,6 +1,8 @@
 #pragma once
 
 #include "sponge.h"
+#include "ui/button.h"
+#include <memory>
 
 class ExitLayer : public sponge::Layer {
    public:
@@ -13,8 +15,12 @@ class ExitLayer : public sponge::Layer {
 
    private:
     std::shared_ptr<sponge::OpenGLFont> font;
-    std::unique_ptr<sponge::OrthoCamera> orthoCamera;
+
     std::unique_ptr<sponge::OpenGLQuad> quad;
+    std::unique_ptr<sponge::OrthoCamera> orthoCamera;
+
+    std::unique_ptr<ui::Button> cancelButton;
+    std::unique_ptr<ui::Button> confirmButton;
 
     bool onKeyPressed(const sponge::KeyPressedEvent& event);
     bool onMouseMoved(const sponge::MouseMovedEvent& event);
