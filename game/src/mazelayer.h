@@ -13,6 +13,7 @@ class MazeLayer : public sponge::Layer {
    private:
     std::unique_ptr<GameCamera> camera;
 
+    bool onKeyPressed(const sponge::KeyPressedEvent& event);
     bool onMouseMoved(const sponge::MouseMovedEvent& event);
     bool onMouseScrolled(const sponge::MouseScrolledEvent& event);
     bool onWindowResize(const sponge::WindowResizeEvent& event);

@@ -30,13 +30,23 @@ class GameCamera : public sponge::Camera {
     void updateView();
 
     float fov = 45.f;
-    float zNear = 1.f;
-    float zFar = 18000.f;
+    static constexpr float zNear = 1.f;
+    static constexpr float zFar = 18000.f;
 
     float pitch = 0.f;
     float yaw = -90.f;
 
-    float cameraSpeed = 0.1f;
+#ifdef __WINDOWS__
+    static constexpr float keyboardSpeed = .1f;
+#else
+    static constexpr float keyboardSpeed = 1.f;
+#endif
+
+#ifdef __EMSCRIPTEN__
+    static constexpr float mouseSpeed = .5f;
+#else
+    static constexpr float mouseSpeed = .1f;
+#endif
 
     float width = 0.f;
     float height = 0.f;
@@ -49,6 +59,6 @@ class GameCamera : public sponge::Camera {
     glm::mat4 mvp = glm::mat4(1.f);
 
     glm::vec3 cameraPos = { 0.f, 0.f, 1.f };
-    glm::vec3 up = { 0.f, 1.f, 0.f };
+    static constexpr glm::vec3 up = { 0.f, 1.f, 0.f };
     glm::vec3 cameraFront = { 0.f, 0.f, -1.f };
 };

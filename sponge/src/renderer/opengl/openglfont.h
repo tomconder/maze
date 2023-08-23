@@ -4,8 +4,6 @@
 #include "renderer/opengl/openglelementbuffer.h"
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -24,8 +22,9 @@ class OpenGLFont {
    public:
     OpenGLFont();
     void load(const std::string& path);
-    void render(const std::string& text, const glm::vec2& position,
+    void render(std::string_view text, const glm::vec2& position,
                 uint32_t targetSize, const glm::vec3& color);
+    uint32_t getLength(std::string_view text, uint32_t targetSize);
 
     void log() const;
 
@@ -62,5 +61,3 @@ class OpenGLFont {
 };
 
 }  // namespace sponge
-
-#define UNUSED(x) (void)(x)

@@ -17,5 +17,3 @@ class OpenGLRendererAPI : public RendererAPI {
 };
 
 }  // namespace sponge
-
-#define UNUSED(x) (void)(x)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "exitlayer.h"
 #include "gamecamera.h"
 #include "hudlayer.h"
 #include "mazelayer.h"
@@ -17,6 +18,9 @@ class Maze : public sponge::SDLEngine {
 
    private:
     bool isRunning = true;
+    ExitLayer* exitLayer = new ExitLayer();
+    HUDLayer* hudLayer = new HUDLayer();
+    MazeLayer* mazeLayer = new MazeLayer();
 
     bool onKeyPressed(const sponge::KeyPressedEvent& event);
     bool onWindowClose(const sponge::WindowCloseEvent& event);

@@ -6,9 +6,17 @@
 
 #include "sponge.h"
 
+#define IS_KEY_PRESSED(event, keycode)              \
+    if (sponge::Input::isKeyPressed(keycode)) {     \
+        event = sponge::KeyPressedEvent{ keycode }; \
+    }
+
 bool Maze::onUserCreate() {
-    pushOverlay(new HUDLayer());
-    pushLayer(new MazeLayer());
+    pushOverlay(hudLayer);
+    pushLayer(mazeLayer);
+    pushOverlay(exitLayer);
+
+    exitLayer->setActive(false);
 
     return true;
 }
@@ -16,6 +24,25 @@ bool Maze::onUserCreate() {
 bool Maze::onUserUpdate(Uint32 elapsedTime) {
     if (!isRunning) {
         return false;
+    }
+
+    if (elapsedTime > 0) {
+        sponge::KeyPressedEvent event =
+            sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_None };
+
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_W)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_A)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_S)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_D)
+
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Up)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Left)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Down)
+        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Right)
+
+        if (event.getKeyCode() != sponge::KeyCode::SpongeKey_None) {
+            onEvent(event);
+        }
     }
 
     return sponge::SDLEngine::onUserUpdate(elapsedTime);
@@ -36,7 +63,13 @@ void Maze::onEvent(sponge::Event& event) {
 bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
-        isRunning = false;
+        if (exitLayer->isActive()) {
+            exitLayer->setActive(false);
+        } else {
+            exitLayer->setWidthAndHeight(getWidth(), getHeight());
+            exitLayer->setActive(true);
+        }
+
         return true;
     }
 

@@ -132,45 +132,68 @@ void OpenGLFont::load(const std::string& path) {
     }
 }
 
-void OpenGLFont::render(const std::string& text, const glm::vec2& position,
+uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
+    const auto scale = static_cast<float>(targetSize) / size;
+    const auto str =
+        text.length() > maxLength ? text.substr(0, maxLength) : text;
+
+    int8_t prev = 0;
+    uint32_t x = 0;
+
+    for (const char& c : str) {
+        int8_t index = static_cast<int8_t>(c);
+        auto ch = fontChars[index];
+        x += ch.xadvance * scale;
+        if (prev != 0) {
+            x +=
+                kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
+        }
+        prev = index;
+    }
+
+    return x;
+}
+
+void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                         uint32_t targetSize, const glm::vec3& color) {
-    const auto fontSize = static_cast<float>(targetSize);
+    const float fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
-    const std::string str =
+    const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::vector<float> batchVertices;
     std::vector<uint32_t> batchIndices;
     uint32_t numIndices = 0;
-    char prev = 0;
+    uint32_t prev = 0;
 
-    auto x = position.x;
+    uint32_t x = position.x;
 
     for (const char& c : str) {
-        auto ch = fontChars[c];
+        int8_t index = static_cast<int8_t>(c);
+        auto ch = fontChars[index];
 
-        auto xpos = x + ch.offset.x * scale;
-        auto ypos = position.y - (ch.height + ch.offset.y) * scale;
+        const auto xpos = x + ch.offset.x * scale;
+        const auto ypos = position.y + ch.offset.y * scale;
 
-        auto w = ch.width * scale;
-        auto h = ch.height * scale;
+        const auto w = ch.width * scale;
+        const auto h = ch.height * scale;
 
-        auto texx = ch.loc.x / scaleW;
-        auto texy = ch.loc.y / scaleH;
-        auto texh = ch.height / scaleH;
-        auto texw = ch.width / scaleW;
+        const auto texx = ch.loc.x / scaleW;
+        const auto texy = ch.loc.y / scaleH;
+        const auto texh = ch.height / scaleH;
+        const auto texw = ch.width / scaleW;
 
-        auto vertices = std::vector<float>{
-            xpos,     ypos + h, texx,        texy,         //
-            xpos,     ypos,     texx,        texy + texh,  //
-            xpos + w, ypos,     texx + texw, texy + texh,  //
-            xpos + w, ypos + h, texx + texw, texy          //
+        const auto vertices = std::array<float, 16>{
+            xpos,     ypos + h, texx,        texy + texh,  //
+            xpos,     ypos,     texx,        texy,         //
+            xpos + w, ypos,     texx + texw, texy,         //
+            xpos + w, ypos + h, texx + texw, texy + texh   //
         };
 
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        auto indices = std::vector<uint32_t>{
+        const auto indices = std::array<uint32_t, 6>{
             numIndices, numIndices + 1, numIndices + 2,  //
             numIndices, numIndices + 2, numIndices + 3   //
         };
@@ -184,7 +207,7 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
             x +=
                 kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
         }
-        prev = c;
+        prev = index;
     }
 
     vao->bind();
@@ -204,10 +227,12 @@ void OpenGLFont::render(const std::string& text, const glm::vec2& position,
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_CULL_FACE);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);
 
+    glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
 }
 

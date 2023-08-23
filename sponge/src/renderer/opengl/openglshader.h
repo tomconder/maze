@@ -8,7 +8,7 @@ namespace sponge {
 
 class OpenGLShader : public Shader {
    public:
-    OpenGLShader(std::string name, const std::string& vertexSource,
+    OpenGLShader(const std::string& vertexSource,
                  const std::string& fragmentSource);
     ~OpenGLShader() override;
 
@@ -18,12 +18,9 @@ class OpenGLShader : public Shader {
     void setBoolean(const std::string& name, bool value) override;
     void setFloat(const std::string& name, float value) override;
     void setFloat3(const std::string& name, const glm::vec3& value) override;
+    void setFloat4(const std::string& name, const glm::vec4& value) override;
     void setInteger(const std::string& name, int value) override;
     void setMat4(const std::string& name, const glm::mat4& value) override;
-
-    const std::string& getName() const override {
-        return name;
-    };
 
     GLuint getId() const {
         return program;
@@ -34,7 +31,6 @@ class OpenGLShader : public Shader {
     GLuint linkProgram(GLuint vs, GLuint fs);
 
     GLuint program = 0;
-    std::string name;
 };
 
 }  // namespace sponge

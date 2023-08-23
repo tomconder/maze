@@ -6,13 +6,10 @@
 
 namespace sponge {
 
-OpenGLShader::OpenGLShader(std::string name, const std::string& vertexSource,
-                           const std::string& fragmentSource)
-    : name(std::move(name)) {
+OpenGLShader::OpenGLShader(const std::string& vertexSource,
+                           const std::string& fragmentSource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
-
-    SPONGE_CORE_DEBUG("Building program for shader [{}]", name);
 
     GLuint vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
@@ -43,9 +40,6 @@ GLuint OpenGLShader::compileShader(const GLenum type,
     GLuint id = glCreateShader(type);
     assert(id != 0);
 
-    SPONGE_CORE_DEBUG("Compiling {} shader for shader [{}]",
-                      type == GL_VERTEX_SHADER ? "vertex" : "fragment", name);
-
     const char* shader = source.c_str();
     glShaderSource(id, 1, &shader, nullptr);
     glCompileShader(id);
@@ -72,8 +66,6 @@ GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs) {
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
-
-    SPONGE_CORE_DEBUG("Linking shader [{}]: program = {}", name, id);
 
     glLinkProgram(id);
 
@@ -107,6 +99,11 @@ void OpenGLShader::setFloat(const std::string& uname, float value) {
 void OpenGLShader::setFloat3(const std::string& uname, const glm::vec3& value) {
     glUniform3f(glGetUniformLocation(program, uname.c_str()), value.x, value.y,
                 value.z);
+}
+
+void OpenGLShader::setFloat4(const std::string& uname, const glm::vec4& value) {
+    glUniform4f(glGetUniformLocation(program, uname.c_str()), value.x, value.y,
+                value.z, value.a);
 }
 
 void OpenGLShader::setInteger(const std::string& uname, int value) {

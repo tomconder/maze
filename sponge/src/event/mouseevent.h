@@ -7,21 +7,30 @@ namespace sponge {
 
 class MouseMovedEvent : public Event {
    public:
-    MouseMovedEvent(const float x, const float y) : mouseX(x), mouseY(y) {}
+    MouseMovedEvent(const float xrel, const float yrel, float xpos, float ypos)
+        : xRelative(xrel), yRelative(yrel), x(xpos), y(ypos) {}
 
+    float getXRelative() const {
+        return xRelative;
+    }
+    float getYRelative() const {
+        return yRelative;
+    }
     float getX() const {
-        return mouseX;
+        return x;
     }
     float getY() const {
-        return mouseY;
+        return y;
     }
 
     EVENT_CLASS_TYPE(MouseMoved)
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
    private:
-    float mouseX;
-    float mouseY;
+    float xRelative;
+    float yRelative;
+    float x;
+    float y;
 };
 
 class MouseScrolledEvent : public Event {
@@ -62,10 +71,21 @@ class MouseButtonEvent : public Event {
 
 class MouseButtonPressedEvent : public MouseButtonEvent {
    public:
-    explicit MouseButtonPressedEvent(const MouseCode button)
-        : MouseButtonEvent(button) {}
+    MouseButtonPressedEvent(const MouseCode button, float xpos, float ypos)
+        : MouseButtonEvent(button), x(xpos), y(ypos) {}
+
+    float getX() const {
+        return x;
+    }
+    float getY() const {
+        return y;
+    }
 
     EVENT_CLASS_TYPE(MouseButtonPressed)
+
+   private:
+    float x;
+    float y;
 };
 
 class MouseButtonReleasedEvent : public MouseButtonEvent {

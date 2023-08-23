@@ -171,9 +171,11 @@ bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     bool result = true;
 
     for (auto* layer : *layerStack) {
-        if (!layer->onUpdate(elapsedTime)) {
-            result = false;
-            break;
+        if (layer->isActive()) {
+            if (!layer->onUpdate(elapsedTime)) {
+                result = false;
+                break;
+            }
         }
     }
 
@@ -186,10 +188,12 @@ bool SDLEngine::onUserDestroy() {
 
 void SDLEngine::onEvent(Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
-        if (event.handled) {
-            break;
+        if ((*it)->isActive()) {
+            if (event.handled) {
+                break;
+            }
+            (*it)->onEvent(event);
         }
-        (*it)->onEvent(event);
     }
 }
 
@@ -239,11 +243,21 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 void SDLEngine::pushOverlay(Layer* layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
+    layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(Layer* layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
+    layer->setActive(true);
+}
+
+void SDLEngine::popLayer(Layer* layer) {
+    layerStack->popLayer(layer);
+}
+
+void SDLEngine::popOverlay(Layer* layer) {
+    layerStack->popOverlay(layer);
 }
 
 void SDLEngine::initializeKeyCodeMap() {
@@ -409,8 +423,11 @@ void SDLEngine::processEvent(SDL_Event& event) {
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        auto mouseEvent =
-            MouseButtonPressedEvent{ mapMouseButton(event.button.button) };
+        auto mouseEvent = MouseButtonPressedEvent{
+            mapMouseButton(event.button.button),
+            static_cast<float>(event.motion.x),
+            static_cast<float>(event.motion.y),
+        };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
         auto mouseEvent =
@@ -419,7 +436,9 @@ void SDLEngine::processEvent(SDL_Event& event) {
     } else if (event.type == SDL_MOUSEMOTION) {
         auto mouseEvent =
             MouseMovedEvent{ static_cast<float>(event.motion.xrel),
-                             static_cast<float>(event.motion.yrel) };
+                             static_cast<float>(event.motion.yrel),
+                             static_cast<float>(event.motion.x),
+                             static_cast<float>(event.motion.y) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;
