@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 
 set(MAZE_VERSION 1.0)
 
@@ -54,6 +54,9 @@ endif ()
 
 # Generate compile_commands.json to help work with clang based tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Enhance error reporting and compiler messages
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 add_subdirectory(sponge)
 
