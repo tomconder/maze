@@ -10,10 +10,10 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                const glm::vec4& buttonColor, const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
+      text(message),
+      textSize(fontSize),
       buttonColor(buttonColor),
-      textColor(textColor),
-      textSize(fontSize) {
-    text = std::string_view(message);
+      textColor(textColor) {
     font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
     quad = std::make_unique<sponge::OpenGLQuad>();
 }
@@ -27,13 +27,9 @@ bool Button::onUpdate(uint32_t elapsedTime) {
     return false;
 }
 
-bool Button::isInside(const glm::vec2& position) {
-    if (top.x <= position.x && top.y <= position.y && bottom.x >= position.x &&
-        bottom.y >= position.y) {
-        return true;
-    }
-
-    return false;
+bool Button::isInside(const glm::vec2& position) const {
+    return top.x <= position.x && top.y <= position.y &&
+           bottom.x >= position.x && bottom.y >= position.y;
 }
 
 void Button::setButtonColor(const glm::vec4& color) {
@@ -51,12 +47,12 @@ void Button::setPosition(const glm::vec2& topLeft,
     bottom.x = bottomRight.x;
     bottom.y = bottomRight.y;
 
-    float width = static_cast<float>(std::abs(topLeft.x - bottomRight.x));
-    float height = static_cast<float>(std::abs(topLeft.y - bottomRight.y));
+    auto width = std::abs(topLeft.x - bottomRight.x);
+    auto height = std::abs(topLeft.y - bottomRight.y);
 
     auto length = font->getLength(text, textSize);
-    textPosition = { top.x + (width - length) / 2.F,
-                     top.y + (height - textSize) / 2.F };
+    textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
+                     top.y + (height - static_cast<float>(textSize)) / 2.F };
 }
 
 }  // namespace ui

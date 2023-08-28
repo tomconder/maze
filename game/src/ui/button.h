@@ -11,27 +11,31 @@ class Button {
            const glm::vec4& buttonColor, const glm::vec3& textColor);
 
     bool onUpdate(uint32_t elapsedTime);
-    bool isInside(const glm::vec2& position);
+    bool isInside(const glm::vec2& position) const;
 
     void setButtonColor(const glm::vec4& color);
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
-    void setHover(const bool value) { hover = value; }
-    bool hasHover() { return hover; }
+    void setHover(const bool value) {
+        hover = value;
+    }
+    bool hasHover() const {
+        return hover;
+    }
 
    private:
-    std::shared_ptr<sponge::OpenGLFont> font;
-    std::unique_ptr<sponge::OpenGLQuad> quad;
-    std::string_view text;
-    bool hover = false;
-
     glm::vec2 top;
     glm::vec2 bottom;
+    std::string_view text;
+    uint32_t textSize;
     glm::vec4 buttonColor;
     glm::vec3 textColor;
 
+    std::shared_ptr<sponge::OpenGLFont> font;
+    std::unique_ptr<sponge::OpenGLQuad> quad;
+
     glm::vec2 textPosition;
-    uint32_t textSize;
+    bool hover = false;
 };
 
 }  // namespace ui

@@ -27,7 +27,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     }
 
     if (elapsedTime > 0) {
-        sponge::KeyPressedEvent event =
+        auto event =
             sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_None };
 
         IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_W)
