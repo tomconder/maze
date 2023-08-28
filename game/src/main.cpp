@@ -6,7 +6,7 @@
 #include "sponge.h"
 #include "version.h"
 
-std::unique_ptr<Maze> maze;
+const std::unique_ptr<Maze> maze = std::make_unique<Maze>();
 constexpr std::string_view spongeLogFile = "log.txt";
 
 // loop iteration is broken out like this for emscripten
@@ -19,8 +19,6 @@ bool startup() {
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
-
-    maze = std::make_unique<Maze>();
 
     std::stringstream ss;
     ss << fmt::format("{} {} {}", game::project_name, game::project_version,
