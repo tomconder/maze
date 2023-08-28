@@ -5,6 +5,7 @@ constexpr std::string_view quadShader = "quad";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
+constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 void ExitLayer::onAttach() {
     orthoCamera = std::make_unique<sponge::OrthoCamera>();
@@ -73,8 +74,8 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    const float inWidth = static_cast<float>(width);
-    const float inHeight = static_cast<float>(height);
+    const auto inWidth = static_cast<float>(width);
+    const auto inHeight = static_cast<float>(height);
 
     confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
                                { inWidth * .77F, inHeight / 2.F + 78.F });
@@ -107,16 +108,28 @@ bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
 }
 
 bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
-    if (!hoverCancelButton &&
+    if (!cancelButton->hasHover() &&
         cancelButton->isInside({ event.getX(), event.getY() })) {
-        hoverCancelButton = true;
+        cancelButton->setHover(true);
         cancelButton->setButtonColor(cancelButtonHoverColor);
     }
 
-    if (hoverCancelButton &&
+    if (cancelButton->hasHover() &&
         !cancelButton->isInside({ event.getX(), event.getY() })) {
-        hoverCancelButton = false;
+        cancelButton->setHover(false);
         cancelButton->setButtonColor(cancelButtonColor);
+    }
+
+    if (!confirmButton->hasHover() &&
+        confirmButton->isInside({ event.getX(), event.getY() })) {
+        confirmButton->setHover(true);
+        confirmButton->setButtonColor(confirmButtonHoverColor);
+    }
+
+    if (confirmButton->hasHover() &&
+        !confirmButton->isInside({ event.getX(), event.getY() })) {
+        confirmButton->setHover(false);
+        confirmButton->setButtonColor(confirmButtonColor);
     }
 
     return true;
