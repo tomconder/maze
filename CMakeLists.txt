@@ -14,6 +14,15 @@ project(
 
 set(COPYRIGHT "Copyright 2023 Tom Conder")
 
+set(GIT_SHA
+        "no-hash"
+        CACHE STRING "Hash this build was generated from")
+string(
+        SUBSTRING "${GIT_SHA}"
+        0
+        8
+        GIT_SHORT_SHA)
+
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
 if (NOT CMAKE_CXX_STANDARD)
@@ -31,15 +40,6 @@ endif ()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(GIT_SHA
-        "no-hash"
-        CACHE STRING "Hash this build was generated from")
-string(
-        SUBSTRING "${GIT_SHA}"
-        0
-        8
-        GIT_SHORT_SHA)
 
 # Set a default build type if none was specified See
 # https://blog.kitware.com/cmake-and-the-default-build-type/ for details.
