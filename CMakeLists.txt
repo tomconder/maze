@@ -32,6 +32,15 @@ endif ()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(GIT_SHA
+        "no-hash"
+        CACHE STRING "Hash this build was generated from")
+string(
+        SUBSTRING "${GIT_SHA}"
+        0
+        8
+        GIT_SHORT_SHA)
+
 # Set a default build type if none was specified See
 # https://blog.kitware.com/cmake-and-the-default-build-type/ for details.
 set(default_build_type "Release")
