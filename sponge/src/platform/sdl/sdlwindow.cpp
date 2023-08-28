@@ -21,8 +21,7 @@ void SDLWindow::init(const WindowProps& props) {
         SPONGE_CORE_CRITICAL("Title cannot be empty");
     }
 
-    SPONGE_CORE_INFO("Creating window {} {}x{}", props.title, props.width,
-                     props.height);
+    SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
 
     window = SDL_CreateWindow(
         props.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
