@@ -7,7 +7,7 @@ void MazeLayer::onAttach() {
         assetsFolder + "/shaders/shader.vert",
         assetsFolder + "/shaders/shader.frag", "shader");
     sponge::OpenGLResourceManager::loadModel(
-        assetsFolder + "/models/mountains.obj", "Maze");
+        assetsFolder + "/models/spider.obj", "Maze");
 
     camera = std::make_unique<GameCamera>();
     camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
