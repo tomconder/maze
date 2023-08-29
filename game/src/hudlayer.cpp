@@ -47,7 +47,8 @@ void HUDLayer::onDetach() {
 bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F }, { 64.F, 64.F });
+    logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F },
+                 { 64.F, 64.F });
 
     font->render("Maze", { 12.F, 12.F }, 32, { 0.05, 0.79F, 1.0F });
     return true;
