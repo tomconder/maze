@@ -34,14 +34,15 @@ OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
                                                                     { 4, 4 },
                                                                     { 4, 3 },
                                                                     { 4, 2 },
-                                                             { 4, 1 },
-                                                             { 4, 0 },
-                                                             { 3, 3 },
-                                                             { 3, 2 },
-                                                             { 3, 1 },
-                                                             { 3, 0 },
-                                                             { 2, 1 },
-                                                             { 2, 0 } } };
+                                                                    { 4, 1 },
+                                                                    { 4, 0 },
+                                                                    { 3, 3 },
+                                                                    { 3, 2 },
+                                                                    { 3, 1 },
+                                                                    { 3, 0 },
+                                                                    { 2, 1 },
+                                                                    { 2,
+                                                                      0 } } };
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                         SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
