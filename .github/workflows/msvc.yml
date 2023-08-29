@@ -32,7 +32,7 @@ jobs:
         id: runvcpkg
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '9d47b24eacbd1cd94f139457ef6cd35e5d92cc84'
+          vcpkgGitCommitId: 'c2fbffc288f4bd5b37dc341528aa3801cec14dc9'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Setup default windows sdk
