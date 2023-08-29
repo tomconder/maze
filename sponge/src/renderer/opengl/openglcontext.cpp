@@ -9,7 +9,7 @@
 #endif
 
 #include <spdlog/fmt/fmt.h>
-#include <iomanip>
+#include <tuplet/tuple.hpp>
 #include <utility>
 
 namespace sponge {
@@ -23,17 +23,17 @@ OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef EMSCRIPTEN
-    const std::array<std::tuple<int, int>, 7> glVersions{
+    constexpr std::array<tuplet::tuple<int, int>, 7> glVersions{
         { { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } }
     };
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #else
-    const std::array<std::tuple<int, int>, 13> glVersions{ { { 4, 6 },
-                                                             { 4, 5 },
-                                                             { 4, 4 },
-                                                             { 4, 3 },
-                                                             { 4, 2 },
+    constexpr std::array<tuplet::tuple<int, int>, 13> glVersions{ { { 4, 6 },
+                                                                    { 4, 5 },
+                                                                    { 4, 4 },
+                                                                    { 4, 3 },
+                                                                    { 4, 2 },
                                                              { 4, 1 },
                                                              { 4, 0 },
                                                              { 3, 3 },
@@ -95,7 +95,7 @@ void OpenGLContext::flip(void* window) {
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
-void OpenGLContext::logGlVersion() {
+void OpenGLContext::logGlVersion() const {
     auto minorVersion = 0;
     auto majorVersion = 0;
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
@@ -118,7 +118,7 @@ void OpenGLContext::toggleFullscreen(void* window) {
     }
 }
 
-void OpenGLContext::logGraphicsDriverInfo() {
+void OpenGLContext::logGraphicsDriverInfo() const {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     const auto numVideoDrivers = SDL_GetNumVideoDrivers();
@@ -177,7 +177,7 @@ void OpenGLContext::logGraphicsDriverInfo() {
     }
 }
 
-void OpenGLContext::logOpenGLContextInfo() {
+void OpenGLContext::logOpenGLContextInfo() const {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     SPONGE_CORE_INFO("OpenGL Info:");
@@ -211,7 +211,7 @@ void OpenGLContext::logOpenGLContextInfo() {
     SPONGE_CORE_DEBUG(ss.str());
 }
 
-void OpenGLContext::logStaticOpenGLInfo() {
+void OpenGLContext::logStaticOpenGLInfo() const {
 #ifdef GL_GLEXT_VERSION
     SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
