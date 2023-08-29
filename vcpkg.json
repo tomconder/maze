@@ -34,6 +34,10 @@
         "double"
       ],
       "version>=": "2.0.0-rc9"
+    },
+    {
+      "name": "tuplet",
+      "version>=": "2.1.1"
     }
   ]
 }
