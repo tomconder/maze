@@ -1,6 +1,5 @@
 #include "renderer/opengl/openglmodel.h"
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
+#include "core/file.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include <cassert>
 #include <vector>
@@ -129,7 +128,9 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
 
     const auto& name = material.diffuse_texname;
 
-    std::string filename = std::string("assets/models/") + baseName(name);
+    auto assetsFolder = sponge::File::getResourceDir();
+    std::string filename =
+        std::string(assetsFolder + "/models/") + baseName(name);
     return OpenGLResourceManager::loadTexture(filename, name);
 }
 
