@@ -81,6 +81,8 @@ else ()
 
     add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
+    target_compile_features(sponge PRIVATE cxx_std_20)
+
     # pre-compiled header support
     message(STATUS "Compiling using pre-compiled header support")
     list(APPEND SOURCE_FILES src/spongepch.cpp)
