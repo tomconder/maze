@@ -36,7 +36,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(
         return fonts[name];
     }
 
-    SPONGE_CORE_INFO("Loading font file[{}]: {}", name, path);
+    SPONGE_CORE_INFO("Loading font file: {}", name);
 
     std::shared_ptr<OpenGLFont> font = loadFontFromFile(path);
     fonts[name] = font;
@@ -59,7 +59,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
         return models[name];
     }
 
-    SPONGE_CORE_INFO("Loading mesh file: {}", path);
+    SPONGE_CORE_INFO("Loading mesh file: {}", name);
 
     std::shared_ptr<OpenGLModel> mesh = loadModelFromFile(path);
     models[name] = mesh;
@@ -84,10 +84,10 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
         return shaders[name];
     }
 
-    SPONGE_CORE_INFO("Loading vertex shader file: {}", vertexShader);
+    SPONGE_CORE_INFO("Loading vertex shader file: {}", name);
     std::string vertexSource = loadSourceFromFile(vertexShader);
 
-    SPONGE_CORE_INFO("Loading fragment shader file: {}", fragmentShader);
+    SPONGE_CORE_INFO("Loading fragment shader file: {}", name);
     std::string fragmentSource = loadSourceFromFile(fragmentShader);
 
     auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource);
@@ -111,7 +111,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
         return textures[name];
     }
 
-    SPONGE_CORE_INFO("Loading texture file[{}]: {}", name, path);
+    SPONGE_CORE_INFO("Loading texture file: {}", name);
 
     std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
     textures[name] = texture;
