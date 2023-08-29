@@ -10,6 +10,7 @@
 
 #include <spdlog/fmt/fmt.h>
 #include <tuplet/tuple.hpp>
+#include <bit>
 #include <utility>
 
 namespace sponge {
