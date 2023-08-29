@@ -10,7 +10,6 @@
 
 #include <spdlog/fmt/fmt.h>
 #include <tuplet/tuple.hpp>
-#include <bit>
 #include <utility>
 
 namespace sponge {
@@ -185,22 +184,23 @@ void OpenGLContext::logOpenGLContextInfo() const {
 
     std::stringstream ss;
     ss << fmt::format("  {:14} {}", "Version:",
-                      std::bit_cast<const char*>(glGetString(GL_VERSION)));
+                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
     ss << fmt::format("  {:14} {}", "GLSL:",
-        std::bit_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+                      reinterpret_cast<const char*>(
+                          glGetString(GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
     ss << fmt::format("  {:14} {}", "Renderer:",
-                      std::bit_cast<const char*>(glGetString(GL_RENDERER)));
+                      reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
     ss << fmt::format("  {:14} {}", "Vendor:",
-                      std::bit_cast<const char*>(glGetString(GL_VENDOR)));
+                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
 
     SPONGE_CORE_INFO(ss.str());
 
