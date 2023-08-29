@@ -5,8 +5,6 @@ set(MAZE_VERSION 1.0)
 # increment this when we break backwards compatibility
 set(MAZE_SOVERSION 1)
 
-set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)
-
 project(
         Maze
         VERSION ${MAZE_VERSION}
