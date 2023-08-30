@@ -27,14 +27,14 @@ message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
 if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD
-          20
+          23
           CACHE STRING "")
 endif ()
 
-if (CMAKE_CXX_STANDARD LESS 20)
+if (CMAKE_CXX_STANDARD LESS 23)
   message(
           WARNING
-          "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++20"
+          "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++23"
   )
 endif ()
 

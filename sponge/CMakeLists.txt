@@ -97,6 +97,8 @@ else ()
         target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
     endif ()
 
+    set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
+
     target_include_directories(sponge PUBLIC src)
     target_include_directories(sponge PRIVATE ${Stb_INCLUDE_DIR})
 

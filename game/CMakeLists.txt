@@ -48,7 +48,7 @@ if (EMSCRIPTEN)
     message(STATUS "Emscripten: Building game for Emscripten")
 
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -O3")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
 
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
@@ -57,7 +57,7 @@ if (EMSCRIPTEN)
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze/html)
     set(ASSETS_BUILD_PATH ${CMAKE_BINARY_DIR}/maze)
 
-    set(TARGET_LINK_PROPERTIES "-std=c++20 -O3 -s ALLOW_MEMORY_GROWTH=1")
+    set(TARGET_LINK_PROPERTIES "-std=c++23 -O3 -s ALLOW_MEMORY_GROWTH=1")
     set(TARGET_LINK_PROPERTIES
             "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
     )
@@ -100,9 +100,7 @@ else ()
         add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
     endif ()
 
-    set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
-
-    target_compile_features(game PRIVATE cxx_std_20)
+    set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
     if (MSVC)
         target_compile_options(game PUBLIC "/Zi")
