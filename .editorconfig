@@ -1,24 +1,30 @@
 root = true
 
-[*]
-charset = utf-8
-
 [CMakeLists.*]
+charset = utf-8
 indent_size = 4
 indent_style = space
 
 [{*.h,*.cpp}]
+charset = utf-8
 indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.md]
+charset = utf-8
 indent_size = 2
 indent_style = space
+trim_trailing_whitespace = true
 
 [*.sh]
+charset = utf-8
 indent_size = 2
 indent_style = space
 shell_variant = bash
 switch_case_indent = true
+
+[{*.txt}]
+charset = utf-8
+end_of_line = crlf

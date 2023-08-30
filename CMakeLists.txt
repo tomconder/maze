@@ -6,7 +6,7 @@ set(MAZE_VERSION 1.0)
 set(MAZE_SOVERSION 1)
 
 project(
-        Maze
+        maze
         VERSION ${MAZE_VERSION}
         DESCRIPTION "A nice walk in a maze"
         HOMEPAGE_URL "https://gitub.com/tomconder/maze"
