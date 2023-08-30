@@ -5,7 +5,6 @@
 #include "maze.h"
 #include "sponge.h"
 #include "version.h"
-#include <stacktrace>
 
 const std::unique_ptr<Maze> maze = std::make_unique<Maze>();
 constexpr std::string_view spongeLogFile = "log.txt";
@@ -27,8 +26,6 @@ bool startup() {
     std::string appName = ss.str();
 
     SPONGE_INFO("{}", appName);
-
-    std::cout << std::stacktrace::current() << std::flush;
 
 #ifdef EMSCRIPTEN
     uint32_t width = 800;
