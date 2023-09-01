@@ -6,10 +6,12 @@
 
 #include "sponge.h"
 
-#define IS_KEY_PRESSED(event, keycode)              \
-    if (sponge::Input::isKeyPressed(keycode)) {     \
-        event = sponge::KeyPressedEvent{ keycode }; \
-    }
+constexpr std::array<sponge::KeyCode, 8> keyCodes = {
+    sponge::KeyCode::SpongeKey_W,    sponge::KeyCode::SpongeKey_A,
+    sponge::KeyCode::SpongeKey_S,    sponge::KeyCode::SpongeKey_D,
+    sponge::KeyCode::SpongeKey_Up,   sponge::KeyCode::SpongeKey_Left,
+    sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right
+};
 
 bool Maze::onUserCreate() {
     pushOverlay(hudLayer);
@@ -27,20 +29,11 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     }
 
     if (elapsedTime > 0) {
-        auto event = sponge::KeyPressedEvent{ sponge::KeyCode::SpongeKey_None };
-
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_W)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_A)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_S)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_D)
-
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Up)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Left)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Down)
-        IS_KEY_PRESSED(event, sponge::KeyCode::SpongeKey_Right)
-
-        if (event.getKeyCode() != sponge::KeyCode::SpongeKey_None) {
-            onEvent(event);
+        for (const auto& keycode : keyCodes) {
+            if (sponge::Input::isKeyPressed(keycode)) {
+                auto event = sponge::KeyPressedEvent{ keycode };
+                onEvent(event);
+            }
         }
     }
 

@@ -49,10 +49,10 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
-    quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, .84F });
+    quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, 1.F });
 
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
-                 { .52F, .57F, .55F, .9F });
+                 { .52F, .57F, .55F, 1.F });
 
     std::string_view message = "Exit the Game?";
     uint32_t length = font->getLength(message, 48);
