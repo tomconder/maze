@@ -12,7 +12,7 @@ class HUDLayer : public sponge::Layer {
    private:
     std::shared_ptr<sponge::OpenGLFont> font;
     std::shared_ptr<sponge::OpenGLSprite> logo;
-    std::unique_ptr<sponge::OrthoCamera> orthoCamera;
+    std::shared_ptr<sponge::OrthoCamera> orthoCamera;
 
     bool onWindowResize(const sponge::WindowResizeEvent& event);
 };

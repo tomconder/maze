@@ -1,5 +1,7 @@
 #include "exitlayer.h"
+#include "resourcemanager.h"
 
+constexpr std::string_view cameraName = "hud";
 constexpr std::string_view gothicFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
@@ -8,7 +10,7 @@ constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 void ExitLayer::onAttach() {
-    orthoCamera = std::make_unique<sponge::OrthoCamera>();
+    orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
 
     auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();

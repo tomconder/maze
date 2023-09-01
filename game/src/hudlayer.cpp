@@ -1,5 +1,7 @@
 #include "hudlayer.h"
+#include "resourcemanager.h"
 
+constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";
 constexpr std::string_view gothicFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
@@ -9,7 +11,7 @@ constexpr std::string_view textShader = "text";
 void HUDLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 
-    orthoCamera = std::make_unique<sponge::OrthoCamera>();
+    orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader = sponge::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/text.vert",
