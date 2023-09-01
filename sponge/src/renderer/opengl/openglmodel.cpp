@@ -129,8 +129,7 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     const auto& name = baseName(material.diffuse_texname);
 
     auto assetsFolder = sponge::File::getResourceDir();
-    std::string filename =
-        std::string(assetsFolder + "/models/") + name;
+    std::string filename = std::string(assetsFolder + "/models/") + name;
     return OpenGLResourceManager::loadTexture(filename, name);
 }
 
