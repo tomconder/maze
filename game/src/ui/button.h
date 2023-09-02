@@ -26,7 +26,7 @@ class Button {
    private:
     glm::vec2 top;
     glm::vec2 bottom;
-    std::string_view text;
+    std::string text;
     uint32_t textSize;
     glm::vec4 buttonColor;
     glm::vec3 textColor;

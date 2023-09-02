@@ -10,7 +10,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                const glm::vec4& buttonColor, const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
-      text(message),
+      text(message.data()),
       textSize(fontSize),
       buttonColor(buttonColor),
       textColor(textColor) {
