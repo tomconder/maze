@@ -4,8 +4,8 @@
 #include "renderer/opengl/openglelementbuffer.h"
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
+#include <absl/container/flat_hash_map.h>
 #include <string>
-#include <unordered_map>
 
 namespace sponge {
 
@@ -34,8 +34,8 @@ class OpenGLFont {
     std::unique_ptr<OpenGLVertexArray> vao;
     std::unique_ptr<OpenGLElementBuffer> ebo;
 
-    std::unordered_map<glm::uint32, Character> fontChars;
-    std::unordered_map<std::string, float> kerning;
+    absl::flat_hash_map<glm::uint32, Character> fontChars;
+    absl::flat_hash_map<std::string, float> kerning;
 
     // the name of font
     std::string face;

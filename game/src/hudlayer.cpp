@@ -11,7 +11,7 @@ constexpr std::string_view textShader = "text";
 void HUDLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 
-    orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
+    auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader = sponge::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/text.vert",
@@ -27,7 +27,7 @@ void HUDLayer::onAttach() {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    font = sponge::OpenGLResourceManager::loadFont(
+    auto font = sponge::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
         gothicFont.data());
     shader = sponge::OpenGLResourceManager::loadShader(
@@ -49,9 +49,11 @@ void HUDLayer::onDetach() {
 bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
+    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F },
                  { 64.F, 64.F });
 
+    auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
     font->render("Maze", { 12.F, 12.F }, 32, { 0.05, 0.79F, 1.0F });
     return true;
 }
@@ -64,6 +66,7 @@ void HUDLayer::onEvent(sponge::Event& event) {
 }
 
 bool HUDLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
+    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     auto projection = orthoCamera->getProjection();

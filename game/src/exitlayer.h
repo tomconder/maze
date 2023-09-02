@@ -14,9 +14,6 @@ class ExitLayer : public sponge::Layer {
     void setWidthAndHeight(uint32_t width, uint32_t height);
 
    private:
-    std::shared_ptr<sponge::OpenGLFont> font;
-    std::shared_ptr<sponge::OrthoCamera> orthoCamera;
-
     std::unique_ptr<sponge::OpenGLQuad> quad;
     std::unique_ptr<ui::Button> cancelButton;
     std::unique_ptr<ui::Button> confirmButton;

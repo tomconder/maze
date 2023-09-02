@@ -10,14 +10,17 @@ constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 void ExitLayer::onAttach() {
-    orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+    auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
+    auto assetsFolder = sponge::File::getResourceDir();
+    auto font = sponge::OpenGLResourceManager::loadFont(
+        assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
+        gothicFont.data());
 
     quad = std::make_unique<sponge::OpenGLQuad>();
 
@@ -48,6 +51,7 @@ void ExitLayer::onEvent(sponge::Event& event) {
 }
 
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
+    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
@@ -55,6 +59,8 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
                  { .52F, .57F, .55F, 1.F });
+
+    auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
 
     std::string_view message = "Exit the Game?";
     uint32_t length = font->getLength(message, 48);
@@ -70,6 +76,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 }
 
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
+    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
     const auto shader =

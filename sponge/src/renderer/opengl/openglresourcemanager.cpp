@@ -12,13 +12,13 @@
 
 namespace sponge {
 
-std::unordered_map<std::string, std::shared_ptr<OpenGLFont>>
+absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>>
     OpenGLResourceManager::fonts;
-std::unordered_map<std::string, std::shared_ptr<OpenGLModel>>
+absl::flat_hash_map<std::string, std::shared_ptr<OpenGLModel>>
     OpenGLResourceManager::models;
-std::unordered_map<std::string, std::shared_ptr<OpenGLShader>>
+absl::flat_hash_map<std::string, std::shared_ptr<OpenGLShader>>
     OpenGLResourceManager::shaders;
-std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>>
+absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
     OpenGLResourceManager::textures;
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(

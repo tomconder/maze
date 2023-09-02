@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/input.h"
+#include <absl/container/flat_hash_map.h>
 #include <SDL.h>
 
 namespace sponge {
@@ -14,7 +15,7 @@ class SDLInput : public Input {
     bool isButtonPressedImpl() override;
 
    private:
-    std::unordered_map<KeyCode, SDL_Scancode> scanCodeMap;
+    absl::flat_hash_map<KeyCode, SDL_Scancode> scanCodeMap;
 
     void initializeScanCodeMap();
     const SDL_Scancode& mapKeyCodeToScanCode(KeyCode key);

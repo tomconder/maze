@@ -4,9 +4,9 @@
 #include "renderer/opengl/openglmodel.h"
 #include "renderer/opengl/openglshader.h"
 #include "renderer/opengl/opengltexture.h"
+#include <absl/container/flat_hash_map.h>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 
 namespace sponge {
 
@@ -40,11 +40,12 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLTexture> loadTextureFromFile(
         const std::string& path);
 
-    static std::unordered_map<std::string, std::shared_ptr<OpenGLFont>> fonts;
-    static std::unordered_map<std::string, std::shared_ptr<OpenGLModel>> models;
-    static std::unordered_map<std::string, std::shared_ptr<OpenGLShader>>
+    static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>> fonts;
+    static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLModel>>
+        models;
+    static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLShader>>
         shaders;
-    static std::unordered_map<std::string, std::shared_ptr<OpenGLTexture>>
+    static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
         textures;
 };
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "sponge.h"
+#include <absl/container/flat_hash_map.h>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 class ResourceManager {
    public:
@@ -15,6 +15,7 @@ class ResourceManager {
    private:
     ResourceManager() = default;
 
-    static std::unordered_map<std::string, std::shared_ptr<sponge::OrthoCamera>>
+    static absl::flat_hash_map<std::string,
+                               std::shared_ptr<sponge::OrthoCamera>>
         cameras;
 };

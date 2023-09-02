@@ -6,6 +6,7 @@
 #include "core/layerstack.h"
 #include "core/mousecode.h"
 #include "platform/sdl/sdlwindow.h"
+#include <absl/container/flat_hash_map.h>
 #include <SDL.h>
 
 namespace sponge {
@@ -55,7 +56,7 @@ class SDLEngine : public Engine {
 
     uint32_t lastUpdateTime = 0;
     LayerStack* layerStack;
-    std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap;
+    absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);

@@ -1,6 +1,6 @@
 #include "resourcemanager.h"
 
-std::unordered_map<std::string, std::shared_ptr<sponge::OrthoCamera>>
+absl::flat_hash_map<std::string, std::shared_ptr<sponge::OrthoCamera>>
     ResourceManager::cameras;
 
 std::shared_ptr<sponge::OrthoCamera> ResourceManager::createOrthoCamera(
