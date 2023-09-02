@@ -137,11 +137,11 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    int8_t prev = 0;
+    auto prev = 0;
     uint32_t x = 0;
 
     for (const char& c : str) {
-        int8_t index = static_cast<int8_t>(c);
+        auto index = static_cast<uint8_t>(c);
         auto ch = fontChars[index];
         x += ch.xadvance * scale;
         if (prev != 0) {
@@ -156,7 +156,7 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
 
 void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                         uint32_t targetSize, const glm::vec3& color) {
-    const float fontSize = static_cast<float>(targetSize);
+    const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
@@ -169,7 +169,7 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     uint32_t x = position.x;
 
     for (const char& c : str) {
-        int8_t index = static_cast<int8_t>(c);
+        auto index = static_cast<uint8_t>(c);
         auto ch = fontChars[index];
 
         const auto xpos = x + ch.offset.x * scale;
