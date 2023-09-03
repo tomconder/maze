@@ -1,0 +1,43 @@
+version: 1
+
+labels:
+  - label: "documentation"
+    files:
+      - "README.md"
+
+  - label: "documentation"
+    files:
+      - "docs/.*"
+
+  - label: "tests"
+    files:
+      - "tests/.*"
+
+  - label: "game"
+    files:
+      - "game/.*"
+
+  - label: "sponge"
+    files:
+      - "sponge/.*"
+
+  - label: "CMake"
+    files:
+      - ".*CMakeLists.txt"
+      - "CMakePresets.txt"
+
+  - label: "CMake"
+    files:
+      - "cmake/.*"
+
+  - label: "CI"
+    files:
+      - ".github/workflows/.*"
+
+  - label: "S"
+    size-below: 10
+  - label: "M"
+    size-above: 9
+    size-below: 100
+  - label: "L"
+    size-above: 100
