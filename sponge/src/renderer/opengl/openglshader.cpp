@@ -2,7 +2,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 #include <sstream>
-#include <utility>
 
 namespace sponge {
 

@@ -8,7 +8,6 @@
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 #include "platform/sdl/sdlwindow.h"
-#include <glm/vec3.hpp>
 #include <SDL.h>
 #include <array>
 #include <sstream>

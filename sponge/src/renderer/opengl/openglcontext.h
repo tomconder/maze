@@ -20,9 +20,9 @@ class OpenGLContext : public GraphicsContext {
 
     void toggleFullscreen(void* window);
 
-    void logGraphicsDriverInfo() const;
+    static void logGraphicsDriverInfo();
 
-    void logOpenGLContextInfo() const;
+    static void logOpenGLContextInfo();
 
     void logStaticOpenGLInfo() const;
 

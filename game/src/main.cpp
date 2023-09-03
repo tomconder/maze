@@ -35,11 +35,11 @@ bool startup() {
     uint32_t height = 900;
 #endif
 
-    if (maze->construct(appName, width, height) == 0) {
+    if (!maze->construct(appName, width, height)) {
         return false;
     }
 
-    if (maze->start() == 0) {
+    if (!maze->start()) {
         return false;
     }
 

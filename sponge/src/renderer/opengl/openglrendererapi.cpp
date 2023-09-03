@@ -1,7 +1,5 @@
 #include "renderer/opengl/openglrendererapi.h"
 
-namespace sponge {
-
 static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id,
                                   GLenum severity, GLsizei length,
                                   const GLchar* message,
@@ -77,11 +75,15 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id,
             SPONGE_GL_INFO("{} {} [{}]: {}", source_str, type_str, id, message);
             break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
+            SPONGE_GL_DEBUG("{} {} [{}]: {}", source_str, type_str, id, message);
             break;
         default:
+            SPONGE_GL_TRACE("{} {} [{}]: {}", source_str, type_str, id, message);
             break;
     }
 }
+
+namespace sponge {
 
 void OpenGLRendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {
