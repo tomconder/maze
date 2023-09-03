@@ -35,9 +35,6 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Configure CMake
-        env:
-          CC: $(brew --prefix llvm@15)/bin/clang
-          CXX: $(brew --prefix llvm@15)/bin/clang
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
 
       - name: Build

@@ -10,7 +10,6 @@
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
 #include <array>
-#include <ranges>
 #include <sstream>
 
 namespace sponge {
@@ -187,12 +186,12 @@ bool SDLEngine::onUserDestroy() {
 }
 
 void SDLEngine::onEvent(Event& event) {
-    for (auto *it : std::ranges::reverse_view(*layerStack)) {
-        if (it->isActive()) {
+    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+        if ((*it)->isActive()) {
             if (event.handled) {
                 break;
             }
-            it->onEvent(event);
+            (*it)->onEvent(event);
         }
     }
 }
@@ -212,7 +211,7 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     auto exceedsRatio = [&proposedRatio](glm::vec3 i) {
         return proposedRatio >= i.z;
     };
-    const auto *ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == std::end(ratios)) {
         --ratio;
     }
