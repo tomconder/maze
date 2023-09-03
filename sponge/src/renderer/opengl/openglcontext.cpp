@@ -142,10 +142,10 @@ void OpenGLContext::logGraphicsDriverInfo() const {
     for (int i = 0; i < numRenderDrivers; ++i) {
         SDL_GetRenderDriverInfo(i, &info);
 
-        bool isSoftware = (info.flags & SDL_RENDERER_SOFTWARE) != 0u;
-        bool isHardware = (info.flags & SDL_RENDERER_ACCELERATED) != 0u;
-        bool isVSyncEnabled = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0u;
-        bool isTargetTexture = (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0u;
+        bool isSoftware = (info.flags & SDL_RENDERER_SOFTWARE) != 0U;
+        bool isHardware = (info.flags & SDL_RENDERER_ACCELERATED) != 0U;
+        bool isVSyncEnabled = (info.flags & SDL_RENDERER_PRESENTVSYNC) != 0U;
+        bool isTargetTexture = (info.flags & SDL_RENDERER_TARGETTEXTURE) != 0U;
 
         std::vector<std::string> v;
         v.reserve(4);

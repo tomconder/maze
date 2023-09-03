@@ -14,7 +14,7 @@ class Layer {
     virtual void onDetach() = 0;
     virtual void onEvent(Event& event) = 0;
 
-    bool isActive() {
+    bool isActive() const {
         return active;
     }
 

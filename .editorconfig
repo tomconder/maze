@@ -25,6 +25,6 @@ indent_style = space
 shell_variant = bash
 switch_case_indent = true
 
-[{*.txt}]
+[*.txt]
 charset = utf-8
 end_of_line = crlf

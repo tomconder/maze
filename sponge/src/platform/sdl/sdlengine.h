@@ -36,10 +36,10 @@ class SDLEngine : public Engine {
 
     void toggleFullscreen();
 
-    uint32_t getHeight() {
+    uint32_t getHeight() const {
         return h;
     }
-    uint32_t getWidth() {
+    uint32_t getWidth() const {
         return w;
     }
 
@@ -60,7 +60,7 @@ class SDLEngine : public Engine {
 
     void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
-    MouseCode mapMouseButton(uint8_t index);
+    static MouseCode mapMouseButton(uint8_t index);
     void processEvent(SDL_Event& event);
 };
 
