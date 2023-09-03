@@ -119,7 +119,7 @@ void OpenGLContext::toggleFullscreen(void* window) {
     }
 }
 
-void OpenGLContext::logGraphicsDriverInfo() const {
+void OpenGLContext::logGraphicsDriverInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     const auto numVideoDrivers = SDL_GetNumVideoDrivers();
@@ -178,7 +178,7 @@ void OpenGLContext::logGraphicsDriverInfo() const {
     }
 }
 
-void OpenGLContext::logOpenGLContextInfo() const {
+void OpenGLContext::logOpenGLContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     SPONGE_CORE_INFO("OpenGL Info:");
