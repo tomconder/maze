@@ -1,8 +1,7 @@
 name: "Pull Request Labeler"
 
 on:
-  pull_request_target:
-    types: [ opened, synchronize ]
+  - pull_request_target
 
 permissions: { }
 
@@ -15,6 +14,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: srvaroa/labeler@master
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - id: label-the-PR
+        uses: actions/labeler@v4
