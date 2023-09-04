@@ -112,23 +112,26 @@ void OpenGLFont::load(const std::string& path) {
         if (str == "char") {
             const auto id = std::to_string(nextInt(lineStream));
 
+            Character ch;
+            ch.loc = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.width = nextFloat(lineStream);
+            ch.height = nextFloat(lineStream);
+            ch.offset = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.xadvance = nextFloat(lineStream);
+            ch.page = static_cast<uint32_t>(nextInt(lineStream));
+
             const auto iter = fontChars.find(id);
             if (iter == fontChars.end()) {
-                fontChars.emplace(
-                    id,
-                    Character({ nextFloat(lineStream), nextFloat(lineStream) },
-                              nextFloat(lineStream), nextFloat(lineStream),
-                              { nextFloat(lineStream), nextFloat(lineStream) },
-                              nextFloat(lineStream),
-                              static_cast<uint32_t>(nextInt(lineStream))));
+                fontChars.emplace(id, ch);
             }
         }
 
         if (str == "kerning") {
             uint32_t first = nextInt(lineStream);
             uint32_t second = nextInt(lineStream);
-            float amount = nextFloat(lineStream);
             auto key = fmt::format("{}.{}", first, second);
+
+            float amount = nextFloat(lineStream);
 
             const auto iter = kerning.find(key);
             if (iter == kerning.end()) {
