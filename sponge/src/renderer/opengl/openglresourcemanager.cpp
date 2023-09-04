@@ -184,15 +184,15 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     }
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-    Uint32 rmask = 0x000000FF;
-    Uint32 gmask = 0x0000FF00;
-    Uint32 bmask = 0x00FF0000;
-    Uint32 amask = 0xFF000000;
+    constexpr uint32_t rmask = 0x000000FF;
+    constexpr uint32_t gmask = 0x0000FF00;
+    constexpr uint32_t bmask = 0x00FF0000;
+    constexpr uint32_t amask = 0xFF000000;
 #else
-    Uint32 rmask = 0xFF000000;
-    Uint32 gmask = 0x00FF0000;
-    Uint32 bmask = 0x0000FF00;
-    Uint32 amask = 0x000000FF;
+    constexpr uint32_t rmask = 0xFF000000;
+    constexpr uint32_t gmask = 0x00FF0000;
+    constexpr uint32_t bmask = 0x0000FF00;
+    constexpr uint32_t amask = 0x000000FF;
 #endif
 
     SDL_Surface* surface =
