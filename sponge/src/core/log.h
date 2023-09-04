@@ -54,8 +54,10 @@ class Log {
     SPDLOG_LOGGER_TRACE(sponge::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_DEBUG(...) \
     SPDLOG_LOGGER_DEBUG(sponge::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_INFO(...) SPDLOG_LOGGER_INFO(sponge::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_WARN(...) SPDLOG_LOGGER_WARN(sponge::Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_INFO(...) \
+    SPDLOG_LOGGER_INFO(sponge::Log::getGlLogger(), __VA_ARGS__)
+#define SPONGE_GL_WARN(...) \
+    SPDLOG_LOGGER_WARN(sponge::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_ERROR(...) \
     SPDLOG_LOGGER_ERROR(sponge::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_CRITICAL(...) \
