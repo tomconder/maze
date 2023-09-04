@@ -25,7 +25,7 @@ OpenGLFont::OpenGLFont() {
         maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
-    uint32_t program = shader->getId();
+    auto program = shader->getId();
     auto position =
         static_cast<uint32_t>(glGetAttribLocation(program, "vertex"));
     glEnableVertexAttribArray(position);

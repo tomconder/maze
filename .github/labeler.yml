@@ -1,43 +1,20 @@
-version: 1
+repo:
+  - all: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
 
-labels:
-  - label: "documentation"
-    files:
-      - "README.md"
+documentation:
+  - any: [ 'README.md', 'docs/.*' ]
 
-  - label: "documentation"
-    files:
-      - "docs/.*"
+test:
+  - tests/.*
 
-  - label: "tests"
-    files:
-      - "tests/.*"
+game:
+  - game/.*
 
-  - label: "game"
-    files:
-      - "game/.*"
+sponge:
+  - sponge/.*
 
-  - label: "sponge"
-    files:
-      - "sponge/.*"
+cmake:
+  - any: [ '.*CMakeLists.txt', 'CMakePresets.json', 'cmake/.*' ]
 
-  - label: "CMake"
-    files:
-      - ".*CMakeLists.txt"
-      - "CMakePresets.txt"
-
-  - label: "CMake"
-    files:
-      - "cmake/.*"
-
-  - label: "CI"
-    files:
-      - ".github/workflows/.*"
-
-  - label: "S"
-    size-below: 10
-  - label: "M"
-    size-above: 9
-    size-below: 100
-  - label: "L"
-    size-above: 100
+ci:
+  - .github/workflows/.*
