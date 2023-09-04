@@ -110,24 +110,33 @@ void OpenGLFont::load(const std::string& path) {
         }
 
         if (str == "char") {
-            uint32_t id = nextInt(lineStream);
-            fontChars[id].loc.x = nextFloat(lineStream);
-            fontChars[id].loc.y = nextFloat(lineStream);
-            fontChars[id].width = nextFloat(lineStream);
-            fontChars[id].height = nextFloat(lineStream);
-            fontChars[id].offset.x = nextFloat(lineStream);
-            fontChars[id].offset.y = nextFloat(lineStream);
-            fontChars[id].xadvance = nextFloat(lineStream);
-            fontChars[id].page = nextInt(lineStream);
+            const auto id = std::to_string(nextInt(lineStream));
+
+            Character ch;
+            ch.loc = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.width = nextFloat(lineStream);
+            ch.height = nextFloat(lineStream);
+            ch.offset = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.xadvance = nextFloat(lineStream);
+            ch.page = static_cast<uint32_t>(nextInt(lineStream));
+
+            const auto iter = fontChars.find(id);
+            if (iter == fontChars.end()) {
+                fontChars.emplace(id, ch);
+            }
         }
 
         if (str == "kerning") {
             uint32_t first = nextInt(lineStream);
             uint32_t second = nextInt(lineStream);
+            auto key = fmt::format("{}.{}", first, second);
+
             float amount = nextFloat(lineStream);
-            std::string key =
-                std::to_string(first) + "." + std::to_string(second);
-            kerning[key] = amount;
+
+            const auto iter = kerning.find(key);
+            if (iter == kerning.end()) {
+                kerning.emplace(key, amount);
+            }
         }
     }
 }
@@ -137,16 +146,16 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    auto prev = 0;
+    std::string prev;
     uint32_t x = 0;
 
     for (const char& c : str) {
-        auto index = static_cast<uint8_t>(c);
+        auto index = std::to_string(c);
         auto ch = fontChars[index];
         x += ch.xadvance * scale;
-        if (prev != 0) {
-            x +=
-                kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
+        if (!prev.empty()) {
+            const auto key = fmt::format("{}.{}", prev, index);
+            x += kerning[key] * scale;
         }
         prev = index;
     }
@@ -164,12 +173,12 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     std::vector<float> batchVertices;
     std::vector<uint32_t> batchIndices;
     uint32_t numIndices = 0;
-    uint32_t prev = 0;
+    std::string prev;
 
     uint32_t x = position.x;
 
     for (const char& c : str) {
-        auto index = static_cast<uint8_t>(c);
+        auto index = std::to_string(c);
         auto ch = fontChars[index];
 
         const auto xpos = x + ch.offset.x * scale;
@@ -203,9 +212,9 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         x += ch.xadvance * scale;
         numIndices += 4;
 
-        if (prev != 0) {
-            x +=
-                kerning[std::to_string(prev) + "." + std::to_string(c)] * scale;
+        if (!prev.empty()) {
+            const auto key = fmt::format("{}.{}", prev, index);
+            x += kerning[key] * scale;
         }
         prev = index;
     }

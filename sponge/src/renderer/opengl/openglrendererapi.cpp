@@ -75,10 +75,12 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, GLuint id,
             SPONGE_GL_INFO("{} {} [{}]: {}", source_str, type_str, id, message);
             break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
-            SPONGE_GL_DEBUG("{} {} [{}]: {}", source_str, type_str, id, message);
+            SPONGE_GL_DEBUG("{} {} [{}]: {}", source_str, type_str, id,
+                            message);
             break;
         default:
-            SPONGE_GL_TRACE("{} {} [{}]: {}", source_str, type_str, id, message);
+            SPONGE_GL_TRACE("{} {} [{}]: {}", source_str, type_str, id,
+                            message);
             break;
     }
 }
