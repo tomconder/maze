@@ -10,26 +10,26 @@ class LayerStack {
     LayerStack() = default;
     ~LayerStack();
 
-    void pushLayer(Layer* layer);
-    void pushOverlay(Layer* overlay);
-    void popLayer(Layer* layer);
-    void popOverlay(Layer* overlay);
+    void pushLayer(std::shared_ptr<Layer> layer);
+    void pushOverlay(std::shared_ptr<Layer> overlay);
+    void popLayer(std::shared_ptr<Layer> layer);
+    void popOverlay(std::shared_ptr<Layer> overlay);
 
-    std::vector<Layer*>::const_iterator begin() {
+    std::vector<std::shared_ptr<Layer>>::const_iterator begin() {
         return layers.begin();
     }
-    std::vector<Layer*>::const_iterator end() {
+    std::vector<std::shared_ptr<Layer>>::const_iterator end() {
         return layers.end();
     }
-    std::vector<Layer*>::const_reverse_iterator rbegin() {
+    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rbegin() {
         return layers.rbegin();
     }
-    std::vector<Layer*>::const_reverse_iterator rend() {
+    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rend() {
         return layers.rend();
     }
 
    private:
-    std::vector<Layer*> layers;
+    std::vector<std::shared_ptr<Layer>> layers;
     uint32_t layerInsertIndex = 0;
 };
 
