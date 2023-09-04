@@ -27,10 +27,10 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(Layer* layer);
-    void pushLayer(Layer* layer);
-    void popLayer(Layer* layer);
-    void popOverlay(Layer* layer);
+    void pushOverlay(std::shared_ptr<Layer> layer);
+    void pushLayer(std::shared_ptr<Layer> layer);
+    void popLayer(std::shared_ptr<Layer> layer);
+    void popOverlay(std::shared_ptr<Layer> layer);
 
     static void logSDLVersion();
 

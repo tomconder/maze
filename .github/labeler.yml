@@ -2,19 +2,19 @@ repo:
   - all: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
 
 documentation:
-  - any: [ 'README.md', 'docs/.*' ]
+  - any: [ 'README.md', 'docs/**' ]
 
-test:
-  - tests/.*
+tests:
+  - tests/**
 
 game:
-  - game/.*
+  - game/**
 
 sponge:
-  - sponge/.*
+  - sponge/**
 
 cmake:
-  - any: [ '.*CMakeLists.txt', 'CMakePresets.json', 'cmake/.*' ]
+  - any: [ '**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**' ]
 
 ci:
-  - .github/workflows/.*
+  - .github/workflows/**
