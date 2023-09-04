@@ -38,7 +38,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(
 
     SPONGE_CORE_INFO("Loading font file: {}", name);
 
-    std::shared_ptr<OpenGLFont> font = loadFontFromFile(path);
+    auto font = loadFontFromFile(path);
     fonts[name] = font;
 
     return font;
@@ -61,7 +61,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
 
     SPONGE_CORE_INFO("Loading mesh file: {}", name);
 
-    std::shared_ptr<OpenGLModel> mesh = loadModelFromFile(path);
+    auto mesh = loadModelFromFile(path);
     models[name] = mesh;
 
     return mesh;
@@ -117,7 +117,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
 
     SPONGE_CORE_INFO("Loading texture file: {}", name);
 
-    std::shared_ptr<OpenGLTexture> texture = loadTextureFromFile(path);
+    auto texture = loadTextureFromFile(path);
     textures[name] = texture;
 
     return texture;
