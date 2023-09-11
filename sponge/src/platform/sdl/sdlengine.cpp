@@ -111,8 +111,8 @@ bool SDLEngine::iterateLoop() {
         }
     }
 
-    uint32_t currentTime = SDL_GetTicks();
-    uint32_t elapsedTime = currentTime - lastUpdateTime;
+    const auto currentTime = SDL_GetTicks();
+    auto elapsedTime = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
     processEvent(event, elapsedTime);
