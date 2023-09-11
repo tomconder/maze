@@ -29,31 +29,31 @@ void GameCamera::setPosition(const glm::vec3& position) {
     updateView();
 }
 
-void GameCamera::moveBackward(unsigned int delta) {
-    cameraPos -= static_cast<float>(delta) * cameraFront * keyboardSpeed;
+void GameCamera::moveBackward(const float& delta) {
+    cameraPos -= static_cast<float>(delta) * cameraFront;
     updateView();
 }
 
-void GameCamera::moveForward(unsigned int delta) {
-    cameraPos += static_cast<float>(delta) * cameraFront * keyboardSpeed;
+void GameCamera::moveForward(const float& delta) {
+    cameraPos += static_cast<float>(delta) * cameraFront;
     updateView();
 }
 
-void GameCamera::strafeLeft(unsigned int delta) {
-    cameraPos -= glm::normalize(glm::cross(cameraFront, up)) *
-                 static_cast<float>(delta) * keyboardSpeed;
+void GameCamera::strafeLeft(const float& delta) {
+    cameraPos -=
+        glm::normalize(glm::cross(cameraFront, up)) * static_cast<float>(delta);
     updateView();
 }
 
-void GameCamera::strafeRight(unsigned int delta) {
-    cameraPos += glm::normalize(glm::cross(cameraFront, up)) *
-                 static_cast<float>(delta) * keyboardSpeed;
+void GameCamera::strafeRight(const float& delta) {
+    cameraPos +=
+        glm::normalize(glm::cross(cameraFront, up)) * static_cast<float>(delta);
     updateView();
 }
 
 void GameCamera::mouseMove(const glm::vec2& offset) {
-    yaw += offset.x * mouseSpeed;
-    pitch += offset.y * mouseSpeed;
+    yaw += offset.x;
+    pitch += offset.y;
 
     pitch = glm::clamp(pitch, -89.F, 89.F);
 

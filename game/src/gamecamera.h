@@ -17,10 +17,10 @@ class GameCamera : public sponge::Camera {
         return cameraPos;
     }
 
-    void moveForward(unsigned int delta);
-    void moveBackward(unsigned int delta);
-    void strafeLeft(unsigned int delta);
-    void strafeRight(unsigned int delta);
+    void moveForward(const float& delta);
+    void moveBackward(const float& delta);
+    void strafeLeft(const float& delta);
+    void strafeRight(const float& delta);
 
     void mouseMove(const glm::vec2& offset);
     void mouseScroll(const glm::vec2& offset);
@@ -35,18 +35,6 @@ class GameCamera : public sponge::Camera {
 
     float pitch = 0.F;
     float yaw = -90.F;
-
-#ifdef __WINDOWS__
-    static constexpr float keyboardSpeed = .1F;
-#else
-    static constexpr float keyboardSpeed = 1.F;
-#endif
-
-#ifdef __EMSCRIPTEN__
-    static constexpr float mouseSpeed = .5F;
-#else
-    static constexpr float mouseSpeed = .1F;
-#endif
 
     float width = 0.F;
     float height = 0.F;
