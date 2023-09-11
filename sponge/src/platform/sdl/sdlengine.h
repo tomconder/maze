@@ -61,7 +61,7 @@ class SDLEngine : public Engine {
     void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
     static MouseCode mapMouseButton(const uint8_t index);
-    void processEvent(SDL_Event& event, const uint32_t elapsedTime);
+    void processEvent(const SDL_Event& event, const uint32_t elapsedTime);
 };
 
 }  // namespace sponge
