@@ -410,7 +410,8 @@ void SDLEngine::processEvent(SDL_Event& event, uint32_t elapsedTime) {
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
-            auto keyEvent = KeyPressedEvent{ mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
+            auto keyEvent = KeyPressedEvent{
+                mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
             };
             onEvent(keyEvent);
         }
