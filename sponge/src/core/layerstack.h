@@ -10,10 +10,10 @@ class LayerStack {
     LayerStack() = default;
     ~LayerStack();
 
-    void pushLayer(std::shared_ptr<Layer> layer);
-    void pushOverlay(std::shared_ptr<Layer> overlay);
-    void popLayer(std::shared_ptr<Layer> layer);
-    void popOverlay(std::shared_ptr<Layer> overlay);
+    void pushLayer(const std::shared_ptr<Layer>& layer);
+    void pushOverlay(const std::shared_ptr<Layer>& overlay);
+    void popLayer(const std::shared_ptr<Layer>& layer);
+    void popOverlay(const std::shared_ptr<Layer>& overlay);
 
     std::vector<std::shared_ptr<Layer>>::const_iterator begin() {
         return layers.begin();

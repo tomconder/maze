@@ -27,10 +27,10 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(std::shared_ptr<Layer> layer);
-    void pushLayer(std::shared_ptr<Layer> layer);
-    void popLayer(std::shared_ptr<Layer> layer);
-    void popOverlay(std::shared_ptr<Layer> layer);
+    void pushOverlay(const std::shared_ptr<Layer>& layer);
+    void pushLayer(const std::shared_ptr<Layer>& layer);
+    void popLayer(const std::shared_ptr<Layer>& layer);
+    void popOverlay(const std::shared_ptr<Layer>& layer);
 
     static void logSDLVersion();
 
@@ -60,8 +60,8 @@ class SDLEngine : public Engine {
 
     void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
-    static MouseCode mapMouseButton(const uint8_t index);
-    void processEvent(const SDL_Event& event, const uint32_t elapsedTime);
+    static MouseCode mapMouseButton(uint8_t index);
+    void processEvent(const SDL_Event& event, uint32_t elapsedTime);
 };
 
 }  // namespace sponge

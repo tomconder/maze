@@ -168,7 +168,7 @@ bool SDLEngine::onUserCreate() {
 bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
     bool result = true;
 
-    for (auto layer : *layerStack) {
+    for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             if (!layer->onUpdate(elapsedTime)) {
                 result = false;
@@ -238,23 +238,23 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void SDLEngine::pushOverlay(std::shared_ptr<Layer> layer) {
+void SDLEngine::pushOverlay(const std::shared_ptr<Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::pushLayer(std::shared_ptr<Layer> layer) {
+void SDLEngine::pushLayer(const std::shared_ptr<Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::popLayer(std::shared_ptr<Layer> layer) {
+void SDLEngine::popLayer(const std::shared_ptr<Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
-void SDLEngine::popOverlay(std::shared_ptr<Layer> layer) {
+void SDLEngine::popOverlay(const std::shared_ptr<Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 

@@ -1,7 +1,6 @@
 #include "renderer/opengl/openglsprite.h"
 #include "openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
-#include <array>
 
 namespace sponge {
 
