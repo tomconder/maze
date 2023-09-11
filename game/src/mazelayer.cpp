@@ -55,16 +55,16 @@ void MazeLayer::onEvent(sponge::Event& event) {
 bool MazeLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_W ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Up) {
-        camera->moveForward(keyboardSpeed);
+        camera->moveForward(event.getElapsedTime() * keyboardSpeed);
     } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_S ||
                event.getKeyCode() == sponge::KeyCode::SpongeKey_Down) {
-        camera->moveBackward(keyboardSpeed);
+        camera->moveBackward(event.getElapsedTime() * keyboardSpeed);
     } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_A ||
                event.getKeyCode() == sponge::KeyCode::SpongeKey_Left) {
-        camera->strafeLeft(keyboardSpeed);
+        camera->strafeLeft(event.getElapsedTime() * keyboardSpeed);
     } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_D ||
                event.getKeyCode() == sponge::KeyCode::SpongeKey_Right) {
-        camera->strafeRight(keyboardSpeed);
+        camera->strafeRight(event.getElapsedTime() * keyboardSpeed);
     }
 
     return false;

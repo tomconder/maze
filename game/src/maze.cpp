@@ -31,7 +31,7 @@ bool Maze::onUserUpdate(Uint32 elapsedTime) {
     if (elapsedTime > 0) {
         for (const auto& keycode : keyCodes) {
             if (sponge::Input::isKeyPressed(keycode)) {
-                auto event = sponge::KeyPressedEvent{ keycode };
+                auto event = sponge::KeyPressedEvent{ keycode, elapsedTime };
                 onEvent(event);
             }
         }
