@@ -99,12 +99,9 @@ bool SDLEngine::start() {
 
 bool SDLEngine::iterateLoop() {
     SDL_Event event;
-    uint32_t currentTime;
-    uint32_t elapsedTime;
 
-    bool quit = false;
+    auto quit = false;
     if (SDL_PollEvent(&event) != 0) {
-        processEvent(event);
         if (event.type == SDL_QUIT) {
             quit = true;
         }
@@ -114,9 +111,11 @@ bool SDLEngine::iterateLoop() {
         }
     }
 
-    currentTime = SDL_GetTicks();
-    elapsedTime = currentTime - lastUpdateTime;
+    const auto currentTime = SDL_GetTicks();
+    auto elapsedTime = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
+
+    processEvent(event, elapsedTime);
 
     renderer->clear();
 
@@ -397,11 +396,12 @@ KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
     return result->second;
 }
 
-MouseCode SDLEngine::mapMouseButton(uint8_t index) {
+MouseCode SDLEngine::mapMouseButton(const uint8_t index) {
     return index - 1;
 }
 
-void SDLEngine::processEvent(SDL_Event& event) {
+void SDLEngine::processEvent(const SDL_Event& event,
+                             const uint32_t elapsedTime) {
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
@@ -411,8 +411,9 @@ void SDLEngine::processEvent(SDL_Event& event) {
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
-            auto keyEvent = KeyPressedEvent{ mapScanCodeToKeyCode(
-                event.key.keysym.scancode) };
+            auto keyEvent = KeyPressedEvent{
+                mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
+            };
             onEvent(keyEvent);
         }
     } else if (event.type == SDL_KEYUP) {

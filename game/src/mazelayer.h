@@ -13,6 +13,14 @@ class MazeLayer : public sponge::Layer {
    private:
     std::unique_ptr<GameCamera> camera;
 
+    static constexpr float keyboardSpeed = .1F;
+
+#ifdef __EMSCRIPTEN__
+    static constexpr float mouseSpeed = .5F;
+#else
+    static constexpr float mouseSpeed = .1F;
+#endif
+
     bool onKeyPressed(const sponge::KeyPressedEvent& event);
     bool onMouseMoved(const sponge::MouseMovedEvent& event);
     bool onMouseScrolled(const sponge::MouseScrolledEvent& event);
