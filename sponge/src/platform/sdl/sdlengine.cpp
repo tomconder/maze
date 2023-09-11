@@ -396,11 +396,11 @@ KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
     return result->second;
 }
 
-MouseCode SDLEngine::mapMouseButton(uint8_t index) {
+MouseCode SDLEngine::mapMouseButton(const uint8_t index) {
     return index - 1;
 }
 
-void SDLEngine::processEvent(SDL_Event& event, uint32_t elapsedTime) {
+void SDLEngine::processEvent(SDL_Event& event, const uint32_t elapsedTime) {
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);

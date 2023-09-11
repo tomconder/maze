@@ -22,7 +22,7 @@ class KeyEvent : public Event {
 
 class KeyPressedEvent : public KeyEvent {
    public:
-    explicit KeyPressedEvent(const KeyCode keycode, const uint32_t& elapsedTime,
+    explicit KeyPressedEvent(const KeyCode keycode, const uint32_t elapsedTime,
                              bool isRepeated = false)
         : KeyEvent(keycode), elapsedTime(elapsedTime), isRepeated(isRepeated) {}
 

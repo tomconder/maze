@@ -17,10 +17,10 @@ class GameCamera : public sponge::Camera {
         return cameraPos;
     }
 
-    void moveForward(const float& delta);
-    void moveBackward(const float& delta);
-    void strafeLeft(const float& delta);
-    void strafeRight(const float& delta);
+    void moveForward(const float_t delta);
+    void moveBackward(const float_t delta);
+    void strafeLeft(const float_t delta);
+    void strafeRight(const float_t delta);
 
     void mouseMove(const glm::vec2& offset);
     void mouseScroll(const glm::vec2& offset);
