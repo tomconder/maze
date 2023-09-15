@@ -9,6 +9,10 @@ constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
+ExitLayer::ExitLayer() : Layer("exit") {
+    // nothing
+}
+
 void ExitLayer::onAttach() {
     auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
@@ -38,9 +42,6 @@ void ExitLayer::onDetach() {
 }
 
 void ExitLayer::onEvent(sponge::Event& event) {
-    ExitLayer::ExitLayer() : Layer("exit") {
-        // nothing
-    }
     sponge::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
