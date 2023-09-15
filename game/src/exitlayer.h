@@ -6,6 +6,7 @@
 
 class ExitLayer : public sponge::Layer {
    public:
+    ExitLayer();
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::Event& event) override;

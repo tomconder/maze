@@ -8,6 +8,10 @@ constexpr std::string_view quadShader = "quad";
 constexpr std::string_view spriteShader = "sprite";
 constexpr std::string_view textShader = "text";
 
+HUDLayer::HUDLayer() : Layer("hud") {
+    // nothing
+}
+
 void HUDLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 

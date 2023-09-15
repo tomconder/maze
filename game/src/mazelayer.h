@@ -5,6 +5,7 @@
 
 class MazeLayer : public sponge::Layer {
    public:
+    MazeLayer();
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::Event& event) override;

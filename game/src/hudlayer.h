@@ -4,6 +4,7 @@
 
 class HUDLayer : public sponge::Layer {
    public:
+    HUDLayer();
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::Event& event) override;

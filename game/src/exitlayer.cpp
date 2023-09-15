@@ -38,6 +38,9 @@ void ExitLayer::onDetach() {
 }
 
 void ExitLayer::onEvent(sponge::Event& event) {
+    ExitLayer::ExitLayer() : Layer("exit") {
+        // nothing
+    }
     sponge::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));

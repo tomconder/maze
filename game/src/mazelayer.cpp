@@ -3,6 +3,10 @@
 constexpr std::string_view modelName = "maze";
 constexpr std::string_view mazeShader = "shader";
 
+MazeLayer::MazeLayer() : Layer("maze") {
+    // nothing
+}
+
 void MazeLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 
