@@ -110,6 +110,7 @@ else ()
         target_link_options(game PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
 
         # hardening
+        message(STATUS "Applying Windows hardening support")
         target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
         target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
     endif ()
