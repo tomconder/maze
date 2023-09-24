@@ -105,8 +105,13 @@ else ()
     set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
     if (MSVC)
-        target_compile_options(game PUBLIC "/Zi")
-        target_link_options(game PUBLIC "/INCREMENTAL")
+        # incremental builds
+        target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
+        target_link_options(game PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
+
+        # hardening
+        target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+        target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
     endif ()
 
     target_include_directories(game PUBLIC src)

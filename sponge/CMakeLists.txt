@@ -89,16 +89,6 @@ else ()
     target_precompile_headers(sponge PUBLIC src/spongepch.h)
     set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
-    if (MSVC)
-        # incremental builds
-        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
-        target_link_options(sponge PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
-
-        # hardening
-        target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
-        target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
-    endif ()
-
     set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
     target_include_directories(sponge PUBLIC src)
