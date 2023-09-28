@@ -4,6 +4,8 @@
 #include "renderer/opengl/openglelementbuffer.h"
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 namespace sponge {
 

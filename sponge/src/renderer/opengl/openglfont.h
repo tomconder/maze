@@ -5,6 +5,8 @@
 #include "renderer/opengl/opengltexture.h"
 #include "renderer/opengl/openglvertexarray.h"
 #include <absl/container/flat_hash_map.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 
 namespace sponge {
