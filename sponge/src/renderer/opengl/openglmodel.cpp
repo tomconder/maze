@@ -116,16 +116,23 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     const tinyobj::material_t& material) {
     std::shared_ptr<OpenGLTexture> texture;
 
-    std::filesystem::path path{ material.diffuse_texname };
-    auto name = path.filename().string();
+    auto baseName = [](const std::string& filepath) {
+        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
+            return filepath.substr(pos + 1, filepath.length());
+        }
+        return filepath;
+    };
+
+    auto assetsFolder = sponge::File::getResourceDir();
+    auto filename = std::filesystem::weakly_canonical(
+        static_cast<std::string>(assetsFolder + "/models/") +
+        baseName(material.diffuse_texname));
+
+    auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
                    [](unsigned char c) { return std::tolower(c); });
 
-    auto assetsFolder = sponge::File::getResourceDir();
-    auto filename = static_cast<std::string>(assetsFolder + "/models/") +
-                    path.filename().string();
-
-    return OpenGLResourceManager::loadTexture(filename, name);
+    return OpenGLResourceManager::loadTexture(filename.string(), name);
 }
 
 void OpenGLModel::render() {
