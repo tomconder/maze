@@ -2,6 +2,7 @@
 #include "core/file.h"
 #include "renderer/opengl/openglresourcemanager.h"
 #include <cassert>
+#include <filesystem>
 #include <vector>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -16,21 +17,17 @@ void OpenGLModel::load(std::string_view path) {
 
     meshes.clear();
 
-    auto baseDir = [](std::string_view filepath) {
-        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
-            return std::string{ filepath.substr(0, pos) };
-        }
-        return std::string{};
-    };
-
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn;
     std::string err;
 
+    std::filesystem::path dir{ path.data() };
     auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                                path.data(), baseDir(path).c_str());
+                                dir.string().data(),
+                                dir.parent_path().string().data());
+
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
     }
@@ -40,7 +37,7 @@ void OpenGLModel::load(std::string_view path) {
     }
 
     if (!ret) {
-        SPONGE_CORE_ERROR("Unable to load model: {}", path);
+        SPONGE_CORE_ERROR("Unable to load model: {}", dir.string());
         return;
     }
 
@@ -119,17 +116,15 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     const tinyobj::material_t& material) {
     std::shared_ptr<OpenGLTexture> texture;
 
-    auto baseName = [](const std::string& filepath) {
-        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
-            return filepath.substr(pos + 1, filepath.length());
-        }
-        return filepath;
-    };
-
-    const auto& name = baseName(material.diffuse_texname);
+    std::filesystem::path path{ material.diffuse_texname };
+    auto name = path.filename().string();
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
 
     auto assetsFolder = sponge::File::getResourceDir();
-    auto filename = static_cast<std::string>(assetsFolder + "/models/") + name;
+    auto filename = static_cast<std::string>(assetsFolder + "/models/") +
+                    path.filename().string();
+
     return OpenGLResourceManager::loadTexture(filename, name);
 }
 

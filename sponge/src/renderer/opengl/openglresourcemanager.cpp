@@ -1,5 +1,6 @@
 #include "renderer/opengl/openglresourcemanager.h"
 #include <cassert>
+#include <filesystem>
 #include <sstream>
 #ifdef EMSCRIPTEN
 #include <utility>
@@ -147,14 +148,15 @@ std::string OpenGLResourceManager::loadSourceFromFile(const std::string& path) {
     assert(!path.empty());
 
     std::string code;
-    if (std::ifstream stream(path, std::ios::in | std::ios::binary);
-        stream.is_open()) {
-        std::stringstream sstr;
-        sstr << stream.rdbuf();
-        code = sstr.str();
-        stream.close();
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+    if (file.good()) {
+        file.seekg(0, std::ios::end);
+        code.resize(file.tellg());
+        file.seekg(0, std::ios::beg);
+        file.read(code.data(), code.size());
+        file.close();
     } else {
-        SPONGE_CORE_ERROR("Unable to open file: {0}", path);
+        SPONGE_CORE_ERROR("Unable to open file: {}", path);
     }
 
     return code;
@@ -166,8 +168,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
 
     auto texture = std::make_shared<OpenGLTexture>();
 
-    auto name = path;
-    std::replace(name.begin(), name.end(), '\\', '/');
+    std::filesystem::path name{ path };
 
     int origFormat;
     int depth = 32;
@@ -176,10 +177,10 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     int channels = STBI_rgb_alpha;
 
     void* data =
-        stbi_load(name.c_str(), &width, &height, &origFormat, channels);
+        stbi_load(name.string().data(), &width, &height, &origFormat, channels);
     if (data == nullptr) {
-        SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}", path,
-                          stbi_failure_reason());
+        SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}",
+                          name.string(), stbi_failure_reason());
         return texture;
     }
 
