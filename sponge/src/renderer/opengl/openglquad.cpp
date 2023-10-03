@@ -15,8 +15,8 @@ OpenGLQuad::OpenGLQuad() {
     vbo->bind();
 
     constexpr uint32_t indices[numIndices] = {
-        0, 1, 2,  //
-        0, 2, 3   //
+        0, 2, 1,  //
+        0, 3, 2   //
     };
 
     ebo = std::make_unique<OpenGLElementBuffer>(
@@ -54,13 +54,9 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_CULL_FACE);
-
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
-    glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
 }
 

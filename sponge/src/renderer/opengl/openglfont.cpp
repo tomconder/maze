@@ -203,8 +203,8 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                              vertices.end());
 
         const auto indices = std::array<uint32_t, 6>{
-            numIndices, numIndices + 1, numIndices + 2,  //
-            numIndices, numIndices + 2, numIndices + 3   //
+            numIndices, numIndices + 2, numIndices + 1,  //
+            numIndices, numIndices + 3, numIndices + 2   //
         };
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
@@ -235,13 +235,9 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     ebo->setData(batchIndices.data(),
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_CULL_FACE);
-
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);
 
-    glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
 }
 

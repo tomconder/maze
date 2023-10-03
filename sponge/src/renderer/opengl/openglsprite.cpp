@@ -42,9 +42,9 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
 
 void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     const float vertices[numVertices] = {
-        position.x,          position.y + size.y, 0.F, 1.F,  //
-        position.x,          position.y,          0.F, 0.F,  //
         position.x + size.x, position.y,          1.F, 0.F,  //
+        position.x,          position.y,          0.F, 0.F,  //
+        position.x,          position.y + size.y, 0.F, 1.F,  //
         position.x + size.x, position.y + size.y, 1.F, 1.F
     };
 
@@ -58,14 +58,10 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
 
     vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_CULL_FACE);
-
     glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
-    glEnable(GL_CULL_FACE);
 
     shader->unbind();
 }
