@@ -8,7 +8,7 @@
       "features": [
         "cxx17"
       ],
-      "version>=": "20230802.1"
+      "version>=": "20230802.0"
     },
     {
       "name": "glad",
