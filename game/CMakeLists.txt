@@ -122,7 +122,7 @@ else ()
     target_link_libraries(game PRIVATE absl::flat_hash_map)
     target_link_libraries(game PRIVATE glm::glm)
     target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
-    target_link_libraries(game PUBLIC sponge)
+    target_link_libraries(game PRIVATE sponge)
 
     if (APPLE)
         add_custom_command(
