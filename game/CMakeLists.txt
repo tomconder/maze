@@ -133,6 +133,8 @@ else ()
                 COMMENT "Copying assets to bundle content folder"
                 VERBATIM DEPENDS ${ASSETS})
 
+        install(TARGETS game BUNDLE DESTINATION .)
+
         set(APPS "$<TARGET_BUNDLE_DIR:game>")
 
         install(CODE "
@@ -142,7 +144,8 @@ else ()
                 COMPONENT Runtime
         )
 
-        install(TARGETS game BUNDLE DESTINATION .)
+        set(CPACK_GENERATOR "DRAGNDROP")
+        include(CPack)
     else ()
         add_custom_command(
                 TARGET game
