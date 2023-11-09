@@ -47,6 +47,10 @@ bool Maze::onUserDestroy() {
 void Maze::onEvent(sponge::Event& event) {
     sponge::EventDispatcher dispatcher(event);
     dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::MouseButtonPressedEvent>(
+        BIND_EVENT_FN(onMouseButtonPressed));
+    dispatcher.dispatch<sponge::MouseButtonReleasedEvent>(
+        BIND_EVENT_FN(onMouseButtonReleased));
     dispatcher.dispatch<sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 
     sponge::SDLEngine::onEvent(event);
@@ -70,6 +74,29 @@ bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
         return true;
     }
 
+    return false;
+}
+
+bool Maze::onMouseButtonPressed(const sponge::MouseButtonPressedEvent& event) {
+    if (!exitLayer->isActive()) {
+        if (isMouseVisible && event.getMouseButton() == 0) {
+            setMouseVisible(false);
+            isMouseVisible = false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Maze::onMouseButtonReleased(
+    const sponge::MouseButtonReleasedEvent& event) {
+    if (!exitLayer->isActive()) {
+        if (!isMouseVisible && event.getMouseButton() == 0) {
+            setMouseVisible(true);
+            isMouseVisible = true;
+        }
+        return true;
+    }
     return false;
 }
 
