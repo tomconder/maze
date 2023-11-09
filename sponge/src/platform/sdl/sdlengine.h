@@ -42,6 +42,7 @@ class SDLEngine : public Engine {
     uint32_t getWidth() const {
         return w;
     }
+    void setMouseVisible(const bool value);
 
    private:
     std::string appName = "undefined";

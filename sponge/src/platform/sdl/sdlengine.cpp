@@ -39,7 +39,7 @@ bool SDLEngine::construct(std::string_view name, uint32_t width,
 bool SDLEngine::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
         SPONGE_CORE_CRITICAL("Unable to initialize SDL: {}", SDL_GetError());
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.c_str(),
                                  "Unable to initialize SDL", nullptr);
@@ -399,6 +399,22 @@ KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
 
 MouseCode SDLEngine::mapMouseButton(const uint8_t index) {
     return index - 1;
+}
+
+void SDLEngine::setMouseVisible(const bool value) {
+    if (value) {
+        SDL_WarpMouseInWindow(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()),
+            static_cast<int>(getWidth() / 2),
+            static_cast<int>(getHeight() / 2));
+        SDL_ShowCursor(SDL_TRUE);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+    } else {
+        SDL_ShowCursor(SDL_FALSE);
+        SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
+                                SDL_HINT_OVERRIDE);
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
 }
 
 void SDLEngine::processEvent(const SDL_Event& event,

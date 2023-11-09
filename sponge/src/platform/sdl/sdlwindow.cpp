@@ -24,9 +24,9 @@ void SDLWindow::init(const WindowProps& props) {
     SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
 
     window = SDL_CreateWindow(
-        props.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        props.title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         static_cast<int>(props.width), static_cast<int>(props.height),
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(),
                                  "Could not create window", nullptr);

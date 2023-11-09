@@ -18,10 +18,14 @@ class Maze : public sponge::SDLEngine {
 
    private:
     bool isRunning = true;
+    bool isMouseVisible = true;
+
     std::shared_ptr<ExitLayer> exitLayer = std::make_shared<ExitLayer>();
     std::shared_ptr<HUDLayer> hudLayer = std::make_shared<HUDLayer>();
     std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
 
     bool onKeyPressed(const sponge::KeyPressedEvent& event);
+    bool onMouseButtonPressed(const sponge::MouseButtonPressedEvent& event);
+    bool onMouseButtonReleased(const sponge::MouseButtonReleasedEvent& event);
     bool onWindowClose(const sponge::WindowCloseEvent& event);
 };
