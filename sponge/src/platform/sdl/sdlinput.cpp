@@ -15,7 +15,7 @@ bool SDLInput::isKeyPressedImpl(KeyCode key) {
 
 bool SDLInput::isButtonPressedImpl() {
     Uint32 buttons = SDL_GetMouseState(nullptr, nullptr);
-    return (buttons & SDL_BUTTON_LMASK) != 0;
+    return (buttons & SDL_BUTTON_LMASK) == SDL_BUTTON(1);
 }
 
 void SDLInput::initializeScanCodeMap() {

@@ -70,7 +70,6 @@ bool MazeLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
                event.getKeyCode() == sponge::KeyCode::SpongeKey_Right) {
         camera->strafeRight(event.getElapsedTime() * keyboardSpeed);
     }
-
     return false;
 }
 
