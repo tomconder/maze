@@ -17,7 +17,7 @@ class Engine {
     virtual bool iterateLoop() = 0;
 
     virtual bool onUserCreate() = 0;
-    virtual bool onUserUpdate(uint32_t elapsedTime) = 0;
+    virtual bool onUserUpdate(const uint32_t elapsedTime) = 0;
     virtual bool onUserDestroy() = 0;
 
     virtual void onEvent(Event& event) = 0;

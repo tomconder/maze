@@ -6,7 +6,7 @@
 
 #include "sponge.h"
 
-constexpr std::array<sponge::KeyCode, 8> keyCodes = {
+constexpr std::array keyCodes = {
     sponge::KeyCode::SpongeKey_W,    sponge::KeyCode::SpongeKey_A,
     sponge::KeyCode::SpongeKey_S,    sponge::KeyCode::SpongeKey_D,
     sponge::KeyCode::SpongeKey_Up,   sponge::KeyCode::SpongeKey_Left,
@@ -23,7 +23,7 @@ bool Maze::onUserCreate() {
     return true;
 }
 
-bool Maze::onUserUpdate(Uint32 elapsedTime) {
+bool Maze::onUserUpdate(const uint32_t elapsedTime) {
     if (!isRunning) {
         return false;
     }

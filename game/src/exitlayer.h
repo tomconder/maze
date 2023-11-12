@@ -15,6 +15,10 @@ class ExitLayer : public sponge::Layer {
     void setWidthAndHeight(uint32_t width, uint32_t height);
 
    private:
+    const std::string_view cancelButtonMessage = "Cancel";
+    const std::string_view confirmButtonMessage = "Confirm";
+    const std::string_view message = "Exit the Game?";
+
     std::unique_ptr<sponge::OpenGLQuad> quad;
     std::unique_ptr<ui::Button> cancelButton;
     std::unique_ptr<ui::Button> confirmButton;

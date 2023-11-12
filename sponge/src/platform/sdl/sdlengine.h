@@ -20,7 +20,7 @@ class SDLEngine : public Engine {
     bool iterateLoop() override;
 
     bool onUserCreate() override;
-    bool onUserUpdate(uint32_t elapsedTime) override;
+    bool onUserUpdate(const uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
     void onEvent(Event& event) override;

@@ -14,27 +14,29 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
+    const auto orthoCamera =
+        ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::OpenGLResourceManager::getShader(quadShader.data());
+    const auto shader =
+        sponge::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    auto assetsFolder = sponge::File::getResourceDir();
-    auto font = sponge::OpenGLResourceManager::loadFont(
+    const auto assetsFolder = sponge::File::getResourceDir();
+    sponge::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
         gothicFont.data());
 
     quad = std::make_unique<sponge::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Confirm", 54, confirmButtonColor,
-        glm::vec3{ 0.03F, 0.03F, 0.03F });
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54,
+        confirmButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, "Cancel", 32, cancelButtonColor,
-        glm::vec3{ 0.03F, 0.03F, 0.03F });
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32,
+        cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
 void ExitLayer::onDetach() {
@@ -55,7 +57,7 @@ void ExitLayer::onEvent(sponge::Event& event) {
 }
 
 bool ExitLayer::onUpdate(uint32_t elapsedTime) {
-    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
@@ -64,10 +66,9 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
                  { .52F, .57F, .55F, 1.F });
 
-    auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
+    const auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
 
-    std::string_view message = "Exit the Game?";
-    uint32_t length = font->getLength(message, 48);
+    const uint32_t length = font->getLength(message, 48);
     font->render(
         message,
         { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
@@ -80,7 +81,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 }
 
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
-    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
     const auto shader =

@@ -162,7 +162,7 @@ bool SDLEngine::onUserCreate() {
     return true;
 }
 
-bool SDLEngine::onUserUpdate(uint32_t elapsedTime) {
+bool SDLEngine::onUserUpdate(const uint32_t elapsedTime) {
     bool result = true;
 
     for (const auto& layer : *layerStack) {
