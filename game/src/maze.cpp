@@ -60,10 +60,16 @@ bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
         if (exitLayer->isActive()) {
+            if (!isMouseVisible) {
+                setMouseVisible(false);
+            }
             exitLayer->setActive(false);
         } else {
             exitLayer->setWidthAndHeight(getWidth(), getHeight());
             exitLayer->setActive(true);
+            if (!isMouseVisible) {
+                setMouseVisible(true);
+            }
         }
 
         return true;

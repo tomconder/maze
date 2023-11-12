@@ -67,11 +67,7 @@ bool SDLEngine::start() {
     graphics->logGraphicsDriverInfo();
     graphics->logOpenGLContextInfo();
 
-#ifdef EMSCRIPTEN
     sdlWindow->setVSync(false);
-#else
-    sdlWindow->setVSync(true);
-#endif
 
     renderer = std::make_unique<OpenGLRendererAPI>();
     renderer->init();
