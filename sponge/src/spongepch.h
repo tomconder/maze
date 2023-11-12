@@ -42,5 +42,7 @@
 #include <spdlog/spdlog.h>
 
 // tuplet
-#include <glad/glad.h>
 #include <tuplet/tuple.hpp>
+
+// gl bindings
+#include <glad/glad.h>
