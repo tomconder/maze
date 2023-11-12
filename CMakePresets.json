@@ -71,19 +71,6 @@
       }
     },
     {
-      "name": "emscripten",
-      "displayName": "emscripten",
-      "description": "Sets Emscripten build type",
-      "inherits": "base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_COMPILER": "$env{EMSDK}/upstream/emscripten/em++.bat",
-        "CMAKE_C_COMPILER": "$env{EMSDK}/upstream/emscripten/emcc.bat",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
-        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten"
-      }
-    },
-    {
       "name": "osx-debug",
       "displayName": "Mac OS X - Debug",
       "description": "Sets debug build type and mac arch",
@@ -168,12 +155,6 @@
       "displayName": "build osx",
       "configurePreset": "osx-release",
       "description": "Build osx"
-    },
-    {
-      "name": "build-emscripten",
-      "displayName": "build emscripten",
-      "configurePreset": "emscripten",
-      "description": "Build emscripten"
     }
   ],
   "testPresets": [

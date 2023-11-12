@@ -1,9 +1,5 @@
 #include "maze.h"
 
-#ifdef EMSCRIPTEN
-#include <new>
-#endif
-
 #include "sponge.h"
 
 constexpr std::array keyCodes = {

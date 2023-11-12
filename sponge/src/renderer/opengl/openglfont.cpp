@@ -1,9 +1,5 @@
 #include "renderer/opengl/openglfont.h"
 
-#ifdef EMSCRIPTEN
-#include <new>
-#endif
-
 #include "renderer/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>

@@ -2,9 +2,6 @@
 #include <cassert>
 #include <filesystem>
 #include <sstream>
-#ifdef EMSCRIPTEN
-#include <utility>
-#endif
 
 #include <SDL.h>
 

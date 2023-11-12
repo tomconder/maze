@@ -1,20 +1,13 @@
-#ifdef EMSCRIPTEN
-#include <emscripten/emscripten.h>
-#endif
 
 #include "maze.h"
 #include "sponge.h"
 #include "version.h"
 
-const std::unique_ptr<Maze> maze = std::make_unique<Maze>();
 constexpr std::string_view spongeLogFile = "log.txt";
 
-// loop iteration is broken out like this for emscripten
-bool iterateLoop() {
-    return maze->iterateLoop();
-}
-
 bool startup() {
+    const std::unique_ptr<Maze> maze = std::make_unique<Maze>();
+
     auto logfile = sponge::File::getLogDir() + spongeLogFile.data();
     sponge::Log::init(logfile);
 
@@ -27,13 +20,8 @@ bool startup() {
 
     SPONGE_INFO("{}", appName);
 
-#ifdef EMSCRIPTEN
-    uint32_t width = 800;
-    uint32_t height = 600;
-#else
     uint32_t width = 1600;
     uint32_t height = 900;
-#endif
 
     if (!maze->construct(appName, width, height)) {
         return false;
@@ -45,14 +33,10 @@ bool startup() {
 
     SPONGE_INFO("Iterating loop");
 
-#ifdef EMSCRIPTEN
-    emscripten_set_main_loop((em_callback_func)iterateLoop, 0, true);
-#else
     bool quit = false;
     while (!quit) {
-        quit = iterateLoop();
+        quit = maze->iterateLoop();
     }
-#endif
 
     return true;
 }

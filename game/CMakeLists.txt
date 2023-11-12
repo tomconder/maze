@@ -45,118 +45,85 @@ find_package(absl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
-if (EMSCRIPTEN)
-    message(STATUS "Emscripten: Building game for Emscripten")
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
-    set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23 -O3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=2")
+find_package(SDL2 CONFIG REQUIRED)
 
-    add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
-    set_target_properties(game PROPERTIES OUTPUT_NAME "maze")
+if (WIN32)
+    set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
+    target_include_directories(game PRIVATE bundle/icons)
+elseif (APPLE)
+    set(MACOSX_BUNDLE_ICON_FILE maze.icns)
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${CMAKE_PROJECT_NAME})
+    set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION})
+    set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
 
-    set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze/html)
-    set(ASSETS_BUILD_PATH ${CMAKE_BINARY_DIR}/maze)
-
-    set(TARGET_LINK_PROPERTIES "-std=c++23 -O3 -s ALLOW_MEMORY_GROWTH=1")
-    set(TARGET_LINK_PROPERTIES
-            "${TARGET_LINK_PROPERTIES} -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2"
-    )
-    set(TARGET_LINK_PROPERTIES
-            "${TARGET_LINK_PROPERTIES} --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@assets"
-    )
-    set_target_properties(game PROPERTIES LINK_FLAGS ${TARGET_LINK_PROPERTIES})
-
-    target_include_directories(game PUBLIC src)
-    target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-
-    target_link_libraries(game PRIVATE absl::flat_hash_map)
-    target_link_libraries(game PRIVATE glm::glm)
-    target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
-    target_link_libraries(game PRIVATE sponge)
-
-    install(FILES $<TARGET_FILE_DIR:game> DESTINATION .)
+    set(app_icon_macos "bundle/icons/maze.icns")
+    set_source_files_properties(
+            ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+            SKIP_PRECOMPILE_HEADERS ON)
+    add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
+            ${app_icon_macos})
 else ()
-    set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
+    add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
+endif ()
 
-    find_package(SDL2 CONFIG REQUIRED)
+set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
-    if (WIN32)
-        set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
-        add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
-        target_include_directories(game PRIVATE bundle/icons)
-    elseif (APPLE)
-        set(MACOSX_BUNDLE_ICON_FILE maze.icns)
-        set(MACOSX_BUNDLE_BUNDLE_NAME ${CMAKE_PROJECT_NAME})
-        set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
-        set(MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION})
-        set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
+if (MSVC)
+    # incremental builds
+    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
+    target_link_options(game PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
 
-        set(app_icon_macos "bundle/icons/maze.icns")
-        set_source_files_properties(
-                ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-                SKIP_PRECOMPILE_HEADERS ON)
-        add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
-                ${app_icon_macos})
-    else ()
-        add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
-    endif ()
+    # hardening
+    message(STATUS "Applying Windows hardening support")
+    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+    target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
+endif ()
 
-    set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
+target_include_directories(game PUBLIC src)
+target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
-    if (MSVC)
-        # incremental builds
-        target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
-        target_link_options(game PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
+target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
+target_link_libraries(game PRIVATE absl::flat_hash_map)
+target_link_libraries(game PRIVATE glm::glm)
+target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(game PRIVATE sponge)
 
-        # hardening
-        message(STATUS "Applying Windows hardening support")
-        target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
-        target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
-    endif ()
+if (APPLE)
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+            COMMENT "Copying assets to bundle content folder"
+            VERBATIM DEPENDS ${ASSETS})
 
-    target_include_directories(game PUBLIC src)
-    target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+    install(TARGETS game BUNDLE DESTINATION .)
 
-    target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
-    target_link_libraries(game PRIVATE absl::flat_hash_map)
-    target_link_libraries(game PRIVATE glm::glm)
-    target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
-    target_link_libraries(game PRIVATE sponge)
+    set(APPS "$<TARGET_BUNDLE_DIR:game>")
 
-    if (APPLE)
-        add_custom_command(
-                TARGET game
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
-                COMMENT "Copying assets to bundle content folder"
-                VERBATIM DEPENDS ${ASSETS})
-
-        install(TARGETS game BUNDLE DESTINATION .)
-
-        set(APPS "$<TARGET_BUNDLE_DIR:game>")
-
-        install(CODE "
+    install(CODE "
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
-                COMPONENT Runtime
-        )
+            COMPONENT Runtime
+    )
 
-        set(CPACK_GENERATOR "DRAGNDROP")
-        include(CPack)
-    else ()
-        add_custom_command(
-                TARGET game
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
-                COMMENT "Copying assets to target folder"
-                VERBATIM DEPENDS ${ASSETS})
+    set(CPACK_GENERATOR "DRAGNDROP")
+    include(CPack)
+else ()
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
+            COMMENT "Copying assets to target folder"
+            VERBATIM DEPENDS ${ASSETS})
 
-        install(TARGETS game RUNTIME DESTINATION .)
-        install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-        install(DIRECTORY assets DESTINATION .)
-    endif ()
+    install(TARGETS game RUNTIME DESTINATION .)
+    install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
+    install(DIRECTORY assets DESTINATION .)
 endif ()
