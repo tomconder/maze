@@ -32,7 +32,7 @@ export VCPKG_ROOT <path to vcpkg>
 [Install CMake](https://cmake.org/install/), a cross-platform build system.
 
 Now you can use a preset to compile `maze`. Possible values
-are: `x64-debug`, `x64-release`, `emscripten`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
+are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
 
 ```
 cmake -DCMAKE_BUILD_TYPE=Release --preset x64-release
@@ -45,7 +45,5 @@ Or, for Linux
 cmake --preset linux-release
 cmake --build --preset build-linux
 ```
-
-If you want to compile with Emscripten, please use the included emsdk_env script to set the value for `EMSDK`
 
 The maze executable will be found in the build directory: `out\build\x64-release\maze\Release\maze.exe`

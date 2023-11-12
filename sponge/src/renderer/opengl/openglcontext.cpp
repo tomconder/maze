@@ -1,16 +1,11 @@
 #include "renderer/opengl/openglcontext.h"
+#include <spdlog/fmt/fmt.h>
+#include <tuplet/tuple.hpp>
 #include <SDL.h>
+#include <array>
 #include <cassert>
 #include <numeric>
 #include <sstream>
-
-#ifdef EMSCRIPTEN
-#include <utility>
-#endif
-
-#include <spdlog/fmt/fmt.h>
-#include <tuplet/tuple.hpp>
-#include <array>
 #include <utility>
 
 namespace sponge {
@@ -23,13 +18,6 @@ OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-#ifdef EMSCRIPTEN
-    constexpr std::array<tuplet::tuple<int, int>, 7> glVersions{
-        { { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 2 }, { 2, 1 }, { 2, 0 }, { 1, 1 } }
-    };
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-#else
     constexpr std::array<tuplet::tuple<int, int>, 13> glVersions{ { { 4, 6 },
                                                                     { 4, 5 },
                                                                     { 4, 4 },
@@ -48,7 +36,6 @@ OpenGLContext::OpenGLContext(SDL_Window* window, std::string name)
                         SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
                         SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-#endif
 
     SPONGE_CORE_INFO("Creating OpenGL context");
 

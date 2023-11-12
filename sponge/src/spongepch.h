@@ -44,9 +44,5 @@
 // tuplet
 #include <tuplet/tuple.hpp>
 
-// glad
-#ifdef EMSCRIPTEN
-#define GLAD_GLES2_IMPLEMENTATION
-#endif
-
+// gl bindings
 #include <glad/glad.h>

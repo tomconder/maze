@@ -1,9 +1,4 @@
 #include "platform/sdl/sdlengine.h"
-
-#ifdef EMSCRIPTEN
-#include <emscripten/emscripten.h>
-#endif
-
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
@@ -56,11 +51,7 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-#ifdef EMSCRIPTEN
-    graphics = std::make_unique<OpenGLContext>(window, "OpenGL ES");
-#else
     graphics = std::make_unique<OpenGLContext>(window, "OpenGL");
-#endif
 
     graphics->logGlVersion();
     graphics->logStaticOpenGLInfo();
@@ -121,9 +112,6 @@ bool SDLEngine::iterateLoop() {
     }
 
     if (quit && onUserDestroy()) {
-#ifdef EMSCRIPTEN
-        emscripten_cancel_main_loop();
-#endif
         SDL_Quit();
 
         return true;
@@ -456,9 +444,6 @@ void SDLEngine::processEvent(const SDL_Event& event,
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;
         auto wheely = event.wheel.preciseY;
-#ifdef EMSCRIPTEN
-        wheelx /= 100.f;
-#endif
 
         auto mouseEvent = MouseScrolledEvent{ wheelx, wheely };
         onEvent(mouseEvent);
