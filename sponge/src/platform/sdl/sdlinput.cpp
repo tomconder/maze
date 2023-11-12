@@ -9,12 +9,12 @@ SDLInput::SDLInput() {
     state = SDL_GetKeyboardState(nullptr);
 }
 
-bool SDLInput::isKeyPressedImpl(KeyCode key) {
+bool SDLInput::isKeyPressedImpl(const KeyCode key) {
     return state[mapKeyCodeToScanCode(key)] != 0;
 }
 
 bool SDLInput::isButtonPressedImpl() {
-    uint32_t buttons = SDL_GetMouseState(nullptr, nullptr);
+    const uint32_t buttons = SDL_GetMouseState(nullptr, nullptr);
     return (buttons & SDL_BUTTON_LMASK) == SDL_BUTTON(1);
 }
 
@@ -148,7 +148,7 @@ void SDLInput::initializeScanCodeMap() {
     scanCodeMap[KeyCode::SpongeKey_Menu] = SDL_SCANCODE_MENU;
 }
 
-const SDL_Scancode& SDLInput::mapKeyCodeToScanCode(KeyCode key) {
+const SDL_Scancode& SDLInput::mapKeyCodeToScanCode(const KeyCode key) {
     return scanCodeMap[key];
 }
 

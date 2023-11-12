@@ -11,14 +11,14 @@ class SDLInput : public Input {
     SDLInput();
 
    protected:
-    bool isKeyPressedImpl(KeyCode key) override;
+    bool isKeyPressedImpl(const KeyCode key) override;
     bool isButtonPressedImpl() override;
 
    private:
     absl::flat_hash_map<KeyCode, SDL_Scancode> scanCodeMap;
 
     void initializeScanCodeMap();
-    const SDL_Scancode& mapKeyCodeToScanCode(KeyCode key);
+    const SDL_Scancode& mapKeyCodeToScanCode(const KeyCode key);
 
     const uint8_t* state;
 };
