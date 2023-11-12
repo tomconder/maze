@@ -42,6 +42,5 @@
 #include <spdlog/spdlog.h>
 
 // tuplet
-#include <tuplet/tuple.hpp>
-
 #include <glad/glad.h>
+#include <tuplet/tuple.hpp>

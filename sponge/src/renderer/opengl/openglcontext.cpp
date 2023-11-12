@@ -1,12 +1,11 @@
 #include "renderer/opengl/openglcontext.h"
+#include <spdlog/fmt/fmt.h>
+#include <tuplet/tuple.hpp>
 #include <SDL.h>
+#include <array>
 #include <cassert>
 #include <numeric>
 #include <sstream>
-
-#include <spdlog/fmt/fmt.h>
-#include <tuplet/tuple.hpp>
-#include <array>
 #include <utility>
 
 namespace sponge {

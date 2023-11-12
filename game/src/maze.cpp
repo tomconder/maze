@@ -1,5 +1,4 @@
 #include "maze.h"
-
 #include "sponge.h"
 
 constexpr std::array keyCodes = {

@@ -1,5 +1,4 @@
 #include "platform/sdl/sdlengine.h"
-
 #include "event/applicationevent.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
