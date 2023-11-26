@@ -30,6 +30,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y gcc-multilib
+          sudo apt-get install -y --no-install-recommends libtool autoconf automake
           sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libgl1-mesa-dev
 
       - name: Setup vcpkg (it does not install any package yet)
