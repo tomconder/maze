@@ -4,6 +4,7 @@
 #include "core/input.h"
 #include "event/event.h"
 #include "renderer/opengl/openglcontext.h"
+#include "renderer/opengl/openglinfo.h"
 #include "renderer/opengl/openglrendererapi.h"
 #include <string>
 

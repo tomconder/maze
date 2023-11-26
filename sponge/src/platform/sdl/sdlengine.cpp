@@ -51,12 +51,12 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<OpenGLContext>(window, "OpenGL");
+    graphics = std::make_unique<OpenGLContext>(window);
 
-    graphics->logGlVersion();
-    graphics->logStaticOpenGLInfo();
-    graphics->logGraphicsDriverInfo();
-    graphics->logOpenGLContextInfo();
+    sponge::OpenGLInfo::logVersion();
+    sponge::OpenGLInfo::logStaticInfo();
+    sponge::OpenGLInfo::logGraphicsDriverInfo();
+    sponge::OpenGLInfo::logContextInfo();
 
     sdlWindow->setVSync(false);
 
