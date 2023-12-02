@@ -35,7 +35,7 @@ void OpenGLShader::unbind() const {
 }
 
 uint32_t OpenGLShader::compileShader(const GLenum type,
-                                   const std::string& source) {
+                                     const std::string& source) {
     uint32_t id = glCreateShader(type);
     assert(id != 0);
 

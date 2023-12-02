@@ -21,4 +21,4 @@ class Shader {
     virtual void setMat4(const std::string& name, const glm::mat4& value) = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

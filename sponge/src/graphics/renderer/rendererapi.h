@@ -17,4 +17,4 @@ class RendererAPI {
     virtual void clear() = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

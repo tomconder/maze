@@ -12,4 +12,4 @@ class Sprite {
     virtual void render(glm::vec2 position, glm::vec2 size) const = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

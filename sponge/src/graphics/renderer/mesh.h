@@ -21,4 +21,4 @@ class Mesh {
     std::vector<unsigned int> indices;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

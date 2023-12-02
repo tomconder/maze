@@ -3,8 +3,8 @@
 absl::flat_hash_map<std::string, std::shared_ptr<sponge::graphics::OrthoCamera>>
     ResourceManager::cameras;
 
-std::shared_ptr<sponge::graphics::OrthoCamera> ResourceManager::createOrthoCamera(
-    const std::string& name) {
+std::shared_ptr<sponge::graphics::OrthoCamera>
+ResourceManager::createOrthoCamera(const std::string& name) {
     assert(!name.empty());
 
     if (cameras.find(name) != cameras.end()) {

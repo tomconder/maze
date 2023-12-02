@@ -34,4 +34,4 @@ class Layer {
     bool active = true;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics

@@ -9,4 +9,4 @@ class Buffer {
     virtual void bind() const = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

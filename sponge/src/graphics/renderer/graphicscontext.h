@@ -11,4 +11,4 @@ class GraphicsContext {
     virtual void flip(void* window) = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

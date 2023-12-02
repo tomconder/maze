@@ -7,4 +7,4 @@ class GraphicsInfo {
     virtual ~GraphicsInfo() = default;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics::renderer

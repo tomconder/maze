@@ -39,4 +39,4 @@ void LayerStack::popOverlay(
     }
 }
 
-}  // namespace sponge
+}  // namespace sponge::graphics

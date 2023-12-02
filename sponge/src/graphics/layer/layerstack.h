@@ -39,4 +39,4 @@ class LayerStack {
     uint32_t layerInsertIndex = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::graphics
