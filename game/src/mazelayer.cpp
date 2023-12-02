@@ -10,16 +10,17 @@ MazeLayer::MazeLayer() : Layer("maze") {
 void MazeLayer::onAttach() {
     auto assetsFolder = sponge::File::getResourceDir();
 
-    sponge::OpenGLResourceManager::loadShader(
+    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/shader.vert",
         assetsFolder + "/shaders/shader.frag", mazeShader.data());
-    sponge::OpenGLResourceManager::loadModel(
+    sponge::graphics::renderer::OpenGLResourceManager::loadModel(
         assetsFolder + "/models/mountains.obj", modelName.data());
 
     camera = std::make_unique<GameCamera>();
     camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
 
-    auto shader = sponge::OpenGLResourceManager::getShader(mazeShader.data());
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        mazeShader.data());
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(40.F, 40.F, 40.F));
@@ -34,13 +35,16 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto shader = sponge::OpenGLResourceManager::getShader(mazeShader.data());
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        mazeShader.data());
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
     shader->unbind();
 
-    sponge::OpenGLResourceManager::getModel(modelName.data())->render();
+    sponge::graphics::renderer::OpenGLResourceManager::getModel(
+        modelName.data())
+        ->render();
 
     return true;
 }

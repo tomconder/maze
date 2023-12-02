@@ -51,16 +51,18 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<OpenGLContext>(window);
+    graphics =
+        std::make_unique<sponge::graphics::renderer::OpenGLContext>(window);
 
-    sponge::OpenGLInfo::logVersion();
-    sponge::OpenGLInfo::logStaticInfo();
-    sponge::OpenGLInfo::logGraphicsDriverInfo();
-    sponge::OpenGLInfo::logContextInfo();
+    sponge::graphics::renderer::OpenGLInfo::logVersion();
+    sponge::graphics::renderer::OpenGLInfo::logStaticInfo();
+    sponge::graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
+    sponge::graphics::renderer::OpenGLInfo::logContextInfo();
 
     sdlWindow->setVSync(false);
 
-    renderer = std::make_unique<OpenGLRendererAPI>();
+    renderer =
+        std::make_unique<sponge::graphics::renderer::OpenGLRendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 

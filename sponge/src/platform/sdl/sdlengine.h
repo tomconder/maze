@@ -46,8 +46,8 @@ class SDLEngine : public Engine {
 
    private:
     std::string appName = "undefined";
-    std::unique_ptr<OpenGLContext> graphics;
-    std::unique_ptr<OpenGLRendererAPI> renderer;
+    std::unique_ptr<sponge::graphics::renderer::OpenGLContext> graphics;
+    std::unique_ptr<sponge::graphics::renderer::OpenGLRendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
 
     uint32_t offsetx = 0;
