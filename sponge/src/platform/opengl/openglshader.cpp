@@ -10,8 +10,8 @@ OpenGLShader::OpenGLShader(const std::string& vertexSource,
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
-    GLuint vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    GLuint fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
+    uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
     program = linkProgram(vs, fs);
 
@@ -34,9 +34,9 @@ void OpenGLShader::unbind() const {
     glUseProgram(0);
 }
 
-GLuint OpenGLShader::compileShader(const GLenum type,
+uint32_t OpenGLShader::compileShader(const GLenum type,
                                    const std::string& source) {
-    GLuint id = glCreateShader(type);
+    uint32_t id = glCreateShader(type);
     assert(id != 0);
 
     const char* shader = source.c_str();
@@ -60,8 +60,8 @@ GLuint OpenGLShader::compileShader(const GLenum type,
     return id;
 }
 
-GLuint OpenGLShader::linkProgram(GLuint vs, GLuint fs) {
-    GLuint id = glCreateProgram();
+uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs) {
+    uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);

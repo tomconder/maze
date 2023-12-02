@@ -22,15 +22,15 @@ class OpenGLShader : public Shader {
     void setInteger(const std::string& name, int value) override;
     void setMat4(const std::string& name, const glm::mat4& value) override;
 
-    GLuint getId() const {
+    uint32_t getId() const {
         return program;
     };
 
    private:
-    GLuint compileShader(GLenum type, const std::string& file);
-    GLuint linkProgram(GLuint vs, GLuint fs);
+    uint32_t compileShader(GLenum type, const std::string& file);
+    uint32_t linkProgram(uint32_t vs, uint32_t fs);
 
-    GLuint program = 0;
+    uint32_t program = 0;
 };
 
 }  // namespace sponge::graphics::renderer
