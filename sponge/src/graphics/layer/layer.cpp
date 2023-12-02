@@ -1,6 +1,6 @@
-#include "core/layer.h"
+#include "layer.h"
 
-namespace sponge {
+namespace sponge::graphics {
 
 Layer::Layer(const std::string& name) : debugName(name) {
     // nothing

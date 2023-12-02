@@ -2,9 +2,9 @@
 
 #include "core/engine.h"
 #include "core/keycode.h"
-#include "core/layer.h"
 #include "core/layerstack.h"
 #include "core/mousecode.h"
+#include "graphics/layer/layer.h"
 #include "platform/sdl/sdlwindow.h"
 #include <absl/container/flat_hash_map.h>
 #include <SDL.h>
@@ -27,10 +27,10 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(const std::shared_ptr<Layer>& layer);
-    void pushLayer(const std::shared_ptr<Layer>& layer);
-    void popLayer(const std::shared_ptr<Layer>& layer);
-    void popOverlay(const std::shared_ptr<Layer>& layer);
+    void pushOverlay(const std::shared_ptr<sponge::graphics::Layer>& layer);
+    void pushLayer(const std::shared_ptr<sponge::graphics::Layer>& layer);
+    void popLayer(const std::shared_ptr<sponge::graphics::Layer>& layer);
+    void popOverlay(const std::shared_ptr<sponge::graphics::Layer>& layer);
 
     static void logSDLVersion();
 

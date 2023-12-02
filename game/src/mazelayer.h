@@ -3,7 +3,7 @@
 #include "gamecamera.h"
 #include "sponge.h"
 
-class MazeLayer : public sponge::Layer {
+class MazeLayer : public sponge::graphics::Layer {
    public:
     MazeLayer();
     void onAttach() override;
