@@ -3,7 +3,7 @@
 #include "core/base.h"
 #include "graphics/layer/layer.h"
 
-namespace sponge {
+namespace sponge::graphics {
 
 class LayerStack {
    public:

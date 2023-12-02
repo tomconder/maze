@@ -10,7 +10,7 @@
 
 namespace sponge {
 SDLEngine::SDLEngine() {
-    layerStack = new LayerStack();
+    layerStack = new sponge::graphics::LayerStack();
     initializeKeyCodeMap();
 }
 

@@ -2,9 +2,9 @@
 
 #include "core/engine.h"
 #include "core/keycode.h"
-#include "core/layerstack.h"
 #include "core/mousecode.h"
 #include "graphics/layer/layer.h"
+#include "graphics/layer/layerstack.h"
 #include "platform/sdl/sdlwindow.h"
 #include <absl/container/flat_hash_map.h>
 #include <SDL.h>
@@ -56,7 +56,7 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    LayerStack* layerStack;
+    sponge::graphics::LayerStack* layerStack;
     absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();

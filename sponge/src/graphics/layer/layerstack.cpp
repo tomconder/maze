@@ -1,6 +1,6 @@
-#include "core/layerstack.h"
+#include "layerstack.h"
 
-namespace sponge {
+namespace sponge::graphics {
 
 LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
