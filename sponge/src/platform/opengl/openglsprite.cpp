@@ -58,7 +58,7 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
 
     vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
+    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);

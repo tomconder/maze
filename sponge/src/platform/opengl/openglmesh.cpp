@@ -88,7 +88,7 @@ void OpenGLMesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLint>(indices.size()),
+    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(indices.size()),
                    GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }

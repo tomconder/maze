@@ -54,7 +54,7 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLint>(numIndices),
+    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);

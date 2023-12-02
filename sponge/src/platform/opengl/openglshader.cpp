@@ -43,7 +43,7 @@ uint32_t OpenGLShader::compileShader(const GLenum type,
     glShaderSource(id, 1, &shader, nullptr);
     glCompileShader(id);
 
-    GLint result = GL_FALSE;
+    int32_t result = GL_FALSE;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
         int length;
@@ -68,7 +68,7 @@ uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs) {
 
     glLinkProgram(id);
 
-    GLint result = GL_FALSE;
+    int32_t result = GL_FALSE;
 
     glGetProgramiv(id, GL_LINK_STATUS, &result);
     if (result == GL_FALSE) {

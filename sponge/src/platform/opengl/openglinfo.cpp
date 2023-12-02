@@ -36,7 +36,7 @@ void OpenGLInfo::logContextInfo() {
 
     SPONGE_CORE_INFO(ss.str());
 
-    GLint extensions;
+    int32_t extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
     ss << fmt::format("  {:14} {}", "Extensions:", extensions);
