@@ -130,7 +130,7 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
+                   [](uint8_t c) { return std::tolower(c); });
 
     return OpenGLResourceManager::loadTexture(filename.string(), name);
 }

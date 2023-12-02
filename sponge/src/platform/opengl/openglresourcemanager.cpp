@@ -202,7 +202,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     }
 
     texture->generate(surface->w, surface->h, surface->format->BytesPerPixel,
-                      static_cast<unsigned char*>(surface->pixels));
+                      static_cast<uint8_t*>(surface->pixels));
 
     SDL_FreeSurface(surface);
     stbi_image_free(data);
