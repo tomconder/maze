@@ -1,5 +1,7 @@
 #include "openglinfo.h"
 #include "gl.h"
+#include "renderer/opengl/openglinfo.h"
+#include "renderer/opengl/gl.h"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>
