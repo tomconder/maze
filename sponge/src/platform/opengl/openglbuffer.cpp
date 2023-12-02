@@ -1,4 +1,4 @@
-#include "openglbuffer.h"
+#include "platform/opengl/openglbuffer.h"
 
 namespace sponge::graphics::renderer {
 

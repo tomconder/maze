@@ -1,5 +1,5 @@
-#include "openglcontext.h"
-#include "gl.h"
+#include "platform/opengl/openglcontext.h"
+#include "platform/opengl/gl.h"
 #include <tuplet/tuple.hpp>
 #include <array>
 #include <sstream>

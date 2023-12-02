@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gl.h"
 #include "graphics/renderer/vertexarray.h"
+#include "platform/opengl/gl.h"
 
 namespace sponge::graphics::renderer {
 

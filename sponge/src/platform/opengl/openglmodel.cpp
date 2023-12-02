@@ -1,6 +1,6 @@
-#include "openglmodel.h"
+#include "platform/opengl/openglmodel.h"
 #include "core/file.h"
-#include "openglresourcemanager.h"
+#include "platform/opengl/openglresourcemanager.h"
 #include <cassert>
 #include <filesystem>
 #include <vector>

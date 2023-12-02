@@ -1,9 +1,9 @@
 #pragma once
 
 #include "graphics/renderer/sprite.h"
-#include "openglbuffer.h"
-#include "openglelementbuffer.h"
-#include "openglvertexarray.h"
+#include "platform/opengl/openglbuffer.h"
+#include "platform/opengl/openglelementbuffer.h"
+#include "platform/opengl/openglvertexarray.h"
 
 namespace sponge::graphics::renderer {
 

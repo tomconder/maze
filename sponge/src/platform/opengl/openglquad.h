@@ -1,9 +1,9 @@
 #pragma once
 
-#include "openglbuffer.h"
-#include "openglelementbuffer.h"
-#include "opengltexture.h"
-#include "openglvertexarray.h"
+#include "platform/opengl/openglbuffer.h"
+#include "platform/opengl/openglelementbuffer.h"
+#include "platform/opengl/opengltexture.h"
+#include "platform/opengl/openglvertexarray.h"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 

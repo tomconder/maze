@@ -1,4 +1,4 @@
-#include "openglelementbuffer.h"
+#include "platform/opengl/openglelementbuffer.h"
 
 namespace sponge::graphics::renderer {
 

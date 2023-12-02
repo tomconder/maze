@@ -1,8 +1,8 @@
 #pragma once
 
 #include "graphics/renderer/mesh.h"
-#include "openglmesh.h"
-#include "opengltexture.h"
+#include "platform/opengl/openglmesh.h"
+#include "platform/opengl/opengltexture.h"
 #include <string>
 #include <tiny_obj_loader.h>
 #include <vector>

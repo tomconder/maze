@@ -1,4 +1,4 @@
-#include "openglshader.h"
+#include "platform/opengl/openglshader.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 #include <sstream>

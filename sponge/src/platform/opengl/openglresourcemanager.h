@@ -1,9 +1,9 @@
 #pragma once
 
-#include "openglfont.h"
-#include "openglmodel.h"
-#include "openglshader.h"
-#include "opengltexture.h"
+#include "platform/opengl/openglfont.h"
+#include "platform/opengl/openglmodel.h"
+#include "platform/opengl/openglshader.h"
+#include "platform/opengl/opengltexture.h"
 #include <absl/container/flat_hash_map.h>
 #include <fstream>
 #include <string>

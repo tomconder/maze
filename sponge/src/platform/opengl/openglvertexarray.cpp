@@ -1,4 +1,4 @@
-#include "openglvertexarray.h"
+#include "platform/opengl/openglvertexarray.h"
 
 namespace sponge::graphics::renderer {
 

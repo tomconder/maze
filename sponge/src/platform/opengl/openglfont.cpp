@@ -1,5 +1,5 @@
-#include "openglfont.h"
-#include "openglresourcemanager.h"
+#include "platform/opengl/openglfont.h"
+#include "platform/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <sstream>
 

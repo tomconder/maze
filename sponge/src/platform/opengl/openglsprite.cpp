@@ -1,5 +1,5 @@
-#include "openglsprite.h"
-#include "openglresourcemanager.h"
+#include "platform/opengl/openglsprite.h"
+#include "platform/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace sponge::graphics::renderer {
