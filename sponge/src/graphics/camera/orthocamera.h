@@ -1,10 +1,10 @@
 #pragma once
 
-#include "scene/camera.h"
+#include "camera.h"
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
-namespace sponge {
+namespace sponge::graphics {
 
 class OrthoCamera : public Camera {
    public:

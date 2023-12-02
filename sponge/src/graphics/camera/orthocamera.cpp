@@ -1,7 +1,7 @@
-#include "scene/orthocamera.h"
+#include "orthocamera.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge {
+namespace sponge::graphics {
 
 void OrthoCamera::setWidthAndHeight(uint32_t width, uint32_t height) {
     w = width;
