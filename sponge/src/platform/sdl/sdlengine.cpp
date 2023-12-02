@@ -10,7 +10,7 @@
 
 namespace sponge {
 SDLEngine::SDLEngine() {
-    layerStack = new LayerStack();
+    layerStack = new sponge::graphics::LayerStack();
     initializeKeyCodeMap();
 }
 
@@ -51,16 +51,18 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<OpenGLContext>(window);
+    graphics =
+        std::make_unique<sponge::graphics::renderer::OpenGLContext>(window);
 
-    sponge::OpenGLInfo::logVersion();
-    sponge::OpenGLInfo::logStaticInfo();
-    sponge::OpenGLInfo::logGraphicsDriverInfo();
-    sponge::OpenGLInfo::logContextInfo();
+    sponge::graphics::renderer::OpenGLInfo::logVersion();
+    sponge::graphics::renderer::OpenGLInfo::logStaticInfo();
+    sponge::graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
+    sponge::graphics::renderer::OpenGLInfo::logContextInfo();
 
     sdlWindow->setVSync(false);
 
-    renderer = std::make_unique<OpenGLRendererAPI>();
+    renderer =
+        std::make_unique<sponge::graphics::renderer::OpenGLRendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
@@ -223,23 +225,27 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void SDLEngine::pushOverlay(const std::shared_ptr<Layer>& layer) {
+void SDLEngine::pushOverlay(
+    const std::shared_ptr<sponge::graphics::Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::pushLayer(const std::shared_ptr<Layer>& layer) {
+void SDLEngine::pushLayer(
+    const std::shared_ptr<sponge::graphics::Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::popLayer(const std::shared_ptr<Layer>& layer) {
+void SDLEngine::popLayer(
+    const std::shared_ptr<sponge::graphics::Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
-void SDLEngine::popOverlay(const std::shared_ptr<Layer>& layer) {
+void SDLEngine::popOverlay(
+    const std::shared_ptr<sponge::graphics::Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 

@@ -3,9 +3,9 @@
 #include "core/base.h"
 #include "core/input.h"
 #include "event/event.h"
-#include "renderer/opengl/openglcontext.h"
-#include "renderer/opengl/openglinfo.h"
-#include "renderer/opengl/openglrendererapi.h"
+#include "platform/opengl/openglcontext.h"
+#include "platform/opengl/openglinfo.h"
+#include "platform/opengl/openglrendererapi.h"
 #include <string>
 
 namespace sponge {

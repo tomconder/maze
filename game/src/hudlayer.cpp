@@ -17,33 +17,34 @@ void HUDLayer::onAttach() {
 
     auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::OpenGLResourceManager::loadShader(
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/text.vert",
         assetsFolder + "/shaders/text.frag", textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::OpenGLResourceManager::loadShader(
+    shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/quad.vert",
         assetsFolder + "/shaders/quad.frag", quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    auto font = sponge::OpenGLResourceManager::loadFont(
+    auto font = sponge::graphics::renderer::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
         gothicFont.data());
-    shader = sponge::OpenGLResourceManager::loadShader(
+    shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/sprite.vert",
         assetsFolder + "/shaders/sprite.frag", spriteShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    sponge::OpenGLResourceManager::loadTexture(
+    sponge::graphics::renderer::OpenGLResourceManager::loadTexture(
         assetsFolder + "/images/coffee.png", coffeeTexture.data());
-    logo = std::make_unique<sponge::OpenGLSprite>(coffeeTexture.data());
+    logo = std::make_unique<sponge::graphics::renderer::OpenGLSprite>(
+        coffeeTexture.data());
 }
 
 void HUDLayer::onDetach() {
@@ -57,7 +58,8 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F },
                  { 64.F, 64.F });
 
-    auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
+    auto font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
+        gothicFont.data());
     font->render("Maze", { 12.F, 12.F }, 32, { 0.05, 0.79F, 1.0F });
     return true;
 }
@@ -74,12 +76,14 @@ bool HUDLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     auto projection = orthoCamera->getProjection();
-    auto shader = sponge::OpenGLResourceManager::getShader(spriteShader.data());
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        spriteShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = sponge::OpenGLResourceManager::getShader(textShader.data());
+    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        textShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

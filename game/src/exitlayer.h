@@ -4,7 +4,7 @@
 #include "ui/button.h"
 #include <memory>
 
-class ExitLayer : public sponge::Layer {
+class ExitLayer : public sponge::graphics::Layer {
    public:
     ExitLayer();
     void onAttach() override;
@@ -19,7 +19,7 @@ class ExitLayer : public sponge::Layer {
     const std::string_view confirmButtonMessage = "Confirm";
     const std::string_view message = "Exit the Game?";
 
-    std::unique_ptr<sponge::OpenGLQuad> quad;
+    std::unique_ptr<sponge::graphics::renderer::OpenGLQuad> quad;
     std::unique_ptr<ui::Button> cancelButton;
     std::unique_ptr<ui::Button> confirmButton;
 

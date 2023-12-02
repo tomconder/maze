@@ -18,17 +18,18 @@ void ExitLayer::onAttach() {
         ResourceManager::createOrthoCamera(cameraName.data());
 
     const auto shader =
-        sponge::OpenGLResourceManager::getShader(quadShader.data());
+        sponge::graphics::renderer::OpenGLResourceManager::getShader(
+            quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     const auto assetsFolder = sponge::File::getResourceDir();
-    sponge::OpenGLResourceManager::loadFont(
+    sponge::graphics::renderer::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
         gothicFont.data());
 
-    quad = std::make_unique<sponge::OpenGLQuad>();
+    quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54,
@@ -66,7 +67,9 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
                  { .52F, .57F, .55F, 1.F });
 
-    const auto font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
+    const auto font =
+        sponge::graphics::renderer::OpenGLResourceManager::getFont(
+            gothicFont.data());
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
@@ -85,7 +88,8 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
     orthoCamera->setWidthAndHeight(width, height);
 
     const auto shader =
-        sponge::OpenGLResourceManager::getShader(quadShader.data());
+        sponge::graphics::renderer::OpenGLResourceManager::getShader(
+            quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

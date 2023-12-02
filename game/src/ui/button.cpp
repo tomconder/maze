@@ -14,8 +14,9 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       textSize(fontSize),
       buttonColor(buttonColor),
       textColor(textColor) {
-    font = sponge::OpenGLResourceManager::getFont(gothicFont.data());
-    quad = std::make_unique<sponge::OpenGLQuad>();
+    font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
+        gothicFont.data());
+    quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 }
 
 bool Button::onUpdate(uint32_t elapsedTime) {
