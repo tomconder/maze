@@ -1,0 +1,104 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_GIT_COMMIT_ID: '01acfdfde3ed99280d3883a8fccd5fa4408f5214'
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    env:
+      CONFIGURE_PRESET: x64-release
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Setup default windows sdk
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Build
+        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
+
+  linux:
+    runs-on: ubuntu-latest
+
+    env:
+      CONFIGURE_PRESET: linux-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Install Packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-multilib
+          sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libxft-dev libgl1-mesa-dev
+
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Build
+        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
+
+  osx:
+    runs-on: macos-latest
+
+    env:
+      CONFIGURE_PRESET: osx-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Setup vcpkg (it does not install any package yet)
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
+          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Build
+        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
