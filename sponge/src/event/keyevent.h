@@ -3,7 +3,7 @@
 #include "core/keycode.h"
 #include "event/event.h"
 
-namespace sponge {
+namespace sponge::event {
 
 class KeyEvent : public Event {
    public:

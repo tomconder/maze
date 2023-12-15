@@ -8,7 +8,7 @@ class MazeLayer : public sponge::graphics::Layer {
     MazeLayer();
     void onAttach() override;
     void onDetach() override;
-    void onEvent(sponge::Event& event) override;
+    void onEvent(sponge::event::Event& event) override;
     bool onUpdate(uint32_t elapsedTime) override;
 
    private:
@@ -17,8 +17,8 @@ class MazeLayer : public sponge::graphics::Layer {
     static constexpr float keyboardSpeed = .1F;
     static constexpr float mouseSpeed = .1F;
 
-    bool onKeyPressed(const sponge::KeyPressedEvent& event);
-    bool onMouseMoved(const sponge::MouseMovedEvent& event);
-    bool onMouseScrolled(const sponge::MouseScrolledEvent& event);
-    bool onWindowResize(const sponge::WindowResizeEvent& event);
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
+    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
+    bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 };

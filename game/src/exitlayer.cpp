@@ -44,16 +44,18 @@ void ExitLayer::onDetach() {
     // nothing
 }
 
-void ExitLayer::onEvent(sponge::Event& event) {
-    sponge::EventDispatcher dispatcher(event);
+void ExitLayer::onEvent(sponge::event::Event& event) {
+    sponge::event::EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
-    dispatcher.dispatch<sponge::MouseButtonPressedEvent>(
+    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
+        BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         BIND_EVENT_FN(onMouseClicked));
-    dispatcher.dispatch<sponge::MouseMovedEvent>(BIND_EVENT_FN(onMouseMoved));
-    dispatcher.dispatch<sponge::MouseScrolledEvent>(
+    dispatcher.dispatch<sponge::event::MouseMovedEvent>(
+        BIND_EVENT_FN(onMouseMoved));
+    dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
         BIND_EVENT_FN(onMouseScrolled));
-    dispatcher.dispatch<sponge::WindowResizeEvent>(
+    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         BIND_EVENT_FN(onWindowResize));
 }
 
@@ -105,17 +107,18 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
         { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
 }
 
-bool ExitLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
+bool ExitLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
     setWidthAndHeight(event.getWidth(), event.getHeight());
     return false;
 }
 
-bool ExitLayer::onKeyPressed(const sponge::KeyPressedEvent& event) {
+bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     UNUSED(event);
     return true;
 }
 
-bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
+bool ExitLayer::onMouseClicked(
+    const sponge::event::MouseButtonPressedEvent& event) {
     if (cancelButton->isInside({ event.getX(), event.getY() })) {
         setActive(false);
     }
@@ -127,7 +130,7 @@ bool ExitLayer::onMouseClicked(const sponge::MouseButtonPressedEvent& event) {
     return false;
 }
 
-bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
+bool ExitLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
     if (!cancelButton->hasHover() &&
         cancelButton->isInside({ event.getX(), event.getY() })) {
         cancelButton->setHover(true);
@@ -155,7 +158,8 @@ bool ExitLayer::onMouseMoved(const sponge::MouseMovedEvent& event) {
     return true;
 }
 
-bool ExitLayer::onMouseScrolled(const sponge::MouseScrolledEvent& event) {
+bool ExitLayer::onMouseScrolled(
+    const sponge::event::MouseScrolledEvent& event) {
     UNUSED(event);
     return true;
 }

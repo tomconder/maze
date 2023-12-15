@@ -64,14 +64,14 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     return true;
 }
 
-void HUDLayer::onEvent(sponge::Event& event) {
-    sponge::EventDispatcher dispatcher(event);
+void HUDLayer::onEvent(sponge::event::Event& event) {
+    sponge::event::EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<sponge::WindowResizeEvent>(
+    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         BIND_EVENT_FN(onWindowResize));
 }
 
-bool HUDLayer::onWindowResize(const sponge::WindowResizeEvent& event) {
+bool HUDLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
     auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 

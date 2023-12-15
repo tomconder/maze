@@ -13,7 +13,7 @@ class Layer {
     virtual bool onUpdate(uint32_t elapsedTime) = 0;
     virtual void onAttach() = 0;
     virtual void onDetach() = 0;
-    virtual void onEvent(Event& event) = 0;
+    virtual void onEvent(sponge::event::Event& event) = 0;
 
     const std::string& getName() const {
         return debugName;

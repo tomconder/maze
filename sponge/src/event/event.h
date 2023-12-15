@@ -2,7 +2,7 @@
 
 #include "core/base.h"
 
-namespace sponge {
+namespace sponge::event {
 
 enum class EventType : uint8_t {
     None = 0,

@@ -23,7 +23,7 @@ class SDLEngine : public Engine {
     bool onUserUpdate(const uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
-    void onEvent(Event& event) override;
+    void onEvent(sponge::event::Event& event) override;
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 

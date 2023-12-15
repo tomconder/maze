@@ -2,7 +2,7 @@
 
 #include "event/event.h"
 
-namespace sponge {
+namespace sponge::event {
 
 class WindowResizeEvent : public Event {
    public:

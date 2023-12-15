@@ -14,7 +14,7 @@ class Maze : public sponge::SDLEngine {
     bool onUserDestroy() override;
     bool onUserUpdate(const uint32_t elapsedTime) override;
 
-    void onEvent(sponge::Event& event) override;
+    void onEvent(sponge::event::Event& event) override;
 
    private:
     bool isRunning = true;
@@ -24,8 +24,10 @@ class Maze : public sponge::SDLEngine {
     std::shared_ptr<HUDLayer> hudLayer = std::make_shared<HUDLayer>();
     std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
 
-    bool onKeyPressed(const sponge::KeyPressedEvent& event);
-    bool onMouseButtonPressed(const sponge::MouseButtonPressedEvent& event);
-    bool onMouseButtonReleased(const sponge::MouseButtonReleasedEvent& event);
-    bool onWindowClose(const sponge::WindowCloseEvent& event);
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+    bool onMouseButtonPressed(
+        const sponge::event::MouseButtonPressedEvent& event);
+    bool onMouseButtonReleased(
+        const sponge::event::MouseButtonReleasedEvent& event);
+    bool onWindowClose(const sponge::event::WindowCloseEvent& event);
 };

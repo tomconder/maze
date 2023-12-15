@@ -3,7 +3,7 @@
 #include "core/mousecode.h"
 #include "event/event.h"
 
-namespace sponge {
+namespace sponge::event {
 
 class MouseMovedEvent : public Event {
    public:
