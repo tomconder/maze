@@ -4,7 +4,7 @@
 
 namespace sponge {
 
-using MouseCode = uint16_t;
+using MouseCode = uint8_t;
 
 // inspired by glfw3.h
 enum : MouseCode {
