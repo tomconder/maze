@@ -1,4 +1,4 @@
-name: msvc
+name: build
 
 on:
   push:
@@ -15,13 +15,15 @@ on:
 
 env:
   BUILD_TYPE: Release
-  CONFIGURE_PRESET: x64-release
-  VCPKG_DEFAULT_TRIPLET: x64-windows
   VCPKG_GIT_COMMIT_ID: '01acfdfde3ed99280d3883a8fccd5fa4408f5214'
 
 jobs:
   windows:
     runs-on: windows-latest
+
+    env:
+      CONFIGURE_PRESET: x64-release
+      VCPKG_DEFAULT_TRIPLET: x64-windows
 
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +49,9 @@ jobs:
 
   linux:
     runs-on: ubuntu-latest
+
+    env:
+      CONFIGURE_PRESET: linux-release
 
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +80,9 @@ jobs:
 
   osx:
     runs-on: macos-latest
+
+    env:
+      CONFIGURE_PRESET: osx-release
 
     steps:
       - uses: actions/checkout@v4
