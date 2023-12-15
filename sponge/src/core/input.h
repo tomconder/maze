@@ -18,7 +18,7 @@ class Input {
     }
 
    protected:
-    virtual bool isKeyPressedImpl(const KeyCode key) = 0;
+    virtual bool isKeyPressedImpl(KeyCode key) = 0;
     virtual bool isButtonPressedImpl() = 0;
 
    private:

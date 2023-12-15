@@ -4,7 +4,7 @@
 
 namespace sponge {
 
-enum class EventType {
+enum class EventType : uint8_t {
     None = 0,
     WindowClose,
     WindowResize,
@@ -18,7 +18,7 @@ enum class EventType {
     MouseScrolled
 };
 
-enum EventCategory {
+enum EventCategory : uint8_t {
     None = 0,
     EventCategoryApplication = BIT(0),
     EventCategoryInput = BIT(1),
