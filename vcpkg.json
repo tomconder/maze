@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "cd5e746ec203c8c3c61647e0886a8df8c1e78e41",
+  "builtin-baseline": "50bffcc62d7f6571eb32bc1a0b1807e77af1166c",
   "dependencies": [
     {
       "name": "abseil",

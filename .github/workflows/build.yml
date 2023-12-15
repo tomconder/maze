@@ -15,7 +15,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_GIT_COMMIT_ID: 'cd5e746ec203c8c3c61647e0886a8df8c1e78e41'
+  VCPKG_GIT_COMMIT_ID: '50bffcc62d7f6571eb32bc1a0b1807e77af1166c'
 
 jobs:
   windows:
