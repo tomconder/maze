@@ -40,4 +40,4 @@ class WindowFullscreenEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

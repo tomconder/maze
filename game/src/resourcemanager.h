@@ -15,6 +15,7 @@ class ResourceManager {
    private:
     ResourceManager() = default;
 
-    static absl::flat_hash_map<std::string, std::shared_ptr<sponge::graphics::camera::OrthoCamera>>
+    static absl::flat_hash_map<
+        std::string, std::shared_ptr<sponge::graphics::camera::OrthoCamera>>
         cameras;
 };

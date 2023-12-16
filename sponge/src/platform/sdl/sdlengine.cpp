@@ -445,8 +445,9 @@ void SDLEngine::processEvent(const SDL_Event& event,
         auto mouseEvent = sponge::event::MouseMovedEvent{
             static_cast<float>(event.motion.xrel),
             static_cast<float>(event.motion.yrel),
-                             static_cast<float>(event.motion.x),
-                             static_cast<float>(event.motion.y) };
+            static_cast<float>(event.motion.x),
+            static_cast<float>(event.motion.y)
+        };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;

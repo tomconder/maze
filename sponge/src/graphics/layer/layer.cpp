@@ -6,4 +6,4 @@ Layer::Layer(const std::string& name) : debugName(name) {
     // nothing
 }
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::layer

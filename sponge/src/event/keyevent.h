@@ -55,4 +55,4 @@ class KeyTypedEvent : public KeyEvent {
     EVENT_CLASS_TYPE(KeyTyped)
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

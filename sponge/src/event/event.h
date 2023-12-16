@@ -76,4 +76,4 @@ class EventDispatcher {
     Event& event;
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

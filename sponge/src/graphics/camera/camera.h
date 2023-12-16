@@ -8,4 +8,4 @@ class Camera {
     virtual ~Camera() = default;
 };
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::camera

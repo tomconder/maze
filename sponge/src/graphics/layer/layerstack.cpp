@@ -35,4 +35,4 @@ void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
     }
 }
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::layer

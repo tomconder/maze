@@ -96,4 +96,4 @@ class MouseButtonReleasedEvent : public MouseButtonEvent {
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

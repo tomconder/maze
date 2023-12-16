@@ -31,4 +31,4 @@ class OrthoCamera : public Camera {
     uint32_t h;
 };
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::camera
