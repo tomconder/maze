@@ -26,7 +26,8 @@ bool Maze::onUserUpdate(const uint32_t elapsedTime) {
     if (elapsedTime > 0) {
         for (const auto& keycode : keyCodes) {
             if (sponge::Input::isKeyPressed(keycode)) {
-                auto event = sponge::KeyPressedEvent{ keycode, elapsedTime };
+                auto event =
+                    sponge::event::KeyPressedEvent{ keycode, elapsedTime };
                 onEvent(event);
             }
         }
@@ -39,19 +40,21 @@ bool Maze::onUserDestroy() {
     return true;
 }
 
-void Maze::onEvent(sponge::Event& event) {
-    sponge::EventDispatcher dispatcher(event);
-    dispatcher.dispatch<sponge::KeyPressedEvent>(BIND_EVENT_FN(onKeyPressed));
-    dispatcher.dispatch<sponge::MouseButtonPressedEvent>(
+void Maze::onEvent(sponge::event::Event& event) {
+    sponge::event::EventDispatcher dispatcher(event);
+    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
+        BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         BIND_EVENT_FN(onMouseButtonPressed));
-    dispatcher.dispatch<sponge::MouseButtonReleasedEvent>(
+    dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
         BIND_EVENT_FN(onMouseButtonReleased));
-    dispatcher.dispatch<sponge::WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+    dispatcher.dispatch<sponge::event::WindowCloseEvent>(
+        BIND_EVENT_FN(onWindowClose));
 
     sponge::SDLEngine::onEvent(event);
 }
 
-bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
+bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape ||
         event.getKeyCode() == sponge::KeyCode::SpongeKey_Q) {
         if (exitLayer->isActive()) {
@@ -78,7 +81,8 @@ bool Maze::onKeyPressed(const sponge::KeyPressedEvent& event) {
     return false;
 }
 
-bool Maze::onMouseButtonPressed(const sponge::MouseButtonPressedEvent& event) {
+bool Maze::onMouseButtonPressed(
+    const sponge::event::MouseButtonPressedEvent& event) {
     if (!exitLayer->isActive()) {
         if (isMouseVisible && event.getMouseButton() == 0) {
             setMouseVisible(false);
@@ -90,7 +94,7 @@ bool Maze::onMouseButtonPressed(const sponge::MouseButtonPressedEvent& event) {
 }
 
 bool Maze::onMouseButtonReleased(
-    const sponge::MouseButtonReleasedEvent& event) {
+    const sponge::event::MouseButtonReleasedEvent& event) {
     if (!exitLayer->isActive()) {
         if (!isMouseVisible && event.getMouseButton() == 0) {
             setMouseVisible(true);
@@ -101,7 +105,7 @@ bool Maze::onMouseButtonReleased(
     return false;
 }
 
-bool Maze::onWindowClose(const sponge::WindowCloseEvent& event) {
+bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
     UNUSED(event);
     isRunning = false;
     return true;

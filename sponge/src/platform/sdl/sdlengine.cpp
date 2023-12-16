@@ -10,7 +10,7 @@
 
 namespace sponge {
 SDLEngine::SDLEngine() {
-    layerStack = new sponge::graphics::LayerStack();
+    layerStack = new sponge::graphics::layer::LayerStack();
     initializeKeyCodeMap();
 }
 
@@ -77,7 +77,7 @@ bool SDLEngine::start() {
 
     lastUpdateTime = SDL_GetTicks();
 
-    auto resizeEvent = WindowResizeEvent{ w, h };
+    auto resizeEvent = sponge::event::WindowResizeEvent{ w, h };
     onEvent(resizeEvent);
 
     SDL_ShowWindow(window);
@@ -171,7 +171,7 @@ bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-void SDLEngine::onEvent(Event& event) {
+void SDLEngine::onEvent(sponge::event::Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
         if ((*it)->isActive()) {
             if (event.handled) {
@@ -226,26 +226,26 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 }
 
 void SDLEngine::pushOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::popLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
 void SDLEngine::popOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 
@@ -414,44 +414,46 @@ void SDLEngine::processEvent(const SDL_Event& event,
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
 
-        auto resizeEvent = WindowResizeEvent{ w, h };
+        auto resizeEvent = sponge::event::WindowResizeEvent{ w, h };
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
-            auto keyEvent = KeyPressedEvent{
+            auto keyEvent = sponge::event::KeyPressedEvent{
                 mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
             };
             onEvent(keyEvent);
         }
     } else if (event.type == SDL_KEYUP) {
-        auto keyEvent =
-            KeyReleasedEvent{ mapScanCodeToKeyCode(event.key.keysym.scancode) };
+        auto keyEvent = sponge::event::KeyReleasedEvent{ mapScanCodeToKeyCode(
+            event.key.keysym.scancode) };
         onEvent(keyEvent);
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        auto mouseEvent = MouseButtonPressedEvent{
+        auto mouseEvent = sponge::event::MouseButtonPressedEvent{
             mapMouseButton(event.button.button),
             static_cast<float>(event.motion.x),
             static_cast<float>(event.motion.y),
         };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
-        auto mouseEvent =
-            MouseButtonReleasedEvent{ mapMouseButton(event.button.button) };
+        auto mouseEvent = sponge::event::MouseButtonReleasedEvent{
+            mapMouseButton(event.button.button)
+        };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEMOTION) {
-        auto mouseEvent =
-            MouseMovedEvent{ static_cast<float>(event.motion.xrel),
-                             static_cast<float>(event.motion.yrel),
-                             static_cast<float>(event.motion.x),
-                             static_cast<float>(event.motion.y) };
+        auto mouseEvent = sponge::event::MouseMovedEvent{
+            static_cast<float>(event.motion.xrel),
+            static_cast<float>(event.motion.yrel),
+            static_cast<float>(event.motion.x),
+            static_cast<float>(event.motion.y)
+        };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;
         auto wheely = event.wheel.preciseY;
 
-        auto mouseEvent = MouseScrolledEvent{ wheelx, wheely };
+        auto mouseEvent = sponge::event::MouseScrolledEvent{ wheelx, wheely };
         onEvent(mouseEvent);
     }
 }

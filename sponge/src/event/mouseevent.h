@@ -3,7 +3,7 @@
 #include "core/mousecode.h"
 #include "event/event.h"
 
-namespace sponge {
+namespace sponge::event {
 
 class MouseMovedEvent : public Event {
    public:
@@ -96,4 +96,4 @@ class MouseButtonReleasedEvent : public MouseButtonEvent {
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

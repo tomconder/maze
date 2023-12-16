@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics {
+namespace sponge::graphics::camera {
 
 class Camera {
    public:
@@ -8,4 +8,4 @@ class Camera {
     virtual ~Camera() = default;
 };
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::camera

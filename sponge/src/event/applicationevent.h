@@ -2,7 +2,7 @@
 
 #include "event/event.h"
 
-namespace sponge {
+namespace sponge::event {
 
 class WindowResizeEvent : public Event {
    public:
@@ -40,4 +40,4 @@ class WindowFullscreenEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
-}  // namespace sponge
+}  // namespace sponge::event

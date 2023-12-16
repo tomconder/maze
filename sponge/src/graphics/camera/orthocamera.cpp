@@ -1,7 +1,7 @@
 #include "graphics/camera/orthocamera.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge::graphics {
+namespace sponge::graphics::camera {
 
 void OrthoCamera::setWidthAndHeight(uint32_t width, uint32_t height) {
     w = width;
@@ -14,4 +14,4 @@ void OrthoCamera::updateProjection(uint32_t width, uint32_t height) {
                             static_cast<float>(height), 0.F, -1.F, 1.F);
 }
 
-}  // namespace sponge::graphics
+}  // namespace sponge::graphics::camera
