@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics {
+namespace sponge::graphics::camera {
 
 class Camera {
    public:

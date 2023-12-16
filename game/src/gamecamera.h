@@ -3,7 +3,7 @@
 #include "sponge.h"
 #include <glm/mat4x4.hpp>
 
-class GameCamera : public sponge::graphics::Camera {
+class GameCamera : public sponge::graphics::camera::Camera {
    public:
     GameCamera();
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
