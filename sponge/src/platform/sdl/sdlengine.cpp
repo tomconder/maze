@@ -10,7 +10,7 @@
 
 namespace sponge {
 SDLEngine::SDLEngine() {
-    layerStack = new sponge::graphics::LayerStack();
+    layerStack = new sponge::graphics::layer::LayerStack();
     initializeKeyCodeMap();
 }
 
@@ -226,26 +226,26 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 }
 
 void SDLEngine::pushOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::popLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
 void SDLEngine::popOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 

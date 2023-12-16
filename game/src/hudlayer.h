@@ -2,7 +2,7 @@
 
 #include "sponge.h"
 
-class HUDLayer : public sponge::graphics::Layer {
+class HUDLayer : public sponge::graphics::layer::Layer {
    public:
     HUDLayer();
     void onAttach() override;

@@ -3,7 +3,7 @@
 #include "core/base.h"
 #include "event/event.h"
 
-namespace sponge::graphics {
+namespace sponge::graphics::layer {
 
 class Layer {
    public:

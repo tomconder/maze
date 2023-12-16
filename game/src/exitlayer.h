@@ -4,7 +4,7 @@
 #include "ui/button.h"
 #include <memory>
 
-class ExitLayer : public sponge::graphics::Layer {
+class ExitLayer : public sponge::graphics::layer::Layer {
    public:
     ExitLayer();
     void onAttach() override;

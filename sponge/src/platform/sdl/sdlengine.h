@@ -27,10 +27,13 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(const std::shared_ptr<sponge::graphics::Layer>& layer);
-    void pushLayer(const std::shared_ptr<sponge::graphics::Layer>& layer);
-    void popLayer(const std::shared_ptr<sponge::graphics::Layer>& layer);
-    void popOverlay(const std::shared_ptr<sponge::graphics::Layer>& layer);
+    void pushOverlay(
+        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
+    void pushLayer(
+        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
+    void popLayer(const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
+    void popOverlay(
+        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
 
     static void logSDLVersion();
 
@@ -56,7 +59,7 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    sponge::graphics::LayerStack* layerStack;
+    sponge::graphics::layer::LayerStack* layerStack;
     absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();

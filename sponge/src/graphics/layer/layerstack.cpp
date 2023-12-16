@@ -1,25 +1,22 @@
 #include "graphics/layer/layerstack.h"
 
-namespace sponge::graphics {
+namespace sponge::graphics::layer {
 
 LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
         layer->onDetach();
     }
 }
-void LayerStack::pushLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+void LayerStack::pushLayer(const std::shared_ptr<Layer>& layer) {
     layers.emplace(layers.begin() + layerInsertIndex, layer);
     layerInsertIndex++;
 }
 
-void LayerStack::pushOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& overlay) {
+void LayerStack::pushOverlay(const std::shared_ptr<Layer>& overlay) {
     layers.emplace_back(overlay);
 }
 
-void LayerStack::popLayer(
-    const std::shared_ptr<sponge::graphics::Layer>& layer) {
+void LayerStack::popLayer(const std::shared_ptr<Layer>& layer) {
     auto it =
         std::find(layers.begin(), layers.begin() + layerInsertIndex, layer);
     if (it != layers.begin() + layerInsertIndex) {
@@ -29,8 +26,7 @@ void LayerStack::popLayer(
     }
 }
 
-void LayerStack::popOverlay(
-    const std::shared_ptr<sponge::graphics::Layer>& overlay) {
+void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
     auto it =
         std::find(layers.begin() + layerInsertIndex, layers.end(), overlay);
     if (it != layers.end()) {
