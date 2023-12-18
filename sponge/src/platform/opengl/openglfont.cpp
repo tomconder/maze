@@ -1,7 +1,14 @@
 #include "platform/opengl/openglfont.h"
+#include "fmt/core.h"
 #include "platform/opengl/openglresourcemanager.h"
-#include <glm/ext/matrix_clip_space.hpp>
+#include <array>
+#include <cstddef>
+#include <fstream>
+#include <ios>
 #include <sstream>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace sponge::graphics::renderer {
 

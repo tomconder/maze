@@ -1,6 +1,5 @@
 #pragma once
 
-#include "glm/vec4.hpp"
 #include "graphics/renderer/graphicscontext.h"
 #include <SDL.h>
 #include <string>

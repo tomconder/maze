@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -8,9 +9,14 @@
 #include <fstream>
 #include <functional>
 #include <iomanip>
+#include <ios>
 #include <memory>
 #include <numeric>
+#include <sstream>
+#include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 // string
 #include <iostream>

@@ -1,8 +1,6 @@
 #include "platform/opengl/openglresourcemanager.h"
 #include <SDL.h>
 #include <cassert>
-#include <filesystem>
-#include <sstream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

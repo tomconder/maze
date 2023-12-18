@@ -1,11 +1,10 @@
 #include "platform/opengl/openglinfo.h"
+#include "core/base.h"
 #include "platform/opengl/gl.h"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>
-#include <numeric>
-#include <sstream>
-#include <utility>
+#include <vector>
 
 namespace sponge::graphics::renderer {
 

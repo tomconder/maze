@@ -1,8 +1,6 @@
 #include "platform/opengl/openglcontext.h"
-#include "platform/opengl/gl.h"
+#include "core/log.h"
 #include <tuplet/tuple.hpp>
-#include <array>
-#include <sstream>
 
 namespace sponge::graphics::renderer {
 
