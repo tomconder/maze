@@ -43,7 +43,7 @@ OpenGLMesh::OpenGLMesh(
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              (void*)offsetof(Vertex, normal));
+                              (const void*)offsetof(Vertex, normal));
     }
 
     location = glGetAttribLocation(program, "texCoord");
@@ -51,7 +51,7 @@ OpenGLMesh::OpenGLMesh(
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              (void*)offsetof(Vertex, texCoords));
+                              (const void*)offsetof(Vertex, texCoords));
     }
 
     location = glGetAttribLocation(program, "tangent");
@@ -59,7 +59,7 @@ OpenGLMesh::OpenGLMesh(
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              (void*)offsetof(Vertex, tangent));
+                              (const void*)offsetof(Vertex, tangent));
     }
 
     location = glGetAttribLocation(program, "biTangent");
@@ -67,7 +67,7 @@ OpenGLMesh::OpenGLMesh(
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              (void*)offsetof(Vertex, biTangent));
+                              (const void*)offsetof(Vertex, biTangent));
     }
 
     shader->unbind();
