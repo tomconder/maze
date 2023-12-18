@@ -2,6 +2,7 @@
 
 #include "graphics/renderer/shader.h"
 #include "platform/opengl/gl.h"
+#include <absl/container/flat_hash_map.h>
 #include <string>
 
 namespace sponge::graphics::renderer {
@@ -27,10 +28,14 @@ class OpenGLShader : public Shader {
     };
 
    private:
+    mutable absl::flat_hash_map<std::string, GLint> uniformLocations;
+
     uint32_t compileShader(GLenum type, const std::string& file);
     uint32_t linkProgram(uint32_t vs, uint32_t fs);
 
     uint32_t program = 0;
+
+    GLint getUniformLocation(const std::string& name) const;
 };
 
 }  // namespace sponge::graphics::renderer
