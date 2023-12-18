@@ -59,7 +59,7 @@ bool SDLEngine::start() {
     sponge::graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
     sponge::graphics::renderer::OpenGLInfo::logContextInfo();
 
-    sdlWindow->setVSync(false);
+    sdlWindow->setVSync(true);
 
     renderer =
         std::make_unique<sponge::graphics::renderer::OpenGLRendererAPI>();
