@@ -98,6 +98,8 @@ void OpenGLRendererAPI::init() {
                               GL_FALSE);
     }
 
+    glEnable(GL_MULTISAMPLE);
+
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
 

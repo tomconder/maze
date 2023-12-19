@@ -2,8 +2,6 @@
 #include "core/file.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include <cassert>
-#include <filesystem>
-#include <vector>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation

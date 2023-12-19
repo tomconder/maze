@@ -1,11 +1,13 @@
 #pragma once
 
+#include "core/base.h"
 #include "graphics/renderer/mesh.h"
-#include "platform/opengl/gl.h"
 #include "platform/opengl/openglbuffer.h"
 #include "platform/opengl/openglelementbuffer.h"
 #include "platform/opengl/opengltexture.h"
 #include "platform/opengl/openglvertexarray.h"
+#include <memory>
+#include <vector>
 
 namespace sponge::graphics::renderer {
 

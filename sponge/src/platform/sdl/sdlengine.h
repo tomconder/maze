@@ -3,11 +3,18 @@
 #include "core/engine.h"
 #include "core/keycode.h"
 #include "core/mousecode.h"
+#include "event/event.h"
 #include "graphics/layer/layer.h"
 #include "graphics/layer/layerstack.h"
+#include "platform/opengl/openglcontext.h"
+#include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
 #include <absl/container/flat_hash_map.h>
 #include <SDL.h>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace sponge {
 
@@ -20,7 +27,7 @@ class SDLEngine : public Engine {
     bool iterateLoop() override;
 
     bool onUserCreate() override;
-    bool onUserUpdate(const uint32_t elapsedTime) override;
+    bool onUserUpdate(uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
     void onEvent(sponge::event::Event& event) override;
@@ -45,7 +52,7 @@ class SDLEngine : public Engine {
     uint32_t getWidth() const {
         return w;
     }
-    void setMouseVisible(const bool value);
+    void setMouseVisible(bool value);
 
    private:
     std::string appName = "undefined";

@@ -1,9 +1,14 @@
 #include "platform/sdl/sdlengine.h"
+#include "core/log.h"
 #include "event/applicationevent.h"
+#include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
+#include "graphics/layer/layerstack.h"
+#include "platform/opengl/openglcontext.h"
+#include "platform/opengl/openglinfo.h"
+#include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
-#include <glm/vec3.hpp>
 #include <SDL.h>
 #include <array>
 #include <sstream>
