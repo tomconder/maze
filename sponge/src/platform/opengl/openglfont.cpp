@@ -1,4 +1,6 @@
 #include "platform/opengl/openglfont.h"
+#include "core/base.h"
+#include "core/log.h"
 #include "fmt/core.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include <array>
@@ -7,7 +9,6 @@
 #include <ios>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace sponge::graphics::renderer {

@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <string_view>
 
 namespace sponge {
 
@@ -30,17 +29,14 @@ class SDLEngine : public Engine {
     bool onUserUpdate(uint32_t elapsedTime) override;
     bool onUserDestroy() override;
 
-    void onEvent(sponge::event::Event& event) override;
+    void onEvent(event::Event& event) override;
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(
-        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
-    void pushLayer(
-        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
-    void popLayer(const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
-    void popOverlay(
-        const std::shared_ptr<sponge::graphics::layer::Layer>& layer);
+    void pushOverlay(const std::shared_ptr<graphics::layer::Layer>& layer);
+    void pushLayer(const std::shared_ptr<graphics::layer::Layer>& layer);
+    void popLayer(const std::shared_ptr<graphics::layer::Layer>& layer);
+    void popOverlay(const std::shared_ptr<graphics::layer::Layer>& layer);
 
     static void logSDLVersion();
 
@@ -56,8 +52,8 @@ class SDLEngine : public Engine {
 
    private:
     std::string appName = "undefined";
-    std::unique_ptr<sponge::graphics::renderer::OpenGLContext> graphics;
-    std::unique_ptr<sponge::graphics::renderer::OpenGLRendererAPI> renderer;
+    std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
+    std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
 
     uint32_t offsetx = 0;
@@ -66,7 +62,7 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    sponge::graphics::layer::LayerStack* layerStack;
+    graphics::layer::LayerStack* layerStack;
     absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();

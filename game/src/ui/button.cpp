@@ -48,10 +48,10 @@ void Button::setPosition(const glm::vec2& topLeft,
     bottom.x = bottomRight.x;
     bottom.y = bottomRight.y;
 
-    auto width = std::abs(topLeft.x - bottomRight.x);
-    auto height = std::abs(topLeft.y - bottomRight.y);
+    const auto width = std::abs(topLeft.x - bottomRight.x);
+    const auto height = std::abs(topLeft.y - bottomRight.y);
 
-    auto length = font->getLength(text, textSize);
+    const auto length = font->getLength(text, textSize);
     textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
                      top.y + (height - static_cast<float>(textSize)) / 2.F };
 }

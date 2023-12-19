@@ -45,7 +45,7 @@ void SDLWindow::setVSync(bool enabled) {
     // 1 for updates synchronized with the vertical retrace
     // -1 for adaptive vsync
 
-    if (int interval = enabled ? 1 : 0; SDL_GL_SetSwapInterval(interval) == 0) {
+    if (const int interval = enabled ? 1 : 0; SDL_GL_SetSwapInterval(interval) == 0) {
         data.vsync = enabled;
         SPONGE_CORE_DEBUG("Set vsync to {}", enabled);
         return;

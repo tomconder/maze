@@ -1,7 +1,5 @@
 #pragma once
 
-#include "glm/vec4.hpp"
-
 namespace sponge::graphics::renderer {
 
 class GraphicsContext {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/base.h"
 #include <spdlog/pattern_formatter.h>
 
 namespace sponge {

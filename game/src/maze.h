@@ -1,7 +1,6 @@
 #pragma once
 
 #include "exitlayer.h"
-#include "gamecamera.h"
 #include "hudlayer.h"
 #include "mazelayer.h"
 #include "sponge.h"
@@ -12,7 +11,7 @@ class Maze : public sponge::SDLEngine {
    public:
     bool onUserCreate() override;
     bool onUserDestroy() override;
-    bool onUserUpdate(const uint32_t elapsedTime) override;
+    bool onUserUpdate(uint32_t elapsedTime) override;
 
     void onEvent(sponge::event::Event& event) override;
 

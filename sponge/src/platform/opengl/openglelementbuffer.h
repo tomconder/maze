@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/renderer/buffer.h"
-#include "platform/opengl/gl.h"
 
 namespace sponge::graphics::renderer {
 

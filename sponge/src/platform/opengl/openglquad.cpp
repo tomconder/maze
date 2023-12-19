@@ -22,7 +22,7 @@ OpenGLQuad::OpenGLQuad() {
     ebo = std::make_unique<OpenGLElementBuffer>(
         static_cast<uint32_t>(sizeof(indices)));
     ebo->bind();
-    ebo->setData(indices, static_cast<uint32_t>(sizeof(indices)));
+    ebo->setData(indices, sizeof(indices));
 
     const auto program = shader->getId();
     const auto position =

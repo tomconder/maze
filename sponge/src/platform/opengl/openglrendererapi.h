@@ -2,7 +2,6 @@
 
 #include "glm/vec4.hpp"
 #include "graphics/renderer/rendererapi.h"
-#include "platform/opengl/gl.h"
 
 namespace sponge::graphics::renderer {
 
