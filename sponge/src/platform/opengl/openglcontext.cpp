@@ -1,6 +1,7 @@
 #include "platform/opengl/openglcontext.h"
 #include "core/log.h"
 #include <tuplet/tuple.hpp>
+#include <SDL.h>
 
 namespace sponge::graphics::renderer {
 
@@ -10,6 +11,9 @@ OpenGLContext::OpenGLContext(SDL_Window* window) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     constexpr std::array<tuplet::tuple<int, int>, 13> glVersions{ { { 4, 6 },
                                                                     { 4, 5 },

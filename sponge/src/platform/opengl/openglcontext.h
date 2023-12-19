@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/renderer/graphicscontext.h"
-#include <SDL.h>
 #include <string>
 
 struct SDL_Window;
