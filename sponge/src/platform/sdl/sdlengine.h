@@ -24,6 +24,7 @@ class SDLEngine : public Engine {
 
     bool start() override;
     bool iterateLoop() override;
+    void shutdown() override;
 
     bool onUserCreate() override;
     bool onUserUpdate(uint32_t elapsedTime) override;

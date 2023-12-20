@@ -38,6 +38,8 @@ bool startup() {
         quit = maze->iterateLoop();
     }
 
+    maze->shutdown();
+
     return true;
 }
 

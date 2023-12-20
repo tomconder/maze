@@ -10,6 +10,7 @@ class Engine {
 
     virtual bool start() = 0;
     virtual bool iterateLoop() = 0;
+    virtual void shutdown() = 0;
 
     virtual bool onUserCreate() = 0;
     virtual bool onUserUpdate(uint32_t elapsedTime) = 0;
