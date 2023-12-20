@@ -29,7 +29,7 @@
         "opengl3-binding",
         "sdl2-binding"
       ],
-      "version>=": "1.90#1"
+      "version>=": "1.89.9"
     },
     {
       "name": "sdl2",
