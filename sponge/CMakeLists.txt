@@ -8,6 +8,7 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
+        src/imgui/*.h
         src/graphics/camera/*.h
         src/graphics/layer/*.h
         src/graphics/renderer/*.h
@@ -20,6 +21,7 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
+        src/imgui/*.cpp
         src/graphics/camera/*.cpp
         src/graphics/layer/*.cpp
         src/graphics/renderer/*.cpp

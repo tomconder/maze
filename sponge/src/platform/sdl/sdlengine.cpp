@@ -5,8 +5,7 @@
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 #include "graphics/layer/layerstack.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl2.h"
+#include "imgui/imguilayer.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
 #include "platform/opengl/openglrendererapi.h"
@@ -60,18 +59,9 @@ bool SDLEngine::start() {
 
     graphics = std::make_unique<graphics::renderer::OpenGLContext>(window);
 
-    // IMGUI: set up context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    // IMGUI: set up opengl
-    SDL_GLContext context = SDL_GL_GetCurrentContext();
-    ImGui_ImplSDL2_InitForOpenGL(window, context);
-    ImGui_ImplOpenGL3_Init();
+    imguiLayer = std::make_shared<imgui::ImGuiLayer>();
+    imguiLayer->setActive(true);
+    pushOverlay(imguiLayer);
 
     graphics::renderer::OpenGLInfo::logVersion();
     graphics::renderer::OpenGLInfo::logStaticInfo();
@@ -114,9 +104,6 @@ bool SDLEngine::iterateLoop() {
 
     auto quit = false;
     while (SDL_PollEvent(&event) != 0) {
-        // IMGUI: forward event to backend
-        ImGui_ImplSDL2_ProcessEvent(&event);
-
         if (event.type == SDL_QUIT) {
             quit = true;
         }
@@ -128,40 +115,8 @@ bool SDLEngine::iterateLoop() {
         processEvent(event, elapsedTime);
     }
 
-    // IMGUI: start the frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-
-    {
-        static float f = 0.0f;
-        static int counter = 0;
-        bool show_another_window = false;
-
-        ImGuiIO& io = ImGui::GetIO();
-
-        ImGui::Begin("Hello, world!");
-
-        ImGui::Text("This is some useful text.");
-        ImGui::Checkbox("Another Window", &show_another_window);
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-        if (ImGui::Button("Button")) {
-            counter++;
-        }
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-
-        bool cmouse = io.WantCaptureMouse;
-        ImGui::Checkbox("Dispatch mouse", &cmouse);
-        bool ckey = io.WantCaptureKeyboard;
-        ImGui::Checkbox("Dispatch keyboard", &ckey);
-
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                    1000.0f / io.Framerate, io.Framerate);
-
-        ImGui::End();
-    }
+    imguiLayer->begin();
+    imguiLayer->render();
 
     renderer->clear();
 
@@ -173,9 +128,7 @@ bool SDLEngine::iterateLoop() {
         return true;
     }
 
-    // IMGUI: render
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    imguiLayer->end();
 
     graphics->flip(sdlWindow->getNativeWindow());
 
@@ -183,10 +136,7 @@ bool SDLEngine::iterateLoop() {
 }
 
 void SDLEngine::shutdown() {
-    // IMGUI: shutdown
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
+    popOverlay(imguiLayer);
 
     SDL_GLContext context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
@@ -248,6 +198,8 @@ void SDLEngine::onEvent(event::Event& event) {
                 break;
             }
             (*it)->onEvent(event);
+            SPONGE_INFO("onEvent {} handled {}", (*it)->getName(),
+                        event.handled);
         }
     }
 }
@@ -478,6 +430,8 @@ void SDLEngine::setMouseVisible(const bool value) {
 
 void SDLEngine::processEvent(const SDL_Event& event,
                              const uint32_t elapsedTime) {
+    imguiLayer->processEvent(&event);
+
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);

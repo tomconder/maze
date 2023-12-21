@@ -6,6 +6,7 @@
 #include "event/event.h"
 #include "graphics/layer/layer.h"
 #include "graphics/layer/layerstack.h"
+#include "imgui/imguilayer.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
@@ -52,6 +53,7 @@ class SDLEngine : public Engine {
     void setMouseVisible(bool value);
 
    private:
+    std::shared_ptr<imgui::ImGuiLayer> imguiLayer;
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
     std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
