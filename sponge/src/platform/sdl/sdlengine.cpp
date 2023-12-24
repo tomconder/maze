@@ -19,7 +19,7 @@ namespace sponge {
 SDLEngine* SDLEngine::instance = nullptr;
 
 SDLEngine::SDLEngine() {
-    assert(!instance, "Engine already exists!");
+    assert(!instance && "Engine already exists!");
     instance = this;
 
     layerStack = new graphics::layer::LayerStack();
