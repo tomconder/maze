@@ -18,6 +18,10 @@ class MazeLayer : public sponge::graphics::layer::Layer {
     static constexpr float mouseSpeed = .1F;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+    bool onMouseButtonPressed(
+        const sponge::event::MouseButtonPressedEvent& event);
+    bool onMouseButtonReleased(
+        const sponge::event::MouseButtonReleasedEvent& event);
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);

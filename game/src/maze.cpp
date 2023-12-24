@@ -44,10 +44,6 @@ void Maze::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         BIND_EVENT_FN(onKeyPressed));
-    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        BIND_EVENT_FN(onMouseButtonPressed));
-    dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
-        BIND_EVENT_FN(onMouseButtonReleased));
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
         BIND_EVENT_FN(onWindowClose));
 
@@ -57,16 +53,10 @@ void Maze::onEvent(sponge::event::Event& event) {
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
         if (exitLayer->isActive()) {
-            if (!isMouseVisible) {
-                setMouseVisible(false);
-            }
             exitLayer->setActive(false);
         } else {
             exitLayer->setWidthAndHeight(getWidth(), getHeight());
             exitLayer->setActive(true);
-            if (!isMouseVisible) {
-                setMouseVisible(true);
-            }
         }
 
         return true;
@@ -77,30 +67,6 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-    return false;
-}
-
-bool Maze::onMouseButtonPressed(
-    const sponge::event::MouseButtonPressedEvent& event) {
-    if (!exitLayer->isActive()) {
-        if (isMouseVisible && event.getMouseButton() == 0) {
-            setMouseVisible(false);
-            isMouseVisible = false;
-        }
-        return true;
-    }
-    return false;
-}
-
-bool Maze::onMouseButtonReleased(
-    const sponge::event::MouseButtonReleasedEvent& event) {
-    if (!exitLayer->isActive()) {
-        if (!isMouseVisible && event.getMouseButton() == 0) {
-            setMouseVisible(true);
-            isMouseVisible = true;
-        }
-        return true;
-    }
     return false;
 }
 

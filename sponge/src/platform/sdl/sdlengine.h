@@ -52,6 +52,10 @@ class SDLEngine : public Engine {
     }
     void setMouseVisible(bool value);
 
+    static SDLEngine& get() {
+        return *instance;
+    }
+
    private:
     std::shared_ptr<imgui::ImGuiLayer> imguiLayer;
     std::string appName = "undefined";
@@ -72,6 +76,8 @@ class SDLEngine : public Engine {
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
     static MouseCode mapMouseButton(uint8_t index);
     void processEvent(const SDL_Event& event, uint32_t elapsedTime);
+
+    static SDLEngine* instance;
 };
 
 }  // namespace sponge

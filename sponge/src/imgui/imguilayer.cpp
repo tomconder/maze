@@ -37,10 +37,6 @@ void ImGuiLayer::onEvent(event::Event& event) {
     event.handled |=
         static_cast<uint8_t>(event.isInCategory(event::EventCategoryKeyboard)) &
         static_cast<uint8_t>(io.WantCaptureKeyboard);
-
-    SPONGE_INFO("Event[{}] :: Mouse[{}] Key[{}]", event.handled,
-                event.isInCategory(event::EventCategoryMouse),
-                event.isInCategory(event::EventCategoryKeyboard));
 }
 
 void ImGuiLayer::begin() {

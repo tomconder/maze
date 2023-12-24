@@ -15,7 +15,13 @@
 #include <sstream>
 
 namespace sponge {
+
+SDLEngine* SDLEngine::instance = nullptr;
+
 SDLEngine::SDLEngine() {
+    assert(!instance, "Engine already exists!");
+    instance = this;
+
     layerStack = new graphics::layer::LayerStack();
     initializeKeyCodeMap();
 }
@@ -198,8 +204,6 @@ void SDLEngine::onEvent(event::Event& event) {
                 break;
             }
             (*it)->onEvent(event);
-            SPONGE_INFO("onEvent {} handled {}", (*it)->getName(),
-                        event.handled);
         }
     }
 }

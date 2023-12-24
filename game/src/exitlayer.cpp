@@ -50,7 +50,7 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         BIND_EVENT_FN(onKeyPressed));
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        BIND_EVENT_FN(onMouseClicked));
+        BIND_EVENT_FN(onMouseButtonPressed));
     dispatcher.dispatch<sponge::event::MouseMovedEvent>(
         BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
@@ -113,12 +113,22 @@ bool ExitLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
 }
 
 bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    UNUSED(event);
-    return true;
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
+        if (isActive()) {
+            sponge::SDLEngine::get().setMouseVisible(false);
+        } else {
+            sponge::SDLEngine::get().setMouseVisible(true);
+        }
+    }
+
+    return false;
 }
 
-bool ExitLayer::onMouseClicked(
+bool ExitLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
+    if (!isActive()) {
+    }
+
     if (cancelButton->isInside({ event.getX(), event.getY() })) {
         setActive(false);
     }

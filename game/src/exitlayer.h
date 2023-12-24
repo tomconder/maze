@@ -24,7 +24,8 @@ class ExitLayer : public sponge::graphics::layer::Layer {
     std::unique_ptr<ui::Button> confirmButton;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-    bool onMouseClicked(const sponge::event::MouseButtonPressedEvent& event);
+    bool onMouseButtonPressed(
+        const sponge::event::MouseButtonPressedEvent& event);
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);

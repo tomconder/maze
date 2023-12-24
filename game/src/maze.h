@@ -24,9 +24,5 @@ class Maze : public sponge::SDLEngine {
     std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
-    bool onMouseButtonReleased(
-        const sponge::event::MouseButtonReleasedEvent& event);
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
 };
