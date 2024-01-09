@@ -12,7 +12,7 @@ project(
         HOMEPAGE_URL "https://gitub.com/tomconder/maze"
         LANGUAGES C CXX)
 
-set(COPYRIGHT "Copyright 2023 Tom Conder")
+set(COPYRIGHT "Copyright 2024 Tom Conder")
 
 set(GIT_SHA
         "no-hash"

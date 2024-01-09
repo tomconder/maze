@@ -30,3 +30,4 @@
 #include "platform/opengl/openglsprite.h"
 #include "platform/sdl/sdlengine.h"
 #include "platform/sdl/sdlinput.h"
+#include "version.h"
