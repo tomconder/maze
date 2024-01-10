@@ -34,7 +34,8 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(
+            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
             reinterpret_cast<const void*>(offsetof(Vertex, position)));
     }
 
@@ -42,7 +43,8 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(
+            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
             reinterpret_cast<const void*>(offsetof(Vertex, normal)));
     }
 
@@ -50,7 +52,8 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(
+            position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
             reinterpret_cast<const void*>(offsetof(Vertex, texCoords)));
     }
 
@@ -58,7 +61,8 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(
+            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
             reinterpret_cast<const void*>(offsetof(Vertex, tangent)));
     }
 
@@ -66,7 +70,8 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        glVertexAttribPointer(
+            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
             reinterpret_cast<const void*>(offsetof(Vertex, biTangent)));
     }
 
