@@ -16,12 +16,12 @@ void ImGuiLayer::onImGuiRender() {
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
                 io.Framerate);
 
-    showLayers();
+    showLayersTable();
 
     ImGui::End();
 }
 
-void ImGuiLayer::showLayers() {
+void ImGuiLayer::showLayersTable() {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
