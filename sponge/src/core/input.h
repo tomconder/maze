@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/keycode.h"
-#include "glm/vec2.hpp"
 
 namespace sponge {
 

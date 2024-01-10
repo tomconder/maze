@@ -14,8 +14,7 @@ bool startup() {
     SPONGE_INFO("Starting game");
 
     std::stringstream ss;
-    ss << fmt::format("{} {} {}", game::project_name, game::project_version,
-                      game::git_sha);
+    ss << fmt::format("{}", game::project_name);
     std::string appName = ss.str();
 
     SPONGE_INFO("{}", appName);
@@ -37,6 +36,8 @@ bool startup() {
     while (!quit) {
         quit = maze->iterateLoop();
     }
+
+    maze->shutdown();
 
     return true;
 }

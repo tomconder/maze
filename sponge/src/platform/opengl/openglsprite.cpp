@@ -23,7 +23,7 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
     ebo = std::make_unique<OpenGLElementBuffer>(
         indices, static_cast<uint32_t>(sizeof(indices)));
     ebo->bind();
-    ebo->setData(indices, static_cast<uint32_t>(sizeof(indices)));
+    ebo->setData(indices, sizeof(indices));
 
     uint32_t program = shader->getId();
     if (auto location = glGetAttribLocation(program, "vertex");
@@ -56,7 +56,7 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     const auto tex = OpenGLResourceManager::getTexture(name);
     tex->bind();
 
-    vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
+    vbo->setData(vertices, sizeof(vertices));
 
     glDrawElements(GL_TRIANGLES, static_cast<int32_t>(numIndices),
                    GL_UNSIGNED_INT, nullptr);

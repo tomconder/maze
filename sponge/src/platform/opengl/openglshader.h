@@ -1,7 +1,6 @@
 #pragma once
 
 #include "graphics/renderer/shader.h"
-#include "platform/opengl/gl.h"
 #include <absl/container/flat_hash_map.h>
 #include <string>
 

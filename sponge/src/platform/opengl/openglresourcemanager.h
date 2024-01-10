@@ -5,7 +5,6 @@
 #include "platform/opengl/openglshader.h"
 #include "platform/opengl/opengltexture.h"
 #include <absl/container/flat_hash_map.h>
-#include <fstream>
 #include <string>
 
 namespace sponge::graphics::renderer {

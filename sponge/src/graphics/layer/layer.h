@@ -7,13 +7,16 @@ namespace sponge::graphics::layer {
 
 class Layer {
    public:
-    Layer(const std::string& name = "undefined");
+    explicit Layer(const std::string& name = "undefined");
     virtual ~Layer() = default;
 
-    virtual bool onUpdate(uint32_t elapsedTime) = 0;
-    virtual void onAttach() = 0;
-    virtual void onDetach() = 0;
-    virtual void onEvent(sponge::event::Event& event) = 0;
+    virtual void onAttach(){};
+    virtual void onDetach(){};
+    virtual void onEvent(event::Event& event) {}
+    virtual void onImGuiRender() {}
+    virtual bool onUpdate(uint32_t elapsedTime) {
+        return true;
+    };
 
     const std::string& getName() const {
         return debugName;
@@ -33,5 +36,4 @@ class Layer {
    private:
     bool active = true;
 };
-
 }  // namespace sponge::graphics::layer

@@ -5,6 +5,7 @@
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
 #include "graphics/layer/layerstack.h"
+#include "imgui/imguilayer.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
 #include "platform/opengl/openglrendererapi.h"
@@ -14,8 +15,14 @@
 #include <sstream>
 
 namespace sponge {
+
+SDLEngine* SDLEngine::instance = nullptr;
+
 SDLEngine::SDLEngine() {
-    layerStack = new sponge::graphics::layer::LayerStack();
+    assert(!instance && "Engine already exists!");
+    instance = this;
+
+    layerStack = new graphics::layer::LayerStack();
     initializeKeyCodeMap();
 }
 
@@ -56,18 +63,20 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics =
-        std::make_unique<sponge::graphics::renderer::OpenGLContext>(window);
+    graphics = std::make_unique<graphics::renderer::OpenGLContext>(window);
 
-    sponge::graphics::renderer::OpenGLInfo::logVersion();
-    sponge::graphics::renderer::OpenGLInfo::logStaticInfo();
-    sponge::graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
-    sponge::graphics::renderer::OpenGLInfo::logContextInfo();
+    imguiLayer = std::make_shared<imgui::ImGuiLayer>();
+    imguiLayer->setActive(true);
+    pushOverlay(imguiLayer);
+
+    graphics::renderer::OpenGLInfo::logVersion();
+    graphics::renderer::OpenGLInfo::logStaticInfo();
+    graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
+    graphics::renderer::OpenGLInfo::logContextInfo();
 
     sdlWindow->setVSync(true);
 
-    renderer =
-        std::make_unique<sponge::graphics::renderer::OpenGLRendererAPI>();
+    renderer = std::make_unique<graphics::renderer::OpenGLRendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
@@ -82,7 +91,7 @@ bool SDLEngine::start() {
 
     lastUpdateTime = SDL_GetTicks();
 
-    auto resizeEvent = sponge::event::WindowResizeEvent{ w, h };
+    auto resizeEvent = event::WindowResizeEvent{ w, h };
     onEvent(resizeEvent);
 
     SDL_ShowWindow(window);
@@ -95,8 +104,12 @@ bool SDLEngine::start() {
 bool SDLEngine::iterateLoop() {
     SDL_Event event;
 
+    const auto currentTime = SDL_GetTicks();
+    auto elapsedTime = currentTime - lastUpdateTime;
+    lastUpdateTime = currentTime;
+
     auto quit = false;
-    if (SDL_PollEvent(&event) != 0) {
+    while (SDL_PollEvent(&event) != 0) {
         if (event.type == SDL_QUIT) {
             quit = true;
         }
@@ -104,13 +117,15 @@ bool SDLEngine::iterateLoop() {
             event.window.event == SDL_WINDOWEVENT_CLOSE) {
             quit = true;
         }
+
+        processEvent(event, elapsedTime);
     }
 
-    const auto currentTime = SDL_GetTicks();
-    auto elapsedTime = currentTime - lastUpdateTime;
-    lastUpdateTime = currentTime;
+    imguiLayer->begin();
 
-    processEvent(event, elapsedTime);
+    for (auto layer : *layerStack) {
+        layer->onImGuiRender();
+    }
 
     renderer->clear();
 
@@ -119,14 +134,23 @@ bool SDLEngine::iterateLoop() {
     }
 
     if (quit && onUserDestroy()) {
-        SDL_Quit();
-
         return true;
     }
+
+    imguiLayer->end();
 
     graphics->flip(sdlWindow->getNativeWindow());
 
     return false;
+}
+
+void SDLEngine::shutdown() {
+    popOverlay(imguiLayer);
+
+    SDL_GLContext context = SDL_GL_GetCurrentContext();
+    SDL_GL_DeleteContext(context);
+    SDL_DestroyWindow(static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
+    SDL_Quit();
 }
 
 void SDLEngine::logSDLVersion() {
@@ -176,7 +200,7 @@ bool SDLEngine::onUserDestroy() {
     return true;
 }
 
-void SDLEngine::onEvent(sponge::event::Event& event) {
+void SDLEngine::onEvent(event::Event& event) {
     for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
         if ((*it)->isActive()) {
             if (event.handled) {
@@ -231,26 +255,25 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 }
 
 void SDLEngine::pushOverlay(
-    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
+    const std::shared_ptr<graphics::layer::Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(
-    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
+    const std::shared_ptr<graphics::layer::Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::popLayer(
-    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
+void SDLEngine::popLayer(const std::shared_ptr<graphics::layer::Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
 void SDLEngine::popOverlay(
-    const std::shared_ptr<sponge::graphics::layer::Layer>& layer) {
+    const std::shared_ptr<graphics::layer::Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 
@@ -414,51 +437,51 @@ void SDLEngine::setMouseVisible(const bool value) {
 
 void SDLEngine::processEvent(const SDL_Event& event,
                              const uint32_t elapsedTime) {
+    imguiLayer->processEvent(&event);
+
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
         renderer->setViewport(offsetx, offsety, w, h);
 
-        auto resizeEvent = sponge::event::WindowResizeEvent{ w, h };
+        auto resizeEvent = event::WindowResizeEvent{ w, h };
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
         if (event.key.repeat == 0) {
-            auto keyEvent = sponge::event::KeyPressedEvent{
+            auto keyEvent = event::KeyPressedEvent{
                 mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
             };
             onEvent(keyEvent);
         }
     } else if (event.type == SDL_KEYUP) {
-        auto keyEvent = sponge::event::KeyReleasedEvent{ mapScanCodeToKeyCode(
+        auto keyEvent = event::KeyReleasedEvent{ mapScanCodeToKeyCode(
             event.key.keysym.scancode) };
         onEvent(keyEvent);
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
-        auto mouseEvent = sponge::event::MouseButtonPressedEvent{
+        auto mouseEvent = event::MouseButtonPressedEvent{
             mapMouseButton(event.button.button),
             static_cast<float>(event.motion.x),
             static_cast<float>(event.motion.y),
         };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
-        auto mouseEvent = sponge::event::MouseButtonReleasedEvent{
-            mapMouseButton(event.button.button)
-        };
+        auto mouseEvent = event::MouseButtonReleasedEvent{ mapMouseButton(
+            event.button.button) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEMOTION) {
-        auto mouseEvent = sponge::event::MouseMovedEvent{
-            static_cast<float>(event.motion.xrel),
-            static_cast<float>(event.motion.yrel),
-            static_cast<float>(event.motion.x),
-            static_cast<float>(event.motion.y)
-        };
+        auto mouseEvent =
+            event::MouseMovedEvent{ static_cast<float>(event.motion.xrel),
+                                    static_cast<float>(event.motion.yrel),
+                                    static_cast<float>(event.motion.x),
+                                    static_cast<float>(event.motion.y) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
         auto wheelx = event.wheel.preciseX;
         auto wheely = event.wheel.preciseY;
 
-        auto mouseEvent = sponge::event::MouseScrolledEvent{ wheelx, wheely };
+        auto mouseEvent = event::MouseScrolledEvent{ wheelx, wheely };
         onEvent(mouseEvent);
     }
 }

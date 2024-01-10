@@ -1,5 +1,4 @@
 # Sponge Engine
-
 include(GNUInstallDirs)
 
 file(
@@ -8,6 +7,7 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
+        src/imgui/*.h
         src/graphics/camera/*.h
         src/graphics/layer/*.h
         src/graphics/renderer/*.h
@@ -20,6 +20,7 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
+        src/imgui/*.cpp
         src/graphics/camera/*.cpp
         src/graphics/layer/*.cpp
         src/graphics/renderer/*.cpp
@@ -45,14 +46,15 @@ endif ()
 
 find_package(absl CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
-find_package(Stb REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(tuplet CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
+find_package(Stb REQUIRED)
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 
@@ -72,6 +74,7 @@ target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE absl::flat_hash_map)
 target_link_libraries(sponge PRIVATE glad::glad)
 target_link_libraries(sponge PRIVATE glm::glm)
+target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader_double)
 target_link_libraries(sponge PRIVATE tuplet::tuplet)

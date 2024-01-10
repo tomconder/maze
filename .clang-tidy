@@ -53,6 +53,7 @@ Checks: >
   bugprone-*,
   google-*,
   misc-*,
+  -misc-include-cleaner,
   modernize-*,
   performance-*,
   portability-*,

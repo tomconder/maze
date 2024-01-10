@@ -2,7 +2,6 @@
 
 #include "graphics/camera/camera.h"
 #include <glm/mat4x4.hpp>
-#include <glm/vec2.hpp>
 
 namespace sponge::graphics::camera {
 
@@ -27,8 +26,8 @@ class OrthoCamera : public Camera {
 
     glm::mat4 projection = glm::mat4(1.F);
 
-    uint32_t w;
-    uint32_t h;
+    uint32_t w = 0;
+    uint32_t h = 0;
 };
 
 }  // namespace sponge::graphics::camera

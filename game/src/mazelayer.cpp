@@ -54,6 +54,10 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
 
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         BIND_EVENT_FN(onKeyPressed));
+    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
+        BIND_EVENT_FN(onMouseButtonPressed));
+    dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
+        BIND_EVENT_FN(onMouseButtonReleased));
     dispatcher.dispatch<sponge::event::MouseMovedEvent>(
         BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
@@ -75,6 +79,23 @@ bool MazeLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_D ||
                event.getKeyCode() == sponge::KeyCode::SpongeKey_Right) {
         camera->strafeRight(event.getElapsedTime() * keyboardSpeed);
+    }
+    return false;
+}
+
+bool MazeLayer::onMouseButtonPressed(
+    const sponge::event::MouseButtonPressedEvent& event) {
+    if (event.getMouseButton() == 0) {
+        sponge::SDLEngine::get().setMouseVisible(false);
+        return true;
+    }
+    return false;
+}
+bool MazeLayer::onMouseButtonReleased(
+    const sponge::event::MouseButtonReleasedEvent& event) {
+    if (event.getMouseButton() == 0) {
+        sponge::SDLEngine::get().setMouseVisible(true);
+        return true;
     }
     return false;
 }

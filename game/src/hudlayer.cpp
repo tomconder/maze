@@ -13,9 +13,10 @@ HUDLayer::HUDLayer() : Layer("hud") {
 }
 
 void HUDLayer::onAttach() {
-    auto assetsFolder = sponge::File::getResourceDir();
+    const auto assetsFolder = sponge::File::getResourceDir();
 
-    auto orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
+    const auto orthoCamera =
+        ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/text.vert",
@@ -31,9 +32,10 @@ void HUDLayer::onAttach() {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    auto font = sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
-        gothicFont.data());
+    const auto font =
+        sponge::graphics::renderer::OpenGLResourceManager::loadFont(
+            assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
+            gothicFont.data());
     shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/sprite.vert",
         assetsFolder + "/shaders/sprite.frag", spriteShader.data());
@@ -54,12 +56,13 @@ void HUDLayer::onDetach() {
 bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F },
                  { 64.F, 64.F });
 
-    auto font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
-        gothicFont.data());
+    const auto font =
+        sponge::graphics::renderer::OpenGLResourceManager::getFont(
+            gothicFont.data());
     font->render("Maze", { 12.F, 12.F }, 32, { 0.05, 0.79F, 1.0F });
     return true;
 }
@@ -72,10 +75,10 @@ void HUDLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool HUDLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
-    auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
-    auto projection = orthoCamera->getProjection();
+    const auto projection = orthoCamera->getProjection();
     auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
         spriteShader.data());
     shader->bind();
