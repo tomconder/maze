@@ -3,7 +3,6 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
 #include "platform/sdl/sdlengine.h"
-#include "version.h"
 
 namespace sponge::imgui {
 
@@ -54,18 +53,6 @@ void ImGuiLayer::end() {
 
 void ImGuiLayer::processEvent(const SDL_Event* event) {
     ImGui_ImplSDL2_ProcessEvent(event);
-}
-
-void ImGuiLayer::render() {
-    ImGuiIO& io = ImGui::GetIO();
-
-    const auto title = fmt::format("Maze {} {}", project_version, git_sha);
-    ImGui::Begin(title.c_str());
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0F / io.Framerate, io.Framerate);
-
-    ImGui::End();
 }
 
 }  // namespace sponge::imgui

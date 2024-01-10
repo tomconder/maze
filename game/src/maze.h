@@ -2,10 +2,10 @@
 
 #include "exitlayer.h"
 #include "hudlayer.h"
+#include "imguilayer.h"
 #include "mazelayer.h"
 #include "sponge.h"
 #include <memory>
-#include <string>
 
 class Maze : public sponge::SDLEngine {
    public:
@@ -20,6 +20,7 @@ class Maze : public sponge::SDLEngine {
     bool isMouseVisible = true;
 
     std::shared_ptr<ExitLayer> exitLayer = std::make_shared<ExitLayer>();
+    std::shared_ptr<ImGuiLayer> imguiLayer = std::make_shared<ImGuiLayer>();
     std::shared_ptr<HUDLayer> hudLayer = std::make_shared<HUDLayer>();
     std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
 

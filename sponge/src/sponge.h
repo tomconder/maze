@@ -25,6 +25,7 @@
 #include "graphics/renderer/sprite.h"
 #include "graphics/renderer/texture.h"
 #include "graphics/renderer/vertexarray.h"
+#include "imgui/imguilayer.h"
 #include "platform/opengl/openglquad.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include "platform/opengl/openglsprite.h"

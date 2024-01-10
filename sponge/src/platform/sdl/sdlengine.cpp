@@ -122,7 +122,10 @@ bool SDLEngine::iterateLoop() {
     }
 
     imguiLayer->begin();
-    imguiLayer->render();
+
+    for (auto layer : *layerStack) {
+        layer->onImGuiRender();
+    }
 
     renderer->clear();
 

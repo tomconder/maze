@@ -16,7 +16,6 @@ class ImGuiLayer : public graphics::layer::Layer {
     static void begin();
     static void end();
     static void processEvent(const SDL_Event* event);
-    static void render();
 };
 
 }  // namespace sponge::imgui
