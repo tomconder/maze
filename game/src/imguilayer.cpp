@@ -16,7 +16,9 @@ void ImGuiLayer::onImGuiRender() {
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
                 io.Framerate);
 
-    showLayersTable();
+    if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
+        showLayersTable();
+    }
 
     ImGui::End();
 }
@@ -25,24 +27,22 @@ void ImGuiLayer::showLayersTable() {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
-    if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
-        auto* const stack = sponge::SDLEngine::get().getLayerStack();
+    auto* const stack = sponge::SDLEngine::get().getLayerStack();
 
-        if (ImGui::BeginTable("layerTable", 1)) {
-            for (const auto& layer : *stack) {
-                ImGui::TableNextRow();
+    if (ImGui::BeginTable("layerTable", 1)) {
+        for (const auto& layer : *stack) {
+            ImGui::TableNextRow();
 
-                const ImU32 cellBgColor =
-                    layer->isActive() ? activeColor : inactiveColor;
+            const ImU32 cellBgColor =
+                layer->isActive() ? activeColor : inactiveColor;
 
-                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
-                ImGui::TableSetColumnIndex(0);
-                ImGui::Text("%s %s", layer->isActive() ? "*" : "-",
-                            layer->getName().c_str());
-            }
-
-            ImGui::EndTable();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%s %s", layer->isActive() ? "*" : "-",
+                        layer->getName().c_str());
         }
+
+        ImGui::EndTable();
     }
 }
