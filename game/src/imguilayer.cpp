@@ -25,7 +25,7 @@ void ImGuiLayer::showLayers() {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
-    if (ImGui::CollapsingHeader("Layers")) {
+    if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
         auto* const stack = sponge::SDLEngine::get().getLayerStack();
 
         if (ImGui::BeginTable("layerTable", 1)) {
