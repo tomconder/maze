@@ -9,7 +9,9 @@ constexpr std::array keyCodes = {
 };
 
 bool Maze::onUserCreate() {
+#if !NDEBUG
     pushOverlay(imguiLayer);
+#endif
     pushOverlay(hudLayer);
     pushLayer(mazeLayer);
     pushOverlay(exitLayer);

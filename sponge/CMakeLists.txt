@@ -1,8 +1,6 @@
 # Sponge Engine
 include(GNUInstallDirs)
 
-configure_file(bundle/resources/version.h.in version.h)
-
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
@@ -69,7 +67,6 @@ set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(sponge PUBLIC src)
-target_include_directories(sponge PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(sponge PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
