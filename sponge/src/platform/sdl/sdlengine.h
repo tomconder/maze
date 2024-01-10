@@ -44,6 +44,10 @@ class SDLEngine : public Engine {
 
     void toggleFullscreen();
 
+    graphics::layer::LayerStack* getLayerStack() const {
+        return layerStack;
+    }
+
     uint32_t getHeight() const {
         return h;
     }

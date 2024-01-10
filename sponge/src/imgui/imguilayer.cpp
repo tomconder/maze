@@ -6,7 +6,7 @@
 
 namespace sponge::imgui {
 
-ImGuiLayer::ImGuiLayer() : Layer("imgui") {
+ImGuiLayer::ImGuiLayer() : Layer("imgui-engine") {
     // nothing
 }
 
@@ -31,7 +31,7 @@ void ImGuiLayer::onDetach() {
 }
 
 void ImGuiLayer::onEvent(event::Event& event) {
-    ImGuiIO& io = ImGui::GetIO();
+    const auto& io = ImGui::GetIO();
     event.handled |=
         static_cast<uint8_t>(event.isInCategory(event::EventCategoryMouse)) &
         static_cast<uint8_t>(io.WantCaptureMouse);

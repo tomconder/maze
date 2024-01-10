@@ -4,6 +4,9 @@
 
 class ImGuiLayer : public sponge::graphics::layer::Layer {
    public:
+    ImGuiLayer();
     void onImGuiRender() override;
-    void onAttach() override;
+
+   private:
+    static void showLayers();
 };
