@@ -19,10 +19,8 @@ void ImGuiLayer::onImGuiRender() {
                      ImGuiWindowFlags_NoSavedSettings);
 
     ImGui::AlignTextToFramePadding();
-
-    const auto title = fmt::format("{} {} {}", game::project_name,
-                                   game::project_version, game::git_sha);
-    ImGui::Text(title.c_str());
+    ImGui::Text("%s %s", game::project_name.data(),
+                game::project_version.data());
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
                 io.Framerate);
 
