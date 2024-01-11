@@ -28,20 +28,21 @@ void ImGuiLayer::showLayersTable() {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
-    auto* const stack = sponge::SDLEngine::get().getLayerStack();
+    auto* const layerStack = sponge::SDLEngine::get().getLayerStack();
 
     if (ImGui::BeginTable("layerTable", 1)) {
-        for (const auto& layer : std::ranges::reverse_view(*stack)) {
+        for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
+             ++layer) {
             ImGui::TableNextRow();
 
             const ImU32 cellBgColor =
-                layer->isActive() ? activeColor : inactiveColor;
+                (*layer)->isActive() ? activeColor : inactiveColor;
 
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%s %s", layer->isActive() ? "*" : "-",
-                        layer->getName().c_str());
+            ImGui::Text("%s %s", (*layer)->isActive() ? "*" : "-",
+                        (*layer)->getName().c_str());
         }
 
         ImGui::EndTable();

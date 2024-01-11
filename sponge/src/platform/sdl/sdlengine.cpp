@@ -204,12 +204,13 @@ bool SDLEngine::onUserDestroy() {
 }
 
 void SDLEngine::onEvent(event::Event& event) {
-    for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
-        if (layer->isActive()) {
+    for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
+         ++layer) {
+        if ((*layer)->isActive()) {
             if (event.handled) {
                 break;
             }
-            layer->onEvent(event);
+            (*layer)->onEvent(event);
         }
     }
 }
