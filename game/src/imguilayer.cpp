@@ -11,15 +11,15 @@ void ImGuiLayer::onImGuiRender() {
 
     bool open = true;
 
-    const auto title =
-        fmt::format("Maze {} {}", game::project_version, game::git_sha);
-
-    ImGui::Begin(title.c_str(), &open, ImGuiWindowFlags_NoCollapse);
-    if (!open) {
-        setActive(false);
-    }
+    ImGui::Begin("maze", nullptr,
+                 ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoSavedSettings);
 
     ImGui::AlignTextToFramePadding();
+
+    const auto title = fmt::format("{} {} {}", game::project_name,
+                                   game::project_version, game::git_sha);
+    ImGui::Text(title.c_str());
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
                 io.Framerate);
 
