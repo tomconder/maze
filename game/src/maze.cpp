@@ -65,6 +65,16 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
+    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_GraveAccent) {
+        if (imguiLayer->isActive()) {
+            imguiLayer->setActive(false);
+        } else {
+            imguiLayer->setActive(true);
+        }
+
+        return true;
+    }
+
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_F) {
         toggleFullscreen();
         return true;
