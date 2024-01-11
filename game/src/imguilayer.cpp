@@ -1,7 +1,6 @@
 #include "imguilayer.h"
 #include "imgui.h"
 #include "version.h"
-#include <ranges>
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
@@ -10,10 +9,17 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
+    bool open = true;
+
     const auto title =
         fmt::format("Maze {} {}", game::project_version, game::git_sha);
-    ImGui::Begin(title.c_str());
 
+    ImGui::Begin(title.c_str(), &open, ImGuiWindowFlags_NoCollapse);
+    if (!open) {
+        setActive(false);
+    }
+
+    ImGui::AlignTextToFramePadding();
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
                 io.Framerate);
 

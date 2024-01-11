@@ -12,7 +12,6 @@
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
 #include <array>
-#include <ranges>
 #include <sstream>
 
 namespace sponge {
@@ -124,7 +123,7 @@ bool SDLEngine::iterateLoop() {
 
     imguiLayer->begin();
 
-    for (auto layer : *layerStack) {
+    for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
         }
