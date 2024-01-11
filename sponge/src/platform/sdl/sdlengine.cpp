@@ -4,14 +4,15 @@
 #include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
-#include "layer/layerstack.h"
 #include "imgui/imguilayer.h"
+#include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
 #include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
 #include <array>
+#include <ranges>
 #include <sstream>
 
 namespace sponge {
@@ -203,12 +204,12 @@ bool SDLEngine::onUserDestroy() {
 }
 
 void SDLEngine::onEvent(event::Event& event) {
-    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
-        if ((*it)->isActive()) {
+    for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
+        if (layer->isActive()) {
             if (event.handled) {
                 break;
             }
-            (*it)->onEvent(event);
+            layer->onEvent(event);
         }
     }
 }

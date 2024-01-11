@@ -1,6 +1,7 @@
 #include "imguilayer.h"
 #include "imgui.h"
 #include "version.h"
+#include <ranges>
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
@@ -30,17 +31,17 @@ void ImGuiLayer::showLayersTable() {
     auto* const stack = sponge::SDLEngine::get().getLayerStack();
 
     if (ImGui::BeginTable("layerTable", 1)) {
-        for (auto layer = stack->rbegin(); layer != stack->rend(); ++layer) {
+        for (const auto& layer : std::ranges::reverse_view(*stack)) {
             ImGui::TableNextRow();
 
             const ImU32 cellBgColor =
-                (*layer)->isActive() ? activeColor : inactiveColor;
+                layer->isActive() ? activeColor : inactiveColor;
 
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%s %s", (*layer)->isActive() ? "*" : "-",
-                        (*layer)->getName().c_str());
+            ImGui::Text("%s %s", layer->isActive() ? "*" : "-",
+                        layer->getName().c_str());
         }
 
         ImGui::EndTable();
