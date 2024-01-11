@@ -18,6 +18,8 @@ void ImGuiLayer::onAttach() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    io.IniFilename = nullptr;
+
     auto* context = SDL_GL_GetCurrentContext();
     auto* window = SDL_GL_GetCurrentWindow();
     ImGui_ImplSDL2_InitForOpenGL(window, context);
