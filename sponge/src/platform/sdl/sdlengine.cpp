@@ -4,7 +4,7 @@
 #include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
-#include "graphics/layer/layerstack.h"
+#include "layer/layerstack.h"
 #include "imgui/imguilayer.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
@@ -22,7 +22,7 @@ SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
     instance = this;
 
-    layerStack = new graphics::layer::LayerStack();
+    layerStack = new layer::LayerStack();
     initializeKeyCodeMap();
 }
 
@@ -257,25 +257,25 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
 }
 
 void SDLEngine::pushOverlay(
-    const std::shared_ptr<graphics::layer::Layer>& layer) {
+    const std::shared_ptr<layer::Layer>& layer) {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
 void SDLEngine::pushLayer(
-    const std::shared_ptr<graphics::layer::Layer>& layer) {
+    const std::shared_ptr<layer::Layer>& layer) {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::popLayer(const std::shared_ptr<graphics::layer::Layer>& layer) {
+void SDLEngine::popLayer(const std::shared_ptr<layer::Layer>& layer) {
     layerStack->popLayer(layer);
 }
 
 void SDLEngine::popOverlay(
-    const std::shared_ptr<graphics::layer::Layer>& layer) {
+    const std::shared_ptr<layer::Layer>& layer) {
     layerStack->popOverlay(layer);
 }
 

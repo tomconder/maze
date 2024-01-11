@@ -9,8 +9,8 @@ file(
         src/event/*.h
         src/imgui/*.h
         src/graphics/camera/*.h
-        src/graphics/layer/*.h
         src/graphics/renderer/*.h
+        src/layer/*.h
         src/platform/opengl/*.h
         src/platform/sdl/*.h
         src/scene/*.h)
@@ -22,8 +22,8 @@ file(
         src/event/*.cpp
         src/imgui/*.cpp
         src/graphics/camera/*.cpp
-        src/graphics/layer/*.cpp
         src/graphics/renderer/*.cpp
+        src/layer/*.cpp
         src/platform/opengl/*.cpp
         src/platform/sdl/*.cpp
         src/scene/*.cpp)

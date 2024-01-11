@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "01acfdfde3ed99280d3883a8fccd5fa4408f5214",
+  "builtin-baseline": "83444c57754d01d584a4a371a070c5147e8a5aae",
   "dependencies": [
     {
       "name": "abseil",
@@ -29,11 +29,11 @@
         "opengl3-binding",
         "sdl2-binding"
       ],
-      "version>=": "1.89.9"
+      "version>=": "1.90#2"
     },
     {
       "name": "sdl2",
-      "version>=": "2.28.4#1",
+      "version>=": "2.28.5#1",
       "platform": "!wasm32"
     },
     {

@@ -1,6 +1,6 @@
-#include "graphics/layer/layerstack.h"
+#include "layer/layerstack.h"
 
-namespace sponge::graphics::layer {
+namespace sponge::layer {
 
 LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
@@ -35,4 +35,4 @@ void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
     }
 }
 
-}  // namespace sponge::graphics::layer
+}  // namespace sponge::layer
