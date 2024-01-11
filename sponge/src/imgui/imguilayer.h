@@ -1,10 +1,10 @@
 #pragma once
 
-#include "graphics/layer/layer.h"
+#include "layer/layer.h"
 
 namespace sponge::imgui {
 
-class ImGuiLayer : public graphics::layer::Layer {
+class ImGuiLayer final : public layer::Layer {
    public:
     ImGuiLayer();
     ~ImGuiLayer() override = default;

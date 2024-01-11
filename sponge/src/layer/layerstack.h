@@ -1,9 +1,8 @@
 #pragma once
 
-#include "core/base.h"
-#include "graphics/layer/layer.h"
+#include "layer/layer.h"
 
-namespace sponge::graphics::layer {
+namespace sponge::layer {
 
 class LayerStack {
    public:
@@ -33,4 +32,4 @@ class LayerStack {
     uint32_t layerInsertIndex = 0;
 };
 
-}  // namespace sponge::graphics::layer
+}  // namespace sponge::layer

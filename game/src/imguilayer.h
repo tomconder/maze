@@ -2,7 +2,7 @@
 
 #include "sponge.h"
 
-class ImGuiLayer : public sponge::graphics::layer::Layer {
+class ImGuiLayer final : public sponge::layer::Layer {
    public:
     ImGuiLayer();
     void onImGuiRender() override;

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "core/base.h"
 #include "event/event.h"
 
-namespace sponge::graphics::layer {
+namespace sponge::layer {
 
 class Layer {
    public:
@@ -36,4 +35,4 @@ class Layer {
    private:
     bool active = true;
 };
-}  // namespace sponge::graphics::layer
+}  // namespace sponge::layer

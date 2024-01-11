@@ -4,8 +4,8 @@
 #include "core/keycode.h"
 #include "core/mousecode.h"
 #include "event/event.h"
-#include "graphics/layer/layer.h"
-#include "graphics/layer/layerstack.h"
+#include "layer/layer.h"
+#include "layer/layerstack.h"
 #include "imgui/imguilayer.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglrendererapi.h"
@@ -35,16 +35,16 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(const std::shared_ptr<graphics::layer::Layer>& layer);
-    void pushLayer(const std::shared_ptr<graphics::layer::Layer>& layer);
-    void popLayer(const std::shared_ptr<graphics::layer::Layer>& layer);
-    void popOverlay(const std::shared_ptr<graphics::layer::Layer>& layer);
+    void pushOverlay(const std::shared_ptr<layer::Layer>& layer);
+    void pushLayer(const std::shared_ptr<layer::Layer>& layer);
+    void popLayer(const std::shared_ptr<layer::Layer>& layer);
+    void popOverlay(const std::shared_ptr<layer::Layer>& layer);
 
     static void logSDLVersion();
 
     void toggleFullscreen();
 
-    graphics::layer::LayerStack* getLayerStack() const {
+    layer::LayerStack* getLayerStack() const {
         return layerStack;
     }
 
@@ -73,7 +73,7 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     uint32_t lastUpdateTime = 0;
-    graphics::layer::LayerStack* layerStack;
+    layer::LayerStack* layerStack;
     absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
