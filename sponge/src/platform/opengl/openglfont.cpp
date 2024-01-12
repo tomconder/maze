@@ -195,20 +195,20 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         const auto texh = ch.height / scaleH;
         const auto texw = ch.width / scaleW;
 
-        const auto vertices = std::array<float, 16>{
+        const auto vertices = std::to_array({
             xpos,     ypos + h, texx,        texy + texh,  //
             xpos,     ypos,     texx,        texy,         //
             xpos + w, ypos,     texx + texw, texy,         //
             xpos + w, ypos + h, texx + texw, texy + texh   //
-        };
+        });
 
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        const auto indices = std::array<uint32_t, 6>{
+        const auto indices = std::to_array({
             numIndices, numIndices + 2, numIndices + 1,  //
             numIndices, numIndices + 3, numIndices + 2   //
-        };
+        });
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 

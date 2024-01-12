@@ -10,19 +10,17 @@
 #include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
+#include <array>
 #include <sstream>
 
 namespace sponge {
 
 SDLEngine* SDLEngine::instance = nullptr;
 
-constexpr auto ratios = {
-    glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
-    glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
-    glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
-    glm::vec3{ 16.F, 10.F, 16.F / 10.F },  //
-    glm::vec3{ 4.F, 3.F, 4.F / 3.F }       //
-};
+constexpr auto ratios = std::to_array(
+    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
+      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
+      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 
 SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
@@ -236,10 +234,7 @@ void SDLEngine::adjustAspectRatio(const uint32_t eventW,
     auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
         return proposedRatio >= i.z;
     };
-    const auto* ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
-    if (ratio == std::end(ratios)) {
-        --ratio;
-    }
+    const auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
 
     // use ratio
     const float aspectRatioWidth = ratio->x;

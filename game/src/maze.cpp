@@ -1,12 +1,11 @@
 #include "maze.h"
 #include "sponge.h"
 
-constexpr std::array keyCodes = {
-    sponge::KeyCode::SpongeKey_W,    sponge::KeyCode::SpongeKey_A,
-    sponge::KeyCode::SpongeKey_S,    sponge::KeyCode::SpongeKey_D,
-    sponge::KeyCode::SpongeKey_Up,   sponge::KeyCode::SpongeKey_Left,
-    sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right
-};
+constexpr auto keyCodes = std::to_array(
+    { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,
+      sponge::KeyCode::SpongeKey_S, sponge::KeyCode::SpongeKey_D,
+      sponge::KeyCode::SpongeKey_Up, sponge::KeyCode::SpongeKey_Left,
+      sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right });
 
 bool Maze::onUserCreate() {
 #if !NDEBUG
