@@ -131,13 +131,13 @@ bool SDLEngine::iterateLoop() {
 
 #if !NDEBUG
     imguiLayer->begin();
-#endif
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
         }
     }
+#endif
 
     renderer->clear();
 
@@ -236,7 +236,7 @@ void SDLEngine::adjustAspectRatio(const uint32_t eventW,
     auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
         return proposedRatio >= i.z;
     };
-    auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    const auto* ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == std::end(ratios)) {
         --ratio;
     }
