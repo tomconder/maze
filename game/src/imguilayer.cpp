@@ -48,8 +48,7 @@ void ImGuiLayer::showLayersTable() {
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%s %s", (*layer)->isActive() ? "*" : "-",
-                        (*layer)->getName().c_str());
+            ImGui::Text("%s", (*layer)->getName().c_str());
         }
 
         ImGui::EndTable();
