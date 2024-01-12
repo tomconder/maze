@@ -16,7 +16,7 @@ namespace sponge {
 
 SDLEngine* SDLEngine::instance = nullptr;
 
-std::vector<glm::vec3> ratios = {
+constexpr auto ratios = {
     glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
     glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
     glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
@@ -163,7 +163,7 @@ void SDLEngine::shutdown() {
     popOverlay(imguiLayer);
 #endif
 
-    SDL_GLContext context = SDL_GL_GetCurrentContext();
+    auto* const context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
     SDL_Quit();
