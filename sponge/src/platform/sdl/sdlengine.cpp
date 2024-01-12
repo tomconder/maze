@@ -4,19 +4,25 @@
 #include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
-#include "imgui/imguilayer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
 #include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
 #include <SDL.h>
-#include <array>
 #include <sstream>
 
 namespace sponge {
 
 SDLEngine* SDLEngine::instance = nullptr;
+
+std::vector<glm::vec3> ratios = {
+    glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
+    glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
+    glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
+    glm::vec3{ 16.F, 10.F, 16.F / 10.F },  //
+    glm::vec3{ 4.F, 3.F, 4.F / 3.F }       //
+};
 
 SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
@@ -26,8 +32,8 @@ SDLEngine::SDLEngine() {
     initializeKeyCodeMap();
 }
 
-bool SDLEngine::construct(std::string_view name, uint32_t width,
-                          uint32_t height) {
+bool SDLEngine::construct(const std::string_view name, const uint32_t width,
+                          const uint32_t height) {
     w = width;
     h = height;
     appName = name;
@@ -65,9 +71,11 @@ bool SDLEngine::start() {
 
     graphics = std::make_unique<graphics::renderer::OpenGLContext>(window);
 
+#if !NDEBUG
     imguiLayer = std::make_shared<imgui::ImGuiLayer>();
     imguiLayer->setActive(true);
     pushOverlay(imguiLayer);
+#endif
 
     graphics::renderer::OpenGLInfo::logVersion();
     graphics::renderer::OpenGLInfo::logStaticInfo();
@@ -105,7 +113,7 @@ bool SDLEngine::iterateLoop() {
     SDL_Event event;
 
     const auto currentTime = SDL_GetTicks();
-    auto elapsedTime = currentTime - lastUpdateTime;
+    const auto elapsedTime = currentTime - lastUpdateTime;
     lastUpdateTime = currentTime;
 
     auto quit = false;
@@ -121,7 +129,9 @@ bool SDLEngine::iterateLoop() {
         processEvent(event, elapsedTime);
     }
 
+#if !NDEBUG
     imguiLayer->begin();
+#endif
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
@@ -139,7 +149,9 @@ bool SDLEngine::iterateLoop() {
         return true;
     }
 
+#if !NDEBUG
     imguiLayer->end();
+#endif
 
     graphics->flip(sdlWindow->getNativeWindow());
 
@@ -147,7 +159,9 @@ bool SDLEngine::iterateLoop() {
 }
 
 void SDLEngine::shutdown() {
+#if !NDEBUG
     popOverlay(imguiLayer);
+#endif
 
     SDL_GLContext context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
@@ -161,7 +175,7 @@ void SDLEngine::logSDLVersion() {
 
     SDL_VERSION(&compiled)
 
-    std::string revision = SDL_GetRevision();
+    const std::string revision = SDL_GetRevision();
     std::stringstream ss;
     if (!revision.empty()) {
         ss << "(" << revision << ")";
@@ -214,19 +228,12 @@ void SDLEngine::onEvent(event::Event& event) {
     }
 }
 
-void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
-    const std::array<glm::vec3, 5> ratios = {
-        glm::vec3{ 32.F, 9.F, 32.F / 9.F },    //
-        glm::vec3{ 21.F, 9.F, 21.F / 9.F },    //
-        glm::vec3{ 16.F, 9.F, 16.F / 9.F },    //
-        glm::vec3{ 16.F, 10.F, 16.F / 10.F },  //
-        glm::vec3{ 4.F, 3.F, 4.F / 3.F }       //
-    };
-
+void SDLEngine::adjustAspectRatio(const uint32_t eventW,
+                                  const uint32_t eventH) {
     // attempt to find the closest matching aspect ratio
     float proposedRatio =
         static_cast<float>(eventW) / static_cast<float>(eventH);
-    auto exceedsRatio = [&proposedRatio](glm::vec3 i) {
+    auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
         return proposedRatio >= i.z;
     };
     auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
@@ -235,15 +242,16 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     }
 
     // use ratio
-    float aspectRatioWidth = ratio->x;
-    float aspectRatioHeight = ratio->y;
+    const float aspectRatioWidth = ratio->x;
+    const float aspectRatioHeight = ratio->y;
 
-    float aspectRatio = aspectRatioWidth / aspectRatioHeight;
+    const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
 
-    auto width = static_cast<float>(eventW);
-    auto height = static_cast<float>(eventH);
+    const auto width = static_cast<float>(eventW);
+    const auto height = static_cast<float>(eventH);
 
-    if (float newAspectRatio = width / height; newAspectRatio > aspectRatio) {
+    if (const float newAspectRatio = width / height;
+        newAspectRatio > aspectRatio) {
         w = static_cast<int>(aspectRatioWidth * height / aspectRatioHeight);
         h = eventH;
     } else {
@@ -257,26 +265,23 @@ void SDLEngine::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void SDLEngine::pushOverlay(
-    const std::shared_ptr<layer::Layer>& layer) {
+void SDLEngine::pushOverlay(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::pushLayer(
-    const std::shared_ptr<layer::Layer>& layer) {
+void SDLEngine::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void SDLEngine::popLayer(const std::shared_ptr<layer::Layer>& layer) {
+void SDLEngine::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popLayer(layer);
 }
 
-void SDLEngine::popOverlay(
-    const std::shared_ptr<layer::Layer>& layer) {
+void SDLEngine::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popOverlay(layer);
 }
 
@@ -411,7 +416,7 @@ void SDLEngine::initializeKeyCodeMap() {
 }
 
 KeyCode SDLEngine::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
-    auto result = keyCodeMap.find(scancode);
+    const auto result = keyCodeMap.find(scancode);
     if (keyCodeMap.find(scancode) == keyCodeMap.end()) {
         return KeyCode::SpongeKey_None;
     }
@@ -422,7 +427,7 @@ MouseCode SDLEngine::mapMouseButton(const uint8_t index) {
     return index - 1;
 }
 
-void SDLEngine::setMouseVisible(const bool value) {
+void SDLEngine::setMouseVisible(const bool value) const {
     if (value) {
         SDL_WarpMouseInWindow(
             static_cast<SDL_Window*>(sdlWindow->getNativeWindow()),
@@ -440,7 +445,9 @@ void SDLEngine::setMouseVisible(const bool value) {
 
 void SDLEngine::processEvent(const SDL_Event& event,
                              const uint32_t elapsedTime) {
+#if !NDEBUG
     imguiLayer->processEvent(&event);
+#endif
 
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
@@ -481,15 +488,15 @@ void SDLEngine::processEvent(const SDL_Event& event,
                                     static_cast<float>(event.motion.y) };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEWHEEL) {
-        auto wheelx = event.wheel.preciseX;
-        auto wheely = event.wheel.preciseY;
+        const auto wheelx = event.wheel.preciseX;
+        const auto wheely = event.wheel.preciseY;
 
         auto mouseEvent = event::MouseScrolledEvent{ wheelx, wheely };
         onEvent(mouseEvent);
     }
 }
 
-void SDLEngine::toggleFullscreen() {
+void SDLEngine::toggleFullscreen() const {
     graphics->toggleFullscreen(sdlWindow->getNativeWindow());
 }
 

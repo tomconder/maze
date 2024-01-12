@@ -35,14 +35,14 @@ class SDLEngine : public Engine {
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    void pushOverlay(const std::shared_ptr<layer::Layer>& layer);
-    void pushLayer(const std::shared_ptr<layer::Layer>& layer);
-    void popLayer(const std::shared_ptr<layer::Layer>& layer);
-    void popOverlay(const std::shared_ptr<layer::Layer>& layer);
+    void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
+    void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
+    void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
+    void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
     static void logSDLVersion();
 
-    void toggleFullscreen();
+    void toggleFullscreen() const;
 
     layer::LayerStack* getLayerStack() const {
         return layerStack;
@@ -54,14 +54,16 @@ class SDLEngine : public Engine {
     uint32_t getWidth() const {
         return w;
     }
-    void setMouseVisible(bool value);
+    void setMouseVisible(bool value) const;
 
     static SDLEngine& get() {
         return *instance;
     }
 
    private:
+#if !NDEBUG
     std::shared_ptr<imgui::ImGuiLayer> imguiLayer;
+#endif
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
     std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
