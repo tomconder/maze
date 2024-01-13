@@ -21,12 +21,12 @@ void Log::init(std::string_view logfile) {
 
     auto colorFormatter = std::make_unique<spdlog::pattern_formatter>();
     colorFormatter->add_flag<LogFlag>('*').set_pattern(
-        "%^%*%m%d %T.%f %t [%s:%#] %n: %v%$");
+        "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$");
     logSinks[0]->set_formatter(std::move(colorFormatter));
 
     auto fileFormatter = std::make_unique<spdlog::pattern_formatter>();
     fileFormatter->add_flag<LogFlag>('*').set_pattern(
-        "%*%m%d %T.%f %t [%s:%#] %n: %v");
+        "%*%m%d %T.%f %7t %s:%# [%n] %v");
     logSinks[1]->set_formatter(std::move(fileFormatter));
 
     coreLogger = std::make_shared<spdlog::logger>("SPONGE", begin(logSinks),
