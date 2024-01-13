@@ -3,6 +3,7 @@
 // for use by Sponge applications
 
 #include "core/base.h"
+#include "core/compiler.h"
 #include "core/engine.h"
 #include "core/file.h"
 #include "core/input.h"
