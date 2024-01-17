@@ -1,8 +1,5 @@
 #include "winfile.h"
-#include <core/compiler.h>
-DISABLE_ALL_VC_WARNINGS()
 #include <filesystem>
-RESTORE_ALL_VC_WARNINGS()
 
 namespace sponge {
 
