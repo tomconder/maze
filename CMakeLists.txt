@@ -26,16 +26,16 @@ string(
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
 if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD
-          23
-          CACHE STRING "")
+    set(CMAKE_CXX_STANDARD
+            23
+            CACHE STRING "")
 endif ()
 
 if (CMAKE_CXX_STANDARD LESS 23)
-  message(
-          WARNING
-          "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++23"
-  )
+    message(
+            WARNING
+            "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++23"
+    )
 endif ()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -46,19 +46,19 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(default_build_type "Release")
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  set(default_build_type "Debug")
+    set(default_build_type "Debug")
 endif ()
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(
-          STATUS
-          "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE
-          "${default_build_type}"
-          CACHE STRING "Choose the type of build." FORCE)
+    message(
+            STATUS
+            "Setting build type to '${default_build_type}' as none was specified.")
+    set(CMAKE_BUILD_TYPE
+            "${default_build_type}"
+            CACHE STRING "Choose the type of build." FORCE)
 
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+    # Set the possible values of build type for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif ()
 
 # Generate compile_commands.json to help work with clang based tools
