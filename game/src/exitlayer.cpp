@@ -26,8 +26,7 @@ void ExitLayer::onAttach() {
 
     const auto assetsFolder = sponge::File::getResourceDir();
     sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic/league-gothic.fnt",
-        gothicFont.data());
+        assetsFolder + "/fonts/league-gothic.fnt", gothicFont.data());
 
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 
