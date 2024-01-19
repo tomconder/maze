@@ -2,7 +2,7 @@
 #include "resourcemanager.h"
 
 constexpr std::string_view cameraName = "hud";
-constexpr std::string_view gothicFont = "league-gothic";
+constexpr std::string_view uiFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
@@ -26,7 +26,7 @@ void ExitLayer::onAttach() {
 
     const auto assetsFolder = sponge::File::getResourceDir();
     sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic.fnt", gothicFont.data());
+        assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
 
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 
@@ -70,7 +70,7 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
 
     const auto font =
         sponge::graphics::renderer::OpenGLResourceManager::getFont(
-            gothicFont.data());
+            uiFont.data());
 
     const uint32_t length = font->getLength(message, 48);
     font->render(

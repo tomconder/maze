@@ -62,7 +62,7 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     const auto font =
         sponge::graphics::renderer::OpenGLResourceManager::getFont(
             uiFont.data());
-    font->render("Maze", { 12.F, 12.F }, 32, { 0.05, 0.79F, 1.0F });
+    font->render("Maze", { 12.F, 12.F }, 32, { .05F, .79F, 1.F });
     return true;
 }
 
