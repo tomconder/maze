@@ -196,10 +196,10 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         const auto texw = ch.width / scaleW;
 
         const auto vertices = std::to_array({
-            xpos,     ypos + h, texx,        texy + texh,  //
-            xpos,     ypos,     texx,        texy,         //
-            xpos + w, ypos,     texx + texw, texy,         //
-            xpos + w, ypos + h, texx + texw, texy + texh   //
+            xpos, ypos + h, texx, texy + texh,            //
+            xpos, ypos, texx, texy,                       //
+            xpos + w, ypos, texx + texw, texy,            //
+            xpos + w, ypos + h, texx + texw, texy + texh  //
         });
 
         batchVertices.insert(batchVertices.end(), vertices.begin(),
