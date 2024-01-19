@@ -42,6 +42,9 @@
 *.out   binary
 *.app   binary
 
+# Font Atlas
+*.fnt      text
+
 # Configs
 *.cnf             text
 *.conf            text
