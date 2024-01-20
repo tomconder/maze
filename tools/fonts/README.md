@@ -2,8 +2,9 @@
 
 ```
 npm install msdf-bmfont-xml
-npx msdf-bmfont --reuse -o fonts.png -m "384,384" -s 42 -t msdf -f txt path\to\league-gothic-font.ttf
-npx msdf-bmfont -u .\fonts.cfg -o fonts.png -s 44 -t msdf -f txt path\to\inter-font.ttf
+npx msdf-bmfont --reuse -o ./fonts.png -m "484,484" -s 42 -t msdf -f txt ./league-gothic-font.ttf
+npx msdf-bmfont -u ./fonts.cfg -o ./fonts.png -s 42 -t msdf -f txt ./inter.ttf
+npx msdf-bmfont -u ./fonts.cfg -o ./fonts.png -s 42 -t msdf -f txt ./inter-bold.ttf
 ```
 
 Replace the `msdfgen` executable found in `tools\fonts\node_modules\msdf-bmfont-xml\bin` with

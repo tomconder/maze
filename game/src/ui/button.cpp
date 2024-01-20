@@ -1,6 +1,6 @@
 #include "button.h"
 
-constexpr std::string_view gothicFont = "league-gothic";
+constexpr std::string_view buttonFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
 
 namespace ui {
@@ -15,7 +15,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       buttonColor(buttonColor),
       textColor(textColor) {
     font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
-        gothicFont.data());
+        buttonFont.data());
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 }
 

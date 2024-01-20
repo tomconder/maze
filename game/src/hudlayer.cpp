@@ -3,7 +3,7 @@
 
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";
-constexpr std::string_view uiFont = "inter";
+constexpr std::string_view uiFont = "inter-bold";
 constexpr std::string_view quadShader = "quad";
 constexpr std::string_view spriteShader = "sprite";
 constexpr std::string_view textShader = "text";
@@ -34,7 +34,7 @@ void HUDLayer::onAttach() {
 
     const auto font =
         sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-            assetsFolder + "/fonts/inter.fnt", uiFont.data());
+            assetsFolder + "/fonts/inter-bold.fnt", uiFont.data());
     shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/sprite.vert",
         assetsFolder + "/shaders/sprite.frag", spriteShader.data());
@@ -62,7 +62,7 @@ bool HUDLayer::onUpdate(uint32_t elapsedTime) {
     const auto font =
         sponge::graphics::renderer::OpenGLResourceManager::getFont(
             uiFont.data());
-    font->render("Maze", { 12.F, 12.F }, 32, { .05F, .79F, 1.F });
+    font->render("Maze", { 12.F, 12.F }, 20, { .05F, .79F, 1.F });
     return true;
 }
 
