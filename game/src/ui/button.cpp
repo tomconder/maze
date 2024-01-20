@@ -1,6 +1,5 @@
 #include "button.h"
 
-constexpr std::string_view buttonFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
 
 namespace ui {
