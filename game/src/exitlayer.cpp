@@ -78,13 +78,13 @@ bool ExitLayer::onUpdate(uint32_t elapsedTime) {
         { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
         48, { 1.F, 1.F, 1.F });
 
-    confirmButton->onUpdate(elapsedTime);
-    cancelButton->onUpdate(elapsedTime);
+    UNUSED(confirmButton->onUpdate(elapsedTime));
+    UNUSED(cancelButton->onUpdate(elapsedTime));
 
     return isRunning;
 }
 
-void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
+void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
@@ -106,12 +106,14 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) {
         { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
 }
 
-bool ExitLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
+bool ExitLayer::onWindowResize(
+    const sponge::event::WindowResizeEvent& event) const {
     setWidthAndHeight(event.getWidth(), event.getHeight());
     return false;
 }
 
-bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
+bool ExitLayer::onKeyPressed(
+    const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
             sponge::SDLEngine::get().setMouseVisible(false);
@@ -136,7 +138,8 @@ bool ExitLayer::onMouseButtonPressed(
     return true;
 }
 
-bool ExitLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
+bool ExitLayer::onMouseMoved(
+    const sponge::event::MouseMovedEvent& event) const {
     if (!cancelButton->hasHover() &&
         cancelButton->isInside({ event.getX(), event.getY() })) {
         cancelButton->setHover(true);

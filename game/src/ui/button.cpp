@@ -27,7 +27,7 @@ bool Button::onUpdate(uint32_t elapsedTime) const {
     quad->render(top, bottom, buttonColor);
     font->render(text, textPosition, textSize, textColor);
 
-    return false;
+    return true;
 }
 
 bool Button::isInside(const glm::vec2& position) const {
