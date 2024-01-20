@@ -10,7 +10,7 @@ class Button {
            std::string_view message, uint32_t fontSize,
            const glm::vec4& buttonColor, const glm::vec3& textColor);
 
-    bool onUpdate(uint32_t elapsedTime);
+    bool onUpdate(uint32_t elapsedTime) const;
     bool isInside(const glm::vec2& position) const;
 
     void setButtonColor(const glm::vec4& color);

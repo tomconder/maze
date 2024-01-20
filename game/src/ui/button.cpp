@@ -13,13 +13,14 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       text(message.data()),
       textSize(fontSize),
       buttonColor(buttonColor),
-      textColor(textColor) {
+      textColor(textColor),
+      textPosition({ topLeft.x, topLeft.y }) {
     font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
         buttonFont.data());
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 }
 
-bool Button::onUpdate(uint32_t elapsedTime) {
+bool Button::onUpdate(uint32_t elapsedTime) const {
     UNUSED(elapsedTime);
 
     quad->render(top, bottom, buttonColor);
