@@ -3,12 +3,12 @@
 #include "sponge.h"
 
 namespace ui {
-
 class Button {
    public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
            std::string_view message, uint32_t fontSize,
-           const glm::vec4& buttonColor, const glm::vec3& textColor);
+           std::string_view fontName, const glm::vec4& buttonColor,
+           const glm::vec3& textColor);
 
     bool onUpdate(uint32_t elapsedTime) const;
     bool isInside(const glm::vec2& position) const;
@@ -28,6 +28,7 @@ class Button {
     glm::vec2 bottom;
     std::string text;
     uint32_t textSize;
+    std::string textFontName;
     glm::vec4 buttonColor;
     glm::vec3 textColor;
 

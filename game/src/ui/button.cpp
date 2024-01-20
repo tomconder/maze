@@ -7,16 +7,18 @@ namespace ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                std::string_view message, uint32_t fontSize,
-               const glm::vec4& buttonColor, const glm::vec3& textColor)
+               std::string_view fontName, const glm::vec4& buttonColor,
+               const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
       text(message.data()),
       textSize(fontSize),
+      textFontName(fontName.data()),
       buttonColor(buttonColor),
       textColor(textColor),
       textPosition({ topLeft.x, topLeft.y }) {
     font = sponge::graphics::renderer::OpenGLResourceManager::getFont(
-        buttonFont.data());
+        textFontName);
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 }
 

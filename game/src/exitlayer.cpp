@@ -31,11 +31,11 @@ void ExitLayer::onAttach() {
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
         confirmButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, uiFont,
         cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 }
 
