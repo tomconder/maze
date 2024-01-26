@@ -4,6 +4,7 @@
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view uiFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
+constexpr std::string_view textShader = "text";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
@@ -17,14 +18,21 @@ void ExitLayer::onAttach() {
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
 
-    const auto shader =
-        sponge::graphics::renderer::OpenGLResourceManager::getShader(
-            quadShader.data());
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
+        assetsFolder + "/shaders/text.vert",
+        assetsFolder + "/shaders/text.frag", textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    const auto assetsFolder = sponge::File::getResourceDir();
+    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        quadShader.data());
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
+
     sponge::graphics::renderer::OpenGLResourceManager::loadFont(
         assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
 
@@ -88,9 +96,14 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
-    const auto shader =
-        sponge::graphics::renderer::OpenGLResourceManager::getShader(
-            quadShader.data());
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        textShader.data());
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
+
+    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

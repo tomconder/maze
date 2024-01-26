@@ -2,6 +2,11 @@
 #include "imgui.h"
 #include "version.h"
 
+constexpr ImColor LVL_DBG_CLR{ .3F, .8F, .8F, 1.F };
+constexpr ImColor LVL_ERR_CLR{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor LVL_LOG_CLR{ 1.F, 1.F, 1.F, 1.F };
+constexpr ImColor LVL_WRN_CLR{ .8F, .8F, 0.3F, 1.F };
+
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -14,28 +19,45 @@ void ImGuiLayer::onImGuiRender() {
                                      ImGuiDockNodeFlags_NoDockingInCentralNode |
                                      ImGuiDockNodeFlags_AutoHideTabBar);
 
-    ImGui::Begin("maze", nullptr,
-                 ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
-                     ImGuiWindowFlags_NoSavedSettings);
+    const auto width = static_cast<float>(sponge::SDLEngine::get().getWidth());
+    const auto height =
+        static_cast<float>(sponge::SDLEngine::get().getHeight());
 
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("%s %s", game::project_name.data(),
-                game::project_version.data());
-    ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0F / io.Framerate,
-                io.Framerate);
+    ImGui::SetNextWindowPos({ width - 320.F, 0.F });
+    ImGui::SetNextWindowSize({ 320.F, 200.F });
 
-    if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
-        showLayersTable();
+    constexpr auto windowFlags =
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+    if (ImGui::Begin("App Info", nullptr, windowFlags)) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("%s %s", game::project_name.data(),
+                    game::project_version.data());
+        ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
+                    io.Framerate);
+        ImGui::Separator();
+
+        if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto* const layerStack = sponge::SDLEngine::get().getLayerStack();
+            showLayersTable(layerStack);
+        }
+
+        ImGui::End();
     }
 
-    ImGui::End();
+    ImGui::SetNextWindowPos({ 0.F, height - 220.F });
+    ImGui::SetNextWindowSize({ width, 220.F });
+
+    if (ImGui::Begin("Logging", nullptr, windowFlags)) {
+        showLogging();
+        ImGui::End();
+    }
 }
 
-void ImGuiLayer::showLayersTable() {
+void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
-
-    auto* const layerStack = sponge::SDLEngine::get().getLayerStack();
 
     if (ImGui::BeginTable("layerTable", 1)) {
         for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
@@ -53,4 +75,42 @@ void ImGuiLayer::showLayersTable() {
 
         ImGui::EndTable();
     }
+}
+
+void ImGuiLayer::showLogging() {
+    static ImGuiTextFilter filter;
+    static bool enableAutoScrolling = true;
+
+    ImGui::Checkbox("Auto-scroll", &enableAutoScrolling);
+    ImGui::SameLine();
+    if (ImGui::Button("Clear")) {
+        sponge::SDLEngine::get().clearMessages();
+    }
+    ImGui::SameLine();
+    filter.Draw("Filter", -100.F);
+
+    ImGui::Separator();
+    ImGui::BeginChild("LogTextView", ImVec2(0, 0), 0,
+                      ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                          ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+    for (const auto& [message, level] :
+         sponge::SDLEngine::get().getMessages()) {
+        switch (level) {
+            case spdlog::level::debug:
+                ImGui::TextColored(LVL_DBG_CLR, "%s", message.c_str());
+                break;
+            case spdlog::level::warn:
+                ImGui::TextColored(LVL_WRN_CLR, "%s", message.c_str());
+                break;
+            case spdlog::level::err:
+                ImGui::TextColored(LVL_ERR_CLR, "%s", message.c_str());
+                break;
+            default:
+                ImGui::TextColored(LVL_LOG_CLR, "%s", message.c_str());
+                break;
+        }
+    }
+
+    ImGui::EndChild();
 }

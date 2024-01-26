@@ -51,9 +51,23 @@ class SDLEngine : public Engine {
     uint32_t getHeight() const {
         return h;
     }
+
     uint32_t getWidth() const {
         return w;
     }
+
+    std::vector<LogItem>& getMessages() const {
+        return *messages;
+    }
+
+    void addMessage(const LogItem& item) const {
+        messages->push_back(item);
+    }
+
+    void clearMessages() const {
+        messages->clear();
+    }
+
     void setMouseVisible(bool value) const;
 
     static SDLEngine& get() {
@@ -68,6 +82,8 @@ class SDLEngine : public Engine {
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
     std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
+
+    std::unique_ptr<std::vector<LogItem>> messages;
 
     uint32_t offsetx = 0;
     uint32_t offsety = 0;

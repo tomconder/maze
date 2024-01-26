@@ -27,6 +27,7 @@ SDLEngine::SDLEngine() {
     instance = this;
 
     layerStack = new layer::LayerStack();
+    messages = std::make_unique<std::vector<LogItem>>();
     initializeKeyCodeMap();
 }
 

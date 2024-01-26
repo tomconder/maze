@@ -11,6 +11,11 @@
 
 namespace sponge {
 
+struct LogItem {
+    std::string message;
+    spdlog::level::level_enum level;
+};
+
 class Log {
    public:
     static void init(std::string_view logfile);

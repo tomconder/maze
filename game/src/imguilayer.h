@@ -8,5 +8,6 @@ class ImGuiLayer final : public sponge::layer::Layer {
     void onImGuiRender() override;
 
    private:
-    static void showLayersTable();
+    static void showLayersTable(sponge::layer::LayerStack*);
+    static void showLogging();
 };

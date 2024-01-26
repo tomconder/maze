@@ -6,12 +6,14 @@
 constexpr std::string_view spongeLogFile = "log.txt";
 
 bool startup() {
-    const std::unique_ptr<Maze> maze = std::make_unique<Maze>();
+    const auto maze = std::make_unique<Maze>();
 
-    auto logfile = sponge::File::getLogDir() + spongeLogFile.data();
+    const auto logfile = sponge::File::getLogDir() + spongeLogFile.data();
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
+    SPONGE_ERROR("This is an error");
+    SPONGE_WARN("This is a warning");
 
     std::stringstream ss;
     ss << fmt::format("{}", game::project_name);
@@ -19,8 +21,8 @@ bool startup() {
 
     SPONGE_INFO("{}", appName);
 
-    uint32_t width = 1600;
-    uint32_t height = 900;
+    constexpr uint32_t width = 1600;
+    constexpr uint32_t height = 900;
 
     if (!maze->construct(appName, width, height)) {
         return false;
@@ -43,16 +45,14 @@ bool startup() {
 }
 
 bool shutdown() {
-    SPONGE_INFO("Shutting down");
-
     sponge::Log::shutdown();
 
     return true;
 }
 
-extern "C" int main(int argc, char* args[]) {
+extern "C" int main(int argc, char* argv[]) {
     UNUSED(argc);
-    UNUSED(args);
+    UNUSED(argv);
 
     startup();
 
