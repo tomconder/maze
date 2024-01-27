@@ -53,6 +53,8 @@ void Log::init(const std::string_view logfile) {
     register_logger(glLogger);
     glLogger->set_level(spdlog::level::trace);
     glLogger->flush_on(spdlog::level::trace);
+
+    spdlog::set_level(spdlog::level::trace);
 }
 
 }  // namespace sponge

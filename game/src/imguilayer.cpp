@@ -7,6 +7,13 @@ constexpr ImColor LVL_ERR_CLR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor LVL_LOG_CLR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor LVL_WRN_CLR{ .8F, .8F, 0.3F, 1.F };
 
+const std::vector logLevels{
+    SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
+    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
+    SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
+    SPDLOG_LEVEL_NAME_OFF.data()
+};
+
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -83,11 +90,41 @@ void ImGuiLayer::showLogging() {
 
     ImGui::Checkbox("Auto-scroll", &enableAutoScrolling);
     ImGui::SameLine();
+
     if (ImGui::Button("Clear")) {
         sponge::SDLEngine::get().clearMessages();
     }
     ImGui::SameLine();
-    filter.Draw("Filter", -100.F);
+
+    static const auto logSelectionWidth = []() -> float {
+        float LongestTextWidth = 0;
+        for (auto LogLevelText : logLevels) {
+            auto TextWidth = ImGui::CalcTextSize(LogLevelText).x;
+            if (TextWidth > LongestTextWidth)
+                LongestTextWidth = TextWidth;
+        }
+
+        return LongestTextWidth + ImGui::GetStyle().FramePadding.x * 2 +
+               ImGui::GetFrameHeight();
+    }();
+
+    auto comboBoxRightAlignment =
+        ImGui::GetWindowSize().x -
+        (logSelectionWidth + ImGui::GetStyle().WindowPadding.x);
+
+    auto activeLogLevel = spdlog::get_level();
+    ImGui::SetNextItemWidth(logSelectionWidth);
+    ImGui::SameLine(comboBoxRightAlignment);
+    if (ImGui::Combo("##activeLogLevel",
+                     reinterpret_cast<int*>(&activeLogLevel), logLevels.data(),
+                     std::size(logLevels))) {
+        spdlog::set_level(activeLogLevel);
+    }
+
+    filter.Draw("Filter",
+                ImGui::GetWindowSize().x -
+                    (logSelectionWidth + ImGui::GetStyle().WindowPadding.x * 2 +
+                     ImGui::GetStyle().FramePadding.x));
 
     ImGui::Separator();
     ImGui::BeginChild("LogTextView", ImVec2(0, 0), 0,
@@ -96,6 +133,10 @@ void ImGuiLayer::showLogging() {
 
     for (const auto& [message, level] :
          sponge::SDLEngine::get().getMessages()) {
+        if (level < activeLogLevel) {
+            continue;
+        }
+
         switch (level) {
             case spdlog::level::debug:
                 ImGui::TextColored(LVL_DBG_CLR, "%s", message.c_str());
