@@ -21,11 +21,6 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(),
-                                 ImGuiDockNodeFlags_PassthruCentralNode |
-                                     ImGuiDockNodeFlags_NoDockingInCentralNode |
-                                     ImGuiDockNodeFlags_AutoHideTabBar);
-
     const auto width = static_cast<float>(sponge::SDLEngine::get().getWidth());
     const auto height =
         static_cast<float>(sponge::SDLEngine::get().getHeight());
