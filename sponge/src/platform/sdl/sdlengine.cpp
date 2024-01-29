@@ -9,7 +9,6 @@
 #include "platform/opengl/openglinfo.h"
 #include "platform/opengl/openglrendererapi.h"
 #include "platform/sdl/sdlwindow.h"
-#include <SDL.h>
 #include <array>
 #include <sstream>
 
@@ -235,7 +234,11 @@ void SDLEngine::adjustAspectRatio(const uint32_t eventW,
     auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
         return proposedRatio >= i.z;
     };
-    const auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+
+    auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    if (ratio == ratios.end()) {
+        ratio = --ratios.end();
+    }
 
     // use ratio
     const float aspectRatioWidth = ratio->x;

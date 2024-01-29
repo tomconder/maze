@@ -56,6 +56,22 @@ class SDLEngine : public Engine {
         return w;
     }
 
+    uint32_t getWindowHeight() const {
+        int32_t w;
+        int32_t h;
+        SDL_GetWindowSize(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
+        return static_cast<uint32_t>(h);
+    }
+
+    uint32_t getWindowWidth() const {
+        int32_t w;
+        int32_t h;
+        SDL_GetWindowSize(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
+        return static_cast<uint32_t>(w);
+    }
+
     std::vector<LogItem>& getMessages() const {
         return *messages;
     }

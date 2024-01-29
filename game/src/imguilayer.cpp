@@ -21,9 +21,10 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    const auto width = static_cast<float>(sponge::SDLEngine::get().getWidth());
+    const auto width =
+        static_cast<float>(sponge::SDLEngine::get().getWindowWidth());
     const auto height =
-        static_cast<float>(sponge::SDLEngine::get().getHeight());
+        static_cast<float>(sponge::SDLEngine::get().getWindowHeight());
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
     ImGui::SetNextWindowSize({ 320.F, 200.F });
