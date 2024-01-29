@@ -2,10 +2,10 @@
 #include "imgui.h"
 #include "version.h"
 
-constexpr ImColor LVL_DBG_CLR{ .3F, .8F, .8F, 1.F };
-constexpr ImColor LVL_ERR_CLR{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor LVL_LOG_CLR{ 1.F, 1.F, 1.F, 1.F };
-constexpr ImColor LVL_WRN_CLR{ .8F, .8F, 0.3F, 1.F };
+constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
+constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
+constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
 
 const std::vector logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
@@ -52,7 +52,8 @@ void ImGuiLayer::onImGuiRender() {
     ImGui::SetNextWindowPos({ 0.F, height - 220.F });
     ImGui::SetNextWindowSize({ width, 220.F });
 
-    if (ImGui::Begin("Logging", nullptr, windowFlags)) {
+    if (ImGui::Begin("Logging", nullptr,
+                     windowFlags | ImGuiWindowFlags_NoScrollbar)) {
         showLogging();
         ImGui::End();
     }
@@ -63,6 +64,8 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
     if (ImGui::BeginTable("layerTable", 1)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+
         for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
              ++layer) {
             ImGui::TableNextRow();
@@ -76,6 +79,8 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
             ImGui::Text("%s", (*layer)->getName().c_str());
         }
 
+        ImGui::PopStyleVar();
+
         ImGui::EndTable();
     }
 }
@@ -83,6 +88,7 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
     static bool enableAutoScrolling = true;
+    static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
 
     ImGui::Checkbox("Auto-scroll", &enableAutoScrolling);
     ImGui::SameLine();
@@ -93,14 +99,15 @@ void ImGuiLayer::showLogging() {
     ImGui::SameLine();
 
     static const auto logSelectionWidth = []() -> float {
-        float LongestTextWidth = 0;
-        for (auto LogLevelText : logLevels) {
-            auto TextWidth = ImGui::CalcTextSize(LogLevelText).x;
-            if (TextWidth > LongestTextWidth)
-                LongestTextWidth = TextWidth;
+        float maxWidth = 0;
+        for (const auto* level : logLevels) {
+            const auto width = ImGui::CalcTextSize(level).x;
+            if (width > maxWidth) {
+                maxWidth = width;
+            }
         }
 
-        return LongestTextWidth + ImGui::GetStyle().FramePadding.x * 2 +
+        return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
                ImGui::GetFrameHeight();
     }();
 
@@ -108,24 +115,24 @@ void ImGuiLayer::showLogging() {
         ImGui::GetWindowSize().x -
         (logSelectionWidth + ImGui::GetStyle().WindowPadding.x);
 
-    auto activeLogLevel = spdlog::get_level();
     ImGui::SetNextItemWidth(logSelectionWidth);
     ImGui::SameLine(comboBoxRightAlignment);
-    if (ImGui::Combo("##activeLogLevel",
-                     reinterpret_cast<int*>(&activeLogLevel), logLevels.data(),
-                     std::size(logLevels))) {
-        spdlog::set_level(activeLogLevel);
-    }
+    ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
+                 logLevels.data(), std::size(logLevels));
 
+    ImGui::Separator();
     filter.Draw("Filter",
                 ImGui::GetWindowSize().x -
                     (logSelectionWidth + ImGui::GetStyle().WindowPadding.x * 2 +
                      ImGui::GetStyle().FramePadding.x));
 
-    ImGui::Separator();
-    ImGui::BeginChild("LogTextView", ImVec2(0, 0), 0,
-                      ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                          ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+    ImGui::BeginChild(
+        "LogTextView", ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
+        ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+
+    ImVec4 color;
 
     for (const auto& [message, level] :
          sponge::SDLEngine::get().getMessages()) {
@@ -133,20 +140,40 @@ void ImGuiLayer::showLogging() {
             continue;
         }
 
+        bool hasColor;
         switch (level) {
             case spdlog::level::debug:
-                ImGui::TextColored(LVL_DBG_CLR, "%s", message.c_str());
+                hasColor = true;
+                color = DARK_DEBUG_COLOR;
                 break;
             case spdlog::level::warn:
-                ImGui::TextColored(LVL_WRN_CLR, "%s", message.c_str());
+                hasColor = true;
+                color = DARK_WARN_COLOR;
                 break;
             case spdlog::level::err:
-                ImGui::TextColored(LVL_ERR_CLR, "%s", message.c_str());
+                hasColor = true;
+                color = DARK_ERROR_COLOR;
                 break;
             default:
-                ImGui::TextColored(LVL_LOG_CLR, "%s", message.c_str());
+                hasColor = false;
                 break;
         }
+
+        if (hasColor) {
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+        }
+
+        ImGui::TextUnformatted(message.c_str());
+
+        if (hasColor) {
+            ImGui::PopStyleColor();
+        }
+    }
+
+    ImGui::PopStyleVar();
+
+    if (enableAutoScrolling && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+        ImGui::SetScrollHereY(1.F);
     }
 
     ImGui::EndChild();
