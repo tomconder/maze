@@ -59,6 +59,19 @@ void ImGuiLayer::onImGuiRender() {
     }
 }
 
+float ImGuiLayer::getLogSelectionMaxWidth() {
+    float maxWidth = 0;
+    for (const auto* level : logLevels) {
+        const auto width = ImGui::CalcTextSize(level).x;
+        if (width > maxWidth) {
+            maxWidth = width;
+        }
+    }
+
+    return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
+           ImGui::GetFrameHeight();
+}
+
 void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
     const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
@@ -87,38 +100,17 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static bool enableAutoScrolling = true;
+    static auto logSelectionWidth = getLogSelectionMaxWidth();
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
 
-    ImGui::Checkbox("Auto-scroll", &enableAutoScrolling);
+    ImGui::SetNextItemWidth(logSelectionWidth);
+    ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
+                 logLevels.data(), std::size(logLevels));
     ImGui::SameLine();
 
     if (ImGui::Button("Clear")) {
         sponge::SDLEngine::get().clearMessages();
     }
-    ImGui::SameLine();
-
-    static const auto logSelectionWidth = []() -> float {
-        float maxWidth = 0;
-        for (const auto* level : logLevels) {
-            const auto width = ImGui::CalcTextSize(level).x;
-            if (width > maxWidth) {
-                maxWidth = width;
-            }
-        }
-
-        return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
-               ImGui::GetFrameHeight();
-    }();
-
-    auto comboBoxRightAlignment =
-        ImGui::GetWindowSize().x -
-        (logSelectionWidth + ImGui::GetStyle().WindowPadding.x);
-
-    ImGui::SetNextItemWidth(logSelectionWidth);
-    ImGui::SameLine(comboBoxRightAlignment);
-    ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), std::size(logLevels));
 
     ImGui::Separator();
     filter.Draw("Filter",
@@ -128,7 +120,7 @@ void ImGuiLayer::showLogging() {
 
     ImGui::BeginChild(
         "LogTextView", ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
-        ImGuiChildFlags_Border, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
@@ -172,7 +164,7 @@ void ImGuiLayer::showLogging() {
 
     ImGui::PopStyleVar();
 
-    if (enableAutoScrolling && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+    if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
         ImGui::SetScrollHereY(1.F);
     }
 
