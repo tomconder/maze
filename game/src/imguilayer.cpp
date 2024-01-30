@@ -103,27 +103,29 @@ void ImGuiLayer::showLogging() {
     static auto logSelectionWidth = getLogSelectionMaxWidth();
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
 
+    if (ImGui::Button("Clear")) {
+        sponge::SDLEngine::get().clearMessages();
+    }
+    ImGui::SameLine();
+
+    ImGui::TextUnformatted("Severity:");
+    ImGui::SameLine();
     ImGui::SetNextItemWidth(logSelectionWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
                  logLevels.data(), std::size(logLevels));
     ImGui::SameLine();
 
-    if (ImGui::Button("Clear")) {
-        sponge::SDLEngine::get().clearMessages();
-    }
+    ImGui::TextUnformatted("Filter:");
+    ImGui::SameLine();
+    filter.Draw("##filter", -1);
 
     ImGui::Separator();
-    filter.Draw("Filter",
-                ImGui::GetWindowSize().x -
-                    (logSelectionWidth + ImGui::GetStyle().WindowPadding.x * 2 +
-                     ImGui::GetStyle().FramePadding.x));
-
     ImGui::BeginChild(
         "LogTextView", ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
-        ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+                      ImGuiChildFlags_AlwaysUseWindowPadding,
+                      ImGuiWindowFlags_HorizontalScrollbar);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-
     ImVec4 color;
 
     for (const auto& [message, level] :
