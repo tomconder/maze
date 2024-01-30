@@ -237,7 +237,7 @@ void SDLEngine::adjustAspectRatio(const uint32_t eventW,
 
     auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == ratios.end()) {
-        ratio = --ratios.end();
+        ratio = ratios.end() - 1;
     }
 
     // use ratio
