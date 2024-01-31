@@ -3,10 +3,8 @@
 
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";
-constexpr std::string_view uiFont = "inter-bold";
 constexpr std::string_view quadShader = "quad";
 constexpr std::string_view spriteShader = "sprite";
-constexpr std::string_view textShader = "text";
 
 HUDLayer::HUDLayer() : Layer("hud") {
     // nothing
@@ -19,8 +17,8 @@ void HUDLayer::onAttach() {
         ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", textShader.data());
+        assetsFolder + "/shaders/sprite.vert",
+        assetsFolder + "/shaders/sprite.frag", spriteShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -28,16 +26,6 @@ void HUDLayer::onAttach() {
     shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/quad.vert",
         assetsFolder + "/shaders/quad.frag", quadShader.data());
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
-
-    const auto font =
-        sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-            assetsFolder + "/fonts/inter-bold.fnt", uiFont.data());
-    shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/sprite.vert",
-        assetsFolder + "/shaders/sprite.frag", spriteShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -52,17 +40,13 @@ void HUDLayer::onDetach() {
     // nothing
 }
 
-bool HUDLayer::onUpdate(uint32_t elapsedTime) {
+bool HUDLayer::onUpdate(uint32_t elapsedTime, const bool isEventHandled) {
     UNUSED(elapsedTime);
+    UNUSED(isEventHandled);
 
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
-    logo->render({ static_cast<float>(orthoCamera->getWidth()) - 76.F, 12.F },
-                 { 64.F, 64.F });
+    logo->render({ 12.F, 12.F }, { 64.F, 64.F });
 
-    const auto font =
-        sponge::graphics::renderer::OpenGLResourceManager::getFont(
-            uiFont.data());
-    font->render("Maze", { 12.F, 12.F }, 20, { .05F, .79F, 1.F });
     return true;
 }
 
@@ -85,7 +69,7 @@ bool HUDLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
     shader->unbind();
 
     shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        textShader.data());
+        quadShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

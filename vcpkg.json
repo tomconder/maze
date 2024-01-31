@@ -25,7 +25,6 @@
     {
       "name": "imgui",
       "features": [
-        "docking-experimental",
         "opengl3-binding",
         "sdl2-binding"
       ],

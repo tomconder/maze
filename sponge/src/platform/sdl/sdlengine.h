@@ -4,7 +4,7 @@
 #include "core/keycode.h"
 #include "core/mousecode.h"
 #include "event/event.h"
-#include "imgui/imguilayer.h"
+#include "imgui/imguimanager.h"
 #include "layer/layer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
@@ -51,9 +51,39 @@ class SDLEngine : public Engine {
     uint32_t getHeight() const {
         return h;
     }
+
     uint32_t getWidth() const {
         return w;
     }
+
+    uint32_t getWindowHeight() const {
+        int32_t w;
+        int32_t h;
+        SDL_GetWindowSize(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
+        return static_cast<uint32_t>(h);
+    }
+
+    uint32_t getWindowWidth() const {
+        int32_t w;
+        int32_t h;
+        SDL_GetWindowSize(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
+        return static_cast<uint32_t>(w);
+    }
+
+    std::vector<LogItem>& getMessages() const {
+        return *messages;
+    }
+
+    void addMessage(const LogItem& item) const {
+        messages->push_back(item);
+    }
+
+    void clearMessages() const {
+        messages->clear();
+    }
+
     void setMouseVisible(bool value) const;
 
     static SDLEngine& get() {
@@ -62,12 +92,14 @@ class SDLEngine : public Engine {
 
    private:
 #if !NDEBUG
-    std::shared_ptr<imgui::ImGuiLayer> imguiLayer;
+    std::shared_ptr<imgui::ImGuiManager> imguiManager;
 #endif
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
     std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
+
+    std::unique_ptr<std::vector<LogItem>> messages;
 
     uint32_t offsetx = 0;
     uint32_t offsety = 0;

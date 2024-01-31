@@ -23,7 +23,7 @@
 #include "graphics/renderer/sprite.h"
 #include "graphics/renderer/texture.h"
 #include "graphics/renderer/vertexarray.h"
-#include "imgui/imguilayer.h"
+#include "imgui/imguimanager.h"
 #include "layer/layer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglquad.h"

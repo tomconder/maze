@@ -1,19 +1,14 @@
 #include "maze.h"
 #include "sponge.h"
 
-constexpr auto keyCodes = std::to_array(
-    { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,
-      sponge::KeyCode::SpongeKey_S, sponge::KeyCode::SpongeKey_D,
-      sponge::KeyCode::SpongeKey_Up, sponge::KeyCode::SpongeKey_Left,
-      sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right });
-
 bool Maze::onUserCreate() {
 #if !NDEBUG
     pushOverlay(imguiLayer);
 #endif
     pushOverlay(hudLayer);
-    pushLayer(mazeLayer);
     pushOverlay(exitLayer);
+
+    pushLayer(mazeLayer);
 
     exitLayer->setActive(false);
 
@@ -25,17 +20,7 @@ bool Maze::onUserUpdate(const uint32_t elapsedTime) {
         return false;
     }
 
-    if (elapsedTime > 0) {
-        for (const auto& keycode : keyCodes) {
-            if (sponge::Input::isKeyPressed(keycode)) {
-                auto event =
-                    sponge::event::KeyPressedEvent{ keycode, elapsedTime };
-                onEvent(event);
-            }
-        }
-    }
-
-    return sponge::SDLEngine::onUserUpdate(elapsedTime);
+    return SDLEngine::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onUserDestroy() {

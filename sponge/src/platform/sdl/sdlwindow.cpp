@@ -32,6 +32,12 @@ void SDLWindow::init(const WindowProps& props) {
                                  "Could not create window", nullptr);
         SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
     }
+
+    int32_t w;
+    int32_t h;
+    SDL_GetWindowSize(window, &w, &h);
+    data.width = static_cast<uint32_t>(w);
+    data.height = static_cast<uint32_t>(h);
 }
 
 void SDLWindow::shutdown() {
