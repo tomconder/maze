@@ -137,8 +137,8 @@ void ImGuiLayer::showLogging() {
     filter.Draw("##filter", -1);
 
     ImGui::Separator();
-    ImGui::BeginChild(
-        "LogTextView", ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
+    ImGui::BeginChild("LogTextView",
+                      ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
                       ImGuiChildFlags_AlwaysUseWindowPadding,
                       ImGuiWindowFlags_HorizontalScrollbar);
 

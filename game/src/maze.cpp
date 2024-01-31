@@ -1,7 +1,6 @@
 #include "maze.h"
 #include "sponge.h"
 
-
 bool Maze::onUserCreate() {
 #if !NDEBUG
     pushOverlay(imguiLayer);
