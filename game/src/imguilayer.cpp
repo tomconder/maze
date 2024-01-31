@@ -134,6 +134,10 @@ void ImGuiLayer::showLogging() {
             continue;
         }
 
+        if (!filter.PassFilter(message.c_str())) {
+            continue;
+        }
+
         bool hasColor;
         switch (level) {
             case spdlog::level::debug:
