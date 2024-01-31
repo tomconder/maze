@@ -14,6 +14,8 @@ const std::vector logLevels{
     SPDLOG_LEVEL_NAME_OFF.data()
 };
 
+const std::vector categories{ "categories", "app", "sponge", "opengl" };
+
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -59,10 +61,11 @@ void ImGuiLayer::onImGuiRender() {
     }
 }
 
-float ImGuiLayer::getLogSelectionMaxWidth() {
+float ImGuiLayer::getLogSelectionMaxWidth(
+    const std::vector<const char*>& list) {
     float maxWidth = 0;
-    for (const auto* level : logLevels) {
-        const auto width = ImGui::CalcTextSize(level).x;
+    for (const auto* item : list) {
+        const auto width = ImGui::CalcTextSize(item).x;
         if (width > maxWidth) {
             maxWidth = width;
         }
@@ -100,19 +103,33 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static auto logSelectionWidth = getLogSelectionMaxWidth();
+    static auto logLevelWidth = getLogSelectionMaxWidth(logLevels);
+    static auto categoriesWidth = getLogSelectionMaxWidth(categories);
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
+    static auto activeCategory = 0;
+
+    // C++ does not have a case-insensitive string compare
+    auto stricmp = [](const std::string& str1, const std::string& str2) {
+        return str1.size() == str2.size() &&
+               std::equal(str1.begin(), str1.end(), str2.begin(),
+                          [](auto a, auto b) {
+                              return std::tolower(a) == std::tolower(b);
+                          });
+    };
 
     if (ImGui::Button("Clear")) {
         sponge::SDLEngine::get().clearMessages();
     }
     ImGui::SameLine();
 
-    ImGui::TextUnformatted("Severity:");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(logSelectionWidth);
+    ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
                  logLevels.data(), std::size(logLevels));
+    ImGui::SameLine();
+
+    ImGui::SetNextItemWidth(categoriesWidth);
+    ImGui::Combo("##categories", &activeCategory, categories.data(),
+                 std::size(categories));
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");
@@ -128,9 +145,14 @@ void ImGuiLayer::showLogging() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
     ImVec4 color;
 
-    for (const auto& [message, level] :
+    for (const auto& [message, loggerName, level] :
          sponge::SDLEngine::get().getMessages()) {
         if (level < activeLogLevel) {
+            continue;
+        }
+
+        const auto category = std::string(categories[activeCategory]);
+        if (activeCategory > 0 && !stricmp(loggerName, category)) {
             continue;
         }
 

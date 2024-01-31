@@ -13,6 +13,7 @@ namespace sponge {
 
 struct LogItem {
     std::string message;
+    std::string loggerName;
     spdlog::level::level_enum level;
 };
 

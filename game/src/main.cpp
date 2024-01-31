@@ -12,8 +12,6 @@ bool startup() {
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
-    SPONGE_ERROR("This is an error");
-    SPONGE_WARN("This is a warning");
 
     std::stringstream ss;
     ss << fmt::format("{}", game::project_name);

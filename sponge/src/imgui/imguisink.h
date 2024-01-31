@@ -21,7 +21,7 @@ void ImguiSink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
     spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
     const auto formattedText = fmt::to_string(formatted);
 
-    const LogItem it{ formattedText, msg.level };
+    const LogItem it{ formattedText, msg.logger_name.data(), msg.level };
 
     SDLEngine::get().addMessage(it);
 }
