@@ -1,10 +1,10 @@
 #pragma once
 
+#include "..\..\imgui\imguimanager.h"
 #include "core/engine.h"
 #include "core/keycode.h"
 #include "core/mousecode.h"
 #include "event/event.h"
-#include "imgui/imguilayer.h"
 #include "layer/layer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
@@ -92,7 +92,7 @@ class SDLEngine : public Engine {
 
    private:
 #if !NDEBUG
-    std::shared_ptr<imgui::ImGuiLayer> imguiLayer;
+    std::shared_ptr<imgui::ImGuiManager> imguiManager;
 #endif
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;

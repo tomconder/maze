@@ -1,16 +1,11 @@
-#include "imguilayer.h"
-#include "event/event.h"
+#include "imguimanager.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
 #include "platform/sdl/sdlengine.h"
 
 namespace sponge::imgui {
 
-ImGuiLayer::ImGuiLayer() : Layer("imgui-engine") {
-    // nothing
-}
-
-void ImGuiLayer::onAttach() {
+void ImGuiManager::onAttach() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -25,34 +20,29 @@ void ImGuiLayer::onAttach() {
     ImGui_ImplOpenGL3_Init();
 }
 
-void ImGuiLayer::onDetach() {
+void ImGuiManager::onDetach() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 }
 
-void ImGuiLayer::onEvent(event::Event& event) {
+bool ImGuiManager::isEventHandled() {
     const auto& io = ImGui::GetIO();
-    event.handled |=
-        static_cast<uint8_t>(event.isInCategory(event::EventCategoryMouse)) &
-        static_cast<uint8_t>(io.WantCaptureMouse);
-    event.handled |=
-        static_cast<uint8_t>(event.isInCategory(event::EventCategoryKeyboard)) &
-        static_cast<uint8_t>(io.WantCaptureKeyboard);
+    return io.WantCaptureMouse || io.WantCaptureKeyboard;
 }
 
-void ImGuiLayer::begin() {
+void ImGuiManager::begin() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 }
 
-void ImGuiLayer::end() {
+void ImGuiManager::end() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImGuiLayer::processEvent(const SDL_Event* event) {
+void ImGuiManager::processEvent(const SDL_Event* event) {
     ImGui_ImplSDL2_ProcessEvent(event);
 }
 

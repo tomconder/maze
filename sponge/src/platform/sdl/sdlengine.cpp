@@ -70,9 +70,8 @@ bool SDLEngine::start() {
     graphics = std::make_unique<graphics::renderer::OpenGLContext>(window);
 
 #if !NDEBUG
-    imguiLayer = std::make_shared<imgui::ImGuiLayer>();
-    imguiLayer->setActive(true);
-    pushOverlay(imguiLayer);
+    imguiManager = std::make_shared<imgui::ImGuiManager>();
+    imguiManager->onAttach();
 #endif
 
     graphics::renderer::OpenGLInfo::logVersion();
@@ -102,8 +101,6 @@ bool SDLEngine::start() {
 
     SDL_ShowWindow(window);
 
-    SDL_EventState(SDL_TEXTINPUT, SDL_FALSE);
-
     return true;
 }
 
@@ -116,19 +113,35 @@ bool SDLEngine::iterateLoop() {
 
     auto quit = false;
     while (SDL_PollEvent(&event) != 0) {
+#if !NDEBUG
+        imguiManager->processEvent(&event);
+#endif
+
         if (event.type == SDL_QUIT) {
             quit = true;
         }
+
         if (event.type == SDL_WINDOWEVENT &&
             event.window.event == SDL_WINDOWEVENT_CLOSE) {
             quit = true;
         }
 
+#if !NDEBUG
+        if (imguiManager->isEventHandled() &&
+            (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN ||
+             event.type == SDL_TEXTEDITING || event.type == SDL_TEXTINPUT ||
+             event.type == SDL_MOUSEMOTION ||
+             event.type == SDL_MOUSEBUTTONDOWN ||
+             event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEWHEEL)) {
+            continue;
+        }
+#endif
+
         processEvent(event, elapsedTime);
     }
 
 #if !NDEBUG
-    imguiLayer->begin();
+    imguiManager->begin();
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
@@ -148,7 +161,7 @@ bool SDLEngine::iterateLoop() {
     }
 
 #if !NDEBUG
-    imguiLayer->end();
+    imguiManager->end();
 #endif
 
     graphics->flip(sdlWindow->getNativeWindow());
@@ -158,7 +171,7 @@ bool SDLEngine::iterateLoop() {
 
 void SDLEngine::shutdown() {
 #if !NDEBUG
-    popOverlay(imguiLayer);
+    imguiManager->onDetach();
 #endif
 
     auto* const context = SDL_GL_GetCurrentContext();
@@ -197,10 +210,15 @@ bool SDLEngine::onUserCreate() {
 
 bool SDLEngine::onUserUpdate(const uint32_t elapsedTime) {
     bool result = true;
+    bool isEventHandled = false;
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
-            if (!layer->onUpdate(elapsedTime)) {
+#if !NDEBUG
+            isEventHandled = imguiManager->isEventHandled();
+#endif
+
+            if (!layer->onUpdate(elapsedTime, isEventHandled)) {
                 result = false;
                 break;
             }
@@ -444,10 +462,6 @@ void SDLEngine::setMouseVisible(const bool value) const {
 
 void SDLEngine::processEvent(const SDL_Event& event,
                              const uint32_t elapsedTime) {
-#if !NDEBUG
-    imguiLayer->processEvent(&event);
-#endif
-
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
@@ -456,12 +470,10 @@ void SDLEngine::processEvent(const SDL_Event& event,
         auto resizeEvent = event::WindowResizeEvent{ w, h };
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
-        if (event.key.repeat == 0) {
-            auto keyEvent = event::KeyPressedEvent{
-                mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
-            };
-            onEvent(keyEvent);
-        }
+        auto keyEvent = event::KeyPressedEvent{
+            mapScanCodeToKeyCode(event.key.keysym.scancode), elapsedTime
+        };
+        onEvent(keyEvent);
     } else if (event.type == SDL_KEYUP) {
         auto keyEvent = event::KeyReleasedEvent{ mapScanCodeToKeyCode(
             event.key.keysym.scancode) };
