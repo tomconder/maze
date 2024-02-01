@@ -40,14 +40,20 @@ void MazeLayer::onDetach() {
 
 bool MazeLayer::onUpdate(const uint32_t elapsedTime,
                          const bool isEventHandled) {
-    if (!isEventHandled && elapsedTime > 0) {
-        for (const auto& keycode : keyCodes) {
-            if (sponge::Input::isKeyPressed(keycode)) {
-                auto event =
-                    sponge::event::KeyPressedEvent{ keycode, elapsedTime };
-                onEvent(event);
+    static uint32_t totalTime = 0;
+
+    totalTime += elapsedTime;
+    if (totalTime >= 15) {
+        if (!isEventHandled) {
+            for (const auto& keycode : keyCodes) {
+                if (sponge::Input::isKeyPressed(keycode)) {
+                    auto event =
+                        sponge::event::KeyPressedEvent{ keycode, elapsedTime };
+                    onEvent(event);
+                }
             }
         }
+        totalTime -= 15;
     }
 
     auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
