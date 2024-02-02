@@ -72,6 +72,14 @@ class SDLEngine : public Engine {
         return static_cast<uint32_t>(w);
     }
 
+    static bool hasVerticalSync() {
+        return SDL_GL_GetSwapInterval() != 0;
+    }
+
+    static void setVerticalSync(bool value) {
+        SDL_GL_SetSwapInterval(value ? 1 : 0);
+    }
+
     std::vector<LogItem>& getMessages() const {
         return *messages;
     }

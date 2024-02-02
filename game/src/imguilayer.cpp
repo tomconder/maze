@@ -28,6 +28,8 @@ void ImGuiLayer::onImGuiRender() {
     const auto height =
         static_cast<float>(sponge::SDLEngine::get().getWindowHeight());
 
+    static auto hasVsync = sponge::SDLEngine::hasVerticalSync();
+
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
     ImGui::SetNextWindowSize({ 320.F, 200.F });
 
@@ -41,6 +43,11 @@ void ImGuiLayer::onImGuiRender() {
                     game::project_version.data());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
+        ImGui::Separator();
+
+        if (ImGui::Checkbox("v-sync", &hasVsync)) {
+            sponge::SDLEngine::setVerticalSync(hasVsync);
+        }
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
