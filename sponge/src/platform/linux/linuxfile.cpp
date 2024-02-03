@@ -1,4 +1,5 @@
 #include "linuxfile.h"
+#include <cstrlib>
 #include <filesystem>
 
 namespace sponge {
@@ -6,12 +7,14 @@ namespace sponge {
 std::string LinuxFile::getLogDir(const std::string& app) {
     char* appdata = nullptr;
     size_t sz = 0;
-    if (_dupenv_s(&appdata, &sz, "XDG_DATA_HOME") == 0 && appdata != nullptr) {
+    auto val = std::getenv("XDG_DATA_HOME");
+    if (val != nullptr) {
         std::filesystem::path path(appdata);
         return path.string() + "/" + app + "/";
     }
 
-    if (_dupenv_s(&appdata, &sz, "HOME") == 0 && appdata != nullptr) {
+    val = std::getenv("HOME");
+    if (val != nullptr) {
         std::filesystem::path path(appdata);
         return path.string() + "/.local/share/" + app + "/";
     }
