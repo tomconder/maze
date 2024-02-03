@@ -6,7 +6,7 @@ namespace sponge {
 
 class OSXFile {
    public:
-    static std::string getLogDir();
+    static std::string getLogDir(const std::string& app);
     static std::string getResourceDir();
 
    private:

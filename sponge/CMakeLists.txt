@@ -7,9 +7,9 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
-        src/imgui/*.h
         src/graphics/camera/*.h
         src/graphics/renderer/*.h
+        src/imgui/*.h
         src/layer/*.h
         src/platform/opengl/*.h
         src/platform/sdl/*.h
@@ -20,9 +20,9 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/imgui/*.cpp
         src/graphics/camera/*.cpp
         src/graphics/renderer/*.cpp
+        src/imgui/*.cpp
         src/layer/*.cpp
         src/platform/opengl/*.cpp
         src/platform/sdl/*.cpp
@@ -42,6 +42,14 @@ if (MSVC)
     list(APPEND HEADER_FILES ${WIN_HEADERS})
     file(GLOB WIN_SOURCES src/platform/windows/*.cpp)
     list(APPEND SOURCE_FILES ${WIN_SOURCES})
+endif ()
+
+if (UNIX AND NOT APPLE)
+    message(STATUS "Including Linux platform files")
+    file(GLOB LINUX_HEADERS src/platform/linux/*.h)
+    list(APPEND HEADER_FILES ${LINUX_HEADERS})
+    file(GLOB LINUX_SOURCES src/platform/linux/*.cpp)
+    list(APPEND SOURCE_FILES ${LINUX_SOURCES})
 endif ()
 
 find_package(absl CONFIG REQUIRED)
