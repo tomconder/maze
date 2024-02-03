@@ -32,13 +32,13 @@ std::string OSXFile::getResourceDir() {
     return "../Resources";
 }
 
-std::string OSXFile::getLogDir() {
+std::string OSXFile::getLogDir(const std::string& app) {
     char path[PATH_MAX];
 
     auto state = sysdir_start_search_path_enumeration(
         SYSDIR_DIRECTORY_APPLICATION_SUPPORT, SYSDIR_DOMAIN_MASK_USER);
     if (sysdir_get_next_search_path_enumeration(state, path) != 0) {
-        return expandTilde(path) + "/maze/";
+        return expandTilde(path) + "/" + app + "/";
     }
 
     throw std::runtime_error("Failed to get settings folder");
