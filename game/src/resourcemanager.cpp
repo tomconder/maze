@@ -12,6 +12,8 @@ ResourceManager::createOrthoCamera(const std::string& name) {
         return cameras[name];
     }
 
+    SPONGE_INFO("Creating camera: {}", name);
+
     auto camera = std::make_shared<sponge::graphics::camera::OrthoCamera>();
     cameras[name] = camera;
 

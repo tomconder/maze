@@ -1,7 +1,7 @@
 #include "exitlayer.h"
 #include "resourcemanager.h"
 
-constexpr std::string_view cameraName = "hud";
+constexpr std::string_view cameraName = "exit";
 constexpr std::string_view uiFont = "league-gothic";
 constexpr std::string_view quadShader = "quad";
 constexpr std::string_view textShader = "text";
@@ -15,26 +15,35 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
+        assetsFolder + "/shaders/quad.vert",
+        assetsFolder + "/shaders/quad.frag", quadShader.data());
+
+    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
+        assetsFolder + "/shaders/text.vert",
+        assetsFolder + "/shaders/text.frag", textShader.data());
+
+    sponge::graphics::renderer::OpenGLResourceManager::loadFont(
+        assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
+
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
 
-    const auto assetsFolder = sponge::File::getResourceDir();
+    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
+        quadShader.data());
 
-    auto shader = sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+        textShader.data());
+
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
-
-    sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
 
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 
