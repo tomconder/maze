@@ -8,7 +8,8 @@ constexpr std::string_view spongeLogFile = "log.txt";
 bool startup() {
     const auto maze = std::make_unique<Maze>();
 
-    const auto logfile = sponge::File::getLogDir() + spongeLogFile.data();
+    const auto logfile = sponge::File::getLogDir(game::project_name.data()) +
+                         spongeLogFile.data();
     sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");

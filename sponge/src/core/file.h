@@ -1,13 +1,12 @@
 #pragma once
 
-#include "core/base.h"
 #include <string>
 
 namespace sponge {
 
 class File {
    public:
-    static std::string getLogDir();
+    static std::string getLogDir(const std::string& app);
     static std::string getResourceDir();
 };
 
@@ -15,8 +14,8 @@ class File {
 
 #ifdef __APPLE__
 #include "platform/osx/osxfile.h"
-#endif
-
-#ifdef __WINDOWS__
+#elif __WINDOWS__
 #include "platform/windows/winfile.h"
+#elif __UNIX__
+#include "platform/windows/linuxfile.h"
 #endif
