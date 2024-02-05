@@ -16,6 +16,12 @@ absl::flat_hash_map<std::string, std::shared_ptr<OpenGLShader>>
     OpenGLResourceManager::shaders;
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
     OpenGLResourceManager::textures;
+absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLVertexArray>>
+    OpenGLResourceManager::vertexArrays;
+absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLBuffer>>
+    OpenGLResourceManager::buffers;
+absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLElementBuffer>>
+    OpenGLResourceManager::elementBuffers;
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(
     const std::string& name) {
@@ -80,17 +86,21 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
         return shaders[name];
     }
 
-    SPONGE_CORE_INFO("Loading vertex shader file: {}", name);
+    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
+                     vertexShader);
     std::string vertexSource = loadSourceFromFile(vertexShader);
 
     assert(!vertexSource.empty());
 
-    SPONGE_CORE_INFO("Loading fragment shader file: {}", name);
+    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
+                     fragmentShader);
     std::string fragmentSource = loadSourceFromFile(fragmentShader);
 
     assert(!fragmentSource.empty());
 
     auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource);
+
+    SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
 
     shaders[name] = shader;
     return shader;
@@ -117,6 +127,105 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
     textures[name] = texture;
 
     return texture;
+}
+
+std::shared_ptr<OpenGLVertexArray> OpenGLResourceManager::createVertexArray(
+    const std::string& id) {
+    if (vertexArrays.find(id) != vertexArrays.end()) {
+        return vertexArrays[id];
+    }
+
+    SPONGE_CORE_INFO("Creating resource for program id: [{}, vertex array]",
+                     id);
+
+    auto vao = std::make_shared<OpenGLVertexArray>();
+    vertexArrays[id] = vao;
+
+    return vao;
+}
+
+std::shared_ptr<OpenGLVertexArray> OpenGLResourceManager::getVertexArray(
+    const std::string& id) {
+    assert(!id.empty());
+    return vertexArrays.at(id);
+}
+
+std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::createBuffer(
+    const std::string& id, uint32_t size) {
+    assert(!id.empty());
+
+    if (buffers.find(id) != buffers.end()) {
+        return buffers[id];
+    }
+
+    SPONGE_CORE_INFO("Creating resource for program id: [{}, buffer]", id);
+
+    auto vbo = std::make_shared<OpenGLBuffer>(size);
+    buffers[id] = vbo;
+
+    return vbo;
+}
+
+std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::createBuffer(
+    const std::string& id, const float* vertices, uint32_t size) {
+    assert(!id.empty());
+
+    if (buffers.find(id) != buffers.end()) {
+        return buffers[id];
+    }
+
+    SPONGE_CORE_INFO("Creating resource for program id: [{}, buffer]", id);
+
+    auto vbo = std::make_shared<OpenGLBuffer>(vertices, size);
+    buffers[id] = vbo;
+
+    return vbo;
+}
+
+std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::getBuffer(
+    const std::string& id) {
+    assert(!id.empty());
+    return buffers.at(id);
+}
+
+std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::createElementBuffer(
+    const std::string& id, uint32_t size) {
+    assert(!id.empty());
+
+    if (elementBuffers.find(id) != elementBuffers.end()) {
+        return elementBuffers[id];
+    }
+
+    SPONGE_CORE_INFO("Creating resource for program id: [{}, element buffer]",
+                     id);
+
+    auto ebo = std::make_shared<OpenGLElementBuffer>(size);
+    elementBuffers[id] = ebo;
+
+    return ebo;
+}
+
+std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::createElementBuffer(
+    const std::string& id, const uint32_t* indices, uint32_t size) {
+    assert(!id.empty());
+
+    if (elementBuffers.find(id) != elementBuffers.end()) {
+        return elementBuffers[id];
+    }
+
+    SPONGE_CORE_INFO("Creating resource for program id: [{}, element buffer]",
+                     id);
+
+    auto ebo = std::make_shared<OpenGLElementBuffer>(indices, size);
+    elementBuffers[id] = ebo;
+
+    return ebo;
+}
+
+std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::getElementBuffer(
+    const std::string& id) {
+    assert(!id.empty());
+    return elementBuffers.at(id);
 }
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(
