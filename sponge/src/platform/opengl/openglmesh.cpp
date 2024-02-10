@@ -1,8 +1,11 @@
 #include "platform/opengl/openglmesh.h"
+#include "core/file.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include <cstddef>
 
 namespace sponge::graphics::renderer {
+
+constexpr std::string_view meshShader = "mesh";
 
 OpenGLMesh::OpenGLMesh(
     const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,
@@ -25,7 +28,13 @@ OpenGLMesh::OpenGLMesh(
                             static_cast<uint32_t>(sizeof(unsigned int)));
     ebo->bind();
 
-    auto shader = OpenGLResourceManager::getShader("shader");
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/shader.vert",
+                                      assetsFolder + "/shaders/shader.frag",
+                                      meshShader.data());
+
+    auto shader = OpenGLResourceManager::getShader(meshShader.data());
     shader->bind();
 
     uint32_t program = shader->getId();
@@ -83,7 +92,7 @@ void OpenGLMesh::render() const {
     vao->bind();
 
     std::shared_ptr<OpenGLShader> shader =
-        OpenGLResourceManager::getShader("shader");
+        OpenGLResourceManager::getShader(meshShader.data());
     shader->bind();
 
     if (!textures.empty()) {

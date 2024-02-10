@@ -1,7 +1,7 @@
 #include "mazelayer.h"
 
 constexpr std::string_view modelName = "maze";
-constexpr std::string_view mazeShader = "shader";
+constexpr std::string_view mazeShader = "mesh";
 
 constexpr auto keyCodes = std::to_array(
     { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,

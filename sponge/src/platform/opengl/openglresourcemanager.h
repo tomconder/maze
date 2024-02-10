@@ -28,6 +28,23 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLTexture> loadTexture(const std::string& path,
                                                       const std::string& name);
 
+    static std::shared_ptr<OpenGLVertexArray> createVertexArray(
+        const std::string& id);
+    static std::shared_ptr<OpenGLVertexArray> getVertexArray(
+        const std::string& id);
+    static std::shared_ptr<OpenGLBuffer> createBuffer(const std::string& id,
+                                                      uint32_t size);
+    static std::shared_ptr<OpenGLBuffer> createBuffer(const std::string& id,
+                                                      const float* vertices,
+                                                      uint32_t size);
+    static std::shared_ptr<OpenGLBuffer> getBuffer(const std::string& id);
+    static std::shared_ptr<OpenGLElementBuffer> createElementBuffer(
+        const std::string& id, uint32_t size);
+    static std::shared_ptr<OpenGLElementBuffer> createElementBuffer(
+        const std::string& id, const uint32_t* indices, uint32_t size);
+    static std::shared_ptr<OpenGLElementBuffer> getElementBuffer(
+        const std::string& id);
+
    private:
     OpenGLResourceManager() = default;
 
@@ -46,6 +63,15 @@ class OpenGLResourceManager {
         shaders;
     static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
         textures;
+
+    static absl::flat_hash_map<const std::string,
+                               std::shared_ptr<OpenGLVertexArray>>
+        vertexArrays;
+    static absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLBuffer>>
+        buffers;
+    static absl::flat_hash_map<const std::string,
+                               std::shared_ptr<OpenGLElementBuffer>>
+        elementBuffers;
 };
 
 }  // namespace sponge::graphics::renderer

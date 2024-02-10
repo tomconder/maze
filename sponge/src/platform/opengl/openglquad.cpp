@@ -1,35 +1,50 @@
 #include "platform/opengl/openglquad.h"
+#include "core/file.h"
+#include "core/log.h"
 #include "platform/opengl/openglresourcemanager.h"
 
 namespace sponge::graphics::renderer {
 
+constexpr uint32_t indices[6] = {
+    0, 2, 1,  //
+    0, 3, 2   //
+};
+
+constexpr std::string_view quadShader = "quad";
+
 OpenGLQuad::OpenGLQuad() {
-    const auto shader = OpenGLResourceManager::getShader("quad");
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/quad.vert",
+                                      assetsFolder + "/shaders/quad.frag",
+                                      quadShader.data());
+
+    const auto shader = OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    const auto program = shader->getId();
+    const auto id = std::to_string(program);
+
+    const auto vao = OpenGLResourceManager::createVertexArray(id);
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
-                                         numVertices * 2);
+    const auto vbo = OpenGLResourceManager::createBuffer(
+        id, static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    constexpr uint32_t indices[numIndices] = {
-        0, 2, 1,  //
-        0, 3, 2   //
-    };
-
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        static_cast<uint32_t>(sizeof(indices)));
+    const auto ebo =
+        OpenGLResourceManager::createElementBuffer(id, sizeof(indices));
     ebo->bind();
     ebo->setData(indices, sizeof(indices));
 
-    const auto program = shader->getId();
-    const auto position =
-        static_cast<uint32_t>(glGetAttribLocation(program, "position"));
-    glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat),
-                          nullptr);
+    auto location = glGetAttribLocation(program, "position");
+    if (location != -1) {
+        const auto position = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(position);
+        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE,
+                              2 * sizeof(GLfloat),
+                              reinterpret_cast<const void*>(0));
+    }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -38,26 +53,32 @@ OpenGLQuad::OpenGLQuad() {
 }
 
 void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
-                        const glm::vec4& color) {
-    const float vertices[numVertices] = {
+                        const glm::vec4& color) const {
+    const float vertices[8] = {
         top.x,    bottom.y,  //
         top.x,    top.y,     //
         bottom.x, top.y,     //
         bottom.x, bottom.y   //
     };
 
+    const auto shader = OpenGLResourceManager::getShader(quadShader.data());
+
+    auto id = std::to_string(shader->getId());
+
+    auto vao = OpenGLResourceManager::getVertexArray(id);
     vao->bind();
 
-    const auto shader = OpenGLResourceManager::getShader("quad");
     shader->bind();
     shader->setFloat4("color", color);
 
-    vbo->setData(vertices, static_cast<uint32_t>(sizeof(vertices)));
+    auto vbo = OpenGLResourceManager::getBuffer(id);
+    vbo->setData(vertices, sizeof(vertices));
 
-    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(numIndices),
-                   GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
+
+    shader->unbind();
 }
 
 }  // namespace sponge::graphics::renderer
