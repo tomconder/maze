@@ -1,31 +1,45 @@
 #include "platform/opengl/openglsprite.h"
+#include "core/file.h"
 #include "platform/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace sponge::graphics::renderer {
 
+constexpr std::string_view spriteShader = "sprite";
+
+static constexpr uint32_t numIndices = 6;
+static constexpr uint32_t numVertices = 16;
+
+constexpr uint32_t indices[numIndices] = {
+    0, 1, 2,  //
+    0, 2, 3   //
+};
+
 OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
-    auto shader = OpenGLResourceManager::getShader("sprite");
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/sprite.vert",
+                                      assetsFolder + "/shaders/sprite.frag",
+                                      spriteShader.data());
+
+    auto shader = OpenGLResourceManager::getShader(spriteShader.data());
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    const auto program = shader->getId();
+    const auto id = std::to_string(program);
+
+    const auto vao = OpenGLResourceManager::createVertexArray(id);
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
-                                         16);
+    const auto vbo = OpenGLResourceManager::createBuffer(
+        id, static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    constexpr uint32_t indices[numIndices] = {
-        0, 1, 2,  //
-        0, 2, 3   //
-    };
-
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices, static_cast<uint32_t>(sizeof(indices)));
+    const auto ebo =
+        OpenGLResourceManager::createElementBuffer(id, sizeof(indices));
     ebo->bind();
     ebo->setData(indices, sizeof(indices));
 
-    uint32_t program = shader->getId();
     if (auto location = glGetAttribLocation(program, "vertex");
         location != -1) {
         auto position = static_cast<uint32_t>(location);
@@ -48,18 +62,22 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
         position.x + size.x, position.y + size.y, 1.F, 1.F
     };
 
+    const auto shader = OpenGLResourceManager::getShader(spriteShader.data());
+
+    auto id = std::to_string(shader->getId());
+
+    auto vao = OpenGLResourceManager::getVertexArray(id);
     vao->bind();
 
-    const auto shader = OpenGLResourceManager::getShader("sprite");
     shader->bind();
 
     const auto tex = OpenGLResourceManager::getTexture(name);
     tex->bind();
 
+    auto vbo = OpenGLResourceManager::getBuffer(id);
     vbo->setData(vertices, sizeof(vertices));
 
-    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(numIndices),
-                   GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
 

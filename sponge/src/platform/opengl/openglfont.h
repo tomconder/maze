@@ -31,9 +31,6 @@ class OpenGLFont {
 
    private:
     const uint32_t maxLength = 256;
-    std::unique_ptr<OpenGLBuffer> vbo;
-    std::unique_ptr<OpenGLVertexArray> vao;
-    std::unique_ptr<OpenGLElementBuffer> ebo;
 
     absl::flat_hash_map<std::string, Character> fontChars;
     absl::flat_hash_map<std::string, float> kerning;
