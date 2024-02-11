@@ -49,7 +49,7 @@ void HUDLayer::onDetach() {
     // nothing
 }
 
-bool HUDLayer::onUpdate(uint32_t elapsedTime, const bool isEventHandled) {
+bool HUDLayer::onUpdate(const double elapsedTime, const bool isEventHandled) {
     UNUSED(elapsedTime);
     UNUSED(isEventHandled);
 

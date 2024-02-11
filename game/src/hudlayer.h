@@ -8,7 +8,7 @@ class HUDLayer final : public sponge::layer::Layer {
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::event::Event& event) override;
-    bool onUpdate(uint32_t elapsedTime, bool isEventHandled) override;
+    bool onUpdate(double elapsedTime, bool isEventHandled) override;
 
    private:
     std::unique_ptr<sponge::graphics::renderer::OpenGLSprite> logo;

@@ -20,17 +20,17 @@ class KeyEvent : public Event {
     KeyCode keyCode;
 };
 
-class KeyPressedEvent : public KeyEvent {
+class KeyPressedEvent final : public KeyEvent {
    public:
-    explicit KeyPressedEvent(const KeyCode keycode, const uint32_t elapsedTime,
-                             bool isRepeated = false)
+    explicit KeyPressedEvent(const KeyCode keycode, const double elapsedTime,
+                             const bool isRepeated = false)
         : KeyEvent(keycode), elapsedTime(elapsedTime), isRepeated(isRepeated) {}
 
     bool isHeld() const {
         return isRepeated;
     }
 
-    uint32_t getElapsedTime() const {
+    double getElapsedTime() const {
         return elapsedTime;
     }
 
@@ -38,10 +38,10 @@ class KeyPressedEvent : public KeyEvent {
 
    private:
     bool isRepeated;
-    uint32_t elapsedTime;
+    double elapsedTime;
 };
 
-class KeyReleasedEvent : public KeyEvent {
+class KeyReleasedEvent final : public KeyEvent {
    public:
     explicit KeyReleasedEvent(const KeyCode keycode) : KeyEvent(keycode) {}
 
