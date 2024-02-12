@@ -5,10 +5,16 @@ namespace sponge {
 class Timer {
    public:
     void tick() {
-        const uint64_t currentTicks{ SDL_GetPerformanceCounter() };
-        const uint64_t delta{ currentTicks - previousTicks };
+        uint64_t currentTicks{ SDL_GetPerformanceCounter() };
+        uint64_t frequency{ SDL_GetPerformanceFrequency() };
+        if (currentTicks <= previousTicks) {
+            currentTicks = previousTicks + 1;
+        }
+        elapsedSeconds =
+            previousTicks > 0
+                ? static_cast<double>(currentTicks - previousTicks) / frequency
+                : static_cast<double>(1.F / 60.F);
         previousTicks = currentTicks;
-        elapsedSeconds = delta / static_cast<double>(TICKS_PER_SECOND);
     }
 
     double getElapsedSeconds() const {
@@ -16,8 +22,6 @@ class Timer {
     }
 
    private:
-    const uint64_t TICKS_PER_SECOND = SDL_GetPerformanceFrequency();
-
     double elapsedSeconds{};
     uint64_t previousTicks{};
 };
