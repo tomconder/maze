@@ -17,6 +17,7 @@ namespace sponge {
 
 SDLEngine* SDLEngine::instance = nullptr;
 Timer systemTimer;
+Timer physicsTimer;
 
 constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
@@ -117,7 +118,6 @@ bool SDLEngine::iterateLoop() {
     if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
         elapsedSeconds = -CYCLE_TIME;
 
-        static Timer physicsTimer;
         physicsTimer.tick();
 
         auto quit = false;
