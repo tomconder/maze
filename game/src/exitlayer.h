@@ -10,7 +10,7 @@ class ExitLayer : public sponge::layer::Layer {
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::event::Event& event) override;
-    bool onUpdate(uint32_t elapsedTime, bool isEventHandled) override;
+    bool onUpdate(double elapsedTime, bool isEventHandled) override;
 
     void setWidthAndHeight(uint32_t width, uint32_t height) const;
 

@@ -21,7 +21,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
     quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
 }
 
-bool Button::onUpdate(uint32_t elapsedTime) const {
+bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
     quad->render(top, bottom, buttonColor);

@@ -38,8 +38,7 @@ void MazeLayer::onDetach() {
     // nothing
 }
 
-bool MazeLayer::onUpdate(const uint32_t elapsedTime,
-                         const bool isEventHandled) {
+bool MazeLayer::onUpdate(const double elapsedTime, const bool isEventHandled) {
     if (!isEventHandled) {
         for (const auto& keycode : keyCodes) {
             if (sponge::Input::isKeyPressed(keycode)) {

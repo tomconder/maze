@@ -17,10 +17,10 @@ class GameCamera : public sponge::graphics::camera::Camera {
         return cameraPos;
     }
 
-    void moveForward(float_t delta);
-    void moveBackward(float_t delta);
-    void strafeLeft(float_t delta);
-    void strafeRight(float_t delta);
+    void moveForward(double_t delta);
+    void moveBackward(double_t delta);
+    void strafeLeft(double_t delta);
+    void strafeRight(double_t delta);
 
     void mouseMove(const glm::vec2& offset);
     void mouseScroll(const glm::vec2& offset);
@@ -38,6 +38,8 @@ class GameCamera : public sponge::graphics::camera::Camera {
 
     float width = 0.F;
     float height = 0.F;
+
+    static constexpr float cameraSpeed = 1000.F;
 
     glm::mat4 projection = glm::mat4(1.F);
     glm::mat4 view = glm::mat4(1.F);
