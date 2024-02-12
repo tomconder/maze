@@ -6,7 +6,7 @@ class Timer {
    public:
     void tick() {
         uint64_t currentTicks{ SDL_GetPerformanceCounter() };
-        uint64_t frequency{ SDL_GetPerformanceFrequency() };
+        const uint64_t frequency{ SDL_GetPerformanceFrequency() };
         if (currentTicks <= previousTicks) {
             currentTicks = previousTicks + 1;
         }
