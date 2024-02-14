@@ -1,5 +1,6 @@
 #include "platform/opengl/openglfont.h"
 #include "core/base.h"
+#include "core/file.h"
 #include "core/log.h"
 #include "fmt/core.h"
 #include "platform/opengl/openglresourcemanager.h"
@@ -13,27 +14,39 @@
 
 namespace sponge::graphics::renderer {
 
+constexpr std::string_view textShader = "text";
+
 OpenGLFont::OpenGLFont() {
-    auto shader = OpenGLResourceManager::getShader("text");
+    const auto assetsFolder = sponge::File::getResourceDir();
+
+    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/text.vert",
+                                      assetsFolder + "/shaders/text.frag",
+                                      textShader.data());
+
+    auto shader = OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    const auto program = shader->getId();
+    const auto id = std::to_string(program);
+
+    const auto vao = OpenGLResourceManager::createVertexArray(id);
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(
-        maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
+    const auto vbo = OpenGLResourceManager::createBuffer(
+        id, maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
+    const auto ebo = OpenGLResourceManager::createElementBuffer(
+        id, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
-    auto program = shader->getId();
-    auto position =
-        static_cast<uint32_t>(glGetAttribLocation(program, "vertex"));
-    glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
-                          nullptr);
+    auto location = glGetAttribLocation(program, "vertex");
+    if (location != -1) {
+        const auto position = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(position);
+        glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
+                              4 * sizeof(GLfloat), nullptr);
+    }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -222,9 +235,13 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         prev = index;
     }
 
+    auto shader = OpenGLResourceManager::getShader(textShader.data());
+
+    auto id = std::to_string(shader->getId());
+
+    auto vao = OpenGLResourceManager::getVertexArray(id);
     vao->bind();
 
-    auto shader = OpenGLResourceManager::getShader("text");
     shader->bind();
     shader->setFloat3("textColor", color);
     shader->setFloat("screenPxRange", fontSize / size * 4.0F);
@@ -232,9 +249,11 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
+    auto vbo = OpenGLResourceManager::getBuffer(id);
     vbo->setData(batchVertices.data(),
                  static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
 
+    auto ebo = OpenGLResourceManager::getElementBuffer(id);
     ebo->setData(batchIndices.data(),
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 

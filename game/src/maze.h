@@ -11,7 +11,7 @@ class Maze : public sponge::SDLEngine {
    public:
     bool onUserCreate() override;
     bool onUserDestroy() override;
-    bool onUserUpdate(uint32_t elapsedTime) override;
+    bool onUserUpdate(double elapsedTime) override;
 
     void onEvent(sponge::event::Event& event) override;
 

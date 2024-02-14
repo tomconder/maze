@@ -75,9 +75,7 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
         BIND_EVENT_FN(onWindowResize));
 }
 
-bool ExitLayer::onUpdate(uint32_t elapsedTime, const bool isEventHandled) {
-    UNUSED(isEventHandled);
-
+bool ExitLayer::onUpdate(const double elapsedTime) {
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());

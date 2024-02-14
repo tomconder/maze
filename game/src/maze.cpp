@@ -15,7 +15,7 @@ bool Maze::onUserCreate() {
     return true;
 }
 
-bool Maze::onUserUpdate(const uint32_t elapsedTime) {
+bool Maze::onUserUpdate(const double elapsedTime) {
     if (!isRunning) {
         return false;
     }

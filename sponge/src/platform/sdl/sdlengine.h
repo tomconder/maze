@@ -28,10 +28,11 @@ class SDLEngine : public Engine {
     void shutdown() override;
 
     bool onUserCreate() override;
-    bool onUserUpdate(uint32_t elapsedTime) override;
+    bool onUserUpdate(double elapsedTime) override;
     bool onUserDestroy() override;
 
     void onEvent(event::Event& event) override;
+    void onImGuiRender();
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
@@ -99,9 +100,7 @@ class SDLEngine : public Engine {
     }
 
    private:
-#if !NDEBUG
     std::shared_ptr<imgui::ImGuiManager> imguiManager;
-#endif
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
     std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
@@ -114,14 +113,13 @@ class SDLEngine : public Engine {
     uint32_t w = 0;
     uint32_t h = 0;
 
-    uint32_t lastUpdateTime = 0;
     layer::LayerStack* layerStack;
     absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
     KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
     static MouseCode mapMouseButton(uint8_t index);
-    void processEvent(const SDL_Event& event, uint32_t elapsedTime);
+    void processEvent(const SDL_Event& event, double elapsedTime);
 
     static SDLEngine* instance;
 };

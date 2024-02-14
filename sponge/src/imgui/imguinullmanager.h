@@ -1,8 +1,10 @@
 #pragma once
 
+#include "imguimanager.h"
+
 namespace sponge::imgui {
 
-class ImGuiManager {
+class ImGuiNullManager final : public ImGuiManager {
    public:
     static void onAttach();
     static void onDetach();

@@ -124,11 +124,6 @@ void ImGuiLayer::showLogging() {
                           });
     };
 
-    if (ImGui::Button("Clear")) {
-        sponge::SDLEngine::get().clearMessages();
-    }
-    ImGui::SameLine();
-
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
                  logLevels.data(), std::size(logLevels));
@@ -141,7 +136,17 @@ void ImGuiLayer::showLogging() {
 
     ImGui::TextUnformatted("Filter:");
     ImGui::SameLine();
-    filter.Draw("##filter", -1);
+
+    filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
+                                ImGui::CalcTextSize("Reset").x -
+                                ImGui::GetStyle().FramePadding.x * 6);
+    ImGui::SameLine();
+
+    if (ImGui::Button("Reset")) {
+        activeLogLevel = spdlog::get_level();
+        activeCategory = 0;
+        filter.Clear();
+    }
 
     ImGui::Separator();
     ImGui::BeginChild("LogTextView",

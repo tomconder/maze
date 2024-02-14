@@ -1,9 +1,12 @@
 #include "platform/sdl/sdlengine.h"
+#include "core/input.h"
 #include "core/log.h"
+#include "core/timer.h"
 #include "event/applicationevent.h"
 #include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
+#include "imgui/imguinullmanager.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
@@ -15,11 +18,22 @@
 namespace sponge {
 
 SDLEngine* SDLEngine::instance = nullptr;
+Timer systemTimer;
+Timer physicsTimer;
+
+constexpr uint16_t UPDATE_FREQUENCY{ 120 };
+constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
+double elapsedSeconds{ 0.F };
 
 constexpr auto ratios = std::to_array(
     { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
       glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
       glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
+
+constexpr auto keyCodes = std::to_array(
+    { KeyCode::SpongeKey_W, KeyCode::SpongeKey_A, KeyCode::SpongeKey_S,
+      KeyCode::SpongeKey_D, KeyCode::SpongeKey_Up, KeyCode::SpongeKey_Left,
+      KeyCode::SpongeKey_Down, KeyCode::SpongeKey_Right });
 
 SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
@@ -71,8 +85,10 @@ bool SDLEngine::start() {
 
 #if !NDEBUG
     imguiManager = std::make_shared<imgui::ImGuiManager>();
-    imguiManager->onAttach();
+#else
+    imguiManager = std::make_shared<imgui::ImGuiNullManager>();
 #endif
+    imguiManager->onAttach();
 
     graphics::renderer::OpenGLInfo::logVersion();
     graphics::renderer::OpenGLInfo::logStaticInfo();
@@ -94,8 +110,6 @@ bool SDLEngine::start() {
         return false;
     }
 
-    lastUpdateTime = SDL_GetTicks();
-
     auto resizeEvent = event::WindowResizeEvent{ w, h };
     onEvent(resizeEvent);
 
@@ -106,53 +120,62 @@ bool SDLEngine::start() {
 
 bool SDLEngine::iterateLoop() {
     SDL_Event event;
-
-    const auto currentTime = SDL_GetTicks();
-    const auto elapsedTime = currentTime - lastUpdateTime;
-    lastUpdateTime = currentTime;
-
     auto quit = false;
-    while (SDL_PollEvent(&event) != 0) {
-#if !NDEBUG
-        imguiManager->processEvent(&event);
-#endif
 
-        if (event.type == SDL_QUIT) {
-            quit = true;
+    systemTimer.tick();
+    elapsedSeconds += systemTimer.getElapsedSeconds();
+
+    if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
+        elapsedSeconds = -CYCLE_TIME;
+
+        physicsTimer.tick();
+
+        while (SDL_PollEvent(&event) != 0) {
+            imguiManager->processEvent(&event);
+
+            if (event.type == SDL_QUIT) {
+                quit = true;
+            }
+
+            if (event.type == SDL_WINDOWEVENT &&
+                event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                quit = true;
+            }
+
+            if (imguiManager->isEventHandled() &&
+                (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN ||
+                 event.type == SDL_TEXTEDITING || event.type == SDL_TEXTINPUT ||
+                 event.type == SDL_MOUSEMOTION ||
+                 event.type == SDL_MOUSEBUTTONDOWN ||
+                 event.type == SDL_MOUSEBUTTONUP ||
+                 event.type == SDL_MOUSEWHEEL)) {
+                continue;
+            }
+
+            processEvent(event, physicsTimer.getElapsedSeconds());
         }
 
-        if (event.type == SDL_WINDOWEVENT &&
-            event.window.event == SDL_WINDOWEVENT_CLOSE) {
-            quit = true;
+        if (!imguiManager->isEventHandled()) {
+            for (const auto& keycode : keyCodes) {
+                if (Input::isKeyPressed(keycode)) {
+                    auto keyPressEvent = event::KeyPressedEvent{
+                        keycode, physicsTimer.getElapsedSeconds()
+                    };
+                    onEvent(keyPressEvent);
+                }
+            }
         }
-
-#if !NDEBUG
-        if (imguiManager->isEventHandled() &&
-            (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN ||
-             event.type == SDL_TEXTEDITING || event.type == SDL_TEXTINPUT ||
-             event.type == SDL_MOUSEMOTION ||
-             event.type == SDL_MOUSEBUTTONDOWN ||
-             event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEWHEEL)) {
-            continue;
-        }
-#endif
-
-        processEvent(event, elapsedTime);
     }
 
-#if !NDEBUG
     imguiManager->begin();
 
-    for (const auto& layer : *layerStack) {
-        if (layer->isActive()) {
-            layer->onImGuiRender();
-        }
-    }
+#if !NDEBUG
+    onImGuiRender();
 #endif
 
     renderer->clear();
 
-    if (!onUserUpdate(elapsedTime)) {
+    if (!onUserUpdate(physicsTimer.getElapsedSeconds())) {
         quit = true;
     }
 
@@ -160,9 +183,7 @@ bool SDLEngine::iterateLoop() {
         return true;
     }
 
-#if !NDEBUG
     imguiManager->end();
-#endif
 
     graphics->flip(sdlWindow->getNativeWindow());
 
@@ -170,9 +191,7 @@ bool SDLEngine::iterateLoop() {
 }
 
 void SDLEngine::shutdown() {
-#if !NDEBUG
     imguiManager->onDetach();
-#endif
 
     auto* const context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
@@ -208,17 +227,12 @@ bool SDLEngine::onUserCreate() {
     return true;
 }
 
-bool SDLEngine::onUserUpdate(const uint32_t elapsedTime) {
+bool SDLEngine::onUserUpdate(const double elapsedTime) {
     bool result = true;
-    bool isEventHandled = false;
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
-#if !NDEBUG
-            isEventHandled = imguiManager->isEventHandled();
-#endif
-
-            if (!layer->onUpdate(elapsedTime, isEventHandled)) {
+            if (!layer->onUpdate(elapsedTime)) {
                 result = false;
                 break;
             }
@@ -240,6 +254,14 @@ void SDLEngine::onEvent(event::Event& event) {
                 break;
             }
             (*layer)->onEvent(event);
+        }
+    }
+}
+
+void SDLEngine::onImGuiRender() {
+    for (const auto& layer : *layerStack) {
+        if (layer->isActive()) {
+            layer->onImGuiRender();
         }
     }
 }
@@ -460,8 +482,7 @@ void SDLEngine::setMouseVisible(const bool value) const {
     }
 }
 
-void SDLEngine::processEvent(const SDL_Event& event,
-                             const uint32_t elapsedTime) {
+void SDLEngine::processEvent(const SDL_Event& event, const double elapsedTime) {
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);

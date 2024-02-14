@@ -13,7 +13,7 @@ class Layer {
     virtual void onDetach(){};
     virtual void onEvent(event::Event& event) {}
     virtual void onImGuiRender() {}
-    virtual bool onUpdate(uint32_t elapsedTime, bool isEventHandled) {
+    virtual bool onUpdate(double elapsedTime) {
         return true;
     };
 

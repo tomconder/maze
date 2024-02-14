@@ -1,15 +1,7 @@
 #include "mazelayer.h"
 
 constexpr std::string_view modelName = "maze";
-constexpr std::string_view mazeShader = "shader";
-constexpr auto updatesPerSec = 30.F;
-constexpr auto millisBetweenUpdates = 1000.F / updatesPerSec;
-
-constexpr auto keyCodes = std::to_array(
-    { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,
-      sponge::KeyCode::SpongeKey_S, sponge::KeyCode::SpongeKey_D,
-      sponge::KeyCode::SpongeKey_Up, sponge::KeyCode::SpongeKey_Left,
-      sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right });
+constexpr std::string_view mazeShader = "mesh";
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
@@ -40,17 +32,8 @@ void MazeLayer::onDetach() {
     // nothing
 }
 
-bool MazeLayer::onUpdate(const uint32_t elapsedTime,
-                         const bool isEventHandled) {
-    if (!isEventHandled) {
-        for (const auto& keycode : keyCodes) {
-            if (sponge::Input::isKeyPressed(keycode)) {
-                auto event =
-                    sponge::event::KeyPressedEvent{ keycode, elapsedTime };
-                onEvent(event);
-            }
-        }
-    }
+bool MazeLayer::onUpdate(const double elapsedTime) {
+    UNUSED(elapsedTime);
 
     auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
         mazeShader.data());
