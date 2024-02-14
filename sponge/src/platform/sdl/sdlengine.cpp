@@ -6,6 +6,7 @@
 #include "event/event.h"
 #include "event/keyevent.h"
 #include "event/mouseevent.h"
+#include "imgui/imguinullmanager.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
 #include "platform/opengl/openglinfo.h"
