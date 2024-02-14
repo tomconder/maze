@@ -1,4 +1,5 @@
 #include "platform/sdl/sdlengine.h"
+#include "core/input.h"
 #include "core/log.h"
 #include "core/timer.h"
 #include "event/applicationevent.h"
@@ -27,6 +28,12 @@ constexpr auto ratios = std::to_array(
     { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
       glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
       glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
+
+constexpr auto keyCodes = std::to_array(
+    { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,
+      sponge::KeyCode::SpongeKey_S, sponge::KeyCode::SpongeKey_D,
+      sponge::KeyCode::SpongeKey_Up, sponge::KeyCode::SpongeKey_Left,
+      sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right });
 
 SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
@@ -111,6 +118,7 @@ bool SDLEngine::start() {
 
 bool SDLEngine::iterateLoop() {
     SDL_Event event;
+    auto quit = false;
 
     systemTimer.tick();
     elapsedSeconds += systemTimer.getElapsedSeconds();
@@ -120,7 +128,6 @@ bool SDLEngine::iterateLoop() {
 
         physicsTimer.tick();
 
-        auto quit = false;
         while (SDL_PollEvent(&event) != 0) {
 #if !NDEBUG
             imguiManager->processEvent(&event);
@@ -151,31 +158,47 @@ bool SDLEngine::iterateLoop() {
         }
 
 #if !NDEBUG
-        imguiManager->begin();
-
-        for (const auto& layer : *layerStack) {
-            if (layer->isActive()) {
-                layer->onImGuiRender();
+        bool isEventHandled = imguiManager->isEventHandled();
+#else
+        bool isEventHandled = false;
+#endif
+        if (!isEventHandled) {
+            for (const auto& keycode : keyCodes) {
+                if (Input::isKeyPressed(keycode)) {
+                    auto keyPressEvent = event::KeyPressedEvent{
+                        keycode, physicsTimer.getElapsedSeconds()
+                    };
+                    onEvent(keyPressEvent);
+                }
             }
         }
-#endif
-
-        renderer->clear();
-
-        if (!onUserUpdate(physicsTimer.getElapsedSeconds())) {
-            quit = true;
-        }
-
-        if (quit && onUserDestroy()) {
-            return true;
-        }
+    }
 
 #if !NDEBUG
-        imguiManager->end();
+    imguiManager->begin();
+
+    for (const auto& layer : *layerStack) {
+        if (layer->isActive()) {
+            layer->onImGuiRender();
+        }
+    }
 #endif
 
-        graphics->flip(sdlWindow->getNativeWindow());
+    renderer->clear();
+
+    if (!onUserUpdate(physicsTimer.getElapsedSeconds())) {
+        quit = true;
     }
+
+    if (quit && onUserDestroy()) {
+        return true;
+    }
+
+#if !NDEBUG
+    imguiManager->end();
+#endif
+
+    graphics->flip(sdlWindow->getNativeWindow());
 
     return false;
 }
@@ -221,15 +244,16 @@ bool SDLEngine::onUserCreate() {
 
 bool SDLEngine::onUserUpdate(const double elapsedTime) {
     bool result = true;
-    bool isEventHandled = false;
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
 #if !NDEBUG
-            isEventHandled = imguiManager->isEventHandled();
+            bool isEventHandled = imguiManager->isEventHandled();
+#else
+            bool isEventHandled = false;
 #endif
 
-            if (!layer->onUpdate(elapsedTime, isEventHandled)) {
+            if (!layer->onUpdate(elapsedTime)) {
                 result = false;
                 break;
             }

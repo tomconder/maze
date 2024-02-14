@@ -49,9 +49,8 @@ void HUDLayer::onDetach() {
     // nothing
 }
 
-bool HUDLayer::onUpdate(const double elapsedTime, const bool isEventHandled) {
+bool HUDLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
-    UNUSED(isEventHandled);
 
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     logo->render({ 12.F, 12.F }, { 64.F, 64.F });

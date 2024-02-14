@@ -9,7 +9,7 @@ class MazeLayer final : public sponge::layer::Layer {
     void onAttach() override;
     void onDetach() override;
     void onEvent(sponge::event::Event& event) override;
-    bool onUpdate(double elapsedTime, bool isEventHandled) override;
+    bool onUpdate(double elapsedTime) override;
 
    private:
     std::unique_ptr<GameCamera> camera;
