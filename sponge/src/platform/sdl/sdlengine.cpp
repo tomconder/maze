@@ -30,10 +30,9 @@ constexpr auto ratios = std::to_array(
       glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 
 constexpr auto keyCodes = std::to_array(
-    { sponge::KeyCode::SpongeKey_W, sponge::KeyCode::SpongeKey_A,
-      sponge::KeyCode::SpongeKey_S, sponge::KeyCode::SpongeKey_D,
-      sponge::KeyCode::SpongeKey_Up, sponge::KeyCode::SpongeKey_Left,
-      sponge::KeyCode::SpongeKey_Down, sponge::KeyCode::SpongeKey_Right });
+    { KeyCode::SpongeKey_W, KeyCode::SpongeKey_A, KeyCode::SpongeKey_S,
+      KeyCode::SpongeKey_D, KeyCode::SpongeKey_Up, KeyCode::SpongeKey_Left,
+      KeyCode::SpongeKey_Down, KeyCode::SpongeKey_Right });
 
 SDLEngine::SDLEngine() {
     assert(!instance && "Engine already exists!");
@@ -85,8 +84,10 @@ bool SDLEngine::start() {
 
 #if !NDEBUG
     imguiManager = std::make_shared<imgui::ImGuiManager>();
-    imguiManager->onAttach();
+#else
+    imguiManager = std::make_shared<imgui::ImGuiNullManager>();
 #endif
+    imguiManager->onAttach();
 
     graphics::renderer::OpenGLInfo::logVersion();
     graphics::renderer::OpenGLInfo::logStaticInfo();
@@ -129,9 +130,7 @@ bool SDLEngine::iterateLoop() {
         physicsTimer.tick();
 
         while (SDL_PollEvent(&event) != 0) {
-#if !NDEBUG
             imguiManager->processEvent(&event);
-#endif
 
             if (event.type == SDL_QUIT) {
                 quit = true;
@@ -142,7 +141,6 @@ bool SDLEngine::iterateLoop() {
                 quit = true;
             }
 
-#if !NDEBUG
             if (imguiManager->isEventHandled() &&
                 (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN ||
                  event.type == SDL_TEXTEDITING || event.type == SDL_TEXTINPUT ||
@@ -152,17 +150,11 @@ bool SDLEngine::iterateLoop() {
                  event.type == SDL_MOUSEWHEEL)) {
                 continue;
             }
-#endif
 
             processEvent(event, physicsTimer.getElapsedSeconds());
         }
 
-#if !NDEBUG
-        bool isEventHandled = imguiManager->isEventHandled();
-#else
-        bool isEventHandled = false;
-#endif
-        if (!isEventHandled) {
+        if (!imguiManager->isEventHandled()) {
             for (const auto& keycode : keyCodes) {
                 if (Input::isKeyPressed(keycode)) {
                     auto keyPressEvent = event::KeyPressedEvent{
@@ -174,14 +166,10 @@ bool SDLEngine::iterateLoop() {
         }
     }
 
-#if !NDEBUG
     imguiManager->begin();
 
-    for (const auto& layer : *layerStack) {
-        if (layer->isActive()) {
-            layer->onImGuiRender();
-        }
-    }
+#if !NDEBUG
+    onImGuiRender();
 #endif
 
     renderer->clear();
@@ -194,9 +182,7 @@ bool SDLEngine::iterateLoop() {
         return true;
     }
 
-#if !NDEBUG
     imguiManager->end();
-#endif
 
     graphics->flip(sdlWindow->getNativeWindow());
 
@@ -204,9 +190,7 @@ bool SDLEngine::iterateLoop() {
 }
 
 void SDLEngine::shutdown() {
-#if !NDEBUG
     imguiManager->onDetach();
-#endif
 
     auto* const context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
@@ -247,12 +231,6 @@ bool SDLEngine::onUserUpdate(const double elapsedTime) {
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
-#if !NDEBUG
-            bool isEventHandled = imguiManager->isEventHandled();
-#else
-            bool isEventHandled = false;
-#endif
-
             if (!layer->onUpdate(elapsedTime)) {
                 result = false;
                 break;
@@ -275,6 +253,14 @@ void SDLEngine::onEvent(event::Event& event) {
                 break;
             }
             (*layer)->onEvent(event);
+        }
+    }
+}
+
+void SDLEngine::onImGuiRender() {
+    for (const auto& layer : *layerStack) {
+        if (layer->isActive()) {
+            layer->onImGuiRender();
         }
     }
 }

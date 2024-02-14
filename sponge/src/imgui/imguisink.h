@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sponge.h"
+#include "platform/sdl/sdlengine.h"
 #include <spdlog/sinks/base_sink.h>
 
 namespace sponge::imgui {

@@ -4,7 +4,11 @@
 #include "core/keycode.h"
 #include "core/mousecode.h"
 #include "event/event.h"
+#if !NDEBUG
 #include "imgui/imguimanager.h"
+#else
+#include "imgui/imguinullmanager.h"
+#endif
 #include "layer/layer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglcontext.h"
@@ -32,6 +36,7 @@ class SDLEngine : public Engine {
     bool onUserDestroy() override;
 
     void onEvent(event::Event& event) override;
+    void onImGuiRender();
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
@@ -101,6 +106,8 @@ class SDLEngine : public Engine {
    private:
 #if !NDEBUG
     std::shared_ptr<imgui::ImGuiManager> imguiManager;
+#else
+    std::shared_ptr<imgui::ImGuiNullManager> imguiManager;
 #endif
     std::string appName = "undefined";
     std::unique_ptr<graphics::renderer::OpenGLContext> graphics;

@@ -27,6 +27,8 @@
 #include "graphics/renderer/texture.h"
 #include "graphics/renderer/vertexarray.h"
 #include "imgui/imguimanager.h"
+#include "imgui/imguinullmanager.h"
+#include "imgui/imguisink.h"
 #include "layer/layer.h"
 #include "layer/layerstack.h"
 #include "platform/opengl/openglquad.h"
