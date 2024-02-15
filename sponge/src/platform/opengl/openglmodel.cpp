@@ -90,11 +90,11 @@ OpenGLMesh OpenGLModel::processMesh(
 
     // recalculate normals since they may be missing
     for (auto j = 0; j < vertices.size(); j += 3) {
-        auto p0 = vertices[j + 0].position;
-        auto p1 = vertices[j + 1].position;
-        auto p2 = vertices[j + 2].position;
+        const auto p0 = vertices[j + 0].position;
+        const auto p1 = vertices[j + 1].position;
+        const auto p2 = vertices[j + 2].position;
 
-        auto normal = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+        const auto normal = normalize(cross(p1 - p0, p2 - p0));
 
         vertices[j + 0].normal = normal;
         vertices[j + 1].normal = normal;
@@ -102,7 +102,7 @@ OpenGLMesh OpenGLModel::processMesh(
     }
 
     if (!mesh.material_ids.empty()) {
-        auto id = mesh.material_ids[0];
+        const auto id = mesh.material_ids[0];
         if (id != -1) {
             textures.push_back(loadMaterialTextures(materials[id]));
         }
