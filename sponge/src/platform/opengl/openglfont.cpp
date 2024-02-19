@@ -259,8 +259,6 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
 
     glDrawElements(GL_TRIANGLES, static_cast<int32_t>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);
-
-    glBindVertexArray(0);
 }
 
 void OpenGLFont::log() const {
