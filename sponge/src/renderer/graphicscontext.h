@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class GraphicsContext {
    public:
@@ -9,4 +9,4 @@ class GraphicsContext {
     virtual void flip(void* window) = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

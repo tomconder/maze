@@ -7,12 +7,11 @@ file(
         src/*.h
         src/core/*.h
         src/event/*.h
-        src/graphics/camera/*.h
-        src/graphics/renderer/*.h
         src/imgui/*.h
         src/layer/*.h
         src/platform/opengl/*.h
         src/platform/sdl/*.h
+        src/renderer/*.h
         src/scene/*.h)
 
 file(
@@ -20,12 +19,11 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/graphics/camera/*.cpp
-        src/graphics/renderer/*.cpp
         src/imgui/*.cpp
         src/layer/*.cpp
         src/platform/opengl/*.cpp
         src/platform/sdl/*.cpp
+        src/renderer/*.cpp
         src/scene/*.cpp)
 
 if (APPLE)

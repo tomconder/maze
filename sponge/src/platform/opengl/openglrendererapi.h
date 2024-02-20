@@ -1,9 +1,9 @@
 #pragma once
 
-#include "glm/vec4.hpp"
-#include "graphics/renderer/rendererapi.h"
+#include "renderer/rendererapi.h"
+#include <glm/vec4.hpp>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLRendererAPI : public RendererAPI {
    public:
@@ -15,4 +15,4 @@ class OpenGLRendererAPI : public RendererAPI {
     void clear() override;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

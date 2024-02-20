@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class Buffer {
    public:
@@ -9,4 +9,4 @@ class Buffer {
     virtual void bind() const = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

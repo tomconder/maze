@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class Texture {
    public:
@@ -13,4 +13,4 @@ class Texture {
     virtual void bind() const = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

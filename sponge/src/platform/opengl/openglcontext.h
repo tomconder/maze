@@ -1,11 +1,11 @@
 #pragma once
 
-#include "graphics/renderer/graphicscontext.h"
+#include "renderer/graphicscontext.h"
 #include <string>
 
 struct SDL_Window;
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLContext : public GraphicsContext {
    public:
@@ -23,4 +23,4 @@ class OpenGLContext : public GraphicsContext {
     bool isFullScreen = false;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

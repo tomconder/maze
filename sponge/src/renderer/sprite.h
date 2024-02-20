@@ -2,7 +2,7 @@
 
 #include <glm/vec2.hpp>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class Sprite {
    public:
@@ -11,4 +11,4 @@ class Sprite {
     virtual void render(glm::vec2 position, glm::vec2 size) const = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

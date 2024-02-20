@@ -11,7 +11,7 @@ class HUDLayer final : public sponge::layer::Layer {
     bool onUpdate(double elapsedTime) override;
 
    private:
-    std::unique_ptr<sponge::graphics::renderer::OpenGLSprite> logo;
+    std::unique_ptr<sponge::renderer::OpenGLSprite> logo;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 };

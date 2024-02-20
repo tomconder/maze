@@ -1,14 +1,14 @@
 #pragma once
 
-#include "graphics/renderer/mesh.h"
 #include "platform/opengl/openglbuffer.h"
 #include "platform/opengl/openglelementbuffer.h"
 #include "platform/opengl/opengltexture.h"
 #include "platform/opengl/openglvertexarray.h"
+#include "renderer/mesh.h"
 #include <memory>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLMesh : public Mesh {
    public:
@@ -23,4 +23,4 @@ class OpenGLMesh : public Mesh {
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "graphics/renderer/texture.h"
+#include "renderer/texture.h"
 #include <string>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLTexture : public Texture {
    public:
@@ -39,4 +39,4 @@ class OpenGLTexture : public Texture {
     std::string type;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

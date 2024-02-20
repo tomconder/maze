@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class VertexArray {
    public:
@@ -9,4 +9,4 @@ class VertexArray {
     virtual void bind() const = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

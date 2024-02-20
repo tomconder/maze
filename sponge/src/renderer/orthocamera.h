@@ -1,9 +1,9 @@
 #pragma once
 
-#include "graphics/camera/camera.h"
+#include "camera.h"
 #include <glm/mat4x4.hpp>
 
-namespace sponge::graphics::camera {
+namespace sponge::renderer {
 
 class OrthoCamera : public Camera {
    public:
@@ -30,4 +30,4 @@ class OrthoCamera : public Camera {
     uint32_t h = 0;
 };
 
-}  // namespace sponge::graphics::camera
+}  // namespace sponge::renderer

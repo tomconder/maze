@@ -19,7 +19,7 @@ class ExitLayer : public sponge::layer::Layer {
     const std::string_view confirmButtonMessage = "Confirm";
     const std::string_view message = "Exit the Game?";
 
-    std::unique_ptr<sponge::graphics::renderer::OpenGLQuad> quad;
+    std::unique_ptr<sponge::renderer::OpenGLQuad> quad;
     std::unique_ptr<ui::Button> cancelButton;
     std::unique_ptr<ui::Button> confirmButton;
 

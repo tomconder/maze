@@ -1,8 +1,8 @@
 #pragma once
 
-#include "graphics/renderer/graphicsinfo.h"
+#include "renderer/graphicsinfo.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLInfo : public GraphicsInfo {
    public:
@@ -12,4 +12,4 @@ class OpenGLInfo : public GraphicsInfo {
     static void logVersion();
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

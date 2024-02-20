@@ -1,8 +1,8 @@
 #pragma once
 
-#include "graphics/renderer/buffer.h"
+#include "renderer/buffer.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLElementBuffer : public Buffer {
    public:
@@ -17,4 +17,4 @@ class OpenGLElementBuffer : public Buffer {
     uint32_t id = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

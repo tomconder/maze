@@ -6,7 +6,7 @@
 #include <cassert>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLInfo::logContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
@@ -117,4 +117,4 @@ void OpenGLInfo::logVersion() {
                      minorVersion);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

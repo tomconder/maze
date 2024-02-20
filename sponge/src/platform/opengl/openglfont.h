@@ -8,7 +8,7 @@
 #include <glm/vec3.hpp>
 #include <string>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 struct Character {
     glm::vec2 loc;
@@ -58,4 +58,4 @@ class OpenGLFont {
     std::string textureName;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

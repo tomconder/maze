@@ -102,8 +102,8 @@ class SDLEngine : public Engine {
    private:
     std::shared_ptr<imgui::ImGuiManager> imguiManager;
     std::string appName = "undefined";
-    std::unique_ptr<graphics::renderer::OpenGLContext> graphics;
-    std::unique_ptr<graphics::renderer::OpenGLRendererAPI> renderer;
+    std::unique_ptr<renderer::OpenGLContext> graphics;
+    std::unique_ptr<renderer::OpenGLRendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;

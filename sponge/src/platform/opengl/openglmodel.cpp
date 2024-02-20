@@ -9,7 +9,7 @@
 #include "core/log.h"
 #include "tiny_obj_loader.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLModel::load(std::string_view path) {
     assert(!path.empty());
@@ -140,4 +140,4 @@ void OpenGLModel::render() {
     }
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

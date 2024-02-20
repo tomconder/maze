@@ -3,7 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 OpenGLShader::OpenGLShader(const std::string& vertexSource,
                            const std::string& fragmentSource) {
@@ -124,4 +124,4 @@ GLint OpenGLShader::getUniformLocation(const std::string& name) const {
     return location;
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer
