@@ -55,7 +55,7 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x;
     pitch += offset.y;
 
-    yaw = glm::mod(yaw, 360.f);
+    yaw = glm::mod(yaw, 360.F);
     pitch = glm::clamp(pitch, -89.F, 89.F);
 
     glm::vec3 front{
