@@ -101,6 +101,9 @@ bool SDLEngine::start() {
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
+    w = sdlWindow->getWidth();
+    h = sdlWindow->getHeight();
+
     adjustAspectRatio(w, h);
     renderer->setViewport(static_cast<int32_t>(offsetx),
                           static_cast<int32_t>(offsety),

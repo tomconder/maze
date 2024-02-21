@@ -35,7 +35,7 @@ class SDLWindow : public Window {
 
    private:
     void init(const WindowProps& props);
-    void shutdown();
+    void shutdown() const;
 
     WindowData data;
     SDL_Window* window = nullptr;
