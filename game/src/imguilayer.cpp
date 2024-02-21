@@ -45,20 +45,43 @@ void ImGuiLayer::onImGuiRender() {
                     game::project_version.data());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
+
         auto fov = Maze::get().getMazeLayer()->getCamera()->getFov();
-        ImGui::Text("FOV: %3.f", fov);
-        ImGui::Text("Resolution: %dx%d",
-                    sponge::SDLEngine::get().getWindowWidth(),
+
+        ImGui::BeginTable(
+            "##Table", 2,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("FOV");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.0f", fov);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Resolution");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dx%d", sponge::SDLEngine::get().getWindowWidth(),
                     sponge::SDLEngine::get().getWindowHeight());
 
-        if (ImGui::Checkbox("v-sync", &hasVsync)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Vertical Sync");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
             sponge::SDLEngine::setVerticalSync(hasVsync);
         }
 
-        if (ImGui::Checkbox("Full Screen", &isFullscreen)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Full Screen");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
             sponge::SDLEngine::get().toggleFullscreen();
         }
 
+        ImGui::EndTable();
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {

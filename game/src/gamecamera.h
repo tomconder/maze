@@ -33,7 +33,7 @@ class GameCamera final : public sponge::renderer::Camera {
     void updateProjection();
     void updateView();
 
-    float fov = 45.F;
+    float fov = 60.F;
 
     static constexpr float zNear = 1.F;
     static constexpr float zFar = 18000.F;
