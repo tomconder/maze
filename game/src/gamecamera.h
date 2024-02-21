@@ -3,7 +3,7 @@
 #include "sponge.h"
 #include <glm/mat4x4.hpp>
 
-class GameCamera : public sponge::renderer::Camera {
+class GameCamera final : public sponge::renderer::Camera {
    public:
     GameCamera();
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
@@ -15,6 +15,10 @@ class GameCamera : public sponge::renderer::Camera {
     void setPosition(const glm::vec3& position);
     glm::vec3 getPosition() const {
         return cameraPos;
+    }
+
+    float getFov() const {
+        return fov;
     }
 
     void moveForward(double_t delta);
@@ -30,6 +34,7 @@ class GameCamera : public sponge::renderer::Camera {
     void updateView();
 
     float fov = 45.F;
+
     static constexpr float zNear = 1.F;
     static constexpr float zFar = 18000.F;
 

@@ -1,5 +1,6 @@
 #include "imguilayer.h"
 #include "imgui.h"
+#include "maze.h"
 #include "version.h"
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
@@ -29,9 +30,10 @@ void ImGuiLayer::onImGuiRender() {
         static_cast<float>(sponge::SDLEngine::get().getWindowHeight());
 
     static auto hasVsync = sponge::SDLEngine::hasVerticalSync();
+    auto isFullscreen = sponge::SDLEngine::get().isFullscreen();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
-    ImGui::SetNextWindowSize({ 320.F, 200.F });
+    ImGui::SetNextWindowSize({ 320.F, 300.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -43,11 +45,20 @@ void ImGuiLayer::onImGuiRender() {
                     game::project_version.data());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
-        ImGui::Separator();
+        auto fov = Maze::get().getMazeLayer()->getCamera()->getFov();
+        ImGui::Text("FOV: %3.f", fov);
+        ImGui::Text("Resolution: %dx%d",
+                    sponge::SDLEngine::get().getWindowWidth(),
+                    sponge::SDLEngine::get().getWindowHeight());
 
         if (ImGui::Checkbox("v-sync", &hasVsync)) {
             sponge::SDLEngine::setVerticalSync(hasVsync);
         }
+
+        if (ImGui::Checkbox("Full Screen", &isFullscreen)) {
+            sponge::SDLEngine::get().toggleFullscreen();
+        }
+
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {

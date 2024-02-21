@@ -1,6 +1,13 @@
 #include "maze.h"
 #include "sponge.h"
 
+Maze* Maze::instance = nullptr;
+
+Maze::Maze() {
+    assert(!instance && "Maze already exists!");
+    instance = this;
+}
+
 bool Maze::onUserCreate() {
 #if !NDEBUG
     pushOverlay(imguiLayer);

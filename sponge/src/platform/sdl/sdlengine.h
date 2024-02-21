@@ -45,6 +45,12 @@ class SDLEngine : public Engine {
 
     void toggleFullscreen() const;
 
+    bool isFullscreen() const {
+        const auto flags = SDL_GetWindowFlags(
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
+        return (flags & SDL_WINDOW_FULLSCREEN) != 0;
+    }
+
     layer::LayerStack* getLayerStack() const {
         return layerStack;
     }

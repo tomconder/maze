@@ -11,8 +11,12 @@ class MazeLayer final : public sponge::layer::Layer {
     void onEvent(sponge::event::Event& event) override;
     bool onUpdate(double elapsedTime) override;
 
+    std::shared_ptr<GameCamera> getCamera() const {
+        return camera;
+    }
+
    private:
-    std::unique_ptr<GameCamera> camera;
+    std::shared_ptr<GameCamera> camera;
 
     static constexpr float keyboardSpeed = .1F;
     static constexpr float mouseSpeed = .1F;

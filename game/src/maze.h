@@ -7,13 +7,22 @@
 #include "sponge.h"
 #include <memory>
 
-class Maze : public sponge::SDLEngine {
+class Maze final : public sponge::SDLEngine {
    public:
+    Maze();
     bool onUserCreate() override;
     bool onUserDestroy() override;
     bool onUserUpdate(double elapsedTime) override;
 
     void onEvent(sponge::event::Event& event) override;
+
+    static Maze& get() {
+        return *instance;
+    }
+
+    std::shared_ptr<MazeLayer> getMazeLayer() const {
+        return mazeLayer;
+    }
 
    private:
     bool isRunning = true;
@@ -26,4 +35,6 @@ class Maze : public sponge::SDLEngine {
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
+
+    static Maze* instance;
 };
