@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <string>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class Shader {
    public:
@@ -21,4 +21,4 @@ class Shader {
     virtual void setMat4(const std::string& name, const glm::mat4& value) = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

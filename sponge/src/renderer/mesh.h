@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 struct Vertex {
     glm::vec3 position;
@@ -20,4 +20,4 @@ class Mesh {
     std::vector<unsigned int> indices;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

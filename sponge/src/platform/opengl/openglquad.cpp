@@ -1,9 +1,8 @@
 #include "platform/opengl/openglquad.h"
 #include "core/file.h"
-#include "core/log.h"
 #include "platform/opengl/openglresourcemanager.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 constexpr uint32_t indices[6] = {
     0, 2, 1,  //
@@ -81,4 +80,4 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
     shader->unbind();
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

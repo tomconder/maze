@@ -1,8 +1,8 @@
 #pragma once
 
-#include "glm/vec4.hpp"
+#include <glm/vec4.hpp>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class RendererAPI {
    public:
@@ -17,4 +17,4 @@ class RendererAPI {
     virtual void clear() = 0;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

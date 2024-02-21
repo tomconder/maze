@@ -1,10 +1,10 @@
 #pragma once
 
-#include "graphics/renderer/shader.h"
+#include "renderer/shader.h"
 #include <absl/container/flat_hash_map.h>
 #include <string>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLShader : public Shader {
    public:
@@ -37,4 +37,4 @@ class OpenGLShader : public Shader {
     GLint getUniformLocation(const std::string& name) const;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

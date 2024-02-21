@@ -3,7 +3,7 @@
 #include "platform/opengl/openglresourcemanager.h"
 #include <cstddef>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 constexpr std::string_view meshShader = "mesh";
 
@@ -107,4 +107,4 @@ void OpenGLMesh::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

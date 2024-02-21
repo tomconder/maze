@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 constexpr std::string_view textShader = "text";
 
@@ -279,4 +279,4 @@ void OpenGLFont::log() const {
     }
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

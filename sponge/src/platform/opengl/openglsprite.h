@@ -1,11 +1,8 @@
 #pragma once
 
-#include "graphics/renderer/sprite.h"
-#include "platform/opengl/openglbuffer.h"
-#include "platform/opengl/openglelementbuffer.h"
-#include "platform/opengl/openglvertexarray.h"
+#include "renderer/sprite.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLSprite : public Sprite {
    public:
@@ -17,4 +14,4 @@ class OpenGLSprite : public Sprite {
     std::string name;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

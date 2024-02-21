@@ -87,7 +87,7 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
     }
 }
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLRendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {
@@ -129,4 +129,4 @@ void OpenGLRendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

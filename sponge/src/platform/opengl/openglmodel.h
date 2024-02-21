@@ -5,7 +5,7 @@
 #include <tiny_obj_loader.h>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLModel {
    public:
@@ -25,4 +25,4 @@ class OpenGLModel {
         const tinyobj::material_t& material);
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

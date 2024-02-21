@@ -81,7 +81,7 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<graphics::renderer::OpenGLContext>(window);
+    graphics = std::make_unique<renderer::OpenGLContext>(window);
 
 #if !NDEBUG
     imguiManager = std::make_shared<imgui::ImGuiManager>();
@@ -90,14 +90,14 @@ bool SDLEngine::start() {
 #endif
     imguiManager->onAttach();
 
-    graphics::renderer::OpenGLInfo::logVersion();
-    graphics::renderer::OpenGLInfo::logStaticInfo();
-    graphics::renderer::OpenGLInfo::logGraphicsDriverInfo();
-    graphics::renderer::OpenGLInfo::logContextInfo();
+    renderer::OpenGLInfo::logVersion();
+    renderer::OpenGLInfo::logStaticInfo();
+    renderer::OpenGLInfo::logGraphicsDriverInfo();
+    renderer::OpenGLInfo::logContextInfo();
 
     sdlWindow->setVSync(true);
 
-    renderer = std::make_unique<graphics::renderer::OpenGLRendererAPI>();
+    renderer = std::make_unique<renderer::OpenGLRendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 

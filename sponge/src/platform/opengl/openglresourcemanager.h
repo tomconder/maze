@@ -7,7 +7,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <string>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLResourceManager {
    public:
@@ -74,4 +74,4 @@ class OpenGLResourceManager {
         elementBuffers;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

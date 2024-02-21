@@ -3,7 +3,7 @@
 #include "platform/opengl/openglresourcemanager.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 constexpr std::string_view spriteShader = "sprite";
 
@@ -84,4 +84,4 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     shader->unbind();
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

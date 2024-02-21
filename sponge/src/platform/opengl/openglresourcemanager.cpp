@@ -6,7 +6,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>>
     OpenGLResourceManager::fonts;
@@ -318,4 +318,4 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     return texture;
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

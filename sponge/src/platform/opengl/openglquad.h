@@ -6,7 +6,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 class OpenGLQuad {
    public:
@@ -16,4 +16,4 @@ class OpenGLQuad {
                 const glm::vec4& color) const;
 };
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer
