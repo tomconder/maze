@@ -50,6 +50,9 @@ jobs:
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 2
 
+      - name: Zip Artifact
+        run: Compress-Archive ${{github.workspace}}/out/install/x64-release/* maze.zip
+
   linux:
     runs-on: ubuntu-latest
 
