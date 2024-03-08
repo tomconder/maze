@@ -34,14 +34,8 @@ void Mesh::optimize() {
                                 numIndices, optimalVertices.data(),
                                 optimalVertexCount, sizeof(Vertex));
 
-    indices.clear();
-    indices.resize(numIndices);
-    indices.insert(indices.end(), optimalIndices.begin(), optimalIndices.end());
-
-    vertices.clear();
-    vertices.resize(optimalVertexCount);
-    vertices.insert(vertices.end(), optimalVertices.begin(),
-                    optimalVertices.end());
+    indices.swap(optimalIndices);
+    vertices.swap(optimalVertices);
 }
 
 }  // namespace sponge::renderer
