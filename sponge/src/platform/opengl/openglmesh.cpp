@@ -66,24 +66,6 @@ OpenGLMesh::OpenGLMesh(
             reinterpret_cast<const void*>(offsetof(Vertex, texCoords)));
     }
 
-    location = glGetAttribLocation(program, "tangent");
-    if (location != -1) {
-        auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(
-            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-            reinterpret_cast<const void*>(offsetof(Vertex, tangent)));
-    }
-
-    location = glGetAttribLocation(program, "biTangent");
-    if (location != -1) {
-        auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(
-            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-            reinterpret_cast<const void*>(offsetof(Vertex, biTangent)));
-    }
-
     shader->unbind();
     glBindVertexArray(0);
 }
