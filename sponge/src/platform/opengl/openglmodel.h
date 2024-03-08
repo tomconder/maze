@@ -10,15 +10,15 @@ namespace sponge::renderer {
 class OpenGLModel {
    public:
     void load(std::string_view path);
-    void render();
+    void render() const;
 
-    std::vector<OpenGLMesh> meshes;
+    std::vector<std::shared_ptr<OpenGLMesh>> meshes;
 
    private:
     void process(tinyobj::attrib_t& attrib,
                  std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials);
-    static OpenGLMesh processMesh(
+    static std::shared_ptr<OpenGLMesh> processMesh(
         tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
         const std::vector<tinyobj::material_t>& materials);
     static std::shared_ptr<OpenGLTexture> loadMaterialTextures(

@@ -23,9 +23,8 @@ void OpenGLModel::load(std::string_view path) {
     std::string err;
 
     std::filesystem::path dir{ path.data() };
-    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                                dir.string().data(),
-                                dir.parent_path().string().data());
+    auto ret = LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                       dir.string().data(), dir.parent_path().string().data());
 
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
@@ -47,11 +46,13 @@ void OpenGLModel::process(tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
                           const std::vector<tinyobj::material_t>& materials) {
     for (auto& shape : shapes) {
-        meshes.push_back(processMesh(attrib, shape.mesh, materials));
+        auto mesh = processMesh(attrib, shape.mesh, materials);
+        mesh->optimize();
+        meshes.push_back(mesh);
     }
 }
 
-OpenGLMesh OpenGLModel::processMesh(
+std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
     const std::vector<tinyobj::material_t>& materials) {
     std::vector<Vertex> vertices;
@@ -108,7 +109,7 @@ OpenGLMesh OpenGLModel::processMesh(
         }
     }
 
-    return { vertices, indices, textures };
+    return std::make_shared<OpenGLMesh>(vertices, indices, textures);
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
@@ -122,10 +123,9 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
         return filepath;
     };
 
-    auto assetsFolder = sponge::File::getResourceDir();
+    auto assetsFolder = File::getResourceDir();
     auto filename = std::filesystem::weakly_canonical(
-        static_cast<std::string>(assetsFolder + "/models/") +
-        baseName(material.diffuse_texname));
+        assetsFolder + "/models/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
@@ -134,9 +134,9 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     return OpenGLResourceManager::loadTexture(filename.string(), name);
 }
 
-void OpenGLModel::render() {
-    for (auto it = std::begin(meshes); it != std::end(meshes); ++it) {
-        it->render();
+void OpenGLModel::render() const {
+    for (auto&& mesh : meshes) {
+        mesh->render();
     }
 }
 
