@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace sponge::renderer {
-
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -17,7 +16,9 @@ struct Vertex {
 class Mesh {
    public:
     std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    std::vector<uint32_t> indices;
+
+    void optimize();
 };
 
 }  // namespace sponge::renderer
