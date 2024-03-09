@@ -40,6 +40,18 @@ void OpenGLInfo::logContextInfo() {
     ss.str("");
     ss << fmt::format("  {:14} {}", "Extensions:", extensions);
     SPONGE_CORE_DEBUG(ss.str());
+
+    for (int i = 0; i < extensions / 3; i++) {
+        ss.str("");
+        ss << "   ";
+        for (int j = 0; j < 3; j++) {
+            ss << fmt::format(" {:48}",
+                              reinterpret_cast<const char*>(
+                                  glGetStringi(GL_EXTENSIONS, i * 3 + j)));
+        }
+        SPONGE_CORE_DEBUG(ss.str());
+    }
+    SPONGE_CORE_DEBUG(ss.str());
 }
 
 void OpenGLInfo::logGraphicsDriverInfo() {
