@@ -39,15 +39,29 @@ void OpenGLModel::load(std::string_view path) {
         return;
     }
 
+    SPONGE_CORE_INFO("# of vertices  = {}",
+                     static_cast<int>(attrib.vertices.size() / 3));
+    SPONGE_CORE_INFO("# of normals   = {}",
+                     static_cast<int>(attrib.normals.size() / 3));
+    SPONGE_CORE_INFO("# of texcoords = {}",
+                     static_cast<int>(attrib.texcoords.size() / 2));
+    SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
+    SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
+
     process(attrib, shapes, materials);
 }
 
 void OpenGLModel::process(tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
                           const std::vector<tinyobj::material_t>& materials) {
+    numIndices = 0;
+    numVertices = 0;
+
     for (auto& shape : shapes) {
         auto mesh = processMesh(attrib, shape.mesh, materials);
         mesh->optimize();
+        numIndices += mesh->getNumIndices();
+        numVertices += mesh->getNumVertices();
         meshes.push_back(mesh);
     }
 }
@@ -67,21 +81,21 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
         Vertex vertex{};
 
         auto i = index.vertex_index;
-        vertex.position = glm::vec3{ attrib.vertices[i * 3 + 0],  //
-                                     attrib.vertices[i * 3 + 1],  //
-                                     attrib.vertices[i * 3 + 2] };
+        vertex.position =
+            glm::vec3{ attrib.vertices[i * 3 + 0], attrib.vertices[i * 3 + 1],
+                       attrib.vertices[i * 3 + 2] };
 
         i = index.texcoord_index;
         if (i >= 0) {
-            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
+            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],
                                           1.0F - attrib.texcoords[i * 2 + 1] };
         }
 
         i = index.normal_index;
         if (i >= 0) {
-            vertex.normal = glm::vec3{ attrib.normals[i * 3 + 0],  //
-                                       attrib.normals[i * 3 + 1],  //
-                                       attrib.normals[i * 3 + 2] };
+            vertex.normal =
+                glm::vec3{ attrib.normals[i * 3 + 0], attrib.normals[i * 3 + 1],
+                           attrib.normals[i * 3 + 2] };
         }
 
         vertices.push_back(vertex);
