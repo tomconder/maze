@@ -70,10 +70,9 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
     const std::vector<tinyobj::material_t>& materials) {
     std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 
-    // vertices
     auto numIndices = 0;
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
@@ -81,21 +80,21 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
         Vertex vertex{};
 
         auto i = index.vertex_index;
-        vertex.position =
-            glm::vec3{ attrib.vertices[i * 3 + 0], attrib.vertices[i * 3 + 1],
-                       attrib.vertices[i * 3 + 2] };
+        vertex.position = glm::vec3{ attrib.vertices[i * 3 + 0],  //
+                                     attrib.vertices[i * 3 + 1],  //
+                                     attrib.vertices[i * 3 + 2] };
 
         i = index.texcoord_index;
         if (i >= 0) {
-            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],
+            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
                                           1.0F - attrib.texcoords[i * 2 + 1] };
         }
 
         i = index.normal_index;
         if (i >= 0) {
-            vertex.normal =
-                glm::vec3{ attrib.normals[i * 3 + 0], attrib.normals[i * 3 + 1],
-                           attrib.normals[i * 3 + 2] };
+            vertex.normal = glm::vec3{ attrib.normals[i * 3 + 0],  //
+                                       attrib.normals[i * 3 + 1],  //
+                                       attrib.normals[i * 3 + 2] };
         }
 
         vertices.push_back(vertex);
