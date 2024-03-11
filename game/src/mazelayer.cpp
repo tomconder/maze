@@ -8,7 +8,7 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    auto assetsFolder = sponge::File::getResourceDir();
+    const auto assetsFolder = sponge::File::getResourceDir();
 
     sponge::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/shader.vert",
@@ -19,7 +19,7 @@ void MazeLayer::onAttach() {
     camera = std::make_unique<GameCamera>();
     camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
 
-    auto shader =
+    const auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
     shader->bind();
 
@@ -35,7 +35,7 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto shader =
+    const auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
@@ -90,6 +90,7 @@ bool MazeLayer::onMouseButtonPressed(
     }
     return false;
 }
+
 bool MazeLayer::onMouseButtonReleased(
     const sponge::event::MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == 0) {

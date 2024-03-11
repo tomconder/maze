@@ -5,13 +5,13 @@ namespace sponge::renderer {
 OpenGLBuffer::OpenGLBuffer(uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STATIC_DRAW);
 }
 
 OpenGLBuffer::OpenGLBuffer(const float* vertices, uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 }
 
 OpenGLBuffer::~OpenGLBuffer() {

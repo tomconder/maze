@@ -57,12 +57,12 @@ void OpenGLModel::process(tinyobj::attrib_t& attrib,
     numIndices = 0;
     numVertices = 0;
 
-    for (auto& shape : shapes) {
-        auto mesh = processMesh(attrib, shape.mesh, materials);
-        mesh->optimize();
-        numIndices += mesh->getNumIndices();
-        numVertices += mesh->getNumVertices();
-        meshes.push_back(mesh);
+    for (auto& [name, mesh, lines, points] : shapes) {
+        auto newMesh = processMesh(attrib, mesh, materials);
+        newMesh->optimize();
+        numIndices += newMesh->getNumIndices();
+        numVertices += newMesh->getNumVertices();
+        meshes.push_back(newMesh);
     }
 }
 
@@ -74,27 +74,28 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 
     auto numIndices = 0;
+
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
-    for (auto index : mesh.indices) {
-        Vertex vertex{};
 
-        auto i = index.vertex_index;
-        vertex.position = glm::vec3{ attrib.vertices[i * 3 + 0],  //
-                                     attrib.vertices[i * 3 + 1],  //
-                                     attrib.vertices[i * 3 + 2] };
+    Vertex vertex;
+    for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
+        auto i = vertex_index * 3;
+        vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
+                                     attrib.vertices[i + 2] };
 
-        i = index.texcoord_index;
-        if (i >= 0) {
-            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
-                                          1.0F - attrib.texcoords[i * 2 + 1] };
+        if (!attrib.texcoords.empty()) {
+            i = texcoord_index * 2;
+            vertex.texCoords = glm::vec2{ attrib.texcoords[i],
+                                          1.0F - attrib.texcoords[i + 1] };
+        } else {
+            vertex.texCoords = glm::zero<glm::vec2>();
         }
 
-        i = index.normal_index;
-        if (i >= 0) {
-            vertex.normal = glm::vec3{ attrib.normals[i * 3 + 0],  //
-                                       attrib.normals[i * 3 + 1],  //
-                                       attrib.normals[i * 3 + 2] };
+        if (!attrib.normals.empty()) {
+            i = normal_index * 3;
+            vertex.normal = glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
+                                       attrib.normals[i + 2] };
         }
 
         vertices.push_back(vertex);
@@ -102,17 +103,19 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
         numIndices++;
     }
 
-    // recalculate normals since they may be missing
-    for (auto j = 0; j < vertices.size(); j += 3) {
-        const auto p0 = vertices[j + 0].position;
-        const auto p1 = vertices[j + 1].position;
-        const auto p2 = vertices[j + 2].position;
+    // calculate normals since they are missing
+    if (attrib.normals.empty()) {
+        for (auto j = 0; j < vertices.size(); j += 3) {
+            const auto p0 = vertices[j + 0].position;
+            const auto p1 = vertices[j + 1].position;
+            const auto p2 = vertices[j + 2].position;
 
-        const auto normal = normalize(cross(p1 - p0, p2 - p0));
+            const auto normal = normalize(cross(p1 - p0, p2 - p0));
 
-        vertices[j + 0].normal = normal;
-        vertices[j + 1].normal = normal;
-        vertices[j + 2].normal = normal;
+            vertices[j + 0].normal = normal;
+            vertices[j + 1].normal = normal;
+            vertices[j + 2].normal = normal;
+        }
     }
 
     if (!mesh.material_ids.empty()) {
@@ -130,19 +133,20 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string& filepath) {
-        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
+        if (const auto pos = filepath.find_last_of("/\\");
+            pos != std::string::npos) {
             return filepath.substr(pos + 1, filepath.length());
         }
         return filepath;
     };
 
-    auto assetsFolder = File::getResourceDir();
-    auto filename = std::filesystem::weakly_canonical(
+    const auto assetsFolder = File::getResourceDir();
+    const auto filename = std::filesystem::weakly_canonical(
         assetsFolder + "/models/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
-                   [](uint8_t c) { return std::tolower(c); });
+                   [](const uint8_t c) { return std::tolower(c); });
 
     return OpenGLResourceManager::loadTexture(filename.string(), name);
 }
