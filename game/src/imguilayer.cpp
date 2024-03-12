@@ -97,7 +97,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         ImGui::Text("Vertices");
         ImGui::TableNextColumn();
-        ImGui::Text("%ld", static_cast<int>(model->getNumVertices() / 3));
+        ImGui::Text("%d", static_cast<uint32_t>(model->getNumVertices() / 3));
         ImGui::EndTable();
         ImGui::Separator();
 

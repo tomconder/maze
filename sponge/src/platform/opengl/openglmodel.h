@@ -27,12 +27,14 @@ class OpenGLModel {
 
     void process(tinyobj::attrib_t& attrib,
                  std::vector<tinyobj::shape_t>& shapes,
-                 const std::vector<tinyobj::material_t>& materials);
+                 const std::vector<tinyobj::material_t>& materials,
+                 const std::string& path);
     static std::shared_ptr<OpenGLMesh> processMesh(
         tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-        const std::vector<tinyobj::material_t>& materials);
+        const std::vector<tinyobj::material_t>& materials,
+        const std::string& path);
     static std::shared_ptr<OpenGLTexture> loadMaterialTextures(
-        const tinyobj::material_t& material);
+        const tinyobj::material_t& material, const std::string& path);
 };
 
 }  // namespace sponge::renderer

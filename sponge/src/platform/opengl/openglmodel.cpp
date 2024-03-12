@@ -48,17 +48,18 @@ void OpenGLModel::load(std::string_view path) {
     SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
     SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
 
-    process(attrib, shapes, materials);
+    process(attrib, shapes, materials, dir.parent_path().string());
 }
 
 void OpenGLModel::process(tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
-                          const std::vector<tinyobj::material_t>& materials) {
+                          const std::vector<tinyobj::material_t>& materials,
+                          const std::string& path) {
     numIndices = 0;
     numVertices = 0;
 
     for (auto& [name, mesh, lines, points] : shapes) {
-        auto newMesh = processMesh(attrib, mesh, materials);
+        auto newMesh = processMesh(attrib, mesh, materials, path);
         newMesh->optimize();
         numIndices += newMesh->getNumIndices();
         numVertices += newMesh->getNumVertices();
@@ -68,7 +69,8 @@ void OpenGLModel::process(tinyobj::attrib_t& attrib,
 
 std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-    const std::vector<tinyobj::material_t>& materials) {
+    const std::vector<tinyobj::material_t>& materials,
+    const std::string& path) {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
@@ -121,7 +123,7 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     if (!mesh.material_ids.empty()) {
         const auto id = mesh.material_ids[0];
         if (id != -1) {
-            textures.push_back(loadMaterialTextures(materials[id]));
+            textures.push_back(loadMaterialTextures(materials[id], path));
         }
     }
 
@@ -129,24 +131,22 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
-    const tinyobj::material_t& material) {
+    const tinyobj::material_t& material, const std::string& path) {
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string& filepath) {
-        if (const auto pos = filepath.find_last_of("/\\");
-            pos != std::string::npos) {
+        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
             return filepath.substr(pos + 1, filepath.length());
         }
         return filepath;
     };
 
-    const auto assetsFolder = File::getResourceDir();
-    const auto filename = std::filesystem::weakly_canonical(
-        assetsFolder + "/models/" + baseName(material.diffuse_texname));
+    auto filename = std::filesystem::weakly_canonical(
+        path + "/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
-                   [](const uint8_t c) { return std::tolower(c); });
+                   [](uint8_t c) { return std::tolower(c); });
 
     return OpenGLResourceManager::loadTexture(filename.string(), name);
 }
