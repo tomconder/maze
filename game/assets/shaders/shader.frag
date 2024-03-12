@@ -37,7 +37,7 @@ void main() {
     if (hasNoTexture) {
         color = vec3(1.0, 1.0, 1.0);
     } else {
-        color = texture2D(texture_diffuse1, vTexCoord).rgb;
+        color = texture(texture_diffuse1, vTexCoord).rgb;
     }
 
     // ambient
