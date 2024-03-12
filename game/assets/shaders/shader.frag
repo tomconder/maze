@@ -12,6 +12,7 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
+uniform bool showWireframe;
 uniform vec3 lineColor;
 uniform float lineWidth;
 
@@ -53,11 +54,12 @@ void main() {
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
-    // wireframe
-    float d = min(gEdgeDistance.x, gEdgeDistance.y);
-    d = min(d, gEdgeDistance.z);
-
-    float mixVal = smoothstep(lineWidth - 1, lineWidth + 1, d);
+    float mixVal = 1.0;
+    if (showWireframe) {
+        float d = min(gEdgeDistance.x, gEdgeDistance.y);
+        d = min(d, gEdgeDistance.z);
+        mixVal = smoothstep(lineWidth - 1, lineWidth + 1, d);
+    }
 
     FragColor = mix(vec4(lineColor, 1.0), vec4(ambient + color, 1.0), mixVal);
 }

@@ -26,6 +26,7 @@ void MazeLayer::onAttach() {
 
     shader->setFloat3("lightPos", glm::vec3(40.F, 40.F, 40.F));
     shader->setFloat("ambientStrength", .3F);
+    shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
     shader->setFloat("lineWidth", .3F);
     shader->unbind();
@@ -50,6 +51,15 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         ->render();
 
     return true;
+}
+void MazeLayer::setWireframeActive(const bool activeWireframe) {
+    this->activeWireframe = activeWireframe;
+
+    const auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+    shader->bind();
+    shader->setBoolean("showWireframe", activeWireframe);
+    shader->unbind();
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {

@@ -49,7 +49,9 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         if (exitLayer->isActive()) {
             exitLayer->setActive(false);
         } else {
-            exitLayer->setWidthAndHeight(getWidth(), getHeight());
+            auto resizeEvent =
+                sponge::event::WindowResizeEvent{ getWidth(), getHeight() };
+            exitLayer->onEvent(resizeEvent);
             exitLayer->setActive(true);
         }
 

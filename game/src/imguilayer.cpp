@@ -32,6 +32,7 @@ void ImGuiLayer::onImGuiRender() {
 
     static auto hasVsync = sponge::SDLEngine::hasVerticalSync();
     auto isFullscreen = sponge::SDLEngine::get().isFullscreen();
+    auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
     ImGui::SetNextWindowSize({ 320.F, 300.F });
@@ -81,6 +82,14 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
             sponge::SDLEngine::get().toggleFullscreen();
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Show Wireframe");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##wireframe", &isWireframeActive)) {
+            Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
         }
 
         ImGui::EndTable();
