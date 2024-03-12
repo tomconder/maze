@@ -22,6 +22,9 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLShader> loadShader(
         const std::string& vertexShader, const std::string& fragmentShader,
         const std::string& name);
+    static std::shared_ptr<OpenGLShader> loadShader(
+        const std::string& vertexShader, const std::string& fragmentShader,
+        const std::string& geometryShader, const std::string& name);
     static std::shared_ptr<OpenGLShader> getShader(const std::string& name);
 
     static std::shared_ptr<OpenGLTexture> getTexture(const std::string& name);

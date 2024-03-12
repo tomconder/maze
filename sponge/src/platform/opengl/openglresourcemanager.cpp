@@ -100,6 +100,45 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
     return shader;
 }
 
+std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
+    const std::string& vertexShader, const std::string& fragmentShader,
+    const std::string& geometryShader, const std::string& name) {
+    assert(!vertexShader.empty());
+    assert(!fragmentShader.empty());
+    assert(!geometryShader.empty());
+    assert(!name.empty());
+
+    if (shaders.find(name) != shaders.end()) {
+        return shaders[name];
+    }
+
+    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
+                     vertexShader);
+    std::string vertexSource = loadSourceFromFile(vertexShader);
+
+    assert(!vertexSource.empty());
+
+    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
+                     fragmentShader);
+    std::string fragmentSource = loadSourceFromFile(fragmentShader);
+
+    assert(!fragmentSource.empty());
+
+    SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
+                     fragmentShader);
+    std::string geometrySource = loadSourceFromFile(geometryShader);
+
+    assert(!geometrySource.empty());
+
+    auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource,
+                                                 geometrySource);
+
+    SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
+
+    shaders[name] = shader;
+    return shader;
+}
+
 std::shared_ptr<OpenGLTexture> OpenGLResourceManager::getTexture(
     const std::string& name) {
     assert(!name.empty());

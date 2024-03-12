@@ -12,7 +12,8 @@ void MazeLayer::onAttach() {
 
     sponge::renderer::OpenGLResourceManager::loadShader(
         assetsFolder + "/shaders/shader.vert",
-        assetsFolder + "/shaders/shader.frag", mazeShader.data());
+        assetsFolder + "/shaders/shader.frag",
+        assetsFolder + "/shaders/shader.geom", mazeShader.data());
     sponge::renderer::OpenGLResourceManager::loadModel(
         assetsFolder + "/models/mountains.obj", modelName.data());
 
@@ -24,7 +25,9 @@ void MazeLayer::onAttach() {
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(40.F, 40.F, 40.F));
-    shader->setFloat("ambientStrength", 0.3F);
+    shader->setFloat("ambientStrength", .3F);
+    shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
+    shader->setFloat("lineWidth", .3F);
     shader->unbind();
 }
 
@@ -40,6 +43,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
+    shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
     sponge::renderer::OpenGLResourceManager::getModel(modelName.data())

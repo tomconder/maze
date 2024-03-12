@@ -1,16 +1,19 @@
 #version 330 core
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
-in vec3 vFragPos;
-in vec3 vNormal;
-in vec2 vTexCoord;
+in vec3 gPosition;
+in vec2 gTexCoord;
+in vec3 gNormal;
+noperspective in vec3 gEdgeDistance;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
+uniform vec3 lineColor;
+uniform float lineWidth;
 
 vec3 blinnPhong(vec3 normal, vec3 fragPos, vec3 lightPos, vec3 color) {
     // diffuse
@@ -37,18 +40,24 @@ void main() {
     if (hasNoTexture) {
         color = vec3(1.0, 1.0, 1.0);
     } else {
-        color = texture(texture_diffuse1, vTexCoord).rgb;
+        color = texture(texture_diffuse1, gTexCoord).rgb;
     }
 
     // ambient
     vec3 ambient = ambientStrength * color;
 
-    vec3 lighting = blinnPhong(normalize(vNormal), vFragPos, lightPos, color);
+    vec3 lighting = blinnPhong(normalize(gNormal), gPosition, lightPos, color);
     color *= lighting;
 
     // gamma
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
-    FragColor = vec4(ambient + color, 1.0);
+    // wireframe
+    float d = min(gEdgeDistance.x, gEdgeDistance.y);
+    d = min(d, gEdgeDistance.z);
+
+    float mixVal = smoothstep(lineWidth - 1, lineWidth + 1, d);
+
+    FragColor = mix(vec4(lineColor, 1.0), vec4(ambient + color, 1.0), mixVal);
 }

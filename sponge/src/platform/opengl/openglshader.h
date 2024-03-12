@@ -10,6 +10,9 @@ class OpenGLShader : public Shader {
    public:
     OpenGLShader(const std::string& vertexSource,
                  const std::string& fragmentSource);
+    OpenGLShader(const std::string& vertexSource,
+                 const std::string& fragmentSource,
+                 const std::string& geometrySource);
     ~OpenGLShader() override;
 
     void bind() const override;
@@ -31,6 +34,7 @@ class OpenGLShader : public Shader {
 
     uint32_t compileShader(GLenum type, const std::string& file);
     uint32_t linkProgram(uint32_t vs, uint32_t fs);
+    uint32_t linkProgram(uint32_t vs, uint32_t fs, uint32_t gs);
 
     uint32_t program = 0;
 
