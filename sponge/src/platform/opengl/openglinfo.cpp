@@ -51,7 +51,6 @@ void OpenGLInfo::logContextInfo() {
         }
         SPONGE_CORE_DEBUG(ss.str());
     }
-    SPONGE_CORE_DEBUG(ss.str());
 }
 
 void OpenGLInfo::logGraphicsDriverInfo() {
