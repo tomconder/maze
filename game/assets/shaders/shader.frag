@@ -1,12 +1,10 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+out vec4 FragColor;
 
-varying vec3 vFragPos;
-varying vec3 vNormal;
-varying vec2 vTexCoord;
+in vec3 vFragPos;
+in vec3 vNormal;
+in vec2 vTexCoord;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 lightPos;
@@ -52,5 +50,5 @@ void main() {
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
-    gl_FragColor = vec4(ambient + color, 1.0);
+    FragColor = vec4(ambient + color, 1.0);
 }

@@ -1,16 +1,14 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+out vec4 FragColor;
 
-varying vec2 vTexCoord;
+in vec2 vTexCoord;
 
 uniform sampler2D image;
 
 void main() {
-    gl_FragColor = texture2D(image, vTexCoord);
-    if (gl_FragColor == vec4(0.0)) {
+    FragColor = texture2D(image, vTexCoord);
+    if (FragColor == vec4(0.0)) {
         discard;
     }
 }

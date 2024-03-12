@@ -1,10 +1,8 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+out vec4 FragColor;
 
-varying vec2 vTexCoord;
+in vec2 vTexCoord;
 
 uniform sampler2D text;
 uniform vec3 textColor;
@@ -19,5 +17,5 @@ void main() {
     float sd = median(msd.r, msd.g, msd.b);
     float screenPxDistance = screenPxRange * (sd - 0.5);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-    gl_FragColor = vec4(textColor, 1.0) * vec4(1.0, 1.0, 1.0, opacity);
+    FragColor = vec4(textColor, 1.0) * vec4(1.0, 1.0, 1.0, opacity);
 }

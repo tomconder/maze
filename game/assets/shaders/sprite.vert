@@ -1,12 +1,8 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+layout (location = 0) in vec4 vertex;
 
-attribute vec4 vertex;
-
-varying vec2 vTexCoord;
+out vec2 vTexCoord;
 
 uniform mat4 projection;
 
