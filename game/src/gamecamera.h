@@ -12,6 +12,10 @@ class GameCamera final : public sponge::renderer::Camera {
         return mvp;
     }
 
+    const glm::mat4& getViewportMatrix() const {
+        return viewport;
+    }
+
     void setPosition(const glm::vec3& position);
     glm::vec3 getPosition() const {
         return cameraPos;
@@ -49,6 +53,7 @@ class GameCamera final : public sponge::renderer::Camera {
     glm::mat4 projection = glm::mat4(1.F);
     glm::mat4 view = glm::mat4(1.F);
     glm::mat4 model = glm::mat4(1.F);
+    glm::mat4 viewport = glm::mat4(1.F);
 
     // mvp = model * view * projection
     glm::mat4 mvp = glm::mat4(1.F);

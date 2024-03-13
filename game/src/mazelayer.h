@@ -15,11 +15,19 @@ class MazeLayer final : public sponge::layer::Layer {
         return camera;
     }
 
+    bool isWireframeActive() const {
+        return activeWireframe;
+    }
+
+    void setWireframeActive(const bool activeWireframe);
+
    private:
     std::shared_ptr<GameCamera> camera;
 
     static constexpr float keyboardSpeed = .1F;
     static constexpr float mouseSpeed = .1F;
+
+    bool activeWireframe = false;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
     bool onMouseButtonPressed(

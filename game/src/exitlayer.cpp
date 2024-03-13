@@ -31,15 +31,15 @@ void ExitLayer::onAttach() {
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::renderer::OpenGLResourceManager::getShader(
-        textShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(textShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
@@ -86,8 +86,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
                  { .52F, .57F, .55F, 1.F });
 
     const auto font =
-        sponge::renderer::OpenGLResourceManager::getFont(
-            uiFont.data());
+        sponge::renderer::OpenGLResourceManager::getFont(uiFont.data());
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
@@ -105,14 +104,14 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader = sponge::renderer::OpenGLResourceManager::getShader(
-        textShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

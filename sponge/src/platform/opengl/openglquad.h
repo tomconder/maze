@@ -14,6 +14,11 @@ class OpenGLQuad {
 
     void render(const glm::vec2& top, const glm::vec2& bottom,
                 const glm::vec4& color) const;
+
+   private:
+    std::unique_ptr<OpenGLBuffer> vbo;
+    std::unique_ptr<OpenGLElementBuffer> ebo;
+    std::unique_ptr<OpenGLVertexArray> vao;
 };
 
 }  // namespace sponge::renderer

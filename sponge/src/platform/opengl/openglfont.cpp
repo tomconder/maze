@@ -15,6 +15,12 @@
 namespace sponge::renderer {
 
 constexpr std::string_view textShader = "text";
+constexpr std::string_view vertex = "vertex";
+
+constexpr uint32_t indices[] = {
+    0, 1, 2,  //
+    0, 2, 3   //
+};
 
 OpenGLFont::OpenGLFont() {
     const auto assetsFolder = sponge::File::getResourceDir();
@@ -29,18 +35,18 @@ OpenGLFont::OpenGLFont() {
     const auto program = shader->getId();
     const auto id = std::to_string(program);
 
-    const auto vao = OpenGLResourceManager::createVertexArray(id);
+    vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    const auto vbo = OpenGLResourceManager::createBuffer(
-        id, maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
+    vbo = std::make_unique<OpenGLBuffer>(
+        maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    const auto ebo = OpenGLResourceManager::createElementBuffer(
-        id, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
+    ebo = std::make_unique<OpenGLElementBuffer>(
+        indices, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
-    auto location = glGetAttribLocation(program, "vertex");
+    auto location = glGetAttribLocation(program, vertex.data());
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -239,7 +245,6 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
 
     auto id = std::to_string(shader->getId());
 
-    auto vao = OpenGLResourceManager::getVertexArray(id);
     vao->bind();
 
     shader->bind();
@@ -249,11 +254,9 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
-    auto vbo = OpenGLResourceManager::getBuffer(id);
     vbo->setData(batchVertices.data(),
                  static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
 
-    auto ebo = OpenGLResourceManager::getElementBuffer(id);
     ebo->setData(batchIndices.data(),
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 

@@ -1,10 +1,6 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-attribute vec2 position;
+layout (location = 0) in vec2 position;
 
 uniform mat4 projection;
 
