@@ -1,7 +1,6 @@
 #include "resourcemanager.h"
 
-absl::flat_hash_map<std::string,
-                    std::shared_ptr<sponge::renderer::OrthoCamera>>
+absl::flat_hash_map<std::string, std::shared_ptr<sponge::renderer::OrthoCamera>>
     ResourceManager::cameras;
 
 std::shared_ptr<sponge::renderer::OrthoCamera>
@@ -20,8 +19,8 @@ ResourceManager::createOrthoCamera(const std::string& name) {
     return camera;
 }
 
-std::shared_ptr<sponge::renderer::OrthoCamera>
-ResourceManager::getOrthoCamera(const std::string& name) {
+std::shared_ptr<sponge::renderer::OrthoCamera> ResourceManager::getOrthoCamera(
+    const std::string& name) {
     assert(!name.empty());
     return cameras.at(name);
 }
