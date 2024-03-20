@@ -1,4 +1,4 @@
-#include "platform/osx/osxfile.h"
+#include "osxfile.hpp"
 #include <CoreFoundation/CFBundle.h>
 #include <glob.h>
 #include <sysdir.h>
