@@ -1,6 +1,6 @@
-#include "platform/opengl/openglmesh.h"
-#include "core/file.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/openglmesh.hpp"
+#include "core/file.hpp"
+#include "platform/opengl/openglresourcemanager.hpp"
 #include <cstddef>
 
 namespace sponge::renderer {

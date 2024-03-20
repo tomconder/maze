@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "c823fd3e57035b10d970a96da2796a2db55e5df5",
+  "builtin-baseline": "898b728edc5e0d12b50015f9cd18247c4257a3eb",
   "dependencies": [
     {
       "name": "abseil",
@@ -20,7 +20,7 @@
     },
     {
       "name": "glm",
-      "version>=": "1.0.0#1"
+      "version>=": "1.0.1#1"
     },
     {
       "name": "imgui",

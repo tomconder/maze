@@ -1,4 +1,4 @@
-#include "orthocamera.h"
+#include "orthocamera.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace sponge::renderer {

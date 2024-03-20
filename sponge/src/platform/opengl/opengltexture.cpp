@@ -1,4 +1,4 @@
-#include "platform/opengl/opengltexture.h"
+#include "platform/opengl/opengltexture.hpp"
 
 namespace sponge::renderer {
 

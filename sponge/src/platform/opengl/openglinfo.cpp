@@ -1,6 +1,6 @@
-#include "platform/opengl/openglinfo.h"
-#include "core/base.h"
-#include "platform/opengl/gl.h"
+#include "platform/opengl/openglinfo.hpp"
+#include "core/base.hpp"
+#include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>

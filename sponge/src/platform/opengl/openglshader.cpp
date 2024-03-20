@@ -1,5 +1,5 @@
-#include "platform/opengl/openglshader.h"
-#include "core/log.h"
+#include "platform/opengl/openglshader.hpp"
+#include "core/log.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 

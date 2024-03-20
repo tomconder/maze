@@ -1,4 +1,4 @@
-#include "platform/sdl/sdlwindow.h"
+#include "platform/sdl/sdlwindow.hpp"
 
 namespace sponge {
 

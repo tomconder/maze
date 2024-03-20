@@ -1,4 +1,4 @@
-#include "platform/sdl/sdlinput.h"
+#include "platform/sdl/sdlinput.hpp"
 
 namespace sponge {
 

@@ -1,5 +1,5 @@
-#include "hudlayer.h"
-#include "resourcemanager.h"
+#include "hudlayer.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";

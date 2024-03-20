@@ -1,5 +1,5 @@
-#include "platform/opengl/openglresourcemanager.h"
-#include "core/log.h"
+#include "platform/opengl/openglresourcemanager.hpp"
+#include "core/log.hpp"
 #include <SDL.h>
 #include <cassert>
 
