@@ -80,17 +80,17 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool MazeLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_W ||
-        event.getKeyCode() == sponge::KeyCode::SpongeKey_Up) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_W ||
+        event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Up) {
         camera->moveForward(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_S ||
-               event.getKeyCode() == sponge::KeyCode::SpongeKey_Down) {
+    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_S ||
+               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Down) {
         camera->moveBackward(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_A ||
-               event.getKeyCode() == sponge::KeyCode::SpongeKey_Left) {
+    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_A ||
+               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Left) {
         camera->strafeLeft(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::KeyCode::SpongeKey_D ||
-               event.getKeyCode() == sponge::KeyCode::SpongeKey_Right) {
+    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_D ||
+               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Right) {
         camera->strafeRight(event.getElapsedTime() * keyboardSpeed);
     }
     return false;
@@ -115,7 +115,7 @@ bool MazeLayer::onMouseButtonReleased(
 }
 
 bool MazeLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
-    if (sponge::Input::isButtonPressed()) {
+    if (sponge::input::Input::isButtonPressed()) {
         camera->mouseMove({ event.getXRelative() * mouseSpeed,
                             event.getYRelative() * mouseSpeed });
     }
