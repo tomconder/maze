@@ -1,10 +1,10 @@
 #pragma once
 
 #include "core/engine.hpp"
-#include "core/keycode.hpp"
-#include "core/mousecode.hpp"
 #include "event/event.hpp"
 #include "imgui/imguimanager.hpp"
+#include "input/keycode.hpp"
+#include "input/mousecode.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/openglcontext.hpp"
@@ -120,11 +120,11 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     layer::LayerStack* layerStack;
-    absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap;
+    absl::flat_hash_map<SDL_Scancode, input::KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
-    KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
-    static MouseCode mapMouseButton(uint8_t index);
+    input::KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
+    static input::MouseCode mapMouseButton(uint8_t index);
     void processEvent(const SDL_Event& event, double elapsedTime);
 
     static SDLEngine* instance;

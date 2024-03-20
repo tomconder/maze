@@ -1,5 +1,5 @@
 #include "platform/opengl/openglquad.hpp"
-#include "core/file.hpp"
+#include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 
 namespace sponge::renderer {
@@ -14,11 +14,8 @@ constexpr std::string_view quadShader = "quad";
 constexpr std::string_view position = "position";
 
 OpenGLQuad::OpenGLQuad() {
-    const auto assetsFolder = sponge::File::getResourceDir();
-
-    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/quad.vert",
-                                      assetsFolder + "/shaders/quad.frag",
-                                      quadShader.data());
+    OpenGLResourceManager::loadShader("/shaders/quad.vert",
+                                      "/shaders/quad.frag", quadShader.data());
 
     const auto shader = OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();

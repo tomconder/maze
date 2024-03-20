@@ -1,8 +1,6 @@
 #pragma once
 
-#include "core/base.hpp"
-
-namespace sponge {
+namespace sponge::input {
 
 using MouseCode = uint8_t;
 
@@ -24,4 +22,4 @@ enum : MouseCode {
     ButtonMiddle = Button2
 };
 
-}  // namespace sponge
+}  // namespace sponge::input

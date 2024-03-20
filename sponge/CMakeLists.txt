@@ -8,6 +8,7 @@ file(
         src/core/*.hpp
         src/event/*.hpp
         src/imgui/*.hpp
+        src/input/*.hpp
         src/layer/*.hpp
         src/platform/opengl/*.hpp
         src/platform/sdl/*.hpp
@@ -20,6 +21,7 @@ file(
         src/core/*.cpp
         src/event/*.cpp
         src/imgui/*.cpp
+        src/input/*.cpp
         src/layer/*.cpp
         src/platform/opengl/*.cpp
         src/platform/sdl/*.cpp

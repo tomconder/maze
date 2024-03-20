@@ -1,4 +1,5 @@
 #include "platform/opengl/openglelementbuffer.hpp"
+#include "platform/opengl/gl.hpp"
 
 namespace sponge::renderer {
 

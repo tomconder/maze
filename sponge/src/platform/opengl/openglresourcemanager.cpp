@@ -4,6 +4,7 @@
 #include <cassert>
 
 #define STB_IMAGE_IMPLEMENTATION
+#include "core/file.hpp"
 #include "stb_image.h"
 
 namespace sponge::renderer {
@@ -16,6 +17,7 @@ absl::flat_hash_map<std::string, std::shared_ptr<OpenGLShader>>
     OpenGLResourceManager::shaders;
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
     OpenGLResourceManager::textures;
+std::string OpenGLResourceManager::assetsFolder = File::getResourceDir();
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(
     const std::string& name) {
@@ -34,7 +36,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(
 
     SPONGE_CORE_INFO("Loading font file: {}", name);
 
-    auto font = loadFontFromFile(path);
+    auto font = loadFontFromFile(assetsFolder + path);
     fonts[name] = font;
 
     return font;
@@ -57,7 +59,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
 
     SPONGE_CORE_INFO("Loading mesh file: {}", name);
 
-    auto mesh = loadModelFromFile(path);
+    auto mesh = loadModelFromFile(assetsFolder + path);
     models[name] = mesh;
 
     return mesh;
@@ -82,13 +84,14 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
 
     SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
                      vertexShader);
-    std::string vertexSource = loadSourceFromFile(vertexShader);
+    std::string vertexSource = loadSourceFromFile(assetsFolder + vertexShader);
 
     assert(!vertexSource.empty());
 
     SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
                      fragmentShader);
-    std::string fragmentSource = loadSourceFromFile(fragmentShader);
+    std::string fragmentSource =
+        loadSourceFromFile(assetsFolder + fragmentShader);
 
     assert(!fragmentSource.empty());
 
@@ -114,19 +117,21 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
 
     SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
                      vertexShader);
-    std::string vertexSource = loadSourceFromFile(vertexShader);
+    std::string vertexSource = loadSourceFromFile(assetsFolder + vertexShader);
 
     assert(!vertexSource.empty());
 
     SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
                      fragmentShader);
-    std::string fragmentSource = loadSourceFromFile(fragmentShader);
+    std::string fragmentSource =
+        loadSourceFromFile(assetsFolder + fragmentShader);
 
     assert(!fragmentSource.empty());
 
     SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
                      fragmentShader);
-    std::string geometrySource = loadSourceFromFile(geometryShader);
+    std::string geometrySource =
+        loadSourceFromFile(assetsFolder + geometryShader);
 
     assert(!geometrySource.empty());
 
@@ -146,7 +151,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::getTexture(
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
-    const std::string& path, const std::string& name) {
+    const std::string& path, const std::string& name, const LoadFlag flag) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -156,7 +161,14 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
 
     SPONGE_CORE_INFO("Loading texture file: {}", name);
 
-    auto texture = loadTextureFromFile(path);
+    std::string texturePath;
+    if (flag == ExcludeAssetsFolder) {
+        texturePath = path;
+    } else {
+        texturePath = assetsFolder + path;
+    }
+
+    auto texture = loadTextureFromFile(texturePath);
     textures[name] = texture;
 
     return texture;

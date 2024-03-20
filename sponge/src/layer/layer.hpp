@@ -9,8 +9,8 @@ class Layer {
     explicit Layer(const std::string& name = "undefined");
     virtual ~Layer() = default;
 
-    virtual void onAttach(){};
-    virtual void onDetach(){};
+    virtual void onAttach() {};
+    virtual void onDetach() {};
     virtual void onEvent(event::Event& event) {}
     virtual void onImGuiRender() {}
     virtual bool onUpdate(double elapsedTime) {

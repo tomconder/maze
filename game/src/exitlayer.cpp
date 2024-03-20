@@ -15,18 +15,14 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    const auto assetsFolder = sponge::File::getResourceDir();
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
 
     sponge::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/quad.vert",
-        assetsFolder + "/shaders/quad.frag", quadShader.data());
-
-    sponge::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", textShader.data());
+        "/shaders/text.vert", "/shaders/text.frag", textShader.data());
 
     sponge::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
+        "/fonts/league-gothic.fnt", uiFont.data());
 
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
@@ -135,7 +131,7 @@ bool ExitLayer::onWindowResize(
 
 bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
             sponge::SDLEngine::get().setMouseVisible(false);
         } else {

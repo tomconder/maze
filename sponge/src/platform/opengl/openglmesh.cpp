@@ -1,5 +1,5 @@
 #include "platform/opengl/openglmesh.hpp"
-#include "core/file.hpp"
+#include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <cstddef>
 
@@ -17,11 +17,8 @@ OpenGLMesh::OpenGLMesh(
     this->indices = indices;
     this->vertices = vertices;
 
-    const auto assetsFolder = File::getResourceDir();
-
-    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/shader.vert",
-                                      assetsFolder + "/shaders/shader.frag",
-                                      meshShader.data());
+    OpenGLResourceManager::loadShader(
+        "/shaders/shader.vert", "/shaders/shader.frag", meshShader.data());
 
     const auto shader = OpenGLResourceManager::getShader(meshShader.data());
     shader->bind();

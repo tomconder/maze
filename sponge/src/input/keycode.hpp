@@ -1,8 +1,6 @@
 #pragma once
 
-#include "core/base.hpp"
-
-namespace sponge {
+namespace sponge::input {
 
 // inspired by glfw3.h
 enum class KeyCode : uint16_t {
@@ -141,4 +139,4 @@ enum class KeyCode : uint16_t {
     SpongeKey_Menu = 348
 };
 
-}  // namespace sponge
+}  // namespace sponge::input

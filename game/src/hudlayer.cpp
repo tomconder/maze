@@ -11,18 +11,14 @@ HUDLayer::HUDLayer() : Layer("hud") {
 }
 
 void HUDLayer::onAttach() {
-    const auto assetsFolder = sponge::File::getResourceDir();
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
 
     sponge::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/quad.vert",
-        assetsFolder + "/shaders/quad.frag", quadShader.data());
+        "/shaders/sprite.vert", "/shaders/sprite.frag", spriteShader.data());
 
-    sponge::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/sprite.vert",
-        assetsFolder + "/shaders/sprite.frag", spriteShader.data());
-
-    sponge::renderer::OpenGLResourceManager::loadTexture(
-        assetsFolder + "/images/coffee.png", coffeeTexture.data());
+    sponge::renderer::OpenGLResourceManager::loadTexture("/images/coffee.png",
+                                                         coffeeTexture.data());
 
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());

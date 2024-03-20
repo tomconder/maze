@@ -1,5 +1,4 @@
 #include "platform/opengl/openglmodel.hpp"
-#include "core/file.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <cassert>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/keycode.hpp"
+#include "keycode.hpp"
 
-namespace sponge {
+namespace sponge::input {
 
 class Input {
    public:
@@ -24,4 +24,4 @@ class Input {
     static Input* instance;
 };
 
-}  // namespace sponge
+}  // namespace sponge::input
