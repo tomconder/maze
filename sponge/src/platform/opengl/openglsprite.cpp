@@ -17,11 +17,8 @@ constexpr uint32_t indices[] = {
 };
 
 OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
-    const auto assetsFolder = sponge::File::getResourceDir();
-
-    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/sprite.vert",
-                                      assetsFolder + "/shaders/sprite.frag",
-                                      spriteShader.data());
+    OpenGLResourceManager::loadShader(
+        "/shaders/sprite.vert", "/shaders/sprite.frag", spriteShader.data());
 
     auto shader = OpenGLResourceManager::getShader(spriteShader.data());
     shader->bind();

@@ -23,11 +23,8 @@ constexpr uint32_t indices[] = {
 };
 
 OpenGLFont::OpenGLFont() {
-    const auto assetsFolder = sponge::File::getResourceDir();
-
-    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/text.vert",
-                                      assetsFolder + "/shaders/text.frag",
-                                      textShader.data());
+    OpenGLResourceManager::loadShader("/shaders/text.vert",
+                                      "/shaders/text.frag", textShader.data());
 
     auto shader = OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
