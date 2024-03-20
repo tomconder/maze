@@ -1,9 +1,9 @@
-#include "platform/opengl/openglfont.h"
-#include "core/base.h"
-#include "core/file.h"
-#include "core/log.h"
+#include "platform/opengl/openglfont.hpp"
+#include "core/base.hpp"
+#include "core/log.hpp"
 #include "fmt/core.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/gl.hpp"
+#include "platform/opengl/openglresourcemanager.hpp"
 #include <array>
 #include <cstddef>
 #include <fstream>
@@ -12,16 +12,19 @@
 #include <string>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 constexpr std::string_view textShader = "text";
+constexpr std::string_view vertex = "vertex";
+
+constexpr uint32_t indices[] = {
+    0, 1, 2,  //
+    0, 2, 3   //
+};
 
 OpenGLFont::OpenGLFont() {
-    const auto assetsFolder = sponge::File::getResourceDir();
-
-    OpenGLResourceManager::loadShader(assetsFolder + "/shaders/text.vert",
-                                      assetsFolder + "/shaders/text.frag",
-                                      textShader.data());
+    OpenGLResourceManager::loadShader("/shaders/text.vert",
+                                      "/shaders/text.frag", textShader.data());
 
     auto shader = OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
@@ -29,18 +32,18 @@ OpenGLFont::OpenGLFont() {
     const auto program = shader->getId();
     const auto id = std::to_string(program);
 
-    const auto vao = OpenGLResourceManager::createVertexArray(id);
+    vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    const auto vbo = OpenGLResourceManager::createBuffer(
-        id, maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
+    vbo = std::make_unique<OpenGLBuffer>(
+        maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
     vbo->bind();
 
-    const auto ebo = OpenGLResourceManager::createElementBuffer(
-        id, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
+    ebo = std::make_unique<OpenGLElementBuffer>(
+        indices, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
     ebo->bind();
 
-    auto location = glGetAttribLocation(program, "vertex");
+    auto location = glGetAttribLocation(program, vertex.data());
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -58,7 +61,10 @@ void OpenGLFont::load(const std::string& path) {
     assert(!path.empty());
 
     std::ifstream stream(path, std::ios::in | std::ios::binary);
-    assert(stream.good());
+    if (!stream.good()) {
+        SPONGE_CORE_ERROR("Unable to open file: {}", path);
+        return;
+    }
 
     auto nextInt = [](std::stringstream& sstream) {
         std::string s;
@@ -120,9 +126,10 @@ void OpenGLFont::load(const std::string& path) {
 
             auto pos = path.find_last_of('/');
             auto fontFolder = path.substr(0, pos + 1);
+
             textureName = name;
-            auto texture = OpenGLResourceManager::loadTexture(fontFolder + name,
-                                                              textureName);
+            auto texture = OpenGLResourceManager::loadTexture(
+                fontFolder + name, textureName, ExcludeAssetsFolder);
         }
 
         if (str == "char") {
@@ -181,6 +188,11 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
 
 void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                         uint32_t targetSize, const glm::vec3& color) {
+    if (textureName.empty()) {
+        // texture name is empty when the font fails to load
+        return;
+    }
+
     const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
     const auto str =
@@ -239,7 +251,6 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
 
     auto id = std::to_string(shader->getId());
 
-    auto vao = OpenGLResourceManager::getVertexArray(id);
     vao->bind();
 
     shader->bind();
@@ -249,18 +260,14 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
-    auto vbo = OpenGLResourceManager::getBuffer(id);
     vbo->setData(batchVertices.data(),
                  static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
 
-    auto ebo = OpenGLResourceManager::getElementBuffer(id);
     ebo->setData(batchIndices.data(),
                  static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
 
     glDrawElements(GL_TRIANGLES, static_cast<int32_t>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);
-
-    glBindVertexArray(0);
 }
 
 void OpenGLFont::log() const {
@@ -281,4 +288,4 @@ void OpenGLFont::log() const {
     }
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

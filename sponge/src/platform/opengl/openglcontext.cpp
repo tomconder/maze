@@ -1,9 +1,9 @@
-#include "platform/opengl/openglcontext.h"
-#include "core/log.h"
+#include "platform/opengl/openglcontext.hpp"
+#include "core/log.hpp"
 #include <tuplet/tuple.hpp>
 #include <SDL.h>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 OpenGLContext::OpenGLContext(SDL_Window* window) {
     SPONGE_CORE_INFO("Initializing OpenGL");
@@ -94,4 +94,4 @@ void OpenGLContext::toggleFullscreen(void* window) {
     }
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

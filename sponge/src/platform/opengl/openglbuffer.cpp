@@ -1,17 +1,18 @@
-#include "platform/opengl/openglbuffer.h"
+#include "platform/opengl/openglbuffer.hpp"
+#include "platform/opengl/gl.hpp"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 OpenGLBuffer::OpenGLBuffer(uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STATIC_DRAW);
 }
 
 OpenGLBuffer::OpenGLBuffer(const float* vertices, uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 }
 
 OpenGLBuffer::~OpenGLBuffer() {
@@ -27,4 +28,4 @@ void OpenGLBuffer::setData(const float* data, uint32_t size) const {
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

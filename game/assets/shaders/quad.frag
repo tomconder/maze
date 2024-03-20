@@ -1,12 +1,10 @@
-#version 100
+#version 330 core
 
-#ifdef GL_ES
-precision mediump float;
-#endif
+out vec4 FragColor;
 
 uniform vec4 color;
 
 void main() {
-    gl_FragColor = color;
+    FragColor = color;
 }
 

@@ -1,15 +1,14 @@
-#include "platform/opengl/openglmodel.h"
-#include "core/file.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/openglmodel.hpp"
+#include "platform/opengl/openglresourcemanager.hpp"
 #include <cassert>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "core/log.h"
+#include "core/log.hpp"
 #include "tiny_obj_loader.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLModel::load(std::string_view path) {
     assert(!path.empty());
@@ -23,9 +22,8 @@ void OpenGLModel::load(std::string_view path) {
     std::string err;
 
     std::filesystem::path dir{ path.data() };
-    auto ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                                dir.string().data(),
-                                dir.parent_path().string().data());
+    auto ret = LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                       dir.string().data(), dir.parent_path().string().data());
 
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
@@ -40,47 +38,65 @@ void OpenGLModel::load(std::string_view path) {
         return;
     }
 
-    process(attrib, shapes, materials);
+    SPONGE_CORE_INFO("# of vertices  = {}",
+                     static_cast<int>(attrib.vertices.size() / 3));
+    SPONGE_CORE_INFO("# of normals   = {}",
+                     static_cast<int>(attrib.normals.size() / 3));
+    SPONGE_CORE_INFO("# of texcoords = {}",
+                     static_cast<int>(attrib.texcoords.size() / 2));
+    SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
+    SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
+
+    process(attrib, shapes, materials, dir.parent_path().string());
 }
 
 void OpenGLModel::process(tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
-                          const std::vector<tinyobj::material_t>& materials) {
-    for (auto& shape : shapes) {
-        meshes.push_back(processMesh(attrib, shape.mesh, materials));
+                          const std::vector<tinyobj::material_t>& materials,
+                          const std::string& path) {
+    numIndices = 0;
+    numVertices = 0;
+
+    for (auto& [name, mesh, lines, points] : shapes) {
+        auto newMesh = processMesh(attrib, mesh, materials, path);
+        newMesh->optimize();
+        numIndices += newMesh->getNumIndices();
+        numVertices += newMesh->getNumVertices();
+        meshes.push_back(newMesh);
     }
 }
 
-OpenGLMesh OpenGLModel::processMesh(
+std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-    const std::vector<tinyobj::material_t>& materials) {
+    const std::vector<tinyobj::material_t>& materials,
+    const std::string& path) {
     std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 
-    // vertices
     auto numIndices = 0;
+
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
-    for (auto index : mesh.indices) {
-        Vertex vertex{};
 
-        auto i = index.vertex_index;
-        vertex.position = glm::vec3{ attrib.vertices[i * 3 + 0],  //
-                                     attrib.vertices[i * 3 + 1],  //
-                                     attrib.vertices[i * 3 + 2] };
+    Vertex vertex;
+    for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
+        auto i = vertex_index * 3;
+        vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
+                                     attrib.vertices[i + 2] };
 
-        i = index.texcoord_index;
-        if (i >= 0) {
-            vertex.texCoords = glm::vec2{ attrib.texcoords[i * 2 + 0],  //
-                                          1.0F - attrib.texcoords[i * 2 + 1] };
+        if (!attrib.texcoords.empty()) {
+            i = texcoord_index * 2;
+            vertex.texCoords = glm::vec2{ attrib.texcoords[i],
+                                          1.0F - attrib.texcoords[i + 1] };
+        } else {
+            vertex.texCoords = glm::zero<glm::vec2>();
         }
 
-        i = index.normal_index;
-        if (i >= 0) {
-            vertex.normal = glm::vec3{ attrib.normals[i * 3 + 0],  //
-                                       attrib.normals[i * 3 + 1],  //
-                                       attrib.normals[i * 3 + 2] };
+        if (!attrib.normals.empty()) {
+            i = normal_index * 3;
+            vertex.normal = glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
+                                       attrib.normals[i + 2] };
         }
 
         vertices.push_back(vertex);
@@ -88,31 +104,33 @@ OpenGLMesh OpenGLModel::processMesh(
         numIndices++;
     }
 
-    // recalculate normals since they may be missing
-    for (auto j = 0; j < vertices.size(); j += 3) {
-        auto p0 = vertices[j + 0].position;
-        auto p1 = vertices[j + 1].position;
-        auto p2 = vertices[j + 2].position;
+    // calculate normals since they are missing
+    if (attrib.normals.empty()) {
+        for (auto j = 0; j < vertices.size(); j += 3) {
+            const auto p0 = vertices[j + 0].position;
+            const auto p1 = vertices[j + 1].position;
+            const auto p2 = vertices[j + 2].position;
 
-        auto normal = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+            const auto normal = normalize(cross(p1 - p0, p2 - p0));
 
-        vertices[j + 0].normal = normal;
-        vertices[j + 1].normal = normal;
-        vertices[j + 2].normal = normal;
-    }
-
-    if (!mesh.material_ids.empty()) {
-        auto id = mesh.material_ids[0];
-        if (id != -1) {
-            textures.push_back(loadMaterialTextures(materials[id]));
+            vertices[j + 0].normal = normal;
+            vertices[j + 1].normal = normal;
+            vertices[j + 2].normal = normal;
         }
     }
 
-    return { vertices, indices, textures };
+    if (!mesh.material_ids.empty()) {
+        const auto id = mesh.material_ids[0];
+        if (id != -1) {
+            textures.push_back(loadMaterialTextures(materials[id], path));
+        }
+    }
+
+    return std::make_shared<OpenGLMesh>(vertices, indices, textures);
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
-    const tinyobj::material_t& material) {
+    const tinyobj::material_t& material, const std::string& path) {
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string& filepath) {
@@ -122,10 +140,8 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
         return filepath;
     };
 
-    auto assetsFolder = sponge::File::getResourceDir();
     auto filename = std::filesystem::weakly_canonical(
-        static_cast<std::string>(assetsFolder + "/models/") +
-        baseName(material.diffuse_texname));
+        path + "/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
@@ -134,10 +150,10 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     return OpenGLResourceManager::loadTexture(filename.string(), name);
 }
 
-void OpenGLModel::render() {
-    for (auto it = std::begin(meshes); it != std::end(meshes); ++it) {
-        it->render();
+void OpenGLModel::render() const {
+    for (auto&& mesh : meshes) {
+        mesh->render();
     }
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

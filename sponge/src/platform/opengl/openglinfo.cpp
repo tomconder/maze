@@ -1,12 +1,11 @@
-#include "platform/opengl/openglinfo.h"
-#include "core/base.h"
-#include "platform/opengl/gl.h"
+#include "platform/opengl/openglinfo.hpp"
+#include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>
 #include <vector>
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLInfo::logContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
@@ -40,6 +39,17 @@ void OpenGLInfo::logContextInfo() {
     ss.str("");
     ss << fmt::format("  {:14} {}", "Extensions:", extensions);
     SPONGE_CORE_DEBUG(ss.str());
+
+    for (int i = 0; i < extensions / 3; i++) {
+        ss.str("");
+        ss << "   ";
+        for (int j = 0; j < 3; j++) {
+            ss << fmt::format(" {:48}",
+                              reinterpret_cast<const char*>(
+                                  glGetStringi(GL_EXTENSIONS, i * 3 + j)));
+        }
+        SPONGE_CORE_DEBUG(ss.str());
+    }
 }
 
 void OpenGLInfo::logGraphicsDriverInfo() {
@@ -117,4 +127,4 @@ void OpenGLInfo::logVersion() {
                      minorVersion);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

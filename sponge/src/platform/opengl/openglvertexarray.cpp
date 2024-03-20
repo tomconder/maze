@@ -1,7 +1,7 @@
-#include "platform/opengl/openglvertexarray.h"
-#include "platform/opengl/gl.h"
+#include "platform/opengl/openglvertexarray.hpp"
+#include "platform/opengl/gl.hpp"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 OpenGLVertexArray::OpenGLVertexArray() {
     glGenVertexArrays(1, &id);
@@ -15,4 +15,4 @@ void OpenGLVertexArray::bind() const {
     glBindVertexArray(id);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

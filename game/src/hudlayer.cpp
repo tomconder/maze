@@ -1,5 +1,5 @@
-#include "hudlayer.h"
-#include "resourcemanager.h"
+#include "hudlayer.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";
@@ -11,38 +11,34 @@ HUDLayer::HUDLayer() : Layer("hud") {
 }
 
 void HUDLayer::onAttach() {
-    const auto assetsFolder = sponge::File::getResourceDir();
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
 
-    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/quad.vert",
-        assetsFolder + "/shaders/quad.frag", quadShader.data());
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/sprite.vert", "/shaders/sprite.frag", spriteShader.data());
 
-    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/sprite.vert",
-        assetsFolder + "/shaders/sprite.frag", spriteShader.data());
-
-    sponge::graphics::renderer::OpenGLResourceManager::loadTexture(
-        assetsFolder + "/images/coffee.png", coffeeTexture.data());
+    sponge::renderer::OpenGLResourceManager::loadTexture("/images/coffee.png",
+                                                         coffeeTexture.data());
 
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        spriteShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(spriteShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    logo = std::make_unique<sponge::graphics::renderer::OpenGLSprite>(
-        coffeeTexture.data());
+    logo =
+        std::make_unique<sponge::renderer::OpenGLSprite>(coffeeTexture.data());
 }
 
 void HUDLayer::onDetach() {
@@ -70,14 +66,14 @@ bool HUDLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto projection = orthoCamera->getProjection();
-    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        spriteShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(spriteShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

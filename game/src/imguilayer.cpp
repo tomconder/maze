@@ -1,11 +1,13 @@
-#include "imguilayer.h"
+#include "imguilayer.hpp"
 #include "imgui.h"
+#include "maze.hpp"
 #include "version.h"
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
+constexpr std::string_view modelName = "maze";
 
 const std::vector logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
@@ -29,9 +31,11 @@ void ImGuiLayer::onImGuiRender() {
         static_cast<float>(sponge::SDLEngine::get().getWindowHeight());
 
     static auto hasVsync = sponge::SDLEngine::hasVerticalSync();
+    auto isFullscreen = sponge::SDLEngine::get().isFullscreen();
+    auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
-    ImGui::SetNextWindowSize({ 320.F, 200.F });
+    ImGui::SetNextWindowSize({ 320.F, 300.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -45,9 +49,65 @@ void ImGuiLayer::onImGuiRender() {
                     io.Framerate);
         ImGui::Separator();
 
-        if (ImGui::Checkbox("v-sync", &hasVsync)) {
+        ImGui::BeginTable(
+            "##Table", 2,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
+
+        auto fov = Maze::get().getMazeLayer()->getCamera()->getFov();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("FOV");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.0f", fov);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Resolution");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dx%d", sponge::SDLEngine::get().getWindowWidth(),
+                    sponge::SDLEngine::get().getWindowHeight());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Vertical Sync");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
             sponge::SDLEngine::setVerticalSync(hasVsync);
         }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Full Screen");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
+            sponge::SDLEngine::get().toggleFullscreen();
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Show Wireframe");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##wireframe", &isWireframeActive)) {
+            Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
+        }
+
+        ImGui::EndTable();
+        ImGui::Separator();
+
+        ImGui::BeginTable(
+            "##ModelTable", 2,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
+
+        auto model =
+            sponge::renderer::OpenGLResourceManager::getModel(modelName.data());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Vertices");
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", static_cast<uint32_t>(model->getNumVertices() / 3));
+        ImGui::EndTable();
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {

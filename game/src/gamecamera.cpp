@@ -1,4 +1,4 @@
-#include "gamecamera.h"
+#include "gamecamera.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -10,10 +10,17 @@ void GameCamera::updateProjection() {
     projection =
         glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
     mvp = projection * view;
+
+    const float halfH = height / 2.F;
+    const float halfW = width / 2.F;
+    viewport = glm::mat4{ halfW, 0.F,   0.F, halfW,  //
+                          0.F,   halfH, 0.F, halfH,  //
+                          0.F,   0.F,   1.F, 0.F,    //
+                          0.F,   0.F,   0.F, 1.F };
 }
 
 void GameCamera::updateView() {
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
+    view = lookAt(cameraPos, cameraPos + cameraFront, up);
     mvp = projection * view;
 }
 
@@ -55,7 +62,7 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x;
     pitch += offset.y;
 
-    yaw = glm::mod(yaw, 360.f);
+    yaw = glm::mod(yaw, 360.F);
     pitch = glm::clamp(pitch, -89.F, 89.F);
 
     glm::vec3 front{

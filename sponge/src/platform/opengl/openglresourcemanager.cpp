@@ -1,12 +1,13 @@
-#include "platform/opengl/openglresourcemanager.h"
-#include "core/log.h"
+#include "platform/opengl/openglresourcemanager.hpp"
+#include "core/log.hpp"
 #include <SDL.h>
 #include <cassert>
 
 #define STB_IMAGE_IMPLEMENTATION
+#include "core/file.hpp"
 #include "stb_image.h"
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>>
     OpenGLResourceManager::fonts;
@@ -16,12 +17,7 @@ absl::flat_hash_map<std::string, std::shared_ptr<OpenGLShader>>
     OpenGLResourceManager::shaders;
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLTexture>>
     OpenGLResourceManager::textures;
-absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLVertexArray>>
-    OpenGLResourceManager::vertexArrays;
-absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLBuffer>>
-    OpenGLResourceManager::buffers;
-absl::flat_hash_map<const std::string, std::shared_ptr<OpenGLElementBuffer>>
-    OpenGLResourceManager::elementBuffers;
+std::string OpenGLResourceManager::assetsFolder = File::getResourceDir();
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::getFont(
     const std::string& name) {
@@ -40,7 +36,7 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFont(
 
     SPONGE_CORE_INFO("Loading font file: {}", name);
 
-    auto font = loadFontFromFile(path);
+    auto font = loadFontFromFile(assetsFolder + path);
     fonts[name] = font;
 
     return font;
@@ -63,7 +59,7 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
 
     SPONGE_CORE_INFO("Loading mesh file: {}", name);
 
-    auto mesh = loadModelFromFile(path);
+    auto mesh = loadModelFromFile(assetsFolder + path);
     models[name] = mesh;
 
     return mesh;
@@ -88,17 +84,59 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
 
     SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
                      vertexShader);
-    std::string vertexSource = loadSourceFromFile(vertexShader);
+    std::string vertexSource = loadSourceFromFile(assetsFolder + vertexShader);
 
     assert(!vertexSource.empty());
 
     SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
                      fragmentShader);
-    std::string fragmentSource = loadSourceFromFile(fragmentShader);
+    std::string fragmentSource =
+        loadSourceFromFile(assetsFolder + fragmentShader);
 
     assert(!fragmentSource.empty());
 
     auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource);
+
+    SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
+
+    shaders[name] = shader;
+    return shader;
+}
+
+std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
+    const std::string& vertexShader, const std::string& fragmentShader,
+    const std::string& geometryShader, const std::string& name) {
+    assert(!vertexShader.empty());
+    assert(!fragmentShader.empty());
+    assert(!geometryShader.empty());
+    assert(!name.empty());
+
+    if (shaders.find(name) != shaders.end()) {
+        return shaders[name];
+    }
+
+    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
+                     vertexShader);
+    std::string vertexSource = loadSourceFromFile(assetsFolder + vertexShader);
+
+    assert(!vertexSource.empty());
+
+    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
+                     fragmentShader);
+    std::string fragmentSource =
+        loadSourceFromFile(assetsFolder + fragmentShader);
+
+    assert(!fragmentSource.empty());
+
+    SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
+                     fragmentShader);
+    std::string geometrySource =
+        loadSourceFromFile(assetsFolder + geometryShader);
+
+    assert(!geometrySource.empty());
+
+    auto shader = std::make_shared<OpenGLShader>(vertexSource, fragmentSource,
+                                                 geometrySource);
 
     SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
 
@@ -113,7 +151,7 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::getTexture(
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
-    const std::string& path, const std::string& name) {
+    const std::string& path, const std::string& name, const LoadFlag flag) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -123,109 +161,17 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTexture(
 
     SPONGE_CORE_INFO("Loading texture file: {}", name);
 
-    auto texture = loadTextureFromFile(path);
+    std::string texturePath;
+    if (flag == ExcludeAssetsFolder) {
+        texturePath = path;
+    } else {
+        texturePath = assetsFolder + path;
+    }
+
+    auto texture = loadTextureFromFile(texturePath);
     textures[name] = texture;
 
     return texture;
-}
-
-std::shared_ptr<OpenGLVertexArray> OpenGLResourceManager::createVertexArray(
-    const std::string& id) {
-    if (vertexArrays.find(id) != vertexArrays.end()) {
-        return vertexArrays[id];
-    }
-
-    SPONGE_CORE_INFO("Creating resource for program id: [{}, vertex array]",
-                     id);
-
-    auto vao = std::make_shared<OpenGLVertexArray>();
-    vertexArrays[id] = vao;
-
-    return vao;
-}
-
-std::shared_ptr<OpenGLVertexArray> OpenGLResourceManager::getVertexArray(
-    const std::string& id) {
-    assert(!id.empty());
-    return vertexArrays.at(id);
-}
-
-std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::createBuffer(
-    const std::string& id, uint32_t size) {
-    assert(!id.empty());
-
-    if (buffers.find(id) != buffers.end()) {
-        return buffers[id];
-    }
-
-    SPONGE_CORE_INFO("Creating resource for program id: [{}, buffer]", id);
-
-    auto vbo = std::make_shared<OpenGLBuffer>(size);
-    buffers[id] = vbo;
-
-    return vbo;
-}
-
-std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::createBuffer(
-    const std::string& id, const float* vertices, uint32_t size) {
-    assert(!id.empty());
-
-    if (buffers.find(id) != buffers.end()) {
-        return buffers[id];
-    }
-
-    SPONGE_CORE_INFO("Creating resource for program id: [{}, buffer]", id);
-
-    auto vbo = std::make_shared<OpenGLBuffer>(vertices, size);
-    buffers[id] = vbo;
-
-    return vbo;
-}
-
-std::shared_ptr<OpenGLBuffer> OpenGLResourceManager::getBuffer(
-    const std::string& id) {
-    assert(!id.empty());
-    return buffers.at(id);
-}
-
-std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::createElementBuffer(
-    const std::string& id, uint32_t size) {
-    assert(!id.empty());
-
-    if (elementBuffers.find(id) != elementBuffers.end()) {
-        return elementBuffers[id];
-    }
-
-    SPONGE_CORE_INFO("Creating resource for program id: [{}, element buffer]",
-                     id);
-
-    auto ebo = std::make_shared<OpenGLElementBuffer>(size);
-    elementBuffers[id] = ebo;
-
-    return ebo;
-}
-
-std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::createElementBuffer(
-    const std::string& id, const uint32_t* indices, uint32_t size) {
-    assert(!id.empty());
-
-    if (elementBuffers.find(id) != elementBuffers.end()) {
-        return elementBuffers[id];
-    }
-
-    SPONGE_CORE_INFO("Creating resource for program id: [{}, element buffer]",
-                     id);
-
-    auto ebo = std::make_shared<OpenGLElementBuffer>(indices, size);
-    elementBuffers[id] = ebo;
-
-    return ebo;
-}
-
-std::shared_ptr<OpenGLElementBuffer> OpenGLResourceManager::getElementBuffer(
-    const std::string& id) {
-    assert(!id.empty());
-    return elementBuffers.at(id);
 }
 
 std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(
@@ -318,4 +264,4 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
     return texture;
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

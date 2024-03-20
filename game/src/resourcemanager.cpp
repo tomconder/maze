@@ -1,10 +1,9 @@
-#include "resourcemanager.h"
+#include "resourcemanager.hpp"
 
-absl::flat_hash_map<std::string,
-                    std::shared_ptr<sponge::graphics::camera::OrthoCamera>>
+absl::flat_hash_map<std::string, std::shared_ptr<sponge::renderer::OrthoCamera>>
     ResourceManager::cameras;
 
-std::shared_ptr<sponge::graphics::camera::OrthoCamera>
+std::shared_ptr<sponge::renderer::OrthoCamera>
 ResourceManager::createOrthoCamera(const std::string& name) {
     assert(!name.empty());
 
@@ -14,14 +13,14 @@ ResourceManager::createOrthoCamera(const std::string& name) {
 
     SPONGE_INFO("Creating camera: {}", name);
 
-    auto camera = std::make_shared<sponge::graphics::camera::OrthoCamera>();
+    auto camera = std::make_shared<sponge::renderer::OrthoCamera>();
     cameras[name] = camera;
 
     return camera;
 }
 
-std::shared_ptr<sponge::graphics::camera::OrthoCamera>
-ResourceManager::getOrthoCamera(const std::string& name) {
+std::shared_ptr<sponge::renderer::OrthoCamera> ResourceManager::getOrthoCamera(
+    const std::string& name) {
     assert(!name.empty());
     return cameras.at(name);
 }

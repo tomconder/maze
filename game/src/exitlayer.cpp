@@ -1,5 +1,5 @@
-#include "exitlayer.h"
-#include "resourcemanager.h"
+#include "exitlayer.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "exit";
 constexpr std::string_view uiFont = "league-gothic";
@@ -15,37 +15,33 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    const auto assetsFolder = sponge::File::getResourceDir();
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
 
-    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/quad.vert",
-        assetsFolder + "/shaders/quad.frag", quadShader.data());
+    sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/text.vert", "/shaders/text.frag", textShader.data());
 
-    sponge::graphics::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/text.vert",
-        assetsFolder + "/shaders/text.frag", textShader.data());
-
-    sponge::graphics::renderer::OpenGLResourceManager::loadFont(
-        assetsFolder + "/fonts/league-gothic.fnt", uiFont.data());
+    sponge::renderer::OpenGLResourceManager::loadFont(
+        "/fonts/league-gothic.fnt", uiFont.data());
 
     const auto orthoCamera =
         ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        textShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(textShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    quad = std::make_unique<sponge::graphics::renderer::OpenGLQuad>();
+    quad = std::make_unique<sponge::renderer::OpenGLQuad>();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -86,8 +82,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
                  { .52F, .57F, .55F, 1.F });
 
     const auto font =
-        sponge::graphics::renderer::OpenGLResourceManager::getFont(
-            uiFont.data());
+        sponge::renderer::OpenGLResourceManager::getFont(uiFont.data());
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
@@ -105,14 +100,14 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        textShader.data());
+    auto shader =
+        sponge::renderer::OpenGLResourceManager::getShader(textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::graphics::renderer::OpenGLResourceManager::getShader(
-        quadShader.data());
+    shader =
+        sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -136,7 +131,7 @@ bool ExitLayer::onWindowResize(
 
 bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
             sponge::SDLEngine::get().setMouseVisible(false);
         } else {

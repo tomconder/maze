@@ -1,6 +1,6 @@
 
-#include "maze.h"
-#include "sponge.h"
+#include "maze.hpp"
+#include "sponge.hpp"
 #include "version.h"
 
 constexpr std::string_view spongeLogFile = "log.txt";

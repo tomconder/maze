@@ -1,6 +1,7 @@
-#include "platform/opengl/openglrendererapi.h"
-#include "core/base.h"
-#include "core/log.h"
+#include "platform/opengl/openglrendererapi.hpp"
+#include "core/base.hpp"
+#include "core/log.hpp"
+#include "platform/opengl/gl.hpp"
 
 static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
                                   GLenum severity, GLsizei length,
@@ -87,7 +88,7 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
     }
 }
 
-namespace sponge::graphics::renderer {
+namespace sponge::renderer {
 
 void OpenGLRendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {
@@ -129,4 +130,4 @@ void OpenGLRendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-}  // namespace sponge::graphics::renderer
+}  // namespace sponge::renderer

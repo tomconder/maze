@@ -1,5 +1,12 @@
-#include "maze.h"
-#include "sponge.h"
+#include "maze.hpp"
+#include "sponge.hpp"
+
+Maze* Maze::instance = nullptr;
+
+Maze::Maze() {
+    assert(!instance && "Maze already exists!");
+    instance = this;
+}
 
 bool Maze::onUserCreate() {
 #if !NDEBUG
@@ -38,18 +45,20 @@ void Maze::onEvent(sponge::event::Event& event) {
 }
 
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_Escape) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (exitLayer->isActive()) {
             exitLayer->setActive(false);
         } else {
-            exitLayer->setWidthAndHeight(getWidth(), getHeight());
+            auto resizeEvent =
+                sponge::event::WindowResizeEvent{ getWidth(), getHeight() };
+            exitLayer->onEvent(resizeEvent);
             exitLayer->setActive(true);
         }
 
         return true;
     }
 
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_GraveAccent) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_GraveAccent) {
         if (imguiLayer->isActive()) {
             imguiLayer->setActive(false);
         } else {
@@ -59,7 +68,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-    if (event.getKeyCode() == sponge::KeyCode::SpongeKey_F) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_F) {
         toggleFullscreen();
         return true;
     }

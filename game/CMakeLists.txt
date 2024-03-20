@@ -27,8 +27,8 @@ endif ()
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
-        src/*.h
-        src/ui/*.h)
+        src/*.hpp
+        src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES

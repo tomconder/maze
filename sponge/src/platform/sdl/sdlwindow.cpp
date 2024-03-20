@@ -1,4 +1,4 @@
-#include "platform/sdl/sdlwindow.h"
+#include "platform/sdl/sdlwindow.hpp"
 
 namespace sponge {
 
@@ -40,7 +40,7 @@ void SDLWindow::init(const WindowProps& props) {
     data.height = static_cast<uint32_t>(h);
 }
 
-void SDLWindow::shutdown() {
+void SDLWindow::shutdown() const {
     if (window != nullptr) {
         SDL_DestroyWindow(window);
     }
