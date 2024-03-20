@@ -9,6 +9,8 @@
 
 namespace sponge::renderer {
 
+enum LoadFlag { ExcludeAssetsFolder, None };
+
 class OpenGLResourceManager {
    public:
     static std::shared_ptr<OpenGLFont> getFont(const std::string& name);
@@ -29,7 +31,12 @@ class OpenGLResourceManager {
 
     static std::shared_ptr<OpenGLTexture> getTexture(const std::string& name);
     static std::shared_ptr<OpenGLTexture> loadTexture(const std::string& path,
-                                                      const std::string& name);
+                                                      const std::string& name,
+                                                      LoadFlag flag = None);
+
+    static void setAssetsFolder(const std::string& folder) {
+        assetsFolder = folder;
+    }
 
    private:
     OpenGLResourceManager() = default;
@@ -41,6 +48,8 @@ class OpenGLResourceManager {
     static std::string loadSourceFromFile(const std::string& path);
     static std::shared_ptr<OpenGLTexture> loadTextureFromFile(
         const std::string& path);
+
+    static std::string assetsFolder;
 
     static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>> fonts;
     static absl::flat_hash_map<std::string, std::shared_ptr<OpenGLModel>>

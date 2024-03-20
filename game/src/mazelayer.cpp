@@ -8,14 +8,11 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    const auto assetsFolder = sponge::File::getResourceDir();
-
     sponge::renderer::OpenGLResourceManager::loadShader(
-        assetsFolder + "/shaders/shader.vert",
-        assetsFolder + "/shaders/shader.frag",
-        assetsFolder + "/shaders/shader.geom", mazeShader.data());
-    sponge::renderer::OpenGLResourceManager::loadModel(
-        assetsFolder + "/models/mountains.obj", modelName.data());
+        "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
+        mazeShader.data());
+    sponge::renderer::OpenGLResourceManager::loadModel("/models/mountains.obj",
+                                                       modelName.data());
 
     camera = std::make_unique<GameCamera>();
     camera->setPosition(glm::vec3(0.F, 40.F, 70.F));

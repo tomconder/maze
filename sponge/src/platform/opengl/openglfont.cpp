@@ -126,9 +126,10 @@ void OpenGLFont::load(const std::string& path) {
 
             auto pos = path.find_last_of('/');
             auto fontFolder = path.substr(0, pos + 1);
+
             textureName = name;
-            auto texture = OpenGLResourceManager::loadTexture(fontFolder + name,
-                                                              textureName);
+            auto texture = OpenGLResourceManager::loadTexture(
+                fontFolder + name, textureName, ExcludeAssetsFolder);
         }
 
         if (str == "char") {
