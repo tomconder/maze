@@ -13,9 +13,9 @@ class File {
 }  // namespace sponge
 
 #ifdef __APPLE__
-#include "platform/osx/osxfile.h"
+#include "platform/osx/osxfile.hpp"
 #elif __WINDOWS__
 #include "platform/windows/winfile.hpp"
 #elif __UNIX__
-#include "platform/windows/linuxfile.h"
+#include "platform/linux/linuxfile.hpp"
 #endif
