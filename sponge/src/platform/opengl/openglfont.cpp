@@ -1,9 +1,9 @@
-#include "platform/opengl/openglfont.h"
-#include "core/base.h"
-#include "core/file.h"
-#include "core/log.h"
+#include "platform/opengl/openglfont.hpp"
+#include "core/base.hpp"
+#include "core/file.hpp"
+#include "core/log.hpp"
 #include "fmt/core.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/openglresourcemanager.hpp"
 #include <array>
 #include <cstddef>
 #include <fstream>

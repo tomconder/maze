@@ -1,5 +1,5 @@
-#include "maze.h"
-#include "sponge.h"
+#include "maze.hpp"
+#include "sponge.hpp"
 
 Maze* Maze::instance = nullptr;
 

@@ -1,5 +1,5 @@
-#include "platform/opengl/openglcontext.h"
-#include "core/log.h"
+#include "platform/opengl/openglcontext.hpp"
+#include "core/log.hpp"
 #include <tuplet/tuple.hpp>
 #include <SDL.h>
 

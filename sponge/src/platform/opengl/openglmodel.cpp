@@ -1,12 +1,12 @@
-#include "platform/opengl/openglmodel.h"
-#include "core/file.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/openglmodel.hpp"
+#include "core/file.hpp"
+#include "platform/opengl/openglresourcemanager.hpp"
 #include <cassert>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "core/log.h"
+#include "core/log.hpp"
 #include "tiny_obj_loader.h"
 
 namespace sponge::renderer {

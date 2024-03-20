@@ -1,4 +1,4 @@
-#include "button.h"
+#include "button.hpp"
 
 constexpr std::string_view quadShader = "quad";
 

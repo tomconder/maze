@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "mesh.hpp"
 #include <meshoptimizer.h>
 
 namespace sponge::renderer {

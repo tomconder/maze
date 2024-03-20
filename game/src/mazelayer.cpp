@@ -1,4 +1,4 @@
-#include "mazelayer.h"
+#include "mazelayer.hpp"
 
 constexpr std::string_view modelName = "maze";
 constexpr std::string_view mazeShader = "mesh";

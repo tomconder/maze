@@ -1,5 +1,5 @@
-#include "imguinullmanager.h"
-#include "platform/sdl/sdlengine.h"
+#include "imguinullmanager.hpp"
+#include "platform/sdl/sdlengine.hpp"
 
 namespace sponge::imgui {
 

@@ -1,6 +1,6 @@
-#include "platform/opengl/openglquad.h"
-#include "core/file.h"
-#include "platform/opengl/openglresourcemanager.h"
+#include "platform/opengl/openglquad.hpp"
+#include "core/file.hpp"
+#include "platform/opengl/openglresourcemanager.hpp"
 
 namespace sponge::renderer {
 
