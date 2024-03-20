@@ -82,7 +82,7 @@ target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<I
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE absl::flat_hash_map)
 target_link_libraries(sponge PRIVATE glad::glad)
-target_link_libraries(sponge PRIVATE glm::glm)
+target_link_libraries(sponge PRIVATE glm::glm-header-only)
 target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
