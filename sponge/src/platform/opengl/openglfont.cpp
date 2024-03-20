@@ -64,7 +64,10 @@ void OpenGLFont::load(const std::string& path) {
     assert(!path.empty());
 
     std::ifstream stream(path, std::ios::in | std::ios::binary);
-    assert(stream.good());
+    if (!stream.good()) {
+        SPONGE_CORE_ERROR("Unable to open file: {}", path);
+        return;
+    }
 
     auto nextInt = [](std::stringstream& sstream) {
         std::string s;
@@ -188,6 +191,11 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
 
 void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                         uint32_t targetSize, const glm::vec3& color) {
+    if (textureName.empty()) {
+        // texture name is empty when the font fails to load
+        return;
+    }
+
     const auto fontSize = static_cast<float>(targetSize);
     const float scale = fontSize / size;
     const auto str =
