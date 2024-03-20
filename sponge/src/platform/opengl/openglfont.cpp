@@ -1,8 +1,8 @@
 #include "platform/opengl/openglfont.hpp"
 #include "core/base.hpp"
-#include "core/file.hpp"
 #include "core/log.hpp"
 #include "fmt/core.h"
+#include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <array>
 #include <cstddef>
