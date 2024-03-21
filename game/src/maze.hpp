@@ -1,6 +1,7 @@
 #pragma once
 
 #include "exitlayer.hpp"
+#include "gridlayer.hpp"
 #include "hudlayer.hpp"
 #include "imguilayer.hpp"
 #include "mazelayer.hpp"
@@ -29,8 +30,9 @@ class Maze final : public sponge::SDLEngine {
     bool isMouseVisible = true;
 
     std::shared_ptr<ExitLayer> exitLayer = std::make_shared<ExitLayer>();
-    std::shared_ptr<ImGuiLayer> imguiLayer = std::make_shared<ImGuiLayer>();
+    std::shared_ptr<GridLayer> gridLayer = std::make_shared<GridLayer>();
     std::shared_ptr<HUDLayer> hudLayer = std::make_shared<HUDLayer>();
+    std::shared_ptr<ImGuiLayer> imguiLayer = std::make_shared<ImGuiLayer>();
     std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);

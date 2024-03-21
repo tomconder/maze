@@ -49,7 +49,8 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::getModel(
 }
 
 std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
-    const std::string& path, const std::string& name) {
+    const std::string& shaderName, const std::string& path,
+    const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -57,9 +58,9 @@ std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModel(
         return models[name];
     }
 
-    SPONGE_CORE_INFO("Loading mesh file: {}", name);
+    SPONGE_CORE_INFO("Loading model file: {}", name);
 
-    auto mesh = loadModelFromFile(assetsFolder + path);
+    auto mesh = loadModelFromFile(shaderName, assetsFolder + path);
     models[name] = mesh;
 
     return mesh;
@@ -129,7 +130,7 @@ std::shared_ptr<OpenGLShader> OpenGLResourceManager::loadShader(
     assert(!fragmentSource.empty());
 
     SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
-                     fragmentShader);
+                     geometryShader);
     std::string geometrySource =
         loadSourceFromFile(assetsFolder + geometryShader);
 
@@ -185,11 +186,11 @@ std::shared_ptr<OpenGLFont> OpenGLResourceManager::loadFontFromFile(
 }
 
 std::shared_ptr<OpenGLModel> OpenGLResourceManager::loadModelFromFile(
-    const std::string& path) {
+    const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
 
     auto mesh = std::make_shared<OpenGLModel>();
-    mesh->load(path);
+    mesh->load(shaderName, path);
 
     return mesh;
 }

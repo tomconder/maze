@@ -8,7 +8,6 @@ constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
-constexpr std::string_view modelName = "maze";
 constexpr std::string_view cameraName = "maze";
 
 const std::vector logLevels{
@@ -37,7 +36,7 @@ void ImGuiLayer::onImGuiRender() {
     auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
-    ImGui::SetNextWindowSize({ 320.F, 300.F });
+    ImGui::SetNextWindowSize({ 320.F, 360.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -106,21 +105,6 @@ void ImGuiLayer::onImGuiRender() {
             Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
         }
 
-        ImGui::EndTable();
-        ImGui::Separator();
-
-        ImGui::BeginTable(
-            "##ModelTable", 2,
-            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
-
-        auto model =
-            sponge::renderer::OpenGLResourceManager::getModel(modelName.data());
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Vertices");
-        ImGui::TableNextColumn();
-        ImGui::Text("%d", static_cast<uint32_t>(model->getNumVertices() / 3));
         ImGui::EndTable();
         ImGui::Separator();
 
