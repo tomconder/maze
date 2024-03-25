@@ -147,7 +147,8 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     std::transform(name.begin(), name.end(), name.begin(),
                    [](uint8_t c) { return std::tolower(c); });
 
-    return OpenGLResourceManager::loadTexture(filename.string(), name);
+    return OpenGLResourceManager::loadTexture(filename.string(), name,
+                                              ExcludeAssetsFolder);
 }
 
 void OpenGLModel::render() const {
