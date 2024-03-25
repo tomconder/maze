@@ -25,6 +25,22 @@ class GameCamera final : public sponge::renderer::Camera {
         return fov;
     }
 
+    float getWidth() const {
+        return width;
+    }
+
+    float getHeight() const {
+        return height;
+    }
+
+    float getPitch() const {
+        return pitch;
+    }
+
+    float getYaw() const {
+        return yaw;
+    }
+
     void moveForward(double_t delta);
     void moveBackward(double_t delta);
     void strafeLeft(double_t delta);

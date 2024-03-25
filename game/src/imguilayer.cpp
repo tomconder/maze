@@ -1,6 +1,7 @@
 #include "imguilayer.hpp"
 #include "imgui.h"
 #include "maze.hpp"
+#include "resourcemanager.hpp"
 #include "version.h"
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
@@ -8,6 +9,7 @@ constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
 constexpr std::string_view modelName = "maze";
+constexpr std::string_view cameraName = "maze";
 
 const std::vector logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
@@ -53,13 +55,25 @@ void ImGuiLayer::onImGuiRender() {
             "##Table", 2,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
-        auto fov = Maze::get().getMazeLayer()->getCamera()->getFov();
+        auto camera = ResourceManager::getGameCamera(cameraName.data());
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("FOV");
         ImGui::TableNextColumn();
-        ImGui::Text("%.0f", fov);
+        ImGui::Text("%.0f", camera->getFov());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Pitch");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.0f", camera->getPitch());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Yaw");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.0f", camera->getYaw());
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
