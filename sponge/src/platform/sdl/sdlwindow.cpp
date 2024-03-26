@@ -1,4 +1,5 @@
 #include "platform/sdl/sdlwindow.hpp"
+#include "core/log.hpp"
 
 namespace sponge {
 

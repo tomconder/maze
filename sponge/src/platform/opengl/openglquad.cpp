@@ -21,7 +21,6 @@ OpenGLQuad::OpenGLQuad() {
     shader->bind();
 
     const auto program = shader->getId();
-    const auto id = std::to_string(program);
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
@@ -60,8 +59,6 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
     };
 
     const auto shader = OpenGLResourceManager::getShader(quadShader.data());
-
-    auto id = std::to_string(shader->getId());
 
     vao->bind();
 

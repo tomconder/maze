@@ -1,6 +1,6 @@
 include(GNUInstallDirs)
 
-configure_file(bundle/resources/version.h.in version.h)
+configure_file(bundle/resources/version.h.in include/version.h)
 
 if (WIN32)
     # accommodate missing version number values
@@ -84,7 +84,7 @@ if (MSVC)
 endif ()
 
 target_include_directories(game PUBLIC src)
-target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 target_link_libraries(game PRIVATE absl::flat_hash_map)

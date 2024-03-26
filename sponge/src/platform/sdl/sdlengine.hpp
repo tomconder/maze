@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/engine.hpp"
+#include "core/log.hpp"
 #include "event/event.hpp"
 #include "imgui/imguimanager.hpp"
 #include "input/keycode.hpp"

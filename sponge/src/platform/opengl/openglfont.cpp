@@ -30,7 +30,6 @@ OpenGLFont::OpenGLFont() {
     shader->bind();
 
     const auto program = shader->getId();
-    const auto id = std::to_string(program);
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
@@ -248,8 +247,6 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     }
 
     auto shader = OpenGLResourceManager::getShader(textShader.data());
-
-    auto id = std::to_string(shader->getId());
 
     vao->bind();
 
