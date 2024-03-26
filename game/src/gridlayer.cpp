@@ -24,9 +24,6 @@ void GridLayer::onAttach() {
         sponge::renderer::OpenGLResourceManager::getShader(gridShader.data());
     shader->bind();
 
-    shader->setFloat3("lightPos", glm::vec3(4.F, 4.F, 4.F));
-    shader->setFloat("ambientStrength", .6F);
-
     shader->unbind();
 }
 
@@ -40,8 +37,9 @@ bool GridLayer::onUpdate(double elapsedTime) {
     auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(gridShader.data());
     shader->bind();
-    shader->setFloat3("viewPos", camera->getPosition());
+    // shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
+
     shader->unbind();
 
     sponge::renderer::OpenGLResourceManager::getModel(modelName.data())
