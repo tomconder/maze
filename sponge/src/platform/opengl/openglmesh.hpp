@@ -20,9 +20,7 @@ class OpenGLMesh : public Mesh {
     void render() const;
 
    private:
-    OpenGLMesh() = default;
-
-    std::string meshShader;
+    std::string shaderName;
 
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLElementBuffer> ebo;

@@ -10,17 +10,13 @@ constexpr uint32_t indices[numIndices] = {
     0, 3, 2   //
 };
 
-constexpr std::string_view quadShader = "quad";
 constexpr std::string_view position = "position";
 
-OpenGLQuad::OpenGLQuad() {
-    OpenGLResourceManager::loadShader("/shaders/quad.vert",
-                                      "/shaders/quad.frag", quadShader.data());
+OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
+    assert(!shaderName.empty());
 
-    const auto shader = OpenGLResourceManager::getShader(quadShader.data());
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
     shader->bind();
-
-    const auto program = shader->getId();
 
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
@@ -33,6 +29,8 @@ OpenGLQuad::OpenGLQuad() {
         indices, static_cast<uint32_t>(sizeof(uint32_t)) * numIndices);
     ebo->bind();
     ebo->setData(indices, sizeof(indices));
+
+    const auto program = shader->getId();
 
     auto location = glGetAttribLocation(program, position.data());
     if (location != -1) {
@@ -58,7 +56,7 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
         bottom.x, bottom.y   //
     };
 
-    const auto shader = OpenGLResourceManager::getShader(quadShader.data());
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
 
     vao->bind();
 

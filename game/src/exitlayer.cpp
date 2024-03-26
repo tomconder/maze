@@ -40,7 +40,11 @@ void ExitLayer::onAttach() {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    quad = std::make_unique<sponge::renderer::OpenGLQuad>();
+    shader = sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+    UNUSED(shader);
+
+    quad = std::make_unique<sponge::renderer::OpenGLQuad>(quadShader.data());
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,

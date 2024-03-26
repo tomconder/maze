@@ -13,13 +13,13 @@ OpenGLMesh::OpenGLMesh(
     const std::string& shaderName, const std::vector<Vertex>& vertices,
     const std::vector<uint32_t>& indices,
     const std::vector<std::shared_ptr<OpenGLTexture>>& textures)
-    : meshShader(shaderName), textures(textures) {
+    : shaderName(shaderName), textures(textures) {
     assert(!shaderName.empty());
 
     this->indices = indices;
     this->vertices = vertices;
 
-    const auto shader = OpenGLResourceManager::getShader(meshShader);
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
     shader->bind();
 
     vao = std::make_unique<OpenGLVertexArray>();
@@ -72,7 +72,7 @@ OpenGLMesh::OpenGLMesh(
 void OpenGLMesh::render() const {
     vao->bind();
 
-    const auto shader = OpenGLResourceManager::getShader(meshShader);
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
     shader->bind();
 
     if (!textures.empty()) {
