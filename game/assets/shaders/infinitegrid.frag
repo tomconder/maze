@@ -5,21 +5,60 @@ layout(location = 0) out vec4 outColor;
 in vec3 vertexPosition;
 in vec3 near;
 in vec3 far;
+in mat4 viewProj;
 
-float checkerboard(vec2 R, float scale) {
-    return float((int(floor(R.x / scale)) + int(floor(R.y / scale))) % 2);
+vec4 grid(vec3 point, float scale) {
+    vec2 coord = point.xz * scale; // use the scale variable to set the distance between the lines
+    vec2 derivative = fwidth(coord);
+    vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
+    float line = min(grid.x, grid.y);
+    float min_z = min(derivative.y, 1);
+    float min_x = min(derivative.x, 1);
+
+    vec4 color = vec4(0.3);
+    color.a = 1.0 - min(line, 1.0);
+
+    if (point.x > -0.1 * min_x && point.x < 0.1 * min_x) {
+        // z axis
+        color.rgb = vec3(0.427, 0.792, 0.909);
+    }
+
+    if (point.z > -0.1 * min_z && point.z < 0.1 * min_z) {
+        // x axis
+        color.rgb = vec3(0.984, 0.380, 0.490);
+    }
+
+    return color;
+}
+
+float compute_depth(vec3 point) {
+    vec4 clip_space = viewProj * vec4(point, 1.0);
+    float clip_space_depth = clip_space.z / clip_space.w;
+    float zNear = gl_DepthRange.near;
+    float zFar = gl_DepthRange.far;
+    return (((zFar - zNear) * clip_space_depth) + zNear + zFar) / 2.0;
+}
+
+float compute_fade(vec3 point) {
+    vec4 clip_space = viewProj * vec4(point, 1.0);
+    float clip_space_depth = (clip_space.z / clip_space.w) * 2.0 - 1.0;
+    float zNear = 1.F;
+    float zFar = 1800.F;
+    float linear_depth = (2.0 * zNear * zFar) / (zFar + zNear - clip_space_depth * (zFar - zNear));
+    return linear_depth / zFar;
 }
 
 void main() {
     float t = -near.y / (far.y - near.y);
+    vec3 fragPos3D = near + t * (far - near);
 
-    vec3 R = near + t * (far - near);
+    gl_FragDepth = compute_depth(fragPos3D);
 
-    float c =
-      checkerboard(R.xz, 1) * 0.3 +
-      checkerboard(R.xz, 10) * 0.2 +
-      checkerboard(R.xz, 100) * 0.1 +
-      0.1;
+    outColor = grid(fragPos3D, 10) * float(t > 0);
 
-    outColor = vec4(vec3(c / 2.0 + 0.3), 1) * float(t > 0);
+//    float linearDepth = compute_depth(fragPos3D);
+//    float fade = max(0, (0.5 - linearDepth));
+
+//    outColor = (grid(fragPos3D, 10) + grid(fragPos3D, 1)) * float(t > 0); // adding multiple resolution for the grid
+//    outColor.a *= fade;
 }

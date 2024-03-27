@@ -22,9 +22,9 @@ void GridLayer::onAttach() {
 
     const auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(gridShader.data());
-    shader->bind();
+    UNUSED(shader);
 
-    shader->unbind();
+    grid = std::make_unique<sponge::renderer::OpenGLGrid>(gridShader.data());
 }
 
 void GridLayer::onDetach() {
@@ -37,15 +37,11 @@ bool GridLayer::onUpdate(double elapsedTime) {
     auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(gridShader.data());
     shader->bind();
-    // shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
 
     shader->unbind();
 
-    sponge::renderer::OpenGLResourceManager::getModel(modelName.data())
-        ->render();
-
-    shader->unbind();
+    grid->render();
 
     return true;
 }

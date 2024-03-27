@@ -19,7 +19,7 @@ class MazeLayer final : public sponge::layer::Layer {
         return activeWireframe;
     }
 
-    void setWireframeActive(const bool activeWireframe);
+    void setWireframeActive(bool activeWireframe);
 
    private:
     std::shared_ptr<GameCamera> camera;
