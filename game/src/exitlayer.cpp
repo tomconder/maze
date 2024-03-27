@@ -24,8 +24,7 @@ void ExitLayer::onAttach() {
     sponge::renderer::OpenGLResourceManager::loadFont(
         "/fonts/league-gothic.fnt", uiFont.data());
 
-    const auto orthoCamera =
-        ResourceManager::createOrthoCamera(cameraName.data());
+    orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
@@ -41,7 +40,11 @@ void ExitLayer::onAttach() {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    quad = std::make_unique<sponge::renderer::OpenGLQuad>();
+    shader = sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+    UNUSED(shader);
+
+    quad = std::make_unique<sponge::renderer::OpenGLQuad>(quadShader.data());
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -72,7 +75,6 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
-    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     auto width = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
@@ -97,7 +99,6 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
 }
 
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
-    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     orthoCamera->setWidthAndHeight(width, height);
 
     auto shader =

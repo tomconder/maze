@@ -20,8 +20,7 @@ void HUDLayer::onAttach() {
     sponge::renderer::OpenGLResourceManager::loadTexture("/images/coffee.png",
                                                          coffeeTexture.data());
 
-    const auto orthoCamera =
-        ResourceManager::createOrthoCamera(cameraName.data());
+    orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
     auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(quadShader.data());
@@ -48,7 +47,6 @@ void HUDLayer::onDetach() {
 bool HUDLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
     logo->render({ 12.F, 12.F }, { 64.F, 64.F });
 
     return true;
@@ -61,8 +59,8 @@ void HUDLayer::onEvent(sponge::event::Event& event) {
         BIND_EVENT_FN(onWindowResize));
 }
 
-bool HUDLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
-    const auto orthoCamera = ResourceManager::getOrthoCamera(cameraName.data());
+bool HUDLayer::onWindowResize(
+    const sponge::event::WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto projection = orthoCamera->getProjection();

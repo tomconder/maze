@@ -5,22 +5,21 @@
 
 namespace sponge::renderer {
 
-constexpr std::string_view meshShader = "mesh";
 constexpr std::string_view normal = "normal";
 constexpr std::string_view position = "position";
 constexpr std::string_view texCoord = "texCoord";
 
 OpenGLMesh::OpenGLMesh(
-    const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,
+    const std::string& shaderName, const std::vector<Vertex>& vertices,
+    const std::vector<uint32_t>& indices,
     const std::vector<std::shared_ptr<OpenGLTexture>>& textures)
-    : textures(textures) {
+    : shaderName(shaderName), textures(textures) {
+    assert(!shaderName.empty());
+
     this->indices = indices;
     this->vertices = vertices;
 
-    OpenGLResourceManager::loadShader(
-        "/shaders/shader.vert", "/shaders/shader.frag", meshShader.data());
-
-    const auto shader = OpenGLResourceManager::getShader(meshShader.data());
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
     shader->bind();
 
     vao = std::make_unique<OpenGLVertexArray>();
@@ -73,7 +72,7 @@ OpenGLMesh::OpenGLMesh(
 void OpenGLMesh::render() const {
     vao->bind();
 
-    const auto shader = OpenGLResourceManager::getShader(meshShader.data());
+    const auto shader = OpenGLResourceManager::getShader(shaderName);
     shader->bind();
 
     if (!textures.empty()) {

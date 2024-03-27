@@ -1,7 +1,9 @@
 #include "mazelayer.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view modelName = "maze";
 constexpr std::string_view mazeShader = "mesh";
+constexpr std::string_view cameraName = "maze";
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
@@ -11,10 +13,10 @@ void MazeLayer::onAttach() {
     sponge::renderer::OpenGLResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader.data());
-    sponge::renderer::OpenGLResourceManager::loadModel("/models/mountains.obj",
-                                                       modelName.data());
+    sponge::renderer::OpenGLResourceManager::loadModel(
+        mazeShader.data(), "/models/mountains.obj", modelName.data());
 
-    camera = std::make_unique<GameCamera>();
+    camera = ResourceManager::createGameCamera(cameraName.data());
     camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
 
     const auto shader =
@@ -49,6 +51,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     return true;
 }
+
 void MazeLayer::setWireframeActive(const bool activeWireframe) {
     this->activeWireframe = activeWireframe;
 
@@ -76,7 +79,8 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
         BIND_EVENT_FN(onWindowResize));
 }
 
-bool MazeLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
+bool MazeLayer::onKeyPressed(
+    const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_W ||
         event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Up) {
         camera->moveForward(event.getElapsedTime() * keyboardSpeed);
@@ -111,7 +115,8 @@ bool MazeLayer::onMouseButtonReleased(
     return false;
 }
 
-bool MazeLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
+bool MazeLayer::onMouseMoved(
+    const sponge::event::MouseMovedEvent& event) const {
     if (sponge::input::Input::isButtonPressed()) {
         camera->mouseMove({ event.getXRelative() * mouseSpeed,
                             event.getYRelative() * mouseSpeed });
@@ -120,12 +125,13 @@ bool MazeLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
 }
 
 bool MazeLayer::onMouseScrolled(
-    const sponge::event::MouseScrolledEvent& event) {
+    const sponge::event::MouseScrolledEvent& event) const {
     camera->mouseScroll({ event.getXOffset(), event.getYOffset() });
     return true;
 }
 
-bool MazeLayer::onWindowResize(const sponge::event::WindowResizeEvent& event) {
+bool MazeLayer::onWindowResize(
+    const sponge::event::WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
     return false;
 }

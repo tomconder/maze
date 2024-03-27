@@ -32,7 +32,7 @@ class OpenGLShader : public Shader {
    private:
     mutable absl::flat_hash_map<std::string, GLint> uniformLocations;
 
-    uint32_t compileShader(GLenum type, const std::string& file);
+    static uint32_t compileShader(GLenum type, const std::string& source);
     uint32_t linkProgram(uint32_t vs, uint32_t fs);
     uint32_t linkProgram(uint32_t vs, uint32_t fs, uint32_t gs);
 

@@ -136,28 +136,28 @@ uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
     return id;
 }
 
-void OpenGLShader::setBoolean(const std::string& uname, bool value) {
-    glUniform1i(getUniformLocation(uname), static_cast<int>(value));
+void OpenGLShader::setBoolean(const std::string& name, bool value) {
+    glUniform1i(getUniformLocation(name), static_cast<int>(value));
 }
 
-void OpenGLShader::setFloat(const std::string& uname, float value) {
-    glUniform1f(getUniformLocation(uname), value);
+void OpenGLShader::setFloat(const std::string& name, float value) {
+    glUniform1f(getUniformLocation(name), value);
 }
 
-void OpenGLShader::setFloat3(const std::string& uname, const glm::vec3& value) {
-    glUniform3f(getUniformLocation(uname), value.x, value.y, value.z);
+void OpenGLShader::setFloat3(const std::string& name, const glm::vec3& value) {
+    glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-void OpenGLShader::setFloat4(const std::string& uname, const glm::vec4& value) {
-    glUniform4f(getUniformLocation(uname), value.x, value.y, value.z, value.a);
+void OpenGLShader::setFloat4(const std::string& name, const glm::vec4& value) {
+    glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
 }
 
-void OpenGLShader::setInteger(const std::string& uname, int value) {
-    glUniform1i(getUniformLocation(uname), value);
+void OpenGLShader::setInteger(const std::string& name, int value) {
+    glUniform1i(getUniformLocation(name), value);
 }
 
-void OpenGLShader::setMat4(const std::string& uname, const glm::mat4& value) {
-    glUniformMatrix4fv(getUniformLocation(uname), 1, GL_FALSE,
+void OpenGLShader::setMat4(const std::string& name, const glm::mat4& value) {
+    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
                        glm::value_ptr(value));
 }
 

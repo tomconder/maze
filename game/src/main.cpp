@@ -3,14 +3,12 @@
 #include "sponge.hpp"
 #include "version.h"
 
-constexpr std::string_view spongeLogFile = "log.txt";
+namespace maze {
+bool main(int argc, char* argv[]) {
+    UNUSED(argc);
+    UNUSED(argv);
 
-bool startup() {
     const auto maze = std::make_unique<Maze>();
-
-    const auto logfile = sponge::File::getLogDir(game::project_name.data()) +
-                         spongeLogFile.data();
-    sponge::Log::init(logfile);
 
     SPONGE_INFO("Starting game");
 
@@ -38,24 +36,18 @@ bool startup() {
         quit = maze->iterateLoop();
     }
 
+    SPONGE_INFO("Shutting down");
     maze->shutdown();
 
     return true;
 }
 
-bool shutdown() {
-    sponge::Log::shutdown();
-
-    return true;
-}
+}  // namespace maze
 
 extern "C" int main(int argc, char* argv[]) {
-    UNUSED(argc);
-    UNUSED(argv);
-
-    startup();
-
-    shutdown();
+    sponge::startupCore();
+    maze::main(argc, argv);
+    sponge::shutdownCore();
 
     return 0;
 }

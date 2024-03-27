@@ -61,8 +61,6 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
 
     const auto shader = OpenGLResourceManager::getShader(spriteShader.data());
 
-    auto id = std::to_string(shader->getId());
-
     vao->bind();
 
     shader->bind();

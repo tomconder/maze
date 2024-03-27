@@ -1,20 +1,22 @@
 #include "resourcemanager.hpp"
 
 absl::flat_hash_map<std::string, std::shared_ptr<sponge::renderer::OrthoCamera>>
-    ResourceManager::cameras;
+    ResourceManager::orthoCameras;
+absl::flat_hash_map<std::string, std::shared_ptr<GameCamera>>
+    ResourceManager::gameCameras;
 
 std::shared_ptr<sponge::renderer::OrthoCamera>
 ResourceManager::createOrthoCamera(const std::string& name) {
     assert(!name.empty());
 
-    if (cameras.find(name) != cameras.end()) {
-        return cameras[name];
+    if (orthoCameras.find(name) != orthoCameras.end()) {
+        return orthoCameras[name];
     }
 
-    SPONGE_INFO("Creating camera: {}", name);
+    SPONGE_INFO("Creating ortho camera: {}", name);
 
     auto camera = std::make_shared<sponge::renderer::OrthoCamera>();
-    cameras[name] = camera;
+    orthoCameras[name] = camera;
 
     return camera;
 }
@@ -22,5 +24,27 @@ ResourceManager::createOrthoCamera(const std::string& name) {
 std::shared_ptr<sponge::renderer::OrthoCamera> ResourceManager::getOrthoCamera(
     const std::string& name) {
     assert(!name.empty());
-    return cameras.at(name);
+    return orthoCameras.at(name);
+}
+
+std::shared_ptr<GameCamera> ResourceManager::createGameCamera(
+    const std::string& name) {
+    assert(!name.empty());
+
+    if (gameCameras.find(name) != gameCameras.end()) {
+        return gameCameras[name];
+    }
+
+    SPONGE_INFO("Creating game camera: {}", name);
+
+    auto camera = std::make_shared<GameCamera>();
+    gameCameras[name] = camera;
+
+    return camera;
+}
+
+std::shared_ptr<GameCamera> ResourceManager::getGameCamera(
+    const std::string& name) {
+    assert(!name.empty());
+    return gameCameras.at(name);
 }

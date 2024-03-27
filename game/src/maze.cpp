@@ -7,7 +7,6 @@ Maze::Maze() {
     assert(!instance && "Maze already exists!");
     instance = this;
 }
-
 bool Maze::onUserCreate() {
 #if !NDEBUG
     pushOverlay(imguiLayer);
@@ -15,6 +14,7 @@ bool Maze::onUserCreate() {
     pushOverlay(hudLayer);
     pushOverlay(exitLayer);
 
+    pushLayer(gridLayer);
     pushLayer(mazeLayer);
 
     exitLayer->setActive(false);

@@ -6,6 +6,7 @@
 #include "core/engine.hpp"
 #include "core/file.hpp"
 #include "core/log.hpp"
+#include "core/logcustom.hpp"
 #include "core/logflag.hpp"
 #include "core/timer.hpp"
 #include "core/window.hpp"

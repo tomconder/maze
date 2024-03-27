@@ -1,4 +1,5 @@
 #include "platform/opengl/openglinfo.hpp"
+#include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>

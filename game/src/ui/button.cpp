@@ -17,7 +17,12 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       textColor(textColor),
       textPosition({ topLeft.x, topLeft.y }) {
     font = sponge::renderer::OpenGLResourceManager::getFont(textFontName);
-    quad = std::make_unique<sponge::renderer::OpenGLQuad>();
+
+    const auto shader = sponge::renderer::OpenGLResourceManager::loadShader(
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+    UNUSED(shader);
+
+    quad = std::make_unique<sponge::renderer::OpenGLQuad>(quadShader.data());
 }
 
 bool Button::onUpdate(const double elapsedTime) const {

@@ -18,7 +18,8 @@ class OpenGLResourceManager {
                                                 const std::string& name);
 
     static std::shared_ptr<OpenGLModel> getModel(const std::string& name);
-    static std::shared_ptr<OpenGLModel> loadModel(const std::string& path,
+    static std::shared_ptr<OpenGLModel> loadModel(const std::string& shaderName,
+                                                  const std::string& path,
                                                   const std::string& name);
 
     static std::shared_ptr<OpenGLShader> loadShader(
@@ -44,7 +45,7 @@ class OpenGLResourceManager {
     static std::shared_ptr<OpenGLFont> loadFontFromFile(
         const std::string& path);
     static std::shared_ptr<OpenGLModel> loadModelFromFile(
-        const std::string& path);
+        const std::string& shaderName, const std::string& path);
     static std::string loadSourceFromFile(const std::string& path);
     static std::shared_ptr<OpenGLTexture> loadTextureFromFile(
         const std::string& path);

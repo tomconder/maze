@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gamecamera.hpp"
 #include "sponge.hpp"
 #include <absl/container/flat_hash_map.h>
 #include <memory>
@@ -11,11 +12,16 @@ class ResourceManager {
         const std::string& name);
     static std::shared_ptr<sponge::renderer::OrthoCamera> getOrthoCamera(
         const std::string& name);
+    static std::shared_ptr<GameCamera> createGameCamera(
+        const std::string& name);
+    static std::shared_ptr<GameCamera> getGameCamera(const std::string& name);
 
    private:
     ResourceManager() = default;
 
     static absl::flat_hash_map<std::string,
                                std::shared_ptr<sponge::renderer::OrthoCamera>>
-        cameras;
+        orthoCameras;
+    static absl::flat_hash_map<std::string, std::shared_ptr<GameCamera>>
+        gameCameras;
 };
