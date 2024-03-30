@@ -1,6 +1,5 @@
-#include "platform/opengl/openglquad.hpp"
-#include "platform/opengl/gl.hpp"
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "openglgrid.hpp"
+#include "openglresourcemanager.hpp"
 
 namespace sponge::renderer {
 
@@ -10,9 +9,16 @@ constexpr uint32_t indices[numIndices] = {
     0, 3, 2   //
 };
 
+constexpr float vertices[8] = {
+    -1.F, -1.F,  //
+    -1.F, 1.F,   //
+    1.F,  1.F,   //
+    1.F,  -1.F,  //
+};
+
 constexpr std::string_view position = "position";
 
-OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
+OpenGLGrid::OpenGLGrid(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
 
     const auto shader = OpenGLResourceManager::getShader(shaderName);
@@ -23,6 +29,7 @@ OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
 
     vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
                                          16);
+    vbo->setData(vertices, sizeof(vertices));
     vbo->bind();
 
     ebo = std::make_unique<OpenGLElementBuffer>(
@@ -47,23 +54,12 @@ OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
     shader->unbind();
 }
 
-void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
-                        const glm::vec4& color) const {
-    const float vertices[8] = {
-        top.x,    bottom.y,  //
-        top.x,    top.y,     //
-        bottom.x, top.y,     //
-        bottom.x, bottom.y   //
-    };
-
+void OpenGLGrid::render() const {
     const auto shader = OpenGLResourceManager::getShader(shaderName);
 
     vao->bind();
 
     shader->bind();
-    shader->setFloat4("color", color);
-
-    vbo->setData(vertices, sizeof(vertices));
 
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
 

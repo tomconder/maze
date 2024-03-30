@@ -6,16 +6,21 @@
 #include "platform/opengl/openglvertexarray.hpp"
 #include "renderer/mesh.hpp"
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace sponge::renderer {
 
 class OpenGLMesh : public Mesh {
    public:
-    OpenGLMesh(const std::vector<Vertex>& vertices,
+    OpenGLMesh(const std::string& shaderName,
+               const std::vector<Vertex>& vertices,
                const std::vector<uint32_t>& indices,
                const std::vector<std::shared_ptr<OpenGLTexture>>& textures);
     void render() const;
+
+   private:
+    std::string shaderName;
 
     std::unique_ptr<OpenGLBuffer> vbo;
     std::unique_ptr<OpenGLElementBuffer> ebo;

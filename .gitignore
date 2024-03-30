@@ -71,3 +71,4 @@ out/
 
 !game/assets/**/*.obj
 .DS_Store
+.cache

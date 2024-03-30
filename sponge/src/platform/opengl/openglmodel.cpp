@@ -10,7 +10,7 @@
 
 namespace sponge::renderer {
 
-void OpenGLModel::load(std::string_view path) {
+void OpenGLModel::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
 
     meshes.clear();
@@ -21,7 +21,7 @@ void OpenGLModel::load(std::string_view path) {
     std::string warn;
     std::string err;
 
-    std::filesystem::path dir{ path.data() };
+    std::filesystem::path dir{ path };
     auto ret = LoadObj(&attrib, &shapes, &materials, &warn, &err,
                        dir.string().data(), dir.parent_path().string().data());
 
@@ -47,10 +47,11 @@ void OpenGLModel::load(std::string_view path) {
     SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
     SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
 
-    process(attrib, shapes, materials, dir.parent_path().string());
+    process(shaderName, attrib, shapes, materials, dir.parent_path().string());
 }
 
-void OpenGLModel::process(tinyobj::attrib_t& attrib,
+void OpenGLModel::process(const std::string& shaderName,
+                          tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
                           const std::vector<tinyobj::material_t>& materials,
                           const std::string& path) {
@@ -58,7 +59,7 @@ void OpenGLModel::process(tinyobj::attrib_t& attrib,
     numVertices = 0;
 
     for (auto& [name, mesh, lines, points] : shapes) {
-        auto newMesh = processMesh(attrib, mesh, materials, path);
+        auto newMesh = processMesh(shaderName, attrib, mesh, materials, path);
         newMesh->optimize();
         numIndices += newMesh->getNumIndices();
         numVertices += newMesh->getNumVertices();
@@ -67,8 +68,8 @@ void OpenGLModel::process(tinyobj::attrib_t& attrib,
 }
 
 std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
-    tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-    const std::vector<tinyobj::material_t>& materials,
+    const std::string& shaderName, tinyobj::attrib_t& attrib,
+    tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -120,13 +121,13 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     }
 
     if (!mesh.material_ids.empty()) {
-        const auto id = mesh.material_ids[0];
-        if (id != -1) {
+        if (const auto id = mesh.material_ids[0]; id != -1) {
             textures.push_back(loadMaterialTextures(materials[id], path));
         }
     }
 
-    return std::make_shared<OpenGLMesh>(vertices, indices, textures);
+    return std::make_shared<OpenGLMesh>(shaderName, vertices, indices,
+                                        textures);
 }
 
 std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
@@ -134,20 +135,22 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     std::shared_ptr<OpenGLTexture> texture;
 
     auto baseName = [](const std::string& filepath) {
-        if (auto pos = filepath.find_last_of("/\\"); pos != std::string::npos) {
+        if (const auto pos = filepath.find_last_of("/\\");
+            pos != std::string::npos) {
             return filepath.substr(pos + 1, filepath.length());
         }
         return filepath;
     };
 
-    auto filename = std::filesystem::weakly_canonical(
+    const auto filename = std::filesystem::weakly_canonical(
         path + "/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::transform(name.begin(), name.end(), name.begin(),
-                   [](uint8_t c) { return std::tolower(c); });
+                   [](const uint8_t c) { return std::tolower(c); });
 
-    return OpenGLResourceManager::loadTexture(filename.string(), name);
+    return OpenGLResourceManager::loadTexture(filename.string(), name,
+                                              ExcludeAssetsFolder);
 }
 
 void OpenGLModel::render() const {

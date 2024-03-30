@@ -13,6 +13,8 @@ class ExitLayer : public sponge::layer::Layer {
     bool onUpdate(double elapsedTime) override;
 
    private:
+    std::shared_ptr<sponge::renderer::OrthoCamera> orthoCamera;
+
     const std::string_view cancelButtonMessage = "Cancel";
     const std::string_view confirmButtonMessage = "Confirm";
     const std::string_view message = "Exit the Game?";
@@ -27,7 +29,7 @@ class ExitLayer : public sponge::layer::Layer {
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
+    static bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
     void setWidthAndHeight(uint32_t width, uint32_t height) const;

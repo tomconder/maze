@@ -12,6 +12,14 @@ class GameCamera final : public sponge::renderer::Camera {
         return mvp;
     }
 
+    const glm::mat4& getProjection() const {
+        return projection;
+    }
+
+    const glm::mat4& getView() const {
+        return view;
+    }
+
     const glm::mat4& getViewportMatrix() const {
         return viewport;
     }
@@ -23,6 +31,22 @@ class GameCamera final : public sponge::renderer::Camera {
 
     float getFov() const {
         return fov;
+    }
+
+    float getWidth() const {
+        return width;
+    }
+
+    float getHeight() const {
+        return height;
+    }
+
+    float getPitch() const {
+        return pitch;
+    }
+
+    float getYaw() const {
+        return yaw;
     }
 
     void moveForward(double_t delta);
