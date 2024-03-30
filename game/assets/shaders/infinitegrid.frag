@@ -39,15 +39,6 @@ float compute_depth(vec3 point) {
     return (((zFar - zNear) * clip_space_depth) + zNear + zFar) / 2.0;
 }
 
-float compute_fade(vec3 point) {
-    vec4 clip_space = viewProj * vec4(point, 1.0);
-    float clip_space_depth = (clip_space.z / clip_space.w) * 2.0 - 1.0;
-    float zNear = 1.F;
-    float zFar = 1800.F;
-    float linear_depth = (2.0 * zNear * zFar) / (zFar + zNear - clip_space_depth * (zFar - zNear));
-    return linear_depth / zFar;
-}
-
 void main() {
     float t = -near.y / (far.y - near.y);
     vec3 fragPos3D = near + t * (far - near);
@@ -55,10 +46,4 @@ void main() {
     gl_FragDepth = compute_depth(fragPos3D);
 
     outColor = grid(fragPos3D, 10) * float(t > 0);
-
-//    float linearDepth = compute_depth(fragPos3D);
-//    float fade = max(0, (0.5 - linearDepth));
-
-//    outColor = (grid(fragPos3D, 10) + grid(fragPos3D, 1)) * float(t > 0); // adding multiple resolution for the grid
-//    outColor.a *= fade;
 }
