@@ -5,6 +5,8 @@
 constexpr std::string_view spongeLogFile = "log.txt";
 constexpr std::string_view appFolder = "ItsTom";
 
+#define ASNFAM1
+
 namespace sponge {
 void startupCore() {
     const auto logfile =
