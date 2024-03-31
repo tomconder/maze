@@ -14,16 +14,16 @@ void MazeLayer::onAttach() {
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader.data());
     sponge::renderer::OpenGLResourceManager::loadModel(
-        mazeShader.data(), "/models/mountains.obj", modelName.data());
+        mazeShader.data(), "/models/cube/cube.obj", modelName.data());
 
     camera = ResourceManager::createGameCamera(cameraName.data());
-    camera->setPosition(glm::vec3(0.F, 40.F, 70.F));
+    camera->setPosition(glm::vec3(0.F, 4.F, 4.F));
 
     const auto shader =
         sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
     shader->bind();
 
-    shader->setFloat3("lightPos", glm::vec3(40.F, 40.F, 40.F));
+    shader->setFloat3("lightPos", glm::vec3(4.F, 4.F, 4.F));
     shader->setFloat("ambientStrength", .3F);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
