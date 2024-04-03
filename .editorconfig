@@ -5,8 +5,9 @@ charset = utf-8
 indent_size = 4
 indent_style = space
 
-[{*.h,*.cpp}]
+[*.{h,hpp,c,cpp,vert,geom,frag}]
 charset = utf-8
+end_of_line = crlf
 indent_size = 2
 indent_style = space
 insert_final_newline = true
