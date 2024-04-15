@@ -1,14 +1,14 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "ce1916404fc6f2b645f419a6d47b7ebafe686582",
+  "builtin-baseline": "ad3bae57455a3c3ce528fcd47d8e8027d0498add",
   "dependencies": [
     {
       "name": "abseil",
       "features": [
         "cxx17"
       ],
-      "version>=": "20240116.1"
+      "version>=": "20240116.1#1"
     },
     {
       "name": "glad",
@@ -41,7 +41,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.13.0"
+      "version>=": "1.13.0#1"
     },
     {
       "name": "stb",
@@ -49,7 +49,7 @@
     },
     {
       "name": "tinyobjloader",
-      "version>=": "2.0.0-rc9"
+      "version>=": "2.0.0rc13"
     },
     {
       "name": "tuplet",
