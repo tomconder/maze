@@ -1,7 +1,7 @@
 #pragma once
 
 #include "event/event.hpp"
-#include "input/mouse/mousecode.hpp"
+#include "input/mousecode.hpp"
 
 namespace sponge::event {
 
@@ -55,7 +55,7 @@ class MouseScrolledEvent : public Event {
 
 class MouseButtonEvent : public Event {
    public:
-    input::mouse::MouseCode getMouseButton() const {
+    input::MouseCode getMouseButton() const {
         return button;
     }
 
@@ -63,16 +63,15 @@ class MouseButtonEvent : public Event {
                          EventCategoryMouseButton)
 
    protected:
-    explicit MouseButtonEvent(const input::mouse::MouseCode button)
-        : button(button) {}
+    explicit MouseButtonEvent(const input::MouseCode button) : button(button) {}
 
    private:
-    input::mouse::MouseCode button;
+    input::MouseCode button;
 };
 
 class MouseButtonPressedEvent : public MouseButtonEvent {
    public:
-    MouseButtonPressedEvent(const input::mouse::MouseCode button, float xpos,
+    MouseButtonPressedEvent(const input::MouseCode button, float xpos,
                             float ypos)
         : MouseButtonEvent(button), x(xpos), y(ypos) {}
 
@@ -92,7 +91,7 @@ class MouseButtonPressedEvent : public MouseButtonEvent {
 
 class MouseButtonReleasedEvent : public MouseButtonEvent {
    public:
-    explicit MouseButtonReleasedEvent(const input::mouse::MouseCode button)
+    explicit MouseButtonReleasedEvent(const input::MouseCode button)
         : MouseButtonEvent(button) {}
 
     EVENT_CLASS_TYPE(MouseButtonReleased)

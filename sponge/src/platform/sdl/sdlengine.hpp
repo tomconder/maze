@@ -4,14 +4,12 @@
 #include "core/log.hpp"
 #include "event/event.hpp"
 #include "imgui/imguimanager.hpp"
-#include "input/keyboard/keycode.hpp"
-#include "input/mouse/mousecode.hpp"
+#include "input/sdlkeyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/openglcontext.hpp"
 #include "platform/opengl/openglrendererapi.hpp"
 #include "platform/sdl/sdlwindow.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <SDL.h>
 #include <cstdint>
 #include <memory>
@@ -121,11 +119,8 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     layer::LayerStack* layerStack;
-    absl::flat_hash_map<SDL_Scancode, input::keyboard::KeyCode> keyCodeMap;
+    input::SDLKeyboard* keyboard;
 
-    void initializeKeyCodeMap();
-    input::keyboard::KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
-    static input::mouse::MouseCode mapMouseButton(uint8_t index);
     void processEvent(const SDL_Event& event, double elapsedTime);
 
     static SDLEngine* instance;
