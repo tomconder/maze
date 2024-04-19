@@ -142,7 +142,7 @@ void SDLKeyboard::initializeScanCodeMap() {
     scanCodeMap[KeyCode::SpongeKey_Menu] = SDL_SCANCODE_MENU;
 }
 
-const SDL_Scancode& SDLKeyboard::mapKeyCodeToScanCode(const KeyCode key) {
+SDL_Scancode& SDLKeyboard::mapKeyCodeToScanCode(const KeyCode key) {
     return scanCodeMap[key];
 }
 
