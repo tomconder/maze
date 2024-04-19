@@ -45,8 +45,7 @@ void Maze::onEvent(sponge::event::Event& event) {
 }
 
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    if (event.getKeyCode() ==
-        sponge::input::keyboard::KeyCode::SpongeKey_Escape) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (exitLayer->isActive()) {
             exitLayer->setActive(false);
         } else {
@@ -59,8 +58,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-    if (event.getKeyCode() ==
-        sponge::input::keyboard::KeyCode::SpongeKey_GraveAccent) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_GraveAccent) {
         if (imguiLayer->isActive()) {
             imguiLayer->setActive(false);
         } else {
@@ -70,7 +68,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-    if (event.getKeyCode() == sponge::input::keyboard::KeyCode::SpongeKey_F) {
+    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_F) {
         toggleFullscreen();
         return true;
     }

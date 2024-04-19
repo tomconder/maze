@@ -1,29 +1,28 @@
 #pragma once
 
 #include "event/event.hpp"
-#include "input/keyboard/keycode.hpp"
+#include "input/keycode.hpp"
 
 namespace sponge::event {
 
 class KeyEvent : public Event {
    public:
-    input::keyboard::KeyCode getKeyCode() const {
+    input::KeyCode getKeyCode() const {
         return keyCode;
     }
 
     EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
 
    protected:
-    explicit KeyEvent(const input::keyboard::KeyCode keyCode)
-        : keyCode(keyCode) {}
+    explicit KeyEvent(const input::KeyCode keyCode) : keyCode(keyCode) {}
 
    private:
-    input::keyboard::KeyCode keyCode;
+    input::KeyCode keyCode;
 };
 
 class KeyPressedEvent final : public KeyEvent {
    public:
-    explicit KeyPressedEvent(const input::keyboard::KeyCode keycode,
+    explicit KeyPressedEvent(const input::KeyCode keycode,
                              const double elapsedTime,
                              const bool isRepeated = false)
         : KeyEvent(keycode), elapsedTime(elapsedTime), isRepeated(isRepeated) {}
@@ -45,7 +44,7 @@ class KeyPressedEvent final : public KeyEvent {
 
 class KeyReleasedEvent final : public KeyEvent {
    public:
-    explicit KeyReleasedEvent(const input::keyboard::KeyCode keycode)
+    explicit KeyReleasedEvent(const input::KeyCode keycode)
         : KeyEvent(keycode) {}
 
     EVENT_CLASS_TYPE(KeyReleased)
@@ -53,8 +52,7 @@ class KeyReleasedEvent final : public KeyEvent {
 
 class KeyTypedEvent : public KeyEvent {
    public:
-    explicit KeyTypedEvent(const input::keyboard::KeyCode keycode)
-        : KeyEvent(keycode) {}
+    explicit KeyTypedEvent(const input::KeyCode keycode) : KeyEvent(keycode) {}
 
     EVENT_CLASS_TYPE(KeyTyped)
 };

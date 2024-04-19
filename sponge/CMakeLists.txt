@@ -9,8 +9,6 @@ file(
         src/event/*.hpp
         src/imgui/*.hpp
         src/input/*.hpp
-        src/input/keyboard/*.hpp
-        src/input/mouse/*.hpp
         src/layer/*.hpp
         src/renderer/*.hpp
         src/scene/*.hpp)
@@ -22,8 +20,6 @@ file(
         src/event/*.cpp
         src/imgui/*.cpp
         src/input/*.cpp
-        src/input/keyboard/*.cpp
-        src/input/mouse/*.cpp
         src/layer/*.cpp
         src/renderer/*.cpp
         src/scene/*.cpp)
