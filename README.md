@@ -8,7 +8,6 @@ A nice walk through a maze.
 
     3rdparty/        # third party dependencies
     build-scripts/   # build utility scripts
-    cmake/           # cmake specific files
     docs/            # documentation
     game/            # source files for maze
     sponge/          # source files for sponge game engine
