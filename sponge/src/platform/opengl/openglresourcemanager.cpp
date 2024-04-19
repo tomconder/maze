@@ -219,13 +219,13 @@ std::shared_ptr<OpenGLTexture> OpenGLResourceManager::loadTextureFromFile(
 
     auto texture = std::make_shared<OpenGLTexture>();
 
-    std::filesystem::path name{ path };
+    const std::filesystem::path name{ path };
 
     int origFormat;
-    int depth = 32;
+    constexpr int depth = 32;
     int height;
     int width;
-    int channels = STBI_rgb_alpha;
+    constexpr int channels = STBI_rgb_alpha;
 
     void* data =
         stbi_load(name.string().data(), &width, &height, &origFormat, channels);

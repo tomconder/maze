@@ -45,5 +45,5 @@ void main() {
 
     gl_FragDepth = compute_depth(fragPos3D);
 
-    outColor = grid(fragPos3D, 10) * float(t > 0);
+    outColor = grid(fragPos3D, 1) * float(t > 0);
 }

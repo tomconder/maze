@@ -4,8 +4,8 @@
 #include "core/log.hpp"
 #include "event/event.hpp"
 #include "imgui/imguimanager.hpp"
-#include "input/keycode.hpp"
-#include "input/mousecode.hpp"
+#include "input/keyboard/keycode.hpp"
+#include "input/mouse/mousecode.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/openglcontext.hpp"
@@ -121,11 +121,11 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     layer::LayerStack* layerStack;
-    absl::flat_hash_map<SDL_Scancode, input::KeyCode> keyCodeMap;
+    absl::flat_hash_map<SDL_Scancode, input::keyboard::KeyCode> keyCodeMap;
 
     void initializeKeyCodeMap();
-    input::KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
-    static input::MouseCode mapMouseButton(uint8_t index);
+    input::keyboard::KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
+    static input::mouse::MouseCode mapMouseButton(uint8_t index);
     void processEvent(const SDL_Event& event, double elapsedTime);
 
     static SDLEngine* instance;

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace sponge::input {
+namespace sponge::input::keyboard {
 
 // inspired by glfw3.h
 enum class KeyCode : uint16_t {
@@ -139,4 +139,4 @@ enum class KeyCode : uint16_t {
     SpongeKey_Menu = 348
 };
 
-}  // namespace sponge::input
+}  // namespace sponge::input::keyboard

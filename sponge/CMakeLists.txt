@@ -9,9 +9,9 @@ file(
         src/event/*.hpp
         src/imgui/*.hpp
         src/input/*.hpp
+        src/input/keyboard/*.hpp
+        src/input/mouse/*.hpp
         src/layer/*.hpp
-        src/platform/opengl/*.hpp
-        src/platform/sdl/*.hpp
         src/renderer/*.hpp
         src/scene/*.hpp)
 
@@ -22,11 +22,35 @@ file(
         src/event/*.cpp
         src/imgui/*.cpp
         src/input/*.cpp
+        src/input/keyboard/*.cpp
+        src/input/mouse/*.cpp
         src/layer/*.cpp
-        src/platform/opengl/*.cpp
-        src/platform/sdl/*.cpp
         src/renderer/*.cpp
         src/scene/*.cpp)
+
+# OpenGL
+message(STATUS "Including OpenGL platform files")
+file(GLOB OPENGL_HEADERS LIST_DIRECTORIES false src/platform/opengl/*.hpp)
+list(APPEND HEADER_FILES ${OPENGL_HEADERS})
+file(GLOB OPENGL_SOURCES LIST_DIRECTORIES false src/platform/opengl/*.cpp)
+list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
+
+# SDL
+message(STATUS "Including SDL platform files")
+file(
+        GLOB SDL_HEADERS
+        LIST_DIRECTORIES false
+        src/platform/sdl/*.hpp
+        src/platform/sdl/input/*.hpp
+)
+list(APPEND HEADER_FILES ${SDL_HEADERS})
+file(
+        GLOB SDL_SOURCES
+        LIST_DIRECTORIES false
+        src/platform/sdl/*.cpp
+        src/platform/sdl/input/*.cpp
+)
+list(APPEND SOURCE_FILES ${SDL_SOURCES})
 
 if (APPLE)
     message(STATUS "Including OSX platform files")

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "keycode.hpp"
+#include "input/keyboard/keycode.hpp"
 
 namespace sponge::input {
 
@@ -8,7 +8,7 @@ class Input {
    public:
     virtual ~Input() = default;
 
-    static bool isKeyPressed(KeyCode key) {
+    static bool isKeyPressed(keyboard::KeyCode key) {
         return instance->isKeyPressedImpl(key);
     }
 
@@ -17,7 +17,7 @@ class Input {
     }
 
    protected:
-    virtual bool isKeyPressedImpl(KeyCode key) = 0;
+    virtual bool isKeyPressedImpl(keyboard::KeyCode key) = 0;
     virtual bool isButtonPressedImpl() = 0;
 
    private:
