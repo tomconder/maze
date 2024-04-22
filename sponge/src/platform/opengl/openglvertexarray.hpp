@@ -3,9 +3,9 @@
 #include "renderer/buffer.hpp"
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLVertexArray : public Buffer {
+class OpenGLVertexArray : public renderer::Buffer {
    public:
     OpenGLVertexArray();
     explicit OpenGLVertexArray(const std::vector<unsigned int>& indices);
@@ -23,4 +23,4 @@ class OpenGLVertexArray : public Buffer {
     void unbind() const override;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

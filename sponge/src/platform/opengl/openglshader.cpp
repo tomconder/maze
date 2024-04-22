@@ -1,10 +1,10 @@
-#include "platform/opengl/openglshader.hpp"
+#include "openglshader.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 OpenGLShader::OpenGLShader(const std::string& vertexSource,
                            const std::string& fragmentSource) {
@@ -178,4 +178,4 @@ GLint OpenGLShader::getUniformLocation(const std::string& name) const {
     return location;
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

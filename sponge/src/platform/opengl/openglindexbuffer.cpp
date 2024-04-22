@@ -2,7 +2,7 @@
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 OpenGLIndexBuffer::OpenGLIndexBuffer() {
     SPONGE_CORE_WARN("Not implemented");

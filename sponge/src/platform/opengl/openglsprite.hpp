@@ -5,9 +5,9 @@
 #include "openglvertexbuffer.hpp"
 #include "renderer/sprite.hpp"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLSprite : public Sprite {
+class OpenGLSprite : public renderer::Sprite {
    public:
     explicit OpenGLSprite(std::string_view name);
 
@@ -20,4 +20,4 @@ class OpenGLSprite : public Sprite {
     std::unique_ptr<OpenGLVertexArray> vao;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

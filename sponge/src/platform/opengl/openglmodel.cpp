@@ -1,4 +1,4 @@
-#include "platform/opengl/openglmodel.hpp"
+#include "openglmodel.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <cassert>
 
@@ -8,7 +8,7 @@
 #include "core/log.hpp"
 #include "tiny_obj_loader.h"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 void OpenGLModel::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
@@ -71,7 +71,7 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
-    std::vector<Vertex> vertices;
+    std::vector<renderer::Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 
@@ -80,7 +80,7 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    Vertex vertex;
+    renderer::Vertex vertex;
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
@@ -159,4 +159,4 @@ void OpenGLModel::render() const {
     }
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

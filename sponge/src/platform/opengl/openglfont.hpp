@@ -8,7 +8,7 @@
 #include <glm/vec3.hpp>
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 struct Character {
     glm::vec2 loc;

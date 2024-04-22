@@ -5,7 +5,7 @@
 #include "openglvertexbuffer.hpp"
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 class OpenGLGrid {
    public:

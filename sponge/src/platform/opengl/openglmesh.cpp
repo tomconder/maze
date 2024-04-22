@@ -1,16 +1,17 @@
-#include "platform/opengl/openglmesh.hpp"
+#include "openglmesh.hpp"
 #include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <cstddef>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 constexpr std::string_view normal = "normal";
 constexpr std::string_view position = "position";
 constexpr std::string_view texCoord = "texCoord";
 
 OpenGLMesh::OpenGLMesh(
-    const std::string& shaderName, const std::vector<Vertex>& vertices,
+    const std::string& shaderName,
+    const std::vector<renderer::Vertex>& vertices,
     const std::vector<uint32_t>& indices,
     const std::vector<std::shared_ptr<OpenGLTexture>>& textures)
     : shaderName(shaderName), textures(textures) {
@@ -34,18 +35,20 @@ OpenGLMesh::OpenGLMesh(
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(
-            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-            reinterpret_cast<const void*>(offsetof(Vertex, position)));
+        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(renderer::Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(renderer::Vertex, position)));
     }
 
     location = glGetAttribLocation(program, texCoord.data());
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(
-            position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-            reinterpret_cast<const void*>(offsetof(Vertex, texCoords)));
+        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE,
+                              sizeof(renderer::Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(renderer::Vertex, texCoords)));
     }
 
     location = glGetAttribLocation(program, normal.data());
@@ -53,8 +56,8 @@ OpenGLMesh::OpenGLMesh(
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(
-            position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-            reinterpret_cast<const void*>(offsetof(Vertex, normal)));
+            position, 3, GL_FLOAT, GL_FALSE, sizeof(renderer::Vertex),
+            reinterpret_cast<const void*>(offsetof(renderer::Vertex, normal)));
     }
 
     ebo = std::make_unique<OpenGLIndexBuffer>(indices);
@@ -82,4 +85,4 @@ void OpenGLMesh::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

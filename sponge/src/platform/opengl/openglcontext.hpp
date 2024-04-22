@@ -5,9 +5,9 @@
 
 struct SDL_Window;
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLContext : public GraphicsContext {
+class OpenGLContext : public renderer::GraphicsContext {
    public:
     explicit OpenGLContext(SDL_Window* window);
     ~OpenGLContext() override;
@@ -23,4 +23,4 @@ class OpenGLContext : public GraphicsContext {
     bool isFullScreen = false;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

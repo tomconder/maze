@@ -13,5 +13,5 @@ class GridLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<GameCamera> camera;
-    std::unique_ptr<sponge::renderer::OpenGLGrid> grid;
+    std::unique_ptr<sponge::platform::opengl::OpenGLGrid> grid;
 };

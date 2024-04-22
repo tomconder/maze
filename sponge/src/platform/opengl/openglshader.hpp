@@ -4,9 +4,9 @@
 #include <absl/container/flat_hash_map.h>
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLShader : public Shader {
+class OpenGLShader : public renderer::Shader {
    public:
     OpenGLShader(const std::string& vertexSource,
                  const std::string& fragmentSource);
@@ -41,4 +41,4 @@ class OpenGLShader : public Shader {
     GLint getUniformLocation(const std::string& name) const;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

@@ -3,9 +3,9 @@
 #include "renderer/buffer.hpp"
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLIndexBuffer : public Buffer {
+class OpenGLIndexBuffer : public renderer::Buffer {
    public:
     OpenGLIndexBuffer();
     explicit OpenGLIndexBuffer(const std::vector<unsigned int>& indices);
@@ -26,4 +26,4 @@ class OpenGLIndexBuffer : public Buffer {
     void unbind() const override;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

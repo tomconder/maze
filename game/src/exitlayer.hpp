@@ -21,7 +21,7 @@ class ExitLayer : public sponge::layer::Layer {
 
     bool isRunning = true;
 
-    std::unique_ptr<sponge::renderer::OpenGLQuad> quad;
+    std::unique_ptr<sponge::platform::opengl::OpenGLQuad> quad;
     std::unique_ptr<ui::Button> cancelButton;
     std::unique_ptr<ui::Button> confirmButton;
 

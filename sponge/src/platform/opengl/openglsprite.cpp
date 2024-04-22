@@ -1,9 +1,9 @@
-#include "platform/opengl/openglsprite.hpp"
+#include "openglsprite.hpp"
 #include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 constexpr std::string_view spriteShader = "sprite";
 constexpr std::string_view vertex = "vertex";
@@ -75,4 +75,4 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     shader->unbind();
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

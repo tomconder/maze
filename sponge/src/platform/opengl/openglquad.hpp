@@ -7,7 +7,7 @@
 #include <glm/vec4.hpp>
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 class OpenGLQuad {
    public:

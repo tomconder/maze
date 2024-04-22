@@ -3,9 +3,9 @@
 #include "renderer/texture.hpp"
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLTexture : public Texture {
+class OpenGLTexture : public renderer::Texture {
    public:
     OpenGLTexture();
     ~OpenGLTexture() override;
@@ -39,4 +39,4 @@ class OpenGLTexture : public Texture {
     std::string type;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

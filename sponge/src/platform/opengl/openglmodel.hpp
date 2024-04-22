@@ -5,7 +5,7 @@
 #include <tiny_obj_loader.h>
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 class OpenGLModel {
    public:

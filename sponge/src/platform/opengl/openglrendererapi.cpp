@@ -1,4 +1,4 @@
-#include "platform/opengl/openglrendererapi.hpp"
+#include "openglrendererapi.hpp"
 #include "core/base.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
@@ -88,7 +88,7 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
     }
 }
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 void OpenGLRendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {

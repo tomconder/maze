@@ -1,4 +1,4 @@
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "openglresourcemanager.hpp"
 #include "core/log.hpp"
 #include <SDL.h>
 #include <cassert>
@@ -7,7 +7,7 @@
 #include "core/file.hpp"
 #include "stb_image.h"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 absl::flat_hash_map<std::string, std::shared_ptr<OpenGLFont>>
     OpenGLResourceManager::fonts;

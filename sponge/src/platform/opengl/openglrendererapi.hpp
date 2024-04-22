@@ -3,9 +3,9 @@
 #include "renderer/rendererapi.hpp"
 #include <glm/vec4.hpp>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLRendererAPI : public RendererAPI {
+class OpenGLRendererAPI : public renderer::RendererAPI {
    public:
     void init() override;
     void setViewport(int32_t x, int32_t y, int32_t width,
@@ -15,4 +15,4 @@ class OpenGLRendererAPI : public RendererAPI {
     void clear() override;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

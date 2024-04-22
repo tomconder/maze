@@ -10,17 +10,18 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    sponge::renderer::OpenGLResourceManager::loadShader(
+    sponge::platform::opengl::OpenGLResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader.data());
-    sponge::renderer::OpenGLResourceManager::loadModel(
+    sponge::platform::opengl::OpenGLResourceManager::loadModel(
         mazeShader.data(), "/models/cube/cube.obj", modelName.data());
 
     camera = ResourceManager::createGameCamera(cameraName.data());
     camera->setPosition(glm::vec3(0.F, 4.F, 4.F));
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::OpenGLResourceManager::getShader(
+            mazeShader.data());
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(4.F, 4.F, 4.F));
@@ -39,14 +40,15 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::OpenGLResourceManager::getShader(
+            mazeShader.data());
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
-    sponge::renderer::OpenGLResourceManager::getModel(modelName.data())
+    sponge::platform::opengl::OpenGLResourceManager::getModel(modelName.data())
         ->render();
 
     return true;
@@ -56,7 +58,8 @@ void MazeLayer::setWireframeActive(const bool activeWireframe) {
     this->activeWireframe = activeWireframe;
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::OpenGLResourceManager::getShader(
+            mazeShader.data());
     shader->bind();
     shader->setBoolean("showWireframe", activeWireframe);
     shader->unbind();

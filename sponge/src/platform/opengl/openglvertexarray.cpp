@@ -2,7 +2,7 @@
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 OpenGLVertexArray::OpenGLVertexArray() {
     glGenVertexArrays(1, &id);
@@ -41,4 +41,4 @@ void OpenGLVertexArray::unbind() const {
     glDeleteVertexArrays(1, &id);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

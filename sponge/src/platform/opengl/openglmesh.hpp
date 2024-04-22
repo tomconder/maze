@@ -9,12 +9,12 @@
 #include <string>
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
-class OpenGLMesh : public Mesh {
+class OpenGLMesh : public renderer::Mesh {
    public:
     OpenGLMesh(const std::string& shaderName,
-               const std::vector<Vertex>& vertices,
+               const std::vector<renderer::Vertex>& vertices,
                const std::vector<uint32_t>& indices,
                const std::vector<std::shared_ptr<OpenGLTexture>>& textures);
     void render() const;
@@ -28,4 +28,4 @@ class OpenGLMesh : public Mesh {
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

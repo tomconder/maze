@@ -1,10 +1,9 @@
-#include "platform/opengl/openglfont.hpp"
+#include "openglfont.hpp"
 #include "core/base.hpp"
 #include "core/log.hpp"
 #include "fmt/core.h"
 #include "platform/opengl/gl.hpp"
 #include "platform/opengl/openglresourcemanager.hpp"
-#include <array>
 #include <cstddef>
 #include <fstream>
 #include <ios>
@@ -12,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 constexpr std::string_view textShader = "text";
 constexpr std::string_view vertex = "vertex";

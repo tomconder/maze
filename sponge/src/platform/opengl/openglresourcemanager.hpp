@@ -7,7 +7,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <string>
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 enum LoadFlag { ExcludeAssetsFolder, None };
 

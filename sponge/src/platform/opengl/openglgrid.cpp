@@ -1,7 +1,7 @@
 #include "openglgrid.hpp"
 #include "openglresourcemanager.hpp"
 
-namespace sponge::renderer {
+namespace sponge::platform::opengl {
 
 constexpr uint32_t numIndices = 6;
 const std::vector<uint32_t> indices = {
