@@ -4,16 +4,16 @@
 namespace sponge::renderer {
 
 constexpr uint32_t numIndices = 6;
-constexpr uint32_t indices[numIndices] = {
+const std::vector<uint32_t> indices = {
     0, 2, 1,  //
     0, 3, 2   //
 };
 
-constexpr float vertices[8] = {
-    -1.F, -1.F,  //
-    -1.F, 1.F,   //
-    1.F,  1.F,   //
-    1.F,  -1.F,  //
+const std::vector<glm::vec2> vertices = {
+    { -1.F, -1.F },  //
+    { -1.F, 1.F },   //
+    { 1.F, 1.F },    //
+    { 1.F, -1.F },   //
 };
 
 constexpr std::string_view position = "position";
@@ -27,15 +27,11 @@ OpenGLGrid::OpenGLGrid(const std::string& shaderName) : shaderName(shaderName) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
-                                         16);
-    vbo->setData(vertices, sizeof(vertices));
+    vbo = std::make_unique<OpenGLVertexBuffer>(vertices);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices, static_cast<uint32_t>(sizeof(uint32_t)) * numIndices);
+    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
     ebo->bind();
-    ebo->setData(indices, sizeof(indices));
 
     const auto program = shader->getId();
 

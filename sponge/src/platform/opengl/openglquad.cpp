@@ -4,8 +4,7 @@
 
 namespace sponge::renderer {
 
-constexpr uint32_t numIndices = 6;
-constexpr uint32_t indices[numIndices] = {
+const std::vector<uint32_t> indices = {
     0, 2, 1,  //
     0, 3, 2   //
 };
@@ -21,14 +20,11 @@ OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
-                                         16);
+    vbo = std::make_unique<OpenGLVertexBuffer>(4);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices, static_cast<uint32_t>(sizeof(uint32_t)) * numIndices);
+    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
     ebo->bind();
-    ebo->setData(indices, sizeof(indices));
 
     const auto program = shader->getId();
 
@@ -49,11 +45,11 @@ OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
 
 void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
                         const glm::vec4& color) const {
-    const float vertices[8] = {
-        top.x,    bottom.y,  //
-        top.x,    top.y,     //
-        bottom.x, top.y,     //
-        bottom.x, bottom.y   //
+    const std::vector<glm::vec2> vertices = {
+        { top.x, bottom.y },    //
+        { top.x, top.y },       //
+        { bottom.x, top.y },    //
+        { bottom.x, bottom.y }  //
     };
 
     const auto shader = OpenGLResourceManager::getShader(shaderName);
@@ -63,9 +59,9 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
     shader->bind();
     shader->setFloat4("color", color);
 
-    vbo->setData(vertices, sizeof(vertices));
+    vbo->update(vertices);
 
-    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 

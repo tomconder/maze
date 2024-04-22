@@ -1,8 +1,8 @@
 #pragma once
 
-#include "platform/opengl/openglbuffer.hpp"
-#include "platform/opengl/openglelementbuffer.hpp"
+#include "platform/opengl/openglindexbuffer.hpp"
 #include "platform/opengl/openglvertexarray.hpp"
+#include "platform/opengl/openglvertexbuffer.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <string>
@@ -19,8 +19,8 @@ class OpenGLQuad {
    private:
     std::string shaderName;
 
-    std::unique_ptr<OpenGLBuffer> vbo;
-    std::unique_ptr<OpenGLElementBuffer> ebo;
+    std::unique_ptr<OpenGLVertexBuffer> vbo;
+    std::unique_ptr<OpenGLIndexBuffer> ebo;
     std::unique_ptr<OpenGLVertexArray> vao;
 };
 

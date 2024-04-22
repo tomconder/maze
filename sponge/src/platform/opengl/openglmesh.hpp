@@ -1,9 +1,9 @@
 #pragma once
 
-#include "platform/opengl/openglbuffer.hpp"
-#include "platform/opengl/openglelementbuffer.hpp"
+#include "platform/opengl/openglindexbuffer.hpp"
 #include "platform/opengl/opengltexture.hpp"
 #include "platform/opengl/openglvertexarray.hpp"
+#include "platform/opengl/openglvertexbuffer.hpp"
 #include "renderer/mesh.hpp"
 #include <memory>
 #include <string>
@@ -22,8 +22,8 @@ class OpenGLMesh : public Mesh {
    private:
     std::string shaderName;
 
-    std::unique_ptr<OpenGLBuffer> vbo;
-    std::unique_ptr<OpenGLElementBuffer> ebo;
+    std::unique_ptr<OpenGLVertexBuffer> vbo;
+    std::unique_ptr<OpenGLIndexBuffer> ebo;
     std::unique_ptr<OpenGLVertexArray> vao;
     std::vector<std::shared_ptr<OpenGLTexture>> textures;
 };

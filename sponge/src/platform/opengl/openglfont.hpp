@@ -1,8 +1,8 @@
 #pragma once
 
-#include "platform/opengl/openglbuffer.hpp"
-#include "platform/opengl/openglelementbuffer.hpp"
+#include "platform/opengl/openglindexbuffer.hpp"
 #include "platform/opengl/openglvertexarray.hpp"
+#include "platform/opengl/openglvertexbuffer.hpp"
 #include <absl/container/flat_hash_map.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -31,9 +31,9 @@ class OpenGLFont {
 
    private:
     const uint32_t maxLength = 256;
-    std::unique_ptr<OpenGLBuffer> vbo;
+    std::unique_ptr<OpenGLVertexBuffer> vbo;
     std::unique_ptr<OpenGLVertexArray> vao;
-    std::unique_ptr<OpenGLElementBuffer> ebo;
+    std::unique_ptr<OpenGLIndexBuffer> ebo;
 
     absl::flat_hash_map<std::string, Character> fontChars;
     absl::flat_hash_map<std::string, float> kerning;

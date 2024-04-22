@@ -17,7 +17,7 @@ namespace sponge::renderer {
 constexpr std::string_view textShader = "text";
 constexpr std::string_view vertex = "vertex";
 
-constexpr uint32_t indices[] = {
+const std::vector<uint32_t> indices = {
     0, 1, 2,  //
     0, 2, 3   //
 };
@@ -34,12 +34,10 @@ OpenGLFont::OpenGLFont() {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(
-        maxLength * static_cast<uint32_t>(sizeof(float)) * 16);
+    vbo = std::make_unique<OpenGLVertexBuffer>(maxLength * 8);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices, maxLength * static_cast<uint32_t>(sizeof(uint32_t)) * 6);
+    ebo = std::make_unique<OpenGLIndexBuffer>(maxLength * 6);
     ebo->bind();
 
     auto location = glGetAttribLocation(program, vertex.data());
@@ -129,6 +127,7 @@ void OpenGLFont::load(const std::string& path) {
             textureName = name;
             auto texture = OpenGLResourceManager::loadTexture(
                 fontFolder + name, textureName, ExcludeAssetsFolder);
+            UNUSED(texture);
         }
 
         if (str == "char") {
@@ -197,7 +196,7 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    std::vector<float> batchVertices;
+    std::vector<glm::vec2> batchVertices;
     std::vector<uint32_t> batchIndices;
     uint32_t numIndices = 0;
     std::string prev;
@@ -219,20 +218,20 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         const auto texh = ch.height / scaleH;
         const auto texw = ch.width / scaleW;
 
-        const auto vertices = std::to_array({
-            xpos, ypos + h, texx, texy + texh,            //
-            xpos, ypos, texx, texy,                       //
-            xpos + w, ypos, texx + texw, texy,            //
-            xpos + w, ypos + h, texx + texw, texy + texh  //
-        });
+        const std::vector<glm::vec2> vertices = {
+            { xpos, ypos + h },     { texx, texy + texh },        //
+            { xpos, ypos },         { texx, texy },               //
+            { xpos + w, ypos },     { texx + texw, texy },        //
+            { xpos + w, ypos + h }, { texx + texw, texy + texh }  //
+        };
 
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        const auto indices = std::to_array({
+        const std::vector<uint32_t> indices = {
             numIndices, numIndices + 2, numIndices + 1,  //
             numIndices, numIndices + 3, numIndices + 2   //
-        });
+        };
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 
@@ -257,11 +256,9 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     auto tex = OpenGLResourceManager::getTexture(textureName);
     tex->bind();
 
-    vbo->setData(batchVertices.data(),
-                 static_cast<uint32_t>(batchVertices.size() * sizeof(float)));
+    vbo->update(batchVertices);
 
-    ebo->setData(batchIndices.data(),
-                 static_cast<uint32_t>(batchIndices.size() * sizeof(uint32_t)));
+    ebo->update(batchIndices);
 
     glDrawElements(GL_TRIANGLES, static_cast<int32_t>(batchIndices.size()),
                    GL_UNSIGNED_INT, nullptr);

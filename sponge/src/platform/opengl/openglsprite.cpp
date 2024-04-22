@@ -8,10 +8,7 @@ namespace sponge::renderer {
 constexpr std::string_view spriteShader = "sprite";
 constexpr std::string_view vertex = "vertex";
 
-static constexpr uint32_t numIndices = 6;
-static constexpr uint32_t numVertices = 16;
-
-constexpr uint32_t indices[] = {
+const std::vector<uint32_t> indices = {
     0, 1, 2,  //
     0, 2, 3   //
 };
@@ -28,14 +25,11 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(static_cast<uint32_t>(sizeof(float)) *
-                                         16);
+    vbo = std::make_unique<OpenGLVertexBuffer>(8);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices, static_cast<uint32_t>(sizeof(indices)));
+    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
     ebo->bind();
-    ebo->setData(indices, sizeof(indices));
 
     if (auto location = glGetAttribLocation(program, vertex.data());
         location != -1) {
@@ -52,11 +46,15 @@ OpenGLSprite::OpenGLSprite(std::string_view name) : name(name) {
 }
 
 void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
-    const float vertices[numVertices] = {
-        position.x + size.x, position.y,          1.F, 0.F,  //
-        position.x,          position.y,          0.F, 0.F,  //
-        position.x,          position.y + size.y, 0.F, 1.F,  //
-        position.x + size.x, position.y + size.y, 1.F, 1.F
+    const std::vector<glm::vec2> vertices = {
+        { position.x + size.x, position.y },
+        { 1.F, 0.F },  //
+        { position.x, position.y },
+        { 0.F, 0.F },  //
+        { position.x, position.y + size.y },
+        { 0.F, 1.F },  //
+        { position.x + size.x, position.y + size.y },
+        { 1.F, 1.F }
     };
 
     const auto shader = OpenGLResourceManager::getShader(spriteShader.data());
@@ -68,9 +66,9 @@ void OpenGLSprite::render(glm::vec2 position, glm::vec2 size) const {
     const auto tex = OpenGLResourceManager::getTexture(name);
     tex->bind();
 
-    vbo->setData(vertices, sizeof(vertices));
+    vbo->update(vertices);
 
-    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
 

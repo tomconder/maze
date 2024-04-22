@@ -1,8 +1,8 @@
 #pragma once
 
-#include "openglbuffer.hpp"
-#include "openglelementbuffer.hpp"
+#include "openglindexbuffer.hpp"
 #include "openglvertexarray.hpp"
+#include "openglvertexbuffer.hpp"
 #include "renderer/sprite.hpp"
 
 namespace sponge::renderer {
@@ -15,8 +15,8 @@ class OpenGLSprite : public Sprite {
 
    private:
     std::string name;
-    std::unique_ptr<OpenGLBuffer> vbo;
-    std::unique_ptr<OpenGLElementBuffer> ebo;
+    std::unique_ptr<OpenGLVertexBuffer> vbo;
+    std::unique_ptr<OpenGLIndexBuffer> ebo;
     std::unique_ptr<OpenGLVertexArray> vao;
 };
 

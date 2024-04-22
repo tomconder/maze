@@ -25,10 +25,7 @@ OpenGLMesh::OpenGLMesh(
     vao = std::make_unique<OpenGLVertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLBuffer>(
-        reinterpret_cast<const float*>(vertices.data()),
-        static_cast<uint32_t>(vertices.size()) *
-            static_cast<uint32_t>(sizeof(Vertex)));
+    vbo = std::make_unique<OpenGLVertexBuffer>(vertices);
     vbo->bind();
 
     const auto program = shader->getId();
@@ -60,9 +57,7 @@ OpenGLMesh::OpenGLMesh(
             reinterpret_cast<const void*>(offsetof(Vertex, normal)));
     }
 
-    ebo = std::make_unique<OpenGLElementBuffer>(
-        indices.data(), static_cast<uint32_t>(indices.size()) *
-                            static_cast<uint32_t>(sizeof(unsigned int)));
+    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
     ebo->bind();
 
     shader->unbind();
