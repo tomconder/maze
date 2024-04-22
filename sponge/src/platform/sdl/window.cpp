@@ -1,17 +1,17 @@
-#include "platform/sdl/sdlwindow.hpp"
+#include "platform/sdl/window.hpp"
 #include "core/log.hpp"
 
-namespace sponge {
+namespace sponge::platform::sdl {
 
-SDLWindow::SDLWindow(const WindowProps& props) {
+Window::Window(const WindowProps& props) {
     init(props);
 }
 
-SDLWindow::~SDLWindow() noexcept {
+Window::~Window() noexcept {
     shutdown();
 }
 
-void SDLWindow::init(const WindowProps& props) {
+void Window::init(const WindowProps& props) {
     data.title = props.title;
     data.width = props.width;
     data.height = props.height;
@@ -41,13 +41,13 @@ void SDLWindow::init(const WindowProps& props) {
     data.height = static_cast<uint32_t>(h);
 }
 
-void SDLWindow::shutdown() const {
+void Window::shutdown() const {
     if (window != nullptr) {
         SDL_DestroyWindow(window);
     }
 }
 
-void SDLWindow::setVSync(bool enabled) {
+void Window::setVSync(bool enabled) {
     // 0 for immediate updates
     // 1 for updates synchronized with the vertical retrace
     // -1 for adaptive vsync
@@ -62,8 +62,8 @@ void SDLWindow::setVSync(bool enabled) {
     SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
 }
 
-bool SDLWindow::isVSync() const {
+bool Window::isVSync() const {
     return data.vsync;
 }
 
-}  // namespace sponge
+}  // namespace sponge::platform::sdl

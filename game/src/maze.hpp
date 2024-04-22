@@ -8,7 +8,7 @@
 #include "sponge.hpp"
 #include <memory>
 
-class Maze final : public sponge::SDLEngine {
+class Maze final : public sponge::platform::sdl::Engine {
    public:
     Maze();
     bool onUserCreate() override;

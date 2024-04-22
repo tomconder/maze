@@ -4,22 +4,22 @@
 #include "core/log.hpp"
 #include "event/event.hpp"
 #include "imgui/imguimanager.hpp"
-#include "input/sdlkeyboard.hpp"
+#include "input/keyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
-#include "platform/sdl/sdlwindow.hpp"
+#include "platform/sdl/window.hpp"
 #include <SDL.h>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-namespace sponge {
+namespace sponge::platform::sdl {
 
-class SDLEngine : public Engine {
+class Engine : public sponge::Engine {
    public:
-    SDLEngine();
+    Engine();
     bool construct(std::string_view name, uint32_t width, uint32_t height);
 
     bool start() override;
@@ -100,7 +100,7 @@ class SDLEngine : public Engine {
 
     void setMouseVisible(bool value) const;
 
-    static SDLEngine& get() {
+    static Engine& get() {
         return *instance;
     }
 
@@ -109,7 +109,7 @@ class SDLEngine : public Engine {
     std::string appName = "undefined";
     std::unique_ptr<platform::opengl::Context> graphics;
     std::unique_ptr<platform::opengl::RendererAPI> renderer;
-    std::unique_ptr<SDLWindow> sdlWindow;
+    std::unique_ptr<Window> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;
 
@@ -119,11 +119,11 @@ class SDLEngine : public Engine {
     uint32_t h = 0;
 
     layer::LayerStack* layerStack;
-    input::SDLKeyboard* keyboard;
+    input::Keyboard* keyboard;
 
     void processEvent(const SDL_Event& event, double elapsedTime);
 
-    static SDLEngine* instance;
+    static Engine* instance;
 };
 
-}  // namespace sponge
+}  // namespace sponge::platform::sdl

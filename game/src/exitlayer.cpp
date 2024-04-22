@@ -26,15 +26,15 @@ void ExitLayer::onAttach() {
 
     orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::platform::opengl::ResourceManager::getShader(
-        quadShader.data());
+    auto shader =
+        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::ResourceManager::getShader(
-        textShader.data());
+    shader =
+        sponge::platform::opengl::ResourceManager::getShader(textShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
@@ -101,14 +101,14 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
 void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader = sponge::platform::opengl::ResourceManager::getShader(
-        textShader.data());
+    auto shader =
+        sponge::platform::opengl::ResourceManager::getShader(textShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::ResourceManager::getShader(
-        quadShader.data());
+    shader =
+        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -134,9 +134,9 @@ bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
-            sponge::SDLEngine::get().setMouseVisible(false);
+            sponge::platform::sdl::Engine::get().setMouseVisible(false);
         } else {
-            sponge::SDLEngine::get().setMouseVisible(true);
+            sponge::platform::sdl::Engine::get().setMouseVisible(true);
         }
     }
 

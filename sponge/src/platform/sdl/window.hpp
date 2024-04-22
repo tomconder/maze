@@ -3,7 +3,7 @@
 #include "core/window.hpp"
 #include <SDL.h>
 
-namespace sponge {
+namespace sponge::platform::sdl {
 
 struct WindowData {
     std::string title;
@@ -12,10 +12,10 @@ struct WindowData {
     bool vsync;
 };
 
-class SDLWindow : public Window {
+class Window : public sponge::Window {
    public:
-    explicit SDLWindow(const WindowProps& props);
-    ~SDLWindow() noexcept override;
+    explicit Window(const WindowProps& props);
+    ~Window() noexcept override;
 
     uint32_t getWidth() const override {
         return data.width;
@@ -41,4 +41,4 @@ class SDLWindow : public Window {
     SDL_Window* window = nullptr;
 };
 
-}  // namespace sponge
+}  // namespace sponge::platform::sdl
