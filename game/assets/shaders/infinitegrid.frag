@@ -18,12 +18,12 @@ vec4 grid(vec3 point, float scale) {
     vec4 color = vec4(0.3);
     color.a = 1.0 - min(line, 1.0);
 
-    if (point.x > -0.1 * min_x && point.x < 0.1 * min_x) {
+    if (point.x > -0.5 * min_x && point.x < 0.5 * min_x) {
         // z axis
         color.rgb = vec3(0.427, 0.792, 0.909);
     }
 
-    if (point.z > -0.1 * min_z && point.z < 0.1 * min_z) {
+    if (point.z > -0.5 * min_z && point.z < 0.5 * min_z) {
         // x axis
         color.rgb = vec3(0.984, 0.380, 0.490);
     }
