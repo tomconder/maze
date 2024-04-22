@@ -32,8 +32,8 @@ class Button {
     glm::vec4 buttonColor;
     glm::vec3 textColor;
 
-    std::shared_ptr<sponge::renderer::OpenGLFont> font;
-    std::unique_ptr<sponge::renderer::OpenGLQuad> quad;
+    std::shared_ptr<sponge::platform::opengl::Font> font;
+    std::unique_ptr<sponge::platform::opengl::Quad> quad;
 
     glm::vec2 textPosition;
     bool hover = false;

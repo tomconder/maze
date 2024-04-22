@@ -10,17 +10,17 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    sponge::renderer::OpenGLResourceManager::loadShader(
+    sponge::platform::opengl::ResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader.data());
-    sponge::renderer::OpenGLResourceManager::loadModel(
+    sponge::platform::opengl::ResourceManager::loadModel(
         mazeShader.data(), "/models/cube/cube.obj", modelName.data());
 
     camera = ResourceManager::createGameCamera(cameraName.data());
     camera->setPosition(glm::vec3(0.F, 4.F, 4.F));
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(4.F, 4.F, 4.F));
@@ -39,14 +39,14 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
-    sponge::renderer::OpenGLResourceManager::getModel(modelName.data())
+    sponge::platform::opengl::ResourceManager::getModel(modelName.data())
         ->render();
 
     return true;
@@ -56,7 +56,7 @@ void MazeLayer::setWireframeActive(const bool activeWireframe) {
     this->activeWireframe = activeWireframe;
 
     const auto shader =
-        sponge::renderer::OpenGLResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
     shader->bind();
     shader->setBoolean("showWireframe", activeWireframe);
     shader->unbind();
@@ -100,7 +100,7 @@ bool MazeLayer::onKeyPressed(
 bool MazeLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::SDLEngine::get().setMouseVisible(false);
+        sponge::platform::sdl::Engine::get().setMouseVisible(false);
         return true;
     }
     return false;
@@ -109,7 +109,7 @@ bool MazeLayer::onMouseButtonPressed(
 bool MazeLayer::onMouseButtonReleased(
     const sponge::event::MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::SDLEngine::get().setMouseVisible(true);
+        sponge::platform::sdl::Engine::get().setMouseVisible(true);
         return true;
     }
     return false;
@@ -117,7 +117,7 @@ bool MazeLayer::onMouseButtonReleased(
 
 bool MazeLayer::onMouseMoved(
     const sponge::event::MouseMovedEvent& event) const {
-    if (sponge::input::SDLMouse::isButtonPressed()) {
+    if (sponge::platform::sdl::input::Mouse::isButtonPressed()) {
         camera->mouseMove({ event.getXRelative() * mouseSpeed,
                             event.getYRelative() * mouseSpeed });
     }

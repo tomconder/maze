@@ -12,7 +12,7 @@ class HUDLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<sponge::renderer::OrthoCamera> orthoCamera;
-    std::unique_ptr<sponge::renderer::OpenGLSprite> logo;
+    std::unique_ptr<sponge::platform::opengl::Sprite> logo;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };

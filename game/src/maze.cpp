@@ -27,7 +27,7 @@ bool Maze::onUserUpdate(const double elapsedTime) {
         return false;
     }
 
-    return SDLEngine::onUserUpdate(elapsedTime);
+    return Engine::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onUserDestroy() {
@@ -41,7 +41,7 @@ void Maze::onEvent(sponge::event::Event& event) {
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
         BIND_EVENT_FN(onWindowClose));
 
-    sponge::SDLEngine::onEvent(event);
+    Engine::onEvent(event);
 }
 
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
