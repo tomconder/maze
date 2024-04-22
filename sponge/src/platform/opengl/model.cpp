@@ -21,9 +21,10 @@ void Model::load(const std::string& shaderName, const std::string& path) {
     std::string warn;
     std::string err;
 
-    std::filesystem::path dir{ path };
-    auto ret = LoadObj(&attrib, &shapes, &materials, &warn, &err,
-                       dir.string().data(), dir.parent_path().string().data());
+    const std::filesystem::path dir{ path };
+    const auto ret =
+        LoadObj(&attrib, &shapes, &materials, &warn, &err, dir.string().data(),
+                dir.parent_path().string().data());
 
     if (!warn.empty()) {
         SPONGE_CORE_WARN(warn);
@@ -50,11 +51,10 @@ void Model::load(const std::string& shaderName, const std::string& path) {
     process(shaderName, attrib, shapes, materials, dir.parent_path().string());
 }
 
-void Model::process(const std::string& shaderName,
-                          tinyobj::attrib_t& attrib,
-                          std::vector<tinyobj::shape_t>& shapes,
-                          const std::vector<tinyobj::material_t>& materials,
-                          const std::string& path) {
+void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
+                    std::vector<tinyobj::shape_t>& shapes,
+                    const std::vector<tinyobj::material_t>& materials,
+                    const std::string& path) {
     numIndices = 0;
     numVertices = 0;
 
@@ -126,14 +126,11 @@ std::shared_ptr<Mesh> Model::processMesh(
         }
     }
 
-    return std::make_shared<Mesh>(shaderName, vertices, indices,
-                                        textures);
+    return std::make_shared<Mesh>(shaderName, vertices, indices, textures);
 }
 
 std::shared_ptr<Texture> Model::loadMaterialTextures(
     const tinyobj::material_t& material, const std::string& path) {
-    std::shared_ptr<Texture> texture;
-
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
             pos != std::string::npos) {
@@ -150,7 +147,7 @@ std::shared_ptr<Texture> Model::loadMaterialTextures(
                    [](const uint8_t c) { return std::tolower(c); });
 
     return ResourceManager::loadTexture(filename.string(), name,
-                                              ExcludeAssetsFolder);
+                                        ExcludeAssetsFolder);
 }
 
 void Model::render() const {
