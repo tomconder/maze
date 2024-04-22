@@ -38,6 +38,7 @@
 #include "platform/opengl/vertexarray.hpp"
 #include "platform/opengl/vertexbuffer.hpp"
 #include "platform/sdl/engine.hpp"
+#include "platform/sdl/info.hpp"
 #include "platform/sdl/input/keyboard.hpp"
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/window.hpp"
