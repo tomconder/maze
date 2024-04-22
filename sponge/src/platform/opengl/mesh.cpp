@@ -1,6 +1,6 @@
-#include "openglmesh.hpp"
+#include "mesh.hpp"
 #include "platform/opengl/gl.hpp"
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "platform/opengl/resourcemanager.hpp"
 #include <cstddef>
 
 namespace sponge::platform::opengl {
@@ -9,24 +9,24 @@ constexpr std::string_view normal = "normal";
 constexpr std::string_view position = "position";
 constexpr std::string_view texCoord = "texCoord";
 
-OpenGLMesh::OpenGLMesh(
+Mesh::Mesh(
     const std::string& shaderName,
     const std::vector<renderer::Vertex>& vertices,
     const std::vector<uint32_t>& indices,
-    const std::vector<std::shared_ptr<OpenGLTexture>>& textures)
+    const std::vector<std::shared_ptr<Texture>>& textures)
     : shaderName(shaderName), textures(textures) {
     assert(!shaderName.empty());
 
     this->indices = indices;
     this->vertices = vertices;
 
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    vao = std::make_unique<VertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLVertexBuffer>(vertices);
+    vbo = std::make_unique<VertexBuffer>(vertices);
     vbo->bind();
 
     const auto program = shader->getId();
@@ -60,17 +60,17 @@ OpenGLMesh::OpenGLMesh(
             reinterpret_cast<const void*>(offsetof(renderer::Vertex, normal)));
     }
 
-    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
+    ebo = std::make_unique<IndexBuffer>(indices);
     ebo->bind();
 
     shader->unbind();
     glBindVertexArray(0);
 }
 
-void OpenGLMesh::render() const {
+void Mesh::render() const {
     vao->bind();
 
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
     if (!textures.empty()) {

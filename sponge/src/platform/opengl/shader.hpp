@@ -6,14 +6,12 @@
 
 namespace sponge::platform::opengl {
 
-class OpenGLShader : public renderer::Shader {
+class Shader : public renderer::Shader {
    public:
-    OpenGLShader(const std::string& vertexSource,
-                 const std::string& fragmentSource);
-    OpenGLShader(const std::string& vertexSource,
-                 const std::string& fragmentSource,
-                 const std::string& geometrySource);
-    ~OpenGLShader() override;
+    Shader(const std::string& vertexSource, const std::string& fragmentSource);
+    Shader(const std::string& vertexSource, const std::string& fragmentSource,
+           const std::string& geometrySource);
+    ~Shader() override;
 
     void bind() const override;
     void unbind() const override;

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "platform/opengl/openglmesh.hpp"
-#include "platform/opengl/opengltexture.hpp"
+#include "platform/opengl/mesh.hpp"
+#include "platform/opengl/texture.hpp"
 #include <tiny_obj_loader.h>
 #include <vector>
 
 namespace sponge::platform::opengl {
 
-class OpenGLModel {
+class Model {
    public:
     void load(const std::string& shaderName, const std::string& path);
     void render() const;
@@ -19,7 +19,7 @@ class OpenGLModel {
     }
 
    protected:
-    std::vector<std::shared_ptr<OpenGLMesh>> meshes;
+    std::vector<std::shared_ptr<Mesh>> meshes;
 
    private:
     size_t numIndices = 0;
@@ -29,13 +29,13 @@ class OpenGLModel {
                  std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials,
                  const std::string& path);
-    static std::shared_ptr<OpenGLMesh> processMesh(
+    static std::shared_ptr<Mesh> processMesh(
         const std::string& shaderName, tinyobj::attrib_t& attrib,
         tinyobj::mesh_t& mesh,
         const std::vector<tinyobj::material_t>& materials,
         const std::string& path);
-    static std::shared_ptr<OpenGLTexture> loadMaterialTextures(
+    static std::shared_ptr<Texture> loadMaterialTextures(
         const tinyobj::material_t& material, const std::string& path);
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

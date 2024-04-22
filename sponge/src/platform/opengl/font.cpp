@@ -1,9 +1,9 @@
-#include "openglfont.hpp"
+#include "font.hpp"
 #include "core/base.hpp"
 #include "core/log.hpp"
 #include "fmt/core.h"
 #include "platform/opengl/gl.hpp"
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "platform/opengl/resourcemanager.hpp"
 #include <cstddef>
 #include <fstream>
 #include <ios>
@@ -21,22 +21,22 @@ const std::vector<uint32_t> indices = {
     0, 2, 3   //
 };
 
-OpenGLFont::OpenGLFont() {
-    OpenGLResourceManager::loadShader("/shaders/text.vert",
-                                      "/shaders/text.frag", textShader.data());
+Font::Font() {
+    ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
+                                textShader.data());
 
-    auto shader = OpenGLResourceManager::getShader(textShader.data());
+    auto shader = ResourceManager::getShader(textShader.data());
     shader->bind();
 
     const auto program = shader->getId();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    vao = std::make_unique<VertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLVertexBuffer>(maxLength * 8);
+    vbo = std::make_unique<VertexBuffer>(maxLength * 8);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLIndexBuffer>(maxLength * 6);
+    ebo = std::make_unique<IndexBuffer>(maxLength * 6);
     ebo->bind();
 
     auto location = glGetAttribLocation(program, vertex.data());
@@ -53,7 +53,7 @@ OpenGLFont::OpenGLFont() {
     shader->unbind();
 }
 
-void OpenGLFont::load(const std::string& path) {
+void Font::load(const std::string& path) {
     assert(!path.empty());
 
     std::ifstream stream(path, std::ios::in | std::ios::binary);
@@ -124,7 +124,7 @@ void OpenGLFont::load(const std::string& path) {
             auto fontFolder = path.substr(0, pos + 1);
 
             textureName = name;
-            auto texture = OpenGLResourceManager::loadTexture(
+            auto texture = ResourceManager::loadTexture(
                 fontFolder + name, textureName, ExcludeAssetsFolder);
             UNUSED(texture);
         }
@@ -161,7 +161,7 @@ void OpenGLFont::load(const std::string& path) {
     }
 }
 
-uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
+uint32_t Font::getLength(std::string_view text, uint32_t targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
@@ -183,8 +183,8 @@ uint32_t OpenGLFont::getLength(std::string_view text, uint32_t targetSize) {
     return x;
 }
 
-void OpenGLFont::render(std::string_view text, const glm::vec2& position,
-                        uint32_t targetSize, const glm::vec3& color) {
+void Font::render(std::string_view text, const glm::vec2& position,
+                  uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load
         return;
@@ -244,7 +244,7 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
         prev = index;
     }
 
-    auto shader = OpenGLResourceManager::getShader(textShader.data());
+    auto shader = ResourceManager::getShader(textShader.data());
 
     vao->bind();
 
@@ -252,7 +252,7 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
     shader->setFloat3("textColor", color);
     shader->setFloat("screenPxRange", fontSize / size * 4.0F);
 
-    auto tex = OpenGLResourceManager::getTexture(textureName);
+    auto tex = ResourceManager::getTexture(textureName);
     tex->bind();
 
     vbo->update(batchVertices);
@@ -263,7 +263,7 @@ void OpenGLFont::render(std::string_view text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-void OpenGLFont::log() const {
+void Font::log() const {
     SPONGE_CORE_DEBUG("Font file: INFO face={} size={}", face, size);
 
     SPONGE_CORE_DEBUG(
@@ -281,4 +281,4 @@ void OpenGLFont::log() const {
     }
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

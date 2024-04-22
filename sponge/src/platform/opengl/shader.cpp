@@ -1,12 +1,12 @@
-#include "openglshader.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
+#include "shader.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 
 namespace sponge::platform::opengl {
 
-OpenGLShader::OpenGLShader(const std::string& vertexSource,
+Shader::Shader(const std::string& vertexSource,
                            const std::string& fragmentSource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
@@ -23,7 +23,7 @@ OpenGLShader::OpenGLShader(const std::string& vertexSource,
     glDeleteShader(fs);
 }
 
-OpenGLShader::OpenGLShader(const std::string& vertexSource,
+Shader::Shader(const std::string& vertexSource,
                            const std::string& fragmentSource,
                            const std::string& geometrySource) {
     assert(!vertexSource.empty());
@@ -45,19 +45,19 @@ OpenGLShader::OpenGLShader(const std::string& vertexSource,
     glDeleteShader(gs);
 }
 
-OpenGLShader::~OpenGLShader() {
+Shader::~Shader() {
     glDeleteProgram(program);
 }
 
-void OpenGLShader::bind() const {
+void Shader::bind() const {
     glUseProgram(program);
 }
 
-void OpenGLShader::unbind() const {
+void Shader::unbind() const {
     glUseProgram(0);
 }
 
-uint32_t OpenGLShader::compileShader(const GLenum type,
+uint32_t Shader::compileShader(const GLenum type,
                                      const std::string& source) {
     uint32_t id = glCreateShader(type);
     assert(id != 0);
@@ -83,7 +83,7 @@ uint32_t OpenGLShader::compileShader(const GLenum type,
     return id;
 }
 
-uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs) {
+uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs) {
     uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
@@ -109,7 +109,7 @@ uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs) {
     return id;
 }
 
-uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
+uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
     uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
@@ -136,32 +136,32 @@ uint32_t OpenGLShader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
     return id;
 }
 
-void OpenGLShader::setBoolean(const std::string& name, bool value) {
+void Shader::setBoolean(const std::string& name, bool value) {
     glUniform1i(getUniformLocation(name), static_cast<int>(value));
 }
 
-void OpenGLShader::setFloat(const std::string& name, float value) {
+void Shader::setFloat(const std::string& name, float value) {
     glUniform1f(getUniformLocation(name), value);
 }
 
-void OpenGLShader::setFloat3(const std::string& name, const glm::vec3& value) {
+void Shader::setFloat3(const std::string& name, const glm::vec3& value) {
     glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-void OpenGLShader::setFloat4(const std::string& name, const glm::vec4& value) {
+void Shader::setFloat4(const std::string& name, const glm::vec4& value) {
     glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
 }
 
-void OpenGLShader::setInteger(const std::string& name, int value) {
+void Shader::setInteger(const std::string& name, int value) {
     glUniform1i(getUniformLocation(name), value);
 }
 
-void OpenGLShader::setMat4(const std::string& name, const glm::mat4& value) {
+void Shader::setMat4(const std::string& name, const glm::mat4& value) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
                        glm::value_ptr(value));
 }
 
-GLint OpenGLShader::getUniformLocation(const std::string& name) const {
+GLint Shader::getUniformLocation(const std::string& name) const {
     assert(!name.empty());
 
     if (uniformLocations.find(name) != uniformLocations.end()) {

@@ -4,7 +4,7 @@
 
 namespace sponge::platform::opengl {
 
-class OpenGLInfo : public renderer::GraphicsInfo {
+class Info : public renderer::GraphicsInfo {
    public:
     static void logContextInfo();
     static void logGraphicsDriverInfo();

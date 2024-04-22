@@ -1,9 +1,8 @@
-#include "openglgrid.hpp"
-#include "openglresourcemanager.hpp"
+#include "grid.hpp"
+#include "resourcemanager.hpp"
 
 namespace sponge::platform::opengl {
 
-constexpr uint32_t numIndices = 6;
 const std::vector<uint32_t> indices = {
     0, 2, 1,  //
     0, 3, 2   //
@@ -18,19 +17,19 @@ const std::vector<glm::vec2> vertices = {
 
 constexpr std::string_view position = "position";
 
-OpenGLGrid::OpenGLGrid(const std::string& shaderName) : shaderName(shaderName) {
+Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
 
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    vao = std::make_unique<VertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLVertexBuffer>(vertices);
+    vbo = std::make_unique<VertexBuffer>(vertices);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
+    ebo = std::make_unique<IndexBuffer>(indices);
     ebo->bind();
 
     const auto program = shader->getId();
@@ -50,18 +49,18 @@ OpenGLGrid::OpenGLGrid(const std::string& shaderName) : shaderName(shaderName) {
     shader->unbind();
 }
 
-void OpenGLGrid::render() const {
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+void Grid::render() const {
+    const auto shader = ResourceManager::getShader(shaderName);
 
     vao->bind();
 
     shader->bind();
 
-    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

@@ -1,5 +1,5 @@
-#include "openglmodel.hpp"
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "model.hpp"
+#include "platform/opengl/resourcemanager.hpp"
 #include <cassert>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -10,7 +10,7 @@
 
 namespace sponge::platform::opengl {
 
-void OpenGLModel::load(const std::string& shaderName, const std::string& path) {
+void Model::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
 
     meshes.clear();
@@ -50,7 +50,7 @@ void OpenGLModel::load(const std::string& shaderName, const std::string& path) {
     process(shaderName, attrib, shapes, materials, dir.parent_path().string());
 }
 
-void OpenGLModel::process(const std::string& shaderName,
+void Model::process(const std::string& shaderName,
                           tinyobj::attrib_t& attrib,
                           std::vector<tinyobj::shape_t>& shapes,
                           const std::vector<tinyobj::material_t>& materials,
@@ -67,13 +67,13 @@ void OpenGLModel::process(const std::string& shaderName,
     }
 }
 
-std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
+std::shared_ptr<Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
     std::vector<renderer::Vertex> vertices;
     std::vector<uint32_t> indices;
-    std::vector<std::shared_ptr<OpenGLTexture>> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
 
     auto numIndices = 0;
 
@@ -126,13 +126,13 @@ std::shared_ptr<OpenGLMesh> OpenGLModel::processMesh(
         }
     }
 
-    return std::make_shared<OpenGLMesh>(shaderName, vertices, indices,
+    return std::make_shared<Mesh>(shaderName, vertices, indices,
                                         textures);
 }
 
-std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
+std::shared_ptr<Texture> Model::loadMaterialTextures(
     const tinyobj::material_t& material, const std::string& path) {
-    std::shared_ptr<OpenGLTexture> texture;
+    std::shared_ptr<Texture> texture;
 
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
@@ -149,11 +149,11 @@ std::shared_ptr<OpenGLTexture> OpenGLModel::loadMaterialTextures(
     std::transform(name.begin(), name.end(), name.begin(),
                    [](const uint8_t c) { return std::tolower(c); });
 
-    return OpenGLResourceManager::loadTexture(filename.string(), name,
+    return ResourceManager::loadTexture(filename.string(), name,
                                               ExcludeAssetsFolder);
 }
 
-void OpenGLModel::render() const {
+void Model::render() const {
     for (auto&& mesh : meshes) {
         mesh->render();
     }

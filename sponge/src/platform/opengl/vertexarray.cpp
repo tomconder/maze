@@ -1,43 +1,43 @@
-#include "openglvertexarray.hpp"
+#include "vertexarray.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
 namespace sponge::platform::opengl {
 
-OpenGLVertexArray::OpenGLVertexArray() {
+VertexArray::VertexArray() {
     glGenVertexArrays(1, &id);
     glBindVertexArray(id);
 }
 
-OpenGLVertexArray::OpenGLVertexArray(const OpenGLVertexArray& vertexArray)
+VertexArray::VertexArray(const VertexArray& vertexArray)
     : Buffer(vertexArray) {
     id = vertexArray.id;
 }
 
-OpenGLVertexArray::OpenGLVertexArray(OpenGLVertexArray&& vertexArray) noexcept {
+VertexArray::VertexArray(VertexArray&& vertexArray) noexcept {
     id = vertexArray.id;
 }
 
-OpenGLVertexArray& OpenGLVertexArray::operator=(
-    const OpenGLVertexArray& vertexArray) {
+VertexArray& VertexArray::operator=(
+    const VertexArray& vertexArray) {
     id = vertexArray.id;
     return *this;
 }
 
-OpenGLVertexArray::~OpenGLVertexArray() {
+VertexArray::~VertexArray() {
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &id);
 }
 
-void OpenGLVertexArray::init() {
+void VertexArray::init() {
     SPONGE_CORE_WARN("Not implemented");
 }
 
-void OpenGLVertexArray::bind() const {
+void VertexArray::bind() const {
     glBindVertexArray(id);
 }
 
-void OpenGLVertexArray::unbind() const {
+void VertexArray::unbind() const {
     glDeleteVertexArrays(1, &id);
 }
 

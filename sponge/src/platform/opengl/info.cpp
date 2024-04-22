@@ -1,5 +1,5 @@
-#include "openglinfo.hpp"
 #include "core/log.hpp"
+#include "info.hpp"
 #include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
@@ -8,7 +8,7 @@
 
 namespace sponge::platform::opengl {
 
-void OpenGLInfo::logContextInfo() {
+void Info::logContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     SPONGE_CORE_INFO("OpenGL Info:");
@@ -53,7 +53,7 @@ void OpenGLInfo::logContextInfo() {
     }
 }
 
-void OpenGLInfo::logGraphicsDriverInfo() {
+void Info::logGraphicsDriverInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");
 
     const auto numVideoDrivers = SDL_GetNumVideoDrivers();
@@ -112,13 +112,13 @@ void OpenGLInfo::logGraphicsDriverInfo() {
     }
 }
 
-void OpenGLInfo::logStaticInfo() {
+void Info::logStaticInfo() {
 #ifdef GL_GLEXT_VERSION
     SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
 }
 
-void OpenGLInfo::logVersion() {
+void Info::logVersion() {
     auto minorVersion = 0;
     auto majorVersion = 0;
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);

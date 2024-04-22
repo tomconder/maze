@@ -10,17 +10,17 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    sponge::platform::opengl::OpenGLResourceManager::loadShader(
+    sponge::platform::opengl::ResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader.data());
-    sponge::platform::opengl::OpenGLResourceManager::loadModel(
+    sponge::platform::opengl::ResourceManager::loadModel(
         mazeShader.data(), "/models/cube/cube.obj", modelName.data());
 
     camera = ResourceManager::createGameCamera(cameraName.data());
     camera->setPosition(glm::vec3(0.F, 4.F, 4.F));
 
     const auto shader =
-        sponge::platform::opengl::OpenGLResourceManager::getShader(
+        sponge::platform::opengl::ResourceManager::getShader(
             mazeShader.data());
     shader->bind();
 
@@ -40,7 +40,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =
-        sponge::platform::opengl::OpenGLResourceManager::getShader(
+        sponge::platform::opengl::ResourceManager::getShader(
             mazeShader.data());
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
@@ -48,7 +48,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
-    sponge::platform::opengl::OpenGLResourceManager::getModel(modelName.data())
+    sponge::platform::opengl::ResourceManager::getModel(modelName.data())
         ->render();
 
     return true;
@@ -58,7 +58,7 @@ void MazeLayer::setWireframeActive(const bool activeWireframe) {
     this->activeWireframe = activeWireframe;
 
     const auto shader =
-        sponge::platform::opengl::OpenGLResourceManager::getShader(
+        sponge::platform::opengl::ResourceManager::getShader(
             mazeShader.data());
     shader->bind();
     shader->setBoolean("showWireframe", activeWireframe);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "platform/opengl/openglindexbuffer.hpp"
-#include "platform/opengl/openglvertexarray.hpp"
-#include "platform/opengl/openglvertexbuffer.hpp"
+#include "platform/opengl/indexbuffer.hpp"
+#include "platform/opengl/vertexarray.hpp"
+#include "platform/opengl/vertexbuffer.hpp"
 #include <absl/container/flat_hash_map.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -19,9 +19,9 @@ struct Character {
     uint32_t page;
 };
 
-class OpenGLFont {
+class Font {
    public:
-    OpenGLFont();
+    Font();
     void load(const std::string& path);
     void render(std::string_view text, const glm::vec2& position,
                 uint32_t targetSize, const glm::vec3& color);
@@ -31,9 +31,9 @@ class OpenGLFont {
 
    private:
     const uint32_t maxLength = 256;
-    std::unique_ptr<OpenGLVertexBuffer> vbo;
-    std::unique_ptr<OpenGLVertexArray> vao;
-    std::unique_ptr<OpenGLIndexBuffer> ebo;
+    std::unique_ptr<VertexBuffer> vbo;
+    std::unique_ptr<VertexArray> vao;
+    std::unique_ptr<IndexBuffer> ebo;
 
     absl::flat_hash_map<std::string, Character> fontChars;
     absl::flat_hash_map<std::string, float> kerning;
@@ -61,4 +61,4 @@ class OpenGLFont {
     std::string textureName;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

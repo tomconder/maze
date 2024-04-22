@@ -5,10 +5,10 @@
 
 namespace sponge::platform::opengl {
 
-class OpenGLTexture : public renderer::Texture {
+class Texture : public renderer::Texture {
    public:
-    OpenGLTexture();
-    ~OpenGLTexture() override;
+    Texture();
+    ~Texture() override;
 
     void generate(uint32_t textureWidth, uint32_t textureHeight,
                   uint32_t bytesPerPixel, const uint8_t* data);

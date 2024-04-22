@@ -1,4 +1,4 @@
-#include "openglrendererapi.hpp"
+#include "rendererapi.hpp"
 #include "core/base.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
@@ -90,7 +90,7 @@ static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
 
 namespace sponge::platform::opengl {
 
-void OpenGLRendererAPI::init() {
+void RendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {
         glDebugMessageCallback(glLogMessage, nullptr);
         glEnable(GL_DEBUG_OUTPUT);
@@ -117,17 +117,17 @@ void OpenGLRendererAPI::init() {
     glEnable(GL_BLEND);
 }
 
-void OpenGLRendererAPI::setViewport(int32_t x, int32_t y, int32_t width,
-                                    int32_t height) {
+void RendererAPI::setViewport(const int32_t x, const int32_t y,
+                              const int32_t width, const int32_t height) {
     glViewport(x, y, width, height);
 }
 
-void OpenGLRendererAPI::setClearColor(const glm::vec4& color) {
+void RendererAPI::setClearColor(const glm::vec4& color) {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
-void OpenGLRendererAPI::clear() {
+void RendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

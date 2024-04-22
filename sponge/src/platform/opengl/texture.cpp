@@ -1,13 +1,13 @@
-#include "opengltexture.hpp"
 #include "platform/opengl/gl.hpp"
+#include "texture.hpp"
 
 namespace sponge::platform::opengl {
 
-OpenGLTexture::OpenGLTexture() {
+Texture::Texture() {
     glGenTextures(1, &id);
 }
 
-void OpenGLTexture::generate(uint32_t textureWidth, uint32_t textureHeight,
+void Texture::generate(uint32_t textureWidth, uint32_t textureHeight,
                              uint32_t bytesPerPixel, const uint8_t* data) {
     glBindTexture(GL_TEXTURE_2D, id);
 
@@ -34,11 +34,11 @@ void OpenGLTexture::generate(uint32_t textureWidth, uint32_t textureHeight,
     glActiveTexture(GL_TEXTURE0);
 }
 
-OpenGLTexture::~OpenGLTexture() {
+Texture::~Texture() {
     glDeleteTextures(1, &id);
 }
 
-void OpenGLTexture::bind() const {
+void Texture::bind() const {
     glBindTexture(GL_TEXTURE_2D, id);
 }
 

@@ -7,8 +7,8 @@
 #include "input/sdlkeyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
-#include "platform/opengl/openglcontext.hpp"
-#include "platform/opengl/openglrendererapi.hpp"
+#include "platform/opengl/context.hpp"
+#include "platform/opengl/rendererapi.hpp"
 #include "platform/sdl/sdlwindow.hpp"
 #include <SDL.h>
 #include <cstdint>
@@ -107,8 +107,8 @@ class SDLEngine : public Engine {
    private:
     std::shared_ptr<imgui::ImGuiManager> imguiManager;
     std::string appName = "undefined";
-    std::unique_ptr<platform::opengl::OpenGLContext> graphics;
-    std::unique_ptr<platform::opengl::OpenGLRendererAPI> renderer;
+    std::unique_ptr<platform::opengl::Context> graphics;
+    std::unique_ptr<platform::opengl::RendererAPI> renderer;
     std::unique_ptr<SDLWindow> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;

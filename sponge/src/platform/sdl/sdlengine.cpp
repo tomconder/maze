@@ -7,9 +7,9 @@
 #include "event/mouseevent.hpp"
 #include "imgui/imguinullmanager.hpp"
 #include "layer/layerstack.hpp"
-#include "platform/opengl/openglcontext.hpp"
-#include "platform/opengl/openglinfo.hpp"
-#include "platform/opengl/openglrendererapi.hpp"
+#include "platform/opengl/context.hpp"
+#include "platform/opengl/info.hpp"
+#include "platform/opengl/rendererapi.hpp"
 #include "platform/sdl/input/sdlkeyboard.hpp"
 #include "platform/sdl/input/sdlmouse.hpp"
 #include "platform/sdl/sdlwindow.hpp"
@@ -83,7 +83,7 @@ bool SDLEngine::start() {
     sdlWindow = std::make_unique<SDLWindow>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<platform::opengl::OpenGLContext>(window);
+    graphics = std::make_unique<platform::opengl::Context>(window);
 
 #if !NDEBUG
     imguiManager = std::make_shared<imgui::ImGuiManager>();
@@ -92,14 +92,14 @@ bool SDLEngine::start() {
 #endif
     imguiManager->onAttach();
 
-    platform::opengl::OpenGLInfo::logVersion();
-    platform::opengl::OpenGLInfo::logStaticInfo();
-    platform::opengl::OpenGLInfo::logGraphicsDriverInfo();
-    platform::opengl::OpenGLInfo::logContextInfo();
+    platform::opengl::Info::logVersion();
+    platform::opengl::Info::logStaticInfo();
+    platform::opengl::Info::logGraphicsDriverInfo();
+    platform::opengl::Info::logContextInfo();
 
     sdlWindow->setVSync(true);
 
-    renderer = std::make_unique<platform::opengl::OpenGLRendererAPI>();
+    renderer = std::make_unique<platform::opengl::RendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 

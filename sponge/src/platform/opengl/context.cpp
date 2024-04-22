@@ -1,11 +1,11 @@
-#include "openglcontext.hpp"
+#include "context.hpp"
 #include "core/log.hpp"
 #include <tuplet/tuple.hpp>
 #include <SDL.h>
 
 namespace sponge::platform::opengl {
 
-OpenGLContext::OpenGLContext(SDL_Window* window) {
+Context::Context(SDL_Window* window) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -69,19 +69,19 @@ OpenGLContext::OpenGLContext(SDL_Window* window) {
     }
 }
 
-OpenGLContext::~OpenGLContext() {
+Context::~Context() {
     SDL_GLContext context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
 }
 
-void OpenGLContext::flip(void* window) {
+void Context::flip(void* window) {
     if (window == nullptr) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
-void OpenGLContext::toggleFullscreen(void* window) {
+void Context::toggleFullscreen(void* window) {
     if (window == nullptr) {
         return;
     }

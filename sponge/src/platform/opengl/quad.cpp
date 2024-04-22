@@ -1,6 +1,6 @@
-#include "openglquad.hpp"
+#include "quad.hpp"
 #include "platform/opengl/gl.hpp"
-#include "platform/opengl/openglresourcemanager.hpp"
+#include "platform/opengl/resourcemanager.hpp"
 
 namespace sponge::platform::opengl {
 
@@ -11,19 +11,19 @@ const std::vector<uint32_t> indices = {
 
 constexpr std::string_view position = "position";
 
-OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
+Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
 
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<OpenGLVertexArray>();
+    vao = std::make_unique<VertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<OpenGLVertexBuffer>(4);
+    vbo = std::make_unique<VertexBuffer>(4);
     vbo->bind();
 
-    ebo = std::make_unique<OpenGLIndexBuffer>(indices);
+    ebo = std::make_unique<IndexBuffer>(indices);
     ebo->bind();
 
     const auto program = shader->getId();
@@ -43,7 +43,7 @@ OpenGLQuad::OpenGLQuad(const std::string& shaderName) : shaderName(shaderName) {
     shader->unbind();
 }
 
-void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
+void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
                         const glm::vec4& color) const {
     const std::vector<glm::vec2> vertices = {
         { top.x, bottom.y },    //
@@ -52,7 +52,7 @@ void OpenGLQuad::render(const glm::vec2& top, const glm::vec2& bottom,
         { bottom.x, bottom.y }  //
     };
 
-    const auto shader = OpenGLResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
 
     vao->bind();
 
