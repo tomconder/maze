@@ -40,8 +40,6 @@ class Engine : public sponge::Engine {
     void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
-    static void logSDLVersion();
-
     void toggleFullscreen() const;
 
     bool isFullscreen() const {
@@ -107,8 +105,8 @@ class Engine : public sponge::Engine {
    private:
     std::shared_ptr<imgui::ImGuiManager> imguiManager;
     std::string appName = "undefined";
-    std::unique_ptr<platform::opengl::Context> graphics;
-    std::unique_ptr<platform::opengl::RendererAPI> renderer;
+    std::unique_ptr<opengl::Context> graphics;
+    std::unique_ptr<opengl::RendererAPI> renderer;
     std::unique_ptr<Window> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;

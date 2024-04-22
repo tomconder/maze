@@ -6,6 +6,7 @@
 #include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
 #include "imgui/imguinullmanager.hpp"
+#include "info.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/info.hpp"
@@ -75,7 +76,7 @@ bool Engine::start() {
         return false;
     }
 
-    logSDLVersion();
+    Info::logVersion();
 
     WindowProps windowProps;
     windowProps.title = appName;
@@ -85,7 +86,7 @@ bool Engine::start() {
     sdlWindow = std::make_unique<Window>(windowProps);
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<platform::opengl::Context>(window);
+    graphics = std::make_unique<opengl::Context>(window);
 
 #if !NDEBUG
     imguiManager = std::make_shared<imgui::ImGuiManager>();
@@ -94,14 +95,14 @@ bool Engine::start() {
 #endif
     imguiManager->onAttach();
 
-    platform::opengl::Info::logVersion();
-    platform::opengl::Info::logStaticInfo();
-    platform::opengl::Info::logGraphicsDriverInfo();
-    platform::opengl::Info::logContextInfo();
+    opengl::Info::logVersion();
+    opengl::Info::logStaticInfo();
+    opengl::Info::logGraphicsDriverInfo();
+    opengl::Info::logContextInfo();
 
     sdlWindow->setVSync(true);
 
-    renderer = std::make_unique<platform::opengl::RendererAPI>();
+    renderer = std::make_unique<opengl::RendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
@@ -204,30 +205,6 @@ void Engine::shutdown() {
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
     SDL_Quit();
-}
-
-void Engine::logSDLVersion() {
-    SDL_version compiled;
-    SDL_version linked;
-
-    SDL_VERSION(&compiled)
-
-    const std::string revision = SDL_GetRevision();
-    std::stringstream ss;
-    if (!revision.empty()) {
-        ss << "(" << revision << ")";
-    }
-
-    SPONGE_CORE_DEBUG(
-        "SDL Version [Compiled]: {}.{}.{} {}", static_cast<int>(compiled.major),
-        static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
-        !revision.empty() ? ss.str() : "");
-
-    SDL_GetVersion(&linked);
-
-    SPONGE_CORE_DEBUG(
-        "SDL Version [Runtime] : {}.{}.{}", static_cast<int>(linked.major),
-        static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
 
 bool Engine::onUserCreate() {
