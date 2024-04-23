@@ -2,6 +2,8 @@
 
 #include "indexbuffer.hpp"
 #include "renderer/sprite.hpp"
+#include "renderer/texture.hpp"
+#include "texture.hpp"
 #include "vertexarray.hpp"
 #include "vertexbuffer.hpp"
 
@@ -18,6 +20,7 @@ class Sprite : public renderer::Sprite {
     std::unique_ptr<VertexBuffer> vbo;
     std::unique_ptr<IndexBuffer> ebo;
     std::unique_ptr<VertexArray> vao;
+    std::shared_ptr<Texture> tex;
 };
 
 }  // namespace sponge::platform::opengl

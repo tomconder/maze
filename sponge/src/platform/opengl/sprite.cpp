@@ -42,6 +42,9 @@ Sprite::Sprite(std::string_view name) : name(name) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    tex = ResourceManager::getTexture(name.data());
+    tex->bind();
+
     shader->unbind();
 }
 
@@ -63,7 +66,6 @@ void Sprite::render(glm::vec2 position, glm::vec2 size) const {
 
     shader->bind();
 
-    const auto tex = ResourceManager::getTexture(name);
     tex->bind();
 
     vbo->update(vertices);
