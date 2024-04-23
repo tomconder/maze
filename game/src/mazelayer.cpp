@@ -17,13 +17,13 @@ void MazeLayer::onAttach() {
         mazeShader.data(), "/models/cube/cube.obj", modelName.data());
 
     camera = ResourceManager::createGameCamera(cameraName.data());
-    camera->setPosition(glm::vec3(0.F, 4.F, 4.F));
+    camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
     const auto shader =
         sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
     shader->bind();
 
-    shader->setFloat3("lightPos", glm::vec3(4.F, 4.F, 4.F));
+    shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
     shader->setFloat("ambientStrength", .3F);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
