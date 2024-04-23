@@ -9,11 +9,10 @@ constexpr std::string_view normal = "normal";
 constexpr std::string_view position = "position";
 constexpr std::string_view texCoord = "texCoord";
 
-Mesh::Mesh(
-    const std::string& shaderName,
-    const std::vector<renderer::Vertex>& vertices,
-    const std::vector<uint32_t>& indices,
-    const std::vector<std::shared_ptr<Texture>>& textures)
+Mesh::Mesh(const std::string& shaderName,
+           const std::vector<renderer::Vertex>& vertices,
+           const std::vector<uint32_t>& indices,
+           const std::vector<std::shared_ptr<Texture>>& textures)
     : shaderName(shaderName), textures(textures) {
     assert(!shaderName.empty());
 
