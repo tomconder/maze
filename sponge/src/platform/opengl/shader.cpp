@@ -1,13 +1,13 @@
+#include "shader.hpp"
 #include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
-#include "shader.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 
 namespace sponge::platform::opengl {
 
 Shader::Shader(const std::string& vertexSource,
-                           const std::string& fragmentSource) {
+               const std::string& fragmentSource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
@@ -24,8 +24,8 @@ Shader::Shader(const std::string& vertexSource,
 }
 
 Shader::Shader(const std::string& vertexSource,
-                           const std::string& fragmentSource,
-                           const std::string& geometrySource) {
+               const std::string& fragmentSource,
+               const std::string& geometrySource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
     assert(!geometrySource.empty());
@@ -57,8 +57,7 @@ void Shader::unbind() const {
     glUseProgram(0);
 }
 
-uint32_t Shader::compileShader(const GLenum type,
-                                     const std::string& source) {
+uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     uint32_t id = glCreateShader(type);
     assert(id != 0);
 

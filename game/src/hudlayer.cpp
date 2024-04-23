@@ -22,8 +22,8 @@ void HUDLayer::onAttach() {
 
     orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
 
-    auto shader = sponge::platform::opengl::ResourceManager::getShader(
-        quadShader.data());
+    auto shader =
+        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
@@ -70,8 +70,8 @@ bool HUDLayer::onWindowResize(
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = sponge::platform::opengl::ResourceManager::getShader(
-        quadShader.data());
+    shader =
+        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

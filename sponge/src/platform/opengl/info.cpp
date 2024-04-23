@@ -1,5 +1,5 @@
-#include "core/log.hpp"
 #include "info.hpp"
+#include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
@@ -128,4 +128,4 @@ void Info::logVersion() {
                      minorVersion);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

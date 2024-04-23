@@ -9,8 +9,7 @@ VertexArray::VertexArray() {
     glBindVertexArray(id);
 }
 
-VertexArray::VertexArray(const VertexArray& vertexArray)
-    : Buffer(vertexArray) {
+VertexArray::VertexArray(const VertexArray& vertexArray) : Buffer(vertexArray) {
     id = vertexArray.id;
 }
 
@@ -18,8 +17,7 @@ VertexArray::VertexArray(VertexArray&& vertexArray) noexcept {
     id = vertexArray.id;
 }
 
-VertexArray& VertexArray::operator=(
-    const VertexArray& vertexArray) {
+VertexArray& VertexArray::operator=(const VertexArray& vertexArray) {
     id = vertexArray.id;
     return *this;
 }
