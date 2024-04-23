@@ -1,5 +1,5 @@
-#include "core/log.hpp"
 #include "resourcemanager.hpp"
+#include "core/log.hpp"
 #include <SDL.h>
 #include <cassert>
 
@@ -9,8 +9,7 @@
 
 namespace sponge::platform::opengl {
 
-absl::flat_hash_map<std::string, std::shared_ptr<Font>>
-    ResourceManager::fonts;
+absl::flat_hash_map<std::string, std::shared_ptr<Font>> ResourceManager::fonts;
 absl::flat_hash_map<std::string, std::shared_ptr<Model>>
     ResourceManager::models;
 absl::flat_hash_map<std::string, std::shared_ptr<Shader>>
@@ -19,14 +18,13 @@ absl::flat_hash_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
 std::string ResourceManager::assetsFolder = File::getResourceDir();
 
-std::shared_ptr<Font> ResourceManager::getFont(
-    const std::string& name) {
+std::shared_ptr<Font> ResourceManager::getFont(const std::string& name) {
     assert(!name.empty());
     return fonts.at(name);
 }
 
-std::shared_ptr<Font> ResourceManager::loadFont(
-    const std::string& path, const std::string& name) {
+std::shared_ptr<Font> ResourceManager::loadFont(const std::string& path,
+                                                const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -42,15 +40,14 @@ std::shared_ptr<Font> ResourceManager::loadFont(
     return font;
 }
 
-std::shared_ptr<Model> ResourceManager::getModel(
-    const std::string& name) {
+std::shared_ptr<Model> ResourceManager::getModel(const std::string& name) {
     assert(!name.empty());
     return models.at(name);
 }
 
-std::shared_ptr<Model> ResourceManager::loadModel(
-    const std::string& shaderName, const std::string& path,
-    const std::string& name) {
+std::shared_ptr<Model> ResourceManager::loadModel(const std::string& shaderName,
+                                                  const std::string& path,
+                                                  const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -66,8 +63,7 @@ std::shared_ptr<Model> ResourceManager::loadModel(
     return mesh;
 }
 
-std::shared_ptr<Shader> ResourceManager::getShader(
-    const std::string& name) {
+std::shared_ptr<Shader> ResourceManager::getShader(const std::string& name) {
     assert(!name.empty());
     return shaders.at(name);
 }
@@ -136,8 +132,8 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
 
     assert(!geometrySource.empty());
 
-    auto shader = std::make_shared<Shader>(vertexSource, fragmentSource,
-                                                 geometrySource);
+    auto shader =
+        std::make_shared<Shader>(vertexSource, fragmentSource, geometrySource);
 
     SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
 
@@ -145,14 +141,14 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
     return shader;
 }
 
-std::shared_ptr<Texture> ResourceManager::getTexture(
-    const std::string& name) {
+std::shared_ptr<Texture> ResourceManager::getTexture(const std::string& name) {
     assert(!name.empty());
     return textures.at(name);
 }
 
-std::shared_ptr<Texture> ResourceManager::loadTexture(
-    const std::string& path, const std::string& name, const LoadFlag flag) {
+std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& path,
+                                                      const std::string& name,
+                                                      const LoadFlag flag) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -181,6 +177,7 @@ std::shared_ptr<Font> ResourceManager::loadFontFromFile(
 
     auto font = std::make_shared<Font>();
     font->load(path);
+    font->log();
 
     return font;
 }
@@ -265,4 +262,4 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
     return texture;
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

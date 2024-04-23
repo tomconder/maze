@@ -44,6 +44,7 @@
 #include "platform/sdl/window.hpp"
 #include "renderer/buffer.hpp"
 #include "renderer/camera.hpp"
+#include "renderer/font.hpp"
 #include "renderer/graphicscontext.hpp"
 #include "renderer/graphicsinfo.hpp"
 #include "renderer/mesh.hpp"
