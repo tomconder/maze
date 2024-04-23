@@ -1,5 +1,5 @@
-#include "platform/opengl/gl.hpp"
 #include "texture.hpp"
+#include "platform/opengl/gl.hpp"
 
 namespace sponge::platform::opengl {
 
@@ -8,7 +8,7 @@ Texture::Texture() {
 }
 
 void Texture::generate(uint32_t textureWidth, uint32_t textureHeight,
-                             uint32_t bytesPerPixel, const uint8_t* data) {
+                       uint32_t bytesPerPixel, const uint8_t* data) {
     glBindTexture(GL_TEXTURE_2D, id);
 
     width = textureWidth;

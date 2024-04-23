@@ -44,7 +44,7 @@ Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
-                        const glm::vec4& color) const {
+                  const glm::vec4& color) const {
     const std::vector<glm::vec2> vertices = {
         { top.x, bottom.y },    //
         { top.x, top.y },       //
@@ -68,4 +68,4 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl

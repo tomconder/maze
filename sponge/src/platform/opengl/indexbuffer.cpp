@@ -1,5 +1,5 @@
-#include "core/log.hpp"
 #include "indexbuffer.hpp"
+#include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
 namespace sponge::platform::opengl {
@@ -22,8 +22,7 @@ IndexBuffer::IndexBuffer(const uint32_t size) {
                  GL_DYNAMIC_DRAW);
 }
 
-IndexBuffer::IndexBuffer(const IndexBuffer& indexBuffer)
-    : Buffer(indexBuffer) {
+IndexBuffer::IndexBuffer(const IndexBuffer& indexBuffer) : Buffer(indexBuffer) {
     id = indexBuffer.id;
 }
 
@@ -31,8 +30,7 @@ IndexBuffer::IndexBuffer(IndexBuffer&& indexBuffer) noexcept {
     id = indexBuffer.id;
 }
 
-IndexBuffer& IndexBuffer::operator=(
-    const IndexBuffer& indexBuffer) {
+IndexBuffer& IndexBuffer::operator=(const IndexBuffer& indexBuffer) {
     id = indexBuffer.id;
     return *this;
 }
@@ -67,4 +65,4 @@ void IndexBuffer::unbind() const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl
