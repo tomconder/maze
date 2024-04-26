@@ -1,5 +1,5 @@
 #include "mazelayer.hpp"
-#include "resourcemanager.hpp"
+#include "../resourcemanager.hpp"
 
 constexpr std::string_view modelName = "maze";
 constexpr std::string_view mazeShader = "mesh";
