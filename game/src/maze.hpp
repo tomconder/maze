@@ -1,10 +1,10 @@
 #pragma once
 
-#include "exitlayer.hpp"
-#include "gridlayer.hpp"
-#include "hudlayer.hpp"
-#include "imguilayer.hpp"
-#include "mazelayer.hpp"
+#include "layer/exitlayer.hpp"
+#include "layer/gridlayer.hpp"
+#include "layer/hudlayer.hpp"
+#include "layer/imguilayer.hpp"
+#include "layer/mazelayer.hpp"
 #include "sponge.hpp"
 #include <memory>
 

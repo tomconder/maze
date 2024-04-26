@@ -28,12 +28,14 @@ file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
         src/*.hpp
+        src/layer/*.hpp
         src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
         LIST_DIRECTORIES false
         src/*.cpp
+        src/layer/*.cpp
         src/ui/*.cpp)
 
 file(

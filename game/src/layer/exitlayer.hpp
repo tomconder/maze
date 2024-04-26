@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../ui/button.hpp"
 #include "sponge.hpp"
-#include "ui/button.hpp"
 #include <memory>
 
 class ExitLayer : public sponge::layer::Layer {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gamecamera.hpp"
+#include "../gamecamera.hpp"
 #include "sponge.hpp"
 
 class MazeLayer final : public sponge::layer::Layer {

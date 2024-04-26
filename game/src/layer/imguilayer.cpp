@@ -1,8 +1,8 @@
 #include "imguilayer.hpp"
-#include "imgui.h"
-#include "maze.hpp"
-#include "resourcemanager.hpp"
+#include "../maze.hpp"
+#include "../resourcemanager.hpp"
 #include "version.h"
+#include <imgui.h>
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
