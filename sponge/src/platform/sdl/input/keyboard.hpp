@@ -1,26 +1,21 @@
 #pragma once
 
 #include "input/keycode.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <SDL.h>
 
 namespace sponge::platform::sdl::input {
+
+using sponge::input::KeyCode;
 
 class Keyboard {
    public:
     Keyboard();
 
-    bool isKeyPressed(sponge::input::KeyCode key);
-    sponge::input::KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
+    bool isKeyPressed(KeyCode key) const;
+    static KeyCode mapScanCodeToKeyCode(const SDL_Scancode& scancode);
 
    private:
-    absl::flat_hash_map<sponge::input::KeyCode, SDL_Scancode> scanCodeMap;
-    absl::flat_hash_map<SDL_Scancode, sponge::input::KeyCode> keyCodeMap;
-
-    void initializeScanCodeMap();
-    void initializeKeyCodeMap();
-
-    SDL_Scancode& mapKeyCodeToScanCode(sponge::input::KeyCode key);
+    static SDL_Scancode& mapKeyCodeToScanCode(KeyCode key);
 
     const uint8_t* state;
 };

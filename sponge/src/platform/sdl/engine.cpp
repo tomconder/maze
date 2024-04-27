@@ -332,13 +332,15 @@ void Engine::processEvent(const SDL_Event& event, const double elapsedTime) {
         auto resizeEvent = event::WindowResizeEvent{ w, h };
         onEvent(resizeEvent);
     } else if (event.type == SDL_KEYDOWN) {
-        auto keyEvent = event::KeyPressedEvent{ keyboard->mapScanCodeToKeyCode(
-                                                    event.key.keysym.scancode),
-                                                elapsedTime };
+        auto keyEvent = event::KeyPressedEvent{
+            input::Keyboard::mapScanCodeToKeyCode(event.key.keysym.scancode),
+            elapsedTime
+        };
         onEvent(keyEvent);
     } else if (event.type == SDL_KEYUP) {
-        auto keyEvent = event::KeyReleasedEvent{ keyboard->mapScanCodeToKeyCode(
-            event.key.keysym.scancode) };
+        auto keyEvent = event::KeyReleasedEvent{
+            input::Keyboard::mapScanCodeToKeyCode(event.key.keysym.scancode)
+        };
         onEvent(keyEvent);
     }
 
