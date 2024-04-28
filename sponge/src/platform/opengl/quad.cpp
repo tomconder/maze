@@ -17,13 +17,13 @@ Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<VertexArray>();
+    vao = VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<VertexBuffer>(4);
+    vbo = VertexBuffer::create(4);
     vbo->bind();
 
-    ebo = std::make_unique<IndexBuffer>(indices);
+    ebo = IndexBuffer::create(indices);
     ebo->bind();
 
     const auto program = shader->getId();

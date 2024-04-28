@@ -23,13 +23,13 @@ Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<VertexArray>();
+    vao = VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<VertexBuffer>(vertices);
+    vbo = VertexBuffer::create(vertices);
     vbo->bind();
 
-    ebo = std::make_unique<IndexBuffer>(indices);
+    ebo = IndexBuffer::create(indices);
     ebo->bind();
 
     const auto program = shader->getId();

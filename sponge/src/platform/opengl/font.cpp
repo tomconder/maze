@@ -23,13 +23,13 @@ Font::Font() {
 
     const auto program = shader->getId();
 
-    vao = std::make_unique<VertexArray>();
+    vao = VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<VertexBuffer>(maxLength * 8);
+    vbo = VertexBuffer::create(maxLength * 8);
     vbo->bind();
 
-    ebo = std::make_unique<IndexBuffer>(maxLength * 6);
+    ebo = IndexBuffer::create(maxLength * 6);
     ebo->bind();
 
     auto location = glGetAttribLocation(program, vertex.data());
