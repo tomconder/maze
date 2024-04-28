@@ -1,14 +1,9 @@
 #include "indexbuffer.hpp"
-#include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
 namespace sponge::platform::opengl {
 
-IndexBuffer::IndexBuffer() {
-    SPONGE_CORE_WARN("Not implemented");
-}
-
-IndexBuffer::IndexBuffer(const std::vector<unsigned int>& indices) {
+IndexBuffer::IndexBuffer(const std::vector<uint32_t>& indices) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
@@ -22,33 +17,20 @@ IndexBuffer::IndexBuffer(const uint32_t size) {
                  GL_DYNAMIC_DRAW);
 }
 
-IndexBuffer::IndexBuffer(const IndexBuffer& indexBuffer) : Buffer(indexBuffer) {
-    id = indexBuffer.id;
-}
-
-IndexBuffer::IndexBuffer(IndexBuffer&& indexBuffer) noexcept {
-    id = indexBuffer.id;
-}
-
-IndexBuffer& IndexBuffer::operator=(const IndexBuffer& indexBuffer) {
-    id = indexBuffer.id;
-    return *this;
-}
-
 IndexBuffer::~IndexBuffer() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &id);
 }
 
-void IndexBuffer::init() {
-    SPONGE_CORE_WARN("Not implemented");
+std::unique_ptr<IndexBuffer> IndexBuffer::create(
+    const std::vector<uint32_t>& indices) {
+    std::unique_ptr<IndexBuffer> buffer(new IndexBuffer(indices));
+    return buffer;
 }
 
-void IndexBuffer::init(const std::vector<uint32_t>& indices) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
-                 indices.data(), GL_DYNAMIC_DRAW);
+std::unique_ptr<IndexBuffer> IndexBuffer::create(const uint32_t size) {
+    std::unique_ptr<IndexBuffer> buffer(new IndexBuffer(size));
+    return buffer;
 }
 
 void IndexBuffer::update(const std::vector<uint32_t>& indices) const {

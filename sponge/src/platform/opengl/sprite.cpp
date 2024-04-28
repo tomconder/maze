@@ -22,13 +22,13 @@ Sprite::Sprite(std::string_view name) : name(name) {
 
     const auto program = shader->getId();
 
-    vao = std::make_unique<VertexArray>();
+    vao = VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<VertexBuffer>(8);
+    vbo = VertexBuffer::create(8);
     vbo->bind();
 
-    ebo = std::make_unique<IndexBuffer>(indices);
+    ebo = IndexBuffer::create(indices);
     ebo->bind();
 
     if (auto location = glGetAttribLocation(program, vertex.data());

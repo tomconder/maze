@@ -1,13 +1,7 @@
 #include "vertexbuffer.hpp"
-#include "core/log.hpp"
 #include "platform/opengl/gl.hpp"
 
 namespace sponge::platform::opengl {
-
-VertexBuffer::VertexBuffer() {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-}
 
 VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
     glGenBuffers(1, &id);
@@ -30,32 +24,26 @@ VertexBuffer::VertexBuffer(const uint32_t size) {
                  GL_DYNAMIC_DRAW);
 }
 
-VertexBuffer::VertexBuffer(const VertexBuffer& vertexBuffer)
-    : Buffer(vertexBuffer) {
-    id = vertexBuffer.id;
-}
-
-VertexBuffer::VertexBuffer(VertexBuffer&& vertexBuffer) noexcept {
-    id = vertexBuffer.id;
-}
-
-VertexBuffer& VertexBuffer::operator=(const VertexBuffer& vertexBuffer) {
-    id = vertexBuffer.id;
-    return *this;
-}
-
 VertexBuffer::~VertexBuffer() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &id);
 }
 
-void VertexBuffer::init() {
-    SPONGE_CORE_WARN("Not implemented");
+std::unique_ptr<VertexBuffer> VertexBuffer::create(uint32_t size) {
+    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(size));
+    return buffer;
 }
 
-void VertexBuffer::init(const float* data, uint32_t size) const {
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+std::unique_ptr<VertexBuffer> VertexBuffer::create(
+    const std::vector<glm::vec2>& vertices) {
+    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
+    return buffer;
+}
+
+std::unique_ptr<VertexBuffer> VertexBuffer::create(
+    const std::vector<renderer::Vertex>& vertices) {
+    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
+    return buffer;
 }
 
 void VertexBuffer::update(const std::vector<glm::vec2>& vertices) const {

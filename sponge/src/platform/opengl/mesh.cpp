@@ -22,10 +22,10 @@ Mesh::Mesh(const std::string& shaderName,
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = std::make_unique<VertexArray>();
+    vao = VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<VertexBuffer>(vertices);
+    vbo = VertexBuffer::create(vertices);
     vbo->bind();
 
     const auto program = shader->getId();
@@ -59,7 +59,7 @@ Mesh::Mesh(const std::string& shaderName,
             reinterpret_cast<const void*>(offsetof(renderer::Vertex, normal)));
     }
 
-    ebo = std::make_unique<IndexBuffer>(indices);
+    ebo = IndexBuffer::create(indices);
     ebo->bind();
 
     shader->unbind();
