@@ -1,14 +1,14 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "ad3bae57455a3c3ce528fcd47d8e8027d0498add",
+  "builtin-baseline": "c561d1ec136c79a8ff1e3ea125876e51006b8361",
   "dependencies": [
     {
       "name": "abseil",
       "features": [
         "cxx17"
       ],
-      "version>=": "20240116.1#1"
+      "version>=": "20240116.2"
     },
     {
       "name": "glad",
@@ -20,7 +20,7 @@
     },
     {
       "name": "glm",
-      "version>=": "1.0.1#1"
+      "version>=": "1.0.1#2"
     },
     {
       "name": "imgui",
@@ -41,7 +41,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.13.0#1"
+      "version>=": "1.14.0"
     },
     {
       "name": "stb",
