@@ -3,7 +3,7 @@
 #include "core/engine.hpp"
 #include "core/log.hpp"
 #include "event/event.hpp"
-#include "imgui/imguimanager.hpp"
+#include "platform/sdl/imgui/imguimanager.hpp"
 #include "input/keyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
@@ -17,111 +17,119 @@
 
 namespace sponge::platform::sdl {
 
-class Engine : public sponge::Engine {
-   public:
-    Engine();
-    bool construct(std::string_view name, uint32_t width, uint32_t height);
+    class Engine : public sponge::Engine {
+    public:
+        Engine();
 
-    bool start() override;
-    bool iterateLoop() override;
-    void shutdown() override;
+        bool construct(std::string_view name, uint32_t width, uint32_t height);
 
-    bool onUserCreate() override;
-    bool onUserUpdate(double elapsedTime) override;
-    bool onUserDestroy() override;
+        bool start() override;
 
-    void onEvent(event::Event& event) override;
-    void onImGuiRender();
+        bool iterateLoop() override;
 
-    void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
+        void shutdown() override;
 
-    void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
-    void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
-    void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
-    void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
+        bool onUserCreate() override;
 
-    void toggleFullscreen() const;
+        bool onUserUpdate(double elapsedTime) override;
 
-    bool isFullscreen() const {
-        const auto flags = SDL_GetWindowFlags(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
-        return (flags & SDL_WINDOW_FULLSCREEN) != 0;
-    }
+        bool onUserDestroy() override;
 
-    layer::LayerStack* getLayerStack() const {
-        return layerStack;
-    }
+        void onEvent(event::Event &event) override;
 
-    uint32_t getHeight() const {
-        return h;
-    }
+        void onImGuiRender();
 
-    uint32_t getWidth() const {
-        return w;
-    }
+        void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
-    uint32_t getWindowHeight() const {
-        int32_t w;
-        int32_t h;
-        SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(h);
-    }
+        void pushOverlay(const std::shared_ptr<layer::Layer> &layer) const;
 
-    uint32_t getWindowWidth() const {
-        int32_t w;
-        int32_t h;
-        SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(w);
-    }
+        void pushLayer(const std::shared_ptr<layer::Layer> &layer) const;
 
-    static bool hasVerticalSync() {
-        return SDL_GL_GetSwapInterval() != 0;
-    }
+        void popLayer(const std::shared_ptr<layer::Layer> &layer) const;
 
-    static void setVerticalSync(bool value) {
-        SDL_GL_SetSwapInterval(value ? 1 : 0);
-    }
+        void popOverlay(const std::shared_ptr<layer::Layer> &layer) const;
 
-    std::vector<LogItem>& getMessages() const {
-        return *messages;
-    }
+        void toggleFullscreen() const;
 
-    void addMessage(const LogItem& item) const {
-        messages->push_back(item);
-    }
+        bool isFullscreen() const {
+            const auto flags = SDL_GetWindowFlags(
+                    static_cast<SDL_Window *>(sdlWindow->getNativeWindow()));
+            return (flags & SDL_WINDOW_FULLSCREEN) != 0;
+        }
 
-    void clearMessages() const {
-        messages->clear();
-    }
+        layer::LayerStack *getLayerStack() const {
+            return layerStack;
+        }
 
-    void setMouseVisible(bool value) const;
+        uint32_t getHeight() const {
+            return h;
+        }
 
-    static Engine& get() {
-        return *instance;
-    }
+        uint32_t getWidth() const {
+            return w;
+        }
 
-   private:
-    std::shared_ptr<imgui::ImGuiManager> imguiManager;
-    std::string appName = "undefined";
-    std::unique_ptr<opengl::Context> graphics;
-    std::unique_ptr<opengl::RendererAPI> renderer;
-    std::unique_ptr<Window> sdlWindow;
+        uint32_t getWindowHeight() const {
+            int32_t w;
+            int32_t h;
+            SDL_GetWindowSize(
+                    static_cast<SDL_Window *>(sdlWindow->getNativeWindow()), &w, &h);
+            return static_cast<uint32_t>(h);
+        }
 
-    std::unique_ptr<std::vector<LogItem>> messages;
+        uint32_t getWindowWidth() const {
+            int32_t w;
+            int32_t h;
+            SDL_GetWindowSize(
+                    static_cast<SDL_Window *>(sdlWindow->getNativeWindow()), &w, &h);
+            return static_cast<uint32_t>(w);
+        }
 
-    uint32_t offsetx = 0;
-    uint32_t offsety = 0;
-    uint32_t w = 0;
-    uint32_t h = 0;
+        static bool hasVerticalSync() {
+            return SDL_GL_GetSwapInterval() != 0;
+        }
 
-    layer::LayerStack* layerStack;
-    input::Keyboard* keyboard;
+        static void setVerticalSync(bool value) {
+            SDL_GL_SetSwapInterval(value ? 1 : 0);
+        }
 
-    void processEvent(const SDL_Event& event, double elapsedTime);
+        std::vector<LogItem> &getMessages() const {
+            return *messages;
+        }
 
-    static Engine* instance;
-};
+        void addMessage(const LogItem &item) const {
+            messages->push_back(item);
+        }
+
+        void clearMessages() const {
+            messages->clear();
+        }
+
+        void setMouseVisible(bool value) const;
+
+        static Engine &get() {
+            return *instance;
+        }
+
+    private:
+        std::string appName = "undefined";
+        std::unique_ptr<opengl::Context> graphics;
+        std::unique_ptr<opengl::RendererAPI> renderer;
+        std::unique_ptr<Window> sdlWindow;
+
+        std::unique_ptr<std::vector<LogItem>> messages;
+
+        uint32_t offsetx = 0;
+        uint32_t offsety = 0;
+        uint32_t w = 0;
+        uint32_t h = 0;
+
+        layer::LayerStack *layerStack;
+        input::Keyboard *keyboard;
+
+        void processEvent(const SDL_Event &event, double elapsedTime);
+
+        static Engine *instance;
+    };
 
 }  // namespace sponge::platform::sdl
