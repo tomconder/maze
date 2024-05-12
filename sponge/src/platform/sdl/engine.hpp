@@ -3,12 +3,12 @@
 #include "core/engine.hpp"
 #include "core/log.hpp"
 #include "event/event.hpp"
-#include "imgui/imguimanager.hpp"
 #include "input/keyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
+#include "platform/sdl/imgui/imguimanager.hpp"
 #include "platform/sdl/window.hpp"
 #include <SDL.h>
 #include <cstdint>
@@ -20,24 +20,33 @@ namespace sponge::platform::sdl {
 class Engine : public sponge::Engine {
    public:
     Engine();
+
     bool construct(std::string_view name, uint32_t width, uint32_t height);
 
     bool start() override;
+
     bool iterateLoop() override;
+
     void shutdown() override;
 
     bool onUserCreate() override;
+
     bool onUserUpdate(double elapsedTime) override;
+
     bool onUserDestroy() override;
 
     void onEvent(event::Event& event) override;
+
     void onImGuiRender();
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
     void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
+
     void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
+
     void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
+
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
     void toggleFullscreen() const;
@@ -103,7 +112,6 @@ class Engine : public sponge::Engine {
     }
 
    private:
-    std::shared_ptr<imgui::ImGuiManager> imguiManager;
     std::string appName = "undefined";
     std::unique_ptr<opengl::Context> graphics;
     std::unique_ptr<opengl::RendererAPI> renderer;

@@ -1,16 +1,17 @@
-#include "platform/sdl/engine.hpp"
+#include "engine.hpp"
 #include "core/log.hpp"
 #include "core/timer.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
-#include "imgui/imguinullmanager.hpp"
 #include "info.hpp"
 #include "layer/layerstack.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/info.hpp"
 #include "platform/opengl/rendererapi.hpp"
+#include "platform/sdl/imgui/noopmanager.hpp"
+#include "platform/sdl/imgui/sdlmanager.hpp"
 #include "platform/sdl/input/keyboard.hpp"
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/window.hpp"
@@ -18,6 +19,15 @@
 #include <sstream>
 
 namespace sponge::platform::sdl {
+
+auto sdlManager = std::make_shared<imgui::SDLManager>();
+auto noopManager = std::make_shared<imgui::NoopManager>();
+
+#if !NDEBUG
+auto imguiManager = sdlManager;
+#else
+auto imguiManager = noopManager;
+#endif
 
 Engine* Engine::instance = nullptr;
 Timer systemTimer;
@@ -88,11 +98,6 @@ bool Engine::start() {
 
     graphics = std::make_unique<opengl::Context>(window);
 
-#if !NDEBUG
-    imguiManager = std::make_shared<imgui::ImGuiManager>();
-#else
-    imguiManager = std::make_shared<imgui::ImGuiNullManager>();
-#endif
     imguiManager->onAttach();
 
     opengl::Info::logVersion();
