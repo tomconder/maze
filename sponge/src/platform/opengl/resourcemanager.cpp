@@ -1,5 +1,5 @@
 #include "resourcemanager.hpp"
-#include "core/log.hpp"
+#include "logging/log.hpp"
 #include <SDL.h>
 #include <cassert>
 

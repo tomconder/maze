@@ -1,11 +1,11 @@
 #pragma once
 
 #include "core/engine.hpp"
-#include "core/log.hpp"
 #include "event/event.hpp"
 #include "input/keyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
 #include "platform/sdl/imgui/imguimanager.hpp"
@@ -16,6 +16,8 @@
 #include <string>
 
 namespace sponge::platform::sdl {
+
+using logging::LogItem;
 
 class Engine : public sponge::Engine {
    public:

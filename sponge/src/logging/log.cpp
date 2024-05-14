@@ -1,10 +1,10 @@
-#include "core/log.hpp"
-#include "core/logflag.hpp"
-#include "imgui/imguisink.hpp"
+#include "log.hpp"
+#include "imgui/sink.hpp"
+#include "logflag.hpp"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace sponge {
+namespace sponge::logging {
 
 std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
@@ -16,7 +16,7 @@ void Log::init(const std::string_view logfile) {
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(
         logfile.data(), true));
-    logSinks.emplace_back(std::make_shared<imgui::ImguiSink<std::mutex>>());
+    logSinks.emplace_back(std::make_shared<imgui::Sink<std::mutex>>());
 
     const auto console = spdlog::stdout_color_mt("console");
     set_default_logger(console);
@@ -57,4 +57,4 @@ void Log::init(const std::string_view logfile) {
     spdlog::set_level(spdlog::level::trace);
 }
 
-}  // namespace sponge
+}  // namespace sponge::logging

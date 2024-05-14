@@ -10,6 +10,7 @@ file(
         src/imgui/*.hpp
         src/input/*.hpp
         src/layer/*.hpp
+        src/logging/*.hpp
         src/renderer/*.hpp
         src/scene/*.hpp)
 
@@ -21,6 +22,7 @@ file(
         src/imgui/*.cpp
         src/input/*.cpp
         src/layer/*.cpp
+        src/logging/*.cpp
         src/renderer/*.cpp
         src/scene/*.cpp)
 

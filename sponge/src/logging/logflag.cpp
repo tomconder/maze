@@ -1,4 +1,4 @@
-#include "core/logflag.hpp"
+#include "logflag.hpp"
 #include "core/base.hpp"
 
 constexpr static spdlog::string_view_t level_string_views[] LOGFLAG_LEVEL_NAMES;
