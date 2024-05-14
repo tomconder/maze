@@ -16,7 +16,8 @@ void Log::init(const std::string_view logfile) {
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(
         logfile.data(), true));
-    logSinks.emplace_back(std::make_shared<imgui::Sink<std::mutex>>());
+    logSinks.emplace_back(
+        std::make_shared<platform::sdl::imgui::Sink<std::mutex>>());
 
     const auto console = spdlog::stdout_color_mt("console");
     set_default_logger(console);
