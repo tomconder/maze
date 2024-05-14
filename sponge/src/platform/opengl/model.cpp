@@ -5,7 +5,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "core/log.hpp"
+#include "logging/log.hpp"
 #include "tiny_obj_loader.h"
 
 namespace sponge::platform::opengl {

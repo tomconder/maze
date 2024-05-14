@@ -1,5 +1,5 @@
 #include "info.hpp"
-#include "core/log.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>

@@ -1,5 +1,4 @@
 #include "engine.hpp"
-#include "core/log.hpp"
 #include "core/timer.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
@@ -7,6 +6,7 @@
 #include "event/mouseevent.hpp"
 #include "info.hpp"
 #include "layer/layerstack.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/info.hpp"
 #include "platform/opengl/rendererapi.hpp"
@@ -55,7 +55,7 @@ Engine::Engine() {
     instance = this;
 
     layerStack = new layer::LayerStack();
-    messages = std::make_unique<std::vector<LogItem>>();
+    messages = std::make_unique<std::vector<logging::LogItem>>();
     keyboard = new platform::sdl::input::Keyboard();
 }
 

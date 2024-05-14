@@ -9,7 +9,7 @@
 #include "spdlog/spdlog.h"
 #endif
 
-namespace sponge {
+namespace sponge::logging {
 
 struct LogItem {
     std::string message;
@@ -44,42 +44,42 @@ class Log {
 };
 
 #define SPONGE_CORE_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_TRACE(logging::Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_DEBUG(logging::Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_INFO(...) \
-    SPDLOG_LOGGER_INFO(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_INFO(logging::Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_WARN(...) \
-    SPDLOG_LOGGER_WARN(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_WARN(logging::Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_ERROR(logging::Log::getCoreLogger(), __VA_ARGS__)
 #define SPONGE_CORE_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(Log::getCoreLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_CRITICAL(logging::Log::getCoreLogger(), __VA_ARGS__)
 
 #define SPONGE_GL_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_TRACE(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_DEBUG(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_INFO(...) \
-    SPDLOG_LOGGER_INFO(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_INFO(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_WARN(...) \
-    SPDLOG_LOGGER_WARN(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_WARN(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_ERROR(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(sponge::Log::getGlLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 
-}  // namespace sponge
+}  // namespace sponge::logging
 
 #define SPONGE_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_TRACE(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_DEBUG(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_INFO(...) \
-    SPDLOG_LOGGER_INFO(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_INFO(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_WARN(...) \
-    SPDLOG_LOGGER_WARN(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_WARN(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_ERROR(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
 #define SPONGE_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(sponge::Log::getAppLogger(), __VA_ARGS__)
+    SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getAppLogger(), __VA_ARGS__)

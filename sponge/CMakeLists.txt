@@ -10,6 +10,7 @@ file(
         src/imgui/*.hpp
         src/input/*.hpp
         src/layer/*.hpp
+        src/logging/*.hpp
         src/renderer/*.hpp
         src/scene/*.hpp)
 
@@ -21,6 +22,7 @@ file(
         src/imgui/*.cpp
         src/input/*.cpp
         src/layer/*.cpp
+        src/logging/*.cpp
         src/renderer/*.cpp
         src/scene/*.cpp)
 
@@ -39,6 +41,7 @@ file(
         src/platform/sdl/*.hpp
         src/platform/sdl/imgui/*.hpp
         src/platform/sdl/input/*.hpp
+        src/platform/sdl/logging/*.hpp
 )
 list(APPEND HEADER_FILES ${SDL_HEADERS})
 file(
@@ -47,6 +50,7 @@ file(
         src/platform/sdl/*.cpp
         src/platform/sdl/imgui/*.cpp
         src/platform/sdl/input/*.cpp
+        src/platform/sdl/logging/*.cpp
 )
 list(APPEND SOURCE_FILES ${SDL_SOURCES})
 

@@ -1,6 +1,6 @@
 #include "rendererapi.hpp"
 #include "core/base.hpp"
-#include "core/log.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/gl.hpp"
 
 static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
