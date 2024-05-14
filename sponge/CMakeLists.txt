@@ -41,6 +41,7 @@ file(
         src/platform/sdl/*.hpp
         src/platform/sdl/imgui/*.hpp
         src/platform/sdl/input/*.hpp
+        src/platform/sdl/logging/*.hpp
 )
 list(APPEND HEADER_FILES ${SDL_HEADERS})
 file(
@@ -49,6 +50,7 @@ file(
         src/platform/sdl/*.cpp
         src/platform/sdl/imgui/*.cpp
         src/platform/sdl/input/*.cpp
+        src/platform/sdl/logging/*.cpp
 )
 list(APPEND SOURCE_FILES ${SDL_SOURCES})
 

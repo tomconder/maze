@@ -1,6 +1,6 @@
 #include "log.hpp"
-#include "imgui/sink.hpp"
 #include "logflag.hpp"
+#include "platform/sdl/logging/sink.hpp"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logging/log.hpp"
 #include "platform/sdl/engine.hpp"
 #include <spdlog/sinks/base_sink.h>
 
