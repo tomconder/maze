@@ -1,61 +1,61 @@
 #include "log.hpp"
 #include "logflag.hpp"
-#include "platform/sdl/logging/sink.hpp"
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace sponge::logging {
 
-std::shared_ptr<spdlog::logger> Log::appLogger;
-std::shared_ptr<spdlog::logger> Log::coreLogger;
-std::shared_ptr<spdlog::logger> Log::glLogger;
+    std::shared_ptr<spdlog::logger> Log::appLogger;
+    std::shared_ptr<spdlog::logger> Log::coreLogger;
+    std::shared_ptr<spdlog::logger> Log::glLogger;
 
-void Log::init(const std::string_view logfile) {
-    std::vector<spdlog::sink_ptr> logSinks;
-    logSinks.emplace_back(
-        std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-    logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-        logfile.data(), true));
-    logSinks.emplace_back(
-        std::make_shared<platform::sdl::imgui::Sink<std::mutex>>());
+    std::string_view Log::colorFormatPattern = "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
+    std::string_view Log::fileFormatPattern = "%*%m%d %T.%f %7t %s:%# [%n] %v";
+    std::string_view Log::guiFormatPattern = "%*%m%d %T.%f %7t %s:%# [%n] %v";
 
-    const auto console = spdlog::stdout_color_mt("console");
-    set_default_logger(console);
+    void Log::init(const std::string_view logfile) {
+        const auto console = spdlog::stdout_color_mt("console");
+        set_default_logger(console);
 
-    auto colorFormatter = std::make_unique<spdlog::pattern_formatter>();
-    colorFormatter->add_flag<LogFlag>('*').set_pattern(
-        "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$");
-    logSinks[0]->set_formatter(std::move(colorFormatter));
+        spdlog::set_level(spdlog::level::trace);
 
-    auto fileFormatter = std::make_unique<spdlog::pattern_formatter>();
-    fileFormatter->add_flag<LogFlag>('*').set_pattern(
-        "%*%m%d %T.%f %7t %s:%# [%n] %v");
-    logSinks[1]->set_formatter(std::move(fileFormatter));
+        std::vector<spdlog::sink_ptr> sinks;
 
-    auto guiFormatter = std::make_unique<spdlog::pattern_formatter>();
-    guiFormatter->add_flag<LogFlag>('*').set_pattern(
-        "%*%m%d %T.%f %7t %s:%# [%n] %v");
-    logSinks[2]->set_formatter(std::move(guiFormatter));
+        const auto colorSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        setFormatter(colorSink, colorFormatPattern.data());
+        sinks.emplace_back(colorSink);
 
-    coreLogger = std::make_shared<spdlog::logger>("SPONGE", begin(logSinks),
-                                                  end(logSinks));
-    register_logger(coreLogger);
-    coreLogger->set_level(spdlog::level::trace);
-    coreLogger->flush_on(spdlog::level::trace);
+        const auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logfile.data(), true);
+        setFormatter(fileSink, fileFormatPattern.data());
+        sinks.emplace_back(fileSink);
 
-    appLogger =
-        std::make_shared<spdlog::logger>("APP", begin(logSinks), end(logSinks));
-    register_logger(appLogger);
-    appLogger->set_level(spdlog::level::trace);
-    appLogger->flush_on(spdlog::level::trace);
+        coreLogger = registerLogger("SPONGE", sinks);
+        appLogger = registerLogger("APP", sinks);
+        glLogger = registerLogger("OPENGL", sinks);
+    }
 
-    glLogger = std::make_shared<spdlog::logger>("OPENGL", begin(logSinks),
-                                                end(logSinks));
-    register_logger(glLogger);
-    glLogger->set_level(spdlog::level::trace);
-    glLogger->flush_on(spdlog::level::trace);
+    void Log::addSink(const spdlog::sink_ptr ptr, const std::string_view pattern) {
+        setFormatter(ptr, pattern.data());
 
-    spdlog::set_level(spdlog::level::trace);
-}
+        coreLogger->sinks().push_back(ptr);
+        appLogger->sinks().push_back(ptr);
+        glLogger->sinks().push_back(ptr);
+    }
+
+    void Log::setFormatter(const spdlog::sink_ptr ptr, const std::string_view pattern) {
+        auto formatter = std::make_unique<spdlog::pattern_formatter>();
+        formatter->add_flag<LogFlag>('*').set_pattern(pattern.data());
+        ptr->set_formatter(std::move(formatter));
+    }
+
+    std::shared_ptr<spdlog::logger>
+    Log::registerLogger(const std::string_view name, const std::vector<spdlog::sink_ptr> sinks) {
+        auto logger = std::make_shared<spdlog::logger>(name.data(), sinks.begin(), sinks.end());
+        logger->set_level(spdlog::level::trace);
+        logger->flush_on(spdlog::level::trace);
+        register_logger(logger);
+
+        return logger;
+    }
 
 }  // namespace sponge::logging
