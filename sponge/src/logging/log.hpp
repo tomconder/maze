@@ -37,10 +37,21 @@ class Log {
         return glLogger;
     }
 
+    static void addSink(spdlog::sink_ptr ptr, std::string_view pattern);
+
+    static std::string_view colorFormatPattern;
+    static std::string_view fileFormatPattern;
+    static std::string_view guiFormatPattern;
+
    private:
     static std::shared_ptr<spdlog::logger> appLogger;
     static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> glLogger;
+
+    static std::shared_ptr<spdlog::logger> registerLogger(
+        std::string_view name, std::vector<spdlog::sink_ptr> sinks);
+
+    static void setFormatter(spdlog::sink_ptr sink, std::string_view pattern);
 };
 
 #define SPONGE_CORE_TRACE(...) \

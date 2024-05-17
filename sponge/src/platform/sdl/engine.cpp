@@ -14,6 +14,7 @@
 #include "platform/sdl/imgui/sdlmanager.hpp"
 #include "platform/sdl/input/keyboard.hpp"
 #include "platform/sdl/input/mouse.hpp"
+#include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
 #include <array>
 #include <sstream>
@@ -51,6 +52,10 @@ constexpr auto keyCodes = std::to_array(
       sponge::input::KeyCode::SpongeKey_Right });
 
 Engine::Engine() {
+    const auto guiSink =
+        std::make_shared<platform::sdl::imgui::Sink<std::mutex>>();
+    logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
+
     assert(!instance && "Engine already exists!");
     instance = this;
 
