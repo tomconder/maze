@@ -1,11 +1,12 @@
 #pragma once
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 class Camera {
    public:
     Camera() = default;
+
     virtual ~Camera() = default;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene
