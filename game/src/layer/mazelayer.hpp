@@ -1,14 +1,18 @@
 #pragma once
 
-#include "../gamecamera.hpp"
+#include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
 class MazeLayer final : public sponge::layer::Layer {
    public:
     MazeLayer();
+
     void onAttach() override;
+
     void onDetach() override;
+
     void onEvent(sponge::event::Event& event) override;
+
     bool onUpdate(double elapsedTime) override;
 
     std::shared_ptr<GameCamera> getCamera() const {
@@ -30,11 +34,16 @@ class MazeLayer final : public sponge::layer::Layer {
     bool activeWireframe = false;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
+
     static bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
+
     static bool onMouseButtonReleased(
         const sponge::event::MouseButtonReleasedEvent& event);
+
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
+
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };

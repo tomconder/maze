@@ -1,5 +1,5 @@
 #include "exitlayer.hpp"
-#include "../resourcemanager.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "exit";
 constexpr std::string_view uiFont = "league-gothic";

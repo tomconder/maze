@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gamecamera.hpp"
+#include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 #include <absl/container/flat_hash_map.h>
 #include <memory>

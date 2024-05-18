@@ -29,6 +29,7 @@ file(
         LIST_DIRECTORIES false
         src/*.hpp
         src/layer/*.hpp
+        src/scene/*.hpp
         src/ui/*.hpp)
 
 file(
@@ -36,6 +37,7 @@ file(
         LIST_DIRECTORIES false
         src/*.cpp
         src/layer/*.cpp
+        src/scene/*.cpp
         src/ui/*.cpp)
 
 file(
