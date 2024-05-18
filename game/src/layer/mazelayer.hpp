@@ -4,48 +4,50 @@
 #include "sponge.hpp"
 
 namespace game::layer {
-    class MazeLayer final : public sponge::layer::Layer {
-    public:
-        MazeLayer();
 
-        void onAttach() override;
+class MazeLayer final : public sponge::layer::Layer {
+   public:
+    MazeLayer();
 
-        void onDetach() override;
+    void onAttach() override;
 
-        void onEvent(sponge::event::Event &event) override;
+    void onDetach() override;
 
-        bool onUpdate(double elapsedTime) override;
+    void onEvent(sponge::event::Event& event) override;
 
-        std::shared_ptr<scene::GameCamera> getCamera() const {
-            return camera;
-        }
+    bool onUpdate(double elapsedTime) override;
 
-        bool isWireframeActive() const {
-            return activeWireframe;
-        }
+    std::shared_ptr<scene::GameCamera> getCamera() const {
+        return camera;
+    }
 
-        void setWireframeActive(bool active);
+    bool isWireframeActive() const {
+        return activeWireframe;
+    }
 
-    private:
-        std::shared_ptr<scene::GameCamera> camera;
+    void setWireframeActive(bool active);
 
-        static constexpr float keyboardSpeed = .1F;
-        static constexpr float mouseSpeed = .1F;
+   private:
+    std::shared_ptr<scene::GameCamera> camera;
 
-        bool activeWireframe = false;
+    static constexpr float keyboardSpeed = .1F;
+    static constexpr float mouseSpeed = .1F;
 
-        bool onKeyPressed(const sponge::event::KeyPressedEvent &event) const;
+    bool activeWireframe = false;
 
-        static bool onMouseButtonPressed(
-                const sponge::event::MouseButtonPressedEvent &event);
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 
-        static bool onMouseButtonReleased(
-                const sponge::event::MouseButtonReleasedEvent &event);
+    static bool onMouseButtonPressed(
+        const sponge::event::MouseButtonPressedEvent& event);
 
-        bool onMouseMoved(const sponge::event::MouseMovedEvent &event) const;
+    static bool onMouseButtonReleased(
+        const sponge::event::MouseButtonReleasedEvent& event);
 
-        bool onMouseScrolled(const sponge::event::MouseScrolledEvent &event) const;
+    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
-        bool onWindowResize(const sponge::event::WindowResizeEvent &event) const;
-    };
-}
+    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
+
+    bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+};
+
+}  // namespace game::layer

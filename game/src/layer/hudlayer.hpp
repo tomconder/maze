@@ -3,22 +3,24 @@
 #include "sponge.hpp"
 
 namespace game::layer {
-    class HUDLayer final : public sponge::layer::Layer {
-    public:
-        HUDLayer();
 
-        void onAttach() override;
+class HUDLayer final : public sponge::layer::Layer {
+   public:
+    HUDLayer();
 
-        void onDetach() override;
+    void onAttach() override;
 
-        void onEvent(sponge::event::Event &event) override;
+    void onDetach() override;
 
-        bool onUpdate(double elapsedTime) override;
+    void onEvent(sponge::event::Event& event) override;
 
-    private:
-        std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
-        std::unique_ptr<sponge::platform::opengl::Sprite> logo;
+    bool onUpdate(double elapsedTime) override;
 
-        bool onWindowResize(const sponge::event::WindowResizeEvent &event) const;
-    };
-}
+   private:
+    std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
+    std::unique_ptr<sponge::platform::opengl::Sprite> logo;
+
+    bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+};
+
+}  // namespace game::layer

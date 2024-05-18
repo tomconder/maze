@@ -3,17 +3,19 @@
 #include "sponge.hpp"
 
 namespace game::layer {
-    class ImGuiLayer final : public sponge::layer::Layer {
-    public:
-        ImGuiLayer();
 
-        void onImGuiRender() override;
+class ImGuiLayer final : public sponge::layer::Layer {
+   public:
+    ImGuiLayer();
 
-        static float getLogSelectionMaxWidth(const std::vector<const char *> &list);
+    void onImGuiRender() override;
 
-    private:
-        static void showLayersTable(sponge::layer::LayerStack *);
+    static float getLogSelectionMaxWidth(const std::vector<const char*>& list);
 
-        static void showLogging();
-    };
-}
+   private:
+    static void showLayersTable(sponge::layer::LayerStack*);
+
+    static void showLogging();
+};
+
+}  // namespace game::layer

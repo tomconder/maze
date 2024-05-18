@@ -9,40 +9,47 @@
 #include <memory>
 
 namespace game {
-    class Maze final : public sponge::platform::sdl::Engine {
-    public:
-        Maze();
 
-        bool onUserCreate() override;
+class Maze final : public sponge::platform::sdl::Engine {
+   public:
+    Maze();
 
-        bool onUserDestroy() override;
+    bool onUserCreate() override;
 
-        bool onUserUpdate(double elapsedTime) override;
+    bool onUserDestroy() override;
 
-        void onEvent(sponge::event::Event &event) override;
+    bool onUserUpdate(double elapsedTime) override;
 
-        static Maze &get() {
-            return *instance;
-        }
+    void onEvent(sponge::event::Event& event) override;
 
-        std::shared_ptr<game::layer::MazeLayer> getMazeLayer() const {
-            return mazeLayer;
-        }
+    static Maze& get() {
+        return *instance;
+    }
 
-    private:
-        bool isRunning = true;
-        bool isMouseVisible = true;
+    std::shared_ptr<game::layer::MazeLayer> getMazeLayer() const {
+        return mazeLayer;
+    }
 
-        std::shared_ptr<game::layer::ExitLayer> exitLayer = std::make_shared<game::layer::ExitLayer>();
-        std::shared_ptr<game::layer::GridLayer> gridLayer = std::make_shared<game::layer::GridLayer>();
-        std::shared_ptr<game::layer::HUDLayer> hudLayer = std::make_shared<game::layer::HUDLayer>();
-        std::shared_ptr<game::layer::ImGuiLayer> imguiLayer = std::make_shared<game::layer::ImGuiLayer>();
-        std::shared_ptr<game::layer::MazeLayer> mazeLayer = std::make_shared<game::layer::MazeLayer>();
+   private:
+    bool isRunning = true;
+    bool isMouseVisible = true;
 
-        bool onKeyPressed(const sponge::event::KeyPressedEvent &event);
+    std::shared_ptr<game::layer::ExitLayer> exitLayer =
+        std::make_shared<game::layer::ExitLayer>();
+    std::shared_ptr<game::layer::GridLayer> gridLayer =
+        std::make_shared<game::layer::GridLayer>();
+    std::shared_ptr<game::layer::HUDLayer> hudLayer =
+        std::make_shared<game::layer::HUDLayer>();
+    std::shared_ptr<game::layer::ImGuiLayer> imguiLayer =
+        std::make_shared<game::layer::ImGuiLayer>();
+    std::shared_ptr<game::layer::MazeLayer> mazeLayer =
+        std::make_shared<game::layer::MazeLayer>();
 
-        bool onWindowClose(const sponge::event::WindowCloseEvent &event);
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
-        static Maze *instance;
-    };
-}
+    bool onWindowClose(const sponge::event::WindowCloseEvent& event);
+
+    static Maze* instance;
+};
+
+}  // namespace game

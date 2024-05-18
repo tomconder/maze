@@ -5,18 +5,20 @@
 #include "sponge.hpp"
 
 namespace game::layer {
-    class GridLayer final : public sponge::layer::Layer {
-    public:
-        GridLayer();
 
-        void onAttach() override;
+class GridLayer final : public sponge::layer::Layer {
+   public:
+    GridLayer();
 
-        void onDetach() override;
+    void onAttach() override;
 
-        bool onUpdate(double elapsedTime) override;
+    void onDetach() override;
 
-    private:
-        std::shared_ptr<scene::GameCamera> camera;
-        std::unique_ptr<sponge::platform::opengl::Grid> grid;
-    };
-}
+    bool onUpdate(double elapsedTime) override;
+
+   private:
+    std::shared_ptr<scene::GameCamera> camera;
+    std::unique_ptr<sponge::platform::opengl::Grid> grid;
+};
+
+}  // namespace game::layer
