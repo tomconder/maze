@@ -24,7 +24,7 @@ namespace game::layer {
             return activeWireframe;
         }
 
-        void setWireframeActive(bool activeWireframe);
+        void setWireframeActive(bool active);
 
     private:
         std::shared_ptr<scene::GameCamera> camera;

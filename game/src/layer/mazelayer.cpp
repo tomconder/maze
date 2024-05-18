@@ -53,13 +53,13 @@ namespace game::layer {
         return true;
     }
 
-    void MazeLayer::setWireframeActive(const bool activeWireframe) {
-        this->activeWireframe = activeWireframe;
+    void MazeLayer::setWireframeActive(const bool active) {
+        this->activeWireframe = active;
 
         const auto shader =
                 sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
         shader->bind();
-        shader->setBoolean("showWireframe", activeWireframe);
+        shader->setBoolean("showWireframe", active);
         shader->unbind();
     }
 
