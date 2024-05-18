@@ -8,35 +8,41 @@
 #include "sponge.hpp"
 #include <memory>
 
-class Maze final : public sponge::platform::sdl::Engine {
-   public:
-    Maze();
-    bool onUserCreate() override;
-    bool onUserDestroy() override;
-    bool onUserUpdate(double elapsedTime) override;
+namespace game {
+    class Maze final : public sponge::platform::sdl::Engine {
+    public:
+        Maze();
 
-    void onEvent(sponge::event::Event& event) override;
+        bool onUserCreate() override;
 
-    static Maze& get() {
-        return *instance;
-    }
+        bool onUserDestroy() override;
 
-    std::shared_ptr<MazeLayer> getMazeLayer() const {
-        return mazeLayer;
-    }
+        bool onUserUpdate(double elapsedTime) override;
 
-   private:
-    bool isRunning = true;
-    bool isMouseVisible = true;
+        void onEvent(sponge::event::Event &event) override;
 
-    std::shared_ptr<ExitLayer> exitLayer = std::make_shared<ExitLayer>();
-    std::shared_ptr<GridLayer> gridLayer = std::make_shared<GridLayer>();
-    std::shared_ptr<HUDLayer> hudLayer = std::make_shared<HUDLayer>();
-    std::shared_ptr<ImGuiLayer> imguiLayer = std::make_shared<ImGuiLayer>();
-    std::shared_ptr<MazeLayer> mazeLayer = std::make_shared<MazeLayer>();
+        static Maze &get() {
+            return *instance;
+        }
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-    bool onWindowClose(const sponge::event::WindowCloseEvent& event);
+        std::shared_ptr<game::layer::MazeLayer> getMazeLayer() const {
+            return mazeLayer;
+        }
 
-    static Maze* instance;
-};
+    private:
+        bool isRunning = true;
+        bool isMouseVisible = true;
+
+        std::shared_ptr<game::layer::ExitLayer> exitLayer = std::make_shared<game::layer::ExitLayer>();
+        std::shared_ptr<game::layer::GridLayer> gridLayer = std::make_shared<game::layer::GridLayer>();
+        std::shared_ptr<game::layer::HUDLayer> hudLayer = std::make_shared<game::layer::HUDLayer>();
+        std::shared_ptr<game::layer::ImGuiLayer> imguiLayer = std::make_shared<game::layer::ImGuiLayer>();
+        std::shared_ptr<game::layer::MazeLayer> mazeLayer = std::make_shared<game::layer::MazeLayer>();
+
+        bool onKeyPressed(const sponge::event::KeyPressedEvent &event);
+
+        bool onWindowClose(const sponge::event::WindowCloseEvent &event);
+
+        static Maze *instance;
+    };
+}

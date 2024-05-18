@@ -4,41 +4,45 @@
 #include "ui/button.hpp"
 #include <memory>
 
-class ExitLayer : public sponge::layer::Layer {
-   public:
-    ExitLayer();
+namespace game::layer {
 
-    void onAttach() override;
+    class ExitLayer : public sponge::layer::Layer {
+    public:
+        ExitLayer();
 
-    void onDetach() override;
+        void onAttach() override;
 
-    void onEvent(sponge::event::Event& event) override;
+        void onDetach() override;
 
-    bool onUpdate(double elapsedTime) override;
+        void onEvent(sponge::event::Event &event) override;
 
-   private:
-    std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
+        bool onUpdate(double elapsedTime) override;
 
-    const std::string_view cancelButtonMessage = "Cancel";
-    const std::string_view confirmButtonMessage = "Confirm";
-    const std::string_view message = "Exit the Game?";
+    private:
+        std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
 
-    bool isRunning = true;
+        const std::string_view cancelButtonMessage = "Cancel";
+        const std::string_view confirmButtonMessage = "Confirm";
+        const std::string_view message = "Exit the Game?";
 
-    std::unique_ptr<sponge::platform::opengl::Quad> quad;
-    std::unique_ptr<ui::Button> cancelButton;
-    std::unique_ptr<ui::Button> confirmButton;
+        bool isRunning = true;
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
+        std::unique_ptr<sponge::platform::opengl::Quad> quad;
+        std::unique_ptr<ui::Button> cancelButton;
+        std::unique_ptr<ui::Button> confirmButton;
 
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
+        bool onKeyPressed(const sponge::event::KeyPressedEvent &event) const;
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+        bool onMouseButtonPressed(
+                const sponge::event::MouseButtonPressedEvent &event);
 
-    static bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
+        bool onMouseMoved(const sponge::event::MouseMovedEvent &event) const;
 
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+        static bool onMouseScrolled(const sponge::event::MouseScrolledEvent &event);
 
-    void setWidthAndHeight(uint32_t width, uint32_t height) const;
-};
+        bool onWindowResize(const sponge::event::WindowResizeEvent &event) const;
+
+        void setWidthAndHeight(uint32_t width, uint32_t height) const;
+    };
+
+}

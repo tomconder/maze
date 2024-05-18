@@ -6,25 +6,27 @@
 #include <memory>
 #include <string>
 
-class ResourceManager {
-   public:
-    static std::shared_ptr<sponge::scene::OrthoCamera> createOrthoCamera(
-        const std::string& name);
+namespace game {
+    class ResourceManager {
+    public:
+        static std::shared_ptr<sponge::scene::OrthoCamera> createOrthoCamera(
+                const std::string &name);
 
-    static std::shared_ptr<sponge::scene::OrthoCamera> getOrthoCamera(
-        const std::string& name);
+        static std::shared_ptr<sponge::scene::OrthoCamera> getOrthoCamera(
+                const std::string &name);
 
-    static std::shared_ptr<GameCamera> createGameCamera(
-        const std::string& name);
+        static std::shared_ptr<scene::GameCamera> createGameCamera(
+                const std::string &name);
 
-    static std::shared_ptr<GameCamera> getGameCamera(const std::string& name);
+        static std::shared_ptr<scene::GameCamera> getGameCamera(const std::string &name);
 
-   private:
-    ResourceManager() = default;
+    private:
+        ResourceManager() = default;
 
-    static absl::flat_hash_map<std::string,
-                               std::shared_ptr<sponge::scene::OrthoCamera>>
-        orthoCameras;
-    static absl::flat_hash_map<std::string, std::shared_ptr<GameCamera>>
-        gameCameras;
-};
+        static absl::flat_hash_map<std::string,
+                std::shared_ptr<sponge::scene::OrthoCamera>>
+                orthoCameras;
+        static absl::flat_hash_map<std::string, std::shared_ptr<scene::GameCamera>>
+                gameCameras;
+    };
+}

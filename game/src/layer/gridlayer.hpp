@@ -4,17 +4,19 @@
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
-class GridLayer final : public sponge::layer::Layer {
-   public:
-    GridLayer();
+namespace game::layer {
+    class GridLayer final : public sponge::layer::Layer {
+    public:
+        GridLayer();
 
-    void onAttach() override;
+        void onAttach() override;
 
-    void onDetach() override;
+        void onDetach() override;
 
-    bool onUpdate(double elapsedTime) override;
+        bool onUpdate(double elapsedTime) override;
 
-   private:
-    std::shared_ptr<GameCamera> camera;
-    std::unique_ptr<sponge::platform::opengl::Grid> grid;
-};
+    private:
+        std::shared_ptr<scene::GameCamera> camera;
+        std::unique_ptr<sponge::platform::opengl::Grid> grid;
+    };
+}

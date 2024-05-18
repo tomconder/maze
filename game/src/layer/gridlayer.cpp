@@ -5,40 +5,42 @@ constexpr std::string_view gridShader = "infinitegrid";
 constexpr std::string_view cameraName = "maze";
 constexpr std::string_view modelName = "cube";
 
-GridLayer::GridLayer() : Layer("grid") {
-    // nothing
-}
+namespace game::layer {
+    GridLayer::GridLayer() : Layer("grid") {
+        // nothing
+    }
 
-void GridLayer::onAttach() {
-    sponge::platform::opengl::ResourceManager::loadShader(
-        "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag",
-        gridShader.data());
+    void GridLayer::onAttach() {
+        sponge::platform::opengl::ResourceManager::loadShader(
+                "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag",
+                gridShader.data());
 
-    camera = ResourceManager::createGameCamera(cameraName.data());
-    camera->setPosition(glm::vec3(0.F, 4.F, 7.F));
+        camera = ResourceManager::createGameCamera(cameraName.data());
+        camera->setPosition(glm::vec3(0.F, 4.F, 7.F));
 
-    const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(gridShader.data());
-    UNUSED(shader);
+        const auto shader =
+                sponge::platform::opengl::ResourceManager::getShader(gridShader.data());
+        UNUSED(shader);
 
-    grid = std::make_unique<sponge::platform::opengl::Grid>(gridShader.data());
-}
+        grid = std::make_unique<sponge::platform::opengl::Grid>(gridShader.data());
+    }
 
-void GridLayer::onDetach() {
-    // nothing
-}
+    void GridLayer::onDetach() {
+        // nothing
+    }
 
-bool GridLayer::onUpdate(double elapsedTime) {
-    UNUSED(elapsedTime);
+    bool GridLayer::onUpdate(double elapsedTime) {
+        UNUSED(elapsedTime);
 
-    auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(gridShader.data());
-    shader->bind();
-    shader->setMat4("mvp", camera->getMVP());
+        auto shader =
+                sponge::platform::opengl::ResourceManager::getShader(gridShader.data());
+        shader->bind();
+        shader->setMat4("mvp", camera->getMVP());
 
-    shader->unbind();
+        shader->unbind();
 
-    grid->render();
+        grid->render();
 
-    return true;
+        return true;
+    }
 }
