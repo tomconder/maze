@@ -2,7 +2,8 @@
 
 #include "sponge.hpp"
 
-namespace ui {
+namespace game::ui {
+
 class Button {
    public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
@@ -11,14 +12,17 @@ class Button {
            const glm::vec3& textColor);
 
     bool onUpdate(double elapsedTime) const;
+
     bool isInside(const glm::vec2& position) const;
 
     void setButtonColor(const glm::vec4& color);
+
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
     void setHover(const bool value) {
         hover = value;
     }
+
     bool hasHover() const {
         return hover;
     }
@@ -39,4 +43,4 @@ class Button {
     bool hover = false;
 };
 
-}  // namespace ui
+}  // namespace game::ui

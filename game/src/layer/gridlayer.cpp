@@ -5,6 +5,8 @@ constexpr std::string_view gridShader = "infinitegrid";
 constexpr std::string_view cameraName = "maze";
 constexpr std::string_view modelName = "cube";
 
+namespace game::layer {
+
 GridLayer::GridLayer() : Layer("grid") {
     // nothing
 }
@@ -42,3 +44,5 @@ bool GridLayer::onUpdate(double elapsedTime) {
 
     return true;
 }
+
+}  // namespace game::layer

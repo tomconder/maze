@@ -1,10 +1,12 @@
 #include "hudlayer.hpp"
-#include "../resourcemanager.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "hud";
 constexpr std::string_view coffeeTexture = "coffee";
 constexpr std::string_view quadShader = "quad";
 constexpr std::string_view spriteShader = "sprite";
+
+namespace game::layer {
 
 HUDLayer::HUDLayer() : Layer("hud") {
     // nothing
@@ -78,3 +80,5 @@ bool HUDLayer::onWindowResize(
 
     return false;
 }
+
+}  // namespace game::layer

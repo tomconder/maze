@@ -2,6 +2,8 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+namespace game::scene {
+
 GameCamera::GameCamera() {
     updateView();
 
@@ -90,3 +92,5 @@ void GameCamera::mouseScroll(const glm::vec2& offset) {
     fov = glm::clamp(fov, 30.F, 120.0F);
     updateProjection();
 }
+
+}  // namespace game::scene

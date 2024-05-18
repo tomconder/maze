@@ -1,9 +1,11 @@
 #include "mazelayer.hpp"
-#include "../resourcemanager.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view modelName = "maze";
 constexpr std::string_view mazeShader = "mesh";
 constexpr std::string_view cameraName = "maze";
+
+namespace game::layer {
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
@@ -52,13 +54,13 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void MazeLayer::setWireframeActive(const bool activeWireframe) {
-    this->activeWireframe = activeWireframe;
+void MazeLayer::setWireframeActive(const bool active) {
+    this->activeWireframe = active;
 
     const auto shader =
         sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
     shader->bind();
-    shader->setBoolean("showWireframe", activeWireframe);
+    shader->setBoolean("showWireframe", active);
     shader->unbind();
 }
 
@@ -135,3 +137,5 @@ bool MazeLayer::onWindowResize(
     camera->setViewportSize(event.getWidth(), event.getHeight());
     return false;
 }
+
+}  // namespace game::layer

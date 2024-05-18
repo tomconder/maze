@@ -1,19 +1,25 @@
 #pragma once
 
-#include "../ui/button.hpp"
 #include "sponge.hpp"
+#include "ui/button.hpp"
 #include <memory>
+
+namespace game::layer {
 
 class ExitLayer : public sponge::layer::Layer {
    public:
     ExitLayer();
+
     void onAttach() override;
+
     void onDetach() override;
+
     void onEvent(sponge::event::Event& event) override;
+
     bool onUpdate(double elapsedTime) override;
 
    private:
-    std::shared_ptr<sponge::renderer::OrthoCamera> orthoCamera;
+    std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
 
     const std::string_view cancelButtonMessage = "Cancel";
     const std::string_view confirmButtonMessage = "Confirm";
@@ -26,11 +32,17 @@ class ExitLayer : public sponge::layer::Layer {
     std::unique_ptr<ui::Button> confirmButton;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
+
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
+
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+
     static bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
+
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
     void setWidthAndHeight(uint32_t width, uint32_t height) const;
 };
+
+}  // namespace game::layer

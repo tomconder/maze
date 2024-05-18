@@ -3,7 +3,7 @@
 #include "camera.hpp"
 #include <glm/mat4x4.hpp>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 class OrthoCamera : public Camera {
    public:
@@ -30,4 +30,4 @@ class OrthoCamera : public Camera {
     uint32_t h = 0;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene

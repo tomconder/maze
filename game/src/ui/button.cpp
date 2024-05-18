@@ -2,7 +2,7 @@
 
 constexpr std::string_view quadShader = "quad";
 
-namespace ui {
+namespace game::ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                std::string_view message, uint32_t fontSize,
@@ -62,4 +62,4 @@ void Button::setPosition(const glm::vec2& topLeft,
                      top.y + (height - static_cast<float>(textSize)) / 2.F };
 }
 
-}  // namespace ui
+}  // namespace game::ui

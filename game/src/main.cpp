@@ -8,7 +8,7 @@ bool main(int argc, char* argv[]) {
     UNUSED(argc);
     UNUSED(argv);
 
-    const auto maze = std::make_unique<Maze>();
+    const auto maze = std::make_unique<game::Maze>();
 
     SPONGE_INFO("Starting game");
 

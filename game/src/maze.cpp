@@ -1,12 +1,15 @@
 #include "maze.hpp"
 #include "sponge.hpp"
 
+namespace game {
+
 Maze* Maze::instance = nullptr;
 
 Maze::Maze() {
     assert(!instance && "Maze already exists!");
     instance = this;
 }
+
 bool Maze::onUserCreate() {
 #if !NDEBUG
     pushOverlay(imguiLayer);
@@ -81,3 +84,5 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
     isRunning = false;
     return true;
 }
+
+}  // namespace game

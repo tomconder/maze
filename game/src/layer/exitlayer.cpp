@@ -1,5 +1,5 @@
 #include "exitlayer.hpp"
-#include "../resourcemanager.hpp"
+#include "resourcemanager.hpp"
 
 constexpr std::string_view cameraName = "exit";
 constexpr std::string_view uiFont = "league-gothic";
@@ -9,6 +9,8 @@ constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
+
+namespace game::layer {
 
 ExitLayer::ExitLayer() : Layer("exit") {
     // nothing
@@ -190,3 +192,5 @@ bool ExitLayer::onMouseScrolled(
     UNUSED(event);
     return true;
 }
+
+}  // namespace game::layer
