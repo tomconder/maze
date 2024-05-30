@@ -92,6 +92,7 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
+add_library(sponge::sponge ALIAS sponge)
 
 # pre-compiled header support
 message(STATUS "Compiling using pre-compiled header support")
