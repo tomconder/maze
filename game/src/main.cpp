@@ -1,4 +1,3 @@
-
 #include "maze.hpp"
 #include "sponge.hpp"
 #include "version.h"
@@ -10,13 +9,11 @@ bool main(int argc, char* argv[]) {
 
     const auto maze = std::make_unique<game::Maze>();
 
-    SPONGE_INFO("Starting game");
+    SPONGE_INFO("Starting game: {} {} ({})", game::project_name, game::project_version, game::git_sha);
 
     std::stringstream ss;
     ss << fmt::format("{}", game::project_name);
     std::string appName = ss.str();
-
-    SPONGE_INFO("{}", appName);
 
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
@@ -44,7 +41,7 @@ bool main(int argc, char* argv[]) {
 
 }  // namespace maze
 
-extern "C" int main(int argc, char* argv[]) {
+extern "C" int main(int argc, char *argv[]) {
     sponge::startupCore();
     maze::main(argc, argv);
     sponge::shutdownCore();
