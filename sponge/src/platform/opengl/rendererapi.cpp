@@ -3,10 +3,9 @@
 #include "logging/log.hpp"
 #include "platform/opengl/gl.hpp"
 
-static void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
-                                  GLenum severity, GLsizei length,
-                                  const GLchar* message,
-                                  const void* userParam) {
+void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
+                           GLenum severity, GLsizei length,
+                           const GLchar* message, const void* userParam) {
     std::string source_str;
     std::string type_str;
 

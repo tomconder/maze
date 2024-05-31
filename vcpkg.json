@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "815d93b520779e4354bb4b954fc2179b3e520c26",
+  "builtin-baseline": "01f602195983451bc83e72f4214af2cbc495aa94",
   "dependencies": [
     {
       "name": "abseil",
@@ -28,7 +28,7 @@
         "opengl3-binding",
         "sdl2-binding"
       ],
-      "version>=": "1.90.2"
+      "version>=": "1.90.6"
     },
     {
       "name": "meshoptimizer",
@@ -41,7 +41,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.14.0"
+      "version>=": "1.14.1"
     },
     {
       "name": "stb",
