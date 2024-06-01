@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/engine.hpp"
+#include "core/application.hpp"
 #include "event/event.hpp"
 #include "input/keyboard.hpp"
 #include "layer/layer.hpp"
@@ -19,9 +19,9 @@ namespace sponge::platform::sdl {
 
 using logging::LogItem;
 
-class Engine : public sponge::Engine {
+class Application : public sponge::Application {
    public:
-    Engine();
+    Application();
 
     bool construct(std::string_view name, uint32_t width, uint32_t height);
 
@@ -109,7 +109,7 @@ class Engine : public sponge::Engine {
 
     void setMouseVisible(bool value) const;
 
-    static Engine& get() {
+    static Application& get() {
         return *instance;
     }
 
@@ -131,7 +131,7 @@ class Engine : public sponge::Engine {
 
     void processEvent(const SDL_Event& event, double elapsedTime);
 
-    static Engine* instance;
+    static Application* instance;
 };
 
 }  // namespace sponge::platform::sdl

@@ -102,7 +102,7 @@ bool MazeLayer::onKeyPressed(
 bool MazeLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Engine::get().setMouseVisible(false);
+        sponge::platform::sdl::Application::get().setMouseVisible(false);
         return true;
     }
     return false;
@@ -111,7 +111,7 @@ bool MazeLayer::onMouseButtonPressed(
 bool MazeLayer::onMouseButtonReleased(
     const sponge::event::MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Engine::get().setMouseVisible(true);
+        sponge::platform::sdl::Application::get().setMouseVisible(true);
         return true;
     }
     return false;

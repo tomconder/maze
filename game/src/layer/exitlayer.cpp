@@ -136,9 +136,9 @@ bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
-            sponge::platform::sdl::Engine::get().setMouseVisible(false);
+            sponge::platform::sdl::Application::get().setMouseVisible(false);
         } else {
-            sponge::platform::sdl::Engine::get().setMouseVisible(true);
+            sponge::platform::sdl::Application::get().setMouseVisible(true);
         }
     }
 

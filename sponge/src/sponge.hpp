@@ -2,8 +2,8 @@
 
 // for use by Sponge applications
 
+#include "core/application.hpp"
 #include "core/base.hpp"
-#include "core/engine.hpp"
 #include "core/file.hpp"
 #include "core/timer.hpp"
 #include "core/window.hpp"
@@ -34,7 +34,7 @@
 #include "platform/opengl/texture.hpp"
 #include "platform/opengl/vertexarray.hpp"
 #include "platform/opengl/vertexbuffer.hpp"
-#include "platform/sdl/engine.hpp"
+#include "platform/sdl/application.hpp"
 #include "platform/sdl/imgui/imguimanager.hpp"
 #include "platform/sdl/imgui/noopmanager.hpp"
 #include "platform/sdl/imgui/sdlmanager.hpp"

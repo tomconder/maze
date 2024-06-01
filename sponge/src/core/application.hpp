@@ -4,9 +4,9 @@
 
 namespace sponge {
 
-class Engine {
+class Application {
    public:
-    virtual ~Engine() = default;
+    virtual ~Application() = default;
 
     virtual bool start() = 0;
     virtual bool iterateLoop() = 0;

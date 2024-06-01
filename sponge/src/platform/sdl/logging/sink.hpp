@@ -1,7 +1,7 @@
 #pragma once
 
 #include "logging/log.hpp"
-#include "platform/sdl/engine.hpp"
+#include "platform/sdl/application.hpp"
 #include <spdlog/sinks/base_sink.h>
 
 namespace sponge::platform::sdl::imgui {
@@ -26,7 +26,7 @@ void Sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
 
     const LogItem it{ formattedText, msg.logger_name.data(), msg.level };
 
-    Engine::get().addMessage(it);
+    Application::get().addMessage(it);
 }
 
 }  // namespace sponge::platform::sdl::imgui

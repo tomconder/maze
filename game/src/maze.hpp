@@ -10,7 +10,7 @@
 
 namespace game {
 
-class Maze final : public sponge::platform::sdl::Engine {
+class Maze final : public sponge::platform::sdl::Application {
    public:
     Maze();
 

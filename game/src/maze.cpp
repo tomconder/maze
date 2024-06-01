@@ -30,7 +30,7 @@ bool Maze::onUserUpdate(const double elapsedTime) {
         return false;
     }
 
-    return Engine::onUserUpdate(elapsedTime);
+    return Application::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onUserDestroy() {
@@ -44,7 +44,7 @@ void Maze::onEvent(sponge::event::Event& event) {
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
         BIND_EVENT_FN(onWindowClose));
 
-    Engine::onEvent(event);
+    Application::onEvent(event);
 }
 
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {

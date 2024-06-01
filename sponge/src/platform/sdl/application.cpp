@@ -1,4 +1,4 @@
-#include "engine.hpp"
+#include "application.hpp"
 #include "core/timer.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
@@ -30,7 +30,7 @@ auto imguiManager = sdlManager;
 auto imguiManager = noopManager;
 #endif
 
-Engine* Engine::instance = nullptr;
+Application* Application::instance = nullptr;
 Timer systemTimer;
 Timer physicsTimer;
 
@@ -51,12 +51,12 @@ constexpr auto keyCodes = std::to_array(
       sponge::input::KeyCode::SpongeKey_Down,
       sponge::input::KeyCode::SpongeKey_Right });
 
-Engine::Engine() {
+Application::Application() {
     const auto guiSink =
         std::make_shared<platform::sdl::imgui::Sink<std::mutex>>();
     logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
 
-    assert(!instance && "Engine already exists!");
+    assert(!instance && "Application already exists!");
     instance = this;
 
     layerStack = new layer::LayerStack();
@@ -64,8 +64,8 @@ Engine::Engine() {
     keyboard = new platform::sdl::input::Keyboard();
 }
 
-bool Engine::construct(const std::string_view name, const uint32_t width,
-                       const uint32_t height) {
+bool Application::construct(const std::string_view name, const uint32_t width,
+                            const uint32_t height) {
     w = width;
     h = height;
     appName = name;
@@ -81,7 +81,7 @@ bool Engine::construct(const std::string_view name, const uint32_t width,
     return true;
 }
 
-bool Engine::start() {
+bool Application::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
@@ -136,7 +136,7 @@ bool Engine::start() {
     return true;
 }
 
-bool Engine::iterateLoop() {
+bool Application::iterateLoop() {
     SDL_Event event;
     auto quit = false;
 
@@ -208,7 +208,7 @@ bool Engine::iterateLoop() {
     return false;
 }
 
-void Engine::shutdown() {
+void Application::shutdown() {
     imguiManager->onDetach();
 
     auto* const context = SDL_GL_GetCurrentContext();
@@ -217,11 +217,11 @@ void Engine::shutdown() {
     SDL_Quit();
 }
 
-bool Engine::onUserCreate() {
+bool Application::onUserCreate() {
     return true;
 }
 
-bool Engine::onUserUpdate(const double elapsedTime) {
+bool Application::onUserUpdate(const double elapsedTime) {
     bool result = true;
 
     for (const auto& layer : *layerStack) {
@@ -236,11 +236,11 @@ bool Engine::onUserUpdate(const double elapsedTime) {
     return result;
 }
 
-bool Engine::onUserDestroy() {
+bool Application::onUserDestroy() {
     return true;
 }
 
-void Engine::onEvent(event::Event& event) {
+void Application::onEvent(event::Event& event) {
     for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
          ++layer) {
         if ((*layer)->isActive()) {
@@ -252,7 +252,7 @@ void Engine::onEvent(event::Event& event) {
     }
 }
 
-void Engine::onImGuiRender() {
+void Application::onImGuiRender() {
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
@@ -260,7 +260,8 @@ void Engine::onImGuiRender() {
     }
 }
 
-void Engine::adjustAspectRatio(const uint32_t eventW, const uint32_t eventH) {
+void Application::adjustAspectRatio(const uint32_t eventW,
+                                    const uint32_t eventH) {
     // attempt to find the closest matching aspect ratio
     float proposedRatio =
         static_cast<float>(eventW) / static_cast<float>(eventH);
@@ -297,27 +298,28 @@ void Engine::adjustAspectRatio(const uint32_t eventW, const uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void Engine::pushOverlay(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::pushOverlay(
+    const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void Engine::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void Engine::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popLayer(layer);
 }
 
-void Engine::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popOverlay(layer);
 }
 
-void Engine::setMouseVisible(const bool value) const {
+void Application::setMouseVisible(const bool value) const {
     if (value) {
         SDL_WarpMouseInWindow(
             static_cast<SDL_Window*>(sdlWindow->getNativeWindow()),
@@ -333,7 +335,8 @@ void Engine::setMouseVisible(const bool value) const {
     }
 }
 
-void Engine::processEvent(const SDL_Event& event, const double elapsedTime) {
+void Application::processEvent(const SDL_Event& event,
+                               const double elapsedTime) {
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
         adjustAspectRatio(event.window.data1, event.window.data2);
@@ -382,7 +385,7 @@ void Engine::processEvent(const SDL_Event& event, const double elapsedTime) {
     }
 }
 
-void Engine::toggleFullscreen() const {
+void Application::toggleFullscreen() const {
     graphics->toggleFullscreen(sdlWindow->getNativeWindow());
 }
 

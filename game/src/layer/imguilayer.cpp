@@ -29,12 +29,14 @@ void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
     const auto width = static_cast<float>(
-        sponge::platform::sdl::Engine::get().getWindowWidth());
+        sponge::platform::sdl::Application::get().getWindowWidth());
     const auto height = static_cast<float>(
-        sponge::platform::sdl::Engine::get().getWindowHeight());
+        sponge::platform::sdl::Application::get().getWindowHeight());
 
-    static auto hasVsync = sponge::platform::sdl::Engine::hasVerticalSync();
-    auto isFullscreen = sponge::platform::sdl::Engine::get().isFullscreen();
+    static auto hasVsync =
+        sponge::platform::sdl::Application::hasVerticalSync();
+    auto isFullscreen =
+        sponge::platform::sdl::Application::get().isFullscreen();
     auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
@@ -80,16 +82,16 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         ImGui::Text("Resolution");
         ImGui::TableNextColumn();
-        ImGui::Text("%dx%d",
-                    sponge::platform::sdl::Engine::get().getWindowWidth(),
-                    sponge::platform::sdl::Engine::get().getWindowHeight());
+        ImGui::Text(
+            "%dx%d", sponge::platform::sdl::Application::get().getWindowWidth(),
+            sponge::platform::sdl::Application::get().getWindowHeight());
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-            sponge::platform::sdl::Engine::setVerticalSync(hasVsync);
+            sponge::platform::sdl::Application::setVerticalSync(hasVsync);
         }
 
         ImGui::TableNextRow();
@@ -97,7 +99,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Full Screen");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-            sponge::platform::sdl::Engine::get().toggleFullscreen();
+            sponge::platform::sdl::Application::get().toggleFullscreen();
         }
 
         ImGui::TableNextRow();
@@ -113,7 +115,7 @@ void ImGuiLayer::onImGuiRender() {
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto* const layerStack =
-                sponge::platform::sdl::Engine::get().getLayerStack();
+                sponge::platform::sdl::Application::get().getLayerStack();
             showLayersTable(layerStack);
         }
 
@@ -220,7 +222,7 @@ void ImGuiLayer::showLogging() {
     ImVec4 color;
 
     for (const auto& [message, loggerName, level] :
-         sponge::platform::sdl::Engine::get().getMessages()) {
+         sponge::platform::sdl::Application::get().getMessages()) {
         if (level < activeLogLevel) {
             continue;
         }
