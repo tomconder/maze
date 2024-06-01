@@ -36,7 +36,7 @@ void Log::init(const std::string_view logfile) {
     glLogger = registerLogger("OPENGL", sinks);
 }
 
-void Log::addSink(const spdlog::sink_ptr ptr, const std::string_view pattern) {
+void Log::addSink(const spdlog::sink_ptr& ptr, const std::string_view pattern) {
     setFormatter(ptr, pattern.data());
 
     coreLogger->sinks().push_back(ptr);
@@ -44,7 +44,7 @@ void Log::addSink(const spdlog::sink_ptr ptr, const std::string_view pattern) {
     glLogger->sinks().push_back(ptr);
 }
 
-void Log::setFormatter(const spdlog::sink_ptr ptr,
+void Log::setFormatter(const spdlog::sink_ptr& ptr,
                        const std::string_view pattern) {
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<LogFlag>('*').set_pattern(pattern.data());
@@ -52,7 +52,7 @@ void Log::setFormatter(const spdlog::sink_ptr ptr,
 }
 
 std::shared_ptr<spdlog::logger> Log::registerLogger(
-    const std::string_view name, const std::vector<spdlog::sink_ptr> sinks) {
+    const std::string_view name, const std::vector<spdlog::sink_ptr>& sinks) {
     auto logger = std::make_shared<spdlog::logger>(name.data(), sinks.begin(),
                                                    sinks.end());
     logger->set_level(spdlog::level::trace);
