@@ -7,8 +7,8 @@ namespace game::ui {
 class Button {
    public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-           std::string_view message, uint32_t fontSize,
-           std::string_view fontName, const glm::vec4& buttonColor,
+           const std::string& message, uint32_t fontSize,
+           const std::string& fontName, const glm::vec4& buttonColor,
            const glm::vec3& textColor);
 
     bool onUpdate(double elapsedTime) const;

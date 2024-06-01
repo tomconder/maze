@@ -31,7 +31,6 @@ class Maze final : public sponge::platform::sdl::Application {
 
    private:
     bool isRunning = true;
-    bool isMouseVisible = true;
 
     std::shared_ptr<game::layer::ExitLayer> exitLayer =
         std::make_shared<game::layer::ExitLayer>();

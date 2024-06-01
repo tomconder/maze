@@ -3,14 +3,13 @@
 #include "resourcemanager.hpp"
 #include "version.h"
 #include <imgui.h>
-
 #include <algorithm>
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
-constexpr std::string_view cameraName = "maze";
+const std::string cameraName{ "maze" };
 
 namespace game::layer {
 
@@ -60,7 +59,7 @@ void ImGuiLayer::onImGuiRender() {
             "##Table", 2,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
-        auto camera = ResourceManager::getGameCamera(cameraName.data());
+        auto camera = ResourceManager::getGameCamera(cameraName);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

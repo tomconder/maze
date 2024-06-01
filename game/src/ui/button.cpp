@@ -1,28 +1,28 @@
 #include "button.hpp"
 
-constexpr std::string_view quadShader = "quad";
+const std::string quadShader = "quad";
 
 namespace game::ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               std::string_view message, uint32_t fontSize,
-               std::string_view fontName, const glm::vec4& buttonColor,
+               const std::string& message, uint32_t fontSize,
+               const std::string& fontName, const glm::vec4& buttonColor,
                const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
-      text(message.data()),
+      text(message),
       textSize(fontSize),
-      textFontName(fontName.data()),
+      textFontName(fontName),
       buttonColor(buttonColor),
       textColor(textColor),
       textPosition({ topLeft.x, topLeft.y }) {
     font = sponge::platform::opengl::ResourceManager::getFont(textFontName);
 
     const auto shader = sponge::platform::opengl::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
-    quad = std::make_unique<sponge::platform::opengl::Quad>(quadShader.data());
+    quad = std::make_unique<sponge::platform::opengl::Quad>(quadShader);
 }
 
 bool Button::onUpdate(const double elapsedTime) const {
