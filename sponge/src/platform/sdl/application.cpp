@@ -17,6 +17,7 @@
 #include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
 #include <array>
+#include <sstream>
 
 namespace sponge::platform::sdl {
 
