@@ -17,7 +17,6 @@
 #include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
 #include <array>
-#include <sstream>
 
 namespace sponge::platform::sdl {
 
@@ -269,7 +268,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         return proposedRatio >= i.z;
     };
 
-    const auto *ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    const glm::vec3* ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == ratios.end()) {
         ratio = ratios.end() - 1;
     }
