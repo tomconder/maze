@@ -49,8 +49,8 @@ void ImGuiLayer::onImGuiRender() {
 
     if (ImGui::Begin("App Info", nullptr, windowFlags)) {
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s %s", game::project_name.data(),
-                    game::project_version.data());
+        ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
+                    git_sha.c_str());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
