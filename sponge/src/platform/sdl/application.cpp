@@ -37,10 +37,11 @@ constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
 double elapsedSeconds{ 0.F };
 
-constexpr auto ratios = std::to_array(
-    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
-      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
-      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
+const std::vector<glm::vec3> ratios = { glm::vec3{ 32.F, 9.F, 32.F / 9.F },
+                                        glm::vec3{ 21.F, 9.F, 21.F / 9.F },
+                                        glm::vec3{ 16.F, 9.F, 16.F / 9.F },
+                                        glm::vec3{ 16.F, 10.F, 16.F / 10.F },
+                                        glm::vec3{ 4.F, 3.F, 4.F / 3.F } };
 
 constexpr auto keyCodes = std::to_array(
     { sponge::input::KeyCode::SpongeKey_W, sponge::input::KeyCode::SpongeKey_A,
@@ -268,14 +269,17 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         return proposedRatio >= i.z;
     };
 
-    const glm::vec3* ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
-    if (ratio == ratios.end()) {
-        ratio = ratios.end() - 1;
+    glm::vec3 ratio;
+    if (const auto it = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+        it != std::end(ratios)) {
+        ratio = *it;
+    } else {
+        ratio = *(ratios.end() - 1);
     }
 
     // use ratio
-    const float aspectRatioWidth = ratio->x;
-    const float aspectRatioHeight = ratio->y;
+    const float aspectRatioWidth = ratio.x;
+    const float aspectRatioHeight = ratio.y;
 
     const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
 
