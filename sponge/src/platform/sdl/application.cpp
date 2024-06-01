@@ -37,11 +37,10 @@ constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
 double elapsedSeconds{ 0.F };
 
-const std::vector<glm::vec3> ratios = { glm::vec3{ 32.F, 9.F, 32.F / 9.F },
-                                        glm::vec3{ 21.F, 9.F, 21.F / 9.F },
-                                        glm::vec3{ 16.F, 9.F, 16.F / 9.F },
-                                        glm::vec3{ 16.F, 10.F, 16.F / 10.F },
-                                        glm::vec3{ 4.F, 3.F, 4.F / 3.F } };
+constexpr auto ratios = std::to_array(
+    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
+      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
+      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 
 constexpr auto keyCodes = std::to_array(
     { sponge::input::KeyCode::SpongeKey_W, sponge::input::KeyCode::SpongeKey_A,
