@@ -17,7 +17,6 @@
 #include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
 #include <array>
-#include <sstream>
 
 namespace sponge::platform::sdl {
 
@@ -252,7 +251,7 @@ void Application::onEvent(event::Event& event) {
     }
 }
 
-void Application::onImGuiRender() {
+void Application::onImGuiRender() const {
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
@@ -269,7 +268,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         return proposedRatio >= i.z;
     };
 
-    auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    const auto *ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
     if (ratio == ratios.end()) {
         ratio = ratios.end() - 1;
     }

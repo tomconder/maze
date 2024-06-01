@@ -6,7 +6,6 @@
 #include "layer/imguilayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
-#include <memory>
 
 namespace game {
 

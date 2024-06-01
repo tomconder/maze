@@ -2,7 +2,6 @@
 
 #include "sponge.hpp"
 #include "ui/button.hpp"
-#include <memory>
 
 namespace game::layer {
 

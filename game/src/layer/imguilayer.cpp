@@ -4,6 +4,8 @@
 #include "version.h"
 #include <imgui.h>
 
+#include <algorithm>
+
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
@@ -137,12 +139,10 @@ float ImGuiLayer::getLogSelectionMaxWidth(
     float maxWidth = 0;
     for (const auto* item : list) {
         const auto width = ImGui::CalcTextSize(item).x;
-        if (width > maxWidth) {
-            maxWidth = width;
-        }
+        maxWidth = std::max(width, maxWidth);
     }
 
-    return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
+    return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
            ImGui::GetFrameHeight();
 }
 
@@ -203,7 +203,7 @@ void ImGuiLayer::showLogging() {
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
                                 ImGui::CalcTextSize("Reset").x -
-                                ImGui::GetStyle().FramePadding.x * 6);
+                                (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {

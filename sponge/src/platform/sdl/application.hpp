@@ -8,11 +8,9 @@
 #include "logging/log.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
-#include "platform/sdl/imgui/imguimanager.hpp"
 #include "platform/sdl/window.hpp"
 #include <SDL.h>
 #include <cstdint>
-#include <memory>
 #include <string>
 
 namespace sponge::platform::sdl {
@@ -39,7 +37,7 @@ class Application : public sponge::Application {
 
     void onEvent(event::Event& event) override;
 
-    void onImGuiRender();
+    void onImGuiRender() const;
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
