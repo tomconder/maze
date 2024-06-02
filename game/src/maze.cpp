@@ -5,7 +5,8 @@ namespace game {
 
 Maze* Maze::instance = nullptr;
 
-Maze::Maze() {
+Maze::Maze(const sponge::platform::sdl::ApplicationSpecification& specification)
+    : Application(specification) {
     assert(!instance && "Maze already exists!");
     instance = this;
 }

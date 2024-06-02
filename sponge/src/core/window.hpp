@@ -9,6 +9,7 @@ class WindowProps {
     std::string title;
     uint32_t width;
     uint32_t height;
+    bool fullscreen;
 };
 
 class Window {
@@ -17,9 +18,6 @@ class Window {
 
     virtual uint32_t getWidth() const = 0;
     virtual uint32_t getHeight() const = 0;
-
-    virtual void setVSync(bool enabled) = 0;
-    virtual bool isVSync() const = 0;
 
     virtual void* getNativeWindow() const = 0;
 };

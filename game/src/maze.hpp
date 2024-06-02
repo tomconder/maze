@@ -11,7 +11,8 @@ namespace game {
 
 class Maze final : public sponge::platform::sdl::Application {
    public:
-    Maze();
+    explicit Maze(
+        const sponge::platform::sdl::ApplicationSpecification& specification);
 
     bool onUserCreate() override;
 

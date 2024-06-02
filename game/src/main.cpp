@@ -7,19 +7,22 @@ bool main(int argc, char* argv[]) {
     UNUSED(argc);
     UNUSED(argv);
 
-    const auto maze = std::make_unique<game::Maze>();
-
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
+
+    auto spec =
+        sponge::platform::sdl::ApplicationSpecification{ .name =
+                                                             game::project_name,
+                                                         .width = width,
+                                                         .height = height,
+                                                         .fullscreen = true };
+
+    auto maze = game::Maze{ spec };
 
     SPONGE_INFO("Starting game: {} {} ({})", game::project_name,
                 game::project_version, game::git_sha);
 
-    if (!maze->construct(game::project_name, width, height)) {
-        return false;
-    }
-
-    if (!maze->start()) {
+    if (!maze.start()) {
         return false;
     }
 
@@ -27,11 +30,11 @@ bool main(int argc, char* argv[]) {
 
     bool quit = false;
     while (!quit) {
-        quit = maze->iterateLoop();
+        quit = maze.iterateLoop();
     }
 
     SPONGE_INFO("Shutting down");
-    maze->shutdown();
+    maze.shutdown();
 
     return true;
 }

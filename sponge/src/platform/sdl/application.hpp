@@ -15,13 +15,19 @@
 
 namespace sponge::platform::sdl {
 
+struct ApplicationSpecification {
+    std::string name = "Sponge";
+    uint32_t width = 1600;
+    uint32_t height = 900;
+    bool fullscreen = true;
+    bool vsync = true;
+};
+
 using logging::LogItem;
 
 class Application : public sponge::Application {
    public:
-    Application();
-
-    bool construct(std::string_view name, uint32_t width, uint32_t height);
+    explicit Application(ApplicationSpecification specification);
 
     bool start() override;
 
@@ -49,12 +55,12 @@ class Application : public sponge::Application {
 
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
-    void toggleFullscreen() const;
+    void setVSync(bool enabled);
+
+    void toggleFullscreen();
 
     bool isFullscreen() const {
-        const auto flags = SDL_GetWindowFlags(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
-        return (flags & SDL_WINDOW_FULLSCREEN) != 0;
+        return fullscreen;
     }
 
     layer::LayerStack* getLayerStack() const {
@@ -70,19 +76,21 @@ class Application : public sponge::Application {
     }
 
     uint32_t getWindowHeight() const {
-        int32_t w;
-        int32_t h;
+        int32_t width;
+        int32_t height;
         SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(h);
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
+            &height);
+        return static_cast<uint32_t>(height);
     }
 
     uint32_t getWindowWidth() const {
-        int32_t w;
-        int32_t h;
+        int32_t width;
+        int32_t height;
         SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(w);
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
+            &height);
+        return static_cast<uint32_t>(width);
     }
 
     static bool hasVerticalSync() {
@@ -123,11 +131,14 @@ class Application : public sponge::Application {
     uint32_t offsety = 0;
     uint32_t w = 0;
     uint32_t h = 0;
+    bool fullscreen;
 
     layer::LayerStack* layerStack;
     input::Keyboard* keyboard;
 
     void processEvent(const SDL_Event& event, double elapsedTime);
+
+    ApplicationSpecification appSpec;
 
     static Application* instance;
 };
