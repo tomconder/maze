@@ -22,30 +22,22 @@ void Window::init(const WindowProps& props) {
         SPONGE_CORE_CRITICAL("Title cannot be empty");
     }
 
-    // TODO fullscreen
     if (!props.fullscreen) {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
+    }
 
-        window = SDL_CreateWindow(
-            props.title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-            static_cast<int>(props.width), static_cast<int>(props.height),
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-        if (window == nullptr) {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(),
-                                     "Could not create window", nullptr);
-            SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
-        }
-    } else {
-        SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-        window = SDL_CreateWindow(props.title.c_str(), SDL_WINDOWPOS_CENTERED,
-                                  SDL_WINDOWPOS_CENTERED, 0, 0,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                                      SDL_WINDOW_FULLSCREEN_DESKTOP);
-        if (window == nullptr) {
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(),
-                                     "Could not create window", nullptr);
-            SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
-        }
+    uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+    if (props.fullscreen) {
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    }
+
+    window = SDL_CreateWindow(
+        props.title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        static_cast<int>(props.width), static_cast<int>(props.height), flags);
+    if (window == nullptr) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, props.title.c_str(),
+                                 "Could not create window", nullptr);
+        SPONGE_CORE_CRITICAL("Could not create window: {}", SDL_GetError());
     }
 
     int32_t w;
