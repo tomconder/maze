@@ -5,7 +5,8 @@ namespace game {
 
 Maze* Maze::instance = nullptr;
 
-Maze::Maze() {
+Maze::Maze(const sponge::platform::sdl::ApplicationSpecification& specification)
+    : Application(specification) {
     assert(!instance && "Maze already exists!");
     instance = this;
 }
@@ -30,7 +31,7 @@ bool Maze::onUserUpdate(const double elapsedTime) {
         return false;
     }
 
-    return Engine::onUserUpdate(elapsedTime);
+    return Application::onUserUpdate(elapsedTime);
 }
 
 bool Maze::onUserDestroy() {
@@ -44,7 +45,7 @@ void Maze::onEvent(sponge::event::Event& event) {
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
         BIND_EVENT_FN(onWindowClose));
 
-    Engine::onEvent(event);
+    Application::onEvent(event);
 }
 
 bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {

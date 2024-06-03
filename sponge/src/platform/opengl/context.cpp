@@ -64,6 +64,8 @@ Context::Context(SDL_Window* window) {
     }
 
     if (window != nullptr) {
+        int32_t width;
+        int32_t height;
         SDL_GetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
     }
@@ -79,19 +81,6 @@ void Context::flip(void* window) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
-}
-
-void Context::toggleFullscreen(void* window) {
-    if (window == nullptr) {
-        return;
-    }
-
-    isFullScreen = !isFullScreen;
-    if (SDL_SetWindowFullscreen(
-            static_cast<SDL_Window*>(window),
-            isFullScreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) < 0) {
-        SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
-    }
 }
 
 }  // namespace sponge::platform::opengl

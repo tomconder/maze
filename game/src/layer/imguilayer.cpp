@@ -3,12 +3,13 @@
 #include "resourcemanager.hpp"
 #include "version.h"
 #include <imgui.h>
+#include <algorithm>
 
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
-constexpr std::string_view cameraName = "maze";
+const std::string cameraName{ "maze" };
 
 namespace game::layer {
 
@@ -29,12 +30,14 @@ void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
     const auto width = static_cast<float>(
-        sponge::platform::sdl::Engine::get().getWindowWidth());
+        sponge::platform::sdl::Application::get().getWindowWidth());
     const auto height = static_cast<float>(
-        sponge::platform::sdl::Engine::get().getWindowHeight());
+        sponge::platform::sdl::Application::get().getWindowHeight());
 
-    static auto hasVsync = sponge::platform::sdl::Engine::hasVerticalSync();
-    auto isFullscreen = sponge::platform::sdl::Engine::get().isFullscreen();
+    static auto hasVsync =
+        sponge::platform::sdl::Application::hasVerticalSync();
+    auto isFullscreen =
+        sponge::platform::sdl::Application::get().isFullscreen();
     auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
@@ -46,8 +49,8 @@ void ImGuiLayer::onImGuiRender() {
 
     if (ImGui::Begin("App Info", nullptr, windowFlags)) {
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s %s", game::project_name.data(),
-                    game::project_version.data());
+        ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
+                    git_sha.c_str());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
@@ -56,7 +59,7 @@ void ImGuiLayer::onImGuiRender() {
             "##Table", 2,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
-        auto camera = ResourceManager::getGameCamera(cameraName.data());
+        auto camera = ResourceManager::getGameCamera(cameraName);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -80,16 +83,16 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         ImGui::Text("Resolution");
         ImGui::TableNextColumn();
-        ImGui::Text("%dx%d",
-                    sponge::platform::sdl::Engine::get().getWindowWidth(),
-                    sponge::platform::sdl::Engine::get().getWindowHeight());
+        ImGui::Text(
+            "%dx%d", sponge::platform::sdl::Application::get().getWindowWidth(),
+            sponge::platform::sdl::Application::get().getWindowHeight());
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-            sponge::platform::sdl::Engine::setVerticalSync(hasVsync);
+            sponge::platform::sdl::Application::setVerticalSync(hasVsync);
         }
 
         ImGui::TableNextRow();
@@ -97,7 +100,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Full Screen");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-            sponge::platform::sdl::Engine::get().toggleFullscreen();
+            sponge::platform::sdl::Application::get().toggleFullscreen();
         }
 
         ImGui::TableNextRow();
@@ -113,7 +116,7 @@ void ImGuiLayer::onImGuiRender() {
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto* const layerStack =
-                sponge::platform::sdl::Engine::get().getLayerStack();
+                sponge::platform::sdl::Application::get().getLayerStack();
             showLayersTable(layerStack);
         }
 
@@ -135,12 +138,10 @@ float ImGuiLayer::getLogSelectionMaxWidth(
     float maxWidth = 0;
     for (const auto* item : list) {
         const auto width = ImGui::CalcTextSize(item).x;
-        if (width > maxWidth) {
-            maxWidth = width;
-        }
+        maxWidth = std::max(width, maxWidth);
     }
 
-    return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
+    return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
            ImGui::GetFrameHeight();
 }
 
@@ -201,7 +202,7 @@ void ImGuiLayer::showLogging() {
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
                                 ImGui::CalcTextSize("Reset").x -
-                                ImGui::GetStyle().FramePadding.x * 6);
+                                (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {
@@ -220,7 +221,7 @@ void ImGuiLayer::showLogging() {
     ImVec4 color;
 
     for (const auto& [message, loggerName, level] :
-         sponge::platform::sdl::Engine::get().getMessages()) {
+         sponge::platform::sdl::Application::get().getMessages()) {
         if (level < activeLogLevel) {
             continue;
         }

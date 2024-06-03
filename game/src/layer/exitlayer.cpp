@@ -1,10 +1,10 @@
 #include "exitlayer.hpp"
 #include "resourcemanager.hpp"
 
-constexpr std::string_view cameraName = "exit";
-constexpr std::string_view uiFont = "league-gothic";
-constexpr std::string_view quadShader = "quad";
-constexpr std::string_view textShader = "text";
+const std::string cameraName{ "exit" };
+const std::string uiFont{ "league-gothic" };
+const std::string quadShader{ "quad" };
+const std::string textShader{ "text" };
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
@@ -18,35 +18,34 @@ ExitLayer::ExitLayer() : Layer("exit") {
 
 void ExitLayer::onAttach() {
     sponge::platform::opengl::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
 
     sponge::platform::opengl::ResourceManager::loadShader(
-        "/shaders/text.vert", "/shaders/text.frag", textShader.data());
+        "/shaders/text.vert", "/shaders/text.frag", textShader);
 
     sponge::platform::opengl::ResourceManager::loadFont(
-        "/fonts/league-gothic.fnt", uiFont.data());
+        "/fonts/league-gothic.fnt", uiFont);
 
-    orthoCamera = ResourceManager::createOrthoCamera(cameraName.data());
+    orthoCamera = ResourceManager::createOrthoCamera(cameraName);
 
     auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(quadShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader =
-        sponge::platform::opengl::ResourceManager::getShader(textShader.data());
+    shader = sponge::platform::opengl::ResourceManager::getShader(textShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
     shader = sponge::platform::opengl::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader.data());
+        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
-    quad = std::make_unique<sponge::platform::opengl::Quad>(quadShader.data());
+    quad = std::make_unique<sponge::platform::opengl::Quad>(quadShader);
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -86,12 +85,12 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
                  { .52F, .57F, .55F, 1.F });
 
     const auto font =
-        sponge::platform::opengl::ResourceManager::getFont(uiFont.data());
+        sponge::platform::opengl::ResourceManager::getFont(uiFont);
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
         message,
-        { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
+        { (width - static_cast<float>(length)) / 2.F, (height / 2.F) - 128.F },
         48, { 1.F, 1.F, 1.F });
 
     UNUSED(confirmButton->onUpdate(elapsedTime));
@@ -104,13 +103,12 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     orthoCamera->setWidthAndHeight(width, height);
 
     auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(textShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(textShader);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader =
-        sponge::platform::opengl::ResourceManager::getShader(quadShader.data());
+    shader = sponge::platform::opengl::ResourceManager::getShader(quadShader);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -118,12 +116,12 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto inWidth = static_cast<float>(width);
     const auto inHeight = static_cast<float>(height);
 
-    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
-                               { inWidth * .77F, inHeight / 2.F + 78.F });
+    confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
+                               { inWidth * .77F, (inHeight / 2.F) + 78.F });
 
     cancelButton->setPosition(
-        { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
-        { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
+        { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
+        { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
 }
 
 bool ExitLayer::onWindowResize(
@@ -136,9 +134,9 @@ bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
-            sponge::platform::sdl::Engine::get().setMouseVisible(false);
+            sponge::platform::sdl::Application::get().setMouseVisible(false);
         } else {
-            sponge::platform::sdl::Engine::get().setMouseVisible(true);
+            sponge::platform::sdl::Application::get().setMouseVisible(true);
         }
     }
 

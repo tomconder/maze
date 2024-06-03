@@ -6,13 +6,13 @@
 #include "layer/imguilayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
-#include <memory>
 
 namespace game {
 
-class Maze final : public sponge::platform::sdl::Engine {
+class Maze final : public sponge::platform::sdl::Application {
    public:
-    Maze();
+    explicit Maze(
+        const sponge::platform::sdl::ApplicationSpecification& specification);
 
     bool onUserCreate() override;
 
@@ -32,7 +32,6 @@ class Maze final : public sponge::platform::sdl::Engine {
 
    private:
     bool isRunning = true;
-    bool isMouseVisible = true;
 
     std::shared_ptr<game::layer::ExitLayer> exitLayer =
         std::make_shared<game::layer::ExitLayer>();

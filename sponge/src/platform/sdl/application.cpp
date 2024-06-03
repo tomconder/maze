@@ -1,4 +1,4 @@
-#include "engine.hpp"
+#include "application.hpp"
 #include "core/timer.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
@@ -17,7 +17,7 @@
 #include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
 #include <array>
-#include <sstream>
+#include <utility>
 
 namespace sponge::platform::sdl {
 
@@ -30,13 +30,15 @@ auto imguiManager = sdlManager;
 auto imguiManager = noopManager;
 #endif
 
-Engine* Engine::instance = nullptr;
+Application* Application::instance = nullptr;
 Timer systemTimer;
 Timer physicsTimer;
 
 constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
 double elapsedSeconds{ 0.F };
+constexpr uint32_t defaultWidth{ 1600 };
+constexpr uint32_t defaultHeight{ 900 };
 
 constexpr auto ratios = std::to_array(
     { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
@@ -51,12 +53,13 @@ constexpr auto keyCodes = std::to_array(
       sponge::input::KeyCode::SpongeKey_Down,
       sponge::input::KeyCode::SpongeKey_Right });
 
-Engine::Engine() {
+Application::Application(ApplicationSpecification specification)
+    : appSpec(std::move(specification)) {
     const auto guiSink =
         std::make_shared<platform::sdl::imgui::Sink<std::mutex>>();
     logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
 
-    assert(!instance && "Engine already exists!");
+    assert(!instance && "Application already exists!");
     instance = this;
 
     layerStack = new layer::LayerStack();
@@ -64,13 +67,10 @@ Engine::Engine() {
     keyboard = new platform::sdl::input::Keyboard();
 }
 
-bool Engine::construct(const std::string_view name, const uint32_t width,
-                       const uint32_t height) {
-    w = width;
-    h = height;
-    appName = name;
+bool Application::start() {
+    appName = appSpec.name;
 
-    if (w == 0 || h == 0) {
+    if (!appSpec.fullscreen && (appSpec.width == 0 || appSpec.height == 0)) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, appName.data(),
                                  "Screen height or width cannot be zero",
                                  nullptr);
@@ -78,10 +78,6 @@ bool Engine::construct(const std::string_view name, const uint32_t width,
         return false;
     }
 
-    return true;
-}
-
-bool Engine::start() {
     SPONGE_CORE_INFO("Initializing SDL");
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
@@ -93,12 +89,13 @@ bool Engine::start() {
 
     Info::logVersion();
 
-    WindowProps windowProps;
-    windowProps.title = appName;
-    windowProps.width = w;
-    windowProps.height = h;
+    fullscreen = appSpec.fullscreen;
 
-    sdlWindow = std::make_unique<Window>(windowProps);
+    sdlWindow = std::make_unique<Window>(
+        WindowProps{ .title = appName,
+                     .width = appSpec.width,
+                     .height = appSpec.height,
+                     .fullscreen = appSpec.fullscreen });
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
     graphics = std::make_unique<opengl::Context>(window);
@@ -110,7 +107,7 @@ bool Engine::start() {
     opengl::Info::logGraphicsDriverInfo();
     opengl::Info::logContextInfo();
 
-    sdlWindow->setVSync(true);
+    setVSync(appSpec.vsync);
 
     renderer = std::make_unique<opengl::RendererAPI>();
     renderer->init();
@@ -136,7 +133,7 @@ bool Engine::start() {
     return true;
 }
 
-bool Engine::iterateLoop() {
+bool Application::iterateLoop() {
     SDL_Event event;
     auto quit = false;
 
@@ -208,7 +205,7 @@ bool Engine::iterateLoop() {
     return false;
 }
 
-void Engine::shutdown() {
+void Application::shutdown() {
     imguiManager->onDetach();
 
     auto* const context = SDL_GL_GetCurrentContext();
@@ -217,11 +214,11 @@ void Engine::shutdown() {
     SDL_Quit();
 }
 
-bool Engine::onUserCreate() {
+bool Application::onUserCreate() {
     return true;
 }
 
-bool Engine::onUserUpdate(const double elapsedTime) {
+bool Application::onUserUpdate(const double elapsedTime) {
     bool result = true;
 
     for (const auto& layer : *layerStack) {
@@ -236,11 +233,11 @@ bool Engine::onUserUpdate(const double elapsedTime) {
     return result;
 }
 
-bool Engine::onUserDestroy() {
+bool Application::onUserDestroy() {
     return true;
 }
 
-void Engine::onEvent(event::Event& event) {
+void Application::onEvent(event::Event& event) {
     for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
          ++layer) {
         if ((*layer)->isActive()) {
@@ -252,7 +249,7 @@ void Engine::onEvent(event::Event& event) {
     }
 }
 
-void Engine::onImGuiRender() {
+void Application::onImGuiRender() const {
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
@@ -260,7 +257,8 @@ void Engine::onImGuiRender() {
     }
 }
 
-void Engine::adjustAspectRatio(const uint32_t eventW, const uint32_t eventH) {
+void Application::adjustAspectRatio(const uint32_t eventW,
+                                    const uint32_t eventH) {
     // attempt to find the closest matching aspect ratio
     float proposedRatio =
         static_cast<float>(eventW) / static_cast<float>(eventH);
@@ -268,14 +266,17 @@ void Engine::adjustAspectRatio(const uint32_t eventW, const uint32_t eventH) {
         return proposedRatio >= i.z;
     };
 
-    auto ratio = std::find_if(begin(ratios), end(ratios), exceedsRatio);
-    if (ratio == ratios.end()) {
-        ratio = ratios.end() - 1;
+    glm::vec3 ratio;
+    if (const auto it = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+        it != std::end(ratios)) {
+        ratio = *it;
+    } else {
+        ratio = *(ratios.end() - 1);
     }
 
     // use ratio
-    const float aspectRatioWidth = ratio->x;
-    const float aspectRatioHeight = ratio->y;
+    const float aspectRatioWidth = ratio.x;
+    const float aspectRatioHeight = ratio.y;
 
     const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
 
@@ -297,27 +298,28 @@ void Engine::adjustAspectRatio(const uint32_t eventW, const uint32_t eventH) {
     offsety = (eventH - h) / 2;
 }
 
-void Engine::pushOverlay(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::pushOverlay(
+    const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushOverlay(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void Engine::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->pushLayer(layer);
     layer->onAttach();
     layer->setActive(true);
 }
 
-void Engine::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popLayer(layer);
 }
 
-void Engine::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
+void Application::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
     layerStack->popOverlay(layer);
 }
 
-void Engine::setMouseVisible(const bool value) const {
+void Application::setMouseVisible(const bool value) const {
     if (value) {
         SDL_WarpMouseInWindow(
             static_cast<SDL_Window*>(sdlWindow->getNativeWindow()),
@@ -333,14 +335,17 @@ void Engine::setMouseVisible(const bool value) const {
     }
 }
 
-void Engine::processEvent(const SDL_Event& event, const double elapsedTime) {
+void Application::processEvent(const SDL_Event& event,
+                               const double elapsedTime) {
     if (event.type == SDL_WINDOWEVENT &&
         event.window.event == SDL_WINDOWEVENT_RESIZED) {
-        adjustAspectRatio(event.window.data1, event.window.data2);
-        renderer->setViewport(offsetx, offsety, w, h);
+        if (event.window.data1 != w || event.window.data2 != h) {
+            adjustAspectRatio(event.window.data1, event.window.data2);
+            renderer->setViewport(offsetx, offsety, w, h);
 
-        auto resizeEvent = event::WindowResizeEvent{ w, h };
-        onEvent(resizeEvent);
+            auto resizeEvent = event::WindowResizeEvent{ w, h };
+            onEvent(resizeEvent);
+        }
     } else if (event.type == SDL_KEYDOWN) {
         auto keyEvent = event::KeyPressedEvent{
             input::Keyboard::mapScanCodeToKeyCode(event.key.keysym.scancode),
@@ -382,8 +387,42 @@ void Engine::processEvent(const SDL_Event& event, const double elapsedTime) {
     }
 }
 
-void Engine::toggleFullscreen() const {
-    graphics->toggleFullscreen(sdlWindow->getNativeWindow());
+void Application::setVSync(bool enabled) {
+    // 0 for immediate updates
+    // 1 for updates synchronized with the vertical retrace
+    // -1 for adaptive vsync
+
+    if (const int interval = enabled ? 1 : 0;
+        SDL_GL_SetSwapInterval(interval) == 0) {
+        SPONGE_CORE_DEBUG("Set vsync to {}", enabled);
+        return;
+    }
+
+    SPONGE_CORE_ERROR("Unable to set vsync: {}", SDL_GetError());
+}
+
+void Application::toggleFullscreen() {
+    auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
+    if (window == nullptr) {
+        SPONGE_CORE_WARN("Window handle is null");
+        return;
+    }
+
+    fullscreen = !fullscreen;
+
+    if (SDL_SetWindowFullscreen(
+            window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) < 0) {
+        SPONGE_CORE_ERROR("Unable to toggle fullscreen: {}", SDL_GetError());
+    }
+
+    int32_t width;
+    int32_t height;
+    SDL_GetWindowSize(window, &width, &height);
+    if (width <= 1 || height <= 1) {
+        SDL_SetWindowSize(window, defaultWidth, defaultHeight);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED);
+    }
 }
 
 }  // namespace sponge::platform::sdl

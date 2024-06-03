@@ -13,14 +13,6 @@ class Context : public renderer::GraphicsContext {
     ~Context() override;
 
     void flip(void* window) override;
-
-    void toggleFullscreen(void* window);
-
-   private:
-    int width = 0;
-    int height = 0;
-    std::string glName;
-    bool isFullScreen = false;
 };
 
 }  // namespace sponge::platform::opengl

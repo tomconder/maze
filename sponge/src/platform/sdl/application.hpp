@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/engine.hpp"
+#include "core/application.hpp"
 #include "event/event.hpp"
 #include "input/keyboard.hpp"
 #include "layer/layer.hpp"
@@ -8,22 +8,26 @@
 #include "logging/log.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
-#include "platform/sdl/imgui/imguimanager.hpp"
 #include "platform/sdl/window.hpp"
 #include <SDL.h>
 #include <cstdint>
-#include <memory>
 #include <string>
 
 namespace sponge::platform::sdl {
 
+struct ApplicationSpecification {
+    std::string name = "Sponge";
+    uint32_t width = 1600;
+    uint32_t height = 900;
+    bool fullscreen = true;
+    bool vsync = true;
+};
+
 using logging::LogItem;
 
-class Engine : public sponge::Engine {
+class Application : public sponge::Application {
    public:
-    Engine();
-
-    bool construct(std::string_view name, uint32_t width, uint32_t height);
+    explicit Application(ApplicationSpecification specification);
 
     bool start() override;
 
@@ -39,7 +43,7 @@ class Engine : public sponge::Engine {
 
     void onEvent(event::Event& event) override;
 
-    void onImGuiRender();
+    void onImGuiRender() const;
 
     void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
 
@@ -51,12 +55,12 @@ class Engine : public sponge::Engine {
 
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
-    void toggleFullscreen() const;
+    void setVSync(bool enabled);
+
+    void toggleFullscreen();
 
     bool isFullscreen() const {
-        const auto flags = SDL_GetWindowFlags(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()));
-        return (flags & SDL_WINDOW_FULLSCREEN) != 0;
+        return fullscreen;
     }
 
     layer::LayerStack* getLayerStack() const {
@@ -72,19 +76,21 @@ class Engine : public sponge::Engine {
     }
 
     uint32_t getWindowHeight() const {
-        int32_t w;
-        int32_t h;
+        int32_t width;
+        int32_t height;
         SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(h);
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
+            &height);
+        return static_cast<uint32_t>(height);
     }
 
     uint32_t getWindowWidth() const {
-        int32_t w;
-        int32_t h;
+        int32_t width;
+        int32_t height;
         SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &w, &h);
-        return static_cast<uint32_t>(w);
+            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
+            &height);
+        return static_cast<uint32_t>(width);
     }
 
     static bool hasVerticalSync() {
@@ -109,7 +115,7 @@ class Engine : public sponge::Engine {
 
     void setMouseVisible(bool value) const;
 
-    static Engine& get() {
+    static Application& get() {
         return *instance;
     }
 
@@ -125,13 +131,16 @@ class Engine : public sponge::Engine {
     uint32_t offsety = 0;
     uint32_t w = 0;
     uint32_t h = 0;
+    bool fullscreen;
 
     layer::LayerStack* layerStack;
     input::Keyboard* keyboard;
 
     void processEvent(const SDL_Event& event, double elapsedTime);
 
-    static Engine* instance;
+    ApplicationSpecification appSpec;
+
+    static Application* instance;
 };
 
 }  // namespace sponge::platform::sdl

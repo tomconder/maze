@@ -1,9 +1,9 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
 
-constexpr std::string_view modelName = "maze";
-constexpr std::string_view mazeShader = "mesh";
-constexpr std::string_view cameraName = "maze";
+const std::string modelName{ "maze" };
+const std::string mazeShader{ "mesh" };
+const std::string cameraName{ "maze" };
 
 namespace game::layer {
 
@@ -14,15 +14,15 @@ MazeLayer::MazeLayer() : Layer("maze") {
 void MazeLayer::onAttach() {
     sponge::platform::opengl::ResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
-        mazeShader.data());
+        mazeShader);
     sponge::platform::opengl::ResourceManager::loadModel(
-        mazeShader.data(), "/models/cube/cube.obj", modelName.data());
+        mazeShader, "/models/cube/cube.obj", modelName);
 
-    camera = ResourceManager::createGameCamera(cameraName.data());
+    camera = ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
@@ -41,15 +41,14 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
-    sponge::platform::opengl::ResourceManager::getModel(modelName.data())
-        ->render();
+    sponge::platform::opengl::ResourceManager::getModel(modelName)->render();
 
     return true;
 }
@@ -58,7 +57,7 @@ void MazeLayer::setWireframeActive(const bool active) {
     this->activeWireframe = active;
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader.data());
+        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
     shader->bind();
     shader->setBoolean("showWireframe", active);
     shader->unbind();
@@ -102,7 +101,7 @@ bool MazeLayer::onKeyPressed(
 bool MazeLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Engine::get().setMouseVisible(false);
+        sponge::platform::sdl::Application::get().setMouseVisible(false);
         return true;
     }
     return false;
@@ -111,7 +110,7 @@ bool MazeLayer::onMouseButtonPressed(
 bool MazeLayer::onMouseButtonReleased(
     const sponge::event::MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Engine::get().setMouseVisible(true);
+        sponge::platform::sdl::Application::get().setMouseVisible(true);
         return true;
     }
     return false;

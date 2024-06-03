@@ -9,7 +9,6 @@ struct WindowData {
     std::string title;
     uint32_t width;
     uint32_t height;
-    bool vsync;
 };
 
 class Window : public sponge::Window {
@@ -24,10 +23,6 @@ class Window : public sponge::Window {
     uint32_t getHeight() const override {
         return data.height;
     };
-
-    void setVSync(bool enabled) override;
-
-    bool isVSync() const override;
 
     void* getNativeWindow() const override {
         return window;
