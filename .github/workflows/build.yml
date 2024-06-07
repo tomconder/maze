@@ -116,3 +116,11 @@ jobs:
 
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        id: upload-binary
+        with:
+          name: maze-macosx
+          path: ${{github.workspace}}/out/install/osx-release/
+          if-no-files-found: error
