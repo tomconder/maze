@@ -50,6 +50,17 @@ jobs:
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        id: upload-binary
+        with:
+          name: maze-windows
+          path: ${{github.workspace}}/out/install/x64-release/
+          if-no-files-found: error
+
+    outputs:
+      artifactId: maze-windows
+
   linux:
     runs-on: ubuntu-latest
 
