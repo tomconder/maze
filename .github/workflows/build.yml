@@ -92,6 +92,14 @@ jobs:
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        id: upload-binary
+        with:
+          name: maze-linux
+          path: ${{github.workspace}}/out/install/linux-release/
+          if-no-files-found: error
+
   osx:
     runs-on: macos-latest
 
