@@ -15,7 +15,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_GIT_COMMIT_ID: '01f602195983451bc83e72f4214af2cbc495aa94'
+  VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
 
 permissions:
   contents: read
