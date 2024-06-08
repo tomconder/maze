@@ -9,12 +9,11 @@
 
 namespace sponge::platform::opengl {
 
-absl::flat_hash_map<std::string, std::shared_ptr<Font>> ResourceManager::fonts;
-absl::flat_hash_map<std::string, std::shared_ptr<Model>>
-    ResourceManager::models;
-absl::flat_hash_map<std::string, std::shared_ptr<Shader>>
+std::unordered_map<std::string, std::shared_ptr<Font>> ResourceManager::fonts;
+std::unordered_map<std::string, std::shared_ptr<Model>> ResourceManager::models;
+std::unordered_map<std::string, std::shared_ptr<Shader>>
     ResourceManager::shaders;
-absl::flat_hash_map<std::string, std::shared_ptr<Texture>>
+std::unordered_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
 std::string ResourceManager::assetsFolder = File::getResourceDir();
 

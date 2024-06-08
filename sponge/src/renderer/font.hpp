@@ -1,6 +1,5 @@
 #pragma once
 
-#include <absl/container/flat_hash_map.h>
 #include <string>
 
 namespace sponge::renderer {
@@ -24,8 +23,8 @@ class Font {
    protected:
     const uint32_t maxLength = 256;
 
-    absl::flat_hash_map<std::string, Character> fontChars;
-    absl::flat_hash_map<std::string, float> kerning;
+    std::unordered_map<std::string, Character> fontChars;
+    std::unordered_map<std::string, float> kerning;
 
     // the name of the texture page in the resource manager
     std::string textureName;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "input/keycode.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <SDL.h>
 
 namespace sponge::platform::sdl::input {
@@ -9,7 +8,7 @@ namespace sponge::platform::sdl::input {
 using input::KeyCode;
 
 // map SDL scan codes to engine key codes
-static absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap = {
+static std::unordered_map<SDL_Scancode, KeyCode> keyCodeMap = {
     { SDL_SCANCODE_SPACE, KeyCode::SpongeKey_Space },
     { SDL_SCANCODE_APOSTROPHE, KeyCode::SpongeKey_Apostrophe },
     { SDL_SCANCODE_COMMA, KeyCode::SpongeKey_Comma },
@@ -140,7 +139,7 @@ static absl::flat_hash_map<SDL_Scancode, KeyCode> keyCodeMap = {
 };
 
 // map engine key codes to SDL scan codes
-static absl::flat_hash_map<KeyCode, SDL_Scancode> scanCodeMap = {
+static std::unordered_map<KeyCode, SDL_Scancode> scanCodeMap = {
     { KeyCode::SpongeKey_Space, SDL_SCANCODE_SPACE },
     { KeyCode::SpongeKey_Apostrophe, SDL_SCANCODE_APOSTROPHE },
     { KeyCode::SpongeKey_Comma, SDL_SCANCODE_COMMA },

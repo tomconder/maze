@@ -45,7 +45,6 @@ file(
         LIST_DIRECTORIES false
         assets/*)
 
-find_package(absl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -91,7 +90,6 @@ target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
-target_link_libraries(game PRIVATE absl::flat_hash_map)
 target_link_libraries(game PRIVATE glm::glm-header-only)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)

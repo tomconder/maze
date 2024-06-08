@@ -4,7 +4,6 @@
 #include "platform/opengl/model.hpp"
 #include "platform/opengl/shader.hpp"
 #include "platform/opengl/texture.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <string>
 
 namespace sponge::platform::opengl {
@@ -52,10 +51,10 @@ class ResourceManager {
 
     static std::string assetsFolder;
 
-    static absl::flat_hash_map<std::string, std::shared_ptr<Font>> fonts;
-    static absl::flat_hash_map<std::string, std::shared_ptr<Model>> models;
-    static absl::flat_hash_map<std::string, std::shared_ptr<Shader>> shaders;
-    static absl::flat_hash_map<std::string, std::shared_ptr<Texture>> textures;
+    static std::unordered_map<std::string, std::shared_ptr<Font>> fonts;
+    static std::unordered_map<std::string, std::shared_ptr<Model>> models;
+    static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
+    static std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 };
 
 }  // namespace sponge::platform::opengl
