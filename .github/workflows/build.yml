@@ -56,6 +56,7 @@ jobs:
         with:
           name: maze-windows
           path: ${{github.workspace}}/out/install/x64-release/
+          retention-days: 1
           if-no-files-found: error
 
     outputs:
@@ -98,6 +99,7 @@ jobs:
         with:
           name: maze-linux
           path: ${{github.workspace}}/out/install/linux-release/
+          retention-days: 1
           if-no-files-found: error
 
   osx:
@@ -131,4 +133,5 @@ jobs:
         with:
           name: maze-macosx
           path: ${{github.workspace}}/out/install/osx-release/
+          retention-days: 1
           if-no-files-found: error
