@@ -13,6 +13,11 @@ on:
       - '**.md'
   workflow_dispatch:
 
+# cancel running builds if a new commit is pushed
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Release
   VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
