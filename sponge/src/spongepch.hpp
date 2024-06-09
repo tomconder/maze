@@ -44,8 +44,5 @@
 #endif
 #include <spdlog/spdlog.h>
 
-// tuplet
-#include <tuplet/tuple.hpp>
-
 // gl bindings
 #include <glad/glad.h>
