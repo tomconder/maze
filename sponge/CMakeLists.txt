@@ -98,6 +98,22 @@ list(APPEND SOURCE_FILES src/spongepch.cpp)
 target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
 set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
+if (MSVC)
+    # hardening
+    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+    target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
+
+    # properly report what c++ version is being used
+    target_compile_options(sponge INTERFACE /Zc:__cplusplus)
+
+    # fast math and SIMD support
+    # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
+else ()
+    # See the implications here: https://stackoverflow.com/q/45685487
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
+endif ()
+
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(sponge PUBLIC src)
