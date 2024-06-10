@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer/shader.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <string>
 
 namespace sponge::platform::opengl {
@@ -28,7 +27,7 @@ class Shader : public renderer::Shader {
     };
 
    private:
-    mutable absl::flat_hash_map<std::string, GLint> uniformLocations;
+    mutable std::unordered_map<std::string, GLint> uniformLocations;
 
     static uint32_t compileShader(GLenum type, const std::string& source);
     uint32_t linkProgram(uint32_t vs, uint32_t fs);

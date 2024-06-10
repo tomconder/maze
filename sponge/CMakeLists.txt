@@ -78,14 +78,12 @@ if (UNIX AND NOT APPLE)
     list(APPEND SOURCE_FILES ${LINUX_SOURCES})
 endif ()
 
-find_package(absl CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
-find_package(tuplet CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
@@ -100,6 +98,22 @@ list(APPEND SOURCE_FILES src/spongepch.cpp)
 target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
 set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
+if (MSVC)
+    # hardening
+    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+    target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
+
+    # properly report what c++ version is being used
+    target_compile_options(sponge INTERFACE /Zc:__cplusplus)
+
+    # fast math and SIMD support
+    # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
+else ()
+    # See the implications here: https://stackoverflow.com/q/45685487
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
+endif ()
+
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(sponge PUBLIC src)
@@ -107,11 +121,9 @@ target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
-target_link_libraries(sponge PRIVATE absl::flat_hash_map)
 target_link_libraries(sponge PRIVATE glad::glad)
 target_link_libraries(sponge PRIVATE glm::glm-header-only)
 target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
-target_link_libraries(sponge PRIVATE tuplet::tuplet)

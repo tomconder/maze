@@ -2,7 +2,6 @@
 
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
-#include <absl/container/flat_hash_map.h>
 #include <string>
 
 namespace game {
@@ -24,10 +23,10 @@ class ResourceManager {
    private:
     ResourceManager() = default;
 
-    static absl::flat_hash_map<std::string,
-                               std::shared_ptr<sponge::scene::OrthoCamera>>
+    static std::unordered_map<std::string,
+                              std::shared_ptr<sponge::scene::OrthoCamera>>
         orthoCameras;
-    static absl::flat_hash_map<std::string, std::shared_ptr<scene::GameCamera>>
+    static std::unordered_map<std::string, std::shared_ptr<scene::GameCamera>>
         gameCameras;
 };
 

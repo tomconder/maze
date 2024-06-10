@@ -45,7 +45,6 @@ file(
         LIST_DIRECTORIES false
         assets/*)
 
-find_package(absl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -85,13 +84,24 @@ if (MSVC)
     message(STATUS "Applying Windows hardening support")
     target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
     target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
+
+    # properly report what c++ version is being used
+    target_compile_options(game INTERFACE /Zc:__cplusplus)
+
+    # fast math and SIMD support
+    # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
+    message(STATUS "Applying fast math and SIMD support")
+    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
+else ()
+    # See the implications here: https://stackoverflow.com/q/45685487
+    message(STATUS "Applying fast math and SIMD support")
+    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
 endif ()
 
 target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
-target_link_libraries(game PRIVATE absl::flat_hash_map)
 target_link_libraries(game PRIVATE glm::glm-header-only)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)

@@ -2,9 +2,9 @@
 
 namespace game {
 
-absl::flat_hash_map<std::string, std::shared_ptr<sponge::scene::OrthoCamera>>
+std::unordered_map<std::string, std::shared_ptr<sponge::scene::OrthoCamera>>
     ResourceManager::orthoCameras;
-absl::flat_hash_map<std::string, std::shared_ptr<scene::GameCamera>>
+std::unordered_map<std::string, std::shared_ptr<scene::GameCamera>>
     ResourceManager::gameCameras;
 
 std::shared_ptr<sponge::scene::OrthoCamera> ResourceManager::createOrthoCamera(

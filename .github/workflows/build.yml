@@ -13,95 +13,107 @@ on:
       - '**.md'
   workflow_dispatch:
 
+# cancel running builds if a new commit is pushed
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BUILD_TYPE: Release
-  VCPKG_GIT_COMMIT_ID: '01f602195983451bc83e72f4214af2cbc495aa94'
+  VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
+  VCPKG_DISABLE_METRICS: 1
 
 permissions:
   contents: read
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  build: # don't double run on PRs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-latest
 
-    env:
-      CONFIGURE_PRESET: x64-release
-      VCPKG_DEFAULT_TRIPLET: x64-windows
+          - name: osx
+            os: macos-latest
+            extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: lukka/get-cmake@latest
-
-      - name: Setup vcpkg (it does not install any package yet)
-        uses: lukka/run-vcpkg@v11
-        id: runvcpkg
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-      - name: Setup default windows sdk
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-
-      - name: Build
-        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
-
-  linux:
-    runs-on: ubuntu-latest
-
-    env:
-      CONFIGURE_PRESET: linux-release
+          - name: windows
+            os: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: lukka/get-cmake@latest
-
-      - name: Install Packages
+      - name: Install linux packages
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y gcc-multilib
           sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libxft-dev libgl1-mesa-dev
 
-      - name: Setup vcpkg (it does not install any package yet)
-        uses: lukka/run-vcpkg@v11
-        id: runvcpkg
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-
-      - name: Build
-        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
-
-  osx:
-    runs-on: macos-latest
-
-    env:
-      CONFIGURE_PRESET: osx-release
-
-    steps:
-      - uses: actions/checkout@v4
+      - name: Setup default windows sdk
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
 
       - uses: lukka/get-cmake@latest
 
-      - name: Setup vcpkg (it does not install any package yet)
+      - uses: actions/checkout@v4
+
+      - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
-        id: runvcpkg
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Configure CMake
+      - name: Configure cmake on linux
+        if: runner.os == 'Linux'
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        env:
+          CONFIGURE_PRESET: linux-release
+
+      - name: Configure cmake on mac
+        if: ${{ matrix.name == 'osx' }}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        env:
+          CONFIGURE_PRESET: osx-release
+
+      - name: Configure cmake on windows
+        if: runner.os == 'Windows'
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        env:
+          CONFIGURE_PRESET: x64-release
+          VCPKG_DEFAULT_TRIPLET: x64-windows
 
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
+
+      - name: Upload linux artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: maze-linux
+          path: ${{github.workspace}}/out/install/linux-release/
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload mac artifact
+        if: ${{ matrix.name == 'osx' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: maze-mac
+          path: ${{github.workspace}}/out/install/osx-release/
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload windows artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: maze-windows
+          path: ${{github.workspace}}/out/install/x64-release/
+          retention-days: 1
+          if-no-files-found: error
+

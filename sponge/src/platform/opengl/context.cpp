@@ -1,6 +1,5 @@
 #include "context.hpp"
 #include "logging/log.hpp"
-#include <tuplet/tuple.hpp>
 #include <SDL.h>
 
 namespace sponge::platform::opengl {
@@ -16,19 +15,19 @@ Context::Context(SDL_Window* window) {
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     constexpr auto glVersions =
-        std::to_array<tuplet::tuple<int, int>>({ { 4, 6 },
-                                                 { 4, 5 },
-                                                 { 4, 4 },
-                                                 { 4, 3 },
-                                                 { 4, 2 },
-                                                 { 4, 1 },
-                                                 { 4, 0 },
-                                                 { 3, 3 },
-                                                 { 3, 2 },
-                                                 { 3, 1 },
-                                                 { 3, 0 },
-                                                 { 2, 1 },
-                                                 { 2, 0 } });
+        std::to_array<std::pair<int, int>>({ { 4, 6 },
+                                             { 4, 5 },
+                                             { 4, 4 },
+                                             { 4, 3 },
+                                             { 4, 2 },
+                                             { 4, 1 },
+                                             { 4, 0 },
+                                             { 3, 3 },
+                                             { 3, 2 },
+                                             { 3, 1 },
+                                             { 3, 0 },
+                                             { 2, 1 },
+                                             { 2, 0 } });
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                         SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
