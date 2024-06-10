@@ -56,6 +56,10 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - uses: actions/checkout@v4
+
+      - uses: lukka/get-cmake@latest
+
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
@@ -63,10 +67,6 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-      - uses: actions/checkout@v4
-
-      - uses: lukka/get-cmake@latest
 
       - name: Configure CMake on Linux
         if: runner.os == 'Linux'
