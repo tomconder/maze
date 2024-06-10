@@ -71,19 +71,19 @@ jobs:
       - name: Configure cmake on linux
         if: runner.os == 'Linux'
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        with:
+        env:
           CONFIGURE_PRESET: linux-release
 
       - name: Configure cmake on mac
         if: ${{ matrix.name == 'osx' }}
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        with:
+        env:
           CONFIGURE_PRESET: osx-release
 
       - name: Configure cmake on windows
         if: runner.os == 'Windows'
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        with:
+        env:
           CONFIGURE_PRESET: x64-release
           VCPKG_DEFAULT_TRIPLET: x64-windows
 
