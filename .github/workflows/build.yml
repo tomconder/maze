@@ -71,11 +71,11 @@ jobs:
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Install Ninja (Windows)
+      - name: Install Windows Dependencies
         if: runner.os == 'Windows'
         run: choco install ninja
 
-      - name: Install macOS Deps
+      - name: Install MacOS Dependencies
         if: ${{ matrix.name == 'osx' }}
         run: brew install ninja
 
@@ -92,7 +92,7 @@ jobs:
       - name: Upload Windows Artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
-        id: upload-binary
+        id: upload-windows-binary
         with:
           name: maze-windows
           path: ${{github.workspace}}/out/install/x64-release/
@@ -102,7 +102,7 @@ jobs:
       - name: Upload Linux Artifact
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
-        id: upload-binary
+        id: upload-linux-binary
         with:
           name: maze-linux
           path: ${{github.workspace}}/out/install/linux-release/
@@ -112,7 +112,7 @@ jobs:
       - name: Upload MacOS Artifact
         if: ${{ matrix.name == 'osx' }}
         uses: actions/upload-artifact@v4
-        id: upload-binary
+        id: upload-mac-binary
         with:
           name: maze-macosx
           path: ${{github.workspace}}/out/install/osx-release/
