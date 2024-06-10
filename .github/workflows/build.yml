@@ -46,7 +46,7 @@ jobs:
             os: windows-latest
 
     steps:
-      - name: Install Linux Packages
+      - name: Install linux packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
@@ -57,11 +57,9 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - uses: actions/checkout@v4
-
       - uses: lukka/get-cmake@latest
 
-      - name: Setup vcpkg (it does not install any package yet)
+      - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
         with:
@@ -69,19 +67,21 @@ jobs:
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Configure CMake on Linux
+      - uses: actions/checkout@v4
+
+      - name: Configure cmake on linux
         if: runner.os == 'Linux'
         env:
           CONFIGURE_PRESET: linux-release
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
 
-      - name: Configure CMake on MacOS
+      - name: Configure cmake on mac
         if: ${{ matrix.name == 'osx' }}
         env:
           CONFIGURE_PRESET: osx-release
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
 
-      - name: Configure CMake on Windows
+      - name: Configure cmake on windows
         if: runner.os == 'Windows'
         env:
           CONFIGURE_PRESET: x64-release
@@ -91,7 +91,7 @@ jobs:
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
 
-      - name: Upload Windows Artifact
+      - name: Upload windows artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         id: upload-windows-binary
@@ -101,7 +101,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      - name: Upload Linux Artifact
+      - name: Upload linux artifact
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         id: upload-linux-binary
@@ -111,12 +111,12 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      - name: Upload MacOS Artifact
+      - name: Upload mac artifact
         if: ${{ matrix.name == 'osx' }}
         uses: actions/upload-artifact@v4
         id: upload-mac-binary
         with:
-          name: maze-macosx
+          name: maze-mac
           path: ${{github.workspace}}/out/install/osx-release/
           retention-days: 1
           if-no-files-found: error
