@@ -36,20 +36,13 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
-            outputs:
-              CONFIGURE_PRESET: linux-release
 
           - name: osx
             os: macos-latest
             extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-            outputs:
-              CONFIGURE_PRESET: osx-release
 
           - name: windows
             os: windows-latest
-            outputs:
-              CONFIGURE_PRESET: x64-release
-              VCPKG_DEFAULT_TRIPLET: x64-windows
 
     steps:
       - name: Install Linux Packages
@@ -83,10 +76,23 @@ jobs:
 
       - uses: lukka/get-cmake@latest
 
-      - name: Configure CMake
+      - name: Configure CMake on Linux
+        if: runner.os == 'Linux'
         env:
-          CONFIGURE_PRESET: ${{ outputs.CONFIGURE_PRESET }}
-          VCPKG_DEFAULT_TRIPLET: ${{ outputs.VCPKG_DEFAULT_TRIPLET }}
+          CONFIGURE_PRESET: linux-release
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Configure CMake on MacOS
+        if: ${{ matrix.name == 'osx' }}
+        env:
+          CONFIGURE_PRESET: osx-release
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+
+      - name: Configure CMake on Windows
+        if: runner.os == 'Windows'
+        env:
+          CONFIGURE_PRESET: x64-release
+          VCPKG_DEFAULT_TRIPLET: x64-windows
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
 
       - name: Build
