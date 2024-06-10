@@ -21,6 +21,7 @@ concurrency:
 env:
   BUILD_TYPE: Release
   VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
+  VCPKG_DISABLE_METRICS: 1
 
 permissions:
   contents: read
@@ -63,6 +64,7 @@ jobs:
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
+        env:
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
