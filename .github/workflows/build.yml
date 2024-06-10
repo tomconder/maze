@@ -52,14 +52,6 @@ jobs:
           sudo apt-get install -y gcc-multilib
           sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libxft-dev libgl1-mesa-dev
 
-      - name: Install Windows Dependencies
-        if: runner.os == 'Windows'
-        run: choco install ninja
-
-      - name: Install MacOS Dependencies
-        if: ${{ matrix.name == 'osx' }}
-        run: brew install ninja
-
       - name: Setup default windows sdk
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
