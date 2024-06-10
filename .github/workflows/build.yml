@@ -63,7 +63,6 @@ jobs:
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
-        id: runvcpkg
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
@@ -71,40 +70,29 @@ jobs:
 
       - name: Configure cmake on linux
         if: runner.os == 'Linux'
-        env:
-          CONFIGURE_PRESET: linux-release
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        with:
+          CONFIGURE_PRESET: linux-release
 
       - name: Configure cmake on mac
         if: ${{ matrix.name == 'osx' }}
-        env:
-          CONFIGURE_PRESET: osx-release
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        with:
+          CONFIGURE_PRESET: osx-release
 
       - name: Configure cmake on windows
         if: runner.os == 'Windows'
-        env:
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
+        with:
           CONFIGURE_PRESET: x64-release
           VCPKG_DEFAULT_TRIPLET: x64-windows
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
 
       - name: Build
         run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
 
-      - name: Upload windows artifact
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        id: upload-windows-binary
-        with:
-          name: maze-windows
-          path: ${{github.workspace}}/out/install/x64-release/
-          retention-days: 1
-          if-no-files-found: error
-
       - name: Upload linux artifact
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
-        id: upload-linux-binary
         with:
           name: maze-linux
           path: ${{github.workspace}}/out/install/linux-release/
@@ -114,9 +102,18 @@ jobs:
       - name: Upload mac artifact
         if: ${{ matrix.name == 'osx' }}
         uses: actions/upload-artifact@v4
-        id: upload-mac-binary
         with:
           name: maze-mac
           path: ${{github.workspace}}/out/install/osx-release/
           retention-days: 1
           if-no-files-found: error
+
+      - name: Upload windows artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: maze-windows
+          path: ${{github.workspace}}/out/install/x64-release/
+          retention-days: 1
+          if-no-files-found: error
+
