@@ -64,7 +64,6 @@ jobs:
       - name: Setup vcpkg (it does not install any package yet)
         uses: lukka/run-vcpkg@v11
         id: runvcpkg
-        env:
         with:
           vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
