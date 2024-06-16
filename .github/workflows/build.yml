@@ -81,7 +81,7 @@ jobs:
 
       - name: Configure CMake on linux
         if: runner.os == 'Linux'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+        run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
@@ -89,7 +89,7 @@ jobs:
 
       - name: Configure CMake on mac
         if: ${{ matrix.name == 'osx' }}
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+        run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
           -DCMAKE_OSX_ARCHITECTURES="x86_64"
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
@@ -98,7 +98,7 @@ jobs:
 
       - name: Configure CMake on windows
         if: runner.os == 'Windows'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+        run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
@@ -106,7 +106,8 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: x64-windows
 
       - name: Build
-        run: cmake --build ${{ env.BUILD_DIR }} --target install game --config ${{env.BUILD_TYPE}} --parallel 4
+        run: cmake --build "${{github.workspace}}/${{ env.BUILD_DIR }}" --target install game
+          --config ${{env.BUILD_TYPE}} --parallel 4
 
       - name: Upload linux artifact
         if: runner.os == 'Linux'
