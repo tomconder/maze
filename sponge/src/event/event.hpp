@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/base.hpp"
+#include <cstdint>
 
 namespace sponge::event {
 
