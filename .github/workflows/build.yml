@@ -82,7 +82,7 @@ jobs:
       - name: Configure CMake on linux
         if: runner.os == 'Linux'
         run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -G Ninja
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: linux-release
@@ -90,7 +90,7 @@ jobs:
       - name: Configure CMake on mac
         if: ${{ matrix.name == 'osx' }}
         run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -G Ninja
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: osx-release
@@ -98,7 +98,7 @@ jobs:
       - name: Configure CMake on windows
         if: runner.os == 'Windows'
         run: cmake -B ${{github.workspace}}/${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -G Ninja
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: x64-release
