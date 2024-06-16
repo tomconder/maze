@@ -44,7 +44,7 @@ jobs:
           - name: osx
             os: macos-latest
             preset: osx-release
-            extra-flags: -DVCPKG_DEFAULT_TRIPLET=x64-osx -DCMAKE_OSX_ARCHITECTURES=x86_64
+            extra-flags: -DVCPKG_DEFAULT_TRIPLET=arm64-osx -DCMAKE_OSX_ARCHITECTURES=arm64
 
           - name: windows
             os: windows-latest
