@@ -43,22 +43,27 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
+            preset: linux-release
 
           - name: osx
             os: macos-latest
+            preset: osx-release
+            extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
           - name: windows
             os: windows-latest
+            preset: x64-release
+            extra-flags: -DVCPKG_DEFAULT_TRIPLET=x64-windows
 
     steps:
       - name: Install linux packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y gcc-multilib
-          sudo apt-get install -y --no-install-recommends libx11-dev libxft-dev libxext-dev
-          sudo apt-get install -y --no-install-recommends libxinerama-dev libxi-dev libxfixes-dev libxcursor-dev
-          sudo apt-get install -y --no-install-recommends libasound2-dev libgl1-mesa-dev libxrandr-dev
+          sudo apt-get install -qq -y gcc-multilib
+          sudo apt-get install -qq -y --no-install-recommends libx11-dev libxft-dev libxext-dev
+          sudo apt-get install -qq -y --no-install-recommends libxinerama-dev libxi-dev libxfixes-dev libxcursor-dev
+          sudo apt-get install -qq -y --no-install-recommends libasound2-dev libgl1-mesa-dev libxrandr-dev
 
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
@@ -83,27 +88,24 @@ jobs:
       - name: Configure CMake on linux
         if: runner.os == 'Linux'
         run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          ${{ matrix.extra-flags }}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: linux-release
+          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{ matrix.preset }}
 
       - name: Configure CMake on mac
         if: ${{ matrix.name == 'osx' }}
         run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          ${{ matrix.extra-flags }}
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: osx-release
+          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{ matrix.preset }}
 
       - name: Configure CMake on windows
         if: runner.os == 'Windows'
         run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          ${{ matrix.extra-flags }}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: x64-release
-          VCPKG_DEFAULT_TRIPLET: x64-windows
+          -DGIT_SHA:STRING=${{ github.sha }}  --preset ${{ matrix.preset }}
 
       - name: Build
         run: cmake --build ${{ env.BUILD_DIR }} --target install game --config ${{env.BUILD_TYPE}} --parallel 4
