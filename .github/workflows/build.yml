@@ -98,7 +98,7 @@ jobs:
 
       - name: Configure CMake on windows
         if: runner.os == 'Windows'
-        run: cmake -B {{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
