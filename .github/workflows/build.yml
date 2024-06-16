@@ -25,10 +25,6 @@ env:
   VCPKG_DISABLE_METRICS: 1
   VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
 
-defaults:
-  run:
-    shell: bash
-
 permissions:
   contents: read
 
@@ -85,27 +81,10 @@ jobs:
           vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Configure CMake on linux
-        if: runner.os == 'Linux'
-        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          ${{ matrix.extra-flags }}
+      - name: Configure CMake
+        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{ matrix.preset }}
-
-      - name: Configure CMake on mac
-        if: ${{ matrix.name == 'osx' }}
-        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          ${{ matrix.extra-flags }}
-          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} --preset ${{ matrix.preset }}
-
-      - name: Configure CMake on windows
-        if: runner.os == 'Windows'
-        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
-          ${{ matrix.extra-flags }}
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }}  --preset ${{ matrix.preset }}
+          -DGIT_SHA:STRING=${{ github.sha }} ${{ matrix.extra-flags }} --preset ${{ matrix.preset }}
 
       - name: Build
         run: cmake --build ${{ env.BUILD_DIR }} --target install game --config ${{env.BUILD_TYPE}} --parallel 4
