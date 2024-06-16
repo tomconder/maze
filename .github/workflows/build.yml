@@ -45,7 +45,6 @@ jobs:
 
           - name: osx
             os: macos-latest
-            extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
           - name: windows
             os: windows-latest
@@ -78,27 +77,24 @@ jobs:
 
       - name: Configure cmake on linux
         if: runner.os == 'Linux'
-        run: cmake -B ${{github.workspace}}/build \
-          -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} \
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: linux-release
 
       - name: Configure cmake on mac
         if: ${{ matrix.name == 'osx' }}
-        run: cmake -B ${{github.workspace}}/build ${{ matrix.extra-flags }} \
-          -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} \
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: osx-release
 
       - name: Configure cmake on windows
         if: runner.os == 'Windows'
-        run: cmake -B ${{github.workspace}}/build \
-          -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} \
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}}
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
         env:
           CONFIGURE_PRESET: x64-release
