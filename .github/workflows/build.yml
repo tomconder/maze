@@ -15,7 +15,7 @@ on:
 
 # cancel running builds if a new commit is pushed
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{github.ref}}
   cancel-in-progress: true
 
 env:
@@ -31,8 +31,8 @@ permissions:
 jobs:
   build: # don't double run on PRs
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    name: ${{matrix.name}}
+    runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
@@ -73,17 +73,17 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
+          vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
+          vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Configure CMake
-        run: cmake -B ${{ env.BUILD_DIR }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA:STRING=${{ github.sha }} ${{ matrix.extra-flags }} --preset ${{ matrix.preset }}
+          -DGIT_SHA=${{github.sha}} ${{matrix.extra-flags}} --preset ${{matrix.preset}}
 
       - name: Build
-        run: cmake --build ${{ env.BUILD_DIR }} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
 
       - name: Upload linux artifact
         if: runner.os == 'Linux'
@@ -111,4 +111,3 @@ jobs:
           path: ${{github.workspace}}/out/install/x64-release/
           retention-days: 1
           if-no-files-found: error
-
