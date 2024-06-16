@@ -48,7 +48,6 @@ jobs:
           - name: windows
             os: windows-latest
             preset: x64-release
-            extra-flags: -DVCPKG_DEFAULT_TRIPLET=x64-windows
 
     steps:
       - name: Install linux packages
@@ -78,9 +77,9 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Configure CMake
-        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DGIT_SHA=${{github.sha}} ${{matrix.extra-flags}} --preset ${{matrix.preset}}
+          -DGIT_SHA=${{github.sha}}
 
       - name: Build
         run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
