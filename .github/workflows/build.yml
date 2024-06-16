@@ -44,7 +44,7 @@ jobs:
           - name: osx
             os: macos-latest
             preset: osx-release
-            extra-flags: -DVCPKG_DEFAULT_TRIPLET=x86_64-osx -DCMAKE_OSX_ARCHITECTURES=x86_64
+            extra-flags: -DVCPKG_DEFAULT_TRIPLET=x64-osx -DCMAKE_OSX_ARCHITECTURES=x86_64
 
           - name: windows
             os: windows-latest
@@ -84,7 +84,7 @@ jobs:
           -DGIT_SHA:STRING=${{ github.sha }} ${{ matrix.extra-flags }} --preset ${{ matrix.preset }}
 
       - name: Build
-        run: cmake --build ${{ env.BUILD_DIR }} --target install game --config ${{env.BUILD_TYPE}} --parallel 4
+        run: cmake --build ${{ env.BUILD_DIR }} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
 
       - name: Upload linux artifact
         if: runner.os == 'Linux'
