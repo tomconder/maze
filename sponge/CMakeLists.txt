@@ -93,7 +93,7 @@ add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 
 # workaround for sccache issue: https://github.com/mozilla/sccache/issues/2090
-if ((NOT APPLE) OR (NOT ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU"))
+if (NOT APPLE)
     # pre-compiled header support
     message(STATUS "Compiling using pre-compiled header support")
     list(APPEND SOURCE_FILES src/spongepch.cpp)
