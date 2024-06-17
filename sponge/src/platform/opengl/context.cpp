@@ -1,6 +1,8 @@
 #include "context.hpp"
+#include "glad/glad.h"
 #include "logging/log.hpp"
 #include <SDL.h>
+#include <array>
 
 namespace sponge::platform::opengl {
 
