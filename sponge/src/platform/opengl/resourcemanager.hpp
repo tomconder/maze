@@ -5,6 +5,7 @@
 #include "platform/opengl/shader.hpp"
 #include "platform/opengl/texture.hpp"
 #include <string>
+#include <unordered_map>
 
 namespace sponge::platform::opengl {
 

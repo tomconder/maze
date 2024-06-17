@@ -15,13 +15,19 @@ on:
 
 # cancel running builds if a new commit is pushed
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{github.ref}}
   cancel-in-progress: true
 
 env:
   BUILD_TYPE: Release
-  VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
+  BUILD_DIR: build
+  SCCACHE_GHA_ENABLED: true
   VCPKG_DISABLE_METRICS: 1
+  VCPKG_GIT_COMMIT_ID: '6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8'
+
+defaults:
+  run:
+    shell: bash
 
 permissions:
   contents: read
@@ -29,66 +35,57 @@ permissions:
 jobs:
   build: # don't double run on PRs
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    name: ${{matrix.name}}
+    runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: linux
             os: ubuntu-latest
+            preset: linux-release
 
           - name: osx
             os: macos-latest
-            extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            preset: osx-release
 
           - name: windows
             os: windows-latest
+            preset: x64-release
 
     steps:
       - name: Install linux packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y gcc-multilib
-          sudo apt-get install -y --no-install-recommends libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libxft-dev libgl1-mesa-dev
+          sudo apt-get install -qq -y --no-install-recommends libasound2-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
 
-      - name: Setup default windows sdk
+      - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - uses: lukka/get-cmake@latest
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
 
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache the build
+        uses: mozilla-actions/sccache-action@v0.0.4
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{ github.workspace }}/b/vcpkg'
-          vcpkgGitCommitId: '${{ env.VCPKG_GIT_COMMIT_ID }}'
+          vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
+          vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Configure cmake on linux
-        if: runner.os == 'Linux'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: linux-release
-
-      - name: Configure cmake on mac
-        if: ${{ matrix.name == 'osx' }}
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: osx-release
-
-      - name: Configure cmake on windows
-        if: runner.os == 'Windows'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DGIT_SHA:STRING=${{ github.sha }} --preset ${{env.CONFIGURE_PRESET}}
-        env:
-          CONFIGURE_PRESET: x64-release
-          VCPKG_DEFAULT_TRIPLET: x64-windows
+      - name: Configure CMake
+        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DGIT_SHA=${{github.sha}}
 
       - name: Build
-        run: cmake --build build --target install game --config ${{env.BUILD_TYPE}} -j 4
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
 
       - name: Upload linux artifact
         if: runner.os == 'Linux'
@@ -116,4 +113,3 @@ jobs:
           path: ${{github.workspace}}/out/install/x64-release/
           retention-days: 1
           if-no-files-found: error
-

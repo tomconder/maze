@@ -92,11 +92,14 @@ find_package(Stb REQUIRED)
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 
-# pre-compiled header support
-message(STATUS "Compiling using pre-compiled header support")
-list(APPEND SOURCE_FILES src/spongepch.cpp)
-target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
-set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+# workaround for sccache issue: https://github.com/mozilla/sccache/issues/2090
+if (NOT APPLE)
+    # pre-compiled header support
+    message(STATUS "Compiling using pre-compiled header support")
+    list(APPEND SOURCE_FILES src/spongepch.cpp)
+    target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
+    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+endif ()
 
 if (MSVC)
     # hardening

@@ -2,6 +2,8 @@
 #include "logging/log.hpp"
 #include <SDL.h>
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "core/file.hpp"

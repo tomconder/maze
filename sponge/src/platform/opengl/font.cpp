@@ -2,6 +2,7 @@
 #include "core/base.hpp"
 #include "platform/opengl/gl.hpp"
 #include "platform/opengl/resourcemanager.hpp"
+#include <fmt/format.h>
 #include <vector>
 
 namespace sponge::platform::opengl {

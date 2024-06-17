@@ -1,11 +1,15 @@
 #include "model.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/resourcemanager.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+#include <algorithm>
 #include <cassert>
+#include <filesystem>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "logging/log.hpp"
 #include "tiny_obj_loader.h"
 
 namespace sponge::platform::opengl {

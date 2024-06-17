@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <spdlog/fmt/fmt.h>
 
 template <glm::length_t L, typename Pre>

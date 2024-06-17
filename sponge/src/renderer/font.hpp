@@ -1,6 +1,8 @@
 #pragma once
 
+#include <glm/vec2.hpp>
 #include <string>
+#include <unordered_map>
 
 namespace sponge::renderer {
 

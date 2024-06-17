@@ -16,6 +16,7 @@
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/logging/sink.hpp"
 #include "platform/sdl/window.hpp"
+#include <glm/glm.hpp>
 #include <array>
 #include <utility>
 

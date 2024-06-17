@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace sponge::input {
 
 // inspired by glfw3.h

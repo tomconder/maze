@@ -1,7 +1,7 @@
 #include "font.hpp"
 #include "core/base.hpp"
-#include "fmt/core.h"
 #include "logging/log.hpp"
+#include <fmt/format.h>
 #include <cstddef>
 #include <fstream>
 #include <ios>

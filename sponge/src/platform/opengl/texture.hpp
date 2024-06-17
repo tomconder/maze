@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform/opengl/gl.hpp"
 #include "renderer/texture.hpp"
 #include <string>
 

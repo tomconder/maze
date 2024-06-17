@@ -1,7 +1,9 @@
 #pragma once
 
 #include "renderer/shader.hpp"
+#include <glad/glad.h>
 #include <string>
+#include <unordered_map>
 
 namespace sponge::platform::opengl {
 
