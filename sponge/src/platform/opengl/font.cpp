@@ -1,8 +1,8 @@
 #include "font.hpp"
 #include "core/base.hpp"
-#include "fmt/format.h"
 #include "platform/opengl/gl.hpp"
 #include "platform/opengl/resourcemanager.hpp"
+#include <fmt/format.h>
 #include <vector>
 
 namespace sponge::platform::opengl {

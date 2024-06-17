@@ -1,6 +1,6 @@
 #include "context.hpp"
-#include "glad/glad.h"
 #include "logging/log.hpp"
+#include <glad/glad.h>
 #include <SDL.h>
 #include <array>
 
