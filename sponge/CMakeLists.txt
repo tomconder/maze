@@ -93,10 +93,10 @@ add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 
 # pre-compiled header support
-#message(STATUS "Compiling using pre-compiled header support")
-#list(APPEND SOURCE_FILES src/spongepch.cpp)
-#target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
-#set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+message(STATUS "Compiling using pre-compiled header support")
+list(APPEND SOURCE_FILES src/spongepch.cpp)
+target_precompile_headers(sponge PUBLIC src/spongepch.hpp)
+set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
 
 if (MSVC)
     # hardening
