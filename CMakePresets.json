@@ -85,7 +85,10 @@
         "rhs": "Darwin"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+        "VCPKG_OSX_ARCHITECTURES": "arm64;x86_64",
+        "VCPKG_TARGET_ARCHITECTURE": "x86_64"
       }
     },
     {
