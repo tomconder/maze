@@ -1,4 +1,5 @@
 #include "grid.hpp"
+#include "platform/opengl/gl.hpp"
 #include "resourcemanager.hpp"
 
 namespace sponge::platform::opengl {
