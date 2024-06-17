@@ -48,6 +48,7 @@ jobs:
           - name: osx
             os: macos-latest
             preset: osx-release
+            extra-flags: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DVCPKG_OSX_ARCHITECTURES="arm64;x86_64"
 
           - name: windows
             os: windows-latest
@@ -83,6 +84,7 @@ jobs:
       - name: Configure CMake
         run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
           -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DGIT_SHA=${{github.sha}}
+          ${{matrix.extra-flags}}
 
       - name: Build
         run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
