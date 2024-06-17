@@ -4,6 +4,7 @@
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>
+#include <numeric>
 #include <sstream>
 #include <vector>
 

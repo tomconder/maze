@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace sponge::input {
 
 using MouseCode = uint8_t;
