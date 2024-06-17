@@ -1,6 +1,7 @@
 #include "info.hpp"
 #include "logging/log.hpp"
 #include <SDL.h>
+#include <sstream>
 
 namespace sponge::platform::sdl {
 

@@ -3,6 +3,7 @@
 #include "platform/opengl/resourcemanager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 
