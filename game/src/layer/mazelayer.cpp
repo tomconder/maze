@@ -45,7 +45,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4("mvp", camera->getMVP());
-    shader->setMat4("viewportMatrix", camera->getView());
+    shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
     sponge::platform::opengl::ResourceManager::getModel(modelName)->render();
