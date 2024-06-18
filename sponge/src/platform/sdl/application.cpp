@@ -426,4 +426,22 @@ void Application::toggleFullscreen() {
     }
 }
 
+void Application::run() {
+    SPONGE_INFO("Starting");
+
+    if (!start()) {
+        return;
+    }
+
+    SPONGE_INFO("Iterating loop");
+
+    bool quit = false;
+    while (!quit) {
+        quit = iterateLoop();
+    }
+
+    SPONGE_INFO("Shutting down");
+    shutdown();
+}
+
 }  // namespace sponge::platform::sdl

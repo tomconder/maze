@@ -119,6 +119,8 @@ class Application : public sponge::Application {
         return *instance;
     }
 
+    void run() override;
+
    private:
     std::string appName = "undefined";
     std::unique_ptr<opengl::Context> graphics;

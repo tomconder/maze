@@ -17,6 +17,11 @@ class Application {
     virtual bool onUserDestroy() = 0;
 
     virtual void onEvent(event::Event& event) = 0;
+
+    virtual void run() = 0;
 };
+
+// implemented by client
+Application* createApplication(int argc, char** argv);
 
 }  // namespace sponge
