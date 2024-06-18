@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8",
+  "builtin-baseline": "67a300519ea09dbf02b4d06982e781a01b617b93",
   "dependencies": [
     {
       "name": "glad",
