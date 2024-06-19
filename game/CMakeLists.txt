@@ -1,6 +1,6 @@
 include(GNUInstallDirs)
 
-configure_file(bundle/resources/version.h.in include/version.h)
+configure_file(bundle/resources/version.hpp.in include/version.hpp)
 
 if (WIN32)
     # accommodate missing version number values

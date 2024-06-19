@@ -1,7 +1,7 @@
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
-#include "version.h"
+#include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
 
