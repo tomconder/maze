@@ -1,7 +1,7 @@
 #include "maze.hpp"
 #include "entrypoint.hpp"
 #include "sponge.hpp"
-#include "version.h"
+#include "version.hpp"
 
 namespace game {
 
