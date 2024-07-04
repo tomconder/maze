@@ -56,10 +56,11 @@ jobs:
     steps:
       - name: Install linux packages
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq -y --no-install-recommends libasound2-dev libgl1-mesa-dev libx11-dev \
-            libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
+        run: >
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq &&
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends libasound2-dev
+            libgl1-mesa-dev libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev
+            libxrandr-dev
 
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
@@ -82,8 +83,8 @@ jobs:
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Configure CMake
-        run: |
-          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}} \ 
+        run: >
+          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}} 
             -DGIT_SHA=${{github.sha}}
 
       - name: Build
