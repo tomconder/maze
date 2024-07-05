@@ -85,11 +85,7 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Print nuget
-        shell: bash
-        run: echo "`$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`"
-
-      - name: Add NuGet sources
+      - name: Setup GitHub package cache
         shell: bash
         env:
           USERNAME: tomconder
