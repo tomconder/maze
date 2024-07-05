@@ -85,21 +85,23 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
+      - uses: nuget/setup-nuget@v2
+        with:
+          nuget-version: latest
+
       - name: Setup GitHub package cache
         shell: bash
         env:
           USERNAME: tomconder
           FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
         run: >
-          ${{ matrix.mono}} `$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`
-          sources add
+          nuget sources add
           -source "${{ env.FEED_URL }}"
           -storePasswordInClearText
           -name "GitHub"
           -username "${{ env.USERNAME }}"
           -password "${{ secrets.GH_PACKAGES_TOKEN }}" &&
-          ${{ matrix.mono}} `$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`
-          setapikey "${{ secrets.GH_PACKAGES_TOKEN }}"
+          nuget setapikey "${{ secrets.GH_PACKAGES_TOKEN }}"
           -source "${{ env.FEED_URL }}"
 
       - name: Configure CMake
