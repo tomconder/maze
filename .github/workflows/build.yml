@@ -44,14 +44,17 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
+            mono: 'mono'
             preset: linux-release
 
           - name: osx
             os: macos-latest
+            mono: 'mono'
             preset: osx-release
 
           - name: windows
             os: windows-latest
+            mono: ''
             preset: x64-release
 
     steps:
@@ -88,17 +91,17 @@ jobs:
           VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
           USERNAME: tomconder
           FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
-        run: |
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
-            -Source "${{ env.FEED_URL }}"
+        run: >
+          ${{ matrix.mono}} `$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`
+          sources add
+          -source "${{ env.FEED_URL }}"
+          -storePasswordInClearText
+          -name "GitHub"
+          -username "${{ env.USERNAME }}"
+          -password "${{ secrets.GH_PACKAGES_TOKEN }}" &&
+          ${{ matrix.mono}} `$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`
+          setapikey "${{ secrets.GH_PACKAGES_TOKEN }}"
+          -source "${{ env.FEED_URL }}"
 
       - name: Configure CMake
         run: >
