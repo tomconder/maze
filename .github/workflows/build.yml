@@ -85,9 +85,10 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 6.x
+      #      - name: Setup Nuget
+      #        uses: nuget/setup-nuget@v2
+      #        with:
+      #          nuget-version: latest
 
       - name: Setup GitHub package cache
         shell: bash
