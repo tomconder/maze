@@ -22,6 +22,7 @@ env:
   BUILD_TYPE: Release
   BUILD_DIR: build
   SCCACHE_GHA_ENABLED: true
+  VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/<OWNER>/index.json,readwrite"
   VCPKG_DISABLE_METRICS: 1
   VCPKG_GIT_COMMIT_ID: '67a300519ea09dbf02b4d06982e781a01b617b93'
 
@@ -80,6 +81,24 @@ jobs:
           vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Add NuGet sources
+        shell: bash
+        env:
+          VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+          USERNAME: tomconder
+          FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
+        run: |
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            sources add \
+            -Source "${{ env.FEED_URL }}" \
+            -StorePasswordInClearText \
+            -Name GitHubPackages \
+            -UserName "${{ env.USERNAME }}" \
+            -Password "${{ secrets.GH_PACKAGES_TOKEN }}"
+          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GH_PACKAGES_TOKEN }}" \
+            -Source "${{ env.FEED_URL }}"
 
       - name: Configure CMake
         run: >
