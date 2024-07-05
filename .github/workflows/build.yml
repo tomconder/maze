@@ -65,6 +65,11 @@ jobs:
           sudo apt-get install -qq -y --no-install-recommends libasound2-dev libgl1-mesa-dev libx11-dev libxcursor-dev
           libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
 
+      - name: Install Mac packages
+        if: ${{ matrix.name == 'osx' }}
+        run: >
+          brew install mono
+
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -85,10 +90,10 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      #      - name: Setup Nuget
-      #        uses: nuget/setup-nuget@v2
-      #        with:
-      #          nuget-version: latest
+      - name: Setup Nuget
+        uses: nuget/setup-nuget@v2
+        with:
+          nuget-version: latest
 
       - name: Setup GitHub package cache
         shell: bash
