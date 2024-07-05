@@ -17,8 +17,7 @@
       "environment": {
         "VCPKG_FEATURE_FLAGS": "manifests,versions,binarycaching,registries",
         "CMAKE_C_COMPILER_LAUNCHER": "sccache",
-        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
-        "VCPKG_INSTALL_OPTIONS": "--debug"
+        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
       }
     },
     {
