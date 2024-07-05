@@ -85,10 +85,13 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
+      - name: Print nuget
+        shell: bash
+        run: echo "`$VCPKG_ROOT/vcpkg fetch nuget | tail -n 1`"
+
       - name: Add NuGet sources
         shell: bash
         env:
-          VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
           USERNAME: tomconder
           FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
         run: >
