@@ -49,7 +49,7 @@ jobs:
 
           - name: osx
             os: macos-latest
-            mono: 'mono'
+            mono: ''
             preset: osx-release
 
           - name: windows
