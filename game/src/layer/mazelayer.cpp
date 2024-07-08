@@ -1,5 +1,6 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
+#include <glm/ext/matrix_transform.hpp>
 
 const std::string modelName{ "maze" };
 const std::string mazeShader{ "mesh" };
