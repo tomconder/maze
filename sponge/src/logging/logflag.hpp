@@ -22,11 +22,9 @@ class LogFlag : public spdlog::custom_flag_formatter {
 #define LOGFLAG_LEVEL_NAME_CRITICAL spdlog::string_view_t("C", 1)
 #define LOGFLAG_LEVEL_NAME_OFF      spdlog::string_view_t("O", 1)
 
-#define LOGFLAG_LEVEL_NAMES                                        \
-    {                                                              \
-        LOGFLAG_LEVEL_NAME_TRACE, LOGFLAG_LEVEL_NAME_DEBUG,        \
-            LOGFLAG_LEVEL_NAME_INFO, LOGFLAG_LEVEL_NAME_WARNING,   \
-            LOGFLAG_LEVEL_NAME_ERROR, LOGFLAG_LEVEL_NAME_CRITICAL, \
-            LOGFLAG_LEVEL_NAME_OFF                                 \
-    }
+#define LOGFLAG_LEVEL_NAMES                                  \
+    { LOGFLAG_LEVEL_NAME_TRACE, LOGFLAG_LEVEL_NAME_DEBUG,    \
+      LOGFLAG_LEVEL_NAME_INFO,  LOGFLAG_LEVEL_NAME_WARNING,  \
+      LOGFLAG_LEVEL_NAME_ERROR, LOGFLAG_LEVEL_NAME_CRITICAL, \
+      LOGFLAG_LEVEL_NAME_OFF }
 #endif
