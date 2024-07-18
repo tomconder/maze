@@ -75,10 +75,18 @@ jobs:
       - name: Cache the build
         uses: mozilla-actions/sccache-action@v0.0.4
 
+      - name: Dump the content of $RUNNER_TEMP
+        run: find $RUNNER_TEMP
+        shell: bash
+
+      - name: Dump the content of $RUNNER_WORKSPACE
+        run: find $RUNNER_WORKSPACE
+        shell: bash
+
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
+          vcpkgDirectory: '${{runner.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
