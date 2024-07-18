@@ -12,7 +12,7 @@
     },
     {
       "name": "glm",
-      "version>=": "1.0.1#2"
+      "version>=": "1.0.1"
     },
     {
       "name": "imgui",
@@ -28,7 +28,7 @@
     },
     {
       "name": "sdl2",
-      "version>=": "2.30.3",
+      "version>=": "2.30.5",
       "platform": "!wasm32"
     },
     {
@@ -37,7 +37,7 @@
     },
     {
       "name": "stb",
-      "version>=": "2023-04-11#1"
+      "version>=": "2023-04-11"
     },
     {
       "name": "tinyobjloader",
