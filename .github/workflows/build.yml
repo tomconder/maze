@@ -19,8 +19,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BUILD_TYPE: Release
   BUILD_DIR: build
+  BUILD_TYPE: Release
+  CMAKE_CXX_COMPILER_LAUNCHER: sccache
+  CMAKE_C_COMPILER_LAUNCHER: sccache
   SCCACHE_GHA_ENABLED: true
   VCPKG_GIT_COMMIT_ID: '198d68dbcc6c907cb3d0b9b1d93c3df6ecf93c62'
 
