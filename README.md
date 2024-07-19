@@ -33,6 +33,8 @@ export VCPKG_ROOT <path to vcpkg>
 Now you can use a preset to compile `maze`. Possible values
 are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
 
+On Windows, you can use
+
 ```
 cmake -DCMAKE_BUILD_TYPE=Release --preset x64-release
 cmake --build out/build/x64-release --target game --config Release
