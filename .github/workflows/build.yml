@@ -21,8 +21,6 @@ concurrency:
 env:
   BUILD_DIR: build
   BUILD_TYPE: Release
-  CMAKE_CXX_COMPILER_LAUNCHER: sccache
-  CMAKE_C_COMPILER_LAUNCHER: sccache
   SCCACHE_GHA_ENABLED: true
   VCPKG_GIT_COMMIT_ID: '198d68dbcc6c907cb3d0b9b1d93c3df6ecf93c62'
 
@@ -78,14 +76,14 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgDirectory: '${{runner.workspace}}/b/vcpkg'
+          vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Configure CMake
         run: >
           cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
-          -DGIT_SHA=${{github.sha}}
+          -DGIT_SHA=${{github.sha}} -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         working-directory: ${{github.workspace}}
 
       - name: Build
