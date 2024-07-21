@@ -47,7 +47,7 @@ are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`, `linux-debug`, `lin
 On Windows, you can use
 
 ```
-cmake  -B build -DCMAKE_BUILD_TYPE=Release --preset x64-release
+cmake -B build -DCMAKE_BUILD_TYPE=Release --preset x64-release
 cmake --build build --target game --config Release
 ```
 
