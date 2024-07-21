@@ -27,14 +27,15 @@ By far the quickest way to install vcpkg is to clone it into this project.
 ```
 cd maze
 git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg && ./bootstrap-vcpkg.sh
+cd vcpkg
+bootstrap-vcpkg.bat
 cd ..
-export VCPKG_ROOT vcpkg
+setx VCPKG_ROOT vcpkg
 ```
 
 If you installed vcpkg elsewhere, set `VCPKG_ROOT` to the location where you installed vcpkg
 ```
-export VCPKG_ROOT <path to vcpkg>
+setx VCPKG_ROOT <path to vcpkg>
 ```
 
 ### Install CMake
