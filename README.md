@@ -48,14 +48,14 @@ On Windows, you can use
 
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=Release --preset x64-release
-cmake --build build --target game --config Release
+cmake --build build --config Release --target install game
 ```
 
 Or, for Linux
 
 ```
-cmake --preset linux-release
-cmake --build --preset build-linux
+cmake -B build -DCMAKE_BUILD_TYPE=Release --preset linux-release
+cmake --build build --config Release --target install game
 ```
 
 ### Running
