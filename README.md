@@ -41,6 +41,11 @@ setx VCPKG_ROOT <path to vcpkg>
 ### Install CMake
 [Install CMake](https://cmake.org/install/), a cross-platform build system.
 
+For example, use [Chocolatey](https://chocolatey.org/install) to install CMake.
+```
+choco install cmake
+```
+
 ### Building
 Now you can use a preset to compile `maze`. Possible values
 are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
