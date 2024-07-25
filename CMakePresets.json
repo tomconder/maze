@@ -59,15 +59,6 @@
       }
     },
     {
-      "name": "ci-windows-release",
-      "displayName": "CI - Windows x64 - Release",
-      "description": "Sets release build type and x64 arch, and uses sccache",
-      "inherits": "ci-windows-debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
       "name": "ci-windows-debug",
       "displayName": "CI - Windows x64 - Debug",
       "description": "Sets debug build type and x64 arch, and uses sccache",
@@ -77,6 +68,15 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ci-windows-release",
+      "displayName": "CI - Windows x64 - Release",
+      "description": "Sets release build type and x64 arch, and uses sccache",
+      "inherits": "ci-windows-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
@@ -153,9 +153,9 @@
       }
     },
     {
-      "name": "linux-debug",
-      "displayName": "Linux Debug",
+      "name": "base-linux",
       "description": "Sets GCC",
+      "hidden": true,
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc",
@@ -174,6 +174,39 @@
             "$env{HOME}/.vs/maze-actions/out/build/linux-debug/vcpkg_installed/x64-linux/include"
           ]
         }
+      }
+    },
+    {
+      "name": "ci-linux-debug",
+      "displayName": "Linux Debug",
+      "description": "Sets GCC and uses sccache",
+      "inherits": [
+        "base-linux",
+        "ci-ninja"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ci-linux-release",
+      "displayName": "Linux Release",
+      "description": "Sets release build type and uses sccache",
+      "inherits": "ci-linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "description": "Sets GCC",
+      "inherits": [
+        "base-linux",
+        "ninja"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {

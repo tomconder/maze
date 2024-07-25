@@ -42,7 +42,7 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
-            preset: linux-release
+            preset: ci-linux-release
 
           - name: osx
             os: macos-latest
@@ -95,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maze-linux
-          path: ${{github.workspace}}/out/install/linux-release/
+          path: ${{github.workspace}}/out/install/ci-linux-release/
           retention-days: 1
           if-no-files-found: error
 
