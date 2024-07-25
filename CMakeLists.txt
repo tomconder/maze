@@ -67,6 +67,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
+# Use flag /Z7 to embed debug symbols into .obj files -- similar to GCC/Clang -- instead of creating an external .pdb
+if (MSVC)
+    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+endif ()
+
 add_subdirectory(sponge)
 
 add_subdirectory(game)

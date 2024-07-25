@@ -76,10 +76,6 @@ endif ()
 set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
 if (MSVC)
-    # incremental builds
-    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:RELEASE>>:/Zi>)
-    target_link_options(game PUBLIC $<IF:$<CONFIG:RELEASE>,/INCREMENTAL:NO,/INCREMENTAL>)
-
     # hardening
     message(STATUS "Applying Windows hardening support")
     target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
