@@ -126,9 +126,9 @@
       }
     },
     {
-      "name": "osx-debug",
-      "displayName": "Mac OS X - Debug",
-      "description": "Sets debug build type and mac arch",
+      "name": "base-osx",
+      "description": "Mac OSX arch",
+      "hidden": true,
       "inherits": "base",
       "architecture": {
         "value": "x64",
@@ -138,7 +138,37 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
-      },
+      }
+    },
+    {
+      "name": "ci-osx-debug",
+      "displayName": "Mac OS X - Debug",
+      "description": "Sets debug build type and mac arch, and uses sccache",
+      "inherits": [
+        "base-osx",
+        "ci-ninja"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "ci-osx-release",
+      "displayName": "Mac OS X - Release",
+      "description": "Sets release build type and uses sccache",
+      "inherits": "ci-osx-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "osx-debug",
+      "displayName": "Mac OS X - Debug",
+      "description": "Sets debug build type and mac arch",
+      "inherits": [
+        "base-osx",
+        "ninja"
+      ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -241,7 +271,7 @@
     {
       "name": "build-osx",
       "displayName": "build osx",
-      "configurePreset": "osx-release",
+      "configurePreset": "ci-osx-release",
       "description": "Build osx"
     }
   ],

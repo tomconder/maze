@@ -44,9 +44,9 @@ jobs:
             os: ubuntu-latest
             preset: ci-linux-release
 
-          - name: osx
+          - name: mac
             os: macos-latest
-            preset: osx-release
+            preset: ci-osx-release
 
           - name: windows
             os: windows-latest
@@ -90,29 +90,10 @@ jobs:
         run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
         working-directory: ${{github.workspace}}
 
-      - name: Upload linux artifact
-        if: runner.os == 'Linux'
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: maze-linux
-          path: ${{github.workspace}}/out/install/ci-linux-release/
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload mac artifact
-        if: ${{ matrix.name == 'osx' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: maze-mac
-          path: ${{github.workspace}}/out/install/osx-release/
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Upload windows artifact
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: maze-windows
-          path: ${{github.workspace}}/out/install/ci-windows-release/
+          name: maze-${{matrix.name}}
+          path: ${{github.workspace}}/out/install/${{matrix.preset}}/
           retention-days: 1
           if-no-files-found: error
