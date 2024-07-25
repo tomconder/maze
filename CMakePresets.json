@@ -19,9 +19,34 @@
       }
     },
     {
-      "name": "x64-debug",
-      "displayName": "Windows x64 - Debug",
-      "description": "Sets debug build type and x64 arch",
+      "name": "sccache-env",
+      "description": "Sets env for sccache",
+      "hidden": true,
+      "environment": {
+        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
+      }
+    },
+    {
+      "name": "ninja",
+      "description": "build using Ninja generator",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "ci-ninja",
+      "hidden": true,
+      "description": "build using Ninja generator",
+      "inherits": [
+        "ninja",
+        "sccache-env"
+      ]
+    },
+    {
+      "name": "base-windows",
+      "hidden": true,
+      "displayName": "Windows x64",
+      "description": "Sets x64 arch",
       "inherits": "base",
       "architecture": {
         "value": "x64",
@@ -31,25 +56,55 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "x64-release",
-      "displayName": "Windows x64 - Release",
-      "description": "Sets release build type",
-      "inherits": "x64-debug",
+      "name": "ci-windows-release",
+      "displayName": "CI - Windows x64 - Release",
+      "description": "Sets release build type and x64 arch, and uses sccache",
+      "inherits": "ci-windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "x64-debug-vscode",
+      "name": "ci-windows-debug",
+      "displayName": "CI - Windows x64 - Debug",
+      "description": "Sets debug build type and x64 arch, and uses sccache",
+      "inherits": [
+        "base-windows",
+        "ci-ninja"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows x64 - Debug",
+      "description": "Sets debug build type and x64 arch",
+      "inherits": [
+        "base-windows",
+        "ninja"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows x64 - Release",
+      "description": "Sets release build type",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-msvc-debug",
       "displayName": "VSCode - Windows x64 - Debug",
       "description": "Sets debug build type and x64 arch",
-      "inherits": "base",
+      "inherits": "base-windows",
       "generator": "Visual Studio 17 2022",
       "toolset": "host=x64",
       "condition": {
@@ -62,10 +117,10 @@
       }
     },
     {
-      "name": "x64-release-vscode",
+      "name": "windows-msvc-release",
       "displayName": "VSCode - Windows x64 - Release",
       "description": "Sets release build type",
-      "inherits": "x64-debug-vscode",
+      "inherits": "windows-msvc-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -141,13 +196,13 @@
     {
       "name": "build-windows",
       "displayName": "build windows",
-      "configurePreset": "x64-release",
+      "configurePreset": "ci-windows-release",
       "description": "Build windows"
     },
     {
       "name": "build-windows-vscode",
       "displayName": "build windows",
-      "configurePreset": "x64-release-vscode",
+      "configurePreset": "windows-msvc-release",
       "description": "Build windows (VS Code)"
     },
     {
@@ -167,7 +222,7 @@
     },
     {
       "name": "windows",
-      "configurePreset": "x64-release"
+      "configurePreset": "windows-release"
     },
     {
       "name": "osx",

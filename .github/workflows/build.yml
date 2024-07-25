@@ -50,7 +50,7 @@ jobs:
 
           - name: windows
             os: windows-latest
-            preset: x64-release
+            preset: ci-windows-release
 
     steps:
       - name: Install linux packages
@@ -113,6 +113,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maze-windows
-          path: ${{github.workspace}}/out/install/x64-release/
+          path: ${{github.workspace}}/out/install/ci-windows-release/
           retention-days: 1
           if-no-files-found: error
