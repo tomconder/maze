@@ -228,15 +228,15 @@
     },
     {
       "name": "build-windows",
-      "displayName": "build windows",
+      "displayName": "build windows ninja",
       "configurePreset": "ci-windows-release",
       "description": "Build windows"
     },
     {
-      "name": "build-windows-vscode",
-      "displayName": "build windows",
+      "name": "build-windows-msvc",
+      "displayName": "build windows msvc",
       "configurePreset": "windows-msvc-release",
-      "description": "Build windows (VS Code)"
+      "description": "Build windows (MSVC)"
     },
     {
       "name": "build-osx",
