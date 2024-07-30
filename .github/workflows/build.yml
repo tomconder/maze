@@ -24,10 +24,6 @@ env:
   SCCACHE_GHA_ENABLED: true
   VCPKG_GIT_COMMIT_ID: '198d68dbcc6c907cb3d0b9b1d93c3df6ecf93c62'
 
-defaults:
-  run:
-    shell: bash
-
 permissions:
   contents: read
 
