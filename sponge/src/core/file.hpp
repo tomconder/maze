@@ -14,7 +14,7 @@ class File {
 
 #ifdef __APPLE__
 #include "platform/osx/osxfile.hpp"
-#elif __WINDOWS__
+#elif defined(_WIN32) || defined(WIN32)
 #include "platform/windows/winfile.hpp"
 #elif __UNIX__
 #include "platform/linux/linuxfile.hpp"
