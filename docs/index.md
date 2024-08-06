@@ -51,7 +51,7 @@ For example, use [Chocolatey](https://chocolatey.org/install) to install CMake.
 choco install cmake
 ```
 
-### Building
+## Building
 
 Now you can use a preset to compile `maze`. Possible values
 are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`, `linux-debug`, `linux-release`
@@ -70,6 +70,6 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release --preset linux-release
 cmake --build build --config Release --target install game
 ```
 
-### Running
+## Running
 
 The maze executable will be found in the build directory: `out\build\x64-release\maze\Release\maze.exe`
