@@ -19,8 +19,6 @@ class VertexBuffer : public renderer::Buffer {
     VertexBuffer& operator=(const VertexBuffer& vertexBuffer) = delete;
     ~VertexBuffer() override;
 
-   protected:
-   public:
     void update(const std::vector<glm::vec2>& vertices) const;
     void update(const std::vector<renderer::Vertex>& vertices) const;
 
