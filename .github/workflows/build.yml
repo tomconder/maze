@@ -2,14 +2,9 @@ name: build
 
 on:
   push:
-    branches:
-      - main
-      - feature/*
-
+    branches: [ main, feature/* ]
   pull_request:
-    branches:
-      - main
-
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:
@@ -28,6 +23,7 @@ permissions:
 jobs:
   changed: # don't double run on PRs
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    name: check-changed
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{steps.changed-files.outputs.only_changed == 'true'}}
@@ -52,7 +48,7 @@ jobs:
     name: ${{matrix.name}}
     runs-on: ${{matrix.os}}
 
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -106,20 +102,10 @@ jobs:
       - name: Build
         run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
 
-    outputs:
-      artifactName: maze-${{matrix.name}}
-      artifactId: ${{github.workspace}}/out/install/${{matrix.preset}}/
-
-  upload:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{needs.build.outputs.artifactName}}
-          path: ${{needs.build.outputs.artifactId}}
+          name: maze-${{matrix.name}}
+          path: ${{github.workspace}}/out/install/${{matrix.preset}}/
           retention-days: 1
           if-no-files-found: error
-
