@@ -20,7 +20,7 @@
         "opengl3-binding",
         "sdl2-binding"
       ],
-      "version>=": "1.90.7"
+      "version>=": "1.91.0"
     },
     {
       "name": "meshoptimizer",
@@ -28,7 +28,7 @@
     },
     {
       "name": "sdl2",
-      "version>=": "2.30.5",
+      "version>=": "2.30.6",
       "platform": "!wasm32"
     },
     {
