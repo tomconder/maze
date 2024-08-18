@@ -20,7 +20,6 @@
 #include "logging/logflag.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/font.hpp"
-#include "platform/opengl/gl.hpp"
 #include "platform/opengl/grid.hpp"
 #include "platform/opengl/indexbuffer.hpp"
 #include "platform/opengl/info.hpp"
