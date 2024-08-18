@@ -11,7 +11,7 @@ std::shared_ptr<sponge::scene::OrthoCamera> ResourceManager::createOrthoCamera(
     const std::string& name) {
     assert(!name.empty());
 
-    if (orthoCameras.find(name) != orthoCameras.end()) {
+    if (orthoCameras.contains(name)) {
         return orthoCameras[name];
     }
 
@@ -33,7 +33,7 @@ std::shared_ptr<scene::GameCamera> ResourceManager::createGameCamera(
     const std::string& name) {
     assert(!name.empty());
 
-    if (gameCameras.find(name) != gameCameras.end()) {
+    if (gameCameras.contains(name)) {
         return gameCameras[name];
     }
 
