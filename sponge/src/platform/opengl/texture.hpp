@@ -1,6 +1,5 @@
 #pragma once
 
-#include "platform/opengl/gl.hpp"
 #include "renderer/texture.hpp"
 #include <string>
 
@@ -36,7 +35,7 @@ class Texture : public renderer::Texture {
     uint32_t id = 0;
     uint32_t width = 0;
     uint32_t height = 0;
-    GLenum format = 0;
+    uint32_t format = 0;
     std::string type;
 };
 
