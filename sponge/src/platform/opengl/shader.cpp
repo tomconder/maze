@@ -163,7 +163,7 @@ void Shader::setMat4(const std::string& name, const glm::mat4& value) {
 GLint Shader::getUniformLocation(const std::string& name) const {
     assert(!name.empty());
 
-    if (uniformLocations.find(name) != uniformLocations.end()) {
+    if (uniformLocations.contains(name)) {
         return uniformLocations[name];
     }
 

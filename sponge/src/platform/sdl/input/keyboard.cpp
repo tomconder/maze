@@ -18,10 +18,10 @@ SDL_Scancode& Keyboard::mapKeyCodeToScanCode(const KeyCode key) {
 }
 
 KeyCode Keyboard::mapScanCodeToKeyCode(const SDL_Scancode& scancode) {
-    const auto result = keyCodeMap.find(scancode);
-    if (keyCodeMap.find(scancode) == keyCodeMap.end()) {
+    if (!keyCodeMap.contains(scancode)) {
         return KeyCode::SpongeKey_None;
     }
+    const auto result = keyCodeMap.find(scancode);
     return result->second;
 }
 

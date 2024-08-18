@@ -1,5 +1,4 @@
 #include "sprite.hpp"
-#include "platform/opengl/gl.hpp"
 #include "platform/opengl/resourcemanager.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 

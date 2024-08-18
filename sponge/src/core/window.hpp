@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/base.hpp"
 #include <string>
 
 namespace sponge {

@@ -1,5 +1,4 @@
 #include "mesh.hpp"
-#include "platform/opengl/gl.hpp"
 #include "platform/opengl/resourcemanager.hpp"
 #include <cstddef>
 

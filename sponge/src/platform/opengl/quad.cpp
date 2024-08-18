@@ -1,5 +1,4 @@
 #include "quad.hpp"
-#include "platform/opengl/gl.hpp"
 #include "platform/opengl/resourcemanager.hpp"
 
 namespace sponge::platform::opengl {
