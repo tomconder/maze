@@ -29,7 +29,7 @@ std::shared_ptr<Font> ResourceManager::loadFont(const std::string& path,
     assert(!path.empty());
     assert(!name.empty());
 
-    if (fonts.find(name) != fonts.end()) {
+    if (fonts.contains(name)) {
         return fonts[name];
     }
 
@@ -52,7 +52,7 @@ std::shared_ptr<Model> ResourceManager::loadModel(const std::string& shaderName,
     assert(!path.empty());
     assert(!name.empty());
 
-    if (models.find(name) != models.end()) {
+    if (models.contains(name)) {
         return models[name];
     }
 
@@ -76,7 +76,7 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
     assert(!fragmentShader.empty());
     assert(!name.empty());
 
-    if (shaders.find(name) != shaders.end()) {
+    if (shaders.contains(name)) {
         return shaders[name];
     }
 
@@ -109,7 +109,7 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
     assert(!geometryShader.empty());
     assert(!name.empty());
 
-    if (shaders.find(name) != shaders.end()) {
+    if (shaders.contains(name)) {
         return shaders[name];
     }
 
@@ -153,7 +153,7 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& path,
     assert(!path.empty());
     assert(!name.empty());
 
-    if (textures.find(name) != textures.end()) {
+    if (textures.contains(name)) {
         return textures[name];
     }
 

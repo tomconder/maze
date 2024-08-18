@@ -2,7 +2,6 @@
 
 #include "indexbuffer.hpp"
 #include "renderer/sprite.hpp"
-#include "renderer/texture.hpp"
 #include "texture.hpp"
 #include "vertexarray.hpp"
 #include "vertexbuffer.hpp"
