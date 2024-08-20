@@ -9,7 +9,7 @@
 
 namespace sponge::platform::opengl {
 
-enum LoadFlag { ExcludeAssetsFolder, None };
+enum LoadFlag : uint8_t { ExcludeAssetsFolder, None };
 
 class ResourceManager {
    public:
