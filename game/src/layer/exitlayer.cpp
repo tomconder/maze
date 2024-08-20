@@ -117,12 +117,12 @@ void ExitLayer::setWidthAndHeight(const uint32_t width,
     const auto inWidth = static_cast<float>(width);
     const auto inHeight = static_cast<float>(height);
 
-    confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
-                               { inWidth * .77F, (inHeight / 2.F) + 78.F });
+    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
+                               { inWidth * .77F, inHeight / 2.F + 78.F });
 
     cancelButton->setPosition(
-        { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
-        { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
+        { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
+        { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
 }
 
 bool ExitLayer::onWindowResize(
