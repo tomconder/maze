@@ -15,7 +15,7 @@ class Texture : public renderer::Texture {
 
     uint32_t getWidth() const override {
         return width;
-    };
+    }
     uint32_t getHeight() const override {
         return height;
     }

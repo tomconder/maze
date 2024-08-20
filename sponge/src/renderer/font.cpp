@@ -122,8 +122,8 @@ uint32_t Font::getLength(const std::string_view text,
 
     for (const char& c : str) {
         auto index = std::to_string(c);
-        auto ch = fontChars[index];
-        x += ch.xadvance * scale;
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
+        x += xadvance * scale;
         if (!prev.empty()) {
             const auto key = fmt::format("{}.{}", prev, index);
             x += kerning[key] * scale;

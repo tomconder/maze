@@ -14,7 +14,7 @@ class Layer {
     virtual void onDetach() {}
     virtual void onEvent(event::Event& event) {}
     virtual void onImGuiRender() {}
-    virtual bool onUpdate(double elapsedTime) {
+    virtual bool onUpdate(const double elapsedTime) {
         UNUSED(elapsedTime);
         return true;
     }
