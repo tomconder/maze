@@ -18,7 +18,7 @@ Font::Font() {
     ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
                                 textShader.data());
 
-    auto shader = ResourceManager::getShader(textShader.data());
+    const auto shader = ResourceManager::getShader(textShader.data());
     shader->bind();
 
     const auto program = shader->getId();
@@ -49,10 +49,10 @@ Font::Font() {
 void Font::load(const std::string& path) {
     renderer::Font::load(path);
 
-    auto pos = path.find_last_of('/');
-    auto fontFolder = path.substr(0, pos + 1);
+    const auto pos = path.find_last_of('/');
+    const auto fontFolder = path.substr(0, pos + 1);
 
-    auto texture = ResourceManager::loadTexture(
+    const auto texture = ResourceManager::loadTexture(
         fontFolder + textureName, textureName, ExcludeAssetsFolder);
     UNUSED(texture);
 }

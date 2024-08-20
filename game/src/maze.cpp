@@ -97,7 +97,7 @@ sponge::Application* sponge::createApplication(int argc, char** argv) {
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
 
-    auto spec =
+    const auto spec =
         sponge::platform::sdl::ApplicationSpecification{ .name =
                                                              game::project_name,
                                                          .width = width,

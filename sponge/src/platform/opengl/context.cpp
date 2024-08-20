@@ -73,7 +73,7 @@ Context::Context(SDL_Window* window) {
 }
 
 Context::~Context() {
-    SDL_GLContext context = SDL_GL_GetCurrentContext();
+    const SDL_GLContext context = SDL_GL_GetCurrentContext();
     SDL_GL_DeleteContext(context);
 }
 

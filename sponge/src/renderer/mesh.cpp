@@ -5,7 +5,7 @@ namespace sponge::renderer {
 
 void Mesh::optimize() {
     std::vector<uint32_t> remap(indices.size());
-    size_t optimalVertexCount = meshopt_generateVertexRemap(
+    const auto optimalVertexCount = meshopt_generateVertexRemap(
         remap.data(), indices.data(), indices.size(), vertices.data(),
         vertices.size(), sizeof(Vertex));
 

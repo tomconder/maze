@@ -21,7 +21,7 @@ void Font::load(const std::string& path) {
     auto nextInt = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stoi(s.substr(pos + 1));
         }
         return 0;
@@ -30,7 +30,7 @@ void Font::load(const std::string& path) {
     auto nextFloat = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stof(s.substr(pos + 1));
         }
         return 0.F;
@@ -39,7 +39,7 @@ void Font::load(const std::string& path) {
     auto nextString = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             auto str = s.substr(pos + 1);
             // remove the surrounding quotes
             str.erase(str.begin());

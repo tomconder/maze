@@ -16,7 +16,7 @@ Sprite::Sprite(std::string_view name) : name(name) {
     ResourceManager::loadShader("/shaders/sprite.vert", "/shaders/sprite.frag",
                                 spriteShader.data());
 
-    auto shader = ResourceManager::getShader(spriteShader.data());
+    const auto shader = ResourceManager::getShader(spriteShader.data());
     shader->bind();
 
     const auto program = shader->getId();
@@ -30,9 +30,9 @@ Sprite::Sprite(std::string_view name) : name(name) {
     ebo = IndexBuffer::create(indices);
     ebo->bind();
 
-    if (auto location = glGetAttribLocation(program, vertex.data());
+    if (const auto location = glGetAttribLocation(program, vertex.data());
         location != -1) {
-        auto position = static_cast<uint32_t>(location);
+        const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
                               4 * sizeof(float), nullptr);

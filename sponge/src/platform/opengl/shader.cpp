@@ -11,8 +11,8 @@ Shader::Shader(const std::string& vertexSource,
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
-    uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
+    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
     program = linkProgram(vs, fs);
 
@@ -30,9 +30,9 @@ Shader::Shader(const std::string& vertexSource,
     assert(!fragmentSource.empty());
     assert(!geometrySource.empty());
 
-    uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-    uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
+    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
+    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    const uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
 
     program = linkProgram(vs, fs, gs);
 
@@ -58,7 +58,7 @@ void Shader::unbind() const {
 }
 
 uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
-    uint32_t id = glCreateShader(type);
+    const uint32_t id = glCreateShader(type);
     assert(id != 0);
 
     const char* shader = source.c_str();
@@ -83,7 +83,7 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
 }
 
 uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs) {
-    uint32_t id = glCreateProgram();
+    const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
@@ -109,7 +109,7 @@ uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs) {
 }
 
 uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
-    uint32_t id = glCreateProgram();
+    const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);

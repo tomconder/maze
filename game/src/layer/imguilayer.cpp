@@ -59,7 +59,7 @@ void ImGuiLayer::onImGuiRender() {
             "##Table", 2,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
-        auto camera = ResourceManager::getGameCamera(cameraName);
+        const auto camera = ResourceManager::getGameCamera(cameraName);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
