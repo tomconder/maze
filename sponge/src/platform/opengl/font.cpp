@@ -78,18 +78,18 @@ void Font::render(std::string_view text, const glm::vec2& position,
 
     for (const char& c : str) {
         auto index = std::to_string(c);
-        auto ch = fontChars[index];
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
 
-        const auto xpos = x + ch.offset.x * scale;
-        const auto ypos = position.y + ch.offset.y * scale;
+        const auto xpos = x + offset.x * scale;
+        const auto ypos = position.y + offset.y * scale;
 
-        const auto w = ch.width * scale;
-        const auto h = ch.height * scale;
+        const auto w = width * scale;
+        const auto h = height * scale;
 
-        const auto texx = ch.loc.x / scaleW;
-        const auto texy = ch.loc.y / scaleH;
-        const auto texh = ch.height / scaleH;
-        const auto texw = ch.width / scaleW;
+        const auto texx = loc.x / scaleW;
+        const auto texy = loc.y / scaleH;
+        const auto texh = height / scaleH;
+        const auto texw = width / scaleW;
 
         const std::vector<glm::vec2> vertices = {
             { xpos, ypos + h },     { texx, texy + texh },        //
@@ -108,7 +108,7 @@ void Font::render(std::string_view text, const glm::vec2& position,
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 
-        x += ch.xadvance * scale;
+        x += xadvance * scale;
         numIndices += 4;
 
         if (!prev.empty()) {
