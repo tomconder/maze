@@ -5,7 +5,7 @@ const std::string quadShader = "quad";
 namespace game::ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               const std::string& message, uint32_t fontSize,
+               const std::string& message, const uint32_t fontSize,
                const std::string& fontName, const glm::vec4& buttonColor,
                const glm::vec3& textColor)
     : top(topLeft),

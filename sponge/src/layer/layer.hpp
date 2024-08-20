@@ -26,7 +26,7 @@ class Layer {
         return active;
     }
 
-    void setActive(bool value) {
+    void setActive(const bool value) {
         active = value;
     }
 

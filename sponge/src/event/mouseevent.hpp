@@ -7,7 +7,8 @@ namespace sponge::event {
 
 class MouseMovedEvent : public Event {
    public:
-    MouseMovedEvent(const float xrel, const float yrel, float xpos, float ypos)
+    MouseMovedEvent(const float xrel, const float yrel, const float xpos,
+                    const float ypos)
         : xRelative(xrel), yRelative(yrel), x(xpos), y(ypos) {}
 
     float getXRelative() const {
@@ -71,8 +72,8 @@ class MouseButtonEvent : public Event {
 
 class MouseButtonPressedEvent : public MouseButtonEvent {
    public:
-    MouseButtonPressedEvent(const input::MouseCode button, float xpos,
-                            float ypos)
+    MouseButtonPressedEvent(const input::MouseCode button, const float xpos,
+                            const float ypos)
         : MouseButtonEvent(button), x(xpos), y(ypos) {}
 
     float getX() const {

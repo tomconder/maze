@@ -32,8 +32,8 @@ void GameCamera::updateView() {
     mvp = projection * view;
 }
 
-void GameCamera::setViewportSize(uint32_t viewportWidth,
-                                 uint32_t viewportHeight) {
+void GameCamera::setViewportSize(const uint32_t viewportWidth,
+                                 const uint32_t viewportHeight) {
     width = static_cast<float>(viewportWidth);
     height = static_cast<float>(viewportHeight);
     updateProjection();

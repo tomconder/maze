@@ -12,7 +12,7 @@ const std::vector<uint32_t> indices = {
     0, 2, 3   //
 };
 
-Sprite::Sprite(std::string_view name) : name(name) {
+Sprite::Sprite(const std::string_view name) : name(name) {
     ResourceManager::loadShader("/shaders/sprite.vert", "/shaders/sprite.frag",
                                 spriteShader.data());
 
@@ -47,7 +47,7 @@ Sprite::Sprite(std::string_view name) : name(name) {
     shader->unbind();
 }
 
-void Sprite::render(glm::vec2 position, glm::vec2 size) const {
+void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
     const std::vector<glm::vec2> vertices = {
         { position.x + size.x, position.y },
         { 1.F, 0.F },  //

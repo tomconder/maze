@@ -111,7 +111,8 @@ void Font::load(const std::string& path) {
     }
 }
 
-uint32_t Font::getLength(std::string_view text, uint32_t targetSize) {
+uint32_t Font::getLength(const std::string_view text,
+                         const uint32_t targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;

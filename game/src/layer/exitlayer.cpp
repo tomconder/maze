@@ -99,7 +99,8 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
+void ExitLayer::setWidthAndHeight(const uint32_t width,
+                                  const uint32_t height) const {
     orthoCamera->setWidthAndHeight(width, height);
 
     auto shader =

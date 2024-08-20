@@ -6,7 +6,7 @@ extern sponge::Application* sponge::createApplication(int argc, char** argv);
 
 namespace sponge {
 
-int main(int argc, char** argv) {
+int main(const int argc, char** argv) {
     sponge::startupCore();
     Application* app = createApplication(argc, argv);
     app->run();
@@ -17,6 +17,6 @@ int main(int argc, char** argv) {
 }
 }  // namespace sponge
 
-extern "C" int main(int argc, char* argv[]) {
+extern "C" int main(const int argc, char* argv[]) {
     return sponge::main(argc, argv);
 }

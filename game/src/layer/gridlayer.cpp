@@ -29,7 +29,7 @@ void GridLayer::onDetach() {
     // nothing
 }
 
-bool GridLayer::onUpdate(double elapsedTime) {
+bool GridLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =

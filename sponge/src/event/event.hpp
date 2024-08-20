@@ -55,7 +55,7 @@ class Event {
     virtual EventType getEventType() const = 0;
     virtual int getCategoryFlags() const = 0;
 
-    bool isInCategory(EventCategory category) const {
+    bool isInCategory(const EventCategory category) const {
         return (getCategoryFlags() & category) != 0;
     }
 };
