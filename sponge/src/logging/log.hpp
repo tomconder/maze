@@ -37,7 +37,7 @@ class Log {
         return glLogger;
     }
 
-    static void addSink(const spdlog::sink_ptr& ptr, std::string_view pattern);
+    static void addSink(const spdlog::sink_ptr& sink, std::string_view pattern);
 
     static std::string_view colorFormatPattern;
     static std::string_view fileFormatPattern;

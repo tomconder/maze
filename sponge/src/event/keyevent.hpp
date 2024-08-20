@@ -38,8 +38,8 @@ class KeyPressedEvent final : public KeyEvent {
     EVENT_CLASS_TYPE(KeyPressed)
 
    private:
-    bool isRepeated;
     double elapsedTime;
+    bool isRepeated;
 };
 
 class KeyReleasedEvent final : public KeyEvent {

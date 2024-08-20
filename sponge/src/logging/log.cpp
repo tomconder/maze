@@ -44,11 +44,11 @@ void Log::addSink(const spdlog::sink_ptr& ptr, const std::string_view pattern) {
     glLogger->sinks().push_back(ptr);
 }
 
-void Log::setFormatter(const spdlog::sink_ptr& ptr,
+void Log::setFormatter(const spdlog::sink_ptr& sink,
                        const std::string_view pattern) {
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<LogFlag>('*').set_pattern(pattern.data());
-    ptr->set_formatter(std::move(formatter));
+    sink->set_formatter(std::move(formatter));
 }
 
 std::shared_ptr<spdlog::logger> Log::registerLogger(
