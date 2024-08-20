@@ -36,12 +36,13 @@ void Log::init(const std::string_view logfile) {
     glLogger = registerLogger("OPENGL", sinks);
 }
 
-void Log::addSink(const spdlog::sink_ptr& ptr, const std::string_view pattern) {
-    setFormatter(ptr, pattern.data());
+void Log::addSink(const spdlog::sink_ptr& sink,
+                  const std::string_view pattern) {
+    setFormatter(sink, pattern.data());
 
-    coreLogger->sinks().push_back(ptr);
-    appLogger->sinks().push_back(ptr);
-    glLogger->sinks().push_back(ptr);
+    coreLogger->sinks().push_back(sink);
+    appLogger->sinks().push_back(sink);
+    glLogger->sinks().push_back(sink);
 }
 
 void Log::setFormatter(const spdlog::sink_ptr& sink,
