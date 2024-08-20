@@ -55,7 +55,7 @@ Context::Context(SDL_Window* window) {
         return;
     }
 
-    gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress));
+    gladLoadGLLoader(SDL_GL_GetProcAddress);
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR(

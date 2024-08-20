@@ -58,8 +58,8 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
     const auto length = font->getLength(text, textSize);
-    textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
-                     top.y + ((height - static_cast<float>(textSize)) / 2.F) };
+    textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
+                     top.y + (height - static_cast<float>(textSize)) / 2.F };
 }
 
 }  // namespace game::ui

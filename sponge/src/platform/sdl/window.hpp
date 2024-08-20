@@ -22,7 +22,7 @@ class Window : public sponge::Window {
 
     uint32_t getHeight() const override {
         return data.height;
-    };
+    }
 
     void* getNativeWindow() const override {
         return window;

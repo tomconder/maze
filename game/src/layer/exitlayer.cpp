@@ -90,7 +90,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const uint32_t length = font->getLength(message, 48);
     font->render(
         message,
-        { (width - static_cast<float>(length)) / 2.F, (height / 2.F) - 128.F },
+        { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
         48, { 1.F, 1.F, 1.F });
 
     UNUSED(confirmButton->onUpdate(elapsedTime));

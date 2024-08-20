@@ -47,25 +47,22 @@ constexpr auto ratios = std::to_array(
       glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 
 constexpr auto keyCodes = std::to_array(
-    { sponge::input::KeyCode::SpongeKey_W, sponge::input::KeyCode::SpongeKey_A,
-      sponge::input::KeyCode::SpongeKey_S, sponge::input::KeyCode::SpongeKey_D,
-      sponge::input::KeyCode::SpongeKey_Up,
-      sponge::input::KeyCode::SpongeKey_Left,
-      sponge::input::KeyCode::SpongeKey_Down,
-      sponge::input::KeyCode::SpongeKey_Right });
+    { input::KeyCode::SpongeKey_W, input::KeyCode::SpongeKey_A,
+      input::KeyCode::SpongeKey_S, input::KeyCode::SpongeKey_D,
+      input::KeyCode::SpongeKey_Up, input::KeyCode::SpongeKey_Left,
+      input::KeyCode::SpongeKey_Down, input::KeyCode::SpongeKey_Right });
 
 Application::Application(ApplicationSpecification specification)
     : appSpec(std::move(specification)) {
-    const auto guiSink =
-        std::make_shared<platform::sdl::imgui::Sink<std::mutex>>();
+    const auto guiSink = std::make_shared<imgui::Sink<std::mutex>>();
     logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
 
     assert(!instance && "Application already exists!");
     instance = this;
 
     layerStack = new layer::LayerStack();
-    messages = std::make_unique<std::vector<logging::LogItem>>();
-    keyboard = new platform::sdl::input::Keyboard();
+    messages = std::make_unique<std::vector<LogItem>>();
+    keyboard = new input::Keyboard();
 }
 
 bool Application::start() {
@@ -362,14 +359,14 @@ void Application::processEvent(const SDL_Event& event,
 
     if (event.type == SDL_MOUSEBUTTONDOWN) {
         auto mouseEvent = event::MouseButtonPressedEvent{
-            platform::sdl::input::Mouse::mapMouseButton(event.button.button),
+            input::Mouse::mapMouseButton(event.button.button),
             static_cast<float>(event.motion.x),
             static_cast<float>(event.motion.y),
         };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEBUTTONUP) {
         auto mouseEvent = event::MouseButtonReleasedEvent{
-            platform::sdl::input::Mouse::mapMouseButton(event.button.button)
+            input::Mouse::mapMouseButton(event.button.button)
         };
         onEvent(mouseEvent);
     } else if (event.type == SDL_MOUSEMOTION) {

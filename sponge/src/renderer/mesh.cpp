@@ -24,7 +24,7 @@ void Mesh::optimize() {
                                 indices.size(), optimalVertexCount);
 
     meshopt_optimizeOverdraw(optimalIndices.data(), optimalIndices.data(),
-                             indices.size(), &(optimalVertices[0].position.x),
+                             indices.size(), &optimalVertices[0].position.x,
                              optimalVertexCount, sizeof(Vertex), 1.05F);
 
     meshopt_optimizeVertexFetch(optimalVertices.data(), optimalIndices.data(),

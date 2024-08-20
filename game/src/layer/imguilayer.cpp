@@ -141,7 +141,7 @@ float ImGuiLayer::getLogSelectionMaxWidth(
         maxWidth = std::max(width, maxWidth);
     }
 
-    return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
+    return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
            ImGui::GetFrameHeight();
 }
 
@@ -202,7 +202,7 @@ void ImGuiLayer::showLogging() {
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
                                 ImGui::CalcTextSize("Reset").x -
-                                (ImGui::GetStyle().FramePadding.x * 6));
+                                ImGui::GetStyle().FramePadding.x * 6);
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {

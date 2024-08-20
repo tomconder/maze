@@ -26,23 +26,23 @@ class Maze final : public sponge::platform::sdl::Application {
         return *instance;
     }
 
-    std::shared_ptr<game::layer::MazeLayer> getMazeLayer() const {
+    std::shared_ptr<layer::MazeLayer> getMazeLayer() const {
         return mazeLayer;
     }
 
    private:
     bool isRunning = true;
 
-    std::shared_ptr<game::layer::ExitLayer> exitLayer =
-        std::make_shared<game::layer::ExitLayer>();
-    std::shared_ptr<game::layer::GridLayer> gridLayer =
-        std::make_shared<game::layer::GridLayer>();
-    std::shared_ptr<game::layer::HUDLayer> hudLayer =
-        std::make_shared<game::layer::HUDLayer>();
-    std::shared_ptr<game::layer::ImGuiLayer> imguiLayer =
-        std::make_shared<game::layer::ImGuiLayer>();
-    std::shared_ptr<game::layer::MazeLayer> mazeLayer =
-        std::make_shared<game::layer::MazeLayer>();
+    std::shared_ptr<layer::ExitLayer> exitLayer =
+        std::make_shared<layer::ExitLayer>();
+    std::shared_ptr<layer::GridLayer> gridLayer =
+        std::make_shared<layer::GridLayer>();
+    std::shared_ptr<layer::HUDLayer> hudLayer =
+        std::make_shared<layer::HUDLayer>();
+    std::shared_ptr<layer::ImGuiLayer> imguiLayer =
+        std::make_shared<layer::ImGuiLayer>();
+    std::shared_ptr<layer::MazeLayer> mazeLayer =
+        std::make_shared<layer::MazeLayer>();
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 

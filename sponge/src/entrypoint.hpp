@@ -7,11 +7,11 @@ extern sponge::Application* sponge::createApplication(int argc, char** argv);
 namespace sponge {
 
 int main(const int argc, char** argv) {
-    sponge::startupCore();
+    startupCore();
     Application* app = createApplication(argc, argv);
     app->run();
     delete app;
-    sponge::shutdownCore();
+    shutdownCore();
 
     return 0;
 }

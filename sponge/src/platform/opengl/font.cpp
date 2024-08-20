@@ -101,7 +101,7 @@ void Font::render(std::string_view text, const glm::vec2& position,
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        const std::vector<uint32_t> indices = {
+        const std::vector indices = {
             numIndices, numIndices + 2, numIndices + 1,  //
             numIndices, numIndices + 3, numIndices + 2   //
         };
