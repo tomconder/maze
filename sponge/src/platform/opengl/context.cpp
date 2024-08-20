@@ -73,8 +73,7 @@ Context::Context(SDL_Window* window) {
 }
 
 Context::~Context() {
-    const SDL_GLContext context = SDL_GL_GetCurrentContext();
-    SDL_GL_DeleteContext(context);
+    SDL_GL_DeleteContext(SDL_GL_GetCurrentContext());
 }
 
 void Context::flip(void* window) {
