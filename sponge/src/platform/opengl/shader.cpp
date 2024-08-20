@@ -11,8 +11,8 @@ Shader::Shader(const std::string& vertexSource,
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
 
-    uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
+    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
     program = linkProgram(vs, fs);
 
@@ -30,9 +30,9 @@ Shader::Shader(const std::string& vertexSource,
     assert(!fragmentSource.empty());
     assert(!geometrySource.empty());
 
-    uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-    uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
+    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
+    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    const uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
 
     program = linkProgram(vs, fs, gs);
 
@@ -58,7 +58,7 @@ void Shader::unbind() const {
 }
 
 uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
-    uint32_t id = glCreateShader(type);
+    const uint32_t id = glCreateShader(type);
     assert(id != 0);
 
     const char* shader = source.c_str();
@@ -82,8 +82,8 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     return id;
 }
 
-uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs) {
-    uint32_t id = glCreateProgram();
+uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs) {
+    const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
@@ -108,8 +108,9 @@ uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs) {
     return id;
 }
 
-uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
-    uint32_t id = glCreateProgram();
+uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
+                             const uint32_t gs) {
+    const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
@@ -135,11 +136,11 @@ uint32_t Shader::linkProgram(uint32_t vs, uint32_t fs, uint32_t gs) {
     return id;
 }
 
-void Shader::setBoolean(const std::string& name, bool value) {
+void Shader::setBoolean(const std::string& name, const bool value) {
     glUniform1i(getUniformLocation(name), static_cast<int>(value));
 }
 
-void Shader::setFloat(const std::string& name, float value) {
+void Shader::setFloat(const std::string& name, const float value) {
     glUniform1f(getUniformLocation(name), value);
 }
 
@@ -151,13 +152,13 @@ void Shader::setFloat4(const std::string& name, const glm::vec4& value) {
     glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
 }
 
-void Shader::setInteger(const std::string& name, int value) {
+void Shader::setInteger(const std::string& name, const int value) {
     glUniform1i(getUniformLocation(name), value);
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& value) {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
-                       glm::value_ptr(value));
+                       value_ptr(value));
 }
 
 GLint Shader::getUniformLocation(const std::string& name) const {

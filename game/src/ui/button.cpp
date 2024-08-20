@@ -5,7 +5,7 @@ const std::string quadShader = "quad";
 namespace game::ui {
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               const std::string& message, uint32_t fontSize,
+               const std::string& message, const uint32_t fontSize,
                const std::string& fontName, const glm::vec4& buttonColor,
                const glm::vec3& textColor)
     : top(topLeft),
@@ -58,8 +58,8 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
     const auto length = font->getLength(text, textSize);
-    textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
-                     top.y + ((height - static_cast<float>(textSize)) / 2.F) };
+    textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
+                     top.y + (height - static_cast<float>(textSize)) / 2.F };
 }
 
 }  // namespace game::ui

@@ -47,7 +47,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4(
         "mvp", camera->getMVP() *
-                   glm::translate(glm::mat4(1.F), glm::vec3(0, .50003F, 0)));
+                   translate(glm::mat4(1.F), glm::vec3(0, .50003F, 0)));
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 

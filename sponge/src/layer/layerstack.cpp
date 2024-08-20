@@ -17,7 +17,7 @@ void LayerStack::pushOverlay(const std::shared_ptr<Layer>& overlay) {
 }
 
 void LayerStack::popLayer(const std::shared_ptr<Layer>& layer) {
-    auto it =
+    const auto it =
         std::find(layers.begin(), layers.begin() + layerInsertIndex, layer);
     if (it != layers.begin() + layerInsertIndex) {
         layer->onDetach();
@@ -27,7 +27,7 @@ void LayerStack::popLayer(const std::shared_ptr<Layer>& layer) {
 }
 
 void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
-    auto it =
+    const auto it =
         std::find(layers.begin() + layerInsertIndex, layers.end(), overlay);
     if (it != layers.end()) {
         overlay->onDetach();

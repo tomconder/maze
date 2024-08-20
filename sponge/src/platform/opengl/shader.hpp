@@ -26,7 +26,7 @@ class Shader : public renderer::Shader {
 
     uint32_t getId() const {
         return program;
-    };
+    }
 
    private:
     mutable std::unordered_map<std::string, GLint> uniformLocations;

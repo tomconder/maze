@@ -12,11 +12,11 @@ const std::vector<uint32_t> indices = {
     0, 2, 3   //
 };
 
-Sprite::Sprite(std::string_view name) : name(name) {
+Sprite::Sprite(const std::string_view name) : name(name) {
     ResourceManager::loadShader("/shaders/sprite.vert", "/shaders/sprite.frag",
                                 spriteShader.data());
 
-    auto shader = ResourceManager::getShader(spriteShader.data());
+    const auto shader = ResourceManager::getShader(spriteShader.data());
     shader->bind();
 
     const auto program = shader->getId();
@@ -30,9 +30,9 @@ Sprite::Sprite(std::string_view name) : name(name) {
     ebo = IndexBuffer::create(indices);
     ebo->bind();
 
-    if (auto location = glGetAttribLocation(program, vertex.data());
+    if (const auto location = glGetAttribLocation(program, vertex.data());
         location != -1) {
-        auto position = static_cast<uint32_t>(location);
+        const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
                               4 * sizeof(float), nullptr);
@@ -47,7 +47,7 @@ Sprite::Sprite(std::string_view name) : name(name) {
     shader->unbind();
 }
 
-void Sprite::render(glm::vec2 position, glm::vec2 size) const {
+void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
     const std::vector<glm::vec2> vertices = {
         { position.x + size.x, position.y },
         { 1.F, 0.F },  //

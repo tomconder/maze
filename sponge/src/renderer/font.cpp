@@ -21,7 +21,7 @@ void Font::load(const std::string& path) {
     auto nextInt = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stoi(s.substr(pos + 1));
         }
         return 0;
@@ -30,7 +30,7 @@ void Font::load(const std::string& path) {
     auto nextFloat = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             return std::stof(s.substr(pos + 1));
         }
         return 0.F;
@@ -39,7 +39,7 @@ void Font::load(const std::string& path) {
     auto nextString = [](std::stringstream& sstream) {
         std::string s;
         sstream >> s;
-        if (size_t pos = s.find_last_of('='); pos != std::string::npos) {
+        if (const auto pos = s.find_last_of('='); pos != std::string::npos) {
             auto str = s.substr(pos + 1);
             // remove the surrounding quotes
             str.erase(str.begin());
@@ -111,7 +111,8 @@ void Font::load(const std::string& path) {
     }
 }
 
-uint32_t Font::getLength(std::string_view text, uint32_t targetSize) {
+uint32_t Font::getLength(const std::string_view text,
+                         const uint32_t targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
@@ -121,8 +122,8 @@ uint32_t Font::getLength(std::string_view text, uint32_t targetSize) {
 
     for (const char& c : str) {
         auto index = std::to_string(c);
-        auto ch = fontChars[index];
-        x += ch.xadvance * scale;
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
+        x += xadvance * scale;
         if (!prev.empty()) {
             const auto key = fmt::format("{}.{}", prev, index);
             x += kerning[key] * scale;

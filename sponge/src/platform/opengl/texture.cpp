@@ -7,8 +7,9 @@ Texture::Texture() {
     glGenTextures(1, &id);
 }
 
-void Texture::generate(uint32_t textureWidth, uint32_t textureHeight,
-                       uint32_t bytesPerPixel, const uint8_t* data) {
+void Texture::generate(const uint32_t textureWidth,
+                       const uint32_t textureHeight,
+                       const uint32_t bytesPerPixel, const uint8_t* data) {
     glBindTexture(GL_TEXTURE_2D, id);
 
     width = textureWidth;

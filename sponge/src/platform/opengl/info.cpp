@@ -65,9 +65,8 @@ void Info::logGraphicsDriverInfo() {
     for (int i = 0; i < numVideoDrivers; i++) {
         const std::string videoDriver(SDL_GetVideoDriver(i));
         std::stringstream ss;
-        ss << fmt::format(
-            "  #{}: {} {}", i, videoDriver,
-            (currentVideoDriver == videoDriver ? "[current]" : ""));
+        ss << fmt::format("  #{}: {} {}", i, videoDriver,
+                          currentVideoDriver == videoDriver ? "[current]" : "");
         SPONGE_CORE_DEBUG(ss.str());
     }
 

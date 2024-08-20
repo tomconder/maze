@@ -90,15 +90,15 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 
 }  // namespace game
 
-sponge::Application* sponge::createApplication(int argc, char** argv) {
+sponge::Application* sponge::createApplication(const int argc, char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
 
-    auto spec =
-        sponge::platform::sdl::ApplicationSpecification{ .name =
+    const auto spec =
+        platform::sdl::ApplicationSpecification{ .name =
                                                              game::project_name,
                                                          .width = width,
                                                          .height = height,

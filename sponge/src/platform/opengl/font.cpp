@@ -18,7 +18,7 @@ Font::Font() {
     ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
                                 textShader.data());
 
-    auto shader = ResourceManager::getShader(textShader.data());
+    const auto shader = ResourceManager::getShader(textShader.data());
     shader->bind();
 
     const auto program = shader->getId();
@@ -49,10 +49,10 @@ Font::Font() {
 void Font::load(const std::string& path) {
     renderer::Font::load(path);
 
-    auto pos = path.find_last_of('/');
-    auto fontFolder = path.substr(0, pos + 1);
+    const auto pos = path.find_last_of('/');
+    const auto fontFolder = path.substr(0, pos + 1);
 
-    auto texture = ResourceManager::loadTexture(
+    const auto texture = ResourceManager::loadTexture(
         fontFolder + textureName, textureName, ExcludeAssetsFolder);
     UNUSED(texture);
 }
@@ -78,18 +78,18 @@ void Font::render(std::string_view text, const glm::vec2& position,
 
     for (const char& c : str) {
         auto index = std::to_string(c);
-        auto ch = fontChars[index];
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
 
-        const auto xpos = x + ch.offset.x * scale;
-        const auto ypos = position.y + ch.offset.y * scale;
+        const auto xpos = x + offset.x * scale;
+        const auto ypos = position.y + offset.y * scale;
 
-        const auto w = ch.width * scale;
-        const auto h = ch.height * scale;
+        const auto w = width * scale;
+        const auto h = height * scale;
 
-        const auto texx = ch.loc.x / scaleW;
-        const auto texy = ch.loc.y / scaleH;
-        const auto texh = ch.height / scaleH;
-        const auto texw = ch.width / scaleW;
+        const auto texx = loc.x / scaleW;
+        const auto texy = loc.y / scaleH;
+        const auto texh = height / scaleH;
+        const auto texw = width / scaleW;
 
         const std::vector<glm::vec2> vertices = {
             { xpos, ypos + h },     { texx, texy + texh },        //
@@ -101,14 +101,14 @@ void Font::render(std::string_view text, const glm::vec2& position,
         batchVertices.insert(batchVertices.end(), vertices.begin(),
                              vertices.end());
 
-        const std::vector<uint32_t> indices = {
+        const std::vector indices = {
             numIndices, numIndices + 2, numIndices + 1,  //
             numIndices, numIndices + 3, numIndices + 2   //
         };
 
         batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
 
-        x += ch.xadvance * scale;
+        x += xadvance * scale;
         numIndices += 4;
 
         if (!prev.empty()) {

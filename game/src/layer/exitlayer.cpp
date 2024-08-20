@@ -90,7 +90,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const uint32_t length = font->getLength(message, 48);
     font->render(
         message,
-        { (width - static_cast<float>(length)) / 2.F, (height / 2.F) - 128.F },
+        { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
         48, { 1.F, 1.F, 1.F });
 
     UNUSED(confirmButton->onUpdate(elapsedTime));
@@ -99,7 +99,8 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
+void ExitLayer::setWidthAndHeight(const uint32_t width,
+                                  const uint32_t height) const {
     orthoCamera->setWidthAndHeight(width, height);
 
     auto shader =
@@ -116,12 +117,12 @@ void ExitLayer::setWidthAndHeight(uint32_t width, uint32_t height) const {
     const auto inWidth = static_cast<float>(width);
     const auto inHeight = static_cast<float>(height);
 
-    confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
-                               { inWidth * .77F, (inHeight / 2.F) + 78.F });
+    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
+                               { inWidth * .77F, inHeight / 2.F + 78.F });
 
     cancelButton->setPosition(
-        { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
-        { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
+        { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
+        { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
 }
 
 bool ExitLayer::onWindowResize(

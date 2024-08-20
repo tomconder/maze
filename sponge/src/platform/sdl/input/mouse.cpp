@@ -8,7 +8,7 @@ bool Mouse::isButtonPressed() {
     return (buttons & SDL_BUTTON_LMASK) == SDL_BUTTON(1);
 }
 
-sponge::input::MouseCode Mouse::mapMouseButton(uint8_t index) {
+sponge::input::MouseCode Mouse::mapMouseButton(const uint8_t index) {
     return index - 1;
 }
 

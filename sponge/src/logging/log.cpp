@@ -36,19 +36,20 @@ void Log::init(const std::string_view logfile) {
     glLogger = registerLogger("OPENGL", sinks);
 }
 
-void Log::addSink(const spdlog::sink_ptr& ptr, const std::string_view pattern) {
-    setFormatter(ptr, pattern.data());
+void Log::addSink(const spdlog::sink_ptr& sink,
+                  const std::string_view pattern) {
+    setFormatter(sink, pattern.data());
 
-    coreLogger->sinks().push_back(ptr);
-    appLogger->sinks().push_back(ptr);
-    glLogger->sinks().push_back(ptr);
+    coreLogger->sinks().push_back(sink);
+    appLogger->sinks().push_back(sink);
+    glLogger->sinks().push_back(sink);
 }
 
-void Log::setFormatter(const spdlog::sink_ptr& ptr,
+void Log::setFormatter(const spdlog::sink_ptr& sink,
                        const std::string_view pattern) {
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<LogFlag>('*').set_pattern(pattern.data());
-    ptr->set_formatter(std::move(formatter));
+    sink->set_formatter(std::move(formatter));
 }
 
 std::shared_ptr<spdlog::logger> Log::registerLogger(

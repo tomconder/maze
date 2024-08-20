@@ -29,7 +29,7 @@ VertexBuffer::~VertexBuffer() {
     glDeleteBuffers(1, &id);
 }
 
-std::unique_ptr<VertexBuffer> VertexBuffer::create(uint32_t size) {
+std::unique_ptr<VertexBuffer> VertexBuffer::create(const uint32_t size) {
     std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(size));
     return buffer;
 }

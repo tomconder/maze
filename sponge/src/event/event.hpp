@@ -55,14 +55,14 @@ class Event {
     virtual EventType getEventType() const = 0;
     virtual int getCategoryFlags() const = 0;
 
-    bool isInCategory(EventCategory category) const {
+    bool isInCategory(const EventCategory category) const {
         return (getCategoryFlags() & category) != 0;
     }
 };
 
 class EventDispatcher {
    public:
-    explicit EventDispatcher(Event& event) : event(event) {};
+    explicit EventDispatcher(Event& event) : event(event) {}
 
     template <typename T, typename F>
     bool dispatch(const F& func) {

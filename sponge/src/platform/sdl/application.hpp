@@ -97,7 +97,7 @@ class Application : public sponge::Application {
         return SDL_GL_GetSwapInterval() != 0;
     }
 
-    static void setVerticalSync(bool value) {
+    static void setVerticalSync(const bool value) {
         SDL_GL_SetSwapInterval(value ? 1 : 0);
     }
 

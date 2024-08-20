@@ -10,13 +10,14 @@ class Layer {
     explicit Layer(const std::string& name = "undefined");
     virtual ~Layer() = default;
 
-    virtual void onAttach() {};
-    virtual void onDetach() {};
+    virtual void onAttach() {}
+    virtual void onDetach() {}
     virtual void onEvent(event::Event& event) {}
     virtual void onImGuiRender() {}
-    virtual bool onUpdate(double elapsedTime) {
+    virtual bool onUpdate(const double elapsedTime) {
+        UNUSED(elapsedTime);
         return true;
-    };
+    }
 
     const std::string& getName() const {
         return debugName;
@@ -26,7 +27,7 @@ class Layer {
         return active;
     }
 
-    void setActive(bool value) {
+    void setActive(const bool value) {
         active = value;
     }
 

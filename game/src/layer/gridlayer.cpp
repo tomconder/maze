@@ -29,10 +29,10 @@ void GridLayer::onDetach() {
     // nothing
 }
 
-bool GridLayer::onUpdate(double elapsedTime) {
+bool GridLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto shader =
+    const auto shader =
         sponge::platform::opengl::ResourceManager::getShader(gridShader);
     shader->bind();
     shader->setMat4("mvp", camera->getMVP());
