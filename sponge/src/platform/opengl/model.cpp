@@ -147,8 +147,8 @@ std::shared_ptr<Texture> Model::loadMaterialTextures(
         path + "/" + baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
-    std::ranges::transform(name, name.begin(),
-                           [](const uint8_t c) { return std::tolower(c); });
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](const uint8_t c) { return std::tolower(c); });
 
     return ResourceManager::loadTexture(filename.string(), name,
                                         ExcludeAssetsFolder);
