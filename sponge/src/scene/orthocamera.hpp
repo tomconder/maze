@@ -5,7 +5,7 @@
 
 namespace sponge::scene {
 
-class OrthoCamera : public Camera {
+class OrthoCamera final : public Camera {
    public:
     const glm::mat4& getProjection() const {
         return projection;
