@@ -55,7 +55,7 @@ class Application : public sponge::Application {
 
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
-    void setVSync(bool enabled);
+    static void setVSync(bool enabled);
 
     void toggleFullscreen();
 

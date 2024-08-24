@@ -6,16 +6,16 @@ namespace sponge::platform::sdl::imgui {
 
 class SDLManager : public ImGuiManager<SDLManager> {
    public:
-    void onAttachImpl();
+    static void onAttachImpl();
 
-    void onDetachImpl();
+    static void onDetachImpl();
 
-    bool isEventHandledImpl();
+    static bool isEventHandledImpl();
 
-    void beginImpl();
+    static void beginImpl();
 
-    void endImpl();
+    static void endImpl();
 
-    void processEventImpl(const SDL_Event* event);
+    static void processEventImpl(const SDL_Event* event);
 };
 }  // namespace sponge::platform::sdl::imgui

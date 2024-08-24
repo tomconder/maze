@@ -6,7 +6,7 @@
 
 namespace sponge::platform::opengl {
 
-class IndexBuffer : public renderer::Buffer {
+class IndexBuffer final : public renderer::Buffer {
    public:
     static std::unique_ptr<IndexBuffer> create(
         const std::vector<uint32_t>& indices);

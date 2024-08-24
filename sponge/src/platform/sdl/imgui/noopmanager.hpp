@@ -7,19 +7,23 @@ namespace sponge::platform::sdl::imgui {
 
 class NoopManager : public ImGuiManager<NoopManager> {
    public:
-    void onAttachImpl() { /* nothing */ }
+    static void onAttachImpl() { /* nothing */
+    }
 
-    void onDetachImpl() { /* nothing */ }
+    static void onDetachImpl() { /* nothing */
+    }
 
-    bool isEventHandledImpl() {
+    static bool isEventHandledImpl() {
         return false;
     }
 
-    void beginImpl() { /* nothing */ }
+    static void beginImpl() { /* nothing */
+    }
 
-    void endImpl() { /* nothing */ }
+    static void endImpl() { /* nothing */
+    }
 
-    void processEventImpl(const SDL_Event* event) {
+    static void processEventImpl(const SDL_Event* event) {
         UNUSED(event);
     }
 };

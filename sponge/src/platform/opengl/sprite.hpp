@@ -8,7 +8,7 @@
 
 namespace sponge::platform::opengl {
 
-class Sprite : public renderer::Sprite {
+class Sprite final : public renderer::Sprite {
    public:
     explicit Sprite(std::string_view name);
 
