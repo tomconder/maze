@@ -29,6 +29,20 @@
     {
       "name": "sdl2",
       "version>=": "2.30.6",
+      "features": [
+        {
+          "name": "x11",
+          "platform": "linux"
+        },
+        {
+          "name": "wayland",
+          "platform": "linux"
+        },
+        {
+          "name": "ibus",
+          "platform": "linux"
+        }
+      ],
       "platform": "!wasm32"
     },
     {
