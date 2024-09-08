@@ -121,9 +121,6 @@ if (APPLE)
         fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
             COMPONENT Runtime
     )
-
-    set(CPACK_GENERATOR "DRAGNDROP")
-    include(CPack)
 else ()
     add_custom_command(
             TARGET game
