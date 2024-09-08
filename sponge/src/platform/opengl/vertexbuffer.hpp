@@ -7,7 +7,7 @@
 
 namespace sponge::platform::opengl {
 
-class VertexBuffer : public renderer::Buffer {
+class VertexBuffer final : public renderer::Buffer {
    public:
     static std::unique_ptr<VertexBuffer> create(uint32_t size);
     static std::unique_ptr<VertexBuffer> create(

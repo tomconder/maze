@@ -5,7 +5,7 @@
 
 namespace sponge::platform::opengl {
 
-class VertexArray : public renderer::Buffer {
+class VertexArray final : public renderer::Buffer {
    public:
     static std::unique_ptr<VertexArray> create();
 

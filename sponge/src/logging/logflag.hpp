@@ -4,7 +4,7 @@
 
 namespace sponge {
 
-class LogFlag : public spdlog::custom_flag_formatter {
+class LogFlag final : public spdlog::custom_flag_formatter {
    public:
     void format(const spdlog::details::log_msg& msg, const std::tm& tm_time,
                 spdlog::memory_buf_t& dest) override;

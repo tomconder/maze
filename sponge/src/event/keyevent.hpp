@@ -50,7 +50,7 @@ class KeyReleasedEvent final : public KeyEvent {
     EVENT_CLASS_TYPE(KeyReleased)
 };
 
-class KeyTypedEvent : public KeyEvent {
+class KeyTypedEvent final : public KeyEvent {
    public:
     explicit KeyTypedEvent(const input::KeyCode keycode) : KeyEvent(keycode) {}
 

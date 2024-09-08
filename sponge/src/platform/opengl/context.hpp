@@ -6,7 +6,7 @@ struct SDL_Window;
 
 namespace sponge::platform::opengl {
 
-class Context : public renderer::GraphicsContext {
+class Context final : public renderer::GraphicsContext {
    public:
     explicit Context(SDL_Window* window);
     ~Context() override;

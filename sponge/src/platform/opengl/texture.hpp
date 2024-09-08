@@ -5,7 +5,7 @@
 
 namespace sponge::platform::opengl {
 
-class Texture : public renderer::Texture {
+class Texture final : public renderer::Texture {
    public:
     Texture();
     ~Texture() override;

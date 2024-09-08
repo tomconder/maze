@@ -5,7 +5,7 @@
 
 namespace game::layer {
 
-class ExitLayer : public sponge::layer::Layer {
+class ExitLayer final : public sponge::layer::Layer {
    public:
     ExitLayer();
 
