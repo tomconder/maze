@@ -24,25 +24,11 @@
     },
     {
       "name": "meshoptimizer",
-      "version>=": "0.20"
+      "version>=": "0.21"
     },
     {
       "name": "sdl2",
-      "version>=": "2.30.6",
-      "features": [
-        {
-          "name": "x11",
-          "platform": "linux"
-        },
-        {
-          "name": "wayland",
-          "platform": "linux"
-        },
-        {
-          "name": "ibus",
-          "platform": "linux"
-        }
-      ],
+      "version>=": "2.30.7",
       "platform": "!wasm32"
     },
     {
@@ -51,7 +37,7 @@
     },
     {
       "name": "stb",
-      "version>=": "2023-04-11"
+      "version>=": "2024-07-29#1"
     },
     {
       "name": "tinyobjloader",
