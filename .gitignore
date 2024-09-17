@@ -69,6 +69,6 @@ out/
 # Local History for Visual Studio Code
 .history/
 
-!game/assets/**/*.obj
+!assets/**/*.obj
 .DS_Store
 .cache
