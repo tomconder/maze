@@ -21,7 +21,7 @@ file(
 file(
         GLOB ASSETS
         LIST_DIRECTORIES false
-        assets/*)
+        ${CMAKE_SOURCE_DIR}/assets/*)
 
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -103,7 +103,7 @@ if (APPLE)
             TARGET game
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+            ${CMAKE_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
             COMMENT "Copying assets to bundle content folder"
             VERBATIM DEPENDS ${ASSETS})
 
@@ -122,11 +122,11 @@ else ()
             TARGET game
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
+            ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
             COMMENT "Copying assets to target folder"
             VERBATIM DEPENDS ${ASSETS})
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    install(DIRECTORY assets DESTINATION .)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .)
 endif ()
