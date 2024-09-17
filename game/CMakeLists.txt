@@ -2,28 +2,6 @@ include(GNUInstallDirs)
 
 configure_file(bundle/resources/version.hpp.in include/version.hpp)
 
-if (WIN32)
-    # accommodate missing version number values
-    string(APPEND VERSION ${PROJECT_VERSION_MAJOR})
-    if (PROJECT_VERSION_MINOR)
-        string(APPEND VERSION ",${PROJECT_VERSION_MINOR}")
-    else ()
-        string(APPEND VERSION ",0")
-    endif ()
-    if (PROJECT_VERSION_PATCH)
-        string(APPEND VERSION ",${PROJECT_VERSION_PATCH}")
-    else ()
-        string(APPEND VERSION ",0")
-    endif ()
-    if (PROJECT_VERSION_TWEAK)
-        string(APPEND VERSION ",${PROJECT_VERSION_TWEAK}")
-    else ()
-        string(APPEND VERSION ",0")
-    endif ()
-
-    configure_file(bundle/resources/maze.rc.in maze.rc)
-endif ()
-
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
@@ -53,7 +31,26 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 find_package(SDL2 CONFIG REQUIRED)
 
 if (WIN32)
-    set_source_files_properties(maze.rc PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    # accommodate missing version number values
+    string(APPEND VERSION ${PROJECT_VERSION_MAJOR})
+    if (PROJECT_VERSION_MINOR)
+        string(APPEND VERSION ",${PROJECT_VERSION_MINOR}")
+    else ()
+        string(APPEND VERSION ",0")
+    endif ()
+    if (PROJECT_VERSION_PATCH)
+        string(APPEND VERSION ",${PROJECT_VERSION_PATCH}")
+    else ()
+        string(APPEND VERSION ",0")
+    endif ()
+    if (PROJECT_VERSION_TWEAK)
+        string(APPEND VERSION ",${PROJECT_VERSION_TWEAK}")
+    else ()
+        string(APPEND VERSION ",0")
+    endif ()
+
+    configure_file(bundle/resources/maze.rc.in maze.rc)
+
     add_executable(game WIN32 ${SOURCE_FILES} ${HEADER_FILES} maze.rc)
     target_include_directories(game PRIVATE bundle/icons)
 elseif (APPLE)
@@ -65,8 +62,7 @@ elseif (APPLE)
 
     set(app_icon_macos "bundle/icons/maze.icns")
     set_source_files_properties(
-            ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-            SKIP_PRECOMPILE_HEADERS ON)
+            ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
             ${app_icon_macos})
 else ()
