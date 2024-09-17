@@ -19,8 +19,8 @@ void HUDLayer::onAttach() {
     sponge::platform::opengl::ResourceManager::loadShader(
         "/shaders/sprite.vert", "/shaders/sprite.frag", spriteShader);
 
-    sponge::platform::opengl::ResourceManager::loadTexture("/images/coffee.png",
-                                                           coffeeTexture);
+    sponge::platform::opengl::ResourceManager::loadTexture(
+        "/textures/coffee.png", coffeeTexture);
 
     orthoCamera = ResourceManager::createOrthoCamera(cameraName);
 
