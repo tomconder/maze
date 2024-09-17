@@ -33,7 +33,7 @@ std::shared_ptr<Font> ResourceManager::loadFont(const std::string& path,
         return fonts[name];
     }
 
-    SPONGE_CORE_INFO("Loading font file: {}", name);
+    SPONGE_CORE_INFO("Loading font file: [{}, {}]", name, path);
 
     auto font = loadFontFromFile(assetsFolder + path);
     fonts[name] = font;
@@ -56,7 +56,7 @@ std::shared_ptr<Model> ResourceManager::loadModel(const std::string& shaderName,
         return models[name];
     }
 
-    SPONGE_CORE_INFO("Loading model file: {}", name);
+    SPONGE_CORE_INFO("Loading model file: [{}, {}]", name, path);
 
     auto mesh = loadModelFromFile(shaderName, assetsFolder + path);
     models[name] = mesh;
@@ -157,7 +157,7 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& path,
         return textures[name];
     }
 
-    SPONGE_CORE_INFO("Loading texture file: {}", name);
+    SPONGE_CORE_INFO("Loading texture file: [{}, {}]", name, path);
 
     std::string texturePath;
     if (flag == ExcludeAssetsFolder) {
