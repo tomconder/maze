@@ -3,7 +3,7 @@
 #include <glob.h>
 #include <sysdir.h>
 
-namespace sponge {
+namespace sponge::platform::osx::core {
 
 std::string OSXFile::expandTilde(const char* str) {
     glob_t globbuf;

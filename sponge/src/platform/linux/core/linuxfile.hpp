@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace sponge {
+namespace sponge::platform::linux::core {
 
 class LinuxFile {
    public:

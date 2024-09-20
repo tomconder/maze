@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <filesystem>
 
-namespace sponge {
+namespace sponge::platform::linux::core {
 
 std::string LinuxFile::getLogDir(const std::string& app) {
     auto val = std::getenv("XDG_DATA_HOME");

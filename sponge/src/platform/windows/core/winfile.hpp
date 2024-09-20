@@ -2,11 +2,11 @@
 
 #include <string>
 
-namespace sponge {
+namespace sponge::platform::windows::core {
 
 class WinFile {
    public:
     static std::string getLogDir(const std::string& app);
 };
 
-}  // namespace sponge
+}  // namespace sponge::platform::windows::core

@@ -6,11 +6,11 @@ std::string File::getLogDir(const std::string& app) {
     std::string result = {};
 
 #ifdef __APPLE__
-    result = OSXFile::getLogDir(app);
+    result = platform::osx::core::OSXFile::getLogDir(app);
 #elif defined(_WIN32) || defined(WIN32)
-    result = WinFile::getLogDir(app);
+    result = platform::windows::core::WinFile::getLogDir(app);
 #elif __UNIX__
-    result = LinuxFile::getLogDir(app);
+    result = platform::linux::core::LinuxFile::getLogDir(app);
 #endif
 
     return result;

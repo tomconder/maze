@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace sponge {
+namespace sponge::platform::osx::core {
 
 class OSXFile {
    public:
