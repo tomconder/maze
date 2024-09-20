@@ -1,7 +1,7 @@
 #include "indexbuffer.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 IndexBuffer::IndexBuffer(const std::vector<uint32_t>& indices) {
     glGenBuffers(1, &id);

@@ -5,8 +5,8 @@
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/context.hpp"
-#include "platform/opengl/rendererapi.hpp"
+#include "platform/opengl/renderer/context.hpp"
+#include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/sdl/core/window.hpp"
 #include "platform/sdl/input/keyboard.hpp"
 #include <SDL.h>
@@ -123,8 +123,8 @@ class Application : public sponge::Application {
 
    private:
     std::string appName = "undefined";
-    std::unique_ptr<opengl::Context> graphics;
-    std::unique_ptr<opengl::RendererAPI> renderer;
+    std::unique_ptr<opengl::renderer::Context> graphics;
+    std::unique_ptr<opengl::renderer::RendererAPI> renderer;
     std::unique_ptr<Window> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;

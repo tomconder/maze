@@ -1,7 +1,7 @@
 #include "texture.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 Texture::Texture() {
     glGenTextures(1, &id);

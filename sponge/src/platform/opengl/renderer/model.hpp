@@ -1,11 +1,11 @@
 #pragma once
 
-#include "platform/opengl/mesh.hpp"
-#include "platform/opengl/texture.hpp"
+#include "platform/opengl/renderer/mesh.hpp"
+#include "platform/opengl/renderer/texture.hpp"
 #include <tiny_obj_loader.h>
 #include <vector>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 class Model {
    public:

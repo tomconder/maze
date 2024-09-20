@@ -9,7 +9,7 @@
 #include "core/file.hpp"
 #include "stb_image.h"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 std::unordered_map<std::string, std::shared_ptr<Font>> ResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<Model>> ResourceManager::models;

@@ -13,17 +13,18 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    sponge::platform::opengl::ResourceManager::loadShader(
+    sponge::platform::opengl::renderer::ResourceManager::loadShader(
         "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
         mazeShader);
-    sponge::platform::opengl::ResourceManager::loadModel(
+    sponge::platform::opengl::renderer::ResourceManager::loadModel(
         mazeShader, "/models/cube/cube.obj", modelName);
 
     camera = ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
+        sponge::platform::opengl::renderer::ResourceManager::getShader(
+            mazeShader);
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
@@ -42,16 +43,18 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
+        sponge::platform::opengl::renderer::ResourceManager::getShader(
+            mazeShader);
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4(
-        "mvp", camera->getMVP() *
-                   translate(glm::mat4(1.F), glm::vec3(0, .50003F, 0)));
+        "mvp",
+        camera->getMVP() * translate(glm::mat4(1.F), glm::vec3(0, .50003F, 0)));
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
-    sponge::platform::opengl::ResourceManager::getModel(modelName)->render();
+    sponge::platform::opengl::renderer::ResourceManager::getModel(modelName)
+        ->render();
 
     return true;
 }
@@ -60,7 +63,8 @@ void MazeLayer::setWireframeActive(const bool active) {
     this->activeWireframe = active;
 
     const auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(mazeShader);
+        sponge::platform::opengl::renderer::ResourceManager::getShader(
+            mazeShader);
     shader->bind();
     shader->setBoolean("showWireframe", active);
     shader->unbind();

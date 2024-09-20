@@ -6,9 +6,9 @@
 #include "vertexarray.hpp"
 #include "vertexbuffer.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class Sprite final : public renderer::Sprite {
+class Sprite final : public sponge::renderer::Sprite {
    public:
     explicit Sprite(std::string_view name);
 
@@ -22,4 +22,4 @@ class Sprite final : public renderer::Sprite {
     std::shared_ptr<Texture> tex;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

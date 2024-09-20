@@ -1,13 +1,13 @@
 #pragma once
 
-#include "platform/opengl/font.hpp"
-#include "platform/opengl/model.hpp"
-#include "platform/opengl/shader.hpp"
-#include "platform/opengl/texture.hpp"
+#include "platform/opengl/renderer/font.hpp"
+#include "platform/opengl/renderer/model.hpp"
+#include "platform/opengl/renderer/shader.hpp"
+#include "platform/opengl/renderer/texture.hpp"
 #include <string>
 #include <unordered_map>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 enum LoadFlag : uint8_t { ExcludeAssetsFolder, None };
 

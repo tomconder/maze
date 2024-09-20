@@ -1,7 +1,7 @@
 #include "quad.hpp"
-#include "platform/opengl/resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 const std::vector<uint32_t> indices = {
     0, 2, 1,  //

@@ -4,9 +4,9 @@
 
 struct SDL_Window;
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class Context final : public renderer::GraphicsContext {
+class Context final : public sponge::renderer::GraphicsContext {
    public:
     explicit Context(SDL_Window* window);
     ~Context() override;
@@ -14,4 +14,4 @@ class Context final : public renderer::GraphicsContext {
     void flip(void* window) override;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

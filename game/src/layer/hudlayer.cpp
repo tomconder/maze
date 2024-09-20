@@ -13,31 +13,34 @@ HUDLayer::HUDLayer() : Layer("hud") {
 }
 
 void HUDLayer::onAttach() {
-    sponge::platform::opengl::ResourceManager::loadShader(
+    sponge::platform::opengl::renderer::ResourceManager::loadShader(
         "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
 
-    sponge::platform::opengl::ResourceManager::loadShader(
+    sponge::platform::opengl::renderer::ResourceManager::loadShader(
         "/shaders/sprite.vert", "/shaders/sprite.frag", spriteShader);
 
-    sponge::platform::opengl::ResourceManager::loadTexture(
+    sponge::platform::opengl::renderer::ResourceManager::loadTexture(
         "/textures/coffee.png", coffeeTexture);
 
     orthoCamera = ResourceManager::createOrthoCamera(cameraName);
 
     auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(quadShader);
+        sponge::platform::opengl::renderer::ResourceManager::getShader(
+            quadShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::ResourceManager::getShader(spriteShader);
+    shader = sponge::platform::opengl::renderer::ResourceManager::getShader(
+        spriteShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    logo = std::make_unique<sponge::platform::opengl::Sprite>(coffeeTexture);
+    logo = std::make_unique<sponge::platform::opengl::renderer::Sprite>(
+        coffeeTexture);
 }
 
 void HUDLayer::onDetach() {
@@ -65,12 +68,14 @@ bool HUDLayer::onWindowResize(
 
     const auto projection = orthoCamera->getProjection();
     auto shader =
-        sponge::platform::opengl::ResourceManager::getShader(spriteShader);
+        sponge::platform::opengl::renderer::ResourceManager::getShader(
+            spriteShader);
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    shader = sponge::platform::opengl::ResourceManager::getShader(quadShader);
+    shader = sponge::platform::opengl::renderer::ResourceManager::getShader(
+        quadShader);
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();

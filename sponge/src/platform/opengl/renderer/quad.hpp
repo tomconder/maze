@@ -1,13 +1,13 @@
 #pragma once
 
-#include "platform/opengl/indexbuffer.hpp"
-#include "platform/opengl/vertexarray.hpp"
-#include "platform/opengl/vertexbuffer.hpp"
+#include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <string>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 class Quad {
    public:

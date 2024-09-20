@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <array>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 Context::Context(SDL_Window* window) {
     SPONGE_CORE_INFO("Initializing OpenGL");
@@ -83,4 +83,4 @@ void Context::flip(void* window) {
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

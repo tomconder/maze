@@ -7,9 +7,9 @@
 #include "info.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/context.hpp"
-#include "platform/opengl/info.hpp"
-#include "platform/opengl/rendererapi.hpp"
+#include "platform/opengl/renderer/context.hpp"
+#include "platform/opengl/renderer/info.hpp"
+#include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/sdl/core/window.hpp"
 #include "platform/sdl/imgui/noopmanager.hpp"
 #include "platform/sdl/imgui/sdlmanager.hpp"
@@ -96,18 +96,18 @@ bool Application::start() {
                      .fullscreen = appSpec.fullscreen });
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
-    graphics = std::make_unique<opengl::Context>(window);
+    graphics = std::make_unique<opengl::renderer::Context>(window);
 
     imguiManager->onAttach();
 
-    opengl::Info::logVersion();
-    opengl::Info::logStaticInfo();
-    opengl::Info::logGraphicsDriverInfo();
-    opengl::Info::logContextInfo();
+    opengl::renderer::Info::logVersion();
+    opengl::renderer::Info::logStaticInfo();
+    opengl::renderer::Info::logGraphicsDriverInfo();
+    opengl::renderer::Info::logContextInfo();
 
     setVSync(appSpec.vsync);
 
-    renderer = std::make_unique<opengl::RendererAPI>();
+    renderer = std::make_unique<opengl::renderer::RendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 

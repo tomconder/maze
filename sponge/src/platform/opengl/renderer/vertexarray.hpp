@@ -3,9 +3,9 @@
 #include "renderer/buffer.hpp"
 #include <memory>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class VertexArray final : public renderer::Buffer {
+class VertexArray final : public sponge::renderer::Buffer {
    public:
     static std::unique_ptr<VertexArray> create();
 
@@ -20,4 +20,4 @@ class VertexArray final : public renderer::Buffer {
     VertexArray();
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

@@ -4,9 +4,9 @@
 #include <memory>
 #include <vector>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class IndexBuffer final : public renderer::Buffer {
+class IndexBuffer final : public sponge::renderer::Buffer {
    public:
     static std::unique_ptr<IndexBuffer> create(
         const std::vector<uint32_t>& indices);
@@ -26,4 +26,4 @@ class IndexBuffer final : public renderer::Buffer {
     explicit IndexBuffer(uint32_t size);
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

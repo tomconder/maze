@@ -1,7 +1,7 @@
 #include "vertexarray.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 VertexArray::VertexArray() {
     glGenVertexArrays(1, &id);

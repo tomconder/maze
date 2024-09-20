@@ -2,9 +2,9 @@
 
 #include "renderer/graphicsinfo.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class Info final : public renderer::GraphicsInfo {
+class Info final : public sponge::renderer::GraphicsInfo {
    public:
     static void logContextInfo();
     static void logGraphicsDriverInfo();
@@ -12,4 +12,4 @@ class Info final : public renderer::GraphicsInfo {
     static void logVersion();
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

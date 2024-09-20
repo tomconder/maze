@@ -1,7 +1,7 @@
 #include "rendererapi.hpp"
 #include "core/base.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
 void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
                            GLenum severity, GLsizei length,
@@ -87,7 +87,7 @@ void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
     }
 }
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 void RendererAPI::init() {
     if (glDebugMessageCallback != nullptr) {

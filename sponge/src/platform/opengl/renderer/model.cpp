@@ -1,6 +1,6 @@
 #include "model.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
@@ -12,7 +12,7 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 void Model::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
@@ -75,7 +75,7 @@ std::shared_ptr<Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
-    std::vector<renderer::Vertex> vertices;
+    std::vector<sponge::renderer::Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<Texture>> textures;
 
@@ -84,7 +84,7 @@ std::shared_ptr<Mesh> Model::processMesh(
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    renderer::Vertex vertex;
+    sponge::renderer::Vertex vertex;
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
@@ -160,4 +160,4 @@ void Model::render() const {
     }
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

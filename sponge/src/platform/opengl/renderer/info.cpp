@@ -1,6 +1,6 @@
 #include "info.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <SDL.h>
 #include <cassert>
@@ -8,7 +8,7 @@
 #include <sstream>
 #include <vector>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 void Info::logContextInfo() {
     assert(SDL_GL_GetCurrentContext() && "Missing OpenGL Context");

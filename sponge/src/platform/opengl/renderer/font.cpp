@@ -1,10 +1,10 @@
 #include "font.hpp"
 #include "core/base.hpp"
-#include "platform/opengl/resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 #include <fmt/format.h>
 #include <vector>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 constexpr std::string_view textShader = "text";
 constexpr std::string_view vertex = "vertex";
@@ -47,7 +47,7 @@ Font::Font() {
 }
 
 void Font::load(const std::string& path) {
-    renderer::Font::load(path);
+    sponge::renderer::Font::load(path);
 
     const auto pos = path.find_last_of('/');
     const auto fontFolder = path.substr(0, pos + 1);
@@ -137,4 +137,4 @@ void Font::render(std::string_view text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

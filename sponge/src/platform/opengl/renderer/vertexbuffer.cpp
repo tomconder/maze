@@ -1,7 +1,7 @@
 #include "vertexbuffer.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
     glGenBuffers(1, &id);
@@ -10,10 +10,12 @@ VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
                  vertices.data(), GL_DYNAMIC_DRAW);
 }
 
-VertexBuffer::VertexBuffer(const std::vector<renderer::Vertex>& vertices) {
+VertexBuffer::VertexBuffer(
+    const std::vector<sponge::renderer::Vertex>& vertices) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(renderer::Vertex),
+    glBufferData(GL_ARRAY_BUFFER,
+                 vertices.size() * sizeof(sponge::renderer::Vertex),
                  vertices.data(), GL_DYNAMIC_DRAW);
 }
 
@@ -41,7 +43,7 @@ std::unique_ptr<VertexBuffer> VertexBuffer::create(
 }
 
 std::unique_ptr<VertexBuffer> VertexBuffer::create(
-    const std::vector<renderer::Vertex>& vertices) {
+    const std::vector<sponge::renderer::Vertex>& vertices) {
     std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
     return buffer;
 }
@@ -52,10 +54,11 @@ void VertexBuffer::update(const std::vector<glm::vec2>& vertices) const {
                     vertices.data());
 }
 
-void VertexBuffer::update(const std::vector<renderer::Vertex>& vertices) const {
+void VertexBuffer::update(
+    const std::vector<sponge::renderer::Vertex>& vertices) const {
     glBindBuffer(GL_ARRAY_BUFFER, id);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    vertices.size() * sizeof(renderer::Vertex),
+                    vertices.size() * sizeof(sponge::renderer::Vertex),
                     vertices.data());
 }
 
@@ -67,4 +70,4 @@ void VertexBuffer::unbind() const {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

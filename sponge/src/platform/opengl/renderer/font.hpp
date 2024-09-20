@@ -1,16 +1,16 @@
 #pragma once
 
-#include "platform/opengl/indexbuffer.hpp"
-#include "platform/opengl/vertexarray.hpp"
-#include "platform/opengl/vertexbuffer.hpp"
+#include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "renderer/font.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <string>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class Font : public renderer::Font {
+class Font : public sponge::renderer::Font {
    public:
     Font();
     void load(const std::string& path);
@@ -23,4 +23,4 @@ class Font : public renderer::Font {
     std::unique_ptr<IndexBuffer> ebo;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

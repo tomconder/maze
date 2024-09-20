@@ -1,8 +1,8 @@
 #include "sprite.hpp"
-#include "platform/opengl/resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 constexpr std::string_view spriteShader = "sprite";
 constexpr std::string_view vertex = "vertex";

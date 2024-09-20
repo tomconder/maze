@@ -1,10 +1,10 @@
 #include "shader.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/gl.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
 Shader::Shader(const std::string& vertexSource,
                const std::string& fragmentSource) {

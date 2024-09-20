@@ -1,20 +1,20 @@
 #pragma once
 
-#include "platform/opengl/indexbuffer.hpp"
-#include "platform/opengl/texture.hpp"
-#include "platform/opengl/vertexarray.hpp"
-#include "platform/opengl/vertexbuffer.hpp"
+#include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "renderer/mesh.hpp"
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace sponge::platform::opengl {
+namespace sponge::platform::opengl::renderer {
 
-class Mesh : public renderer::Mesh {
+class Mesh : public sponge::renderer::Mesh {
    public:
     Mesh(const std::string& shaderName,
-         const std::vector<renderer::Vertex>& vertices,
+         const std::vector<sponge::renderer::Vertex>& vertices,
          const std::vector<uint32_t>& indices,
          const std::vector<std::shared_ptr<Texture>>& textures);
     void render() const;
@@ -28,4 +28,4 @@ class Mesh : public renderer::Mesh {
     std::vector<std::shared_ptr<Texture>> textures;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer
