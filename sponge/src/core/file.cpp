@@ -20,7 +20,7 @@ std::string File::getResourceDir() {
     std::string result = "assets";
 
 #ifdef __APPLE__
-    result = OSXFile::getResourceDir();
+    result = platform::osx::core::OSXFile::getResourceDir();
 #endif
 
     return result;
