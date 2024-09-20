@@ -10,12 +10,12 @@
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/info.hpp"
 #include "platform/opengl/rendererapi.hpp"
+#include "platform/sdl/core/window.hpp"
 #include "platform/sdl/imgui/noopmanager.hpp"
 #include "platform/sdl/imgui/sdlmanager.hpp"
 #include "platform/sdl/input/keyboard.hpp"
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/logging/sink.hpp"
-#include "platform/sdl/window.hpp"
 #include <glm/glm.hpp>
 #include <array>
 #include <utility>

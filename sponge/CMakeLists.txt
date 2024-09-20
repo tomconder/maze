@@ -38,7 +38,7 @@ message(STATUS "Including SDL platform files")
 file(
         GLOB SDL_HEADERS
         LIST_DIRECTORIES false
-        src/platform/sdl/*.hpp
+        src/platform/sdl/core/*.hpp
         src/platform/sdl/imgui/*.hpp
         src/platform/sdl/input/*.hpp
         src/platform/sdl/logging/*.hpp
@@ -47,7 +47,7 @@ list(APPEND HEADER_FILES ${SDL_HEADERS})
 file(
         GLOB SDL_SOURCES
         LIST_DIRECTORIES false
-        src/platform/sdl/*.cpp
+        src/platform/sdl/core/*.cpp
         src/platform/sdl/imgui/*.cpp
         src/platform/sdl/input/*.cpp
         src/platform/sdl/logging/*.cpp

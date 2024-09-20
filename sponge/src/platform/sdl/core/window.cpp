@@ -1,4 +1,4 @@
-#include "platform/sdl/window.hpp"
+#include "platform/sdl/core/window.hpp"
 #include "logging/log.hpp"
 
 namespace sponge::platform::sdl {

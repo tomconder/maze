@@ -2,13 +2,13 @@
 
 #include "core/application.hpp"
 #include "event/event.hpp"
-#include "input/keyboard.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/context.hpp"
 #include "platform/opengl/rendererapi.hpp"
-#include "platform/sdl/window.hpp"
+#include "platform/sdl/core/window.hpp"
+#include "platform/sdl/input/keyboard.hpp"
 #include <SDL.h>
 #include <cstdint>
 #include <string>

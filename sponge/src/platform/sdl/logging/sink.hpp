@@ -1,7 +1,7 @@
 #pragma once
 
 #include "logging/log.hpp"
-#include "platform/sdl/application.hpp"
+#include "platform/sdl/core/application.hpp"
 #include <spdlog/sinks/base_sink.h>
 
 namespace sponge::platform::sdl::imgui {
