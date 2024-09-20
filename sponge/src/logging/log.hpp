@@ -19,29 +19,32 @@ struct LogItem {
 
 class Log {
    public:
-    static void init(std::string_view logfile);
+    static void init(const std::string& logfile);
 
     static void shutdown() {
         spdlog::shutdown();
     }
 
-    static std::shared_ptr<spdlog::logger>& getAppLogger() {
+    static std::shared_ptr<spdlog::logger> getAppLogger() {
         return appLogger;
     }
 
-    static std::shared_ptr<spdlog::logger>& getCoreLogger() {
+    static std::shared_ptr<spdlog::logger> getCoreLogger() {
         return coreLogger;
     }
 
-    static std::shared_ptr<spdlog::logger>& getGlLogger() {
+    static std::shared_ptr<spdlog::logger> getGlLogger() {
         return glLogger;
     }
 
-    static void addSink(const spdlog::sink_ptr& sink, std::string_view pattern);
+    static void addSink(const spdlog::sink_ptr& sink,
+                        const std::string& pattern);
 
-    static std::string_view colorFormatPattern;
-    static std::string_view fileFormatPattern;
-    static std::string_view guiFormatPattern;
+    static constexpr char colorFormatPattern[] =
+        "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
+    static constexpr char fileFormatPattern[] =
+        "%*%m%d %T.%f %7t %s:%# [%n] %v";
+    static constexpr char guiFormatPattern[] = "%*%m%d %T.%f %7t %s:%# [%n] %v";
 
    private:
     static std::shared_ptr<spdlog::logger> appLogger;
@@ -49,10 +52,10 @@ class Log {
     static std::shared_ptr<spdlog::logger> glLogger;
 
     static std::shared_ptr<spdlog::logger> registerLogger(
-        std::string_view name, const std::vector<spdlog::sink_ptr>& sinks);
+        const std::string& name, const std::vector<spdlog::sink_ptr>& sinks);
 
     static void setFormatter(const spdlog::sink_ptr& sink,
-                             std::string_view pattern);
+                             const std::string& pattern);
 };
 
 #define SPONGE_CORE_TRACE(...) \

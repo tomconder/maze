@@ -10,7 +10,7 @@ namespace sponge::platform::opengl::renderer {
 
 class Sprite final : public sponge::renderer::Sprite {
    public:
-    explicit Sprite(std::string_view name);
+    explicit Sprite(const std::string& name);
 
     void render(glm::vec2 position, glm::vec2 size) const override;
 

@@ -2,11 +2,13 @@
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <cstddef>
 
-namespace sponge::platform::opengl::renderer {
+namespace {
+constexpr char normal[] = "normal";
+constexpr char position[] = "position";
+constexpr char texCoord[] = "texCoord";
+}  // namespace
 
-constexpr std::string_view normal = "normal";
-constexpr std::string_view position = "position";
-constexpr std::string_view texCoord = "texCoord";
+namespace sponge::platform::opengl::renderer {
 
 Mesh::Mesh(const std::string& shaderName,
            const std::vector<sponge::renderer::Vertex>& vertices,
@@ -29,7 +31,7 @@ Mesh::Mesh(const std::string& shaderName,
 
     const auto program = shader->getId();
 
-    auto location = glGetAttribLocation(program, position.data());
+    auto location = glGetAttribLocation(program, position);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -39,7 +41,7 @@ Mesh::Mesh(const std::string& shaderName,
                                   sponge::renderer::Vertex, position)));
     }
 
-    location = glGetAttribLocation(program, texCoord.data());
+    location = glGetAttribLocation(program, texCoord);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -49,7 +51,7 @@ Mesh::Mesh(const std::string& shaderName,
                                   sponge::renderer::Vertex, texCoords)));
     }
 
-    location = glGetAttribLocation(program, normal.data());
+    location = glGetAttribLocation(program, normal);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);

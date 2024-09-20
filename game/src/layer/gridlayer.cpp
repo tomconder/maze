@@ -1,9 +1,10 @@
 #include "gridlayer.hpp"
 #include "resourcemanager.hpp"
 
-const std::string gridShader{ "infinitegrid" };
-const std::string cameraName{ "maze" };
-const std::string modelName{ "cube" };
+namespace {
+constexpr char gridShader[] = "infinitegrid";
+constexpr char cameraName[] = "maze";
+}  // namespace
 
 namespace game::layer {
 

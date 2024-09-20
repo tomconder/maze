@@ -3,6 +3,7 @@
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+namespace {
 void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
                            GLenum severity, GLsizei length,
                            const GLchar* message, const void* userParam) {
@@ -86,6 +87,7 @@ void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
             break;
     }
 }
+}  // namespace
 
 namespace sponge::platform::opengl::renderer {
 
@@ -129,4 +131,4 @@ void RendererAPI::clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

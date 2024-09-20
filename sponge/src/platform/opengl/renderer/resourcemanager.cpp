@@ -200,9 +200,10 @@ std::string ResourceManager::loadSourceFromFile(const std::string& path) {
     std::ifstream file(path, std::ios::in | std::ios::binary);
     if (file.good()) {
         file.seekg(0, std::ios::end);
-        code.resize(file.tellg());
+        const auto size = file.tellg();
         file.seekg(0, std::ios::beg);
-        file.read(code.data(), code.size());
+        code.resize(size);
+        file.read(code.data(), size);
         file.close();
     } else {
         SPONGE_CORE_ERROR("Unable to open file: {}", path);

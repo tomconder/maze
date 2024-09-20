@@ -49,7 +49,7 @@ void Info::logContextInfo() {
         for (int j = 0; j < 3; j++) {
             ss << fmt::format(" {:48}",
                               reinterpret_cast<const char*>(
-                                  glGetStringi(GL_EXTENSIONS, i * 3 + j)));
+                                  glGetStringi(GL_EXTENSIONS, (i * 3) + j)));
         }
         SPONGE_CORE_DEBUG(ss.str());
     }
@@ -129,4 +129,4 @@ void Info::logVersion() {
                      minorVersion);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

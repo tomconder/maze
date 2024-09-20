@@ -20,10 +20,12 @@
 #include <array>
 #include <utility>
 
-namespace sponge::platform::sdl::core {
+using sponge::input::KeyCode;
 
-auto sdlManager = std::make_shared<imgui::SDLManager>();
-auto noopManager = std::make_shared<imgui::NoopManager>();
+namespace {
+auto sdlManager = std::make_shared<sponge::platform::sdl::imgui::SDLManager>();
+auto noopManager =
+    std::make_shared<sponge::platform::sdl::imgui::NoopManager>();
 
 #if !NDEBUG
 auto imguiManager = sdlManager;
@@ -31,7 +33,6 @@ auto imguiManager = sdlManager;
 auto imguiManager = noopManager;
 #endif
 
-Application* Application::instance = nullptr;
 sponge::core::Timer systemTimer;
 sponge::core::Timer physicsTimer;
 
@@ -47,10 +48,14 @@ constexpr auto ratios = std::to_array(
       glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 
 constexpr auto keyCodes = std::to_array(
-    { input::KeyCode::SpongeKey_W, input::KeyCode::SpongeKey_A,
-      input::KeyCode::SpongeKey_S, input::KeyCode::SpongeKey_D,
-      input::KeyCode::SpongeKey_Up, input::KeyCode::SpongeKey_Left,
-      input::KeyCode::SpongeKey_Down, input::KeyCode::SpongeKey_Right });
+    { KeyCode::SpongeKey_W, KeyCode::SpongeKey_A, KeyCode::SpongeKey_S,
+      KeyCode::SpongeKey_D, KeyCode::SpongeKey_Up, KeyCode::SpongeKey_Left,
+      KeyCode::SpongeKey_Down, KeyCode::SpongeKey_Right });
+}  // namespace
+
+namespace sponge::platform::sdl::core {
+
+Application* Application::instance = nullptr;
 
 Application::Application(ApplicationSpecification specification)
     : appSpec(std::move(specification)) {

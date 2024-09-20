@@ -1,14 +1,17 @@
 #include "quad.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+#include <array>
 
-namespace sponge::platform::opengl::renderer {
-
-const std::vector<uint32_t> indices = {
+namespace {
+constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
 
-constexpr std::string_view position = "position";
+constexpr char position[] = "position";
+}  // namespace
+
+namespace sponge::platform::opengl::renderer {
 
 Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
@@ -22,12 +25,12 @@ Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
     vbo = VertexBuffer::create(4);
     vbo->bind();
 
-    ebo = IndexBuffer::create(indices);
+    ebo = IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
     const auto program = shader->getId();
 
-    auto location = glGetAttribLocation(program, position.data());
+    auto location = glGetAttribLocation(program, position);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -60,11 +63,11 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     vbo->update(vertices);
 
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

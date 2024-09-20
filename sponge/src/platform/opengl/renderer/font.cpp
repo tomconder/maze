@@ -4,21 +4,18 @@
 #include <fmt/format.h>
 #include <vector>
 
+namespace {
+constexpr char textShader[] = "text";
+constexpr char vertex[] = "vertex";
+}  // namespace
+
 namespace sponge::platform::opengl::renderer {
-
-constexpr std::string_view textShader = "text";
-constexpr std::string_view vertex = "vertex";
-
-const std::vector<uint32_t> indices = {
-    0, 1, 2,  //
-    0, 2, 3   //
-};
 
 Font::Font() {
     ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
-                                textShader.data());
+                                textShader);
 
-    const auto shader = ResourceManager::getShader(textShader.data());
+    const auto shader = ResourceManager::getShader(textShader);
     shader->bind();
 
     const auto program = shader->getId();
@@ -32,7 +29,7 @@ Font::Font() {
     ebo = IndexBuffer::create(maxLength * 6);
     ebo->bind();
 
-    auto location = glGetAttribLocation(program, vertex.data());
+    auto location = glGetAttribLocation(program, vertex);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -57,7 +54,7 @@ void Font::load(const std::string& path) {
     UNUSED(texture);
 }
 
-void Font::render(std::string_view text, const glm::vec2& position,
+void Font::render(const std::string& text, const glm::vec2& position,
                   uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load
@@ -118,7 +115,7 @@ void Font::render(std::string_view text, const glm::vec2& position,
         prev = index;
     }
 
-    auto shader = ResourceManager::getShader(textShader.data());
+    auto shader = ResourceManager::getShader(textShader);
 
     vao->bind();
 

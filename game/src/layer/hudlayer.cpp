@@ -1,10 +1,12 @@
 #include "hudlayer.hpp"
 #include "resourcemanager.hpp"
 
-const std::string cameraName{ "hud" };
-const std::string coffeeTexture{ "coffee" };
-const std::string quadShader{ "quad" };
-const std::string spriteShader{ "sprite" };
+namespace {
+constexpr char cameraName[] = "hud";
+constexpr char coffeeTexture[] = "coffee";
+constexpr char quadShader[] = "quad";
+constexpr char spriteShader[] = "sprite";
+}  // namespace
 
 namespace game::layer {
 

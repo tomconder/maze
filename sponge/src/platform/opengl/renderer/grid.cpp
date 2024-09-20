@@ -1,21 +1,24 @@
 #include "grid.hpp"
 #include "resourcemanager.hpp"
+#include <array>
 
-namespace sponge::platform::opengl::renderer {
-
-const std::vector<uint32_t> indices = {
+namespace {
+constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
 
-const std::vector<glm::vec2> vertices = {
+constexpr glm::vec2 vertices[] = {
     { -1.F, -1.F },  //
     { -1.F, 1.F },   //
     { 1.F, 1.F },    //
     { 1.F, -1.F },   //
 };
 
-constexpr std::string_view position = "position";
+constexpr char position[] = "position";
+}  // namespace
+
+namespace sponge::platform::opengl::renderer {
 
 Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
@@ -26,15 +29,16 @@ Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
     vao = VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(vertices);
+    vbo = VertexBuffer::create(
+        std::vector<glm::vec2>{ vertices, std::end(vertices) });
     vbo->bind();
 
-    ebo = IndexBuffer::create(indices);
+    ebo = IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
     const auto program = shader->getId();
 
-    auto location = glGetAttribLocation(program, position.data());
+    auto location = glGetAttribLocation(program, position);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -56,11 +60,11 @@ void Grid::render() const {
 
     shader->bind();
 
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

@@ -2,9 +2,11 @@
 #include "resourcemanager.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
-const std::string modelName{ "maze" };
-const std::string mazeShader{ "mesh" };
-const std::string cameraName{ "maze" };
+namespace {
+constexpr char modelName[] = "maze";
+constexpr char mazeShader[] = "mesh";
+constexpr char cameraName[] = "maze";
+}  // namespace
 
 namespace game::layer {
 

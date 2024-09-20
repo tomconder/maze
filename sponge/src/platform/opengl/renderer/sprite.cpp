@@ -1,22 +1,24 @@
 #include "sprite.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
+#include <array>
 
-namespace sponge::platform::opengl::renderer {
-
-constexpr std::string_view spriteShader = "sprite";
-constexpr std::string_view vertex = "vertex";
-
-const std::vector<uint32_t> indices = {
+namespace {
+constexpr char spriteShader[] = "sprite";
+constexpr char vertex[] = "vertex";
+constexpr uint32_t indices[] = {
     0, 1, 2,  //
     0, 2, 3   //
 };
+}  // namespace
 
-Sprite::Sprite(const std::string_view name) : name(name) {
+namespace sponge::platform::opengl::renderer {
+
+Sprite::Sprite(const std::string& name) : name(name) {
     ResourceManager::loadShader("/shaders/sprite.vert", "/shaders/sprite.frag",
-                                spriteShader.data());
+                                spriteShader);
 
-    const auto shader = ResourceManager::getShader(spriteShader.data());
+    const auto shader = ResourceManager::getShader(spriteShader);
     shader->bind();
 
     const auto program = shader->getId();
@@ -27,10 +29,10 @@ Sprite::Sprite(const std::string_view name) : name(name) {
     vbo = VertexBuffer::create(8);
     vbo->bind();
 
-    ebo = IndexBuffer::create(indices);
+    ebo = IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
-    if (const auto location = glGetAttribLocation(program, vertex.data());
+    if (const auto location = glGetAttribLocation(program, vertex);
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
@@ -41,7 +43,7 @@ Sprite::Sprite(const std::string_view name) : name(name) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    tex = ResourceManager::getTexture(name.data());
+    tex = ResourceManager::getTexture(name);
     tex->bind();
 
     shader->unbind();
@@ -59,7 +61,7 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
         { 1.F, 1.F }
     };
 
-    const auto shader = ResourceManager::getShader(spriteShader.data());
+    const auto shader = ResourceManager::getShader(spriteShader);
 
     vao->bind();
 
@@ -69,11 +71,11 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
 
     vbo->update(vertices);
 
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 
     glBindVertexArray(0);
 
     shader->unbind();
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

@@ -14,7 +14,7 @@ class Font : public sponge::renderer::Font {
    public:
     Font();
     void load(const std::string& path);
-    void render(std::string_view text, const glm::vec2& position,
+    void render(const std::string& text, const glm::vec2& position,
                 uint32_t targetSize, const glm::vec3& color);
 
    private:

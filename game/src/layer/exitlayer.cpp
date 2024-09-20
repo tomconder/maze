@@ -1,17 +1,20 @@
 #include "exitlayer.hpp"
 #include "resourcemanager.hpp"
 
-const std::string cameraName{ "exit" };
-const std::string uiFont{ "league-gothic" };
-const std::string quadShader{ "quad" };
-const std::string textShader{ "text" };
+namespace {
+constexpr char cameraName[] = "exit";
+constexpr char uiFont[] = "league-gothic";
+constexpr char quadShader[] = "quad";
+constexpr char textShader[] = "text";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
+}  // namespace
 
 namespace game::layer {
 
+using sponge::platform::opengl::renderer::Quad;
 using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::sdl::core::Application;
 
@@ -46,8 +49,7 @@ void ExitLayer::onAttach() {
                                          "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
-    quad =
-        std::make_unique<sponge::platform::opengl::renderer::Quad>(quadShader);
+    quad = std::make_unique<Quad>(quadShader);
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -91,7 +93,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const uint32_t length = font->getLength(message, 48);
     font->render(
         message,
-        { (width - static_cast<float>(length)) / 2.F, height / 2.F - 128.F },
+        { (width - static_cast<float>(length)) / 2.F, (height / 2.F) - 128.F },
         48, { 1.F, 1.F, 1.F });
 
     UNUSED(confirmButton->onUpdate(elapsedTime));
@@ -117,12 +119,12 @@ void ExitLayer::setWidthAndHeight(const uint32_t width,
     const auto inWidth = static_cast<float>(width);
     const auto inHeight = static_cast<float>(height);
 
-    confirmButton->setPosition({ inWidth * .23F, inHeight / 2.F - 30.F },
-                               { inWidth * .77F, inHeight / 2.F + 78.F });
+    confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
+                               { inWidth * .77F, (inHeight / 2.F) + 78.F });
 
     cancelButton->setPosition(
-        { inWidth / 2.F - 132.F, inHeight / 2.F + 117.F },
-        { inWidth / 2.F + 132.F, inHeight / 2.F + 186.F });
+        { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
+        { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
 }
 
 bool ExitLayer::onWindowResize(
