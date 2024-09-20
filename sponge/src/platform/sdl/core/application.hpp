@@ -25,7 +25,7 @@ struct ApplicationSpecification {
 
 using logging::LogItem;
 
-class Application : public sponge::Application {
+class Application : public sponge::core::Application {
    public:
     explicit Application(ApplicationSpecification specification);
 

@@ -17,7 +17,7 @@ std::unordered_map<std::string, std::shared_ptr<Shader>>
     ResourceManager::shaders;
 std::unordered_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
-std::string ResourceManager::assetsFolder = File::getResourceDir();
+std::string ResourceManager::assetsFolder = core::File::getResourceDir();
 
 std::shared_ptr<Font> ResourceManager::getFont(const std::string& name) {
     assert(!name.empty());
@@ -263,4 +263,4 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
     return texture;
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

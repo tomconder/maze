@@ -32,8 +32,8 @@ auto imguiManager = noopManager;
 #endif
 
 Application* Application::instance = nullptr;
-Timer systemTimer;
-Timer physicsTimer;
+core::Timer systemTimer;
+core::Timer physicsTimer;
 
 constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
@@ -90,10 +90,10 @@ bool Application::start() {
     fullscreen = appSpec.fullscreen;
 
     sdlWindow = std::make_unique<Window>(
-        WindowProps{ .title = appName,
-                     .width = appSpec.width,
-                     .height = appSpec.height,
-                     .fullscreen = appSpec.fullscreen });
+        core::WindowProps{ .title = appName,
+                           .width = appSpec.width,
+                           .height = appSpec.height,
+                           .fullscreen = appSpec.fullscreen });
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
     graphics = std::make_unique<opengl::renderer::Context>(window);

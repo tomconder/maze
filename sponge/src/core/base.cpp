@@ -7,7 +7,7 @@ constexpr std::string_view appFolder = "ItsTom";
 
 #define ASNFAM1
 
-namespace sponge {
+namespace sponge::core {
 
 using logging::Log;
 
@@ -21,4 +21,4 @@ void shutdownCore() {
     Log::shutdown();
 }
 
-}  // namespace sponge
+}  // namespace sponge::core

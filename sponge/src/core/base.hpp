@@ -3,9 +3,9 @@
 #define BIT(x)    (1 << (x))
 #define UNUSED(x) (void)(x)
 
-namespace sponge {
+namespace sponge::core {
 
 void startupCore();
 void shutdownCore();
 
-}  // namespace sponge
+}  // namespace sponge::core

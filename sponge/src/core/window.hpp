@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace sponge {
+namespace sponge::core {
 
 class WindowProps {
    public:
@@ -22,4 +22,4 @@ class Window {
     virtual void* getNativeWindow() const = 0;
 };
 
-}  // namespace sponge
+}  // namespace sponge::core

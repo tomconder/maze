@@ -3,7 +3,7 @@
 
 namespace sponge::platform::sdl {
 
-Window::Window(const WindowProps& props) {
+Window::Window(const core::WindowProps& props) {
     init(props);
 }
 
@@ -11,7 +11,7 @@ Window::~Window() noexcept {
     shutdown();
 }
 
-void Window::init(const WindowProps& props) {
+void Window::init(const core::WindowProps& props) {
     data.title = props.title;
     data.width = props.width;
     data.height = props.height;

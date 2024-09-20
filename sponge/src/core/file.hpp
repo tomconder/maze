@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace sponge {
+namespace sponge::core {
 
 class File {
    public:
@@ -10,7 +10,7 @@ class File {
     static std::string getResourceDir();
 };
 
-}  // namespace sponge
+}  // namespace sponge::core
 
 #ifdef __APPLE__
 #include "platform/osx/core/osxfile.hpp"

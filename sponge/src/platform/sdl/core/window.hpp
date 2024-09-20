@@ -11,9 +11,9 @@ struct WindowData {
     uint32_t height;
 };
 
-class Window final : public sponge::Window {
+class Window final : public core::Window {
    public:
-    explicit Window(const WindowProps& props);
+    explicit Window(const core::WindowProps& props);
     ~Window() noexcept override;
 
     uint32_t getWidth() const override {
@@ -29,7 +29,7 @@ class Window final : public sponge::Window {
     }
 
    private:
-    void init(const WindowProps& props);
+    void init(const core::WindowProps& props);
     void shutdown() const;
 
     WindowData data;
