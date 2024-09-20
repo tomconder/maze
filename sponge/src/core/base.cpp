@@ -2,18 +2,19 @@
 #include "file.hpp"
 #include "logging/log.hpp"
 
-constexpr std::string_view spongeLogFile = "log.txt";
-constexpr std::string_view appFolder = "ItsTom";
+namespace {
+constexpr char spongeLogFile[] = "log.txt";
+constexpr char appFolder[] = "ItsTom";
+}  // namespace
 
 #define ASNFAM1
 
-namespace sponge {
+namespace sponge::core {
 
 using logging::Log;
 
 void startupCore() {
-    const auto logfile =
-        File::getLogDir(appFolder.data()) + spongeLogFile.data();
+    const auto logfile = File::getLogDir(appFolder) + spongeLogFile;
     Log::init(logfile);
 }
 
@@ -21,4 +22,4 @@ void shutdownCore() {
     Log::shutdown();
 }
 
-}  // namespace sponge
+}  // namespace sponge::core

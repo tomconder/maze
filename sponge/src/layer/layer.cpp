@@ -1,8 +1,9 @@
 #include "layer/layer.hpp"
+#include <utility>
 
 namespace sponge::layer {
 
-Layer::Layer(const std::string& name) : debugName(name) {
+Layer::Layer(std::string name) : debugName(std::move(name)) {
     // nothing
 }
 

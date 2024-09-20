@@ -9,10 +9,10 @@
 
 namespace game {
 
-class Maze final : public sponge::platform::sdl::Application {
+class Maze final : public sponge::platform::sdl::core::Application {
    public:
-    explicit Maze(
-        const sponge::platform::sdl::ApplicationSpecification& specification);
+    explicit Maze(const sponge::platform::sdl::core::ApplicationSpecification&
+                      specification);
 
     bool onUserCreate() override;
 

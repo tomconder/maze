@@ -4,6 +4,8 @@ const std::string quadShader = "quad";
 
 namespace game::ui {
 
+using sponge::platform::opengl::renderer::ResourceManager;
+
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                const std::string& message, const uint32_t fontSize,
                const std::string& fontName, const glm::vec4& buttonColor,
@@ -16,13 +18,14 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       buttonColor(buttonColor),
       textColor(textColor),
       textPosition({ topLeft.x, topLeft.y }) {
-    font = sponge::platform::opengl::ResourceManager::getFont(textFontName);
+    font = ResourceManager::getFont(textFontName);
 
-    const auto shader = sponge::platform::opengl::ResourceManager::loadShader(
+    const auto shader = ResourceManager::loadShader(
         "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
-    quad = std::make_unique<sponge::platform::opengl::Quad>(quadShader);
+    quad =
+        std::make_unique<sponge::platform::opengl::renderer::Quad>(quadShader);
 }
 
 bool Button::onUpdate(const double elapsedTime) const {
@@ -58,8 +61,8 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
     const auto length = font->getLength(text, textSize);
-    textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
-                     top.y + (height - static_cast<float>(textSize)) / 2.F };
+    textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
+                     top.y + ((height - static_cast<float>(textSize)) / 2.F) };
 }
 
 }  // namespace game::ui

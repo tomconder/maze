@@ -2,9 +2,10 @@
 
 #include "core/application.hpp"
 
-extern sponge::Application* sponge::createApplication(int argc, char** argv);
+extern sponge::core::Application* sponge::core::createApplication(int argc,
+                                                                  char** argv);
 
-namespace sponge {
+namespace sponge::core {
 
 int main(const int argc, char** argv) {
     startupCore();
@@ -15,8 +16,8 @@ int main(const int argc, char** argv) {
 
     return 0;
 }
-}  // namespace sponge
+}  // namespace sponge::core
 
 extern "C" int main(const int argc, char* argv[]) {
-    return sponge::main(argc, argv);
+    return sponge::core::main(argc, argv);
 }

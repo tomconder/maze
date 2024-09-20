@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 
-namespace sponge {
+namespace sponge::core {
 
 class Timer {
    public:

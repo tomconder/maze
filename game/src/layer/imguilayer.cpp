@@ -5,13 +5,12 @@
 #include <imgui.h>
 #include <algorithm>
 
+namespace {
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor DARK_NORMAL_COLOR{ 1.F, 1.F, 1.F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
-const std::string cameraName{ "maze" };
-
-namespace game::layer {
+constexpr char cameraName[] = "maze";
+const std::vector categories{ "categories", "app", "sponge", "opengl" };
 
 const std::vector logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
@@ -19,8 +18,11 @@ const std::vector logLevels{
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
+}  // namespace
 
-const std::vector categories{ "categories", "app", "sponge", "opengl" };
+namespace game::layer {
+
+using sponge::platform::sdl::core::Application;
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
@@ -29,15 +31,12 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    const auto width = static_cast<float>(
-        sponge::platform::sdl::Application::get().getWindowWidth());
-    const auto height = static_cast<float>(
-        sponge::platform::sdl::Application::get().getWindowHeight());
+    const auto width = static_cast<float>(Application::get().getWindowWidth());
+    const auto height =
+        static_cast<float>(Application::get().getWindowHeight());
 
-    static auto hasVsync =
-        sponge::platform::sdl::Application::hasVerticalSync();
-    auto isFullscreen =
-        sponge::platform::sdl::Application::get().isFullscreen();
+    static auto hasVsync = Application::hasVerticalSync();
+    auto isFullscreen = Application::get().isFullscreen();
     auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
@@ -83,16 +82,15 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         ImGui::Text("Resolution");
         ImGui::TableNextColumn();
-        ImGui::Text(
-            "%dx%d", sponge::platform::sdl::Application::get().getWindowWidth(),
-            sponge::platform::sdl::Application::get().getWindowHeight());
+        ImGui::Text("%dx%d", Application::get().getWindowWidth(),
+                    Application::get().getWindowHeight());
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-            sponge::platform::sdl::Application::setVerticalSync(hasVsync);
+            Application::setVerticalSync(hasVsync);
         }
 
         ImGui::TableNextRow();
@@ -100,7 +98,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Full Screen");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-            sponge::platform::sdl::Application::get().toggleFullscreen();
+            Application::get().toggleFullscreen();
         }
 
         ImGui::TableNextRow();
@@ -115,8 +113,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto* const layerStack =
-                sponge::platform::sdl::Application::get().getLayerStack();
+            auto* const layerStack = Application::get().getLayerStack();
             showLayersTable(layerStack);
         }
 
@@ -141,7 +138,7 @@ float ImGuiLayer::getLogSelectionMaxWidth(
         maxWidth = std::max(width, maxWidth);
     }
 
-    return maxWidth + ImGui::GetStyle().FramePadding.x * 2 +
+    return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
            ImGui::GetFrameHeight();
 }
 
@@ -202,7 +199,7 @@ void ImGuiLayer::showLogging() {
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
                                 ImGui::CalcTextSize("Reset").x -
-                                ImGui::GetStyle().FramePadding.x * 6);
+                                (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {
@@ -221,7 +218,7 @@ void ImGuiLayer::showLogging() {
     ImVec4 color;
 
     for (const auto& [message, loggerName, level] :
-         sponge::platform::sdl::Application::get().getMessages()) {
+         Application::get().getMessages()) {
         if (level < activeLogLevel) {
             continue;
         }

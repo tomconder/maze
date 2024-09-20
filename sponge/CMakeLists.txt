@@ -28,9 +28,9 @@ file(
 
 # OpenGL
 message(STATUS "Including OpenGL platform files")
-file(GLOB OPENGL_HEADERS LIST_DIRECTORIES false src/platform/opengl/*.hpp)
+file(GLOB OPENGL_HEADERS LIST_DIRECTORIES false src/platform/opengl/renderer/*.hpp)
 list(APPEND HEADER_FILES ${OPENGL_HEADERS})
-file(GLOB OPENGL_SOURCES LIST_DIRECTORIES false src/platform/opengl/*.cpp)
+file(GLOB OPENGL_SOURCES LIST_DIRECTORIES false src/platform/opengl/renderer/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
 # SDL
@@ -38,7 +38,7 @@ message(STATUS "Including SDL platform files")
 file(
         GLOB SDL_HEADERS
         LIST_DIRECTORIES false
-        src/platform/sdl/*.hpp
+        src/platform/sdl/core/*.hpp
         src/platform/sdl/imgui/*.hpp
         src/platform/sdl/input/*.hpp
         src/platform/sdl/logging/*.hpp
@@ -47,7 +47,7 @@ list(APPEND HEADER_FILES ${SDL_HEADERS})
 file(
         GLOB SDL_SOURCES
         LIST_DIRECTORIES false
-        src/platform/sdl/*.cpp
+        src/platform/sdl/core/*.cpp
         src/platform/sdl/imgui/*.cpp
         src/platform/sdl/input/*.cpp
         src/platform/sdl/logging/*.cpp
@@ -56,25 +56,25 @@ list(APPEND SOURCE_FILES ${SDL_SOURCES})
 
 if (APPLE)
     message(STATUS "Including OSX platform files")
-    file(GLOB OSX_HEADERS src/platform/osx/*.hpp)
+    file(GLOB OSX_HEADERS src/platform/osx/core/*.hpp)
     list(APPEND HEADER_FILES ${OSX_HEADERS})
-    file(GLOB OSX_SOURCES src/platform/osx/*.cpp)
+    file(GLOB OSX_SOURCES src/platform/osx/core/*.cpp)
     list(APPEND SOURCE_FILES ${OSX_SOURCES})
 endif ()
 
 if (MSVC)
     message(STATUS "Including Windows platform files")
-    file(GLOB WIN_HEADERS src/platform/windows/*.hpp)
+    file(GLOB WIN_HEADERS src/platform/windows/core/*.hpp)
     list(APPEND HEADER_FILES ${WIN_HEADERS})
-    file(GLOB WIN_SOURCES src/platform/windows/*.cpp)
+    file(GLOB WIN_SOURCES src/platform/windows/core/*.cpp)
     list(APPEND SOURCE_FILES ${WIN_SOURCES})
 endif ()
 
 if (UNIX AND NOT APPLE)
     message(STATUS "Including Linux platform files")
-    file(GLOB LINUX_HEADERS src/platform/linux/*.hpp)
+    file(GLOB LINUX_HEADERS src/platform/linux/core/*.hpp)
     list(APPEND HEADER_FILES ${LINUX_HEADERS})
-    file(GLOB LINUX_SOURCES src/platform/linux/*.cpp)
+    file(GLOB LINUX_SOURCES src/platform/linux/core/*.cpp)
     list(APPEND SOURCE_FILES ${LINUX_SOURCES})
 endif ()
 

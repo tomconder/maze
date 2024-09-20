@@ -7,7 +7,7 @@ namespace sponge::layer {
 
 class Layer {
    public:
-    explicit Layer(const std::string& name = "undefined");
+    explicit Layer(std::string name = "undefined");
     virtual ~Layer() = default;
 
     virtual void onAttach() {}

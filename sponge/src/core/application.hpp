@@ -2,7 +2,7 @@
 
 #include "event/event.hpp"
 
-namespace sponge {
+namespace sponge::core {
 
 class Application {
    public:
@@ -24,4 +24,4 @@ class Application {
 // implemented by client
 Application* createApplication(int argc, char** argv);
 
-}  // namespace sponge
+}  // namespace sponge::core

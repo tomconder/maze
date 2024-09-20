@@ -1,7 +1,7 @@
 #include "sdlmanager.hpp"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl2.h"
-#include "platform/sdl/application.hpp"
+#include "platform/sdl/core/application.hpp"
 
 namespace sponge::platform::sdl::imgui {
 
