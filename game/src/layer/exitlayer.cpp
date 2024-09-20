@@ -13,6 +13,7 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 namespace game::layer {
 
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::sdl::core::Application;
 
 ExitLayer::ExitLayer() : Layer("exit") {
     // nothing
@@ -134,9 +135,9 @@ bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
         if (isActive()) {
-            sponge::platform::sdl::Application::get().setMouseVisible(false);
+            Application::get().setMouseVisible(false);
         } else {
-            sponge::platform::sdl::Application::get().setMouseVisible(true);
+            Application::get().setMouseVisible(true);
         }
     }
 

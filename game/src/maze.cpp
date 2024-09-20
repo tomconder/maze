@@ -5,9 +5,11 @@
 
 namespace game {
 
+using sponge::platform::sdl::core::ApplicationSpecification;
+
 Maze* Maze::instance = nullptr;
 
-Maze::Maze(const sponge::platform::sdl::ApplicationSpecification& specification)
+Maze::Maze(const ApplicationSpecification& specification)
     : Application(specification) {
     assert(!instance && "Maze already exists!");
     instance = this;
@@ -90,19 +92,20 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 
 }  // namespace game
 
-sponge::core::Application* sponge::core::createApplication(const int argc, char** argv) {
+sponge::core::Application* sponge::core::createApplication(const int argc,
+                                                           char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
 
-    const auto spec =
-        platform::sdl::ApplicationSpecification{ .name =
-                                                             game::project_name,
-                                                         .width = width,
-                                                         .height = height,
-                                                         .fullscreen = true };
+    using platform::sdl::core::ApplicationSpecification;
+
+    const auto spec = ApplicationSpecification{ .name = game::project_name,
+                                                .width = width,
+                                                .height = height,
+                                                .fullscreen = true };
 
     return new game::Maze{ spec };
 }

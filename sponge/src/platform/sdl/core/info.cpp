@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <sstream>
 
-namespace sponge::platform::sdl {
+namespace sponge::platform::sdl::core {
 
 void Info::logVersion() {
     SDL_version compiled;
@@ -29,4 +29,4 @@ void Info::logVersion() {
         static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
 
-}  // namespace sponge::platform::sdl
+}  // namespace sponge::platform::sdl::core

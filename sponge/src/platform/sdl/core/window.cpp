@@ -1,9 +1,9 @@
 #include "platform/sdl/core/window.hpp"
 #include "logging/log.hpp"
 
-namespace sponge::platform::sdl {
+namespace sponge::platform::sdl::core {
 
-Window::Window(const core::WindowProps& props) {
+Window::Window(const sponge::core::WindowProps& props) {
     init(props);
 }
 
@@ -11,7 +11,7 @@ Window::~Window() noexcept {
     shutdown();
 }
 
-void Window::init(const core::WindowProps& props) {
+void Window::init(const sponge::core::WindowProps& props) {
     data.title = props.title;
     data.width = props.width;
     data.height = props.height;
@@ -53,4 +53,4 @@ void Window::shutdown() const {
     }
 }
 
-}  // namespace sponge::platform::sdl
+}  // namespace sponge::platform::sdl::core

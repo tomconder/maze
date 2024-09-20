@@ -9,6 +9,7 @@ const std::string cameraName{ "maze" };
 namespace game::layer {
 
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::sdl::core::Application;
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
@@ -101,7 +102,7 @@ bool MazeLayer::onKeyPressed(
 bool MazeLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Application::get().setMouseVisible(false);
+        Application::get().setMouseVisible(false);
         return true;
     }
     return false;
@@ -110,7 +111,7 @@ bool MazeLayer::onMouseButtonPressed(
 bool MazeLayer::onMouseButtonReleased(
     const sponge::event::MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == 0) {
-        sponge::platform::sdl::Application::get().setMouseVisible(true);
+        Application::get().setMouseVisible(true);
         return true;
     }
     return false;

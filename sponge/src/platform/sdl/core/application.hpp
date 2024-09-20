@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <string>
 
-namespace sponge::platform::sdl {
+namespace sponge::platform::sdl::core {
 
 struct ApplicationSpecification {
     std::string name = "Sponge";
@@ -145,4 +145,4 @@ class Application : public sponge::core::Application {
     static Application* instance;
 };
 
-}  // namespace sponge::platform::sdl
+}  // namespace sponge::platform::sdl::core

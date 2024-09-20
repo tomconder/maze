@@ -20,7 +20,7 @@
 #include <array>
 #include <utility>
 
-namespace sponge::platform::sdl {
+namespace sponge::platform::sdl::core {
 
 auto sdlManager = std::make_shared<imgui::SDLManager>();
 auto noopManager = std::make_shared<imgui::NoopManager>();
@@ -32,8 +32,8 @@ auto imguiManager = noopManager;
 #endif
 
 Application* Application::instance = nullptr;
-core::Timer systemTimer;
-core::Timer physicsTimer;
+sponge::core::Timer systemTimer;
+sponge::core::Timer physicsTimer;
 
 constexpr uint16_t UPDATE_FREQUENCY{ 120 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
@@ -90,10 +90,10 @@ bool Application::start() {
     fullscreen = appSpec.fullscreen;
 
     sdlWindow = std::make_unique<Window>(
-        core::WindowProps{ .title = appName,
-                           .width = appSpec.width,
-                           .height = appSpec.height,
-                           .fullscreen = appSpec.fullscreen });
+        sponge::core::WindowProps{ .title = appName,
+                                   .width = appSpec.width,
+                                   .height = appSpec.height,
+                                   .fullscreen = appSpec.fullscreen });
     auto* window = static_cast<SDL_Window*>(sdlWindow->getNativeWindow());
 
     graphics = std::make_unique<opengl::renderer::Context>(window);
@@ -441,4 +441,4 @@ void Application::run() {
     shutdown();
 }
 
-}  // namespace sponge::platform::sdl
+}  // namespace sponge::platform::sdl::core
