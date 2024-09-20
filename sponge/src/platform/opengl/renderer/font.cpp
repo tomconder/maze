@@ -80,8 +80,8 @@ void Font::render(std::string_view text, const glm::vec2& position,
         auto index = std::to_string(c);
         auto [loc, width, height, offset, xadvance, page] = fontChars[index];
 
-        const auto xpos = x + offset.x * scale;
-        const auto ypos = position.y + offset.y * scale;
+        const auto xpos = x + (offset.x * scale);
+        const auto ypos = position.y + (offset.y * scale);
 
         const auto w = width * scale;
         const auto h = height * scale;

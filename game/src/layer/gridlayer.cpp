@@ -7,20 +7,20 @@ const std::string modelName{ "cube" };
 
 namespace game::layer {
 
+using sponge::platform::opengl::renderer::ResourceManager;
+
 GridLayer::GridLayer() : Layer("grid") {
     // nothing
 }
 
 void GridLayer::onAttach() {
-    sponge::platform::opengl::renderer::ResourceManager::loadShader(
-        "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag", gridShader);
+    ResourceManager::loadShader("/shaders/infinitegrid.vert",
+                                "/shaders/infinitegrid.frag", gridShader);
 
-    camera = ResourceManager::createGameCamera(cameraName);
+    camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 4.F, 7.F));
 
-    const auto shader =
-        sponge::platform::opengl::renderer::ResourceManager::getShader(
-            gridShader);
+    const auto shader = ResourceManager::getShader(gridShader);
     UNUSED(shader);
 
     grid =
@@ -34,9 +34,7 @@ void GridLayer::onDetach() {
 bool GridLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto shader =
-        sponge::platform::opengl::renderer::ResourceManager::getShader(
-            gridShader);
+    const auto shader = ResourceManager::getShader(gridShader);
     shader->bind();
     shader->setMat4("mvp", camera->getMVP());
 

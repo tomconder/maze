@@ -12,39 +12,37 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 namespace game::layer {
 
+using sponge::platform::opengl::renderer::ResourceManager;
+
 ExitLayer::ExitLayer() : Layer("exit") {
     // nothing
 }
 
 void ExitLayer::onAttach() {
-    sponge::platform::opengl::renderer::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
+    ResourceManager::loadShader("/shaders/quad.vert", "/shaders/quad.frag",
+                                quadShader);
 
-    sponge::platform::opengl::renderer::ResourceManager::loadShader(
-        "/shaders/text.vert", "/shaders/text.frag", textShader);
+    ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
+                                textShader);
 
-    sponge::platform::opengl::renderer::ResourceManager::loadFont(
-        "/fonts/league-gothic.fnt", uiFont);
+    ResourceManager::loadFont("/fonts/league-gothic.fnt", uiFont);
 
-    orthoCamera = ResourceManager::createOrthoCamera(cameraName);
+    orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
 
-    auto shader =
-        sponge::platform::opengl::renderer::ResourceManager::getShader(
-            quadShader);
+    auto shader = ResourceManager::getShader(quadShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::renderer::ResourceManager::getShader(
-        textShader);
+    shader = ResourceManager::getShader(textShader);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::renderer::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
+    shader = ResourceManager::loadShader("/shaders/quad.vert",
+                                         "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
     quad =
@@ -87,8 +85,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
                  { .52F, .57F, .55F, 1.F });
 
-    const auto font =
-        sponge::platform::opengl::renderer::ResourceManager::getFont(uiFont);
+    const auto font = ResourceManager::getFont(uiFont);
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
@@ -106,15 +103,12 @@ void ExitLayer::setWidthAndHeight(const uint32_t width,
                                   const uint32_t height) const {
     orthoCamera->setWidthAndHeight(width, height);
 
-    auto shader =
-        sponge::platform::opengl::renderer::ResourceManager::getShader(
-            textShader);
+    auto shader = ResourceManager::getShader(textShader);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = sponge::platform::opengl::renderer::ResourceManager::getShader(
-        quadShader);
+    shader = ResourceManager::getShader(quadShader);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
