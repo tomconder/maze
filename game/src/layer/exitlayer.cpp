@@ -14,8 +14,8 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 namespace game::layer {
 
-using sponge::platform::opengl::renderer::Quad;
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Quad;
 using sponge::platform::sdl::core::Application;
 
 ExitLayer::ExitLayer() : Layer("exit") {
