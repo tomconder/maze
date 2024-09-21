@@ -12,7 +12,7 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 void Model::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
@@ -77,7 +77,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
     const std::string& path) {
     std::vector<sponge::renderer::Vertex> vertices;
     std::vector<uint32_t> indices;
-    std::vector<std::shared_ptr<Texture>> textures;
+    std::vector<std::shared_ptr<renderer::Texture>> textures;
 
     auto numIndices = 0;
 
@@ -134,7 +134,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
                                          textures);
 }
 
-std::shared_ptr<Texture> Model::loadMaterialTextures(
+std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
     const tinyobj::material_t& material, const std::string& path) {
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
@@ -151,8 +151,8 @@ std::shared_ptr<Texture> Model::loadMaterialTextures(
     std::transform(name.begin(), name.end(), name.begin(),
                    [](const uint8_t c) { return std::tolower(c); });
 
-    return ResourceManager::loadTexture(filename.string(), name,
-                                        ExcludeAssetsFolder);
+    return renderer::ResourceManager::loadTexture(
+        filename.string(), name, renderer::ExcludeAssetsFolder);
 }
 
 void Model::render() const {
@@ -161,4 +161,4 @@ void Model::render() const {
     }
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

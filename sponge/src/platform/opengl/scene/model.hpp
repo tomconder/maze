@@ -5,7 +5,7 @@
 #include <tiny_obj_loader.h>
 #include <vector>
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 class Model {
    public:
@@ -34,8 +34,8 @@ class Model {
         tinyobj::mesh_t& mesh,
         const std::vector<tinyobj::material_t>& materials,
         const std::string& path);
-    static std::shared_ptr<Texture> loadMaterialTextures(
+    static std::shared_ptr<renderer::Texture> loadMaterialTextures(
         const tinyobj::material_t& material, const std::string& path);
 };
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

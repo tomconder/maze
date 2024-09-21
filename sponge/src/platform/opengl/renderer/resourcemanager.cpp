@@ -13,15 +13,15 @@ namespace sponge::platform::opengl::renderer {
 
 std::unordered_map<std::string, std::shared_ptr<scene::Font>>
     ResourceManager::fonts;
-std::unordered_map<std::string, std::shared_ptr<Model>> ResourceManager::models;
+std::unordered_map<std::string, std::shared_ptr<scene::Model>>
+    ResourceManager::models;
 std::unordered_map<std::string, std::shared_ptr<Shader>>
     ResourceManager::shaders;
 std::unordered_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
 std::string ResourceManager::assetsFolder = core::File::getResourceDir();
 
-std::shared_ptr<scene::Font> ResourceManager::getFont(
-    const std::string& name) {
+std::shared_ptr<scene::Font> ResourceManager::getFont(const std::string& name) {
     assert(!name.empty());
     return fonts.at(name);
 }
@@ -43,14 +43,15 @@ std::shared_ptr<scene::Font> ResourceManager::loadFont(
     return font;
 }
 
-std::shared_ptr<Model> ResourceManager::getModel(const std::string& name) {
+std::shared_ptr<scene::Model> ResourceManager::getModel(
+    const std::string& name) {
     assert(!name.empty());
     return models.at(name);
 }
 
-std::shared_ptr<Model> ResourceManager::loadModel(const std::string& shaderName,
-                                                  const std::string& path,
-                                                  const std::string& name) {
+std::shared_ptr<scene::Model> ResourceManager::loadModel(
+    const std::string& shaderName, const std::string& path,
+    const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -185,11 +186,11 @@ std::shared_ptr<scene::Font> ResourceManager::loadFontFromFile(
     return font;
 }
 
-std::shared_ptr<Model> ResourceManager::loadModelFromFile(
+std::shared_ptr<scene::Model> ResourceManager::loadModelFromFile(
     const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
 
-    auto mesh = std::make_shared<Model>();
+    auto mesh = std::make_shared<scene::Model>();
     mesh->load(shaderName, path);
 
     return mesh;
