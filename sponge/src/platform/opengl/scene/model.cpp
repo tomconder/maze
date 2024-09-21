@@ -14,6 +14,8 @@
 
 namespace sponge::platform::opengl::scene {
 
+using sponge::scene::Vertex;
+
 void Model::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
 
@@ -71,11 +73,11 @@ void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
     }
 }
 
-std::shared_ptr<scene::Mesh> Model::processMesh(
+std::shared_ptr<Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
-    std::vector<sponge::scene::Vertex> vertices;
+    std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<renderer::Texture>> textures;
 
@@ -84,7 +86,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    sponge::scene::Vertex vertex;
+    Vertex vertex;
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
@@ -130,8 +132,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
         }
     }
 
-    return std::make_shared<scene::Mesh>(shaderName, vertices, indices,
-                                         textures);
+    return std::make_shared<Mesh>(shaderName, vertices, indices, textures);
 }
 
 std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
