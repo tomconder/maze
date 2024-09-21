@@ -8,12 +8,14 @@ constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
-Mesh::Mesh(const std::string& shaderName,
-           const std::vector<sponge::renderer::Vertex>& vertices,
+using renderer::ResourceManager;
+using sponge::scene::Vertex;
+
+Mesh::Mesh(const std::string& shaderName, const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
-           const std::vector<std::shared_ptr<Texture>>& textures)
+           const std::vector<std::shared_ptr<renderer::Texture>>& textures)
     : shaderName(shaderName), textures(textures) {
     assert(!shaderName.empty());
 
@@ -23,10 +25,10 @@ Mesh::Mesh(const std::string& shaderName,
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(vertices);
+    vbo = renderer::VertexBuffer::create(vertices);
     vbo->bind();
 
     const auto program = shader->getId();
@@ -35,33 +37,30 @@ Mesh::Mesh(const std::string& shaderName,
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
-                              reinterpret_cast<const void*>(offsetof(
-                                  sponge::renderer::Vertex, position)));
+        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(sponge::scene::Vertex, position)));
     }
 
     location = glGetAttribLocation(program, texCoord);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
-                              reinterpret_cast<const void*>(offsetof(
-                                  sponge::renderer::Vertex, texCoords)));
+        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(sponge::scene::Vertex, texCoords)));
     }
 
     location = glGetAttribLocation(program, normal);
     if (location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
+        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<const void*>(
-                                  offsetof(sponge::renderer::Vertex, normal)));
+                                  offsetof(sponge::scene::Vertex, normal)));
     }
 
-    ebo = IndexBuffer::create(indices);
+    ebo = renderer::IndexBuffer::create(indices);
     ebo->bind();
 
     shader->unbind();
@@ -86,4 +85,4 @@ void Mesh::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

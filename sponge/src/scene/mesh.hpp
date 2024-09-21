@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include <vector>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 struct Vertex {
     glm::vec3 position;
     glm::vec2 texCoords;

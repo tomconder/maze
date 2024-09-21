@@ -12,24 +12,24 @@ constexpr uint32_t indices[] = {
 };
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name) : name(name) {
-    ResourceManager::loadShader("/shaders/sprite.vert", "/shaders/sprite.frag",
-                                spriteShader);
+    renderer::ResourceManager::loadShader("/shaders/sprite.vert",
+                                          "/shaders/sprite.frag", spriteShader);
 
-    const auto shader = ResourceManager::getShader(spriteShader);
+    const auto shader = renderer::ResourceManager::getShader(spriteShader);
     shader->bind();
 
     const auto program = shader->getId();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(8);
+    vbo = renderer::VertexBuffer::create(8);
     vbo->bind();
 
-    ebo = IndexBuffer::create({ indices, std::end(indices) });
+    ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
     if (const auto location = glGetAttribLocation(program, vertex);
@@ -43,7 +43,7 @@ Sprite::Sprite(const std::string& name) : name(name) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    tex = ResourceManager::getTexture(name);
+    tex = renderer::ResourceManager::getTexture(name);
     tex->bind();
 
     shader->unbind();
@@ -61,7 +61,7 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
         { 1.F, 1.F }
     };
 
-    const auto shader = ResourceManager::getShader(spriteShader);
+    const auto shader = renderer::ResourceManager::getShader(spriteShader);
 
     vao->bind();
 
@@ -78,4 +78,4 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
     shader->unbind();
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

@@ -1,0 +1,27 @@
+#pragma once
+
+#include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "scene/sprite.hpp"
+#include <memory>
+#include <string>
+
+namespace sponge::platform::opengl::scene {
+
+class Sprite final : public sponge::scene::Sprite {
+   public:
+    explicit Sprite(const std::string& name);
+
+    void render(glm::vec2 position, glm::vec2 size) const override;
+
+   private:
+    std::string name;
+    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::unique_ptr<renderer::IndexBuffer> ebo;
+    std::unique_ptr<renderer::VertexArray> vao;
+    std::shared_ptr<renderer::Texture> tex;
+};
+
+}  // namespace sponge::platform::opengl::scene

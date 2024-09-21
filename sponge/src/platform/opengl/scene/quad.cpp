@@ -11,21 +11,21 @@ constexpr uint32_t indices[] = {
 constexpr char position[] = "position";
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 Quad::Quad(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
 
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = renderer::ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(4);
+    vbo = renderer::VertexBuffer::create(4);
     vbo->bind();
 
-    ebo = IndexBuffer::create({ indices, std::end(indices) });
+    ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
     const auto program = shader->getId();
@@ -54,7 +54,7 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
         { bottom.x, bottom.y }  //
     };
 
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = renderer::ResourceManager::getShader(shaderName);
 
     vao->bind();
 
@@ -70,4 +70,4 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

@@ -39,7 +39,7 @@ void HUDLayer::onAttach() {
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    logo = std::make_unique<sponge::platform::opengl::renderer::Sprite>(
+    logo = std::make_unique<sponge::platform::opengl::scene::Sprite>(
         coffeeTexture);
 }
 

@@ -3,9 +3,10 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr char modelName[] = "maze";
-constexpr char mazeShader[] = "mesh";
 constexpr char cameraName[] = "maze";
+constexpr char mazeShader[] = "mesh";
+constexpr char modelName[] = "maze";
+constexpr char modelPath[] = "/models/cube/cube.obj";
 }  // namespace
 
 namespace game::layer {
@@ -20,7 +21,7 @@ MazeLayer::MazeLayer() : Layer("maze") {
 void MazeLayer::onAttach() {
     ResourceManager::loadShader("/shaders/shader.vert", "/shaders/shader.frag",
                                 "/shaders/shader.geom", mazeShader);
-    ResourceManager::loadModel(mazeShader, "/models/cube/cube.obj", modelName);
+    ResourceManager::loadModel(mazeShader, modelPath, modelName);
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));

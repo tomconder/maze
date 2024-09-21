@@ -7,7 +7,7 @@
 #include <glm/vec4.hpp>
 #include <string>
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 class Quad {
    public:
@@ -19,9 +19,9 @@ class Quad {
    private:
     std::string shaderName;
 
-    std::unique_ptr<VertexBuffer> vbo;
-    std::unique_ptr<IndexBuffer> ebo;
-    std::unique_ptr<VertexArray> vao;
+    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::unique_ptr<renderer::IndexBuffer> ebo;
+    std::unique_ptr<renderer::VertexArray> vao;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::scene

@@ -1,6 +1,8 @@
 #include "button.hpp"
 
-const std::string quadShader = "quad";
+namespace {
+constexpr char quadShader[] = "quad";
+}
 
 namespace game::ui {
 
@@ -24,8 +26,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
         "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
     UNUSED(shader);
 
-    quad =
-        std::make_unique<sponge::platform::opengl::renderer::Quad>(quadShader);
+    quad = std::make_unique<sponge::platform::opengl::scene::Quad>(quadShader);
 }
 
 bool Button::onUpdate(const double elapsedTime) const {

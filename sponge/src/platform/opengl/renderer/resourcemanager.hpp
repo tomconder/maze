@@ -1,9 +1,9 @@
 #pragma once
 
-#include "platform/opengl/renderer/model.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/font.hpp"
+#include "platform/opengl/scene/model.hpp"
 #include <string>
 #include <unordered_map>
 
@@ -17,10 +17,10 @@ class ResourceManager {
     static std::shared_ptr<scene::Font> loadFont(const std::string& path,
                                                  const std::string& name);
 
-    static std::shared_ptr<Model> getModel(const std::string& name);
-    static std::shared_ptr<Model> loadModel(const std::string& shaderName,
-                                            const std::string& path,
-                                            const std::string& name);
+    static std::shared_ptr<scene::Model> getModel(const std::string& name);
+    static std::shared_ptr<scene::Model> loadModel(
+        const std::string& shaderName, const std::string& path,
+        const std::string& name);
 
     static std::shared_ptr<Shader> loadShader(const std::string& vertexShader,
                                               const std::string& fragmentShader,
@@ -45,7 +45,7 @@ class ResourceManager {
 
     static std::shared_ptr<scene::Font> loadFontFromFile(
         const std::string& path);
-    static std::shared_ptr<Model> loadModelFromFile(
+    static std::shared_ptr<scene::Model> loadModelFromFile(
         const std::string& shaderName, const std::string& path);
     static std::string loadSourceFromFile(const std::string& path);
     static std::shared_ptr<Texture> loadTextureFromFile(
@@ -54,7 +54,8 @@ class ResourceManager {
     static std::string assetsFolder;
 
     static std::unordered_map<std::string, std::shared_ptr<scene::Font>> fonts;
-    static std::unordered_map<std::string, std::shared_ptr<Model>> models;
+    static std::unordered_map<std::string, std::shared_ptr<scene::Model>>
+        models;
     static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 };

@@ -1,5 +1,5 @@
 #include "grid.hpp"
-#include "resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 #include <array>
 
 namespace {
@@ -18,22 +18,22 @@ constexpr glm::vec2 vertices[] = {
 constexpr char position[] = "position";
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
 
 Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
     assert(!shaderName.empty());
 
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = renderer::ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(
+    vbo = renderer::VertexBuffer::create(
         std::vector<glm::vec2>{ vertices, std::end(vertices) });
     vbo->bind();
 
-    ebo = IndexBuffer::create({ indices, std::end(indices) });
+    ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
 
     const auto program = shader->getId();
@@ -54,7 +54,7 @@ Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
 }
 
 void Grid::render() const {
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = renderer::ResourceManager::getShader(shaderName);
 
     vao->bind();
 
@@ -67,4 +67,4 @@ void Grid::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

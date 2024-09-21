@@ -12,7 +12,9 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
+
+using sponge::scene::Vertex;
 
 void Model::load(const std::string& shaderName, const std::string& path) {
     assert(!path.empty());
@@ -75,16 +77,16 @@ std::shared_ptr<Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
-    std::vector<sponge::renderer::Vertex> vertices;
+    std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-    std::vector<std::shared_ptr<Texture>> textures;
+    std::vector<std::shared_ptr<renderer::Texture>> textures;
 
     auto numIndices = 0;
 
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    sponge::renderer::Vertex vertex;
+    Vertex vertex;
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
@@ -133,7 +135,7 @@ std::shared_ptr<Mesh> Model::processMesh(
     return std::make_shared<Mesh>(shaderName, vertices, indices, textures);
 }
 
-std::shared_ptr<Texture> Model::loadMaterialTextures(
+std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
     const tinyobj::material_t& material, const std::string& path) {
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
@@ -150,8 +152,8 @@ std::shared_ptr<Texture> Model::loadMaterialTextures(
     std::transform(name.begin(), name.end(), name.begin(),
                    [](const uint8_t c) { return std::tolower(c); });
 
-    return ResourceManager::loadTexture(filename.string(), name,
-                                        ExcludeAssetsFolder);
+    return renderer::ResourceManager::loadTexture(
+        filename.string(), name, renderer::ExcludeAssetsFolder);
 }
 
 void Model::render() const {
@@ -160,4 +162,4 @@ void Model::render() const {
     }
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

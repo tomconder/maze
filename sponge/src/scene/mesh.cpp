@@ -1,7 +1,7 @@
 #include "mesh.hpp"
 #include <meshoptimizer.h>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 void Mesh::optimize() {
     std::vector<uint32_t> remap(indices.size());
