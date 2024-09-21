@@ -75,7 +75,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
-    std::vector<sponge::renderer::Vertex> vertices;
+    std::vector<sponge::scene::Vertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<std::shared_ptr<renderer::Texture>> textures;
 
@@ -84,7 +84,7 @@ std::shared_ptr<scene::Mesh> Model::processMesh(
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    sponge::renderer::Vertex vertex;
+    sponge::scene::Vertex vertex;
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],

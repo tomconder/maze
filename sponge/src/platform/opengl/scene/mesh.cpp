@@ -13,7 +13,7 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
 Mesh::Mesh(const std::string& shaderName,
-           const std::vector<sponge::renderer::Vertex>& vertices,
+           const std::vector<sponge::scene::Vertex>& vertices,
            const std::vector<uint32_t>& indices,
            const std::vector<std::shared_ptr<renderer::Texture>>& textures)
     : shaderName(shaderName), textures(textures) {
@@ -38,9 +38,9 @@ Mesh::Mesh(const std::string& shaderName,
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
-                              reinterpret_cast<const void*>(offsetof(
-                                  sponge::renderer::Vertex, position)));
+                              sizeof(sponge::scene::Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(sponge::scene::Vertex, position)));
     }
 
     location = glGetAttribLocation(program, texCoord);
@@ -48,9 +48,9 @@ Mesh::Mesh(const std::string& shaderName,
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
-                              reinterpret_cast<const void*>(offsetof(
-                                  sponge::renderer::Vertex, texCoords)));
+                              sizeof(sponge::scene::Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(sponge::scene::Vertex, texCoords)));
     }
 
     location = glGetAttribLocation(program, normal);
@@ -58,9 +58,9 @@ Mesh::Mesh(const std::string& shaderName,
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(sponge::renderer::Vertex),
+                              sizeof(sponge::scene::Vertex),
                               reinterpret_cast<const void*>(
-                                  offsetof(sponge::renderer::Vertex, normal)));
+                                  offsetof(sponge::scene::Vertex, normal)));
     }
 
     ebo = renderer::IndexBuffer::create(indices);
