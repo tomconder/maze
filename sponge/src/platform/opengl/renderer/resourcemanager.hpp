@@ -1,9 +1,9 @@
 #pragma once
 
-#include "platform/opengl/renderer/font.hpp"
 #include "platform/opengl/renderer/model.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/scene/font.hpp"
 #include <string>
 #include <unordered_map>
 
@@ -13,9 +13,9 @@ enum LoadFlag : uint8_t { ExcludeAssetsFolder, None };
 
 class ResourceManager {
    public:
-    static std::shared_ptr<Font> getFont(const std::string& name);
-    static std::shared_ptr<Font> loadFont(const std::string& path,
-                                          const std::string& name);
+    static std::shared_ptr<scene::Font> getFont(const std::string& name);
+    static std::shared_ptr<scene::Font> loadFont(const std::string& path,
+                                                 const std::string& name);
 
     static std::shared_ptr<Model> getModel(const std::string& name);
     static std::shared_ptr<Model> loadModel(const std::string& shaderName,
@@ -43,7 +43,8 @@ class ResourceManager {
    private:
     ResourceManager() = default;
 
-    static std::shared_ptr<Font> loadFontFromFile(const std::string& path);
+    static std::shared_ptr<scene::Font> loadFontFromFile(
+        const std::string& path);
     static std::shared_ptr<Model> loadModelFromFile(
         const std::string& shaderName, const std::string& path);
     static std::string loadSourceFromFile(const std::string& path);
@@ -52,10 +53,10 @@ class ResourceManager {
 
     static std::string assetsFolder;
 
-    static std::unordered_map<std::string, std::shared_ptr<Font>> fonts;
+    static std::unordered_map<std::string, std::shared_ptr<scene::Font>> fonts;
     static std::unordered_map<std::string, std::shared_ptr<Model>> models;
     static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

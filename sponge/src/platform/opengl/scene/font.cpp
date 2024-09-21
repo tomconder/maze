@@ -9,7 +9,9 @@ constexpr char textShader[] = "text";
 constexpr char vertex[] = "vertex";
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
+
+using renderer::ResourceManager;
 
 Font::Font() {
     ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
@@ -20,13 +22,13 @@ Font::Font() {
 
     const auto program = shader->getId();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(maxLength * 8);
+    vbo = renderer::VertexBuffer::create(maxLength * 8);
     vbo->bind();
 
-    ebo = IndexBuffer::create(maxLength * 6);
+    ebo = renderer::IndexBuffer::create(maxLength * 6);
     ebo->bind();
 
     auto location = glGetAttribLocation(program, vertex);
@@ -44,13 +46,13 @@ Font::Font() {
 }
 
 void Font::load(const std::string& path) {
-    sponge::renderer::Font::load(path);
+    sponge::scene::Font::load(path);
 
     const auto pos = path.find_last_of('/');
     const auto fontFolder = path.substr(0, pos + 1);
 
     const auto texture = ResourceManager::loadTexture(
-        fontFolder + textureName, textureName, ExcludeAssetsFolder);
+        fontFolder + textureName, textureName, renderer::ExcludeAssetsFolder);
     UNUSED(texture);
 }
 
@@ -134,4 +136,4 @@ void Font::render(const std::string& text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene

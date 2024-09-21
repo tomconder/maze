@@ -11,7 +11,8 @@
 
 namespace sponge::platform::opengl::renderer {
 
-std::unordered_map<std::string, std::shared_ptr<Font>> ResourceManager::fonts;
+std::unordered_map<std::string, std::shared_ptr<scene::Font>>
+    ResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<Model>> ResourceManager::models;
 std::unordered_map<std::string, std::shared_ptr<Shader>>
     ResourceManager::shaders;
@@ -19,13 +20,13 @@ std::unordered_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
 std::string ResourceManager::assetsFolder = core::File::getResourceDir();
 
-std::shared_ptr<Font> ResourceManager::getFont(const std::string& name) {
+std::shared_ptr<scene::Font> ResourceManager::getFont(const std::string& name) {
     assert(!name.empty());
     return fonts.at(name);
 }
 
-std::shared_ptr<Font> ResourceManager::loadFont(const std::string& path,
-                                                const std::string& name) {
+std::shared_ptr<scene::Font> ResourceManager::loadFont(
+    const std::string& path, const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -172,11 +173,11 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& path,
     return texture;
 }
 
-std::shared_ptr<Font> ResourceManager::loadFontFromFile(
+std::shared_ptr<scene::Font> ResourceManager::loadFontFromFile(
     const std::string& path) {
     assert(!path.empty());
 
-    auto font = std::make_shared<Font>();
+    auto font = std::make_shared<scene::Font>();
     font->load(path);
     font->log();
 

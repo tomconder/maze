@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 struct Character {
     glm::vec2 loc;
@@ -52,4 +52,4 @@ class Font {
     uint32_t pages = 0;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene
