@@ -71,7 +71,7 @@ void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
     }
 }
 
-std::shared_ptr<Mesh> Model::processMesh(
+std::shared_ptr<scene::Mesh> Model::processMesh(
     const std::string& shaderName, tinyobj::attrib_t& attrib,
     tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
@@ -130,7 +130,8 @@ std::shared_ptr<Mesh> Model::processMesh(
         }
     }
 
-    return std::make_shared<Mesh>(shaderName, vertices, indices, textures);
+    return std::make_shared<scene::Mesh>(shaderName, vertices, indices,
+                                         textures);
 }
 
 std::shared_ptr<Texture> Model::loadMaterialTextures(

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "platform/opengl/renderer/mesh.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/scene/mesh.hpp"
 #include <tiny_obj_loader.h>
 #include <vector>
 
@@ -19,7 +19,7 @@ class Model {
     }
 
    protected:
-    std::vector<std::shared_ptr<Mesh>> meshes;
+    std::vector<std::shared_ptr<scene::Mesh>> meshes;
 
    private:
     size_t numIndices = 0;
@@ -29,7 +29,7 @@ class Model {
                  std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials,
                  const std::string& path);
-    static std::shared_ptr<Mesh> processMesh(
+    static std::shared_ptr<scene::Mesh> processMesh(
         const std::string& shaderName, tinyobj::attrib_t& attrib,
         tinyobj::mesh_t& mesh,
         const std::vector<tinyobj::material_t>& materials,
@@ -38,4 +38,4 @@ class Model {
         const tinyobj::material_t& material, const std::string& path);
 };
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

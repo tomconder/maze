@@ -8,12 +8,14 @@ constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
 }  // namespace
 
-namespace sponge::platform::opengl::renderer {
+namespace sponge::platform::opengl::scene {
+
+using renderer::ResourceManager;
 
 Mesh::Mesh(const std::string& shaderName,
            const std::vector<sponge::renderer::Vertex>& vertices,
            const std::vector<uint32_t>& indices,
-           const std::vector<std::shared_ptr<Texture>>& textures)
+           const std::vector<std::shared_ptr<renderer::Texture>>& textures)
     : shaderName(shaderName), textures(textures) {
     assert(!shaderName.empty());
 
@@ -23,10 +25,10 @@ Mesh::Mesh(const std::string& shaderName,
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    vao = VertexArray::create();
+    vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = VertexBuffer::create(vertices);
+    vbo = renderer::VertexBuffer::create(vertices);
     vbo->bind();
 
     const auto program = shader->getId();
@@ -61,7 +63,7 @@ Mesh::Mesh(const std::string& shaderName,
                                   offsetof(sponge::renderer::Vertex, normal)));
     }
 
-    ebo = IndexBuffer::create(indices);
+    ebo = renderer::IndexBuffer::create(indices);
     ebo->bind();
 
     shader->unbind();
@@ -86,4 +88,4 @@ void Mesh::render() const {
     glBindVertexArray(0);
 }
 
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::scene
