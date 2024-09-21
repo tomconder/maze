@@ -99,13 +99,14 @@ sponge::core::Application* sponge::core::createApplication(const int argc,
 
     constexpr uint32_t width = 1600;
     constexpr uint32_t height = 900;
+    constexpr bool fullscreen = false;
 
     using platform::sdl::core::ApplicationSpecification;
 
     const auto spec = ApplicationSpecification{ .name = game::project_name,
                                                 .width = width,
                                                 .height = height,
-                                                .fullscreen = true };
+                                                .fullscreen = fullscreen };
 
     return new game::Maze{ spec };
 }
