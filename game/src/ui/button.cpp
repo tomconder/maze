@@ -1,6 +1,8 @@
 #include "button.hpp"
 
-const std::string quadShader = "quad";
+namespace {
+constexpr char quadShader[] = "quad";
+}
 
 namespace game::ui {
 
