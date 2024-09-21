@@ -1,6 +1,5 @@
 #pragma once
 
-#include "platform/opengl/renderer/grid.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
@@ -18,7 +17,7 @@ class GridLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<scene::GameCamera> camera;
-    std::unique_ptr<sponge::platform::opengl::renderer::Grid> grid;
+    std::unique_ptr<sponge::platform::opengl::scene::Grid> grid;
 };
 
 }  // namespace game::layer

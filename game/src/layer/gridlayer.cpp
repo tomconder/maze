@@ -24,8 +24,7 @@ void GridLayer::onAttach() {
     const auto shader = ResourceManager::getShader(gridShader);
     UNUSED(shader);
 
-    grid =
-        std::make_unique<sponge::platform::opengl::renderer::Grid>(gridShader);
+    grid = std::make_unique<sponge::platform::opengl::scene::Grid>(gridShader);
 }
 
 void GridLayer::onDetach() {
