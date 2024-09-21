@@ -7,7 +7,7 @@
 #include <ios>
 #include <sstream>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 void Font::load(const std::string& path) {
     assert(!path.empty());
@@ -152,4 +152,4 @@ void Font::log() const {
     }
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene

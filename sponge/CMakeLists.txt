@@ -28,9 +28,17 @@ file(
 
 # OpenGL
 message(STATUS "Including OpenGL platform files")
-file(GLOB OPENGL_HEADERS LIST_DIRECTORIES false src/platform/opengl/renderer/*.hpp)
+file(
+        GLOB OPENGL_HEADERS
+        LIST_DIRECTORIES false
+        src/platform/opengl/renderer/*.hpp
+        src/platform/opengl/scene/*.hpp)
 list(APPEND HEADER_FILES ${OPENGL_HEADERS})
-file(GLOB OPENGL_SOURCES LIST_DIRECTORIES false src/platform/opengl/renderer/*.cpp)
+file(
+        GLOB OPENGL_SOURCES
+        LIST_DIRECTORIES false
+        src/platform/opengl/renderer/*.cpp
+        src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
 # SDL
