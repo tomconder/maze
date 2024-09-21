@@ -2,7 +2,7 @@
 
 #include <glm/vec2.hpp>
 
-namespace sponge::renderer {
+namespace sponge::scene {
 
 class Sprite {
    public:
