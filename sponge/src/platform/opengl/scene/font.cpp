@@ -15,7 +15,7 @@ using renderer::ResourceManager;
 
 Font::Font() {
     const auto shader = ResourceManager::loadShader(
-        "/shaders/text.vert", "/shaders/text.frag", shaderName);
+        shaderName, "/shaders/text.vert", "/shaders/text.frag");
     shader->bind();
 
     const auto program = shader->getId();

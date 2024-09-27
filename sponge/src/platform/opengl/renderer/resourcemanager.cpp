@@ -72,8 +72,9 @@ std::shared_ptr<Shader> ResourceManager::getShader(const std::string& name) {
 }
 
 std::shared_ptr<Shader> ResourceManager::loadShader(
-    const std::string& vertexShader, const std::string& fragmentShader,
-    const std::string& name) {
+    const std::string& name, const std::string& vertexShader,
+    const std::string& fragmentShader,
+    const std::optional<std::string>& geometryShader) {
     assert(!vertexShader.empty());
     assert(!fragmentShader.empty());
     assert(!name.empty());
@@ -95,50 +96,22 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
 
     assert(!fragmentSource.empty());
 
-    auto shader = std::make_shared<Shader>(vertexSource, fragmentSource);
+    std::shared_ptr<Shader> shader;
+    if (geometryShader != std::nullopt) {
+        SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
+                         *geometryShader);
+        std::string geometrySource =
+            loadSourceFromFile(assetsFolder + *geometryShader);
 
-    SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
+        assert(!geometrySource.empty());
 
-    shaders[name] = shader;
-    return shader;
-}
-
-std::shared_ptr<Shader> ResourceManager::loadShader(
-    const std::string& vertexShader, const std::string& fragmentShader,
-    const std::string& geometryShader, const std::string& name) {
-    assert(!vertexShader.empty());
-    assert(!fragmentShader.empty());
-    assert(!geometryShader.empty());
-    assert(!name.empty());
-
-    if (shaders.contains(name)) {
-        return shaders[name];
+        shader = std::make_shared<Shader>(vertexSource, fragmentSource,
+                                          geometrySource);
+    } else {
+        shader = std::make_shared<Shader>(vertexSource, fragmentSource);
     }
 
-    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", name,
-                     vertexShader);
-    std::string vertexSource = loadSourceFromFile(assetsFolder + vertexShader);
-
-    assert(!vertexSource.empty());
-
-    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", name,
-                     fragmentShader);
-    std::string fragmentSource =
-        loadSourceFromFile(assetsFolder + fragmentShader);
-
-    assert(!fragmentSource.empty());
-
-    SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
-                     geometryShader);
-    std::string geometrySource =
-        loadSourceFromFile(assetsFolder + geometryShader);
-
-    assert(!geometrySource.empty());
-
-    auto shader =
-        std::make_shared<Shader>(vertexSource, fragmentSource, geometrySource);
-
-    SPONGE_CORE_INFO("Created shader with id: [{}, {}]", name, shader->getId());
+    SPONGE_CORE_INFO("Created shader: [{}, {}]", name, shader->getId());
 
     shaders[name] = shader;
     return shader;

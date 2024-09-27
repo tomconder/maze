@@ -4,6 +4,7 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/font.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -21,13 +22,10 @@ class ResourceManager {
     static std::shared_ptr<scene::Model> loadModel(const std::string& path,
                                                    const std::string& name);
 
-    static std::shared_ptr<Shader> loadShader(const std::string& vertexShader,
-                                              const std::string& fragmentShader,
-                                              const std::string& name);
-    static std::shared_ptr<Shader> loadShader(const std::string& vertexShader,
-                                              const std::string& fragmentShader,
-                                              const std::string& geometryShader,
-                                              const std::string& name);
+    static std::shared_ptr<Shader> loadShader(
+        const std::string& name, const std::string& vertexShader,
+        const std::string& fragmentShader,
+        const std::optional<std::string>& geometryShader = std::nullopt);
     static std::shared_ptr<Shader> getShader(const std::string& name);
 
     static std::shared_ptr<Texture> getTexture(const std::string& name);

@@ -22,8 +22,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     this->vertices = vertices;
 
     const auto shader = ResourceManager::loadShader(
-        "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
-        shaderName);
+        shaderName, "/shaders/shader.vert", "/shaders/shader.frag",
+        "/shaders/shader.geom");
     shader->bind();
 
     vao = renderer::VertexArray::create();

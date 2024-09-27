@@ -7,42 +7,36 @@
 namespace sponge::platform::opengl::renderer {
 
 Shader::Shader(const std::string& vertexSource,
-               const std::string& fragmentSource) {
-    assert(!vertexSource.empty());
-    assert(!fragmentSource.empty());
-
-    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-
-    program = linkProgram(vs, fs);
-
-    glDetachShader(program, vs);
-    glDetachShader(program, fs);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-}
-
-Shader::Shader(const std::string& vertexSource,
                const std::string& fragmentSource,
-               const std::string& geometrySource) {
+               const std::optional<std::string>& geometrySource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
-    assert(!geometrySource.empty());
 
     const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-    const uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
 
-    program = linkProgram(vs, fs, gs);
+    uint32_t gs = 0;
+    if (geometrySource != std::nullopt) {
+        gs = compileShader(GL_GEOMETRY_SHADER, *geometrySource);
+    }
+
+    if (geometrySource != std::nullopt) {
+        program = linkProgram(vs, fs, gs);
+    } else {
+        program = linkProgram(vs, fs);
+    }
 
     glDetachShader(program, vs);
     glDetachShader(program, fs);
-    glDetachShader(program, gs);
+    if (geometrySource != std::nullopt) {
+        glDetachShader(program, gs);
+    }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-    glDeleteShader(gs);
+    if (geometrySource != std::nullopt) {
+        glDeleteShader(gs);
+    }
 }
 
 Shader::~Shader() {
@@ -157,8 +151,7 @@ void Shader::setInteger(const std::string& name, const int value) {
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& value) {
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
-                       value_ptr(value));
+    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
 }
 
 GLint Shader::getUniformLocation(const std::string& name) const {
@@ -178,4 +171,4 @@ GLint Shader::getUniformLocation(const std::string& name) const {
     return location;
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

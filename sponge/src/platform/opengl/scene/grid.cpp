@@ -20,7 +20,7 @@ namespace sponge::platform::opengl::scene {
 
 Grid::Grid(const std::string& name) : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
-        "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag", shaderName);
+        shaderName, "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag");
     shader->bind();
 
     vao = renderer::VertexArray::create();

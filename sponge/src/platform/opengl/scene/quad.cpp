@@ -14,7 +14,7 @@ namespace sponge::platform::opengl::scene {
 
 Quad::Quad(const std::string& name) : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", shaderName);
+        shaderName, "/shaders/quad.vert", "/shaders/quad.frag");
     shader->bind();
 
     const auto program = shader->getId();

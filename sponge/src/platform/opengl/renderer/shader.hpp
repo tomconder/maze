@@ -2,6 +2,7 @@
 
 #include "renderer/shader.hpp"
 #include <glad/glad.h>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -9,9 +10,8 @@ namespace sponge::platform::opengl::renderer {
 
 class Shader final : public sponge::renderer::Shader {
    public:
-    Shader(const std::string& vertexSource, const std::string& fragmentSource);
     Shader(const std::string& vertexSource, const std::string& fragmentSource,
-           const std::string& geometrySource);
+           const std::optional<std::string>& geometrySource = std::nullopt);
     ~Shader() override;
 
     void bind() const override;

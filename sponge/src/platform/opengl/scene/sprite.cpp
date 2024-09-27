@@ -16,7 +16,7 @@ namespace sponge::platform::opengl::scene {
 Sprite::Sprite(const std::string& name, const std::string& texturePath)
     : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
-        "/shaders/sprite.vert", "/shaders/sprite.frag", shaderName);
+        shaderName, "/shaders/sprite.vert", "/shaders/sprite.frag");
     shader->bind();
 
     const auto program = shader->getId();
