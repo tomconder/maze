@@ -16,11 +16,11 @@ Shader::Shader(const std::string& vertexSource,
     const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
     uint32_t gs = 0;
-    if (geometrySource != std::nullopt) {
+    if (geometrySource) {
         gs = compileShader(GL_GEOMETRY_SHADER, *geometrySource);
     }
 
-    if (geometrySource != std::nullopt) {
+    if (geometrySource) {
         program = linkProgram(vs, fs, gs);
     } else {
         program = linkProgram(vs, fs);
@@ -28,13 +28,13 @@ Shader::Shader(const std::string& vertexSource,
 
     glDetachShader(program, vs);
     glDetachShader(program, fs);
-    if (geometrySource != std::nullopt) {
+    if (geometrySource) {
         glDetachShader(program, gs);
     }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-    if (geometrySource != std::nullopt) {
+    if (geometrySource) {
         glDeleteShader(gs);
     }
 }

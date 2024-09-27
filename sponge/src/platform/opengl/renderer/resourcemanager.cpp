@@ -97,7 +97,7 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
     assert(!fragmentSource.empty());
 
     std::shared_ptr<Shader> shader;
-    if (geometryShader != std::nullopt) {
+    if (geometryShader) {
         SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]", name,
                          *geometryShader);
         std::string geometrySource =
