@@ -76,39 +76,15 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     return id;
 }
 
-uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs) {
-    const uint32_t id = glCreateProgram();
-
-    glAttachShader(id, vs);
-    glAttachShader(id, fs);
-
-    glLinkProgram(id);
-
-    int32_t result = GL_FALSE;
-
-    glGetProgramiv(id, GL_LINK_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
-        if (length > 0) {
-            std::vector<GLchar> message(length);
-            glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR("Shader linking failed: {0}", message.data());
-        }
-    }
-
-    glValidateProgram(id);
-
-    return id;
-}
-
 uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
-                             const uint32_t gs) {
+                             const std::optional<uint32_t> gs) {
     const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
-    glAttachShader(id, gs);
+    if (gs) {
+        glAttachShader(id, *gs);
+    }
 
     glLinkProgram(id);
 

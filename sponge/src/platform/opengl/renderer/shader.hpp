@@ -32,8 +32,8 @@ class Shader final : public sponge::renderer::Shader {
     mutable std::unordered_map<std::string, GLint> uniformLocations;
 
     static uint32_t compileShader(GLenum type, const std::string& source);
-    static uint32_t linkProgram(uint32_t vs, uint32_t fs);
-    static uint32_t linkProgram(uint32_t vs, uint32_t fs, uint32_t gs);
+    static uint32_t linkProgram(uint32_t vs, uint32_t fs,
+                                std::optional<uint32_t> gs = std::nullopt);
 
     uint32_t program = 0;
 
