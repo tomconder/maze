@@ -10,10 +10,12 @@ namespace sponge::platform::opengl::scene {
 
 class Grid {
    public:
-    Grid();
+    Grid(const std::string& name);
     void render() const;
 
    private:
+    std::string shaderName;
+
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;
     std::unique_ptr<renderer::VertexArray> vao;

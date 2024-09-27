@@ -27,7 +27,7 @@ void ExitLayer::onAttach() {
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
 
-    quad = std::make_unique<Quad>();
+    quad = std::make_unique<Quad>(quadShader);
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,

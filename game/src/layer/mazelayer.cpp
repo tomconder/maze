@@ -4,8 +4,8 @@
 
 namespace {
 constexpr char cameraName[] = "maze";
-constexpr char mazeShader[] = "mesh";
-constexpr char modelName[] = "maze";
+constexpr char shaderName[] = "mesh";
+constexpr char modelName[] = "model";
 constexpr char modelPath[] = "/models/cube/cube.obj";
 }  // namespace
 
@@ -24,7 +24,7 @@ void MazeLayer::onAttach() {
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
-    const auto shader = ResourceManager::getShader(mazeShader);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
@@ -42,7 +42,7 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto shader = ResourceManager::getShader(mazeShader);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
     shader->setMat4(
@@ -59,7 +59,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::setWireframeActive(const bool active) {
     this->activeWireframe = active;
 
-    const auto shader = ResourceManager::getShader(mazeShader);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setBoolean("showWireframe", active);
     shader->unbind();

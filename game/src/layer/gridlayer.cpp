@@ -15,7 +15,7 @@ GridLayer::GridLayer() : Layer("grid") {
 }
 
 void GridLayer::onAttach() {
-    grid = std::make_unique<sponge::platform::opengl::scene::Grid>();
+    grid = std::make_unique<sponge::platform::opengl::scene::Grid>(gridShader);
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 4.F, 7.F));

@@ -13,7 +13,7 @@ constexpr uint32_t indices[] = {
 
 namespace sponge::platform::opengl::scene {
 
-Quad::Quad() {
+Quad::Quad(const std::string& name) : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
         "/shaders/quad.vert", "/shaders/quad.frag", shaderName);
     shader->bind();

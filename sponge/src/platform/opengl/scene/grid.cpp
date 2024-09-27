@@ -3,7 +3,6 @@
 #include <array>
 
 namespace {
-constexpr char shaderName[] = "infinitegrid";
 constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
@@ -20,7 +19,7 @@ constexpr char position[] = "position";
 
 namespace sponge::platform::opengl::scene {
 
-Grid::Grid() {
+Grid::Grid(const std::string& name) : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
         "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag", shaderName);
     shader->bind();
