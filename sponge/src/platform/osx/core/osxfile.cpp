@@ -44,4 +44,4 @@ std::string OSXFile::getLogDir(const std::string& app) {
     throw std::runtime_error("Failed to get settings folder");
 }
 
-}  // namespace sponge
+}  // namespace sponge::platform::osx::core

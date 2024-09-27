@@ -9,4 +9,4 @@ class LinuxFile {
     static std::string getLogDir(const std::string& app);
 };
 
-}  // namespace sponge
+}  // namespace sponge::platform::linux::core

@@ -20,4 +20,4 @@ std::string LinuxFile::getLogDir(const std::string& app) {
     throw std::runtime_error("Failed to get pref folder");
 }
 
-}  // namespace sponge
+}  // namespace sponge::platform::linux::core

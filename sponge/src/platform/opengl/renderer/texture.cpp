@@ -40,4 +40,4 @@ void Texture::bind() const {
     glBindTexture(GL_TEXTURE_2D, id);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

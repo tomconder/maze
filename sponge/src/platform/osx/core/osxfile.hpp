@@ -13,4 +13,4 @@ class OSXFile {
     static std::string expandTilde(const char* str);
 };
 
-}  // namespace sponge
+}  // namespace sponge::platform::osx::core
