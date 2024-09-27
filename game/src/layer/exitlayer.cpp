@@ -3,9 +3,9 @@
 
 namespace {
 constexpr char cameraName[] = "exit";
-constexpr char uiFont[] = "league-gothic";
+constexpr char fontShader[] = "text";
 constexpr char quadShader[] = "quad";
-constexpr char textShader[] = "text";
+constexpr char uiFont[] = "league-gothic";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
@@ -23,33 +23,11 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    ResourceManager::loadShader("/shaders/quad.vert", "/shaders/quad.frag",
-                                quadShader);
-
-    ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
-                                textShader);
-
     ResourceManager::loadFont("/fonts/league-gothic.fnt", uiFont);
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
 
-    auto shader = ResourceManager::getShader(quadShader);
-
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
-
-    shader = ResourceManager::getShader(textShader);
-
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
-
-    shader = ResourceManager::loadShader("/shaders/quad.vert",
-                                         "/shaders/quad.frag", quadShader);
-    UNUSED(shader);
-
-    quad = std::make_unique<Quad>(quadShader);
+    quad = std::make_unique<Quad>();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -58,6 +36,18 @@ void ExitLayer::onAttach() {
     cancelButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, uiFont,
         cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
+
+    auto shader = ResourceManager::getShader(quadShader);
+
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
+
+    shader = ResourceManager::getShader(fontShader);
+
+    shader->bind();
+    shader->setMat4("projection", orthoCamera->getProjection());
+    shader->unbind();
 }
 
 void ExitLayer::onDetach() {
@@ -102,11 +92,11 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-void ExitLayer::setWidthAndHeight(const uint32_t width,
-                                  const uint32_t height) const {
-    orthoCamera->setWidthAndHeight(width, height);
+bool ExitLayer::onWindowResize(
+    const sponge::event::WindowResizeEvent& event) const {
+    orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
-    auto shader = ResourceManager::getShader(textShader);
+    auto shader = ResourceManager::getShader(fontShader);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
@@ -116,8 +106,8 @@ void ExitLayer::setWidthAndHeight(const uint32_t width,
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    const auto inWidth = static_cast<float>(width);
-    const auto inHeight = static_cast<float>(height);
+    const auto inWidth = static_cast<float>(event.getWidth());
+    const auto inHeight = static_cast<float>(event.getHeight());
 
     confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
                                { inWidth * .77F, (inHeight / 2.F) + 78.F });
@@ -125,11 +115,7 @@ void ExitLayer::setWidthAndHeight(const uint32_t width,
     cancelButton->setPosition(
         { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
         { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
-}
 
-bool ExitLayer::onWindowResize(
-    const sponge::event::WindowResizeEvent& event) const {
-    setWidthAndHeight(event.getWidth(), event.getHeight());
     return false;
 }
 

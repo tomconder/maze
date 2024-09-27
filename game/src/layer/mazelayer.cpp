@@ -19,9 +19,7 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    ResourceManager::loadShader("/shaders/shader.vert", "/shaders/shader.frag",
-                                "/shaders/shader.geom", mazeShader);
-    ResourceManager::loadModel(mazeShader, modelPath, modelName);
+    ResourceManager::loadModel(modelPath, modelName);
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));

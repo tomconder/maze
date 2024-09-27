@@ -12,9 +12,10 @@ namespace sponge::platform::opengl::scene {
 
 class Sprite final : public sponge::scene::Sprite {
    public:
-    explicit Sprite(const std::string& name);
+    explicit Sprite(const std::string& name, const std::string& texturePath);
 
-    void render(glm::vec2 position, glm::vec2 size) const override;
+    void render(const glm::vec2& position,
+                const glm::vec2& size) const override;
 
    private:
     std::string name;

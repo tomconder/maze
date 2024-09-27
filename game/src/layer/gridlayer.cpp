@@ -2,8 +2,8 @@
 #include "resourcemanager.hpp"
 
 namespace {
-constexpr char gridShader[] = "infinitegrid";
 constexpr char cameraName[] = "maze";
+constexpr char gridShader[] = "infinitegrid";
 }  // namespace
 
 namespace game::layer {
@@ -15,16 +15,10 @@ GridLayer::GridLayer() : Layer("grid") {
 }
 
 void GridLayer::onAttach() {
-    ResourceManager::loadShader("/shaders/infinitegrid.vert",
-                                "/shaders/infinitegrid.frag", gridShader);
+    grid = std::make_unique<sponge::platform::opengl::scene::Grid>();
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 4.F, 7.F));
-
-    const auto shader = ResourceManager::getShader(gridShader);
-    UNUSED(shader);
-
-    grid = std::make_unique<sponge::platform::opengl::scene::Grid>(gridShader);
 }
 
 void GridLayer::onDetach() {

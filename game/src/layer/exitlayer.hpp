@@ -40,8 +40,6 @@ class ExitLayer final : public sponge::layer::Layer {
     static bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
-
-    void setWidthAndHeight(uint32_t width, uint32_t height) const;
 };
 
 }  // namespace game::layer

@@ -18,9 +18,8 @@ class ResourceManager {
                                                  const std::string& name);
 
     static std::shared_ptr<scene::Model> getModel(const std::string& name);
-    static std::shared_ptr<scene::Model> loadModel(
-        const std::string& shaderName, const std::string& path,
-        const std::string& name);
+    static std::shared_ptr<scene::Model> loadModel(const std::string& path,
+                                                   const std::string& name);
 
     static std::shared_ptr<Shader> loadShader(const std::string& vertexShader,
                                               const std::string& fragmentShader,
@@ -46,7 +45,7 @@ class ResourceManager {
     static std::shared_ptr<scene::Font> loadFontFromFile(
         const std::string& path);
     static std::shared_ptr<scene::Model> loadModelFromFile(
-        const std::string& shaderName, const std::string& path);
+        const std::string& path);
     static std::string loadSourceFromFile(const std::string& path);
     static std::shared_ptr<Texture> loadTextureFromFile(
         const std::string& path);

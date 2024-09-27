@@ -50,8 +50,7 @@ std::shared_ptr<scene::Model> ResourceManager::getModel(
 }
 
 std::shared_ptr<scene::Model> ResourceManager::loadModel(
-    const std::string& shaderName, const std::string& path,
-    const std::string& name) {
+    const std::string& path, const std::string& name) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -61,7 +60,7 @@ std::shared_ptr<scene::Model> ResourceManager::loadModel(
 
     SPONGE_CORE_INFO("Loading model file: [{}, {}]", name, path);
 
-    auto mesh = loadModelFromFile(shaderName, assetsFolder + path);
+    auto mesh = loadModelFromFile(assetsFolder + path);
     models[name] = mesh;
 
     return mesh;
@@ -187,11 +186,11 @@ std::shared_ptr<scene::Font> ResourceManager::loadFontFromFile(
 }
 
 std::shared_ptr<scene::Model> ResourceManager::loadModelFromFile(
-    const std::string& shaderName, const std::string& path) {
+    const std::string& path) {
     assert(!path.empty());
 
     auto mesh = std::make_shared<scene::Model>();
-    mesh->load(shaderName, path);
+    mesh->load(path);
 
     return mesh;
 }

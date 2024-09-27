@@ -14,10 +14,8 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
 Font::Font() {
-    ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
-                                textShader);
-
-    const auto shader = ResourceManager::getShader(textShader);
+    const auto shader = ResourceManager::loadShader(
+        "/shaders/text.vert", "/shaders/text.frag", textShader);
     shader->bind();
 
     const auto program = shader->getId();

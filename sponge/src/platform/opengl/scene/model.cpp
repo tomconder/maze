@@ -16,7 +16,7 @@ namespace sponge::platform::opengl::scene {
 
 using sponge::scene::Vertex;
 
-void Model::load(const std::string& shaderName, const std::string& path) {
+void Model::load(const std::string& path) {
     assert(!path.empty());
 
     meshes.clear();
@@ -54,10 +54,10 @@ void Model::load(const std::string& shaderName, const std::string& path) {
     SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
     SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
 
-    process(shaderName, attrib, shapes, materials, dir.parent_path().string());
+    process(attrib, shapes, materials, dir.parent_path().string());
 }
 
-void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
+void Model::process(tinyobj::attrib_t& attrib,
                     std::vector<tinyobj::shape_t>& shapes,
                     const std::vector<tinyobj::material_t>& materials,
                     const std::string& path) {
@@ -65,7 +65,7 @@ void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
     numVertices = 0;
 
     for (auto& [name, mesh, lines, points] : shapes) {
-        auto newMesh = processMesh(shaderName, attrib, mesh, materials, path);
+        auto newMesh = processMesh(attrib, mesh, materials, path);
         newMesh->optimize();
         numIndices += newMesh->getNumIndices();
         numVertices += newMesh->getNumVertices();
@@ -74,8 +74,8 @@ void Model::process(const std::string& shaderName, tinyobj::attrib_t& attrib,
 }
 
 std::shared_ptr<Mesh> Model::processMesh(
-    const std::string& shaderName, tinyobj::attrib_t& attrib,
-    tinyobj::mesh_t& mesh, const std::vector<tinyobj::material_t>& materials,
+    tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+    const std::vector<tinyobj::material_t>& materials,
     const std::string& path) {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -132,7 +132,7 @@ std::shared_ptr<Mesh> Model::processMesh(
         }
     }
 
-    return std::make_shared<Mesh>(shaderName, vertices, indices, textures);
+    return std::make_shared<Mesh>(vertices, indices, textures);
 }
 
 std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(

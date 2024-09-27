@@ -5,6 +5,7 @@
 namespace {
 constexpr char normal[] = "normal";
 constexpr char position[] = "position";
+constexpr char shaderName[] = "mesh";
 constexpr char texCoord[] = "texCoord";
 }  // namespace
 
@@ -13,16 +14,16 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 using sponge::scene::Vertex;
 
-Mesh::Mesh(const std::string& shaderName, const std::vector<Vertex>& vertices,
+Mesh::Mesh(const std::vector<Vertex>& vertices,
            const std::vector<uint32_t>& indices,
            const std::vector<std::shared_ptr<renderer::Texture>>& textures)
-    : shaderName(shaderName), textures(textures) {
-    assert(!shaderName.empty());
-
+    : textures(textures) {
     this->indices = indices;
     this->vertices = vertices;
 
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::loadShader(
+        "/shaders/shader.vert", "/shaders/shader.frag", "/shaders/shader.geom",
+        shaderName);
     shader->bind();
 
     vao = renderer::VertexArray::create();

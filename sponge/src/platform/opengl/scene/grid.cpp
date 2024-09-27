@@ -3,11 +3,11 @@
 #include <array>
 
 namespace {
+constexpr char shaderName[] = "infinitegrid";
 constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
-
 constexpr glm::vec2 vertices[] = {
     { -1.F, -1.F },  //
     { -1.F, 1.F },   //
@@ -20,10 +20,9 @@ constexpr char position[] = "position";
 
 namespace sponge::platform::opengl::scene {
 
-Grid::Grid(const std::string& shaderName) : shaderName(shaderName) {
-    assert(!shaderName.empty());
-
-    const auto shader = renderer::ResourceManager::getShader(shaderName);
+Grid::Grid() {
+    const auto shader = renderer::ResourceManager::loadShader(
+        "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag", shaderName);
     shader->bind();
 
     vao = renderer::VertexArray::create();

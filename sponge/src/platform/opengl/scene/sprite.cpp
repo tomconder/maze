@@ -4,7 +4,7 @@
 #include <array>
 
 namespace {
-constexpr char spriteShader[] = "sprite";
+constexpr char shaderName[] = "sprite";
 constexpr char vertex[] = "vertex";
 constexpr uint32_t indices[] = {
     0, 1, 2,  //
@@ -14,11 +14,10 @@ constexpr uint32_t indices[] = {
 
 namespace sponge::platform::opengl::scene {
 
-Sprite::Sprite(const std::string& name) : name(name) {
-    renderer::ResourceManager::loadShader("/shaders/sprite.vert",
-                                          "/shaders/sprite.frag", spriteShader);
-
-    const auto shader = renderer::ResourceManager::getShader(spriteShader);
+Sprite::Sprite(const std::string& name, const std::string& texturePath)
+    : name(name) {
+    const auto shader = renderer::ResourceManager::loadShader(
+        "/shaders/sprite.vert", "/shaders/sprite.frag", shaderName);
     shader->bind();
 
     const auto program = shader->getId();
@@ -43,13 +42,13 @@ Sprite::Sprite(const std::string& name) : name(name) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    tex = renderer::ResourceManager::getTexture(name);
+    tex = renderer::ResourceManager::loadTexture(texturePath, name);
     tex->bind();
 
     shader->unbind();
 }
 
-void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
+void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
     const std::vector<glm::vec2> vertices = {
         { position.x + size.x, position.y },
         { 1.F, 0.F },  //
@@ -61,7 +60,7 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
         { 1.F, 1.F }
     };
 
-    const auto shader = renderer::ResourceManager::getShader(spriteShader);
+    const auto shader = renderer::ResourceManager::getShader(shaderName);
 
     vao->bind();
 
@@ -73,9 +72,9 @@ void Sprite::render(glm::vec2 position, const glm::vec2 size) const {
 
     glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 
-    glBindVertexArray(0);
-
     shader->unbind();
+
+    glBindVertexArray(0);
 }
 
 }  // namespace sponge::platform::opengl::scene
