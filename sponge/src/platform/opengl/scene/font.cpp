@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace {
-constexpr char textShader[] = "text";
+constexpr char shaderName[] = "text";
 constexpr char vertex[] = "vertex";
 }  // namespace
 
@@ -15,7 +15,7 @@ using renderer::ResourceManager;
 
 Font::Font() {
     const auto shader = ResourceManager::loadShader(
-        "/shaders/text.vert", "/shaders/text.frag", textShader);
+        "/shaders/text.vert", "/shaders/text.frag", shaderName);
     shader->bind();
 
     const auto program = shader->getId();
@@ -115,7 +115,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         prev = index;
     }
 
-    auto shader = ResourceManager::getShader(textShader);
+    auto shader = ResourceManager::getShader(shaderName);
 
     vao->bind();
 

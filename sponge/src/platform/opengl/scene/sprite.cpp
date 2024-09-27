@@ -4,7 +4,6 @@
 #include <array>
 
 namespace {
-constexpr char shaderName[] = "sprite";
 constexpr char vertex[] = "vertex";
 constexpr uint32_t indices[] = {
     0, 1, 2,  //
@@ -15,7 +14,7 @@ constexpr uint32_t indices[] = {
 namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath)
-    : name(name) {
+    : shaderName(name) {
     const auto shader = renderer::ResourceManager::loadShader(
         "/shaders/sprite.vert", "/shaders/sprite.frag", shaderName);
     shader->bind();

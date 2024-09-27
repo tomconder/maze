@@ -18,7 +18,8 @@ class Sprite final : public sponge::scene::Sprite {
                 const glm::vec2& size) const override;
 
    private:
-    std::string name;
+    std::string shaderName;
+
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;
     std::unique_ptr<renderer::VertexArray> vao;

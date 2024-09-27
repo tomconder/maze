@@ -3,7 +3,6 @@
 #include <array>
 
 namespace {
-constexpr char shaderName[] = "quad";
 constexpr char vertex[] = "position";
 constexpr uint32_t indices[] = {
     0, 2, 1,  //

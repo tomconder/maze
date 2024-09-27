@@ -4,9 +4,9 @@
 
 namespace {
 constexpr char cameraName[] = "maze";
-constexpr char shaderName[] = "mesh";
 constexpr char modelName[] = "model";
 constexpr char modelPath[] = "/models/cube/cube.obj";
+constexpr char shaderName[] = "mesh";
 }  // namespace
 
 namespace game::layer {
