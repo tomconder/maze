@@ -3,6 +3,7 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
+constexpr float ambientStrength = .3F;
 constexpr float keyboardSpeed = .1F;
 constexpr float mouseSpeed = .1F;
 
@@ -31,7 +32,7 @@ void MazeLayer::onAttach() {
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
-    shader->setFloat("ambientStrength", .3F);
+    shader->setFloat("ambientStrength", ambientStrength);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
     shader->setFloat("lineWidth", .3F);
