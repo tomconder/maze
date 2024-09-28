@@ -17,11 +17,12 @@ using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::sdl::core::Application;
 
 MazeLayer::MazeLayer() : Layer("maze") {
-    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
+    // nothing
 }
 
 void MazeLayer::onAttach() {
     ResourceManager::loadModel(modelName, modelPath);
+    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
