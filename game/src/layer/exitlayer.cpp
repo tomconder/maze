@@ -7,7 +7,9 @@ constexpr char confirmButtonMessage[] = "Confirm";
 constexpr char message[] = "Exit the Game?";
 
 constexpr char cameraName[] = "exit";
-constexpr char uiFont[] = "league-gothic";
+constexpr char fontName[] = "league-gothic";
+constexpr char fontPath[] = "/fonts/league-gothic.fnt";
+
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
@@ -25,7 +27,7 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    ResourceManager::loadFont(uiFont, "/fonts/league-gothic.fnt");
+    ResourceManager::loadFont(fontName, fontPath);
     fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
@@ -34,11 +36,11 @@ void ExitLayer::onAttach() {
     quadShaderName = Quad::getShaderName();
 
     confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, fontName,
         confirmButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, uiFont,
+        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, fontName,
         cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
     auto shader = ResourceManager::getShader(quadShaderName);
@@ -82,7 +84,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     quad->render({ width * .23F, 0.F }, { width * .77F, height },
                  { .52F, .57F, .55F, 1.F });
 
-    const auto font = ResourceManager::getFont(uiFont);
+    const auto font = ResourceManager::getFont(fontName);
 
     const uint32_t length = font->getLength(message, 48);
     font->render(
