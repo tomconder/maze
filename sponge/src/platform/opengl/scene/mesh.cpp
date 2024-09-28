@@ -20,9 +20,9 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     this->indices = indices;
     this->vertices = vertices;
 
-    const auto shader = ResourceManager::loadShader(
-        shaderName, "/shaders/shader.vert", "/shaders/shader.frag",
-        "/shaders/shader.geom");
+    shader = ResourceManager::loadShader(shaderName, "/shaders/shader.vert",
+                                         "/shaders/shader.frag",
+                                         "/shaders/shader.geom");
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -70,7 +70,6 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
 void Mesh::render() const {
     vao->bind();
 
-    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
     if (!textures.empty()) {

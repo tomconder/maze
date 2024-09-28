@@ -14,11 +14,9 @@ constexpr uint32_t indices[] = {
 namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
-    const auto shader = renderer::ResourceManager::loadShader(
+    shader = renderer::ResourceManager::loadShader(
         shaderName, "/shaders/sprite.vert", "/shaders/sprite.frag");
     shader->bind();
-
-    const auto program = shader->getId();
 
     vao = renderer::VertexArray::create();
     vao->bind();
@@ -28,6 +26,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
+
+    const auto program = shader->getId();
 
     if (const auto location = glGetAttribLocation(program, vertex);
         location != -1) {
@@ -57,8 +57,6 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
         { position.x + size.x, position.y + size.y },
         { 1.F, 1.F }
     };
-
-    const auto shader = renderer::ResourceManager::getShader(shaderName);
 
     vao->bind();
 

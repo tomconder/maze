@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
@@ -24,9 +25,12 @@ class Mesh : public sponge::scene::Mesh {
    private:
     static constexpr char shaderName[] = "mesh";
 
+    std::shared_ptr<renderer::Shader> shader;
+
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;
     std::unique_ptr<renderer::VertexArray> vao;
+
     std::vector<std::shared_ptr<renderer::Texture>> textures;
 };
 
