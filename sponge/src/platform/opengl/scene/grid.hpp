@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/indexbuffer.hpp"
+#include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include <memory>
@@ -19,6 +20,8 @@ class Grid {
 
    private:
     static constexpr char shaderName[] = "infinitegrid";
+
+    std::shared_ptr<renderer::Shader> shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;

@@ -13,11 +13,9 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
 Font::Font() {
-    const auto shader = ResourceManager::loadShader(
-        shaderName, "/shaders/text.vert", "/shaders/text.frag");
+    shader = ResourceManager::loadShader(shaderName, "/shaders/text.vert",
+                                         "/shaders/text.frag");
     shader->bind();
-
-    const auto program = shader->getId();
 
     vao = renderer::VertexArray::create();
     vao->bind();
@@ -27,6 +25,8 @@ Font::Font() {
 
     ebo = renderer::IndexBuffer::create(maxLength * 6);
     ebo->bind();
+
+    const auto program = shader->getId();
 
     auto location = glGetAttribLocation(program, vertex);
     if (location != -1) {
@@ -113,8 +113,6 @@ void Font::render(const std::string& text, const glm::vec2& position,
         }
         prev = index;
     }
-
-    auto shader = ResourceManager::getShader(shaderName);
 
     vao->bind();
 

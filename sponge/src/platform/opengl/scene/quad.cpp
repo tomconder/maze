@@ -13,11 +13,9 @@ constexpr uint32_t indices[] = {
 namespace sponge::platform::opengl::scene {
 
 Quad::Quad() {
-    const auto shader = renderer::ResourceManager::loadShader(
+    shader = renderer::ResourceManager::loadShader(
         shaderName, "/shaders/quad.vert", "/shaders/quad.frag");
     shader->bind();
-
-    const auto program = shader->getId();
 
     vao = renderer::VertexArray::create();
     vao->bind();
@@ -27,6 +25,8 @@ Quad::Quad() {
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
     ebo->bind();
+
+    const auto program = shader->getId();
 
     if (const auto location = glGetAttribLocation(program, vertex);
         location != -1) {
@@ -51,8 +51,6 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
         { bottom.x, top.y },    //
         { bottom.x, bottom.y }  //
     };
-
-    const auto shader = renderer::ResourceManager::getShader(shaderName);
 
     vao->bind();
 
