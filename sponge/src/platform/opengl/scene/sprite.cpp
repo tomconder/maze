@@ -13,8 +13,7 @@ constexpr uint32_t indices[] = {
 
 namespace sponge::platform::opengl::scene {
 
-Sprite::Sprite(const std::string& name, const std::string& texturePath)
-    : shaderName(name) {
+Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     const auto shader = renderer::ResourceManager::loadShader(
         shaderName, "/shaders/sprite.vert", "/shaders/sprite.frag");
     shader->bind();
@@ -41,7 +40,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    tex = renderer::ResourceManager::loadTexture(texturePath, name);
+    tex = renderer::ResourceManager::loadTexture(name, texturePath);
     tex->bind();
 
     shader->unbind();

@@ -18,7 +18,7 @@ constexpr glm::vec2 vertices[] = {
 
 namespace sponge::platform::opengl::scene {
 
-Grid::Grid(const std::string& name) : shaderName(name) {
+Grid::Grid() {
     const auto shader = renderer::ResourceManager::loadShader(
         shaderName, "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag");
     shader->bind();

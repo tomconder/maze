@@ -29,9 +29,7 @@ class MazeLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<scene::GameCamera> camera;
-
-    static constexpr float keyboardSpeed = .1F;
-    static constexpr float mouseSpeed = .1F;
+    std::string shaderName;
 
     bool activeWireframe = false;
 

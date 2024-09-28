@@ -3,10 +3,12 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
+constexpr float keyboardSpeed = .1F;
+constexpr float mouseSpeed = .1F;
+
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
 constexpr char modelPath[] = "/models/cube/cube.obj";
-constexpr char shaderName[] = "mesh";
 }  // namespace
 
 namespace game::layer {
@@ -15,11 +17,11 @@ using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::sdl::core::Application;
 
 MazeLayer::MazeLayer() : Layer("maze") {
-    // nothing
+    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
 }
 
 void MazeLayer::onAttach() {
-    ResourceManager::loadModel(modelPath, modelName);
+    ResourceManager::loadModel(modelName, modelPath);
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));

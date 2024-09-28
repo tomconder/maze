@@ -5,7 +5,6 @@
 namespace {
 constexpr char normal[] = "normal";
 constexpr char position[] = "position";
-constexpr char shaderName[] = "mesh";
 constexpr char texCoord[] = "texCoord";
 }  // namespace
 

@@ -3,7 +3,7 @@
 
 namespace {
 constexpr char cameraName[] = "hud";
-constexpr char shaderName[] = "sprite";
+constexpr char textureName[] = "coffee";
 }  // namespace
 
 namespace game::layer {
@@ -16,10 +16,11 @@ HUDLayer::HUDLayer() : Layer("hud") {
 
 void HUDLayer::onAttach() {
     logo = std::make_unique<sponge::platform::opengl::scene::Sprite>(
-        shaderName, "/textures/coffee.png");
+        textureName, "/textures/coffee.png");
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
 
+    shaderName = sponge::platform::opengl::scene::Sprite::getShaderName();
     const auto shader = ResourceManager::getShader(shaderName);
 
     shader->bind();

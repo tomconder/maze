@@ -17,8 +17,12 @@ class Sprite final : public sponge::scene::Sprite {
     void render(const glm::vec2& position,
                 const glm::vec2& size) const override;
 
+    static std::string getShaderName() {
+        return std::string(shaderName);
+    };
+
    private:
-    std::string shaderName;
+    static constexpr char shaderName[] = "sprite";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;
