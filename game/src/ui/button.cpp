@@ -1,9 +1,5 @@
 #include "button.hpp"
 
-namespace {
-constexpr char quadShader[] = "quad";
-}
-
 namespace game::ui {
 
 using sponge::platform::opengl::renderer::ResourceManager;
@@ -22,7 +18,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       textPosition({ topLeft.x, topLeft.y }) {
     font = ResourceManager::getFont(textFontName);
 
-    quad = std::make_unique<sponge::platform::opengl::scene::Quad>(quadShader);
+    quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
 }
 
 bool Button::onUpdate(const double elapsedTime) const {

@@ -27,7 +27,7 @@ std::shared_ptr<scene::Font> ResourceManager::getFont(const std::string& name) {
 }
 
 std::shared_ptr<scene::Font> ResourceManager::loadFont(
-    const std::string& path, const std::string& name) {
+    const std::string& name, const std::string& path) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -50,7 +50,7 @@ std::shared_ptr<scene::Model> ResourceManager::getModel(
 }
 
 std::shared_ptr<scene::Model> ResourceManager::loadModel(
-    const std::string& path, const std::string& name) {
+    const std::string& name, const std::string& path) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -122,8 +122,8 @@ std::shared_ptr<Texture> ResourceManager::getTexture(const std::string& name) {
     return textures.at(name);
 }
 
-std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& path,
-                                                      const std::string& name,
+std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
+                                                      const std::string& path,
                                                       const LoadFlag flag) {
     assert(!path.empty());
     assert(!name.empty());

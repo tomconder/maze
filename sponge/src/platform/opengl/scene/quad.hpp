@@ -11,13 +11,16 @@ namespace sponge::platform::opengl::scene {
 
 class Quad {
    public:
-    explicit Quad(const std::string& name);
-
+    Quad();
     void render(const glm::vec2& top, const glm::vec2& bottom,
                 const glm::vec4& color) const;
 
+    static std::string getShaderName() {
+        return std::string(shaderName);
+    }
+
    private:
-    std::string shaderName;
+    static constexpr char shaderName[] = "quad";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;

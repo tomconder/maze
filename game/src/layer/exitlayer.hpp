@@ -19,10 +19,8 @@ class ExitLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
-
-    const std::string cancelButtonMessage = "Cancel";
-    const std::string confirmButtonMessage = "Confirm";
-    const std::string message = "Exit the Game?";
+    std::string fontShaderName;
+    std::string quadShaderName;
 
     bool isRunning = true;
 

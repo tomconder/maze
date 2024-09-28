@@ -2,9 +2,11 @@
 #include "resourcemanager.hpp"
 
 namespace {
+constexpr char cancelButtonMessage[] = "Cancel";
+constexpr char confirmButtonMessage[] = "Confirm";
+constexpr char message[] = "Exit the Game?";
+
 constexpr char cameraName[] = "exit";
-constexpr char fontShader[] = "text";
-constexpr char quadShader[] = "quad";
 constexpr char uiFont[] = "league-gothic";
 constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
@@ -23,11 +25,13 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    ResourceManager::loadFont("/fonts/league-gothic.fnt", uiFont);
+    ResourceManager::loadFont(uiFont, "/fonts/league-gothic.fnt");
+    fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
 
-    quad = std::make_unique<Quad>(quadShader);
+    quad = std::make_unique<Quad>();
+    quadShaderName = Quad::getShaderName();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, uiFont,
@@ -37,13 +41,13 @@ void ExitLayer::onAttach() {
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, uiFont,
         cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
 
-    auto shader = ResourceManager::getShader(quadShader);
+    auto shader = ResourceManager::getShader(quadShaderName);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = ResourceManager::getShader(fontShader);
+    shader = ResourceManager::getShader(fontShaderName);
 
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
@@ -96,12 +100,12 @@ bool ExitLayer::onWindowResize(
     const sponge::event::WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
-    auto shader = ResourceManager::getShader(fontShader);
+    auto shader = ResourceManager::getShader(fontShaderName);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    shader = ResourceManager::getShader(quadShader);
+    shader = ResourceManager::getShader(quadShaderName);
     shader->bind();
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();

@@ -3,10 +3,13 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
+constexpr float ambientStrength = .3F;
+constexpr float keyboardSpeed = .1F;
+constexpr float mouseSpeed = .1F;
+
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
 constexpr char modelPath[] = "/models/cube/cube.obj";
-constexpr char shaderName[] = "mesh";
 }  // namespace
 
 namespace game::layer {
@@ -19,7 +22,8 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    ResourceManager::loadModel(modelPath, modelName);
+    ResourceManager::loadModel(modelName, modelPath);
+    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
@@ -28,7 +32,7 @@ void MazeLayer::onAttach() {
     shader->bind();
 
     shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
-    shader->setFloat("ambientStrength", .3F);
+    shader->setFloat("ambientStrength", ambientStrength);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
     shader->setFloat("lineWidth", .3F);

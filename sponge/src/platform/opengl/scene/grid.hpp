@@ -10,11 +10,15 @@ namespace sponge::platform::opengl::scene {
 
 class Grid {
    public:
-    Grid(const std::string& name);
+    Grid();
     void render() const;
 
+    static std::string getShaderName() {
+        return std::string(shaderName);
+    };
+
    private:
-    std::string shaderName;
+    static constexpr char shaderName[] = "infinitegrid";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer> ebo;

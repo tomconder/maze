@@ -5,7 +5,6 @@
 #include <vector>
 
 namespace {
-constexpr char shaderName[] = "text";
 constexpr char vertex[] = "vertex";
 }  // namespace
 
@@ -50,7 +49,7 @@ void Font::load(const std::string& path) {
     const auto fontFolder = path.substr(0, pos + 1);
 
     const auto texture = ResourceManager::loadTexture(
-        fontFolder + textureName, textureName, renderer::ExcludeAssetsFolder);
+        textureName, fontFolder + textureName, renderer::ExcludeAssetsFolder);
     UNUSED(texture);
 }
 

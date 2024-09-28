@@ -3,7 +3,6 @@
 
 namespace {
 constexpr char cameraName[] = "maze";
-constexpr char shaderName[] = "infinitegrid";
 }  // namespace
 
 namespace game::layer {
@@ -15,7 +14,8 @@ GridLayer::GridLayer() : Layer("grid") {
 }
 
 void GridLayer::onAttach() {
-    grid = std::make_unique<sponge::platform::opengl::scene::Grid>(shaderName);
+    grid = std::make_unique<sponge::platform::opengl::scene::Grid>();
+    shaderName = sponge::platform::opengl::scene::Grid::getShaderName();
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 4.F, 7.F));

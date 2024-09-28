@@ -15,12 +15,12 @@ enum LoadFlag : uint8_t { ExcludeAssetsFolder, None };
 class ResourceManager {
    public:
     static std::shared_ptr<scene::Font> getFont(const std::string& name);
-    static std::shared_ptr<scene::Font> loadFont(const std::string& path,
-                                                 const std::string& name);
+    static std::shared_ptr<scene::Font> loadFont(const std::string& name,
+                                                 const std::string& path);
 
     static std::shared_ptr<scene::Model> getModel(const std::string& name);
-    static std::shared_ptr<scene::Model> loadModel(const std::string& path,
-                                                   const std::string& name);
+    static std::shared_ptr<scene::Model> loadModel(const std::string& name,
+                                                   const std::string& path);
 
     static std::shared_ptr<Shader> loadShader(
         const std::string& name, const std::string& vertexShader,
@@ -29,8 +29,8 @@ class ResourceManager {
     static std::shared_ptr<Shader> getShader(const std::string& name);
 
     static std::shared_ptr<Texture> getTexture(const std::string& name);
-    static std::shared_ptr<Texture> loadTexture(const std::string& path,
-                                                const std::string& name,
+    static std::shared_ptr<Texture> loadTexture(const std::string& name,
+                                                const std::string& path,
                                                 LoadFlag flag = None);
 
     static void setAssetsFolder(const std::string& folder) {

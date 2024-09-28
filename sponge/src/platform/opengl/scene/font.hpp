@@ -17,7 +17,13 @@ class Font : public sponge::scene::Font {
     void render(const std::string& text, const glm::vec2& position,
                 uint32_t targetSize, const glm::vec3& color);
 
+    static std::string getShaderName() {
+        return std::string(shaderName);
+    };
+
    private:
+    static constexpr char shaderName[] = "text";
+
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::VertexArray> vao;
     std::unique_ptr<renderer::IndexBuffer> ebo;
