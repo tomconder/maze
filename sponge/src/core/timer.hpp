@@ -28,4 +28,4 @@ class Timer {
     uint64_t previousTicks{};
 };
 
-}  // namespace sponge
+}  // namespace sponge::core

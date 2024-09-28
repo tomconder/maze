@@ -35,4 +35,4 @@ void Mesh::optimize() {
     vertices.assign(optimalVertices.begin(), optimalVertices.end());
 }
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene

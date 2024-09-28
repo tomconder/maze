@@ -26,4 +26,4 @@ void VertexArray::unbind() const {
     glDeleteVertexArrays(1, &id);
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

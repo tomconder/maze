@@ -22,10 +22,6 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
       textPosition({ topLeft.x, topLeft.y }) {
     font = ResourceManager::getFont(textFontName);
 
-    const auto shader = ResourceManager::loadShader(
-        "/shaders/quad.vert", "/shaders/quad.frag", quadShader);
-    UNUSED(shader);
-
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>(quadShader);
 }
 

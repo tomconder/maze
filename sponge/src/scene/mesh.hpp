@@ -26,4 +26,4 @@ class Mesh {
     std::vector<uint32_t> indices;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene

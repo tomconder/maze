@@ -11,7 +11,7 @@ namespace sponge::platform::opengl::scene {
 
 class Quad {
    public:
-    explicit Quad(const std::string& shaderName);
+    explicit Quad(const std::string& name);
 
     void render(const glm::vec2& top, const glm::vec2& bottom,
                 const glm::vec4& color) const;

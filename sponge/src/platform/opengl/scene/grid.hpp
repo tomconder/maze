@@ -10,7 +10,7 @@ namespace sponge::platform::opengl::scene {
 
 class Grid {
    public:
-    explicit Grid(const std::string& shaderName);
+    Grid(const std::string& name);
     void render() const;
 
    private:

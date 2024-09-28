@@ -9,7 +9,7 @@ namespace sponge::platform::opengl::scene {
 
 class Model {
    public:
-    void load(const std::string& shaderName, const std::string& path);
+    void load(const std::string& path);
     void render() const;
     size_t getNumIndices() const {
         return numIndices;
@@ -19,19 +19,18 @@ class Model {
     }
 
    protected:
-    std::vector<std::shared_ptr<scene::Mesh>> meshes;
+    std::vector<std::shared_ptr<Mesh>> meshes;
 
    private:
     size_t numIndices = 0;
     size_t numVertices = 0;
 
-    void process(const std::string& shaderName, tinyobj::attrib_t& attrib,
+    void process(tinyobj::attrib_t& attrib,
                  std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials,
                  const std::string& path);
-    static std::shared_ptr<scene::Mesh> processMesh(
-        const std::string& shaderName, tinyobj::attrib_t& attrib,
-        tinyobj::mesh_t& mesh,
+    static std::shared_ptr<Mesh> processMesh(
+        tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
         const std::vector<tinyobj::material_t>& materials,
         const std::string& path);
     static std::shared_ptr<renderer::Texture> loadMaterialTextures(

@@ -8,7 +8,8 @@ class Sprite {
    public:
     virtual ~Sprite() = default;
 
-    virtual void render(glm::vec2 position, glm::vec2 size) const = 0;
+    virtual void render(const glm::vec2& position,
+                        const glm::vec2& size) const = 0;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::scene

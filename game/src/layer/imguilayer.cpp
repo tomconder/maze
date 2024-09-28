@@ -11,7 +11,6 @@ constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
 constexpr char cameraName[] = "maze";
 const std::vector categories{ "categories", "app", "sponge", "opengl" };
-
 const std::vector logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),

@@ -7,42 +7,36 @@
 namespace sponge::platform::opengl::renderer {
 
 Shader::Shader(const std::string& vertexSource,
-               const std::string& fragmentSource) {
-    assert(!vertexSource.empty());
-    assert(!fragmentSource.empty());
-
-    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-
-    program = linkProgram(vs, fs);
-
-    glDetachShader(program, vs);
-    glDetachShader(program, fs);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-}
-
-Shader::Shader(const std::string& vertexSource,
                const std::string& fragmentSource,
-               const std::string& geometrySource) {
+               const std::optional<std::string>& geometrySource) {
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
-    assert(!geometrySource.empty());
 
     const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
-    const uint32_t gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
 
-    program = linkProgram(vs, fs, gs);
+    uint32_t gs = 0;
+    if (geometrySource) {
+        gs = compileShader(GL_GEOMETRY_SHADER, *geometrySource);
+    }
+
+    if (geometrySource) {
+        program = linkProgram(vs, fs, gs);
+    } else {
+        program = linkProgram(vs, fs);
+    }
 
     glDetachShader(program, vs);
     glDetachShader(program, fs);
-    glDetachShader(program, gs);
+    if (geometrySource) {
+        glDetachShader(program, gs);
+    }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-    glDeleteShader(gs);
+    if (geometrySource) {
+        glDeleteShader(gs);
+    }
 }
 
 Shader::~Shader() {
@@ -82,39 +76,15 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     return id;
 }
 
-uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs) {
-    const uint32_t id = glCreateProgram();
-
-    glAttachShader(id, vs);
-    glAttachShader(id, fs);
-
-    glLinkProgram(id);
-
-    int32_t result = GL_FALSE;
-
-    glGetProgramiv(id, GL_LINK_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
-        if (length > 0) {
-            std::vector<GLchar> message(length);
-            glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR("Shader linking failed: {0}", message.data());
-        }
-    }
-
-    glValidateProgram(id);
-
-    return id;
-}
-
 uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
-                             const uint32_t gs) {
+                             const std::optional<uint32_t> gs) {
     const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
     glAttachShader(id, fs);
-    glAttachShader(id, gs);
+    if (gs) {
+        glAttachShader(id, *gs);
+    }
 
     glLinkProgram(id);
 
@@ -157,8 +127,7 @@ void Shader::setInteger(const std::string& name, const int value) {
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& value) {
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
-                       value_ptr(value));
+    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
 }
 
 GLint Shader::getUniformLocation(const std::string& name) const {
@@ -178,4 +147,4 @@ GLint Shader::getUniformLocation(const std::string& name) const {
     return location;
 }
 
-}  // namespace sponge::platform::opengl
+}  // namespace sponge::platform::opengl::renderer

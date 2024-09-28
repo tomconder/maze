@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace {
-constexpr char textShader[] = "text";
+constexpr char shaderName[] = "text";
 constexpr char vertex[] = "vertex";
 }  // namespace
 
@@ -14,10 +14,8 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
 Font::Font() {
-    ResourceManager::loadShader("/shaders/text.vert", "/shaders/text.frag",
-                                textShader);
-
-    const auto shader = ResourceManager::getShader(textShader);
+    const auto shader = ResourceManager::loadShader(
+        shaderName, "/shaders/text.vert", "/shaders/text.frag");
     shader->bind();
 
     const auto program = shader->getId();
@@ -117,7 +115,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         prev = index;
     }
 
-    auto shader = ResourceManager::getShader(textShader);
+    auto shader = ResourceManager::getShader(shaderName);
 
     vao->bind();
 
