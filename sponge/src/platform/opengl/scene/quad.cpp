@@ -8,6 +8,7 @@ constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
+constexpr uint32_t numVertices = 4;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -45,19 +46,19 @@ Quad::Quad() {
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
                   const glm::vec4& color) const {
-    const std::vector<glm::vec2> vertices = {
+    const std::array<glm::vec2, numVertices> vertices({
         { top.x, bottom.y },    //
         { top.x, top.y },       //
         { bottom.x, top.y },    //
         { bottom.x, bottom.y }  //
-    };
+    });
 
     vao->bind();
 
     shader->bind();
     shader->setFloat4("color", color);
 
-    vbo->update(vertices);
+    vbo->update(vertices.data(), numVertices);
 
     glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 

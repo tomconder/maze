@@ -1,19 +1,23 @@
 #include "indexbuffer.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+namespace {
+constexpr size_t sizeof_uint32 = sizeof(uint32_t);
+}
+
 namespace sponge::platform::opengl::renderer {
 
 IndexBuffer::IndexBuffer(const std::vector<uint32_t>& indices) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t),
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof_uint32,
                  indices.data(), GL_DYNAMIC_DRAW);
 }
 
 IndexBuffer::IndexBuffer(const uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(uint32_t), nullptr,
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof_uint32, nullptr,
                  GL_DYNAMIC_DRAW);
 }
 
@@ -33,10 +37,10 @@ std::unique_ptr<IndexBuffer> IndexBuffer::create(const uint32_t size) {
     return buffer;
 }
 
-void IndexBuffer::update(const std::vector<uint32_t>& indices) const {
+void IndexBuffer::update(const uint32_t indices[],
+                         const std::size_t size) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                    indices.size() * sizeof(uint32_t), indices.data());
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size * sizeof_uint32, indices);
 }
 
 void IndexBuffer::bind() const {

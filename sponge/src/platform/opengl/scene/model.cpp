@@ -69,7 +69,7 @@ void Model::process(tinyobj::attrib_t& attrib,
         newMesh->optimize();
         numIndices += newMesh->getNumIndices();
         numVertices += newMesh->getNumVertices();
-        meshes.push_back(newMesh);
+        meshes.emplace_back(newMesh);
     }
 }
 
@@ -106,8 +106,8 @@ std::shared_ptr<Mesh> Model::processMesh(
                                        attrib.normals[i + 2] };
         }
 
-        vertices.push_back(vertex);
-        indices.push_back(numIndices);
+        vertices.emplace_back(vertex);
+        indices.emplace_back(numIndices);
         numIndices++;
     }
 
@@ -128,7 +128,7 @@ std::shared_ptr<Mesh> Model::processMesh(
 
     if (!mesh.material_ids.empty()) {
         if (const auto id = mesh.material_ids[0]; id != -1) {
-            textures.push_back(loadMaterialTextures(materials[id], path));
+            textures.emplace_back(loadMaterialTextures(materials[id], path));
         }
     }
 

@@ -9,7 +9,7 @@ constexpr float mouseSpeed = .1F;
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
-constexpr char modelPath[] = "/models/cube/cube.obj";
+constexpr char modelPath[] = "/models/buddha/buddha.obj";
 }  // namespace
 
 namespace game::layer {

@@ -106,7 +106,7 @@ class Application : public sponge::core::Application {
     }
 
     void addMessage(const LogItem& item) const {
-        messages->push_back(item);
+        messages->emplace_back(item);
     }
 
     void clearMessages() const {
