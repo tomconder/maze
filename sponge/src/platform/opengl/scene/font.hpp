@@ -14,6 +14,7 @@ namespace sponge::platform::opengl::scene {
 class Font : public sponge::scene::Font {
    public:
     Font();
+    uint32_t getLength(std::string_view text, uint32_t targetSize);
     void load(const std::string& path);
     void render(const std::string& text, const glm::vec2& position,
                 uint32_t targetSize, const glm::vec3& color);
@@ -24,12 +25,6 @@ class Font : public sponge::scene::Font {
 
    private:
     static constexpr char shaderName[] = "text";
-
-    static constexpr size_t numIndices = 6;
-    static constexpr size_t numVertices = 8;
-
-    std::array<uint32_t, maxLength * numIndices> batchIndices;
-    std::array<glm::vec2, maxLength * numVertices> batchVertices;
 
     std::shared_ptr<renderer::Shader> shader;
 
