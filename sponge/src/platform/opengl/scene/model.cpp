@@ -1,4 +1,5 @@
 #include "model.hpp"
+#include "core/base.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/glm.hpp>
@@ -15,6 +16,14 @@
 namespace sponge::platform::opengl::scene {
 
 using sponge::scene::Vertex;
+
+Model::Model() {
+    auto shaderName = Mesh::getShaderName();
+    auto shader = renderer::ResourceManager::loadShader(
+        shaderName, "/shaders/shader.vert", "/shaders/shader.frag",
+        "/shaders/shader.geom");
+    UNUSED(shader);
+}
 
 void Model::load(const std::string& path) {
     assert(!path.empty());

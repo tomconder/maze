@@ -9,6 +9,7 @@ namespace sponge::platform::opengl::scene {
 
 class Model {
    public:
+    Model();
     void load(const std::string& path);
     void render() const;
     size_t getNumIndices() const {

@@ -46,12 +46,12 @@ Quad::Quad() {
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
                   const glm::vec4& color) const {
-    const std::array<glm::vec2, numVertices> vertices({
+    const std::array<glm::vec2, numVertices> vertices{ {
         { top.x, bottom.y },    //
         { top.x, top.y },       //
         { bottom.x, top.y },    //
         { bottom.x, bottom.y }  //
-    });
+    } };
 
     vao->bind();
 

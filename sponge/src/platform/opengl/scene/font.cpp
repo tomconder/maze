@@ -87,7 +87,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         const auto texh = height / scaleH;
         const auto texw = width / scaleW;
 
-        const std::array<glm::vec2, numVertices> vertices(
+        const std::array<glm::vec2, numVertices> vertices{
             { { xpos, ypos + h },
               { texx, texy + texh },
               { xpos, ypos },
@@ -95,7 +95,8 @@ void Font::render(const std::string& text, const glm::vec2& position,
               { xpos + w, ypos },
               { texx + texw, texy },
               { xpos + w, ypos + h },
-              { texx + texw, texy + texh } });
+              { texx + texw, texy + texh } }
+        };
 
         std::move(vertices.begin(), vertices.end(),
                   batchVertices.begin() + (i * numVertices));
