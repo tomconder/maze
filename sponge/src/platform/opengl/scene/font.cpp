@@ -72,9 +72,8 @@ void Font::render(const std::string& text, const glm::vec2& position,
     uint32_t x = position.x;
 
     for (uint32_t i = 0; i < str.size(); i++) {
-        auto charIndex = std::to_string(str[i]);
-        auto [loc, width, height, offset, xadvance, page] =
-            fontChars[charIndex];
+        auto index = std::to_string(str[i]);
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
 
         const auto xpos = x + (offset.x * scale);
         const auto ypos = position.y + (offset.y * scale);
@@ -112,10 +111,10 @@ void Font::render(const std::string& text, const glm::vec2& position,
         x += xadvance * scale;
 
         if (!prev.empty()) {
-            const auto key = fmt::format("{}.{}", prev, charIndex);
+            const auto key = fmt::format("{}.{}", prev, index);
             x += kerning[key] * scale;
         }
-        prev = charIndex;
+        prev = index;
     }
 
     vao->bind();
