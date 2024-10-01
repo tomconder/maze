@@ -18,13 +18,9 @@ struct Character {
 class Font {
    public:
     void load(const std::string& path);
-    uint32_t getLength(std::string_view text, uint32_t targetSize);
-
     void log() const;
 
    protected:
-    static constexpr std::size_t maxLength = 256;
-
     std::unordered_map<std::string, Character> fontChars;
     std::unordered_map<std::string, float> kerning;
 

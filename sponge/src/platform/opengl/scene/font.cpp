@@ -5,6 +5,12 @@
 
 namespace {
 constexpr char vertex[] = "vertex";
+constexpr size_t numIndices = 6;
+constexpr size_t numVertices = 8;
+constexpr std::size_t maxLength = 256;
+
+std::array<uint32_t, maxLength * numIndices> batchIndices;
+std::array<glm::vec2, maxLength * numVertices> batchVertices;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -39,9 +45,29 @@ Font::Font() {
     glBindVertexArray(0);
 
     shader->unbind();
+}
 
-    batchIndices.fill(0);
-    batchVertices.fill(glm::vec2{ 0 });
+uint32_t Font::getLength(const std::string_view text,
+                         const uint32_t targetSize) {
+    const auto scale = static_cast<float>(targetSize) / size;
+    const auto str =
+        text.length() > maxLength ? text.substr(0, maxLength) : text;
+
+    std::string prev;
+    uint32_t x = 0;
+
+    for (const char& c : str) {
+        auto index = std::to_string(c);
+        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
+        x += xadvance * scale;
+        if (!prev.empty()) {
+            const auto key = fmt::format("{}.{}", prev, index);
+            x += kerning[key] * scale;
+        }
+        prev = index;
+    }
+
+    return x;
 }
 
 void Font::load(const std::string& path) {

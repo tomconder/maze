@@ -111,29 +111,6 @@ void Font::load(const std::string& path) {
     }
 }
 
-uint32_t Font::getLength(const std::string_view text,
-                         const uint32_t targetSize) {
-    const auto scale = static_cast<float>(targetSize) / size;
-    const auto str =
-        text.length() > maxLength ? text.substr(0, maxLength) : text;
-
-    std::string prev;
-    uint32_t x = 0;
-
-    for (const char& c : str) {
-        auto index = std::to_string(c);
-        auto [loc, width, height, offset, xadvance, page] = fontChars[index];
-        x += xadvance * scale;
-        if (!prev.empty()) {
-            const auto key = fmt::format("{}.{}", prev, index);
-            x += kerning[key] * scale;
-        }
-        prev = index;
-    }
-
-    return x;
-}
-
 void Font::log() const {
     SPONGE_CORE_DEBUG("Font {:>6} face={} size={}", "INFO", face, size);
 
