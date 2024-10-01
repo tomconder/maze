@@ -33,10 +33,11 @@ std::unique_ptr<IndexBuffer> IndexBuffer::create(const uint32_t size) {
     return buffer;
 }
 
-void IndexBuffer::update(const std::vector<uint32_t>& indices) const {
+void IndexBuffer::update(const uint32_t indices[],
+                         const std::size_t size) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0,
-                    indices.size() * sizeof(uint32_t), indices.data());
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size * sizeof(uint32_t),
+                    indices);
 }
 
 void IndexBuffer::bind() const {

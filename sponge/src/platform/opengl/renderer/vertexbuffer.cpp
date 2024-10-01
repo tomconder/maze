@@ -46,10 +46,10 @@ std::unique_ptr<VertexBuffer> VertexBuffer::create(
     return buffer;
 }
 
-void VertexBuffer::update(const std::vector<glm::vec2>& vertices) const {
+void VertexBuffer::update(const glm::vec2 vertices[],
+                          const std::size_t size) const {
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec2),
-                    vertices.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(glm::vec2), vertices);
 }
 
 void VertexBuffer::update(const std::vector<scene::Vertex>& vertices) const {

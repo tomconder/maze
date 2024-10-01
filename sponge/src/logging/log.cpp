@@ -34,9 +34,9 @@ void Log::init(const std::string& logfile) {
 void Log::addSink(const spdlog::sink_ptr& sink, const std::string& pattern) {
     setFormatter(sink, pattern);
 
-    coreLogger->sinks().push_back(sink);
-    appLogger->sinks().push_back(sink);
-    glLogger->sinks().push_back(sink);
+    coreLogger->sinks().emplace_back(sink);
+    appLogger->sinks().emplace_back(sink);
+    glLogger->sinks().emplace_back(sink);
 }
 
 void Log::setFormatter(const spdlog::sink_ptr& sink,

@@ -2,7 +2,6 @@
 #include "core/base.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <fmt/format.h>
-#include <vector>
 
 namespace {
 constexpr char vertex[] = "vertex";
@@ -20,10 +19,10 @@ Font::Font() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(maxLength * 8);
+    vbo = renderer::VertexBuffer::create(maxLength * numVertices);
     vbo->bind();
 
-    ebo = renderer::IndexBuffer::create(maxLength * 6);
+    ebo = renderer::IndexBuffer::create(maxLength * numIndices);
     ebo->bind();
 
     const auto program = shader->getId();
@@ -40,6 +39,9 @@ Font::Font() {
     glBindVertexArray(0);
 
     shader->unbind();
+
+    batchIndices.fill(0);
+    batchVertices.fill(glm::vec2{ 0 });
 }
 
 void Font::load(const std::string& path) {
@@ -65,15 +67,12 @@ void Font::render(const std::string& text, const glm::vec2& position,
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    std::vector<glm::vec2> batchVertices;
-    std::vector<uint32_t> batchIndices;
-    uint32_t numIndices = 0;
     std::string prev;
 
     uint32_t x = position.x;
 
-    for (const char& c : str) {
-        auto index = std::to_string(c);
+    for (uint32_t i = 0; i < str.size(); i++) {
+        auto index = std::to_string(str[i]);
         auto [loc, width, height, offset, xadvance, page] = fontChars[index];
 
         const auto xpos = x + (offset.x * scale);
@@ -87,25 +86,29 @@ void Font::render(const std::string& text, const glm::vec2& position,
         const auto texh = height / scaleH;
         const auto texw = width / scaleW;
 
-        const std::vector<glm::vec2> vertices = {
-            { xpos, ypos + h },     { texx, texy + texh },        //
-            { xpos, ypos },         { texx, texy },               //
-            { xpos + w, ypos },     { texx + texw, texy },        //
-            { xpos + w, ypos + h }, { texx + texw, texy + texh }  //
+        const std::array<glm::vec2, numVertices> vertices{
+            { { xpos, ypos + h },
+              { texx, texy + texh },
+              { xpos, ypos },
+              { texx, texy },
+              { xpos + w, ypos },
+              { texx + texw, texy },
+              { xpos + w, ypos + h },
+              { texx + texw, texy + texh } }
         };
 
-        batchVertices.insert(batchVertices.end(), vertices.begin(),
-                             vertices.end());
+        std::move(vertices.begin(), vertices.end(),
+                  batchVertices.begin() + (i * numVertices));
 
-        const std::vector indices = {
-            numIndices, numIndices + 2, numIndices + 1,  //
-            numIndices, numIndices + 3, numIndices + 2   //
+        const std::array indices = {
+            i * 4, (i * 4) + 2, (i * 4) + 1,  //
+            i * 4, (i * 4) + 3, (i * 4) + 2   //
         };
 
-        batchIndices.insert(batchIndices.end(), indices.begin(), indices.end());
+        std::move(indices.begin(), indices.end(),
+                  batchIndices.begin() + (i * numIndices));
 
         x += xadvance * scale;
-        numIndices += 4;
 
         if (!prev.empty()) {
             const auto key = fmt::format("{}.{}", prev, index);
@@ -123,12 +126,14 @@ void Font::render(const std::string& text, const glm::vec2& position,
     auto tex = ResourceManager::getTexture(textureName);
     tex->bind();
 
-    vbo->update(batchVertices);
+    uint32_t numChars = str.size();
 
-    ebo->update(batchIndices);
+    vbo->update(batchVertices.data(), numChars * numVertices);
 
-    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(batchIndices.size()),
-                   GL_UNSIGNED_INT, nullptr);
+    ebo->update(batchIndices.data(), numChars * numIndices);
+
+    glDrawElements(GL_TRIANGLES, numChars * numIndices, GL_UNSIGNED_INT,
+                   nullptr);
 }
 
 }  // namespace sponge::platform::opengl::scene

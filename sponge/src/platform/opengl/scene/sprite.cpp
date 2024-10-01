@@ -9,6 +9,7 @@ constexpr uint32_t indices[] = {
     0, 1, 2,  //
     0, 2, 3   //
 };
+constexpr uint32_t numVertices = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -47,15 +48,15 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 }
 
 void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
-    const std::vector<glm::vec2> vertices = {
-        { position.x + size.x, position.y },
-        { 1.F, 0.F },  //
-        { position.x, position.y },
-        { 0.F, 0.F },  //
-        { position.x, position.y + size.y },
-        { 0.F, 1.F },  //
-        { position.x + size.x, position.y + size.y },
-        { 1.F, 1.F }
+    const std::array<glm::vec2, numVertices> vertices{
+        { { position.x + size.x, position.y },
+          { 1.F, 0.F },  //
+          { position.x, position.y },
+          { 0.F, 0.F },  //
+          { position.x, position.y + size.y },
+          { 0.F, 1.F },  //
+          { position.x + size.x, position.y + size.y },
+          { 1.F, 1.F } }
     };
 
     vao->bind();
@@ -64,7 +65,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
 
     tex->bind();
 
-    vbo->update(vertices);
+    vbo->update(vertices.data(), numVertices);
 
     glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 

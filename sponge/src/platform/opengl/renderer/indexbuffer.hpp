@@ -16,7 +16,7 @@ class IndexBuffer final : public sponge::renderer::Buffer {
     IndexBuffer& operator=(const IndexBuffer& indexBuffer) = delete;
     ~IndexBuffer() override;
 
-    void update(const std::vector<uint32_t>& indices) const;
+    void update(const uint32_t indices[], std::size_t size) const;
 
     void bind() const override;
     void unbind() const override;

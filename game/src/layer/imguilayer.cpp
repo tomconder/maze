@@ -4,14 +4,15 @@
 #include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
+#include <array>
 
 namespace {
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
 constexpr char cameraName[] = "maze";
-const std::vector categories{ "categories", "app", "sponge", "opengl" };
-const std::vector logLevels{
+constexpr std::array categories{ "categories", "app", "sponge", "opengl" };
+constexpr std::array logLevels{
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
@@ -129,11 +130,11 @@ void ImGuiLayer::onImGuiRender() {
     }
 }
 
-float ImGuiLayer::getLogSelectionMaxWidth(
-    const std::vector<const char*>& list) {
+float ImGuiLayer::getLogSelectionMaxWidth(const char* const list[],
+                                          const std::size_t size) {
     float maxWidth = 0;
-    for (const auto* item : list) {
-        const auto width = ImGui::CalcTextSize(item).x;
+    for (std::size_t i = 0; i < size; i++) {
+        const auto width = ImGui::CalcTextSize(list[i]).x;
         maxWidth = std::max(width, maxWidth);
     }
 
@@ -169,8 +170,10 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static auto logLevelWidth = getLogSelectionMaxWidth(logLevels);
-    static auto categoriesWidth = getLogSelectionMaxWidth(categories);
+    static auto logLevelWidth =
+        getLogSelectionMaxWidth(logLevels.data(), logLevels.size());
+    static auto categoriesWidth =
+        getLogSelectionMaxWidth(categories.data(), categories.size());
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
     static auto activeCategory = 0;
 
@@ -185,12 +188,12 @@ void ImGuiLayer::showLogging() {
 
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), std::size(logLevels));
+                 logLevels.data(), logLevels.size());
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
     ImGui::Combo("##categories", &activeCategory, categories.data(),
-                 std::size(categories));
+                 categories.size());
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");

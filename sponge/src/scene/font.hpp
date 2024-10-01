@@ -23,7 +23,7 @@ class Font {
     void log() const;
 
    protected:
-    const uint32_t maxLength = 256;
+    static constexpr std::size_t maxLength = 256;
 
     std::unordered_map<std::string, Character> fontChars;
     std::unordered_map<std::string, float> kerning;

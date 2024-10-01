@@ -20,7 +20,7 @@ class VertexBuffer final : public sponge::renderer::Buffer {
     VertexBuffer& operator=(const VertexBuffer& vertexBuffer) = delete;
     ~VertexBuffer() override;
 
-    void update(const std::vector<glm::vec2>& vertices) const;
+    void update(const glm::vec2 vertices[], std::size_t size) const;
     void update(const std::vector<scene::Vertex>& vertices) const;
 
     void bind() const override;
