@@ -85,7 +85,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache the build
-        uses: mozilla-actions/sccache-action@latest
+        uses: mozilla-actions/sccache-action@0.0.6
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
