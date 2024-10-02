@@ -1,6 +1,5 @@
 #include "resourcemanager.hpp"
 #include "logging/log.hpp"
-#include <SDL.h>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -195,45 +194,21 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
 
     const std::filesystem::path name{ path };
 
-    int origFormat;
-    constexpr int depth = 32;
+    int bytesPerPixel;
     int height;
     int width;
-    constexpr int channels = STBI_rgb_alpha;
 
     void* data =
-        stbi_load(name.string().data(), &width, &height, &origFormat, channels);
+        stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
     if (data == nullptr) {
         SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}",
                           name.string(), stbi_failure_reason());
         return texture;
     }
 
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-    constexpr uint32_t rmask = 0x000000FF;
-    constexpr uint32_t gmask = 0x0000FF00;
-    constexpr uint32_t bmask = 0x00FF0000;
-    constexpr uint32_t amask = 0xFF000000;
-#else
-    constexpr uint32_t rmask = 0xFF000000;
-    constexpr uint32_t gmask = 0x00FF0000;
-    constexpr uint32_t bmask = 0x0000FF00;
-    constexpr uint32_t amask = 0x000000FF;
-#endif
+    texture->generate(width, height, bytesPerPixel,
+                      static_cast<const uint8_t*>(data));
 
-    SDL_Surface* surface =
-        SDL_CreateRGBSurfaceFrom(data, width, height, depth, channels * width,
-                                 rmask, gmask, bmask, amask);
-    if (surface == nullptr) {
-        SPONGE_CORE_ERROR("Unable to load texture file: {0}", path);
-        stbi_image_free(data);
-        return texture;
-    }
-
-    texture->generate(surface->w, surface->h, surface->format->BytesPerPixel,
-                      static_cast<uint8_t*>(surface->pixels));
-
-    SDL_FreeSurface(surface);
     stbi_image_free(data);
 
     return texture;
