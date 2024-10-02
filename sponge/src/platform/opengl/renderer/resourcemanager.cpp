@@ -123,7 +123,7 @@ std::shared_ptr<Texture> ResourceManager::getTexture(const std::string& name) {
 
 std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
                                                       const std::string& path,
-                                                      const LoadFlag flag) {
+                                                      const uint8_t flag) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -134,13 +134,14 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
     SPONGE_CORE_INFO("Loading texture file: [{}, {}]", name, path);
 
     std::string texturePath;
-    if (flag == ExcludeAssetsFolder) {
+    if ((flag & ExcludeAssetsFolder) == ExcludeAssetsFolder) {
         texturePath = path;
     } else {
         texturePath = assetsFolder + path;
     }
 
-    auto texture = loadTextureFromFile(texturePath);
+    auto texture = loadTextureFromFile(
+        texturePath, (flag & GammaCorrection) == GammaCorrection);
     textures[name] = texture;
 
     return texture;
@@ -187,7 +188,7 @@ std::string ResourceManager::loadSourceFromFile(const std::string& path) {
 }
 
 std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
-    const std::string& path) {
+    const std::string& path, const bool gammaCorrection) {
     assert(!path.empty());
 
     auto texture = std::make_shared<Texture>();
@@ -207,7 +208,7 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
     }
 
     texture->generate(width, height, bytesPerPixel,
-                      static_cast<const uint8_t*>(data));
+                      static_cast<const uint8_t*>(data), gammaCorrection);
 
     stbi_image_free(data);
 
