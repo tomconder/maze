@@ -3,7 +3,7 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr float ambientStrength = .3F;
+constexpr float ambientStrength = .7F;
 constexpr float keyboardSpeed = .1F;
 constexpr float mouseSpeed = .1F;
 

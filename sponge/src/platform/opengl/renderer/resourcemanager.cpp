@@ -131,7 +131,9 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
         return textures[name];
     }
 
-    SPONGE_CORE_INFO("Loading texture file: [{}, {}]", name, path);
+    SPONGE_CORE_INFO(
+        "Loading texture file: [{}, {}, {}]", name, path,
+        ((flag & GammaCorrection) == GammaCorrection) ? "gamma" : "linear");
 
     std::string texturePath;
     if ((flag & ExcludeAssetsFolder) == ExcludeAssetsFolder) {
