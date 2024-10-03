@@ -7,14 +7,21 @@ VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2),
-                 vertices.data(), GL_DYNAMIC_DRAW);
+                 vertices.data(), GL_STATIC_DRAW);
+}
+
+VertexBuffer::VertexBuffer(const std::vector<glm::vec3>& vertices) {
+    glGenBuffers(1, &id);
+    glBindBuffer(GL_ARRAY_BUFFER, id);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
+                 vertices.data(), GL_STATIC_DRAW);
 }
 
 VertexBuffer::VertexBuffer(const std::vector<scene::Vertex>& vertices) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(scene::Vertex),
-                 vertices.data(), GL_DYNAMIC_DRAW);
+                 vertices.data(), GL_STATIC_DRAW);
 }
 
 VertexBuffer::VertexBuffer(const uint32_t size) {
@@ -36,6 +43,12 @@ std::unique_ptr<VertexBuffer> VertexBuffer::create(const uint32_t size) {
 
 std::unique_ptr<VertexBuffer> VertexBuffer::create(
     const std::vector<glm::vec2>& vertices) {
+    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
+    return buffer;
+}
+
+std::unique_ptr<VertexBuffer> VertexBuffer::create(
+    const std::vector<glm::vec3>& vertices) {
     std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
     return buffer;
 }

@@ -1,5 +1,24 @@
 #include "lightcube.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
+namespace {
+constexpr char position[] = "position";
+constexpr glm::vec3 vertices[] = {
+    { -0.5, 0.5, -0.5 }, { -0.5, 0.5, 0.5 },   { 0.5, 0.5, 0.5 },
+    { -0.5, 0.5, -0.5 }, { 0.5, 0.5, 0.5 },    { 0.5, 0.5, -0.5 },
+    { -0.5, 0.5, -0.5 }, { -0.5, -0.5, -0.5 }, { -0.5, -0.5, 0.5 },
+    { -0.5, 0.5, -0.5 }, { -0.5, -0.5, 0.5 },  { -0.5, 0.5, 0.5 },
+    { 0.5, 0.5, 0.5 },   { 0.5, -0.5, 0.5 },   { 0.5, -0.5, -0.5 },
+    { 0.5, 0.5, 0.5 },   { 0.5, -0.5, -0.5 },  { 0.5, 0.5, -0.5 },
+    { 0.5, 0.5, -0.5 },  { 0.5, -0.5, -0.5 },  { -0.5, -0.5, -0.5 },
+    { 0.5, 0.5, -0.5 },  { -0.5, -0.5, -0.5 }, { -0.5, 0.5, -0.5 },
+    { -0.5, 0.5, 0.5 },  { -0.5, -0.5, 0.5 },  { 0.5, -0.5, 0.5 },
+    { -0.5, 0.5, 0.5 },  { 0.5, -0.5, 0.5 },   { 0.5, 0.5, 0.5 },
+    { -0.5, -0.5, 0.5 }, { -0.5, -0.5, -0.5 }, { 0.5, -0.5, -0.5 },
+    { -0.5, -0.5, 0.5 }, { 0.5, -0.5, -0.5 },  { 0.5, -0.5, 0.5 }
+};
+}  // namespace
 
 namespace sponge::platform::opengl::scene {
 
@@ -11,16 +30,21 @@ LightCube::LightCube() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    // TODO: create vbo
-    // vbo = renderer::VertexBuffer::create(
-    //     std::vector<glm::vec2>{ vertices, std::end(vertices) });
-    // vbo->bind();
+    vbo = renderer::VertexBuffer::create(
+        std::vector<glm::vec3>{ vertices, std::end(vertices) });
+    vbo->bind();
 
-    // TODO: create ebo
-    // ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
-    // ebo->bind();
+    const auto program = shader->getId();
+    auto location = glGetAttribLocation(program, position);
+    if (location != -1) {
+        const auto pos = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(pos);
+        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
+                              reinterpret_cast<const void*>(0));
+    }
 
     shader->unbind();
+    glBindVertexArray(0);
 }
 
 void LightCube::render() const {
@@ -28,8 +52,7 @@ void LightCube::render() const {
 
     shader->bind();
 
-    //    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT,
-    //    nullptr);
+    glDrawArrays(GL_TRIANGLES, 0, std::size(vertices));
 
     shader->unbind();
 

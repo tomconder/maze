@@ -12,6 +12,8 @@ class VertexBuffer final : public sponge::renderer::Buffer {
    public:
     static std::unique_ptr<VertexBuffer> create(uint32_t size);
     static std::unique_ptr<VertexBuffer> create(
+        const std::vector<glm::vec3>& vertices);
+    static std::unique_ptr<VertexBuffer> create(
         const std::vector<glm::vec2>& vertices);
     static std::unique_ptr<VertexBuffer> create(
         const std::vector<scene::Vertex>& vertices);
@@ -29,6 +31,7 @@ class VertexBuffer final : public sponge::renderer::Buffer {
    private:
     explicit VertexBuffer(uint32_t size);
     explicit VertexBuffer(const std::vector<glm::vec2>& vertices);
+    explicit VertexBuffer(const std::vector<glm::vec3>& vertices);
     explicit VertexBuffer(const std::vector<scene::Vertex>& vertices);
 };
 

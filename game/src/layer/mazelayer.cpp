@@ -3,9 +3,14 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr float ambientStrength = .7F;
-constexpr float keyboardSpeed = .1F;
-constexpr float mouseSpeed = .1F;
+constexpr auto ambientStrength = .7F;
+constexpr auto keyboardSpeed = .1F;
+constexpr auto mouseSpeed = .1F;
+
+constexpr auto lightCubeScale = glm::vec3(.2F);
+constexpr auto lightPos = glm::vec3(2.F, 4.F, 4.F);
+constexpr auto modelScale = glm::vec3(1.F);
+constexpr auto modelTranslation = glm::vec3(0, .50003F, 0);
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
@@ -23,20 +28,23 @@ MazeLayer::MazeLayer() : Layer("maze") {
 
 void MazeLayer::onAttach() {
     ResourceManager::loadModel(modelName, modelPath);
-    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    shader->setFloat3("lightPos", glm::vec3(14.F, 4.F, 14.F));
+    shader->setFloat3("lightPos", lightPos);
     shader->setFloat("ambientStrength", ambientStrength);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
     shader->setFloat("lineWidth", .3F);
     shader->unbind();
+
+    lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
 }
 
 void MazeLayer::onDetach() {
@@ -46,16 +54,25 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto shader = ResourceManager::getShader(shaderName);
+    auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
+    auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setFloat3("viewPos", camera->getPosition());
-    shader->setMat4(
-        "mvp",
-        camera->getMVP() * translate(glm::mat4(1.F), glm::vec3(0, .50003F, 0)));
+    shader->setMat4("mvp", translate(scale(camera->getMVP(), modelScale),
+                                     modelTranslation));
     shader->setMat4("viewportMatrix", camera->getViewportMatrix());
     shader->unbind();
 
+    shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
+    shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setMat4(
+        "mvp", scale(translate(camera->getMVP(), lightPos), lightCubeScale));
+    shader->unbind();
+
     ResourceManager::getModel(modelName)->render();
+
+    lightCube->render();
 
     return true;
 }
@@ -63,6 +80,8 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::setWireframeActive(const bool active) {
     this->activeWireframe = active;
 
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setBoolean("showWireframe", active);

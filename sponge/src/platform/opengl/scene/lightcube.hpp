@@ -23,7 +23,6 @@ class LightCube {
     std::shared_ptr<renderer::Shader> shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
-    std::unique_ptr<renderer::IndexBuffer> ebo;
     std::unique_ptr<renderer::VertexArray> vao;
 };
 
