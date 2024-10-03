@@ -46,7 +46,7 @@ void main() {
     }
 
     // ambient
-    vec3 ambient = ambientStrength * lightColor;
+    vec3 ambient = ambientStrength * color;
 
     vec3 lighting = blinnPhong(normalize(gNormal), gPosition, lightPos, lightColor);
     color *= lighting;
@@ -62,5 +62,5 @@ void main() {
         mixVal = smoothstep(lineWidth - 1, lineWidth + 1, d);
     }
 
-    FragColor = mix(vec4(lineColor, 1.0), vec4(ambient * color, 1.0), mixVal);
+    FragColor = mix(vec4(lineColor, 1.0), vec4(ambient + color, 1.0), mixVal);
 }

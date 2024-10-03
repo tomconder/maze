@@ -3,12 +3,12 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr auto ambientStrength = .7F;
+constexpr auto ambientStrength = .3F;
 constexpr auto keyboardSpeed = .1F;
 constexpr auto mouseSpeed = .1F;
 
 constexpr auto lightCubeScale = glm::vec3(.2F);
-constexpr auto lightPos = glm::vec3(2.F, 4.F, 4.F);
+constexpr auto lightPos = glm::vec3(1.F, 5.F, 2.F);
 constexpr auto modelScale = glm::vec3(1.F);
 constexpr auto modelTranslation = glm::vec3(0, .50003F, 0);
 
