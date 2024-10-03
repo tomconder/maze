@@ -30,8 +30,7 @@ LightCube::LightCube() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(
-        std::vector<glm::vec3>{ vertices, std::end(vertices) });
+    vbo = renderer::VertexBuffer::create(vertices, std::size(vertices));
     vbo->bind();
 
     const auto program = shader->getId();

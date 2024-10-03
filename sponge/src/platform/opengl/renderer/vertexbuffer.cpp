@@ -10,11 +10,10 @@ VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
                  vertices.data(), GL_STATIC_DRAW);
 }
 
-VertexBuffer::VertexBuffer(const std::vector<glm::vec3>& vertices) {
+VertexBuffer::VertexBuffer(const glm::vec3 vertices[], const uint32_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
-                 vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size * sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
 }
 
 VertexBuffer::VertexBuffer(const std::vector<scene::Vertex>& vertices) {
@@ -47,9 +46,9 @@ std::unique_ptr<VertexBuffer> VertexBuffer::create(
     return buffer;
 }
 
-std::unique_ptr<VertexBuffer> VertexBuffer::create(
-    const std::vector<glm::vec3>& vertices) {
-    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
+std::unique_ptr<VertexBuffer> VertexBuffer::create(const glm::vec3 vertices[],
+                                                   const uint32_t size) {
+    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices, size));
     return buffer;
 }
 
