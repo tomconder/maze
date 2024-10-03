@@ -3,31 +3,10 @@
 
 namespace sponge::platform::opengl::renderer {
 
-VertexBuffer::VertexBuffer(const std::vector<glm::vec2>& vertices) {
+VertexBuffer::VertexBuffer(const void* vertices, std::size_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2),
-                 vertices.data(), GL_STATIC_DRAW);
-}
-
-VertexBuffer::VertexBuffer(const glm::vec3 vertices[], const uint32_t size) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size * sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
-}
-
-VertexBuffer::VertexBuffer(const std::vector<scene::Vertex>& vertices) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(scene::Vertex),
-                 vertices.data(), GL_STATIC_DRAW);
-}
-
-VertexBuffer::VertexBuffer(const uint32_t size) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size * sizeof(glm::vec2), nullptr,
-                 GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 }
 
 VertexBuffer::~VertexBuffer() {
@@ -35,39 +14,9 @@ VertexBuffer::~VertexBuffer() {
     glDeleteBuffers(1, &id);
 }
 
-std::unique_ptr<VertexBuffer> VertexBuffer::create(const uint32_t size) {
-    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(size));
-    return buffer;
-}
-
-std::unique_ptr<VertexBuffer> VertexBuffer::create(
-    const std::vector<glm::vec2>& vertices) {
-    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
-    return buffer;
-}
-
-std::unique_ptr<VertexBuffer> VertexBuffer::create(const glm::vec3 vertices[],
-                                                   const uint32_t size) {
-    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices, size));
-    return buffer;
-}
-
-std::unique_ptr<VertexBuffer> VertexBuffer::create(
-    const std::vector<scene::Vertex>& vertices) {
-    std::unique_ptr<VertexBuffer> buffer(new VertexBuffer(vertices));
-    return buffer;
-}
-
-void VertexBuffer::update(const glm::vec2 vertices[],
-                          const std::size_t size) const {
+void VertexBuffer::update(const void* vertices, std::size_t size) const {
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(glm::vec2), vertices);
-}
-
-void VertexBuffer::update(const std::vector<scene::Vertex>& vertices) const {
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(scene::Vertex),
-                    vertices.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
 }
 
 void VertexBuffer::bind() const {

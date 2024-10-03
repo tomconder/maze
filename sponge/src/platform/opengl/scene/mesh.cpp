@@ -28,7 +28,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(vertices);
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        vertices.data(), vertices.size() * sizeof(Vertex));
     vbo->bind();
 
     const auto program = shader->getId();

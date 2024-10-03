@@ -5,6 +5,7 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "scene/mesh.hpp"
 #include <memory>
 #include <string>
 #include <vector>

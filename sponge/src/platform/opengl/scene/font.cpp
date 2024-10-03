@@ -25,7 +25,8 @@ Font::Font() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(maxLength * numVertices);
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        nullptr, maxLength * numVertices * sizeof(glm::vec2));
     vbo->bind();
 
     ebo = renderer::IndexBuffer::create(maxLength * numIndices);
@@ -154,9 +155,10 @@ void Font::render(const std::string& text, const glm::vec2& position,
 
     uint32_t numChars = str.size();
 
-    vbo->update(batchVertices.data(), numChars * numVertices);
+    vbo->update(batchVertices.data(),
+                numChars * numVertices * sizeof(glm::vec2));
 
-    ebo->update(batchIndices.data(), numChars * numIndices);
+    ebo->update(batchIndices.data(), numChars * numIndices * sizeof(glm::vec2));
 
     glDrawElements(GL_TRIANGLES, numChars * numIndices, GL_UNSIGNED_INT,
                    nullptr);

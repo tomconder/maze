@@ -21,7 +21,8 @@ Quad::Quad() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(4);
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        nullptr, numVertices * sizeof(glm::vec2));
     vbo->bind();
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
@@ -58,7 +59,7 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
     shader->bind();
     shader->setFloat4("color", color);
 
-    vbo->update(vertices.data(), numVertices);
+    vbo->update(vertices.data(), numVertices * sizeof(glm::vec2));
 
     glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 

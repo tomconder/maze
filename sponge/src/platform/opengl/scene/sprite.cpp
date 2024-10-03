@@ -22,7 +22,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(8);
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        nullptr, numVertices * sizeof(glm::vec2));
     vbo->bind();
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
@@ -65,7 +66,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
 
     tex->bind();
 
-    vbo->update(vertices.data(), numVertices);
+    vbo->update(vertices.data(), numVertices * sizeof(glm::vec2));
 
     glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
 
