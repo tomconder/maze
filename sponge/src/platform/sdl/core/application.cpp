@@ -390,7 +390,7 @@ void Application::processEvent(const SDL_Event& event,
     }
 }
 
-void Application::setVSync(bool enabled) {
+void Application::setVSync(const bool enabled) {
     // 0 for immediate updates
     // 1 for updates synchronized with the vertical retrace
     // -1 for adaptive vsync

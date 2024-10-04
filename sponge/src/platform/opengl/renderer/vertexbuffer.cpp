@@ -3,7 +3,7 @@
 
 namespace sponge::platform::opengl::renderer {
 
-VertexBuffer::VertexBuffer(const void* vertices, std::size_t size) {
+VertexBuffer::VertexBuffer(const void* vertices, const std::size_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
@@ -14,7 +14,7 @@ VertexBuffer::~VertexBuffer() {
     glDeleteBuffers(1, &id);
 }
 
-void VertexBuffer::update(const void* vertices, std::size_t size) const {
+void VertexBuffer::update(const void* vertices, const std::size_t size) const {
     glBindBuffer(GL_ARRAY_BUFFER, id);
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
 }

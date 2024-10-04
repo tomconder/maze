@@ -4,8 +4,9 @@
 #include "platform/opengl/renderer/gl.hpp"
 
 namespace {
-void APIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
-                           GLenum severity, GLsizei length,
+void APIENTRY glLogMessage(const GLenum source, const GLenum type,
+                           const uint32_t id, const GLenum severity,
+                           const GLsizei length,
                            const GLchar* message, const void* userParam) {
     std::string source_str;
     std::string type_str;

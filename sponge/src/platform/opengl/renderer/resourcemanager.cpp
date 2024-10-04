@@ -174,8 +174,8 @@ std::string ResourceManager::loadSourceFromFile(const std::string& path) {
     assert(!path.empty());
 
     std::string code;
-    std::ifstream file(path, std::ios::in | std::ios::binary);
-    if (file.good()) {
+    if (std::ifstream file(path, std::ios::in | std::ios::binary);
+        file.good()) {
         file.seekg(0, std::ios::end);
         const auto size = file.tellg();
         file.seekg(0, std::ios::beg);

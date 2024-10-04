@@ -7,7 +7,6 @@
 #include "scene/font.hpp"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <array>
 #include <string>
 
 namespace sponge::platform::opengl::scene {
@@ -21,7 +20,7 @@ class Font : public sponge::scene::Font {
 
     static std::string getShaderName() {
         return std::string(shaderName);
-    };
+    }
 
    private:
     static constexpr char shaderName[] = "text";

@@ -90,8 +90,7 @@ void Font::load(const std::string& path) {
             ch.xadvance = nextFloat(lineStream);
             ch.page = static_cast<uint32_t>(nextInt(lineStream));
 
-            const auto iter = fontChars.find(id);
-            if (iter == fontChars.end()) {
+            if (const auto iter = fontChars.find(id); iter == fontChars.end()) {
                 fontChars.emplace(id, ch);
             }
         }
@@ -103,8 +102,7 @@ void Font::load(const std::string& path) {
 
             float amount = nextFloat(lineStream);
 
-            const auto iter = kerning.find(key);
-            if (iter == kerning.end()) {
+            if (const auto iter = kerning.find(key); iter == kerning.end()) {
                 kerning.emplace(key, amount);
             }
         }
