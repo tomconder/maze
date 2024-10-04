@@ -158,7 +158,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
     vbo->update(batchVertices.data(),
                 numChars * numVertices * sizeof(glm::vec2));
 
-    ebo->update(batchIndices.data(), numChars * numIndices * sizeof(glm::vec2));
+    ebo->update(batchIndices.data(), numChars * numIndices);
 
     glDrawElements(GL_TRIANGLES, numChars * numIndices, GL_UNSIGNED_INT,
                    nullptr);

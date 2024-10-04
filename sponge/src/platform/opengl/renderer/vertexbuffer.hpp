@@ -9,8 +9,8 @@ class VertexBuffer final : public sponge::renderer::Buffer {
    public:
     VertexBuffer(const void* vertices, std::size_t size);
 
-    VertexBuffer(VertexBuffer& vertexBuffer) = delete;
-    VertexBuffer& operator=(VertexBuffer& vertexBuffer) = delete;
+    VertexBuffer(const VertexBuffer& vertexBuffer) = delete;
+    VertexBuffer& operator=(const VertexBuffer& vertexBuffer) = delete;
     ~VertexBuffer() override;
 
     void update(const void* vertices, std::size_t size) const;
