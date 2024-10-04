@@ -1,5 +1,4 @@
 #pragma once
-#include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"

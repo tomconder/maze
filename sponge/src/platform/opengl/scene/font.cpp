@@ -2,6 +2,7 @@
 #include "core/base.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <fmt/format.h>
+#include <array>
 
 namespace {
 constexpr char vertex[] = "vertex";
@@ -34,8 +35,8 @@ Font::Font() {
 
     const auto program = shader->getId();
 
-    auto location = glGetAttribLocation(program, vertex);
-    if (location != -1) {
+    if (const auto location = glGetAttribLocation(program, vertex);
+        location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
         glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
@@ -83,7 +84,7 @@ void Font::load(const std::string& path) {
 }
 
 void Font::render(const std::string& text, const glm::vec2& position,
-                  uint32_t targetSize, const glm::vec3& color) {
+                  const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load
         return;
@@ -150,10 +151,10 @@ void Font::render(const std::string& text, const glm::vec2& position,
     shader->setFloat3("textColor", color);
     shader->setFloat("screenPxRange", fontSize / size * 4.0F);
 
-    auto tex = ResourceManager::getTexture(textureName);
+    const auto tex = ResourceManager::getTexture(textureName);
     tex->bind();
 
-    uint32_t numChars = str.size();
+    const uint32_t numChars = str.size();
 
     vbo->update(batchVertices.data(),
                 numChars * numVertices * sizeof(glm::vec2));

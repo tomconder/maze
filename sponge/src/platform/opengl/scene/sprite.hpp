@@ -20,7 +20,7 @@ class Sprite final : public sponge::scene::Sprite {
 
     static std::string getShaderName() {
         return std::string(shaderName);
-    };
+    }
 
    private:
     static constexpr char shaderName[] = "sprite";

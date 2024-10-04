@@ -35,8 +35,8 @@ LightCube::LightCube() {
     vbo->bind();
 
     const auto program = shader->getId();
-    auto location = glGetAttribLocation(program, position);
-    if (location != -1) {
+    if (const auto location = glGetAttribLocation(program, position);
+        location != -1) {
         const auto pos = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(pos);
         glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
