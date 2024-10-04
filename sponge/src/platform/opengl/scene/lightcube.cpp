@@ -24,14 +24,14 @@ namespace sponge::platform::opengl::scene {
 
 LightCube::LightCube() {
     shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/lightcube.vert", "/shaders/lightcube.frag");
+        shaderName, "/shaders/lightcube.vert.glsl",
+        "/shaders/lightcube.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<renderer::VertexBuffer>(vertices,
-                                                       sizeof(vertices));
+    vbo = std::make_unique<renderer::VertexBuffer>(vertices, sizeof(vertices));
     vbo->bind();
 
     const auto program = shader->getId();
