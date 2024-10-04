@@ -16,7 +16,7 @@ namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/sprite.vert", "/shaders/sprite.frag");
+        shaderName, "/shaders/sprite.vert.glsl", "/shaders/sprite.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();

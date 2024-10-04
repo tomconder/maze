@@ -20,14 +20,14 @@ namespace sponge::platform::opengl::scene {
 
 Grid::Grid() {
     shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/infinitegrid.vert", "/shaders/infinitegrid.frag");
+        shaderName, "/shaders/infinitegrid.vert.glsl",
+        "/shaders/infinitegrid.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<renderer::VertexBuffer>(vertices,
-                                                       sizeof(vertices));
+    vbo = std::make_unique<renderer::VertexBuffer>(vertices, sizeof(vertices));
     vbo->bind();
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });

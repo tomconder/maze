@@ -20,8 +20,8 @@ using sponge::scene::Vertex;
 Model::Model() {
     auto shaderName = Mesh::getShaderName();
     auto shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/shader.vert", "/shaders/shader.frag",
-        "/shaders/shader.geom");
+        shaderName, "/shaders/shader.vert.glsl", "/shaders/shader.frag.glsl",
+        "/shaders/shader.geom.glsl");
     UNUSED(shader);
 }
 

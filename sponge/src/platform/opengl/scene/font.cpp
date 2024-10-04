@@ -18,8 +18,8 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
 Font::Font() {
-    shader = ResourceManager::loadShader(shaderName, "/shaders/text.vert",
-                                         "/shaders/text.frag");
+    shader = ResourceManager::loadShader(shaderName, "/shaders/text.vert.glsl",
+                                         "/shaders/text.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();

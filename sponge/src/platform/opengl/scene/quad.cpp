@@ -15,7 +15,7 @@ namespace sponge::platform::opengl::scene {
 
 Quad::Quad() {
     shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/quad.vert", "/shaders/quad.frag");
+        shaderName, "/shaders/quad.vert.glsl", "/shaders/quad.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
