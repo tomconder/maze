@@ -270,7 +270,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
     };
 
     glm::vec3 ratio;
-    if (const auto it = std::find_if(begin(ratios), end(ratios), exceedsRatio);
+    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
         it != std::end(ratios)) {
         ratio = *it;
     } else {
