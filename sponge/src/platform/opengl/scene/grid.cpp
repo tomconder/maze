@@ -26,8 +26,8 @@ Grid::Grid() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(
-        std::vector<glm::vec2>{ vertices, std::end(vertices) });
+    vbo = std::make_unique<renderer::VertexBuffer>(vertices,
+                                                       sizeof(vertices));
     vbo->bind();
 
     ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });

@@ -28,34 +28,35 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = renderer::VertexBuffer::create(vertices);
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        vertices.data(), vertices.size() * sizeof(Vertex));
     vbo->bind();
 
     const auto program = shader->getId();
 
     auto location = glGetAttribLocation(program, position);
     if (location != -1) {
-        const auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        const auto pos = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(pos);
+        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<const void*>(
                                   offsetof(sponge::scene::Vertex, position)));
     }
 
     location = glGetAttribLocation(program, texCoord);
     if (location != -1) {
-        const auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        const auto pos = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(pos);
+        glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<const void*>(
                                   offsetof(sponge::scene::Vertex, texCoords)));
     }
 
     location = glGetAttribLocation(program, normal);
     if (location != -1) {
-        const auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        const auto pos = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(pos);
+        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<const void*>(
                                   offsetof(sponge::scene::Vertex, normal)));
     }

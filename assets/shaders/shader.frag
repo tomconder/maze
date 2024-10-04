@@ -37,6 +37,7 @@ vec3 blinnPhong(vec3 normal, vec3 fragPos, vec3 lightPos, vec3 color) {
 
 void main() {
     vec3 color;
+    vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
     if (hasNoTexture) {
         color = vec3(1.0, 1.0, 1.0);
@@ -47,7 +48,7 @@ void main() {
     // ambient
     vec3 ambient = ambientStrength * color;
 
-    vec3 lighting = blinnPhong(normalize(gNormal), gPosition, lightPos, color);
+    vec3 lighting = blinnPhong(normalize(gNormal), gPosition, lightPos, lightColor);
     color *= lighting;
 
     // gamma

@@ -29,7 +29,7 @@ class MazeLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<scene::GameCamera> camera;
-    std::string shaderName;
+    std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
 
     bool activeWireframe = false;
 
