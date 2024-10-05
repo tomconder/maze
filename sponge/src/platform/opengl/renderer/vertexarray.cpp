@@ -23,7 +23,7 @@ void VertexArray::bind() const {
 }
 
 void VertexArray::unbind() const {
-    glDeleteVertexArrays(1, &id);
+    glBindVertexArray(0);
 }
 
 }  // namespace sponge::platform::opengl::renderer
