@@ -44,7 +44,7 @@ LightCube::LightCube() {
     }
 
     shader->unbind();
-    glBindVertexArray(0);
+    vao->unbind();
 }
 
 void LightCube::render() const {
@@ -56,7 +56,7 @@ void LightCube::render() const {
 
     shader->unbind();
 
-    glBindVertexArray(0);
+    vao->unbind();
 }
 
 }  // namespace sponge::platform::opengl::scene

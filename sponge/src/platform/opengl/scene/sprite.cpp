@@ -39,8 +39,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
                               4 * sizeof(float), nullptr);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    vbo->unbind();
+    vao->unbind();
 
     tex = renderer::ResourceManager::loadTexture(name, texturePath);
     tex->bind();
@@ -72,7 +72,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
 
     shader->unbind();
 
-    glBindVertexArray(0);
+    vao->unbind();
 }
 
 }  // namespace sponge::platform::opengl::scene

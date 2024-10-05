@@ -44,8 +44,8 @@ Grid::Grid() {
                               reinterpret_cast<const void*>(0));
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    vbo->unbind();
+    vao->unbind();
 
     shader->unbind();
 }
@@ -59,7 +59,7 @@ void Grid::render() const {
 
     shader->unbind();
 
-    glBindVertexArray(0);
+    vao->unbind();
 }
 
 }  // namespace sponge::platform::opengl::scene

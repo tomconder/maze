@@ -65,7 +65,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     ebo->bind();
 
     shader->unbind();
-    glBindVertexArray(0);
+    vao->unbind();
 }
 
 void Mesh::render() const {
@@ -82,7 +82,10 @@ void Mesh::render() const {
 
     glDrawElements(GL_TRIANGLES, static_cast<int32_t>(indices.size()),
                    GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
+
+    shader->unbind();
+
+    vao->unbind();
 }
 
 }  // namespace sponge::platform::opengl::scene

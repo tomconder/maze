@@ -43,8 +43,8 @@ Font::Font() {
                               4 * sizeof(GLfloat), nullptr);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    vbo->unbind();
+    vao->unbind();
 
     shader->unbind();
 }
@@ -163,6 +163,10 @@ void Font::render(const std::string& text, const glm::vec2& position,
 
     glDrawElements(GL_TRIANGLES, numChars * numIndices, GL_UNSIGNED_INT,
                    nullptr);
+
+    shader->unbind();
+
+    vao->unbind();
 }
 
 }  // namespace sponge::platform::opengl::scene
