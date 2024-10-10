@@ -30,7 +30,7 @@ Grid::Grid() {
     vbo = std::make_unique<renderer::VertexBuffer>(vertices, sizeof(vertices));
     vbo->bind();
 
-    ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
+    ebo = std::make_unique<renderer::IndexBuffer>(indices, sizeof(indices));
     ebo->bind();
 
     const auto program = shader->getId();

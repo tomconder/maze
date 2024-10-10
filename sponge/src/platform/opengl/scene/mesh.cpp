@@ -61,7 +61,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
                                   offsetof(sponge::scene::Vertex, normal)));
     }
 
-    ebo = renderer::IndexBuffer::create(indices);
+    ebo = std::make_unique<renderer::IndexBuffer>(
+        indices.data(), indices.size() * sizeof(uint32_t));
     ebo->bind();
 
     shader->unbind();

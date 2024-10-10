@@ -26,7 +26,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
         nullptr, numVertices * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = renderer::IndexBuffer::create({ indices, std::end(indices) });
+    ebo = std::make_unique<renderer::IndexBuffer>(indices, sizeof(indices));
     ebo->bind();
 
     const auto program = shader->getId();

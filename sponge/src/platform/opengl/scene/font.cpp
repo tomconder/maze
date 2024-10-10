@@ -30,7 +30,8 @@ Font::Font() {
         nullptr, maxLength * numVertices * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = renderer::IndexBuffer::create(maxLength * numIndices);
+    ebo = std::make_unique<renderer::IndexBuffer>(
+        nullptr, maxLength * numIndices * sizeof(uint32_t));
     ebo->bind();
 
     const auto program = shader->getId();
