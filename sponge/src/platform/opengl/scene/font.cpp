@@ -7,8 +7,8 @@
 namespace {
 constexpr char vertex[] = "vertex";
 constexpr size_t indexCount = 6;
-constexpr size_t vertexCount = 8;
 constexpr size_t maxLength = 256;
+constexpr size_t vertexCount = 8;
 
 std::array<uint32_t, maxLength * indexCount> batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
