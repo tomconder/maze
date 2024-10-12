@@ -18,6 +18,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
            const std::vector<std::shared_ptr<renderer::Texture>>& textures)
     : textures(textures) {
     this->indices = indices;
+    indexCount = indices.size();
     this->vertices = vertices;
 
     shader = ResourceManager::loadShader(shaderName, "/shaders/shader.vert",
@@ -81,8 +82,7 @@ void Mesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, static_cast<int32_t>(indices.size()),
-                   GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 

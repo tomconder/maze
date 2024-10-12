@@ -9,7 +9,8 @@ constexpr uint32_t indices[] = {
     0, 1, 2,  //
     0, 2, 3   //
 };
-constexpr uint32_t numVertices = 8;
+constexpr uint32_t indexCount = 6;
+constexpr uint32_t vertexCount = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -23,7 +24,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        nullptr, numVertices * sizeof(glm::vec2));
+        nullptr, vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
     ebo = std::make_unique<renderer::IndexBuffer>(indices, sizeof(indices));
@@ -49,7 +50,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 }
 
 void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
-    const std::array<glm::vec2, numVertices> vertices{
+    const std::array<glm::vec2, vertexCount> vertices{
         { { position.x + size.x, position.y },
           { 1.F, 0.F },  //
           { position.x, position.y },
@@ -66,9 +67,9 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
 
     tex->bind();
 
-    vbo->update(vertices.data(), numVertices * sizeof(glm::vec2));
+    vbo->update(vertices.data(), vertexCount * sizeof(glm::vec2));
 
-    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 

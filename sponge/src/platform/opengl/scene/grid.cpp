@@ -8,6 +8,7 @@ constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
+constexpr uint32_t indexCount = 6;
 constexpr glm::vec2 vertices[] = {
     { -1.F, -1.F },  //
     { -1.F, 1.F },   //
@@ -55,7 +56,7 @@ void Grid::render() const {
 
     shader->bind();
 
-    glDrawElements(GL_TRIANGLES, std::size(indices), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
