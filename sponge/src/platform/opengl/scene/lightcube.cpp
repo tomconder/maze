@@ -18,6 +18,7 @@ constexpr glm::vec3 vertices[] = {
     { -0.5, -0.5, 0.5 }, { -0.5, -0.5, -0.5 }, { 0.5, -0.5, -0.5 },
     { -0.5, -0.5, 0.5 }, { 0.5, -0.5, -0.5 },  { 0.5, -0.5, 0.5 }
 };
+constexpr uint32_t vertexCount = 36;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -52,7 +53,7 @@ void LightCube::render() const {
 
     shader->bind();
 
-    glDrawArrays(GL_TRIANGLES, 0, std::size(vertices));
+    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
     shader->unbind();
 

@@ -6,12 +6,12 @@
 
 namespace {
 constexpr char vertex[] = "vertex";
-constexpr size_t numIndices = 6;
-constexpr size_t numVertices = 8;
-constexpr std::size_t maxLength = 256;
+constexpr size_t indexCount = 6;
+constexpr size_t maxLength = 256;
+constexpr size_t vertexCount = 8;
 
-std::array<uint32_t, maxLength * numIndices> batchIndices;
-std::array<glm::vec2, maxLength * numVertices> batchVertices;
+std::array<uint32_t, maxLength * indexCount> batchIndices;
+std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -27,10 +27,11 @@ Font::Font() {
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        nullptr, maxLength * numVertices * sizeof(glm::vec2));
+        nullptr, maxLength * vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = renderer::IndexBuffer::create(maxLength * numIndices);
+    ebo = std::make_unique<renderer::IndexBuffer>(
+        nullptr, maxLength * indexCount * sizeof(uint32_t));
     ebo->bind();
 
     const auto program = shader->getId();
@@ -114,7 +115,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         const auto texh = height / scaleH;
         const auto texw = width / scaleW;
 
-        const std::array<glm::vec2, numVertices> vertices{
+        const std::array<glm::vec2, vertexCount> vertices{
             { { xpos, ypos + h },
               { texx, texy + texh },
               { xpos, ypos },
@@ -126,7 +127,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         };
 
         std::move(vertices.begin(), vertices.end(),
-                  batchVertices.begin() + (i * numVertices));
+                  batchVertices.begin() + (i * vertexCount));
 
         const std::array indices = {
             i * 4, (i * 4) + 2, (i * 4) + 1,  //
@@ -134,7 +135,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
         };
 
         std::move(indices.begin(), indices.end(),
-                  batchIndices.begin() + (i * numIndices));
+                  batchIndices.begin() + (i * indexCount));
 
         x += xadvance * scale;
 
@@ -157,11 +158,11 @@ void Font::render(const std::string& text, const glm::vec2& position,
     const uint32_t numChars = str.size();
 
     vbo->update(batchVertices.data(),
-                numChars * numVertices * sizeof(glm::vec2));
+                numChars * vertexCount * sizeof(glm::vec2));
 
-    ebo->update(batchIndices.data(), numChars * numIndices);
+    ebo->update(batchIndices.data(), numChars * indexCount);
 
-    glDrawElements(GL_TRIANGLES, numChars * numIndices, GL_UNSIGNED_INT,
+    glDrawElements(GL_TRIANGLES, numChars * indexCount, GL_UNSIGNED_INT,
                    nullptr);
 
     shader->unbind();

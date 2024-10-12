@@ -25,6 +25,7 @@ class Mesh : public sponge::scene::Mesh {
 
    private:
     static constexpr char shaderName[] = "mesh";
+    int32_t indexCount = 0;
 
     std::shared_ptr<renderer::Shader> shader;
 

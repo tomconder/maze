@@ -184,13 +184,12 @@
     },
     {
       "name": "base-linux",
-      "description": "Sets GCC",
+      "description": "Linux arch",
       "hidden": true,
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       },
       "condition": {
         "type": "equals",
@@ -209,7 +208,7 @@
     {
       "name": "ci-linux-debug",
       "displayName": "Linux Debug",
-      "description": "Sets GCC and uses sccache",
+      "description": "Sets debug build type and linux arch, and uses sccache",
       "inherits": [
         "base-linux",
         "ci-ninja"
@@ -221,7 +220,7 @@
     {
       "name": "ci-linux-release",
       "displayName": "Linux Release",
-      "description": "Sets release build type and uses sccache",
+      "description": "Sets release build type and linux arch, and uses sccache",
       "inherits": "ci-linux-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -230,7 +229,7 @@
     {
       "name": "linux-debug",
       "displayName": "Linux Debug",
-      "description": "Sets GCC",
+      "description": "Sets debug build type and linux arch",
       "inherits": [
         "base-linux",
         "ninja"
@@ -242,7 +241,7 @@
     {
       "name": "linux-release",
       "displayName": "Linux Release",
-      "description": "Sets release build type",
+      "description": "Sets release build type and linux arch",
       "inherits": "linux-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
