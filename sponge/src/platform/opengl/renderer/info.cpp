@@ -41,7 +41,7 @@ void Info::logContextInfo() {
         ss.str("");
         ss << "   ";
         for (int j = 0; j < 3; j++) {
-            ss << fmt::format(" {:48}",
+            ss << fmt::format(" {:49}",
                               reinterpret_cast<const char*>(
                                   glGetStringi(GL_EXTENSIONS, (i * 3) + j)));
         }
