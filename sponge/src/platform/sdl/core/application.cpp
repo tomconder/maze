@@ -73,7 +73,6 @@ Application::Application(ApplicationSpecification specification)
 Application::~Application() {
     delete layerStack;
     delete keyboard;
-    delete instance;
 }
 
 bool Application::start() {
