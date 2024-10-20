@@ -2,9 +2,9 @@
 
 #include <chrono>
 
-constexpr double MICROSECONDS_TO_SECONDS = 1e-6F;
-
 namespace sponge::core {
+
+constexpr double MICROSECONDS_TO_SECONDS = 1e-6F;
 
 using std::chrono::high_resolution_clock;
 
