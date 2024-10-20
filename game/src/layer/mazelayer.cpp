@@ -10,7 +10,7 @@ constexpr auto mouseSpeed = .1F;
 constexpr auto lightCubeScale = glm::vec3(.2F);
 constexpr auto lightPos = glm::vec3(1.F, 5.F, 2.F);
 constexpr auto modelScale = glm::vec3(1.F);
-constexpr auto modelTranslation = glm::vec3(0, .50003F, 0);
+constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
