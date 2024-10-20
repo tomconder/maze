@@ -29,7 +29,7 @@ class Application : public sponge::core::Application {
    public:
     explicit Application(ApplicationSpecification specification);
 
-    ~Application();
+    ~Application() override;
 
     bool start() override;
 
