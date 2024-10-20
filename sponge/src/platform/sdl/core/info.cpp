@@ -19,14 +19,14 @@ void Info::logVersion() {
         ss << "(" << revision << ")";
     }
 
-    SPONGE_CORE_DEBUG(
+    SPONGE_CORE_INFO(
         "SDL Version [Compiled]: {}.{}.{} {}", static_cast<int>(compiled.major),
         static_cast<int>(compiled.minor), static_cast<int>(compiled.patch),
         !revision.empty() ? ss.str() : "");
 
     SDL_GetVersion(&linked);
 
-    SPONGE_CORE_DEBUG(
+    SPONGE_CORE_INFO(
         "SDL Version [Runtime] : {}.{}.{}", static_cast<int>(linked.major),
         static_cast<int>(linked.minor), static_cast<int>(linked.patch));
 }
