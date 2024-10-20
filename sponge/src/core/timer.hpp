@@ -13,9 +13,10 @@ class Timer {
     Timer() = default;
 
     void tick() {
-        auto currentTicks{ high_resolution_clock::now() };
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
-            currentTicks - previousTicks);
+        const auto currentTicks{ high_resolution_clock::now() };
+        const auto duration =
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                currentTicks - previousTicks);
         elapsedSeconds = duration.count() * MICROSECONDS_TO_SECONDS;
         previousTicks = currentTicks;
     }

@@ -53,7 +53,7 @@ bool HUDLayer::onWindowResize(
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto projection = orthoCamera->getProjection();
-    auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setMat4("projection", projection);
     shader->unbind();
