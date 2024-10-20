@@ -91,6 +91,7 @@ bool Application::start() {
     }
 
     Info::logVersion();
+    Info::logGraphicsDriverInfo();
 
     fullscreen = appSpec.fullscreen;
 
@@ -107,7 +108,6 @@ bool Application::start() {
 
     opengl::renderer::Info::logVersion();
     opengl::renderer::Info::logStaticInfo();
-    opengl::renderer::Info::logGraphicsDriverInfo();
     opengl::renderer::Info::logContextInfo();
 
     setVSync(appSpec.vsync);
