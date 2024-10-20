@@ -9,21 +9,24 @@ struct Vertex {
     glm::vec3 position;
     glm::vec2 texCoords;
     glm::vec3 normal;
+    glm::vec3 color;
 };
 
 class Mesh {
    public:
     void optimize();
     size_t getNumIndices() const {
-        return indices.size();
+        return numIndices;
     }
     size_t getNumVertices() const {
-        return vertices.size();
+        return numVertices;
     }
 
    protected:
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+    size_t numIndices = 0;
+    size_t numVertices = 0;
 };
 
 }  // namespace sponge::scene

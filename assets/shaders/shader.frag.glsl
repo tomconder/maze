@@ -5,6 +5,7 @@ layout (location = 0) out vec4 FragColor;
 in vec3 gPosition;
 in vec2 gTexCoord;
 in vec3 gNormal;
+in vec3 gColor;
 noperspective in vec3 gEdgeDistance;
 
 uniform sampler2D texture_diffuse1;
@@ -40,7 +41,8 @@ void main() {
     vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
     if (hasNoTexture) {
-        color = vec3(1.0, 1.0, 1.0);
+        // color = vec3(1.0, 1.0, 1.0);
+        color = gColor;
     } else {
         color = texture(texture_diffuse1, gTexCoord).rgb;
     }
