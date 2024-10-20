@@ -70,6 +70,12 @@ Application::Application(ApplicationSpecification specification)
     keyboard = new input::Keyboard();
 }
 
+Application::~Application() {
+    delete layerStack;
+    delete keyboard;
+    delete instance;
+}
+
 bool Application::start() {
     appName = appSpec.name;
 

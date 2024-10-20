@@ -29,6 +29,8 @@ class Application : public sponge::core::Application {
    public:
     explicit Application(ApplicationSpecification specification);
 
+    ~Application();
+
     bool start() override;
 
     bool iterateLoop() override;
