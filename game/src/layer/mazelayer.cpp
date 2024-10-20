@@ -9,6 +9,8 @@ constexpr auto mouseSpeed = .1F;
 
 constexpr auto lightCubeScale = glm::vec3(.2F);
 constexpr auto lightPos = glm::vec3(1.F, 5.F, 2.F);
+// constexpr auto lightColor = glm::vec3(.8392F, .2823F, .8413F);
+constexpr auto lightColor = glm::vec3(1.F, 1.F, 1.F);
 constexpr auto modelScale = glm::vec3(1.F);
 constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
@@ -32,12 +34,12 @@ void MazeLayer::onAttach() {
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(glm::vec3(0.F, 11.F, 14.F));
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
+    auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat3("lightPos", lightPos);
+    shader->setFloat3("lightColor", lightColor);
     shader->setFloat("ambientStrength", ambientStrength);
     shader->setBoolean("showWireframe", activeWireframe);
     shader->setFloat3("lineColor", glm::vec3(0.05F, .75F, 0.F));
@@ -45,6 +47,11 @@ void MazeLayer::onAttach() {
     shader->unbind();
 
     lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
+    shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
+    shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setFloat3("lightColor", lightColor);
+    shader->unbind();
 }
 
 void MazeLayer::onDetach() {
