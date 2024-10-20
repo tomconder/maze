@@ -4,7 +4,6 @@
 #include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
-#include <array>
 
 namespace {
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };

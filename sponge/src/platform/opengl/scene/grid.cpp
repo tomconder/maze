@@ -1,6 +1,5 @@
 #include "grid.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
-#include <array>
 
 namespace {
 constexpr char position[] = "position";
