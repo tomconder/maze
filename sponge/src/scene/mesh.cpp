@@ -33,6 +33,7 @@ void Mesh::optimize() {
 
     indices.assign(optimalIndices.begin(), optimalIndices.end());
     vertices.assign(optimalVertices.begin(), optimalVertices.end());
+    numVertices = optimalVertexCount;
 }
 
 }  // namespace sponge::scene
