@@ -1,21 +1,23 @@
 #pragma once
 
-#include <SDL.h>
+#include <chrono>
 
 namespace sponge::core {
 
+constexpr double MICROSECONDS_TO_SECONDS = 1e-6F;
+
+using std::chrono::high_resolution_clock;
+
 class Timer {
    public:
+    Timer() = default;
+
     void tick() {
-        uint64_t currentTicks{ SDL_GetPerformanceCounter() };
-        const uint64_t frequency{ SDL_GetPerformanceFrequency() };
-        if (currentTicks <= previousTicks) {
-            currentTicks = previousTicks + 1;
-        }
-        elapsedSeconds =
-            previousTicks > 0
-                ? static_cast<double>(currentTicks - previousTicks) / frequency
-                : static_cast<double>(1.F / 60.F);
+        const auto currentTicks{ high_resolution_clock::now() };
+        const auto duration =
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                currentTicks - previousTicks);
+        elapsedSeconds = duration.count() * MICROSECONDS_TO_SECONDS;
         previousTicks = currentTicks;
     }
 
@@ -24,8 +26,10 @@ class Timer {
     }
 
    private:
-    double elapsedSeconds{};
-    uint64_t previousTicks{};
+    double elapsedSeconds{ 0.0 };
+    high_resolution_clock::time_point previousTicks{
+        high_resolution_clock::now()
+    };
 };
 
 }  // namespace sponge::core

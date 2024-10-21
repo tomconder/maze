@@ -4,15 +4,18 @@
 #include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
-#include <array>
 
 namespace {
 constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
 constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
 constexpr char cameraName[] = "maze";
-constexpr std::array categories{ "categories", "app", "sponge", "opengl" };
-constexpr std::array logLevels{
+constexpr int categoryCount = 4;
+constexpr const char* categories[categoryCount] = { "categories", "app",
+                                                    "sponge", "opengl" };
+
+constexpr int logLevelCount = 7;
+constexpr const char* logLevels[logLevelCount] = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
@@ -171,9 +174,9 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
     static auto logLevelWidth =
-        getLogSelectionMaxWidth(logLevels.data(), logLevels.size());
+        getLogSelectionMaxWidth(logLevels, logLevelCount);
     static auto categoriesWidth =
-        getLogSelectionMaxWidth(categories.data(), categories.size());
+        getLogSelectionMaxWidth(categories, categoryCount);
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
     static auto activeCategory = 0;
 
@@ -188,12 +191,11 @@ void ImGuiLayer::showLogging() {
 
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), logLevels.size());
+                 logLevels, logLevelCount);
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
-    ImGui::Combo("##categories", &activeCategory, categories.data(),
-                 categories.size());
+    ImGui::Combo("##categories", &activeCategory, categories, categoryCount);
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer/buffer.hpp"
-#include <memory>
 #include <vector>
 
 namespace sponge::platform::opengl::renderer {
@@ -18,10 +17,6 @@ class IndexBuffer final : public sponge::renderer::Buffer {
 
     void bind() const override;
     void unbind() const override;
-
-   private:
-    explicit IndexBuffer(const std::vector<uint32_t>& indices);
-    explicit IndexBuffer(uint32_t size);
 };
 
 }  // namespace sponge::platform::opengl::renderer

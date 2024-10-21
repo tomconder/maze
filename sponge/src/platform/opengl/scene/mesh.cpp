@@ -3,6 +3,7 @@
 #include <cstddef>
 
 namespace {
+constexpr char color[] = "color";
 constexpr char normal[] = "normal";
 constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
@@ -13,13 +14,14 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 using sponge::scene::Vertex;
 
-Mesh::Mesh(const std::vector<Vertex>& vertices,
-           const std::vector<uint32_t>& indices,
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
+           const std::vector<uint32_t>& indices, const std::size_t numIndices,
            const std::vector<std::shared_ptr<renderer::Texture>>& textures)
     : textures(textures) {
     this->indices = indices;
-    indexCount = indices.size();
+    this->numIndices = numIndices;
     this->vertices = vertices;
+    this->numVertices = numVertices;
 
     shader = ResourceManager::loadShader(shaderName, "/shaders/shader.vert",
                                          "/shaders/shader.frag",
@@ -30,7 +32,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        vertices.data(), vertices.size() * sizeof(Vertex));
+        vertices.data(), numVertices * sizeof(Vertex));
     vbo->bind();
 
     const auto program = shader->getId();
@@ -62,8 +64,17 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
                                   offsetof(sponge::scene::Vertex, normal)));
     }
 
+    location = glGetAttribLocation(program, color);
+    if (location != -1) {
+        const auto pos = static_cast<uint32_t>(location);
+        glEnableVertexAttribArray(pos);
+        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                              reinterpret_cast<const void*>(
+                                  offsetof(sponge::scene::Vertex, color)));
+    }
+
     ebo = std::make_unique<renderer::IndexBuffer>(
-        indices.data(), indices.size() * sizeof(uint32_t));
+        indices.data(), numIndices * sizeof(uint32_t));
     ebo->bind();
 
     shader->unbind();
@@ -82,7 +93,7 @@ void Mesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 

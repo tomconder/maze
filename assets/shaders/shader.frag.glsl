@@ -5,10 +5,12 @@ layout (location = 0) out vec4 FragColor;
 in vec3 gPosition;
 in vec2 gTexCoord;
 in vec3 gNormal;
+in vec3 gColor;
 noperspective in vec3 gEdgeDistance;
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 lightPos;
+uniform vec3 lightColor;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
@@ -37,10 +39,9 @@ vec3 blinnPhong(vec3 normal, vec3 fragPos, vec3 lightPos, vec3 color) {
 
 void main() {
     vec3 color;
-    vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
     if (hasNoTexture) {
-        color = vec3(1.0, 1.0, 1.0);
+        color = gColor;
     } else {
         color = texture(texture_diffuse1, gTexCoord).rgb;
     }

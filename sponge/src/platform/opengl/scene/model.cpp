@@ -1,5 +1,6 @@
 #include "model.hpp"
 #include "core/base.hpp"
+#include "core/timer.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/glm.hpp>
@@ -12,6 +13,10 @@
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
+
+namespace {
+constexpr double SECONDS_TO_MILLISECONDS = 1000.F;
+}
 
 namespace sponge::platform::opengl::scene {
 
@@ -36,6 +41,8 @@ void Model::load(const std::string& path) {
     std::string warn;
     std::string err;
 
+    core::Timer timer;
+
     const std::filesystem::path dir{ path };
     const auto ret =
         LoadObj(&attrib, &shapes, &materials, &warn, &err, dir.string().data(),
@@ -54,14 +61,21 @@ void Model::load(const std::string& path) {
         return;
     }
 
-    SPONGE_CORE_INFO("# of vertices  = {}",
-                     static_cast<int>(attrib.vertices.size() / 3));
-    SPONGE_CORE_INFO("# of normals   = {}",
-                     static_cast<int>(attrib.normals.size() / 3));
-    SPONGE_CORE_INFO("# of texcoords = {}",
-                     static_cast<int>(attrib.texcoords.size() / 2));
-    SPONGE_CORE_INFO("# of materials = {}", static_cast<int>(materials.size()));
-    SPONGE_CORE_INFO("# of shapes    = {}", static_cast<int>(shapes.size()));
+    timer.tick();
+
+    // from viewer.cc in tinyobjloader example
+    SPONGE_CORE_DEBUG("Parsing time: {:.2f} ms",
+                      timer.getElapsedSeconds() * SECONDS_TO_MILLISECONDS);
+
+    SPONGE_CORE_DEBUG("# of vertices  = {}",
+                      static_cast<int>(attrib.vertices.size() / 3));
+    SPONGE_CORE_DEBUG("# of normals   = {}",
+                      static_cast<int>(attrib.normals.size() / 3));
+    SPONGE_CORE_DEBUG("# of texcoords = {}",
+                      static_cast<int>(attrib.texcoords.size() / 2));
+    SPONGE_CORE_DEBUG("# of materials = {}",
+                      static_cast<int>(materials.size()));
+    SPONGE_CORE_DEBUG("# of shapes    = {}", static_cast<int>(shapes.size()));
 
     process(attrib, shapes, materials, dir.parent_path().string());
 }
@@ -101,6 +115,12 @@ std::shared_ptr<Mesh> Model::processMesh(
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
                                      attrib.vertices[i + 2] };
 
+        if (!attrib.colors.empty()) {
+            i = vertex_index;
+            vertex.color = glm::vec3{ attrib.colors[i], attrib.colors[i + 1],
+                                      attrib.colors[i + 2] };
+        }
+
         if (!attrib.texcoords.empty()) {
             i = texcoord_index * 2;
             vertex.texCoords = glm::vec2{ attrib.texcoords[i],
@@ -137,11 +157,15 @@ std::shared_ptr<Mesh> Model::processMesh(
 
     if (!mesh.material_ids.empty()) {
         if (const auto id = mesh.material_ids[0]; id != -1) {
-            textures.emplace_back(loadMaterialTextures(materials[id], path));
+            if (!materials[id].diffuse_texname.empty()) {
+                textures.emplace_back(
+                    loadMaterialTextures(materials[id], path));
+            }
         }
     }
 
-    return std::make_shared<Mesh>(vertices, indices, textures);
+    return std::make_shared<Mesh>(vertices, numIndices, indices, numIndices,
+                                  textures);
 }
 
 std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
