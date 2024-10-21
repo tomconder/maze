@@ -15,13 +15,8 @@
       "version>=": "1.0.1"
     },
     {
-      "name": "glfw3",
-      "version>=": "3.4"
-    },
-    {
       "name": "imgui",
       "features": [
-        "glfw-binding",
         "opengl3-binding",
         "sdl2-binding"
       ],
