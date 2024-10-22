@@ -14,6 +14,7 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 #include <tracy/Tracy.hpp>
+#include <tracy/TracyOpenGL.hpp>
 
 namespace {
 constexpr double SECONDS_TO_MILLISECONDS = 1000.F;
@@ -193,6 +194,7 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
 
 void Model::render() const {
     ZoneScoped;
+    TracyGpuZone("OpenGL render");
 
     for (auto&& mesh : meshes) {
         mesh->render();

@@ -50,6 +50,8 @@ Context::Context(SDL_Window* window) {
 
     gladLoadGLLoader(SDL_GL_GetProcAddress);
 
+    TracyGpuContext;
+
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR(
             "Could not be set up OpenGL context for rendering: {}",
@@ -63,9 +65,6 @@ Context::Context(SDL_Window* window) {
         SDL_GetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
     }
-
-    TracyGpuContext;
-    TracyGpuZone("OpenGL Context");
 }
 
 Context::~Context() {
@@ -77,10 +76,7 @@ void Context::flip(void* window) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
-
     TracyGpuCollect;
-    FrameMark;
-    TracyGpuZone("OpenGL flip");
 }
 
 }  // namespace sponge::platform::opengl::renderer
