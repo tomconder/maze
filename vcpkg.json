@@ -42,6 +42,13 @@
     {
       "name": "tinyobjloader",
       "version>=": "2.0.0rc13"
+    },
+    {
+      "name": "tracy",
+      "features": [
+        "on-demand"
+      ],
+      "version>=": "0.11.1"
     }
   ]
 }

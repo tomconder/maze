@@ -1,6 +1,7 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
 #include <glm/ext/matrix_transform.hpp>
+#include <tracy/Tracy.hpp>
 
 namespace {
 constexpr auto ambientStrength = .3F;
@@ -16,7 +17,7 @@ constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
-constexpr char modelPath[] = "/models/cube/cube.obj";
+constexpr char modelPath[] = "/models/buddha/buddha.obj";
 }  // namespace
 
 namespace game::layer {
@@ -52,6 +53,10 @@ void MazeLayer::onAttach() {
     shader->bind();
     shader->setFloat3("lightColor", lightColor);
     shader->unbind();
+
+#if TRACY_ENABLE
+    SPONGE_DEBUG("Tracy enabled");
+#endif
 }
 
 void MazeLayer::onDetach() {

@@ -1,6 +1,7 @@
 #include "context.hpp"
 #include "logging/log.hpp"
 #include <glad/glad.h>
+#include <tracy/TracyOpenGL.hpp>
 #include <SDL.h>
 
 namespace {
@@ -62,6 +63,9 @@ Context::Context(SDL_Window* window) {
         SDL_GetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
     }
+
+    TracyGpuContext;
+    TracyGpuZone("OpenGL Context");
 }
 
 Context::~Context() {
@@ -73,6 +77,9 @@ void Context::flip(void* window) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
+
+    TracyGpuCollect;
+    TracyGpuZone("OpenGL flip");
 }
 
 }  // namespace sponge::platform::opengl::renderer

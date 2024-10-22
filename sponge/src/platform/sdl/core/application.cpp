@@ -17,6 +17,7 @@
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/logging/sink.hpp"
 #include <glm/glm.hpp>
+#include <tracy/Tracy.hpp>
 #include <array>
 #include <utility>
 
@@ -76,6 +77,8 @@ Application::~Application() {
 }
 
 bool Application::start() {
+    ZoneScopedN("Application::start");
+
     appName = appSpec.name;
 
     if (!appSpec.fullscreen && (appSpec.width == 0 || appSpec.height == 0)) {
@@ -142,6 +145,8 @@ bool Application::start() {
 }
 
 bool Application::iterateLoop() {
+    ZoneScopedN("Application:iterateLoop");
+
     SDL_Event event;
     auto quit = false;
 
@@ -227,6 +232,8 @@ bool Application::onUserCreate() {
 }
 
 bool Application::onUserUpdate(const double elapsedTime) {
+    ZoneScopedN("Application::onUserUpdate");
+
     bool result = true;
 
     for (const auto& layer : *layerStack) {
@@ -246,6 +253,8 @@ bool Application::onUserDestroy() {
 }
 
 void Application::onEvent(event::Event& event) {
+    ZoneScopedN("Application::onEvent");
+
     for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
          ++layer) {
         if ((*layer)->isActive()) {
@@ -258,6 +267,8 @@ void Application::onEvent(event::Event& event) {
 }
 
 void Application::onImGuiRender() const {
+    ZoneScopedN("Application::onImGuiRender");
+
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();

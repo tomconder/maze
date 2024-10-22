@@ -45,6 +45,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # https://blog.kitware.com/cmake-and-the-default-build-type/ for details.
 set(default_build_type "Release")
 
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
     set(default_build_type "Debug")
 endif ()

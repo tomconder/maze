@@ -29,6 +29,7 @@ find_package(spdlog CONFIG REQUIRED)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
 find_package(SDL2 CONFIG REQUIRED)
+find_package(Tracy CONFIG REQUIRED)
 
 if (WIN32)
     # accommodate missing version number values
@@ -97,6 +98,8 @@ target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:
 target_link_libraries(game PRIVATE glm::glm)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)
+target_link_libraries(game PRIVATE Tracy::TracyClient)
+
 
 if (APPLE)
     add_custom_command(

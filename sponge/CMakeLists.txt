@@ -6,6 +6,7 @@ file(
         LIST_DIRECTORIES false
         src/*.hpp
         src/core/*.hpp
+        src/debug/*.hpp
         src/event/*.hpp
         src/imgui/*.hpp
         src/input/*.hpp
@@ -88,6 +89,7 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(Tracy CONFIG REQUIRED)
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
@@ -115,6 +117,7 @@ target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
+target_link_libraries(sponge PRIVATE Tracy::TracyClient)
 target_link_libraries(sponge PRIVATE glad::glad)
 target_link_libraries(sponge PRIVATE glm::glm)
 target_link_libraries(sponge PRIVATE imgui::imgui)

@@ -7,6 +7,7 @@
 #include "core/file.hpp"
 #include "core/timer.hpp"
 #include "core/window.hpp"
+#include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/keyevent.hpp"
