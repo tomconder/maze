@@ -79,6 +79,7 @@ void Context::flip(void* window) {
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
 
     TracyGpuCollect;
+    FrameMark;
     TracyGpuZone("OpenGL flip");
 }
 
