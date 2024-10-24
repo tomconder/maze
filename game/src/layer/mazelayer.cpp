@@ -16,7 +16,7 @@ constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
-constexpr char modelPath[] = "/models/buddha/buddha.obj";
+constexpr char modelPath[] = "/models/cube/cube.obj";
 }  // namespace
 
 namespace game::layer {
