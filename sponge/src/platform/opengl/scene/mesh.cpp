@@ -1,6 +1,6 @@
 #include "mesh.hpp"
+#include "debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
-#include <tracy/Tracy.hpp>
 #include <cstddef>
 
 namespace {
@@ -83,7 +83,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
 }
 
 void Mesh::render() const {
-    ZoneScoped;
+    SPONGE_PROFILE;
 
     vao->bind();
 

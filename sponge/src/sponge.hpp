@@ -19,6 +19,7 @@
 #include "logging/log.hpp"
 #include "logging/logcustom.hpp"
 #include "logging/logflag.hpp"
+#include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/framebuffer.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"

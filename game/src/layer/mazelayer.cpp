@@ -1,7 +1,6 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
 #include <glm/ext/matrix_transform.hpp>
-#include <tracy/Tracy.hpp>
 
 namespace {
 constexpr auto ambientStrength = .3F;
@@ -54,7 +53,7 @@ void MazeLayer::onAttach() {
     shader->setFloat3("lightColor", lightColor);
     shader->unbind();
 
-#if TRACY_ENABLE
+#if TRACY_ENABLE == ON
     SPONGE_DEBUG("Tracy enabled");
 #endif
 }

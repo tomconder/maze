@@ -1,7 +1,9 @@
 #include "model.hpp"
 #include "core/base.hpp"
 #include "core/timer.hpp"
+#include "debug/profiler.hpp"
 #include "logging/log.hpp"
+#include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -13,8 +15,6 @@
 // earcut gives robust triangulation
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
-#include <tracy/Tracy.hpp>
-#include <tracy/TracyOpenGL.hpp>
 
 namespace {
 constexpr double SECONDS_TO_MILLISECONDS = 1000.F;
@@ -193,8 +193,8 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
 }
 
 void Model::render() const {
-    ZoneScoped;
-    TracyGpuZone("OpenGL render");
+    SPONGE_PROFILE;
+    SPONGE_PROFILE_GPU("render model");
 
     for (auto&& mesh : meshes) {
         mesh->render();

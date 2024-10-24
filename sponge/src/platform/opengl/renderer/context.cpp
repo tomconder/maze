@@ -1,7 +1,7 @@
 #include "context.hpp"
 #include "logging/log.hpp"
 #include <glad/glad.h>
-#include <tracy/TracyOpenGL.hpp>
+#include <platform/opengl/debug/profiler.hpp>
 #include <SDL.h>
 
 namespace {
@@ -50,7 +50,7 @@ Context::Context(SDL_Window* window) {
 
     gladLoadGLLoader(SDL_GL_GetProcAddress);
 
-    TracyGpuContext;
+    SPONGE_PROFILE_GPU_CONTEXT;
 
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR(
@@ -76,7 +76,7 @@ void Context::flip(void* window) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
-    TracyGpuCollect;
+    SPONGE_PROFILE_GPU_COLLECT;
 }
 
 }  // namespace sponge::platform::opengl::renderer

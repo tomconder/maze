@@ -32,6 +32,7 @@ message(STATUS "Including OpenGL platform files")
 file(
         GLOB OPENGL_HEADERS
         LIST_DIRECTORIES false
+        src/platform/opengl/debug/*.hpp
         src/platform/opengl/renderer/*.hpp
         src/platform/opengl/scene/*.hpp)
 list(APPEND HEADER_FILES ${OPENGL_HEADERS})
@@ -89,7 +90,9 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
-find_package(Tracy CONFIG REQUIRED)
+if (ENABLE_PROFILING)
+    find_package(Tracy CONFIG REQUIRED)
+endif ()
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
@@ -116,11 +119,13 @@ target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
-target_link_libraries(sponge PRIVATE OpenGL::GL)
-target_link_libraries(sponge PRIVATE Tracy::TracyClient)
 target_link_libraries(sponge PRIVATE glad::glad)
 target_link_libraries(sponge PRIVATE glm::glm)
 target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
+target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
+if (ENABLE_PROFILING)
+    target_link_libraries(sponge PRIVATE Tracy::TracyClient)
+endif ()

@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "core/timer.hpp"
+#include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/keyevent.hpp"
@@ -17,7 +18,6 @@
 #include "platform/sdl/input/mouse.hpp"
 #include "platform/sdl/logging/sink.hpp"
 #include <glm/glm.hpp>
-#include <tracy/Tracy.hpp>
 #include <array>
 #include <utility>
 
@@ -77,7 +77,7 @@ Application::~Application() {
 }
 
 bool Application::start() {
-    ZoneScopedN("Application::start");
+    SPONGE_PROFILE_SECTION("Application::start");
 
     appName = appSpec.name;
 
@@ -145,7 +145,7 @@ bool Application::start() {
 }
 
 bool Application::iterateLoop() {
-    ZoneScopedN("Application:iterateLoop");
+    SPONGE_PROFILE_SECTION("Application:iterateLoop");
 
     SDL_Event event;
     auto quit = false;
@@ -232,7 +232,7 @@ bool Application::onUserCreate() {
 }
 
 bool Application::onUserUpdate(const double elapsedTime) {
-    ZoneScopedN("Application::onUserUpdate");
+    SPONGE_PROFILE_SECTION("Application::onUserUpdate");
 
     bool result = true;
 
@@ -253,7 +253,7 @@ bool Application::onUserDestroy() {
 }
 
 void Application::onEvent(event::Event& event) {
-    ZoneScopedN("Application::onEvent");
+    SPONGE_PROFILE_SECTION("Application::onEvent");
 
     for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
          ++layer) {
@@ -267,7 +267,7 @@ void Application::onEvent(event::Event& event) {
 }
 
 void Application::onImGuiRender() const {
-    ZoneScopedN("Application::onImGuiRender");
+    SPONGE_PROFILE_SECTION("Application::onImGuiRender");
 
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
