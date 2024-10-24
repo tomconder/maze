@@ -52,6 +52,10 @@ void MazeLayer::onAttach() {
     shader->bind();
     shader->setFloat3("lightColor", lightColor);
     shader->unbind();
+
+#ifdef TRACY_ENABLE
+    SPONGE_DEBUG("Tracy enabled");
+#endif
 }
 
 void MazeLayer::onDetach() {

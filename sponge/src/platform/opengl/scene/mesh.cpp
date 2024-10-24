@@ -1,4 +1,5 @@
 #include "mesh.hpp"
+#include "debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <cstddef>
 
@@ -82,6 +83,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
 }
 
 void Mesh::render() const {
+    SPONGE_PROFILE;
+
     vao->bind();
 
     shader->bind();

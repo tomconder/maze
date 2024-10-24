@@ -45,6 +45,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # https://blog.kitware.com/cmake-and-the-default-build-type/ for details.
 set(default_build_type "Release")
 
+option(ENABLE_PROFILING "Enables compilation with the Tracy profiler" OFF)
+if (ENABLE_PROFILING)
+    message(STATUS "Enabling Tracy")
+
+    option(TRACY_STATIC "" OFF)
+    option(TRACY_ENABLE "" ON)
+    option(TRACY_ON_DEMAND "" ON)
+endif (ENABLE_PROFILING)
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
     set(default_build_type "Debug")
 endif ()

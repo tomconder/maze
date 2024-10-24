@@ -1,7 +1,9 @@
 #include "model.hpp"
 #include "core/base.hpp"
 #include "core/timer.hpp"
+#include "debug/profiler.hpp"
 #include "logging/log.hpp"
+#include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -191,6 +193,9 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
 }
 
 void Model::render() const {
+    SPONGE_PROFILE;
+    SPONGE_PROFILE_GPU("render model");
+
     for (auto&& mesh : meshes) {
         mesh->render();
     }

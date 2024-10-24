@@ -1,6 +1,7 @@
 #include "context.hpp"
 #include "logging/log.hpp"
 #include <glad/glad.h>
+#include <platform/opengl/debug/profiler.hpp>
 #include <SDL.h>
 
 namespace {
@@ -49,6 +50,8 @@ Context::Context(SDL_Window* window) {
 
     gladLoadGLLoader(SDL_GL_GetProcAddress);
 
+    SPONGE_PROFILE_GPU_CONTEXT;
+
     if (SDL_GL_MakeCurrent(window, context) < 0) {
         SPONGE_CORE_ERROR(
             "Could not be set up OpenGL context for rendering: {}",
@@ -73,6 +76,7 @@ void Context::flip(void* window) {
         return;
     }
     SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
+    SPONGE_PROFILE_GPU_COLLECT;
 }
 
 }  // namespace sponge::platform::opengl::renderer

@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "core/timer.hpp"
+#include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/keyevent.hpp"
@@ -76,6 +77,8 @@ Application::~Application() {
 }
 
 bool Application::start() {
+    SPONGE_PROFILE_SECTION("Application::start");
+
     appName = appSpec.name;
 
     if (!appSpec.fullscreen && (appSpec.width == 0 || appSpec.height == 0)) {
@@ -142,6 +145,8 @@ bool Application::start() {
 }
 
 bool Application::iterateLoop() {
+    SPONGE_PROFILE_SECTION("Application:iterateLoop");
+
     SDL_Event event;
     auto quit = false;
 
@@ -227,6 +232,8 @@ bool Application::onUserCreate() {
 }
 
 bool Application::onUserUpdate(const double elapsedTime) {
+    SPONGE_PROFILE_SECTION("Application::onUserUpdate");
+
     bool result = true;
 
     for (const auto& layer : *layerStack) {
@@ -246,6 +253,8 @@ bool Application::onUserDestroy() {
 }
 
 void Application::onEvent(event::Event& event) {
+    SPONGE_PROFILE_SECTION("Application::onEvent");
+
     for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
          ++layer) {
         if ((*layer)->isActive()) {
@@ -258,6 +267,8 @@ void Application::onEvent(event::Event& event) {
 }
 
 void Application::onImGuiRender() const {
+    SPONGE_PROFILE_SECTION("Application::onImGuiRender");
+
     for (const auto& layer : *layerStack) {
         if (layer->isActive()) {
             layer->onImGuiRender();
