@@ -445,6 +445,10 @@ void Application::toggleFullscreen() {
 }
 
 void Application::run() {
+#ifdef TRACY_ENABLE
+    SPONGE_DEBUG("Tracy profiler enabled");
+#endif
+
     SPONGE_INFO("Starting");
 
     if (!start()) {
