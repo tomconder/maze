@@ -6,8 +6,8 @@
 namespace {
 void APIENTRY glLogMessage(const GLenum source, const GLenum type,
                            const uint32_t id, const GLenum severity,
-                           const GLsizei length,
-                           const GLchar* message, const void* userParam) {
+                           const GLsizei length, const GLchar* message,
+                           const void* userParam) {
     std::string source_str;
     std::string type_str;
 
