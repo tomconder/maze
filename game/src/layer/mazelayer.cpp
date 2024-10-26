@@ -8,10 +8,6 @@ constexpr auto mouseSpeed = .1F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 11.F, 14.F);
 
-constexpr auto metallic = 0.F;
-constexpr auto roughness = .5F;
-constexpr auto ao = .5F;
-
 constexpr auto lightPos = glm::vec3(1.F, 4.F, 2.F);
 // constexpr auto lightColor = glm::vec3(.8392F, .2823F, .8413F);
 constexpr auto lightColor = glm::vec3(1.F, 1.F, 1.F);
@@ -20,7 +16,6 @@ constexpr auto lightCubeScale = glm::vec3(.2F);
 constexpr auto modelScale = glm::vec3(3.F);
 constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
-constexpr auto ambientStrength = .03F;
 constexpr auto lineColor = glm::vec3(.05F, .75F, 0.F);
 constexpr auto lineWidth = .3F;
 
@@ -48,7 +43,7 @@ void MazeLayer::onAttach() {
     auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
-    shader->setFloat("metallic", metallic);
+    shader->setFloat("metallic", metallic ? 1.F : 0.F);
     shader->setFloat("roughness", roughness);
     shader->setFloat("ao", ao);
 
@@ -98,6 +93,17 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
+void MazeLayer::setMetallic(bool metallic) {
+    this->metallic = metallic;
+
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setFloat("metallic", metallic ? 1.F : 0.F);
+    shader->unbind();
+}
+
 void MazeLayer::setWireframeActive(const bool active) {
     this->activeWireframe = active;
 
@@ -106,6 +112,39 @@ void MazeLayer::setWireframeActive(const bool active) {
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setBoolean("showWireframe", active);
+    shader->unbind();
+}
+
+void MazeLayer::setAmbientOcclusion(float ao) {
+    this->ao = ao;
+
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setFloat("ao", ao);
+    shader->unbind();
+}
+
+void MazeLayer::setAmbientStrength(float strength) {
+    this->ambientStrength = strength;
+
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setFloat("ambientStrength", ambientStrength);
+    shader->unbind();
+}
+
+void MazeLayer::setRoughness(float roughness) {
+    this->roughness = roughness;
+
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shader = ResourceManager::getShader(shaderName);
+    shader->bind();
+    shader->setFloat("roughness", roughness);
     shader->unbind();
 }
 

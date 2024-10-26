@@ -42,8 +42,13 @@ void ImGuiLayer::onImGuiRender() {
     auto isFullscreen = Application::get().isFullscreen();
     auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
+    auto metallic = Maze::get().getMazeLayer()->isMetallic();
+    auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
+    auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
+    auto roughness = Maze::get().getMazeLayer()->getRoughness();
+
     ImGui::SetNextWindowPos({ width - 320.F, 0.F });
-    ImGui::SetNextWindowSize({ 320.F, 360.F });
+    ImGui::SetNextWindowSize({ 320.F, 440.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -53,12 +58,14 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
+        ImGui::Text("Resolution: %dx%d", Application::get().getWindowWidth(),
+                    Application::get().getWindowHeight());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
 
         ImGui::BeginTable(
-            "##Table", 2,
+            "##CameraTable", 2,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
         const auto camera = ResourceManager::getGameCamera(cameraName);
@@ -81,12 +88,12 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         ImGui::Text("%.0f", camera->getYaw());
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Resolution");
-        ImGui::TableNextColumn();
-        ImGui::Text("%dx%d", Application::get().getWindowWidth(),
-                    Application::get().getWindowHeight());
+        ImGui::EndTable();
+        ImGui::Separator();
+
+        ImGui::BeginTable(
+            "##AppTable", 2,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -110,6 +117,48 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##wireframe", &isWireframeActive)) {
             Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
+        }
+
+        ImGui::EndTable();
+        ImGui::Separator();
+
+        ImGui::BeginTable(
+            "##PBRTable", 2,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Metallic");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##metallic", &metallic)) {
+            Maze::get().getMazeLayer()->setMetallic(metallic);
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Ambient Strength");
+        ImGui::TableNextColumn();
+        if (ImGui::SliderFloat("##ambientstrength", &ambientStrength, 0.0f,
+                               1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+            Maze::get().getMazeLayer()->setAmbientStrength(ambientStrength);
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Roughness");
+        ImGui::TableNextColumn();
+        if (ImGui::SliderFloat("##roughness", &roughness, 0.0f, 1.0f, "%.3f",
+                               ImGuiSliderFlags_AlwaysClamp)) {
+            Maze::get().getMazeLayer()->setRoughness(roughness);
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Ambient Occlusion");
+        ImGui::TableNextColumn();
+        if (ImGui::SliderFloat("##ao", &ambientOcclusion, 0.0f, 1.0f, "%.3f",
+                               ImGuiSliderFlags_AlwaysClamp)) {
+            Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
         }
 
         ImGui::EndTable();
