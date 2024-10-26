@@ -31,7 +31,7 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
     float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
+    float NdotH2 = NdotH * NdotH;
 
     float nom   = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
@@ -67,7 +67,7 @@ void main() {
     vec3 albedo;
 
     if (hasNoTexture) {
-        albedo = gColor;
+        albedo = pow(gColor, vec3(2.2));
     } else {
         albedo = texture(texture_diffuse1, gTexCoord).rgb;
     }
