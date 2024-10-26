@@ -112,7 +112,7 @@ void main() {
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
     vec3 color = ambient + Lo;
 
-    // HDR tonemapping
+    // Reinhard HDR tonemapping
     color = color / (color + vec3(1.0));
 
     // gamma

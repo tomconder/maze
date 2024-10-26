@@ -47,8 +47,8 @@ void ImGuiLayer::onImGuiRender() {
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
     auto roughness = Maze::get().getMazeLayer()->getRoughness();
 
-    ImGui::SetNextWindowPos({ width - 320.F, 0.F });
-    ImGui::SetNextWindowSize({ 320.F, 440.F });
+    ImGui::SetNextWindowPos({ width - 376.F, 0.F });
+    ImGui::SetNextWindowSize({ 376.F, 467.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -122,42 +122,35 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::EndTable();
         ImGui::Separator();
 
+        ImGui::Text("PBR:");
         ImGui::BeginTable(
-            "##PBRTable", 2,
+            "PBR", 1,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Metallic");
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##metallic", &metallic)) {
+        if (ImGui::Checkbox("Metallic", &metallic)) {
             Maze::get().getMazeLayer()->setMetallic(metallic);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Ambient Strength");
-        ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("##ambientstrength", &ambientStrength, 0.0f,
-                               1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+        if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.0f, 1.0f,
+                               "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setAmbientStrength(ambientStrength);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Roughness");
-        ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("##roughness", &roughness, 0.0f, 1.0f, "%.3f",
+        if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f, "%.3f",
                                ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setRoughness(roughness);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Ambient Occlusion");
-        ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("##ao", &ambientOcclusion, 0.0f, 1.0f, "%.3f",
-                               ImGuiSliderFlags_AlwaysClamp)) {
+        if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.0f,
+                               1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
         }
 
