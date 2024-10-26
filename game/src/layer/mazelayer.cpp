@@ -8,15 +8,21 @@ constexpr auto mouseSpeed = .1F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 11.F, 14.F);
 
-constexpr auto ambientStrength = .3F;
+constexpr auto metallic = 0.F;
+constexpr auto roughness = .5F;
+constexpr auto ao = .5F;
+
+constexpr auto lightPos = glm::vec3(1.F, 4.F, 2.F);
 // constexpr auto lightColor = glm::vec3(.8392F, .2823F, .8413F);
 constexpr auto lightColor = glm::vec3(1.F, 1.F, 1.F);
+
 constexpr auto lightCubeScale = glm::vec3(.2F);
-constexpr auto lightPos = glm::vec3(1.F, 5.F, 2.F);
+constexpr auto modelScale = glm::vec3(3.F);
+constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
+
+constexpr auto ambientStrength = .03F;
 constexpr auto lineColor = glm::vec3(.05F, .75F, 0.F);
 constexpr auto lineWidth = .3F;
-constexpr auto modelScale = glm::vec3(1.F);
-constexpr auto modelTranslation = glm::vec3(0.F, .5003F, 0.F);
 
 constexpr char cameraName[] = "maze";
 constexpr char modelName[] = "model";
@@ -41,6 +47,10 @@ void MazeLayer::onAttach() {
     auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
     auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
+
+    shader->setFloat("metallic", metallic);
+    shader->setFloat("roughness", roughness);
+    shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
     shader->setFloat3("lightColor", lightColor);
