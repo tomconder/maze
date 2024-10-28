@@ -1,5 +1,4 @@
 #include "model.hpp"
-#include "core/base.hpp"
 #include "core/timer.hpp"
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
@@ -24,14 +23,6 @@ namespace sponge::platform::opengl::scene {
 
 using sponge::scene::Vertex;
 
-Model::Model() {
-    const auto shaderName = Mesh::getShaderName();
-    const auto shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/shader.vert.glsl", "/shaders/shader.frag.glsl",
-        "/shaders/shader.geom.glsl");
-    UNUSED(shader);
-}
-
 void Model::load(const std::string& path) {
     assert(!path.empty());
 
@@ -44,6 +35,7 @@ void Model::load(const std::string& path) {
     std::string err;
 
     core::Timer timer;
+    timer.tick();
 
     const std::filesystem::path dir{ path };
     const auto ret =

@@ -21,17 +21,45 @@ class MazeLayer final : public sponge::layer::Layer {
         return camera;
     }
 
+    bool isMetallic() const {
+        return metallic;
+    }
+
+    void setMetallic(bool metallic);
+
     bool isWireframeActive() const {
         return activeWireframe;
     }
 
     void setWireframeActive(bool active);
 
+    float getAmbientOcclusion() const {
+        return ao;
+    }
+
+    void setAmbientOcclusion(float ao);
+
+    float getAmbientStrength() const {
+        return ambientStrength;
+    }
+
+    void setAmbientStrength(float strength);
+
+    float getRoughness() const {
+        return roughness;
+    }
+
+    void setRoughness(float roughness);
+
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
 
     bool activeWireframe = false;
+    bool metallic = false;
+    float ambientStrength = .03F;
+    float ao = .25F;
+    float roughness = .5F;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 
