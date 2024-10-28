@@ -27,6 +27,11 @@ uniform float lineWidth;
 
 const float M_PI = 3.14159265359;
 
+// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
+const float LIGHT_CONSTANT = 1.0;
+const float LIGHT_LINEAR = 0.07;
+const float LIGHT_QUADRATIC = 0.017;
+
 float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -87,7 +92,7 @@ void main() {
     vec3 L = normalize(lightPos - gPosition);
     vec3 H = normalize(V + L);
     float distance = length(lightPos - gPosition);
-    float attenuation = 1.0 / (distance * distance);
+    float attenuation = 1.0 / (LIGHT_CONSTANT + LIGHT_LINEAR * distance + LIGHT_QUADRATIC * (distance * distance));
     vec3 radiance = lightColor * attenuation;
 
     // Cook-Torrance BRDF
