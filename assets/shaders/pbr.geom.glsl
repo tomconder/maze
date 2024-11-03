@@ -3,8 +3,8 @@
 // A single-pass wireframe rendering based on a NVIDIA paper published in 2007.
 // https://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf
 
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
+layout (triangles) in;
+layout (triangle_strip, max_vertices = 3) out;
 
 in vec3 vPosition[];
 in vec2 vTexCoord[];
@@ -38,7 +38,7 @@ void main() {
     float c = length(p1 - p0);
 
     float alpha = acos((b * b + c * c - a * a) / (2.0 * b * c));
-    float beta  = acos((a * a + c * c - b * b) / (2.0 * a * c));
+    float beta = acos((a * a + c * c - b * b) / (2.0 * a * c));
 
     float ha = abs(c * sin(beta));
     float hb = abs(c * sin(alpha));

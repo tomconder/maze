@@ -22,6 +22,6 @@ void main() {
 
     vec2 p = position.xy;
     near = unproject_point(p.x, p.y, -1.f);
-    far  = unproject_point(p.x, p.y, 1.f);
+    far = unproject_point(p.x, p.y, 1.f);
     viewProj = mvp;
 }

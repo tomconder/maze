@@ -1,6 +1,6 @@
 #version 330
 
-layout(location = 0) out vec4 outColor;
+layout (location = 0) out vec4 outColor;
 
 in vec3 vertexPosition;
 in vec3 near;
