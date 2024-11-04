@@ -6,22 +6,62 @@ namespace {
 constexpr auto keyboardSpeed = .1F;
 constexpr auto mouseSpeed = .1F;
 
-constexpr auto cameraPosition = glm::vec3(0.F, 11.F, 14.F);
+constexpr auto cameraPosition = glm::vec3(0.F, 2.F, 6.F);
 
-constexpr auto lightPos = glm::vec3(1.F, 4.F, 4.F);
+constexpr auto lightPos = glm::vec3(1.F, 2.F, 1.F);
 // constexpr auto lightColor = glm::vec3(.8392F, .2823F, .8413F);
 constexpr auto lightColor = glm::vec3(1.F, 1.F, 1.F);
 
 constexpr auto lightCubeScale = glm::vec3(.2F);
-constexpr auto modelScale = glm::vec3(1.F);
-constexpr auto modelTranslation = glm::vec3(0.F, .1F, 0.F);
 
 constexpr auto lineColor = glm::vec3(.05F, .75F, 0.F);
 constexpr auto lineWidth = .3F;
 
 constexpr char cameraName[] = "maze";
-constexpr char modelName[] = "model";
-constexpr char modelPath[] = "/models/mitsuba/mitsuba.obj";
+
+struct GameObject {
+    const char* name;
+    const char* path;
+    glm::vec3 scale{ 1.F };
+    glm::vec3 translation{ 0.F };
+};
+
+constexpr GameObject gameObjects[] = {
+    { .name = const_cast<char*>("cube"),
+      .path = const_cast<char*>("/models/cube/cube.obj"),
+      .scale = glm::vec3(.5F),
+      .translation = glm::vec3(-3.F, .5003F, 2.25F) },
+
+    { .name = const_cast<char*>("coloredCube"),
+      .path = const_cast<char*>("/models/cube/colored_cube.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(0.F, 1.003F, -1.F) },
+
+    { .name = const_cast<char*>("bCube"),
+      .path = const_cast<char*>("/models/cube/nbcube.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(6.25F, 1.003F, 4.25F) },
+
+    { .name = const_cast<char*>("vase"),
+      .path = const_cast<char*>("/models/vase/flat_vase.obj"),
+      .scale = glm::vec3(2.5F, 2.F, 2.5F),
+      .translation = glm::vec3(-.25F, 0.003F, .25F) },
+
+    { .name = const_cast<char*>("smoothVase"),
+      .path = const_cast<char*>("/models/vase/smooth_vase.obj"),
+      .scale = glm::vec3(2.5F),
+      .translation = glm::vec3(.25F, 0.003F, .25F) },
+
+    { .name = const_cast<char*>("sphere"),
+      .path = const_cast<char*>("/models/sphere/flat_sphere.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(-2.25F, 1.F, 4.5F) },
+
+    { .name = const_cast<char*>("smoothSphere"),
+      .path = const_cast<char*>("/models/sphere/smooth_sphere.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(2.8F, 1.F, 4.5F) },
+};
 }  // namespace
 
 namespace game::layer {
@@ -34,7 +74,9 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    ResourceManager::loadModel(modelName, modelPath);
+    for (const auto& gameObject : gameObjects) {
+        ResourceManager::loadModel(gameObject.name, gameObject.path);
+    }
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(cameraPosition);
@@ -70,23 +112,30 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
+    auto shaderName =
+        sponge::platform::opengl::scene::LightCube::getShaderName();
     auto shader = ResourceManager::getShader(shaderName);
-    shader->bind();
-    shader->setFloat3("viewPos", camera->getPosition());
-    shader->setMat4("mvp", translate(scale(camera->getMVP(), modelScale),
-                                     modelTranslation));
-    shader->setMat4("viewportMatrix", camera->getViewportMatrix());
-    shader->unbind();
-
-    shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
-    shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setMat4(
         "mvp", scale(translate(camera->getMVP(), lightPos), lightCubeScale));
     shader->unbind();
 
-    ResourceManager::getModel(modelName)->render();
+    shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
+    shader = ResourceManager::getShader(shaderName);
+
+    for (const auto& gameObject : gameObjects) {
+        shader->bind();
+
+        shader->setFloat3("viewPos", camera->getPosition());
+        shader->setMat4("mvp",
+                        translate(scale(camera->getMVP(), gameObject.scale),
+                                  gameObject.translation));
+        shader->setMat4("viewportMatrix", camera->getViewportMatrix());
+
+        ResourceManager::getModel(gameObject.name)->render();
+
+        shader->unbind();
+    }
 
     lightCube->render();
 
