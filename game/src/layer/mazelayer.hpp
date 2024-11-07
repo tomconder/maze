@@ -51,6 +51,12 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setRoughness(float roughness);
 
+    int32_t getNumLights() const {
+        return numLights;
+    }
+
+    void setNumLights(int32_t numLights);
+
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
@@ -60,6 +66,7 @@ class MazeLayer final : public sponge::layer::Layer {
     float ambientStrength = .03F;
     float ao = .25F;
     float roughness = .5F;
+    int32_t numLights = 1;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 

@@ -46,9 +46,10 @@ void ImGuiLayer::onImGuiRender() {
     auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
     auto roughness = Maze::get().getMazeLayer()->getRoughness();
+    auto numLights = Maze::get().getMazeLayer()->getNumLights();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
-    ImGui::SetNextWindowSize({ 376.F, 467.F });
+    ImGui::SetNextWindowSize({ 376.F, 506.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -120,6 +121,12 @@ void ImGuiLayer::onImGuiRender() {
         }
 
         ImGui::EndTable();
+        ImGui::Separator();
+
+        if (ImGui::SliderInt("Lights", &numLights, 1, 6)) {
+            Maze::get().getMazeLayer()->setNumLights(numLights);
+        }
+
         ImGui::Separator();
 
         ImGui::Text("PBR:");
