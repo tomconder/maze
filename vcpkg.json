@@ -28,7 +28,7 @@
     },
     {
       "name": "sdl2",
-      "version>=": "2.30.8",
+      "version>=": "2.30.9",
       "platform": "!wasm32"
     },
     {
