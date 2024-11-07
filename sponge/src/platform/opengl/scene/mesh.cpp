@@ -91,6 +91,7 @@ void Mesh::render() const {
 
     if (!textures.empty()) {
         shader->setInteger("texture_diffuse1", 0);
+        shader->setBoolean("hasNoTexture", false);
         textures[0]->bind();
     } else {
         shader->setBoolean("hasNoTexture", true);

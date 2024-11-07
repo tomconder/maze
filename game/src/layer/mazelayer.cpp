@@ -45,12 +45,12 @@ constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("vase"),
       .path = const_cast<char*>("/models/vase/flat_vase.obj"),
       .scale = glm::vec3(2.5F, 2.F, 2.5F),
-      .translation = glm::vec3(-.25F, 0.003F, .25F) },
+      .translation = glm::vec3(-.25F, .003F, .25F) },
 
     { .name = const_cast<char*>("smoothVase"),
       .path = const_cast<char*>("/models/vase/smooth_vase.obj"),
       .scale = glm::vec3(2.5F),
-      .translation = glm::vec3(.25F, 0.003F, .25F) },
+      .translation = glm::vec3(.25F, .003F, .25F) },
 
     { .name = const_cast<char*>("sphere"),
       .path = const_cast<char*>("/models/sphere/flat_sphere.obj"),
@@ -60,7 +60,7 @@ constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("smoothSphere"),
       .path = const_cast<char*>("/models/sphere/smooth_sphere.obj"),
       .scale = glm::vec3(.25F),
-      .translation = glm::vec3(2.8F, 1.F, 4.5F) },
+      .translation = glm::vec3(2.8F, 1.F, 4.5F) }
 };
 }  // namespace
 
