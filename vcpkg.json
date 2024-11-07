@@ -5,8 +5,7 @@
     {
       "name": "glad",
       "features": [
-        "gl-api-latest",
-        "loader"
+        "gl-api-latest"
       ],
       "version>=": "0.1.36"
     },
@@ -28,7 +27,7 @@
     },
     {
       "name": "sdl2",
-      "version>=": "2.30.8",
+      "version>=": "2.30.9",
       "platform": "!wasm32"
     },
     {
