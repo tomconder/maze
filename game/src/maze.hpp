@@ -35,8 +35,6 @@ class Maze final : public sponge::platform::sdl::core::Application {
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-    std::shared_ptr<layer::GridLayer> gridLayer =
-        std::make_shared<layer::GridLayer>();
     std::shared_ptr<layer::HUDLayer> hudLayer =
         std::make_shared<layer::HUDLayer>();
     std::shared_ptr<layer::ImGuiLayer> imguiLayer =

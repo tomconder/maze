@@ -94,7 +94,6 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     for (int i = 0; i < numLights; i++) {
-
         // calculate per-light radiance
         vec3 L = normalize(pointLights[i].position - gPosition);
         vec3 H = normalize(V + L);

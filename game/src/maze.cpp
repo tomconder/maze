@@ -22,7 +22,6 @@ bool Maze::onUserCreate() {
     pushOverlay(hudLayer);
     pushOverlay(exitLayer);
 
-    pushLayer(gridLayer);
     pushLayer(mazeLayer);
 
     exitLayer->setActive(false);
