@@ -14,8 +14,18 @@ uniform float roughness;
 uniform float ao;
 
 // lights
-uniform vec3 lightPos;
-uniform vec3 lightColor;
+struct PointLight {
+    vec3 position;
+    vec3 color;
+};
+
+// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
+const float LIGHT_CONSTANT = 1.0;
+const float LIGHT_LINEAR = 0.07;
+const float LIGHT_QUADRATIC = 0.017;
+
+uniform int numLights = 1;
+uniform PointLight pointLights[6];
 
 uniform sampler2D texture_diffuse1;
 uniform vec3 viewPos;
@@ -26,11 +36,6 @@ uniform vec3 lineColor;
 uniform float lineWidth;
 
 const float M_PI = 3.14159265359;
-
-// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
-const float LIGHT_CONSTANT = 1.0;
-const float LIGHT_LINEAR = 0.07;
-const float LIGHT_QUADRATIC = 0.017;
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -88,30 +93,33 @@ void main() {
     // reflectance equation
     vec3 Lo = vec3(0.0);
 
-    // calculate per-light radiance
-    vec3 L = normalize(lightPos - gPosition);
-    vec3 H = normalize(V + L);
-    float distance = length(lightPos - gPosition);
-    float attenuation = 1.0 / (LIGHT_CONSTANT + LIGHT_LINEAR * distance + LIGHT_QUADRATIC * (distance * distance));
-    vec3 radiance = lightColor * attenuation;
+    for (int i = 0; i < numLights; i++) {
 
-    // Cook-Torrance BRDF
-    float NDF = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        // calculate per-light radiance
+        vec3 L = normalize(pointLights[i].position - gPosition);
+        vec3 H = normalize(V + L);
+        float distance = length(pointLights[i].position - gPosition);
+        float attenuation = 1.0 / (LIGHT_CONSTANT + LIGHT_LINEAR * distance + LIGHT_QUADRATIC * (distance * distance));
+        vec3 radiance = pointLights[i].color * attenuation;
 
-    // kS is equal to Fresnel
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= vec3(1.0 - metallic);
+        // Cook-Torrance BRDF
+        float NDF = distributionGGX(N, H, roughness);
+        float G = geometrySmith(N, V, L, roughness);
+        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
+        // kS is equal to Fresnel
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= vec3(1.0 - metallic);
 
-    // add to outgoing radiance Lo
-    float NdotL = max(dot(N, L), 0.0);
-    Lo += (kD * albedo / M_PI + specular) * radiance * NdotL;
+        vec3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        vec3 specular = numerator / denominator;
+
+        // add to outgoing radiance Lo
+        float NdotL = max(dot(N, L), 0.0);
+        Lo += (kD * albedo / M_PI + specular) * radiance * NdotL;
+    }
 
     // ambient
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
