@@ -49,14 +49,7 @@ constexpr LightAttenuation lightAttenuation[] = {
       .constant = 1.F,
       .linear = 0.014F,
       .quadratic = 0.0007F },
-    { .distance = 600,
-      .constant = 1.F,
-      .linear = 0.007F,
-      .quadratic = 0.0002F },
-    { .distance = 3250,
-      .constant = 1.F,
-      .linear = 0.0014F,
-      .quadratic = 0.000007F }
+    { .distance = 600, .constant = 1.F, .linear = 0.007F, .quadratic = 0.0002F }
 };
 
 struct LightCube {
@@ -103,12 +96,12 @@ constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("sphere"),
       .path = const_cast<char*>("/models/sphere/flat_sphere.obj"),
       .scale = glm::vec3(.25F),
-      .translation = glm::vec3(-2.25F, 1.F, 4.5F) },
+      .translation = glm::vec3(-2.25F, 1.F, 5.F) },
 
     { .name = const_cast<char*>("smoothSphere"),
       .path = const_cast<char*>("/models/sphere/smooth_sphere.obj"),
       .scale = glm::vec3(.25F),
-      .translation = glm::vec3(2.8F, 1.F, 4.5F) },
+      .translation = glm::vec3(2.8F, 1.F, 5.F) },
 
     { .name = const_cast<char*>("floor"),
       .path = const_cast<char*>("/models/quad/quad.obj"),
@@ -284,12 +277,25 @@ void MazeLayer::setNumLights(int32_t numLights) {
                    glm::vec3(0.F, 1.F, 0.F)) *
             glm::vec4(-1.F, 1.5F, -1.F, 1.F));
 
-        int index = 5;
-        lightCubes[i].attenuation = glm::vec3(
-            lightAttenuation[index].constant, lightAttenuation[index].linear,
-            lightAttenuation[index].quadratic);
-        lightCubes[i].distance = lightAttenuation[index].distance;
+        lightCubes[i].attenuation =
+            glm::vec3(lightAttenuation[attenuationIndex].constant,
+                      lightAttenuation[attenuationIndex].linear,
+                      lightAttenuation[attenuationIndex].quadratic);
+        lightCubes[i].distance = lightAttenuation[attenuationIndex].distance;
     }
+}
+
+void MazeLayer::setAttenuationIndex(int32_t attenuationIndex) {
+    this->attenuationIndex = attenuationIndex;
+    setNumLights(numLights);
+}
+
+glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
+    int32_t attenuationIndex) const {
+    return { lightAttenuation[attenuationIndex].distance,
+             lightAttenuation[attenuationIndex].constant,
+             lightAttenuation[attenuationIndex].linear,
+             lightAttenuation[attenuationIndex].quadratic };
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {

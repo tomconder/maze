@@ -47,9 +47,10 @@ void ImGuiLayer::onImGuiRender() {
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
     auto roughness = Maze::get().getMazeLayer()->getRoughness();
     auto numLights = Maze::get().getMazeLayer()->getNumLights();
+    auto attentuation = Maze::get().getMazeLayer()->getAttenuationIndex();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
-    ImGui::SetNextWindowSize({ 376.F, 506.F });
+    ImGui::SetNextWindowSize({ 376.F, 516.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -126,6 +127,18 @@ void ImGuiLayer::onImGuiRender() {
         if (ImGui::SliderInt("Lights", &numLights, 1, 6)) {
             Maze::get().getMazeLayer()->setNumLights(numLights);
         }
+
+        ImGui::Separator();
+
+        if (ImGui::SliderInt("Attentuation", &attentuation, 0, 10)) {
+            Maze::get().getMazeLayer()->setAttenuationIndex(attentuation);
+        }
+
+        auto attenuation =
+            Maze::get().getMazeLayer()->getAttenuationValuesFromIndex(
+                attentuation);
+        ImGui::Text("Distance: %3.f [%1.1f, %1.3f, %1.4f]", attenuation.x,
+                    attenuation.y, attenuation.z, attenuation.w);
 
         ImGui::Separator();
 

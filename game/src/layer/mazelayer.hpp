@@ -57,6 +57,14 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setNumLights(int32_t numLights);
 
+    int32_t getAttenuationIndex() const {
+        return attenuationIndex;
+    }
+
+    void setAttenuationIndex(int32_t attenuationIndex);
+
+    glm::vec4 getAttenuationValuesFromIndex(int32_t attenuationIndex) const;
+
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
@@ -67,6 +75,7 @@ class MazeLayer final : public sponge::layer::Layer {
     float ao = .25F;
     float roughness = .5F;
     int32_t numLights = 1;
+    int32_t attenuationIndex = 6;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 
