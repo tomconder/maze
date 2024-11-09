@@ -19,7 +19,11 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
                              { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
                              { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
-glm::vec3 cubePos[6];
+struct LightCube {
+    glm::vec3 position;
+    glm::vec3 translation;
+};
+LightCube lightCubes[6];
 
 struct GameObject {
     const char* name;
@@ -121,9 +125,18 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     shader->setInteger("numLights", numLights);
 
+    auto rotateLight =
+        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime / 3.F),
+               { 0.F, -1.F, 0.F });
+
     for (int32_t i = 0; i < numLights; ++i) {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          cubePos[i]);
+                          lightCubes[i].position);
+
+        lightCubes[i].translation =
+            glm::vec3(rotateLight * glm::vec4(lightCubes[i].translation, 1.F));
+        lightCubes[i].position = glm::vec4(lightCubes[i].translation, 1.F);
+
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
                           lightColors[i]);
     }
@@ -151,8 +164,9 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         shader->bind();
 
         shader->setFloat3("lightColor", lightColors[i]);
-        shader->setMat4("mvp", scale(translate(camera->getMVP(), cubePos[i]),
-                                     lightCubeScale));
+        shader->setMat4(
+            "mvp", scale(translate(camera->getMVP(), lightCubes[i].position),
+                         lightCubeScale));
 
         lightCube->render();
 
@@ -221,10 +235,10 @@ void MazeLayer::setNumLights(int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
-        cubePos[i] = glm::vec3(rotate(glm::mat4(1.F),
-                                      glm::two_pi<float>() * i / numLights,
-                                      glm::vec3(0.F, 1.F, 0.F)) *
-                               glm::vec4(1.F, 2.F, 1.F, 1.F));
+        lightCubes[i].translation = glm::vec3(
+            rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
+                   glm::vec3(0.F, 1.F, 0.F)) *
+            glm::vec4(-1.F, 1.5F, -1.F, 1.F));
     }
 }
 
