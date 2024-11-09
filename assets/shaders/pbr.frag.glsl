@@ -17,12 +17,8 @@ uniform float ao;
 struct PointLight {
     vec3 position;
     vec3 color;
+    vec3 attenuation;
 };
-
-// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
-const float LIGHT_CONSTANT = 1.0;
-const float LIGHT_LINEAR = 0.07;
-const float LIGHT_QUADRATIC = 0.017;
 
 uniform int numLights = 1;
 uniform PointLight pointLights[6];
@@ -98,7 +94,10 @@ void main() {
         vec3 L = normalize(pointLights[i].position - gPosition);
         vec3 H = normalize(V + L);
         float distance = length(pointLights[i].position - gPosition);
-        float attenuation = 1.0 / (LIGHT_CONSTANT + LIGHT_LINEAR * distance + LIGHT_QUADRATIC * (distance * distance));
+        float constant = pointLights[i].attenuation.r;
+        float linear = pointLights[i].attenuation.g;
+        float quadratic = pointLights[i].attenuation.b;
+        float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
         vec3 radiance = pointLights[i].color * attenuation;
 
         // Cook-Torrance BRDF

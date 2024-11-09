@@ -19,9 +19,51 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
                              { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
                              { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
+// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
+struct LightAttenuation {
+    uint16_t distance;
+    float constant;
+    float linear;
+    float quadratic;
+};
+constexpr LightAttenuation lightAttenuation[] = {
+    { .distance = 7, .constant = 1.F, .linear = 0.7F, .quadratic = 1.8F },
+    { .distance = 13, .constant = 1.F, .linear = 0.35F, .quadratic = 0.44F },
+    { .distance = 20, .constant = 1.F, .linear = 0.22F, .quadratic = 0.2F },
+    { .distance = 32, .constant = 1.F, .linear = 0.14F, .quadratic = 0.07F },
+    { .distance = 50, .constant = 1.F, .linear = 0.09F, .quadratic = 0.032F },
+    { .distance = 65, .constant = 1.F, .linear = 0.07F, .quadratic = 0.017F },
+    { .distance = 100,
+      .constant = 1.F,
+      .linear = 0.045F,
+      .quadratic = 0.0075F },
+    { .distance = 160,
+      .constant = 1.F,
+      .linear = 0.027F,
+      .quadratic = 0.0028F },
+    { .distance = 200,
+      .constant = 1.F,
+      .linear = 0.022F,
+      .quadratic = 0.0019F },
+    { .distance = 325,
+      .constant = 1.F,
+      .linear = 0.014F,
+      .quadratic = 0.0007F },
+    { .distance = 600,
+      .constant = 1.F,
+      .linear = 0.007F,
+      .quadratic = 0.0002F },
+    { .distance = 3250,
+      .constant = 1.F,
+      .linear = 0.0014F,
+      .quadratic = 0.000007F }
+};
+
 struct LightCube {
     glm::vec3 position;
     glm::vec3 translation;
+    uint16_t distance;
+    glm::vec3 attenuation;
 };
 LightCube lightCubes[6];
 
@@ -132,6 +174,8 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     for (int32_t i = 0; i < numLights; ++i) {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
                           lightCubes[i].position);
+        shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
+                          lightCubes[i].attenuation);
 
         lightCubes[i].translation =
             glm::vec3(rotateLight * glm::vec4(lightCubes[i].translation, 1.F));
@@ -239,6 +283,12 @@ void MazeLayer::setNumLights(int32_t numLights) {
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
             glm::vec4(-1.F, 1.5F, -1.F, 1.F));
+
+        int index = 5;
+        lightCubes[i].attenuation = glm::vec3(
+            lightAttenuation[index].constant, lightAttenuation[index].linear,
+            lightAttenuation[index].quadratic);
+        lightCubes[i].distance = lightAttenuation[index].distance;
     }
 }
 
