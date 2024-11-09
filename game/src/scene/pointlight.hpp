@@ -5,8 +5,6 @@
 class PointLight {
    public:
     PointLight() = default;
-    PointLight(const glm::vec3& position, const glm::vec3& translation,
-               int32_t attenuationIndex);
 
     glm::vec3 getAttenuation() const {
         return { constant, linear, quadratic };
