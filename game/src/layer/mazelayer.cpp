@@ -1,5 +1,6 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
+#include "scene/gameobject.hpp"
 #include "scene/pointlight.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
@@ -21,13 +22,6 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
                              { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
 PointLight pointLights[6];
-
-struct GameObject {
-    const char* name;
-    const char* path;
-    glm::vec3 scale{ 1.F };
-    glm::vec3 translation{ 0.F };
-};
 
 constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("cube"),
@@ -128,14 +122,13 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     for (int32_t i = 0; i < numLights; ++i) {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          pointLights[i].getPosition());
+                          pointLights[i].position);
         shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
                           pointLights[i].getAttenuation());
 
-        pointLights[i].setTranslation(glm::vec3(
-            rotateLight * glm::vec4(pointLights[i].getTranslation(), 1.F)));
-        pointLights[i].setPosition(
-            glm::vec4(pointLights[i].getTranslation(), 1.F));
+        pointLights[i].translation =
+            glm::vec3(rotateLight * glm::vec4(pointLights[i].translation, 1.F));
+        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
 
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
                           lightColors[i]);
@@ -164,9 +157,9 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         shader->bind();
 
         shader->setFloat3("lightColor", lightColors[i]);
-        shader->setMat4("mvp", scale(translate(camera->getMVP(),
-                                               pointLights[i].getPosition()),
-                                     lightCubeScale));
+        shader->setMat4(
+            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
+                         lightCubeScale));
 
         lightCube->render();
 
@@ -235,10 +228,10 @@ void MazeLayer::setNumLights(int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
-        pointLights[i].setTranslation(glm::vec3(
+        pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(-1.F, 1.5F, -1.F, 1.F)));
+            glm::vec4(-1.F, 1.5F, -1.F, 1.F));
 
         pointLights[i].setAttenuationFromIndex(attenuationIndex);
     }
