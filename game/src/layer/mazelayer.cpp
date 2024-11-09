@@ -1,5 +1,6 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
+#include "scene/pointlight.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
@@ -19,46 +20,7 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
                              { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
                              { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
-// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
-struct LightAttenuation {
-    uint16_t distance;
-    float constant;
-    float linear;
-    float quadratic;
-};
-constexpr LightAttenuation lightAttenuation[] = {
-    { .distance = 7, .constant = 1.F, .linear = 0.7F, .quadratic = 1.8F },
-    { .distance = 13, .constant = 1.F, .linear = 0.35F, .quadratic = 0.44F },
-    { .distance = 20, .constant = 1.F, .linear = 0.22F, .quadratic = 0.2F },
-    { .distance = 32, .constant = 1.F, .linear = 0.14F, .quadratic = 0.07F },
-    { .distance = 50, .constant = 1.F, .linear = 0.09F, .quadratic = 0.032F },
-    { .distance = 65, .constant = 1.F, .linear = 0.07F, .quadratic = 0.017F },
-    { .distance = 100,
-      .constant = 1.F,
-      .linear = 0.045F,
-      .quadratic = 0.0075F },
-    { .distance = 160,
-      .constant = 1.F,
-      .linear = 0.027F,
-      .quadratic = 0.0028F },
-    { .distance = 200,
-      .constant = 1.F,
-      .linear = 0.022F,
-      .quadratic = 0.0019F },
-    { .distance = 325,
-      .constant = 1.F,
-      .linear = 0.014F,
-      .quadratic = 0.0007F },
-    { .distance = 600, .constant = 1.F, .linear = 0.007F, .quadratic = 0.0002F }
-};
-
-struct LightCube {
-    glm::vec3 position;
-    glm::vec3 translation;
-    uint16_t distance;
-    glm::vec3 attenuation;
-};
-LightCube lightCubes[6];
+PointLight pointLights[6];
 
 struct GameObject {
     const char* name;
@@ -166,13 +128,14 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     for (int32_t i = 0; i < numLights; ++i) {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          lightCubes[i].position);
+                          pointLights[i].getPosition());
         shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
-                          lightCubes[i].attenuation);
+                          pointLights[i].getAttenuation());
 
-        lightCubes[i].translation =
-            glm::vec3(rotateLight * glm::vec4(lightCubes[i].translation, 1.F));
-        lightCubes[i].position = glm::vec4(lightCubes[i].translation, 1.F);
+        pointLights[i].setTranslation(glm::vec3(
+            rotateLight * glm::vec4(pointLights[i].getTranslation(), 1.F)));
+        pointLights[i].setPosition(
+            glm::vec4(pointLights[i].getTranslation(), 1.F));
 
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
                           lightColors[i]);
@@ -201,9 +164,9 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         shader->bind();
 
         shader->setFloat3("lightColor", lightColors[i]);
-        shader->setMat4(
-            "mvp", scale(translate(camera->getMVP(), lightCubes[i].position),
-                         lightCubeScale));
+        shader->setMat4("mvp", scale(translate(camera->getMVP(),
+                                               pointLights[i].getPosition()),
+                                     lightCubeScale));
 
         lightCube->render();
 
@@ -272,16 +235,12 @@ void MazeLayer::setNumLights(int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
-        lightCubes[i].translation = glm::vec3(
+        pointLights[i].setTranslation(glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(-1.F, 1.5F, -1.F, 1.F));
+            glm::vec4(-1.F, 1.5F, -1.F, 1.F)));
 
-        lightCubes[i].attenuation =
-            glm::vec3(lightAttenuation[attenuationIndex].constant,
-                      lightAttenuation[attenuationIndex].linear,
-                      lightAttenuation[attenuationIndex].quadratic);
-        lightCubes[i].distance = lightAttenuation[attenuationIndex].distance;
+        pointLights[i].setAttenuationFromIndex(attenuationIndex);
     }
 }
 
@@ -292,10 +251,7 @@ void MazeLayer::setAttenuationIndex(int32_t attenuationIndex) {
 
 glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
     int32_t attenuationIndex) const {
-    return { lightAttenuation[attenuationIndex].distance,
-             lightAttenuation[attenuationIndex].constant,
-             lightAttenuation[attenuationIndex].linear,
-             lightAttenuation[attenuationIndex].quadratic };
+    return pointLights[0].getAttenuationFromIndex(attenuationIndex);
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {
