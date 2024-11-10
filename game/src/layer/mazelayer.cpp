@@ -69,7 +69,7 @@ constexpr GameObject gameObjects[] = {
 };
 
 sponge::core::Timer timer;
-constexpr uint16_t UPDATE_FREQUENCY{ 600 };
+constexpr uint16_t UPDATE_FREQUENCY{ 60 };
 constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
 double elapsedSeconds{ 0.F };
 }  // namespace
@@ -112,6 +112,8 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
+    UNUSED(elapsedTime);
+
     timer.tick();
 
     auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
@@ -126,7 +128,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         elapsedSeconds = -CYCLE_TIME;
 
         auto rotateLight =
-            rotate(glm::mat4(1.F), static_cast<float>(elapsedTime / 3.F),
+            rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
                    { 0.F, -1.F, 0.F });
 
         for (int32_t i = 0; i < numLights; ++i) {
