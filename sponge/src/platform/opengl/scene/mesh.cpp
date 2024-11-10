@@ -25,8 +25,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     this->numVertices = numVertices;
 
     shader = ResourceManager::loadShader(shaderName, "/shaders/pbr.vert.glsl",
-                                         "/shaders/pbr.frag.glsl",
-                                         "/shaders/pbr.geom.glsl");
+                                         "/shaders/pbr.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();

@@ -11,9 +11,6 @@ constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
 constexpr auto lightCubeScale = glm::vec3(.1F);
 
-constexpr auto lineColor = glm::vec3(.05F, .75F, 0.F);
-constexpr auto lineWidth = .3F;
-
 constexpr char cameraName[] = "maze";
 
 glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
@@ -103,9 +100,6 @@ void MazeLayer::onAttach() {
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->setFloat3("lineColor", lineColor);
-    shader->setFloat("lineWidth", lineWidth);
-    shader->setBoolean("showWireframe", activeWireframe);
     shader->unbind();
 
     lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
@@ -161,7 +155,6 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         shader->setMat4("mvp",
                         translate(scale(camera->getMVP(), gameObject.scale),
                                   gameObject.translation));
-        shader->setMat4("viewportMatrix", camera->getViewportMatrix());
 
         ResourceManager::getModel(gameObject.name)->render();
 
@@ -195,17 +188,6 @@ void MazeLayer::setMetallic(bool metallic) {
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->unbind();
-}
-
-void MazeLayer::setWireframeActive(const bool active) {
-    this->activeWireframe = active;
-
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
-    shader->bind();
-    shader->setBoolean("showWireframe", active);
     shader->unbind();
 }
 

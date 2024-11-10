@@ -40,7 +40,6 @@ void ImGuiLayer::onImGuiRender() {
 
     static auto hasVsync = Application::hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
-    auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     auto metallic = Maze::get().getMazeLayer()->isMetallic();
     auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
@@ -111,14 +110,6 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
             Application::get().toggleFullscreen();
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Show Wireframe");
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##wireframe", &isWireframeActive)) {
-            Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
         }
 
         ImGui::EndTable();

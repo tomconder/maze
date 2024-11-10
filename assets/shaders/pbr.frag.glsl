@@ -2,11 +2,10 @@
 
 layout (location = 0) out vec4 FragColor;
 
-in vec3 gPosition;
-in vec2 gTexCoord;
-in vec3 gNormal;
-in vec3 gColor;
-noperspective in vec3 gEdgeDistance;
+in vec3 vPosition;
+in vec2 vTexCoord;
+in vec3 vNormal;
+in vec3 vColor;
 
 // material parameters
 uniform float metallic;
@@ -27,9 +26,6 @@ uniform sampler2D texture_diffuse1;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
-uniform bool showWireframe;
-uniform vec3 lineColor;
-uniform float lineWidth;
 
 const float M_PI = 3.14159265359;
 
@@ -73,13 +69,14 @@ void main() {
     vec3 albedo;
 
     if (hasNoTexture) {
-        albedo = pow(gColor, vec3(2.2));
+        // albedo = pow(vColor, vec3(2.2));
+        albedo = vColor;
     } else {
-        albedo = texture(texture_diffuse1, gTexCoord).rgb;
+        albedo = texture(texture_diffuse1, vTexCoord).rgb;
     }
 
-    vec3 N = normalize(gNormal);
-    vec3 V = normalize(viewPos - gPosition);
+    vec3 N = normalize(vNormal);
+    vec3 V = normalize(viewPos - vPosition);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -91,9 +88,9 @@ void main() {
 
     for (int i = 0; i < numLights; i++) {
         // calculate per-light radiance
-        vec3 L = normalize(pointLights[i].position - gPosition);
+        vec3 L = normalize(pointLights[i].position - vPosition);
         vec3 H = normalize(V + L);
-        float distance = length(pointLights[i].position - gPosition);
+        float distance = length(pointLights[i].position - vPosition);
         float constant = pointLights[i].attenuation.r;
         float linear = pointLights[i].attenuation.g;
         float quadratic = pointLights[i].attenuation.b;
@@ -105,22 +102,24 @@ void main() {
         float G = geometrySmith(N, V, L, roughness);
         vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
+        vec3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        vec3 specular = numerator / denominator;
+
         // kS is equal to Fresnel
         vec3 kS = F;
         vec3 kD = vec3(1.0) - kS;
         kD *= vec3(1.0 - metallic);
 
-        vec3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular = numerator / denominator;
-
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);
+
         Lo += (kD * albedo / M_PI + specular) * radiance * NdotL;
     }
 
     // ambient
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
+
     vec3 color = ambient + Lo;
 
     // Reinhard HDR tonemapping
@@ -130,12 +129,5 @@ void main() {
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
-    float mixVal = 1.0;
-    if (showWireframe) {
-        float d = min(gEdgeDistance.x, gEdgeDistance.y);
-        d = min(d, gEdgeDistance.z);
-        mixVal = smoothstep(lineWidth - 1, lineWidth + 1, d);
-    }
-
-    FragColor = mix(vec4(lineColor, 1.0), vec4(color, 1.0), mixVal);
+    FragColor = vec4(color, 1.0);
 }

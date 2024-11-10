@@ -27,12 +27,6 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setMetallic(bool metallic);
 
-    bool isWireframeActive() const {
-        return activeWireframe;
-    }
-
-    void setWireframeActive(bool active);
-
     float getAmbientOcclusion() const {
         return ao;
     }
@@ -69,7 +63,6 @@ class MazeLayer final : public sponge::layer::Layer {
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
 
-    bool activeWireframe = false;
     bool metallic = false;
     float ambientStrength = .03F;
     float ao = .25F;
