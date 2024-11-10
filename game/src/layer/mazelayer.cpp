@@ -1,6 +1,5 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
-#include "scene/gameobject.hpp"
 #include "scene/pointlight.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
@@ -22,6 +21,13 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
                              { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
 PointLight pointLights[6];
+
+struct GameObject {
+    const char* name;
+    const char* path;
+    glm::vec3 scale{ 1.F };
+    glm::vec3 translation{ 0.F };
+};
 
 constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("cube"),
@@ -64,6 +70,11 @@ constexpr GameObject gameObjects[] = {
       .scale = glm::vec3({ 10.F, 1.F, 10.F }),
       .translation = glm::vec3(0.F, 0.002F, 0.F) }
 };
+
+sponge::core::Timer timer;
+constexpr uint16_t UPDATE_FREQUENCY{ 600 };
+constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
+double elapsedSeconds{ 0.F };
 }  // namespace
 
 namespace game::layer {
@@ -107,7 +118,7 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
+    timer.tick();
 
     auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
     auto shader = ResourceManager::getShader(shaderName);
@@ -116,22 +127,29 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     shader->setInteger("numLights", numLights);
 
-    auto rotateLight =
-        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime / 3.F),
-               { 0.F, -1.F, 0.F });
+    elapsedSeconds += timer.getElapsedSeconds();
+    if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
+        elapsedSeconds = -CYCLE_TIME;
 
-    for (int32_t i = 0; i < numLights; ++i) {
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          pointLights[i].position);
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
-                          pointLights[i].getAttenuation());
+        auto rotateLight =
+            rotate(glm::mat4(1.F), static_cast<float>(elapsedTime / 3.F),
+                   { 0.F, -1.F, 0.F });
 
-        pointLights[i].translation =
-            glm::vec3(rotateLight * glm::vec4(pointLights[i].translation, 1.F));
-        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
+        for (int32_t i = 0; i < numLights; ++i) {
+            shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
+                              pointLights[i].position);
+            shader->setFloat3(
+                "pointLights[" + std::to_string(i) + "].attenuation",
+                pointLights[i].getAttenuation());
 
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                          lightColors[i]);
+            pointLights[i].translation = glm::vec3(
+                rotateLight * glm::vec4(pointLights[i].translation, 1.F));
+            pointLights[i].position =
+                glm::vec4(pointLights[i].translation, 1.F);
+
+            shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
+                              lightColors[i]);
+        }
     }
 
     shader->unbind();
