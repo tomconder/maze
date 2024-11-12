@@ -1,38 +1,62 @@
-#
-# spider.mtl
-#
-
-newmtl Skin
-Ka 0.200000 0.200000 0.200000
-Kd 0.827451 0.792157 0.772549
-Ks 0.000000 0.000000 0.000000
-Ns 0.000000
-map_Kd .\wal67ar_small.jpg
-
-newmtl Brusttex
-Ka 0.200000 0.200000 0.200000
-Kd 0.800000 0.800000 0.800000
-Ks 0.000000 0.000000 0.000000
-Ns 0.000000
-map_Kd .\wal69ar_small.jpg
-
-newmtl HLeibTex
-Ka 0.200000 0.200000 0.200000
-Kd 0.690196 0.639216 0.615686
-Ks 0.000000 0.000000 0.000000
-Ns 0.000000
-map_Kd .\SpiderTex.jpg
-
-newmtl BeinTex
-Ka 0.200000 0.200000 0.200000
-Kd 0.800000 0.800000 0.800000
-Ks 0.000000 0.000000 0.000000
-Ns 0.000000
-map_Kd .\drkwood2.jpg
+# Blender 4.2.2 LTS MTL File: 'None'
+# www.blender.org
 
 newmtl Augentex
-Ka 0.200000 0.200000 0.200000
-Kd 0.800000 0.800000 0.800000
 Ks 0.000000 0.000000 0.000000
-Ns 0.000000
-map_Kd .\engineflare1.jpg
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+Pr 1.000000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd engineflare1.jpg
+
+newmtl BeinTex
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+Pr 1.000000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd drkwood2.jpg
+
+newmtl HLeibTex
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+Pr 0.500000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd SpiderTex.jpg
+
+newmtl Skin
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+Pr 1.000000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+aniso 0.000000
+anisor 0.000000
+map_Kd wal67ar_small.jpg

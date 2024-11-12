@@ -20,6 +20,10 @@ std::unordered_map<std::string, std::shared_ptr<Texture>>
     ResourceManager::textures;
 std::string ResourceManager::assetsFolder = core::File::getResourceDir();
 
+ResourceManager::ResourceManager() {
+    stbi_set_flip_vertically_on_load(true);
+}
+
 std::shared_ptr<scene::Font> ResourceManager::getFont(const std::string& name) {
     assert(!name.empty());
     return fonts.at(name);

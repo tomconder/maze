@@ -62,6 +62,16 @@ constexpr GameObject gameObjects[] = {
       .scale = glm::vec3(.25F),
       .translation = glm::vec3(2.8F, 1.F, 5.F) },
 
+    { .name = const_cast<char*>("spider"),
+      .path = const_cast<char*>("/models/spider/spider.obj"),
+      .scale = glm::vec3(.75F),
+      .translation = glm::vec3(2.5F, 0.003F, 0.F) },
+
+    { .name = const_cast<char*>("buddha"),
+      .path = const_cast<char*>("/models/buddha/buddha.obj"),
+      .scale = glm::vec3(.5F),
+      .translation = glm::vec3(-2.5F, 0.003F, 0.F) },
+
     { .name = const_cast<char*>("floor"),
       .path = const_cast<char*>("/models/floor/floor.obj"),
       .scale = glm::vec3(1.F),
@@ -104,7 +114,7 @@ void MazeLayer::onAttach() {
 
     lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
 
-    setNumLights(1);
+    setNumLights(numLights);
 }
 
 void MazeLayer::onDetach() {

@@ -67,7 +67,7 @@ class MazeLayer final : public sponge::layer::Layer {
     float ambientStrength = .03F;
     float ao = .25F;
     float roughness = .5F;
-    int32_t numLights = 1;
+    int32_t numLights = 6;
     int32_t attenuationIndex = 4;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
