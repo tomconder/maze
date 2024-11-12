@@ -37,10 +37,10 @@ constexpr GameObject gameObjects[] = {
       .scale = glm::vec3(.25F),
       .translation = glm::vec3(0.F, 1.003F, -1.F) },
 
-    { .name = const_cast<char*>("bCube"),
-      .path = const_cast<char*>("/models/cube/nbcube.obj"),
-      .scale = glm::vec3(.25F),
-      .translation = glm::vec3(6.25F, 1.003F, 4.25F) },
+    { .name = const_cast<char*>("texcube"),
+      .path = const_cast<char*>("/models/cube/cube-tex.obj"),
+      .scale = glm::vec3(.55F),
+      .translation = glm::vec3(2.5F, .003F, 1.25F) },
 
     { .name = const_cast<char*>("vase"),
       .path = const_cast<char*>("/models/vase/flat_vase.obj"),
@@ -64,8 +64,8 @@ constexpr GameObject gameObjects[] = {
 
     { .name = const_cast<char*>("spider"),
       .path = const_cast<char*>("/models/spider/spider.obj"),
-      .scale = glm::vec3(.75F),
-      .translation = glm::vec3(2.5F, 0.003F, 0.F) },
+      .scale = glm::vec3(.8F),
+      .translation = glm::vec3(2.5F, 0.003F, -0.25F) },
 
     { .name = const_cast<char*>("buddha"),
       .path = const_cast<char*>("/models/buddha/buddha.obj"),
