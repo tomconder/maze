@@ -43,7 +43,7 @@ class ResourceManager {
     }
 
    private:
-    ResourceManager() = default;
+    ResourceManager();
 
     static std::shared_ptr<scene::Font> loadFontFromFile(
         const std::string& path);
