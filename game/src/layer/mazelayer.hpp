@@ -27,12 +27,6 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setMetallic(bool metallic);
 
-    bool isWireframeActive() const {
-        return activeWireframe;
-    }
-
-    void setWireframeActive(bool active);
-
     float getAmbientOcclusion() const {
         return ao;
     }
@@ -51,15 +45,30 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setRoughness(float roughness);
 
+    int32_t getNumLights() const {
+        return numLights;
+    }
+
+    void setNumLights(int32_t numLights);
+
+    int32_t getAttenuationIndex() const {
+        return attenuationIndex;
+    }
+
+    void setAttenuationIndex(int32_t attenuationIndex);
+
+    glm::vec4 getAttenuationValuesFromIndex(int32_t attenuationIndex) const;
+
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
 
-    bool activeWireframe = false;
     bool metallic = false;
     float ambientStrength = .03F;
     float ao = .25F;
     float roughness = .5F;
+    int32_t numLights = 1;
+    int32_t attenuationIndex = 4;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 

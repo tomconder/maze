@@ -1,27 +1,77 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
+#include "scene/pointlight.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
 constexpr auto keyboardSpeed = .1F;
 constexpr auto mouseSpeed = .1F;
 
-constexpr auto cameraPosition = glm::vec3(0.F, 11.F, 14.F);
+constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
-constexpr auto lightPos = glm::vec3(1.F, 4.F, 4.F);
-// constexpr auto lightColor = glm::vec3(.8392F, .2823F, .8413F);
-constexpr auto lightColor = glm::vec3(1.F, 1.F, 1.F);
-
-constexpr auto lightCubeScale = glm::vec3(.2F);
-constexpr auto modelScale = glm::vec3(1.F);
-constexpr auto modelTranslation = glm::vec3(0.F, .1F, 0.F);
-
-constexpr auto lineColor = glm::vec3(.05F, .75F, 0.F);
-constexpr auto lineWidth = .3F;
+constexpr auto lightCubeScale = glm::vec3(.1F);
 
 constexpr char cameraName[] = "maze";
-constexpr char modelName[] = "model";
-constexpr char modelPath[] = "/models/mitsuba/mitsuba.obj";
+
+glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
+                             { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
+                             { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
+
+PointLight pointLights[6];
+
+struct GameObject {
+    const char* name;
+    const char* path;
+    glm::vec3 scale{ 1.F };
+    glm::vec3 translation{ 0.F };
+};
+
+constexpr GameObject gameObjects[] = {
+    { .name = const_cast<char*>("cube"),
+      .path = const_cast<char*>("/models/cube/cube.obj"),
+      .scale = glm::vec3(.5F),
+      .translation = glm::vec3(-3.F, .5003F, 2.25F) },
+
+    { .name = const_cast<char*>("coloredCube"),
+      .path = const_cast<char*>("/models/cube/colored_cube.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(0.F, 1.003F, -1.F) },
+
+    { .name = const_cast<char*>("bCube"),
+      .path = const_cast<char*>("/models/cube/nbcube.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(6.25F, 1.003F, 4.25F) },
+
+    { .name = const_cast<char*>("vase"),
+      .path = const_cast<char*>("/models/vase/flat_vase.obj"),
+      .scale = glm::vec3(2.5F, 2.F, 2.5F),
+      .translation = glm::vec3(-.25F, .003F, .25F) },
+
+    { .name = const_cast<char*>("smoothVase"),
+      .path = const_cast<char*>("/models/vase/smooth_vase.obj"),
+      .scale = glm::vec3(2.5F),
+      .translation = glm::vec3(.25F, .003F, .25F) },
+
+    { .name = const_cast<char*>("sphere"),
+      .path = const_cast<char*>("/models/sphere/flat_sphere.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(-2.25F, 1.F, 5.F) },
+
+    { .name = const_cast<char*>("smoothSphere"),
+      .path = const_cast<char*>("/models/sphere/smooth_sphere.obj"),
+      .scale = glm::vec3(.25F),
+      .translation = glm::vec3(2.8F, 1.F, 5.F) },
+
+    { .name = const_cast<char*>("floor"),
+      .path = const_cast<char*>("/models/floor/floor.obj"),
+      .scale = glm::vec3(1.F),
+      .translation = glm::vec3(0.F, 0.002F, 0.F) }
+};
+
+sponge::core::Timer timer;
+constexpr uint16_t UPDATE_FREQUENCY{ 60 };
+constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
+double elapsedSeconds{ 0.F };
 }  // namespace
 
 namespace game::layer {
@@ -34,7 +84,9 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 
 void MazeLayer::onAttach() {
-    ResourceManager::loadModel(modelName, modelPath);
+    for (const auto& gameObject : gameObjects) {
+        ResourceManager::loadModel(gameObject.name, gameObject.path);
+    }
 
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(cameraPosition);
@@ -48,19 +100,11 @@ void MazeLayer::onAttach() {
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->setFloat3("lightColor", lightColor);
-    shader->setFloat3("lightPos", lightPos);
-    shader->setFloat3("lineColor", lineColor);
-    shader->setFloat("lineWidth", lineWidth);
-    shader->setBoolean("showWireframe", activeWireframe);
     shader->unbind();
 
     lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
-    shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
-    shader = ResourceManager::getShader(shaderName);
-    shader->bind();
-    shader->setFloat3("lightColor", lightColor);
-    shader->unbind();
+
+    setNumLights(1);
 }
 
 void MazeLayer::onDetach() {
@@ -70,25 +114,70 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
+    timer.tick();
+
     auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
     auto shader = ResourceManager::getShader(shaderName);
+
     shader->bind();
-    shader->setFloat3("viewPos", camera->getPosition());
-    shader->setMat4("mvp", translate(scale(camera->getMVP(), modelScale),
-                                     modelTranslation));
-    shader->setMat4("viewportMatrix", camera->getViewportMatrix());
+
+    shader->setInteger("numLights", numLights);
+
+    elapsedSeconds += timer.getElapsedSeconds();
+    if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
+        elapsedSeconds = -CYCLE_TIME;
+
+        auto rotateLight =
+            rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
+                   { 0.F, -1.F, 0.F });
+
+        for (int32_t i = 0; i < numLights; ++i) {
+            shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
+                              pointLights[i].position);
+            shader->setFloat3(
+                "pointLights[" + std::to_string(i) + "].attenuation",
+                pointLights[i].getAttenuation());
+
+            pointLights[i].translation = glm::vec3(
+                rotateLight * glm::vec4(pointLights[i].translation, 1.F));
+            pointLights[i].position =
+                glm::vec4(pointLights[i].translation, 1.F);
+
+            shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
+                              lightColors[i]);
+        }
+    }
+
     shader->unbind();
+
+    for (const auto& gameObject : gameObjects) {
+        shader->bind();
+
+        shader->setFloat3("viewPos", camera->getPosition());
+        shader->setMat4("mvp",
+                        translate(scale(camera->getMVP(), gameObject.scale),
+                                  gameObject.translation));
+
+        ResourceManager::getModel(gameObject.name)->render();
+
+        shader->unbind();
+    }
 
     shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
     shader = ResourceManager::getShader(shaderName);
-    shader->bind();
-    shader->setMat4(
-        "mvp", scale(translate(camera->getMVP(), lightPos), lightCubeScale));
-    shader->unbind();
 
-    ResourceManager::getModel(modelName)->render();
+    for (int32_t i = 0; i < numLights; ++i) {
+        shader->bind();
 
-    lightCube->render();
+        shader->setFloat3("lightColor", lightColors[i]);
+        shader->setMat4(
+            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
+                         lightCubeScale));
+
+        lightCube->render();
+
+        shader->unbind();
+    }
 
     return true;
 }
@@ -101,17 +190,6 @@ void MazeLayer::setMetallic(bool metallic) {
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->unbind();
-}
-
-void MazeLayer::setWireframeActive(const bool active) {
-    this->activeWireframe = active;
-
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
-    shader->bind();
-    shader->setBoolean("showWireframe", active);
     shader->unbind();
 }
 
@@ -146,6 +224,29 @@ void MazeLayer::setRoughness(float roughness) {
     shader->bind();
     shader->setFloat("roughness", roughness);
     shader->unbind();
+}
+
+void MazeLayer::setNumLights(int32_t numLights) {
+    this->numLights = numLights;
+
+    for (int32_t i = 0; i < numLights; ++i) {
+        pointLights[i].translation = glm::vec3(
+            rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
+                   glm::vec3(0.F, 1.F, 0.F)) *
+            glm::vec4(-1.F, 1.5F, -1.F, 1.F));
+
+        pointLights[i].setAttenuationFromIndex(attenuationIndex);
+    }
+}
+
+void MazeLayer::setAttenuationIndex(int32_t attenuationIndex) {
+    this->attenuationIndex = attenuationIndex;
+    setNumLights(numLights);
+}
+
+glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
+    int32_t attenuationIndex) const {
+    return pointLights[0].getAttenuationFromIndex(attenuationIndex);
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {

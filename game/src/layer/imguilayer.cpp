@@ -40,15 +40,16 @@ void ImGuiLayer::onImGuiRender() {
 
     static auto hasVsync = Application::hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
-    auto isWireframeActive = Maze::get().getMazeLayer()->isWireframeActive();
 
     auto metallic = Maze::get().getMazeLayer()->isMetallic();
     auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
     auto roughness = Maze::get().getMazeLayer()->getRoughness();
+    auto numLights = Maze::get().getMazeLayer()->getNumLights();
+    auto attentuation = Maze::get().getMazeLayer()->getAttenuationIndex();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
-    ImGui::SetNextWindowSize({ 376.F, 467.F });
+    ImGui::SetNextWindowSize({ 376.F, 516.F });
 
     constexpr auto windowFlags =
         ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -111,15 +112,25 @@ void ImGuiLayer::onImGuiRender() {
             Application::get().toggleFullscreen();
         }
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Show Wireframe");
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##wireframe", &isWireframeActive)) {
-            Maze::get().getMazeLayer()->setWireframeActive(isWireframeActive);
+        ImGui::EndTable();
+        ImGui::Separator();
+
+        if (ImGui::SliderInt("Lights", &numLights, 1, 6)) {
+            Maze::get().getMazeLayer()->setNumLights(numLights);
         }
 
-        ImGui::EndTable();
+        ImGui::Separator();
+
+        if (ImGui::SliderInt("Attentuation", &attentuation, 0, 10)) {
+            Maze::get().getMazeLayer()->setAttenuationIndex(attentuation);
+        }
+
+        auto attenuation =
+            Maze::get().getMazeLayer()->getAttenuationValuesFromIndex(
+                attentuation);
+        ImGui::Text("Distance: %3.f [%1.1f, %1.3f, %1.4f]", attenuation.x,
+                    attenuation.y, attenuation.z, attenuation.w);
+
         ImGui::Separator();
 
         ImGui::Text("PBR:");

@@ -25,8 +25,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     this->numVertices = numVertices;
 
     shader = ResourceManager::loadShader(shaderName, "/shaders/pbr.vert.glsl",
-                                         "/shaders/pbr.frag.glsl",
-                                         "/shaders/pbr.geom.glsl");
+                                         "/shaders/pbr.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -91,6 +90,7 @@ void Mesh::render() const {
 
     if (!textures.empty()) {
         shader->setInteger("texture_diffuse1", 0);
+        shader->setBoolean("hasNoTexture", false);
         textures[0]->bind();
     } else {
         shader->setBoolean("hasNoTexture", true);
