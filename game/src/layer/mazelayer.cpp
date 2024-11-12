@@ -63,8 +63,8 @@ constexpr GameObject gameObjects[] = {
       .translation = glm::vec3(2.8F, 1.F, 5.F) },
 
     { .name = const_cast<char*>("floor"),
-      .path = const_cast<char*>("/models/quad/quad.obj"),
-      .scale = glm::vec3({ 10.F, 1.F, 10.F }),
+      .path = const_cast<char*>("/models/floor/floor.obj"),
+      .scale = glm::vec3(1.F),
       .translation = glm::vec3(0.F, 0.002F, 0.F) }
 };
 
