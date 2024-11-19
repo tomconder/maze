@@ -39,7 +39,7 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = M_PI * denom * denom;
 
-    return nom / denom;
+    return nom / max(denom, 0.001);
 }
 
 float geometrySchlickGGX(float NdotV, float roughness) {
@@ -62,15 +62,15 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    // Optimized exponent version, from: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+    return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
 }
 
 void main() {
     vec3 albedo;
 
     if (hasNoTexture) {
-        // albedo = pow(vColor, vec3(2.2));
-        albedo = vColor;
+        albedo = pow(vColor, vec3(2.2));
     } else {
         albedo = texture(texture_diffuse1, vTexCoord).rgb;
     }
@@ -80,8 +80,7 @@ void main() {
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
