@@ -180,8 +180,7 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
                    [](const uint8_t c) { return std::tolower(c); });
 
     return renderer::ResourceManager::loadTexture(
-        name, filename.string(),
-        renderer::ExcludeAssetsFolder | renderer::GammaCorrection);
+        name, filename.string(), renderer::ExcludeAssetsFolder);
 }
 
 void Model::render() const {
