@@ -19,11 +19,11 @@
         "opengl3-binding",
         "sdl2-binding"
       ],
-      "version>=": "1.91.0"
+      "version>=": "1.91.5"
     },
     {
       "name": "meshoptimizer",
-      "version>=": "0.21"
+      "version>=": "0.22"
     },
     {
       "name": "sdl2",
@@ -32,7 +32,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.14.1"
+      "version>=": "1.15.0"
     },
     {
       "name": "stb",
