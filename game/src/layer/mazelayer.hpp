@@ -61,7 +61,7 @@ class MazeLayer final : public sponge::layer::Layer {
 
    private:
     std::shared_ptr<scene::GameCamera> camera;
-    std::unique_ptr<sponge::platform::opengl::scene::LightCube> lightCube;
+    std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
 
     bool metallic = false;
     float ambientStrength = .03F;

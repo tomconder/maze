@@ -7,9 +7,9 @@
 
 namespace sponge::platform::opengl::scene {
 
-class LightCube {
+class Cube {
    public:
-    LightCube();
+    Cube();
     void render() const;
 
     static std::string getShaderName() {
@@ -17,7 +17,7 @@ class LightCube {
     }
 
    private:
-    static constexpr char shaderName[] = "lightcube";
+    static constexpr char shaderName[] = "cube";
 
     std::shared_ptr<renderer::Shader> shader;
 
