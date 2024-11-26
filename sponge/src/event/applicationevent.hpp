@@ -40,4 +40,19 @@ class WindowFullscreenEvent final : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
+class WindowMinimizeEvent final : public Event {
+   public:
+    explicit WindowMinimizeEvent(const bool minimized) : minimized(minimized) {}
+
+    bool isMinimized() const {
+        return minimized;
+    }
+
+    EVENT_CLASS_TYPE(WindowMinimize)
+    EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+   private:
+    bool minimized;
+};
+
 }  // namespace sponge::event

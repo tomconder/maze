@@ -5,7 +5,7 @@
 
 namespace game {
 
-using sponge::platform::sdl::core::ApplicationSpecification;
+using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze* Maze::instance = nullptr;
 
@@ -100,7 +100,7 @@ sponge::core::Application* sponge::core::createApplication(const int argc,
     constexpr uint32_t height = 900;
     constexpr bool fullscreen = false;
 
-    using platform::sdl::core::ApplicationSpecification;
+    using platform::glfw::core::ApplicationSpecification;
 
     const auto spec = ApplicationSpecification{ .name = game::project_name,
                                                 .width = width,

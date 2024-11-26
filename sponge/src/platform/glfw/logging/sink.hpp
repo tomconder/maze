@@ -1,10 +1,10 @@
 #pragma once
 
 #include "logging/log.hpp"
-#include "platform/sdl/core/application.hpp"
+#include "platform/glfw/core/application.hpp"
 #include <spdlog/sinks/base_sink.h>
 
-namespace sponge::platform::sdl::imgui {
+namespace sponge::platform::glfw::imgui {
 
 using logging::LogItem;
 
@@ -24,9 +24,11 @@ void Sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
     spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
     const auto formattedText = fmt::to_string(formatted);
 
-    const LogItem it{ formattedText, msg.logger_name.data(), msg.level };
+    const LogItem it{ .message = formattedText,
+                      .loggerName = msg.logger_name.data(),
+                      .level = msg.level };
 
     core::Application::get().addMessage(it);
 }
 
-}  // namespace sponge::platform::sdl::imgui
+}  // namespace sponge::platform::glfw::imgui

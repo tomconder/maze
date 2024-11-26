@@ -2,14 +2,13 @@
 
 #include "renderer/graphicscontext.hpp"
 
-struct SDL_Window;
+struct GLFWwindow;
 
 namespace sponge::platform::opengl::renderer {
 
 class Context final : public sponge::renderer::GraphicsContext {
    public:
-    explicit Context(SDL_Window* window);
-    ~Context() override;
+    explicit Context(GLFWwindow* window);
 
     void flip(void* window) override;
 };

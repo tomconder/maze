@@ -1,8 +1,7 @@
 #include "context.hpp"
 #include "logging/log.hpp"
-#include <glad/glad.h>
-#include <platform/opengl/debug/profiler.hpp>
-#include <SDL.h>
+#include "platform/opengl/debug/profiler.hpp"
+#include "platform/opengl/renderer/gl.hpp"
 
 namespace {
 constexpr std::pair<int, int> glVersions[13] = {
@@ -13,69 +12,54 @@ constexpr std::pair<int, int> glVersions[13] = {
 
 namespace sponge::platform::opengl::renderer {
 
-Context::Context(SDL_Window* window) {
+Context::Context(GLFWwindow* window) {
     SPONGE_CORE_INFO("Initializing OpenGL");
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    glfwWindowHint(GLFW_SAMPLES, 8);
 
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-                        SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
-                        SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     SPONGE_CORE_INFO("Creating OpenGL context");
 
-    SDL_GLContext context = nullptr;
-
     // create context trying different versions
     for (const auto& [major, minor] : glVersions) {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
-        context = SDL_GL_CreateContext(window);
-        if (context != nullptr) {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+        glfwMakeContextCurrent(window);
+        if (glfwGetCurrentContext() != nullptr) {
             break;
         }
     }
 
-    if (context == nullptr) {
+    if (glfwGetCurrentContext() == nullptr) {
+        const char* description;
+        glfwGetError(&description);
         SPONGE_CORE_ERROR("OpenGL context could not be created: {}",
-                          SDL_GetError());
+                          description);
         return;
     }
 
-    gladLoadGLLoader(SDL_GL_GetProcAddress);
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     SPONGE_PROFILE_GPU_CONTEXT;
-
-    if (SDL_GL_MakeCurrent(window, context) < 0) {
-        SPONGE_CORE_ERROR(
-            "Could not be set up OpenGL context for rendering: {}",
-            SDL_GetError());
-        return;
-    }
 
     if (window != nullptr) {
         int32_t width;
         int32_t height;
-        SDL_GetWindowSize(window, &width, &height);
+        glfwGetWindowSize(window, &width, &height);
         glViewport(0, 0, width, height);
     }
-}
-
-Context::~Context() {
-    SDL_GL_DeleteContext(SDL_GL_GetCurrentContext());
 }
 
 void Context::flip(void* window) {
     if (window == nullptr) {
         return;
     }
-    SDL_GL_SwapWindow(static_cast<SDL_Window*>(window));
+    glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
 

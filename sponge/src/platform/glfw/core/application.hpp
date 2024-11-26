@@ -1,19 +1,19 @@
 #pragma once
 
 #include "core/application.hpp"
-#include "event/event.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/imgui/glfwmanager.hpp"
+#include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
-#include "platform/sdl/core/window.hpp"
-#include "platform/sdl/input/keyboard.hpp"
-#include <SDL.h>
-#include <cstdint>
+#include "window.hpp"
+#include <GLFW/glfw3.h>
+#include <memory>
 #include <string>
 
-namespace sponge::platform::sdl::core {
+namespace sponge::platform::glfw::core {
 
 struct ApplicationSpecification {
     std::string name = "Sponge";
@@ -57,8 +57,6 @@ class Application : public sponge::core::Application {
 
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
-    static void setVSync(bool enabled);
-
     void toggleFullscreen();
 
     bool isFullscreen() const {
@@ -80,27 +78,27 @@ class Application : public sponge::core::Application {
     uint32_t getWindowHeight() const {
         int32_t width;
         int32_t height;
-        SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
-            &height);
+        glfwGetWindowSize(static_cast<GLFWwindow*>(window->getNativeWindow()),
+                          &width, &height);
         return static_cast<uint32_t>(height);
     }
 
     uint32_t getWindowWidth() const {
         int32_t width;
         int32_t height;
-        SDL_GetWindowSize(
-            static_cast<SDL_Window*>(sdlWindow->getNativeWindow()), &width,
-            &height);
+        glfwGetWindowSize(static_cast<GLFWwindow*>(window->getNativeWindow()),
+                          &width, &height);
         return static_cast<uint32_t>(width);
     }
 
-    static bool hasVerticalSync() {
-        return SDL_GL_GetSwapInterval() != 0;
+    bool hasVerticalSync() const {
+        return vsync;
     }
 
-    static void setVerticalSync(const bool value) {
-        SDL_GL_SetSwapInterval(value ? 1 : 0);
+    void setVerticalSync(const bool vsync) {
+        this->vsync = vsync;
+        glfwSwapInterval(vsync ? 1 : 0);
+        SPONGE_CORE_DEBUG("Set vsync to {}", vsync);
     }
 
     std::vector<LogItem>& getMessages() const {
@@ -123,28 +121,46 @@ class Application : public sponge::core::Application {
 
     void run() override;
 
+    std::shared_ptr<Window> window;
+
+    bool isEventHandledByImGui() const {
+        return imguiManager->isEventHandled();
+    }
+
    private:
     std::string appName = "undefined";
     std::unique_ptr<opengl::renderer::Context> graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
-    std::unique_ptr<Window> sdlWindow;
 
     std::unique_ptr<std::vector<LogItem>> messages;
 
+    bool fullscreen;
+    bool vsync;
+    int32_t prevH = 0;
+    int32_t prevW = 0;
+    int32_t prevX = 0;
+    int32_t prevY = 0;
+    uint32_t h = 0;
     uint32_t offsetx = 0;
     uint32_t offsety = 0;
     uint32_t w = 0;
-    uint32_t h = 0;
-    bool fullscreen;
 
     layer::LayerStack* layerStack;
-    input::Keyboard* keyboard;
-
-    void processEvent(const SDL_Event& event, double elapsedTime);
 
     ApplicationSpecification appSpec;
 
     static Application* instance;
+
+    std::shared_ptr<imgui::GLFWManager> glfwManager =
+        std::make_shared<imgui::GLFWManager>();
+    std::shared_ptr<imgui::NoopManager> noopManager =
+        std::make_shared<imgui::NoopManager>();
+
+#if !NDEBUG
+    std::shared_ptr<imgui::GLFWManager> imguiManager = glfwManager;
+#else
+    std::shared_ptr<imgui::NoopManager> imguiManager = noopManager;
+#endif
 };
 
-}  // namespace sponge::platform::sdl::core
+}  // namespace sponge::platform::glfw::core

@@ -1,13 +1,14 @@
 #pragma once
 
-#include <SDL.h>
+#include "event/event.hpp"
+#include "platform/glfw/core/window.hpp"
 
-namespace sponge::platform::sdl::imgui {
+namespace sponge::platform::glfw::imgui {
 
 template <class T>
 struct ImGuiManager {
-    void onAttach() {
-        static_cast<T*>(this)->onAttachImpl();
+    void onAttach(GLFWwindow* window) {
+        static_cast<T*>(this)->onAttachImpl(window);
     }
 
     void onDetach() {
@@ -25,10 +26,6 @@ struct ImGuiManager {
     void end() {
         static_cast<T*>(this)->endImpl();
     }
-
-    void processEvent(const SDL_Event* event) {
-        static_cast<T*>(this)->processEventImpl(event);
-    }
 };
 
-}  // namespace sponge::platform::sdl::imgui
+}  // namespace sponge::platform::glfw::imgui

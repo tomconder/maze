@@ -23,22 +23,16 @@ class KeyEvent : public Event {
 class KeyPressedEvent final : public KeyEvent {
    public:
     explicit KeyPressedEvent(const input::KeyCode keycode,
-                             const double elapsedTime,
                              const bool isRepeated = false)
-        : KeyEvent(keycode), elapsedTime(elapsedTime), isRepeated(isRepeated) {}
+        : KeyEvent(keycode), isRepeated(isRepeated) {}
 
     bool isHeld() const {
         return isRepeated;
     }
 
-    double getElapsedTime() const {
-        return elapsedTime;
-    }
-
     EVENT_CLASS_TYPE(KeyPressed)
 
    private:
-    double elapsedTime;
     bool isRepeated;
 };
 

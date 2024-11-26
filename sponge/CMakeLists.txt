@@ -43,26 +43,25 @@ file(
         src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
-# SDL
-message(STATUS "Including SDL platform files")
+# glfw
+message(STATUS "Including glfw platform files")
 file(
-        GLOB SDL_HEADERS
+        GLOB GLFW_HEADERS
         LIST_DIRECTORIES false
-        src/platform/sdl/core/*.hpp
-        src/platform/sdl/imgui/*.hpp
-        src/platform/sdl/input/*.hpp
-        src/platform/sdl/logging/*.hpp
+        src/platform/glfw/core/*.hpp
+        src/platform/glfw/imgui/*.hpp
+        src/platform/glfw/logging/*.hpp
 )
-list(APPEND HEADER_FILES ${SDL_HEADERS})
+list(APPEND HEADER_FILES ${GLFW_HEADERS})
 file(
-        GLOB SDL_SOURCES
+        GLOB GLFW_SOURCES
         LIST_DIRECTORIES false
-        src/platform/sdl/core/*.cpp
-        src/platform/sdl/imgui/*.cpp
-        src/platform/sdl/input/*.cpp
-        src/platform/sdl/logging/*.cpp
+        src/platform/glfw/core/*.cpp
+        src/platform/glfw/imgui/*.cpp
+        src/platform/glfw/input/*.cpp
+        src/platform/glfw/logging/*.cpp
 )
-list(APPEND SOURCE_FILES ${SDL_SOURCES})
+list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
 if (APPLE)
     message(STATUS "Including OSX platform files")
@@ -81,6 +80,7 @@ if (MSVC)
 endif ()
 
 find_package(glad CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
@@ -88,7 +88,6 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
 find_package(Stb REQUIRED)
 if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
@@ -118,8 +117,8 @@ set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
-target_link_libraries(sponge PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 target_link_libraries(sponge PRIVATE glad::glad)
+target_link_libraries(sponge PRIVATE glfw)
 target_link_libraries(sponge PRIVATE glm::glm)
 target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)

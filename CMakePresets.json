@@ -55,6 +55,9 @@
         "value": "x64",
         "strategy": "external"
       },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

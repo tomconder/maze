@@ -56,7 +56,7 @@ class MouseScrolledEvent final : public Event {
 
 class MouseButtonEvent : public Event {
    public:
-    input::MouseCode getMouseButton() const {
+    input::MouseButton getMouseButton() const {
         return button;
     }
 
@@ -64,38 +64,35 @@ class MouseButtonEvent : public Event {
                          EventCategoryMouseButton)
 
    protected:
-    explicit MouseButtonEvent(const input::MouseCode button) : button(button) {}
+    explicit MouseButtonEvent(const input::MouseButton button)
+        : button(button) {}
 
    private:
-    input::MouseCode button;
+    input::MouseButton button;
 };
 
 class MouseButtonPressedEvent final : public MouseButtonEvent {
    public:
-    MouseButtonPressedEvent(const input::MouseCode button, const float xpos,
-                            const float ypos)
-        : MouseButtonEvent(button), x(xpos), y(ypos) {}
-
-    float getX() const {
-        return x;
-    }
-    float getY() const {
-        return y;
-    }
+    explicit MouseButtonPressedEvent(const input::MouseButton button)
+        : MouseButtonEvent(button) {}
 
     EVENT_CLASS_TYPE(MouseButtonPressed)
-
-   private:
-    float x;
-    float y;
 };
 
 class MouseButtonReleasedEvent final : public MouseButtonEvent {
    public:
-    explicit MouseButtonReleasedEvent(const input::MouseCode button)
+    explicit MouseButtonReleasedEvent(const input::MouseButton button)
         : MouseButtonEvent(button) {}
 
     EVENT_CLASS_TYPE(MouseButtonReleased)
+};
+
+class MouseButtonDownEvent final : public MouseButtonEvent {
+   public:
+    explicit MouseButtonDownEvent(const input::MouseButton button)
+        : MouseButtonEvent(button) {}
+
+    EVENT_CLASS_TYPE(MouseButtonDown)
 };
 
 }  // namespace sponge::event

@@ -1,4 +1,5 @@
 #include "exitlayer.hpp"
+#include "platform/glfw/core/input.hpp"
 #include "resourcemanager.hpp"
 
 namespace {
@@ -18,9 +19,9 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 
 namespace game::layer {
 
+using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::opengl::scene::Quad;
-using sponge::platform::sdl::core::Application;
 
 ExitLayer::ExitLayer() : Layer("exit") {
     // nothing
@@ -140,11 +141,12 @@ bool ExitLayer::onKeyPressed(
 
 bool ExitLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
-    if (cancelButton->isInside({ event.getX(), event.getY() })) {
+    auto [x, y] = sponge::platform::glfw::core::Input::getMousePosition();
+    if (cancelButton->isInside({ x, y })) {
         setActive(false);
     }
 
-    if (confirmButton->isInside({ event.getX(), event.getY() })) {
+    if (confirmButton->isInside({ x, y })) {
         isRunning = false;
     }
 
