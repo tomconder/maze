@@ -1,4 +1,4 @@
-#include "lightcube.hpp"
+#include "cube.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 
@@ -23,10 +23,9 @@ constexpr uint32_t vertexCount = 36;
 
 namespace sponge::platform::opengl::scene {
 
-LightCube::LightCube() {
+Cube::Cube() {
     shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/lightcube.vert.glsl",
-        "/shaders/lightcube.frag.glsl");
+        shaderName, "/shaders/cube.vert.glsl", "/shaders/cube.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -48,7 +47,7 @@ LightCube::LightCube() {
     vao->unbind();
 }
 
-void LightCube::render() const {
+void Cube::render() const {
     vao->bind();
 
     shader->bind();

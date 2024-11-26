@@ -112,7 +112,7 @@ void MazeLayer::onAttach() {
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
 
-    lightCube = std::make_unique<sponge::platform::opengl::scene::LightCube>();
+    cube = std::make_unique<sponge::platform::opengl::scene::Cube>();
 
     setNumLights(numLights);
 }
@@ -173,7 +173,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         shader->unbind();
     }
 
-    shaderName = sponge::platform::opengl::scene::LightCube::getShaderName();
+    shaderName = sponge::platform::opengl::scene::Cube::getShaderName();
     shader = ResourceManager::getShader(shaderName);
 
     for (int32_t i = 0; i < numLights; ++i) {
@@ -184,7 +184,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
             "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
                          lightCubeScale));
 
-        lightCube->render();
+        cube->render();
 
         shader->unbind();
     }
