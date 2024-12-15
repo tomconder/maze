@@ -1,11 +1,12 @@
 #include "mazelayer.hpp"
 #include "resourcemanager.hpp"
 #include "scene/pointlight.hpp"
+#include "sponge.hpp"
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr auto keyboardSpeed = .1F;
-constexpr auto mouseSpeed = .1F;
+constexpr auto keyboardSpeed = .025F;
+constexpr auto mouseSpeed = .025F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
@@ -86,8 +87,10 @@ double elapsedSeconds{ 0.F };
 
 namespace game::layer {
 
+using sponge::input::KeyCode;
+using sponge::platform::glfw::core::Application;
+using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
-using sponge::platform::sdl::core::Application;
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
@@ -122,8 +125,6 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
-
     timer.tick();
 
     auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
@@ -187,6 +188,25 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         cube->render();
 
         shader->unbind();
+    }
+
+    if (Input::isKeyDown(KeyCode::SpongeKey_W) ||
+        Input::isKeyDown(KeyCode::SpongeKey_Up)) {
+        camera->moveForward(elapsedTime * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_S) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Down)) {
+        camera->moveBackward(elapsedTime * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_A) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Left)) {
+        camera->strafeLeft(elapsedTime * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_D) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Right)) {
+        camera->strafeRight(elapsedTime * keyboardSpeed);
+    }
+
+    if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
+        auto [xrel, yrel] = Input::getRelativeCursorPos();
+        camera->mouseMove({ xrel * mouseSpeed, yrel * mouseSpeed });
     }
 
     return true;
@@ -262,36 +282,14 @@ glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
 void MazeLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
-        BIND_EVENT_FN(onKeyPressed));
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         BIND_EVENT_FN(onMouseButtonPressed));
     dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
         BIND_EVENT_FN(onMouseButtonReleased));
-    dispatcher.dispatch<sponge::event::MouseMovedEvent>(
-        BIND_EVENT_FN(onMouseMoved));
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
         BIND_EVENT_FN(onMouseScrolled));
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         BIND_EVENT_FN(onWindowResize));
-}
-
-bool MazeLayer::onKeyPressed(
-    const sponge::event::KeyPressedEvent& event) const {
-    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_W ||
-        event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Up) {
-        camera->moveForward(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_S ||
-               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Down) {
-        camera->moveBackward(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_A ||
-               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Left) {
-        camera->strafeLeft(event.getElapsedTime() * keyboardSpeed);
-    } else if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_D ||
-               event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Right) {
-        camera->strafeRight(event.getElapsedTime() * keyboardSpeed);
-    }
-    return false;
 }
 
 bool MazeLayer::onMouseButtonPressed(
@@ -310,15 +308,6 @@ bool MazeLayer::onMouseButtonReleased(
         return true;
     }
     return false;
-}
-
-bool MazeLayer::onMouseMoved(
-    const sponge::event::MouseMovedEvent& event) const {
-    if (sponge::platform::sdl::input::Mouse::isButtonPressed()) {
-        camera->mouseMove({ event.getXRelative() * mouseSpeed,
-                            event.getYRelative() * mouseSpeed });
-    }
-    return true;
 }
 
 bool MazeLayer::onMouseScrolled(

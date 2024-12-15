@@ -10,25 +10,24 @@
       "version>=": "0.1.36"
     },
     {
+      "name": "glfw3",
+      "version>=": "3.4#1"
+    },
+    {
       "name": "glm",
       "version>=": "1.0.1"
     },
     {
       "name": "imgui",
       "features": [
-        "opengl3-binding",
-        "sdl2-binding"
+        "glfw-binding",
+        "opengl3-binding"
       ],
       "version>=": "1.91.5"
     },
     {
       "name": "meshoptimizer",
       "version>=": "0.22"
-    },
-    {
-      "name": "sdl2",
-      "version>=": "2.30.9",
-      "platform": "!wasm32"
     },
     {
       "name": "spdlog",

@@ -7,16 +7,18 @@ namespace sponge::event {
 
 enum class EventType : uint8_t {
     None = 0,
-    WindowClose,
-    WindowResize,
-    WindowFullscreen,
     KeyPressed,
     KeyReleased,
     KeyTyped,
+    MouseButtonDown,
     MouseButtonPressed,
     MouseButtonReleased,
     MouseMoved,
-    MouseScrolled
+    MouseScrolled,
+    WindowClose,
+    WindowFullscreen,
+    WindowMinimize,
+    WindowResize
 };
 
 enum EventCategory : uint8_t {
@@ -66,7 +68,7 @@ class EventDispatcher {
 
     template <typename T, typename F>
     bool dispatch(const F& func) {
-        if (event.getEventType() == T::getStaticType()) {
+        if (event.getEventType() == T::getStaticType() && !event.handled) {
             event.handled |= func(static_cast<T&>(event));
             return true;
         }

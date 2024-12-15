@@ -1,7 +1,6 @@
 #pragma once
 
 #include "layer/exitlayer.hpp"
-#include "layer/gridlayer.hpp"
 #include "layer/hudlayer.hpp"
 #include "layer/imguilayer.hpp"
 #include "layer/mazelayer.hpp"
@@ -9,9 +8,9 @@
 
 namespace game {
 
-class Maze final : public sponge::platform::sdl::core::Application {
+class Maze final : public sponge::platform::glfw::core::Application {
    public:
-    explicit Maze(const sponge::platform::sdl::core::ApplicationSpecification&
+    explicit Maze(const sponge::platform::glfw::core::ApplicationSpecification&
                       specification);
 
     bool onUserCreate() override;

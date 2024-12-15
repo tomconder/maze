@@ -1,14 +1,18 @@
 #pragma once
-
 #include "core/window.hpp"
-#include <SDL.h>
+#include "event/event.hpp"
+#include <GLFW/glfw3.h>
+#include <functional>
 
-namespace sponge::platform::sdl::core {
+namespace sponge::platform::glfw::core {
+
+using EventCallbackFn = std::function<void(event::Event&)>;
 
 struct WindowData {
     std::string title;
     uint32_t width;
     uint32_t height;
+    EventCallbackFn eventCallback;
 };
 
 class Window final : public sponge::core::Window {
@@ -28,12 +32,16 @@ class Window final : public sponge::core::Window {
         return window;
     }
 
+    void setEventCallback(const EventCallbackFn& callback) {
+        data.eventCallback = callback;
+    }
+
    private:
     void init(const sponge::core::WindowProps& props);
     void shutdown() const;
 
     WindowData data;
-    SDL_Window* window = nullptr;
+    GLFWwindow* window;
 };
 
-}  // namespace sponge::platform::sdl::core
+}  // namespace sponge::platform::glfw::core

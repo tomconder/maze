@@ -18,11 +18,11 @@ IncludeCategories:
   - Regex: ^<.*
     Priority: 4000
 
-AlignConsecutiveMacros:
-  Enabled: true
+AlignConsecutiveMacros: true
 
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 
 Cpp11BracedListStyle: false
+UseTab: Never

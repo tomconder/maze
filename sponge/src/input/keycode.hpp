@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
 
 namespace sponge::input {
 
@@ -140,5 +141,10 @@ enum class KeyCode : uint16_t {
     SpongeKey_RightSuper = 347,
     SpongeKey_Menu = 348
 };
+
+inline std::ostream& operator<<(std::ostream& os, const KeyCode keyCode) {
+    os << static_cast<int32_t>(keyCode);
+    return os;
+}
 
 }  // namespace sponge::input

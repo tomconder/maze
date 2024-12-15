@@ -1,6 +1,9 @@
 #pragma once
 
 #include "core/application.hpp"
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 extern sponge::core::Application* sponge::core::createApplication(int argc,
                                                                   char** argv);
@@ -21,3 +24,14 @@ int main(const int argc, char** argv) {
 extern "C" int main(const int argc, char* argv[]) {
     return sponge::core::main(argc, argv);
 }
+
+#ifdef _WIN32
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                     LPSTR lpCmdLine, int nCmdShow) {
+    UNUSED(hInstance);
+    UNUSED(hPrevInstance);
+    UNUSED(lpCmdLine);
+    UNUSED(nCmdShow);
+    return sponge::core::main(__argc, __argv);
+}
+#endif

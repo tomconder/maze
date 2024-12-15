@@ -28,7 +28,7 @@ find_package(spdlog CONFIG REQUIRED)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
-find_package(SDL2 CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
@@ -96,7 +96,7 @@ endif ()
 target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
-target_link_libraries(game PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
+target_link_libraries(game PRIVATE glfw)
 target_link_libraries(game PRIVATE glm::glm)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)

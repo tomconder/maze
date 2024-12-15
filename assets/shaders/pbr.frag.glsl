@@ -39,7 +39,7 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = M_PI * denom * denom;
 
-    return nom / max(denom, 0.001);
+    return nom / denom;
 }
 
 float geometrySchlickGGX(float NdotV, float roughness) {
@@ -61,6 +61,14 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
+float attentuationFromLight(PointLight light) {
+    float distance = length(light.position - vPosition);
+    float constant = light.attenuation.r;
+    float linear = light.attenuation.g;
+    float quadratic = light.attenuation.b;
+    return 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+}
+
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     // Optimized exponent version, from: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
     return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
@@ -72,7 +80,7 @@ void main() {
     if (hasNoTexture) {
         albedo = pow(vColor, vec3(2.2));
     } else {
-        albedo = texture(texture_diffuse1, vTexCoord).rgb;
+        albedo = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
     }
 
     vec3 N = normalize(vNormal);
@@ -89,11 +97,7 @@ void main() {
         // calculate per-light radiance
         vec3 L = normalize(pointLights[i].position - vPosition);
         vec3 H = normalize(V + L);
-        float distance = length(pointLights[i].position - vPosition);
-        float constant = pointLights[i].attenuation.r;
-        float linear = pointLights[i].attenuation.g;
-        float quadratic = pointLights[i].attenuation.b;
-        float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+        float attenuation = attentuationFromLight(pointLights[i]);
         vec3 radiance = pointLights[i].color * attenuation;
 
         // Cook-Torrance BRDF

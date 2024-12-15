@@ -25,7 +25,7 @@ constexpr const char* logLevels[logLevelCount] = {
 
 namespace game::layer {
 
-using sponge::platform::sdl::core::Application;
+using sponge::platform::glfw::core::Application;
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
@@ -38,7 +38,7 @@ void ImGuiLayer::onImGuiRender() {
     const auto height =
         static_cast<float>(Application::get().getWindowHeight());
 
-    static auto hasVsync = Application::hasVerticalSync();
+    static auto hasVsync = Application::get().hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
 
     auto metallic = Maze::get().getMazeLayer()->isMetallic();
@@ -101,7 +101,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-            Application::setVerticalSync(hasVsync);
+            Application::get().setVerticalSync(hasVsync);
         }
 
         ImGui::TableNextRow();

@@ -1,13 +1,15 @@
 #pragma once
 
-#include "core/base.hpp"
+// #include "core/base.hpp"
 #include "imguimanager.hpp"
 
-namespace sponge::platform::sdl::imgui {
+namespace sponge::platform::glfw::imgui {
 
 class NoopManager : public ImGuiManager<NoopManager> {
    public:
-    static void onAttachImpl() { /* nothing */ }
+    static void onAttachImpl(GLFWwindow* window) {
+        UNUSED(window);
+    };
 
     static void onDetachImpl() { /* nothing */ }
 
@@ -18,9 +20,5 @@ class NoopManager : public ImGuiManager<NoopManager> {
     static void beginImpl() { /* nothing */ }
 
     static void endImpl() { /* nothing */ }
-
-    static void processEventImpl(const SDL_Event* event) {
-        UNUSED(event);
-    }
 };
-}  // namespace sponge::platform::sdl::imgui
+}  // namespace sponge::platform::glfw::imgui

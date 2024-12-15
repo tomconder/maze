@@ -70,15 +70,11 @@ class MazeLayer final : public sponge::layer::Layer {
     int32_t numLights = 6;
     int32_t attenuationIndex = 4;
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
-
     static bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
     static bool onMouseButtonReleased(
         const sponge::event::MouseButtonReleasedEvent& event);
-
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
 
