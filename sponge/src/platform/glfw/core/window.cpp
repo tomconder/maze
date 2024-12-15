@@ -25,9 +25,9 @@ void Window::init(const sponge::core::WindowProps& props) {
         SPONGE_CORE_CRITICAL("Title cannot be empty");
     }
 
-    if (!props.fullscreen) {
-        SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-    }
+    SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
+
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
     if (props.fullscreen) {
         GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
