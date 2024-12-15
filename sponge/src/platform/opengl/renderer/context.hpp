@@ -8,7 +8,8 @@ namespace sponge::platform::opengl::renderer {
 
 class Context final : public sponge::renderer::GraphicsContext {
    public:
-    explicit Context(GLFWwindow* window);
+    Context();
+    void init(GLFWwindow* window);
 
     void flip(void* window) override;
 };

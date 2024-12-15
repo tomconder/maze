@@ -70,6 +70,8 @@ bool Application::start() {
 
     fullscreen = appSpec.fullscreen;
 
+    graphics = std::make_unique<opengl::renderer::Context>();
+
     window = std::make_unique<Window>(
         sponge::core::WindowProps{ .title = appName,
                                    .width = appSpec.width,
@@ -77,7 +79,7 @@ bool Application::start() {
                                    .fullscreen = appSpec.fullscreen });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
 
-    graphics = std::make_unique<opengl::renderer::Context>(glfwWindow);
+    graphics->init(glfwWindow);
 
     imguiManager->onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
 

@@ -42,12 +42,10 @@ void Window::init(const sponge::core::WindowProps& props) {
         window = glfwCreateWindow(static_cast<int>(props.width),
                                   static_cast<int>(props.height),
                                   props.title.c_str(), primaryMonitor, nullptr);
-        glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
     } else {
         window = glfwCreateWindow(static_cast<int>(props.width),
                                   static_cast<int>(props.height),
                                   props.title.c_str(), nullptr, nullptr);
-        glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
     }
 
     if (window == nullptr) {
@@ -55,6 +53,9 @@ void Window::init(const sponge::core::WindowProps& props) {
         glfwGetError(&description);
         SPONGE_CORE_CRITICAL("Could not create window: {}", description);
     }
+
+    glfwSetWindowAttrib(window, GLFW_DECORATED,
+                        props.fullscreen ? GLFW_FALSE : GLFW_TRUE);
 
     glfwSetWindowUserPointer(window, &data);
 
