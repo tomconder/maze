@@ -114,6 +114,8 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
+    UNUSED(elapsedTime);
+
     timer.tick();
 
     elapsedSeconds += timer.getElapsedSeconds();
