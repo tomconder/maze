@@ -109,12 +109,6 @@ std::shared_ptr<Mesh> Model::processMesh(
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
                                      attrib.vertices[i + 2] };
 
-        if (!attrib.colors.empty()) {
-            i = vertex_index;
-            vertex.color = glm::vec3{ attrib.colors[i], attrib.colors[i + 1],
-                                      attrib.colors[i + 2] };
-        }
-
         if (!attrib.texcoords.empty()) {
             i = texcoord_index * 2;
             vertex.texCoords = glm::vec2{ attrib.texcoords[i],

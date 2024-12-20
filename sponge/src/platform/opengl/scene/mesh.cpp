@@ -4,7 +4,6 @@
 #include <cstddef>
 
 namespace {
-constexpr char color[] = "color";
 constexpr char normal[] = "normal";
 constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
@@ -62,15 +61,6 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
         glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                               reinterpret_cast<const void*>(
                                   offsetof(sponge::scene::Vertex, normal)));
-    }
-
-    location = glGetAttribLocation(program, color);
-    if (location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<const void*>(
-                                  offsetof(sponge::scene::Vertex, color)));
     }
 
     ebo = std::make_unique<renderer::IndexBuffer>(
