@@ -2,6 +2,7 @@
 #include "core/timer.hpp"
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
+#include "input.hpp"
 #include "input/keycode.hpp"
 #include "logging/log.hpp"
 #include "platform/glfw/logging/sink.hpp"
@@ -312,6 +313,12 @@ void Application::setMouseVisible(const bool value) const {
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
+}
+
+void Application::centerMouse() const {
+    auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
+    glfwSetCursorPos(glfwWindow, w / 2.F, h / 2.F);
+    Input::setPrevCursorPos({ w / 2.F, h / 2.F });
 }
 
 void Application::run() {

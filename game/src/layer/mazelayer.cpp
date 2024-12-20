@@ -206,6 +206,7 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
 bool MazeLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
+        Application::get().centerMouse();
         Application::get().setMouseVisible(false);
         return true;
     }
