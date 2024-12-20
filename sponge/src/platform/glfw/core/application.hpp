@@ -115,6 +115,8 @@ class Application : public sponge::core::Application {
 
     void setMouseVisible(bool value) const;
 
+    void centerMouse() const;
+
     static Application& get() {
         return *instance;
     }
