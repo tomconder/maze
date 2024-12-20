@@ -5,7 +5,6 @@ layout (location = 0) out vec4 FragColor;
 in vec3 vPosition;
 in vec2 vTexCoord;
 in vec3 vNormal;
-in vec3 vColor;
 
 // material parameters
 uniform float metallic;
@@ -78,7 +77,7 @@ void main() {
     vec3 albedo;
 
     if (hasNoTexture) {
-        albedo = pow(vColor, vec3(2.2));
+        albedo = pow(vec3(1.0), vec3(2.2));
     } else {
         albedo = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
     }

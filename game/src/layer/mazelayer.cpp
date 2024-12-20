@@ -33,11 +33,6 @@ constexpr GameObject gameObjects[] = {
       .scale = glm::vec3(.5F),
       .translation = glm::vec3(-3.F, .5003F, 2.25F) },
 
-    { .name = const_cast<char*>("coloredCube"),
-      .path = const_cast<char*>("/models/cube/colored_cube.obj"),
-      .scale = glm::vec3(.25F),
-      .translation = glm::vec3(0.F, 1.003F, -1.F) },
-
     { .name = const_cast<char*>("texcube"),
       .path = const_cast<char*>("/models/cube/cube-tex.obj"),
       .scale = glm::vec3(.55F),
