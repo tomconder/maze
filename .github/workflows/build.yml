@@ -42,6 +42,18 @@ jobs:
             !.github/workflows/build.yml
             **.md
 
+      - name: Lint code
+        if: steps.changed-files.outputs.should_skip != 'true'
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: 'file'
+          tidy-checks: ''
+          ignore: '.github|assets|docs|tools'
+          step-summary: true
+
   build:
     needs: changed
     if: needs.changed.outputs.should_skip != 'true'
