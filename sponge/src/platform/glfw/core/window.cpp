@@ -193,11 +193,6 @@ void Window::init(const sponge::core::WindowProps& props) {
                 return;
             }
 
-            if (Input::getCursorEnteredWindow()) {
-                Input::setPrevCursorPos({ x, y });
-                Input::setCursorEnteredWindow(false);
-            }
-
             auto [prevX, prevY] = Input::getPrevCursorPos();
 
             auto xrel = x - prevX;
@@ -216,10 +211,11 @@ void Window::init(const sponge::core::WindowProps& props) {
         });
 
     glfwSetCursorEnterCallback(window, [](GLFWwindow* window, int entered) {
-        UNUSED(window);
-        if (entered) {
-            Input::setCursorEnteredWindow(true);
-        }
+        double x;
+        double y;
+        glfwGetCursorPos(window, &x, &y);
+        Input::setPrevCursorPos({ x, y });
+        Input::setCursorEnteredWindow(entered);
     });
 }
 

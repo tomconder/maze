@@ -141,6 +141,7 @@ bool ExitLayer::onKeyPressed(
 
 bool ExitLayer::onMouseButtonPressed(
     const sponge::event::MouseButtonPressedEvent& event) {
+    UNUSED(event);
     auto [x, y] = sponge::platform::glfw::core::Input::getMousePosition();
     if (cancelButton->isInside({ x, y })) {
         setActive(false);
