@@ -210,13 +210,14 @@ void Window::init(const sponge::core::WindowProps& props) {
             data->eventCallback(event);
         });
 
-    glfwSetCursorEnterCallback(window, [](GLFWwindow* window, int entered) {
-        double x;
-        double y;
-        glfwGetCursorPos(window, &x, &y);
-        Input::setPrevCursorPos({ x, y });
-        Input::setCursorEnteredWindow(entered);
-    });
+    glfwSetCursorEnterCallback(window,
+                               [](GLFWwindow* window, const int entered) {
+                                   double x;
+                                   double y;
+                                   glfwGetCursorPos(window, &x, &y);
+                                   Input::setPrevCursorPos({ x, y });
+                                   Input::setCursorEnteredWindow(entered);
+                               });
 }
 
 void Window::shutdown() const {

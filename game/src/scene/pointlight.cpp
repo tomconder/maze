@@ -39,14 +39,14 @@ constexpr LightAttenuation lightAttenuation[] = {
 };
 }  // namespace
 
-void PointLight::setAttenuationFromIndex(int32_t index) {
+void PointLight::setAttenuationFromIndex(const int32_t index) {
     distance = lightAttenuation[index].distance;
     constant = lightAttenuation[index].constant;
     linear = lightAttenuation[index].linear;
     quadratic = lightAttenuation[index].quadratic;
 }
 
-glm::vec4 PointLight::getAttenuationFromIndex(int32_t index) const {
+glm::vec4 PointLight::getAttenuationFromIndex(const int32_t index) const {
     return { lightAttenuation[index].distance, lightAttenuation[index].constant,
              lightAttenuation[index].linear,
              lightAttenuation[index].quadratic };
