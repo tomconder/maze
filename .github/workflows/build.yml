@@ -42,8 +42,18 @@ jobs:
             !.github/workflows/build.yml
             **.md
 
+  lint:
+    needs: changed
+    if: needs.changed.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Lint code
-        if: steps.changed-files.outputs.should_skip != 'true'
         uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
@@ -53,6 +63,7 @@ jobs:
           tidy-checks: ''
           ignore: '.github|assets|docs|tools'
           step-summary: true
+          thread-comments: true
 
   build:
     needs: changed
