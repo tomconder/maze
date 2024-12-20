@@ -18,8 +18,9 @@ env:
   VCPKG_GIT_COMMIT_ID: '6de717b75b8326f6d004984f14ae5bbbd86c928d'
 
 permissions:
-  metadata: read
   contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   changed: # don't double run on PRs
