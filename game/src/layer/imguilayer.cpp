@@ -1,6 +1,7 @@
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
+#include "scene/pointlight.hpp"
 #include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
@@ -41,12 +42,12 @@ void ImGuiLayer::onImGuiRender() {
     static auto hasVsync = Application::get().hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
 
-    auto metallic = Maze::get().getMazeLayer()->isMetallic();
-    auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
-    auto roughness = Maze::get().getMazeLayer()->getRoughness();
+    auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
+    auto attentuationIndex = Maze::get().getMazeLayer()->getAttenuationIndex();
+    auto metallic = Maze::get().getMazeLayer()->isMetallic();
     auto numLights = Maze::get().getMazeLayer()->getNumLights();
-    auto attentuation = Maze::get().getMazeLayer()->getAttenuationIndex();
+    auto roughness = Maze::get().getMazeLayer()->getRoughness();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
     ImGui::SetNextWindowSize({ 376.F, 516.F });
@@ -121,13 +122,12 @@ void ImGuiLayer::onImGuiRender() {
 
         ImGui::Separator();
 
-        if (ImGui::SliderInt("Attentuation", &attentuation, 0, 10)) {
-            Maze::get().getMazeLayer()->setAttenuationIndex(attentuation);
+        if (ImGui::SliderInt("Attentuation", &attentuationIndex, 0, 10)) {
+            Maze::get().getMazeLayer()->setAttenuationIndex(attentuationIndex);
         }
 
         const auto attenuation =
-            Maze::get().getMazeLayer()->getAttenuationValuesFromIndex(
-                attentuation);
+            PointLight::getAttenuationFromIndex(attentuationIndex);
         ImGui::Text("Distance: %3.f [%1.1f, %1.3f, %1.4f]", attenuation.x,
                     attenuation.y, attenuation.z, attenuation.w);
 
@@ -160,8 +160,8 @@ void ImGuiLayer::onImGuiRender() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F,
-                               1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+        if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F, 1.F,
+                               "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
         }
 

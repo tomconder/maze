@@ -5,8 +5,8 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr auto keyboardSpeed = .025F;
-constexpr auto mouseSpeed = .05F;
+constexpr auto keyboardSpeed = .125F;
+constexpr auto mouseSpeed = .25F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
@@ -20,12 +20,18 @@ glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
 
 PointLight pointLights[6];
 
-struct GameObject {
-    const char* name;
-    const char* path;
-    glm::vec3 scale{ 1.F };
-    glm::vec3 translation{ 0.F };
-};
+sponge::core::Timer timer;
+constexpr uint16_t UPDATE_FREQUENCY{ 60 };
+constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
+double elapsedSeconds{ 0.F };
+}  // namespace
+
+namespace game::layer {
+
+using sponge::input::KeyCode;
+using sponge::platform::glfw::core::Application;
+using sponge::platform::glfw::core::Input;
+using sponge::platform::opengl::renderer::ResourceManager;
 
 constexpr GameObject gameObjects[] = {
     { .name = const_cast<char*>("cube"),
@@ -74,19 +80,6 @@ constexpr GameObject gameObjects[] = {
       .translation = glm::vec3(0.F, 0.002F, 0.F) }
 };
 
-sponge::core::Timer timer;
-constexpr uint16_t UPDATE_FREQUENCY{ 60 };
-constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
-double elapsedSeconds{ 0.F };
-}  // namespace
-
-namespace game::layer {
-
-using sponge::input::KeyCode;
-using sponge::platform::glfw::core::Application;
-using sponge::platform::glfw::core::Input;
-using sponge::platform::opengl::renderer::ResourceManager;
-
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
 }
@@ -121,90 +114,20 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
+    UNUSED(elapsedTime);
+
     timer.tick();
-
-    auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
-    auto shader = ResourceManager::getShader(shaderName);
-
-    shader->bind();
-
-    shader->setInteger("numLights", numLights);
 
     elapsedSeconds += timer.getElapsedSeconds();
     if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
+        updateShaderLights();
+        updateCamera();
+
         elapsedSeconds = -CYCLE_TIME;
-
-        const auto rotateLight =
-            rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
-                   { 0.F, -1.F, 0.F });
-
-        for (int32_t i = 0; i < numLights; ++i) {
-            shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                              pointLights[i].position);
-            shader->setFloat3(
-                "pointLights[" + std::to_string(i) + "].attenuation",
-                pointLights[i].getAttenuation());
-
-            pointLights[i].translation = glm::vec3(
-                rotateLight * glm::vec4(pointLights[i].translation, 1.F));
-            pointLights[i].position =
-                glm::vec4(pointLights[i].translation, 1.F);
-
-            shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                              lightColors[i]);
-        }
     }
 
-    shader->unbind();
-
-    for (const auto& gameObject : gameObjects) {
-        shader->bind();
-
-        shader->setFloat3("viewPos", camera->getPosition());
-        shader->setMat4("mvp",
-                        translate(scale(camera->getMVP(), gameObject.scale),
-                                  gameObject.translation));
-
-        ResourceManager::getModel(gameObject.name)->render();
-
-        shader->unbind();
-    }
-
-    shaderName = sponge::platform::opengl::scene::Cube::getShaderName();
-    shader = ResourceManager::getShader(shaderName);
-
-    for (int32_t i = 0; i < numLights; ++i) {
-        shader->bind();
-
-        shader->setFloat3("lightColor", lightColors[i]);
-        shader->setMat4(
-            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
-                         lightCubeScale));
-
-        cube->render();
-
-        shader->unbind();
-    }
-
-    if (Input::isKeyDown(KeyCode::SpongeKey_W) ||
-        Input::isKeyDown(KeyCode::SpongeKey_Up)) {
-        camera->moveForward(elapsedTime * keyboardSpeed);
-    } else if (Input::isKeyDown(KeyCode::SpongeKey_S) ||
-               Input::isKeyDown(KeyCode::SpongeKey_Down)) {
-        camera->moveBackward(elapsedTime * keyboardSpeed);
-    } else if (Input::isKeyDown(KeyCode::SpongeKey_A) ||
-               Input::isKeyDown(KeyCode::SpongeKey_Left)) {
-        camera->strafeLeft(elapsedTime * keyboardSpeed);
-    } else if (Input::isKeyDown(KeyCode::SpongeKey_D) ||
-               Input::isKeyDown(KeyCode::SpongeKey_Right)) {
-        camera->strafeRight(elapsedTime * keyboardSpeed);
-    }
-
-    if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
-        auto [xrel, yrel] = Input::getRelativeCursorPos();
-        Input::setRelativeCursorPos({ 0.F, 0.F });
-        camera->mouseMove({ xrel * mouseSpeed, yrel * mouseSpeed });
-    }
+    renderGameObjects();
+    renderLightCubes();
 
     return true;
 }
@@ -212,9 +135,8 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::setMetallic(const bool metallic) {
     this->metallic = metallic;
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
     shader->unbind();
@@ -223,9 +145,8 @@ void MazeLayer::setMetallic(const bool metallic) {
 void MazeLayer::setAmbientOcclusion(const float ao) {
     this->ao = ao;
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ao", ao);
     shader->unbind();
@@ -234,9 +155,8 @@ void MazeLayer::setAmbientOcclusion(const float ao) {
 void MazeLayer::setAmbientStrength(const float strength) {
     this->ambientStrength = strength;
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
@@ -245,9 +165,8 @@ void MazeLayer::setAmbientStrength(const float strength) {
 void MazeLayer::setRoughness(const float roughness) {
     this->roughness = roughness;
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
     shader->bind();
     shader->setFloat("roughness", roughness);
     shader->unbind();
@@ -269,11 +188,6 @@ void MazeLayer::setNumLights(const int32_t numLights) {
 void MazeLayer::setAttenuationIndex(const int32_t attenuationIndex) {
     this->attenuationIndex = attenuationIndex;
     setNumLights(numLights);
-}
-
-glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
-    const int32_t attenuationIndex) const {
-    return pointLights[0].getAttenuationFromIndex(attenuationIndex);
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {
@@ -317,6 +231,85 @@ bool MazeLayer::onWindowResize(
     const sponge::event::WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
     return false;
+}
+
+void MazeLayer::renderGameObjects() const {
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
+
+    for (const auto& gameObject : gameObjects) {
+        shader->bind();
+        shader->setFloat3("viewPos", camera->getPosition());
+        shader->setMat4("mvp",
+                        translate(scale(camera->getMVP(), gameObject.scale),
+                                  gameObject.translation));
+        ResourceManager::getModel(gameObject.name)->render();
+        shader->unbind();
+    }
+}
+
+void MazeLayer::renderLightCubes() const {
+    auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Cube::getShaderName());
+
+    for (auto i = 0; i < numLights; ++i) {
+        shader->bind();
+        shader->setFloat3("lightColor", lightColors[i]);
+        shader->setMat4(
+            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
+                         lightCubeScale));
+        cube->render();
+        shader->unbind();
+    }
+}
+
+void MazeLayer::updateCamera() const {
+    if (Input::isKeyDown(KeyCode::SpongeKey_W) ||
+        Input::isKeyDown(KeyCode::SpongeKey_Up)) {
+        camera->moveForward(elapsedSeconds * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_S) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Down)) {
+        camera->moveBackward(elapsedSeconds * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_A) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Left)) {
+        camera->strafeLeft(elapsedSeconds * keyboardSpeed);
+    } else if (Input::isKeyDown(KeyCode::SpongeKey_D) ||
+               Input::isKeyDown(KeyCode::SpongeKey_Right)) {
+        camera->strafeRight(elapsedSeconds * keyboardSpeed);
+    }
+
+    if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
+        auto [xrel, yrel] = Input::getRelativeCursorPos();
+        Input::setRelativeCursorPos({ 0.F, 0.F });
+        camera->mouseMove({ xrel * mouseSpeed, yrel * mouseSpeed });
+    }
+}
+
+void MazeLayer::updateShaderLights() const {
+    const auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::Mesh::getShaderName());
+
+    shader->bind();
+    shader->setInteger("numLights", numLights);
+
+    const auto rotateLight =
+        rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
+               { 0.F, -1.F, 0.F });
+
+    for (int32_t i = 0; i < numLights; ++i) {
+        pointLights[i].translation =
+            glm::vec3(rotateLight * glm::vec4(pointLights[i].translation, 1.F));
+        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
+
+        shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
+                          pointLights[i].position);
+        shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
+                          pointLights[i].getAttenuation());
+        shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
+                          lightColors[i]);
+    }
+
+    shader->unbind();
 }
 
 }  // namespace game::layer
