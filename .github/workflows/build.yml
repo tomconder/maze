@@ -46,10 +46,6 @@ jobs:
     needs: changed
     if: needs.changed.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
 
     timeout-minutes: 30
 
@@ -67,7 +63,6 @@ jobs:
           tidy-checks: ''
           ignore: '.github|assets|docs|tools'
           step-summary: true
-          thread-comments: true
 
   build:
     needs: changed
