@@ -125,7 +125,7 @@ void ImGuiLayer::onImGuiRender() {
             Maze::get().getMazeLayer()->setAttenuationIndex(attentuation);
         }
 
-        auto attenuation =
+        const auto attenuation =
             Maze::get().getMazeLayer()->getAttenuationValuesFromIndex(
                 attentuation);
         ImGui::Text("Distance: %3.f [%1.1f, %1.3f, %1.4f]", attenuation.x,
@@ -146,22 +146,22 @@ void ImGuiLayer::onImGuiRender() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.0f, 1.0f,
+        if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F, 1.F,
                                "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setAmbientStrength(ambientStrength);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f, "%.3f",
+        if (ImGui::SliderFloat("Roughness", &roughness, 0.F, 1.F, "%.3f",
                                ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setRoughness(roughness);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.0f,
-                               1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+        if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F,
+                               1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
             Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
         }
 

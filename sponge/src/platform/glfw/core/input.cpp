@@ -26,12 +26,12 @@ bool Input::isKeyDown(const input::KeyCode keycode) {
     return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
 
-bool Input::isKeyReleased(input::KeyCode keycode) {
+bool Input::isKeyReleased(const input::KeyCode keycode) {
     return keyData.contains(keycode) &&
            keyData[keycode].state == KeyState::Released;
 }
 
-void Input::updateKeyState(input::KeyCode keycode, KeyState state) {
+void Input::updateKeyState(const input::KeyCode keycode, const KeyState state) {
     auto& [key, keyState, oldState] = keyData[keycode];
     key = keycode;
     oldState = keyState;
@@ -95,7 +95,8 @@ std::pair<float, float> Input::getRelativeMousePosition() {
              static_cast<float>(y - prevCursorPosY) };
 }
 
-void Input::updateButtonState(const input::MouseButton button, KeyState state) {
+void Input::updateButtonState(const input::MouseButton button,
+                              const KeyState state) {
     auto& [mouseButton, keyState, oldState] = mouseData[button];
     mouseButton = button;
     oldState = keyState;

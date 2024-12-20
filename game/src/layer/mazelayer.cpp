@@ -99,8 +99,9 @@ void MazeLayer::onAttach() {
     camera = game::ResourceManager::createGameCamera(cameraName);
     camera->setPosition(cameraPosition);
 
-    auto shaderName = sponge::platform::opengl::scene::Mesh::getShaderName();
-    auto shader = ResourceManager::getShader(shaderName);
+    const auto shaderName =
+        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
@@ -133,7 +134,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
         elapsedSeconds = -CYCLE_TIME;
 
-        auto rotateLight =
+        const auto rotateLight =
             rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
                    { 0.F, -1.F, 0.F });
 
@@ -208,7 +209,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void MazeLayer::setMetallic(bool metallic) {
+void MazeLayer::setMetallic(const bool metallic) {
     this->metallic = metallic;
 
     const auto shaderName =
@@ -219,7 +220,7 @@ void MazeLayer::setMetallic(bool metallic) {
     shader->unbind();
 }
 
-void MazeLayer::setAmbientOcclusion(float ao) {
+void MazeLayer::setAmbientOcclusion(const float ao) {
     this->ao = ao;
 
     const auto shaderName =
@@ -230,7 +231,7 @@ void MazeLayer::setAmbientOcclusion(float ao) {
     shader->unbind();
 }
 
-void MazeLayer::setAmbientStrength(float strength) {
+void MazeLayer::setAmbientStrength(const float strength) {
     this->ambientStrength = strength;
 
     const auto shaderName =
@@ -241,7 +242,7 @@ void MazeLayer::setAmbientStrength(float strength) {
     shader->unbind();
 }
 
-void MazeLayer::setRoughness(float roughness) {
+void MazeLayer::setRoughness(const float roughness) {
     this->roughness = roughness;
 
     const auto shaderName =
@@ -252,7 +253,7 @@ void MazeLayer::setRoughness(float roughness) {
     shader->unbind();
 }
 
-void MazeLayer::setNumLights(int32_t numLights) {
+void MazeLayer::setNumLights(const int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
@@ -265,13 +266,13 @@ void MazeLayer::setNumLights(int32_t numLights) {
     }
 }
 
-void MazeLayer::setAttenuationIndex(int32_t attenuationIndex) {
+void MazeLayer::setAttenuationIndex(const int32_t attenuationIndex) {
     this->attenuationIndex = attenuationIndex;
     setNumLights(numLights);
 }
 
 glm::vec4 MazeLayer::getAttenuationValuesFromIndex(
-    int32_t attenuationIndex) const {
+    const int32_t attenuationIndex) const {
     return pointLights[0].getAttenuationFromIndex(attenuationIndex);
 }
 

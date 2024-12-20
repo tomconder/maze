@@ -155,7 +155,7 @@ bool Application::onUserCreate() {
     return true;
 }
 
-bool Application::onUserUpdate(double elapsedTime) {
+bool Application::onUserUpdate(const double elapsedTime) {
     SPONGE_PROFILE_SECTION("Application::onUserUpdate");
 
     bool result = true;
@@ -197,7 +197,8 @@ void Application::onImGuiRender() const {
     }
 }
 
-void Application::adjustAspectRatio(uint32_t eventW, uint32_t eventH) {
+void Application::adjustAspectRatio(const uint32_t eventW,
+                                    const uint32_t eventH) {
     float proposedRatio =
         static_cast<float>(eventW) / static_cast<float>(eventH);
     auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
@@ -303,7 +304,7 @@ void Application::toggleFullscreen() {
     }
 }
 
-void Application::setMouseVisible(bool value) const {
+void Application::setMouseVisible(const bool value) const {
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
     if (value) {
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);

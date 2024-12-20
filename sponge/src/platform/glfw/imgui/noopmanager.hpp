@@ -9,7 +9,7 @@ class NoopManager : public ImGuiManager<NoopManager> {
    public:
     static void onAttachImpl(GLFWwindow* window) {
         UNUSED(window);
-    };
+    }
 
     static void onDetachImpl() { /* nothing */ }
 
