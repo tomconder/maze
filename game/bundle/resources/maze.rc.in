@@ -1,12 +1,8 @@
 #include "winver.h"
 
-#ifndef MazeIcon
-#define MazeIcon 1
-#endif
-
 #define ICO "maze.ico"
 
-MazeIcon ICON DISCARDABLE ICO
+GLFW_ICON ICON DISCARDABLE ICO
 
 #define EXE                 "${CMAKE_PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX}"
 #define NAME                "${CMAKE_PROJECT_NAME}"
