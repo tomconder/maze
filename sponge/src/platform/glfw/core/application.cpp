@@ -307,9 +307,6 @@ void Application::setMouseVisible(bool value) const {
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
     if (value) {
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        double xpos = getWidth() / 2.0;
-        double ypos = getHeight() / 2.0;
-        glfwSetCursorPos(glfwWindow, xpos, ypos);
     } else {
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

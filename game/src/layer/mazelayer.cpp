@@ -6,7 +6,7 @@
 
 namespace {
 constexpr auto keyboardSpeed = .025F;
-constexpr auto mouseSpeed = .025F;
+constexpr auto mouseSpeed = .05F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
@@ -201,6 +201,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 
     if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
         auto [xrel, yrel] = Input::getRelativeCursorPos();
+        Input::setRelativeCursorPos({ 0.F, 0.F });
         camera->mouseMove({ xrel * mouseSpeed, yrel * mouseSpeed });
     }
 
