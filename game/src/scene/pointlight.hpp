@@ -10,7 +10,7 @@ class PointLight {
         return { constant, linear, quadratic };
     }
 
-    glm::vec4 getAttenuationFromIndex(int32_t index) const;
+    static glm::vec4 getAttenuationFromIndex(int32_t index);
     void setAttenuationFromIndex(int32_t index);
 
     glm::vec3 position;

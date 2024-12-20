@@ -46,7 +46,7 @@ void PointLight::setAttenuationFromIndex(const int32_t index) {
     quadratic = lightAttenuation[index].quadratic;
 }
 
-glm::vec4 PointLight::getAttenuationFromIndex(const int32_t index) const {
+glm::vec4 PointLight::getAttenuationFromIndex(const int32_t index) {
     return { lightAttenuation[index].distance, lightAttenuation[index].constant,
              lightAttenuation[index].linear,
              lightAttenuation[index].quadratic };

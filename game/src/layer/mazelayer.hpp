@@ -5,6 +5,13 @@
 
 namespace game::layer {
 
+struct GameObject {
+    const char* name;
+    const char* path;
+    glm::vec3 scale{ 1.F };
+    glm::vec3 translation{ 0.F };
+};
+
 class MazeLayer final : public sponge::layer::Layer {
    public:
     MazeLayer();
@@ -57,8 +64,6 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setAttenuationIndex(int32_t attenuationIndex);
 
-    glm::vec4 getAttenuationValuesFromIndex(int32_t attenuationIndex) const;
-
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
@@ -79,6 +84,14 @@ class MazeLayer final : public sponge::layer::Layer {
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+
+    void renderGameObjects() const;
+
+    void renderLightCubes() const;
+
+    void updateCamera() const;
+
+    void updateShaderLights() const;
 };
 
 }  // namespace game::layer
