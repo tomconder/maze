@@ -37,8 +37,6 @@
 #  -bugprone-narrowing-conversions: too many false positives around
 #      `std::size_t`  vs. `*::difference_type`.
 #
-#  -bugprone-easily-swappable-parameters: too many false positives.
-#
 #  -bugprone-implicit-widening-of-multiplication-result: too many false positives.
 #     Almost any expression of the form `2 * variable` or `long x = a_int * b_int;`
 #     generates an error.
@@ -48,41 +46,35 @@
 #     `ASSERT_TRUE(variable)` or `ASSERT_TRUE(variable.has_value())`.
 #
 Checks: >
-  -*,
-  abseil-*,
-  bugprone-*,
-  google-*,
-  misc-*,
-  -misc-include-cleaner,
-  modernize-*,
-  performance-*,
-  portability-*,
-  readability-*,
-  -google-readability-braces-around-statements,
-  -google-readability-namespace-comments,
-  -google-runtime-references,
-  -misc-non-private-member-variables-in-classes,
+  *,
+  -abseil-*,
+  -fuchsia-*,
+  -google-*,
+  -llvm-*'
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-narrowing-conversions,
+  -bugprone-unchecked-optional-access,
   -misc-const-correctness,
-  -modernize-return-braced-init-list,
-  -modernize-use-trailing-return-type,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
   -modernize-avoid-c-arrays,
+  -modernize-return-braced-init-list,
   -modernize-use-nodiscard,
+  -modernize-use-trailing-return-type,
   -performance-move-const-arg,
   -readability-braces-around-statements,
+  -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-named-parameter,
   -readability-redundant-declaration,
-  -readability-function-cognitive-complexity,
-  -bugprone-narrowing-conversions,
-  -bugprone-easily-swappable-parameters,
-  -bugprone-implicit-widening-of-multiplication-result,
-  -bugprone-unchecked-optional-access
+  -zircon-*
 
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: "*"
 
-HeaderFilterRegex: "(sponge/src/|game/src/).*\\.h$"
+HeaderFilterRegex: "(sponge/src/|game/src/).*\\.hpp$"
 
 CheckOptions:
   - { key: readability-identifier-naming.NamespaceCase,          value: lower_case }
