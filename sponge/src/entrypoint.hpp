@@ -27,11 +27,11 @@ extern "C" int main(const int argc, char* argv[]) {
 
 #ifdef _WIN32
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine, int nCmdShow) {
+                     LPSTR lpCmdLine, int nShowCmd) {
     UNUSED(hInstance);
     UNUSED(hPrevInstance);
     UNUSED(lpCmdLine);
-    UNUSED(nCmdShow);
+    UNUSED(nShowCmd);
     return sponge::core::main(__argc, __argv);
 }
 #endif

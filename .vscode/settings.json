@@ -1,0 +1,5 @@
+{
+    "cmake.options.statusBarVisibility": "visible",
+    "cmake.deleteBuildDirOnCleanConfigure": true,
+    "cmake.useCMakePresets": "always"
+}

@@ -130,7 +130,7 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
             COMMENT "Copying assets to target folder"
-            VERBATIM DEPENDS ${ASSETS})
+            VERBATIM)
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
