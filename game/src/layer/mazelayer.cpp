@@ -14,9 +14,9 @@ constexpr auto lightCubeScale = glm::vec3(.1F);
 
 constexpr char cameraName[] = "maze";
 
-glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
-                             { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
-                             { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
+constexpr glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
+                                       { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
+                                       { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
 
 PointLight pointLights[6];
 
@@ -250,7 +250,7 @@ void MazeLayer::renderGameObjects() const {
 }
 
 void MazeLayer::renderLightCubes() const {
-    auto shader = ResourceManager::getShader(
+    const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Cube::getShaderName());
 
     for (auto i = 0; i < numLights; ++i) {
