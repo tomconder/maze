@@ -1,5 +1,12 @@
 {
     "cmake.options.statusBarVisibility": "visible",
     "cmake.deleteBuildDirOnCleanConfigure": true,
-    "cmake.useCMakePresets": "always"
+    "cmake.useCMakePresets": "always",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.guides.bracketPairs": "active",
+    "editor.renderWhitespace": "boundary",
+    "workbench.tree.indent": 10,
+    "cSpell.words": [
+        "opengl"
+    ]
 }
