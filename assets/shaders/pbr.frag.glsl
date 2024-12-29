@@ -60,7 +60,7 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
-float attentuationFromLight(PointLight light) {
+float attenuationFromLight(PointLight light) {
     float distance = length(light.position - vPosition);
     float constant = light.attenuation.r;
     float linear = light.attenuation.g;
@@ -96,7 +96,7 @@ void main() {
         // calculate per-light radiance
         vec3 L = normalize(pointLights[i].position - vPosition);
         vec3 H = normalize(V + L);
-        float attenuation = attentuationFromLight(pointLights[i]);
+        float attenuation = attenuationFromLight(pointLights[i]);
         vec3 radiance = pointLights[i].color * attenuation;
 
         // Cook-Torrance BRDF

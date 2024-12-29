@@ -44,7 +44,7 @@ void ImGuiLayer::onImGuiRender() {
 
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
     auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
-    auto attentuationIndex = Maze::get().getMazeLayer()->getAttenuationIndex();
+    auto attenuationIndex = Maze::get().getMazeLayer()->getAttenuationIndex();
     auto metallic = Maze::get().getMazeLayer()->isMetallic();
     auto numLights = Maze::get().getMazeLayer()->getNumLights();
     auto roughness = Maze::get().getMazeLayer()->getRoughness();
@@ -122,12 +122,12 @@ void ImGuiLayer::onImGuiRender() {
 
         ImGui::Separator();
 
-        if (ImGui::SliderInt("Attentuation", &attentuationIndex, 0, 10)) {
-            Maze::get().getMazeLayer()->setAttenuationIndex(attentuationIndex);
+        if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10)) {
+            Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
         }
 
         const auto attenuation =
-            PointLight::getAttenuationFromIndex(attentuationIndex);
+            PointLight::getAttenuationFromIndex(attenuationIndex);
         ImGui::Text("Distance: %3.f [%1.1f, %1.3f, %1.4f]", attenuation.x,
                     attenuation.y, attenuation.z, attenuation.w);
 
