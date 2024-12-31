@@ -36,7 +36,7 @@ void Context::init(GLFWwindow* window) {
         return;
     }
 
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 
     SPONGE_PROFILE_GPU_CONTEXT;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "core/base.hpp"
+#include "core/base.hpp"
 #include "imguimanager.hpp"
 
 namespace sponge::platform::glfw::imgui {

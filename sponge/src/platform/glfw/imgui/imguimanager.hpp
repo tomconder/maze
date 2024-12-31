@@ -1,6 +1,5 @@
 #pragma once
 
-#include "event/event.hpp"
 #include "platform/glfw/core/window.hpp"
 
 namespace sponge::platform::glfw::imgui {

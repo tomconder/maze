@@ -8,5 +8,7 @@
     "workbench.tree.indent": 10,
     "cSpell.words": [
         "opengl"
-    ]
+    ],
+    "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false,
+    "clang-tidy.fixOnSave": true
 }
