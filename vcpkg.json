@@ -11,7 +11,7 @@
     },
     {
       "name": "glfw3",
-      "version>=": "3.4#1"
+      "version>=": "3.4"
     },
     {
       "name": "glm",
@@ -23,7 +23,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.91.5"
+      "version>=": "1.91.6"
     },
     {
       "name": "meshoptimizer",
