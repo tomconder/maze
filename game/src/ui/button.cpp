@@ -38,10 +38,7 @@ bool Button::isInside(const glm::vec2& position) const {
 }
 
 void Button::setButtonColor(const glm::vec4& color) {
-    this->color.r = color.r;
-    this->color.g = color.g;
-    this->color.b = color.b;
-    this->color.a = color.a;
+    this->color = glm::vec4(color);
 }
 
 void Button::setPosition(const glm::vec2& topLeft,
