@@ -129,11 +129,7 @@ bool ExitLayer::onWindowResize(
 bool ExitLayer::onKeyPressed(
     const sponge::event::KeyPressedEvent& event) const {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
-        if (isActive()) {
-            Application::get().setMouseVisible(false);
-        } else {
-            Application::get().setMouseVisible(true);
-        }
+        Application::get().setMouseVisible(!isActive());
     }
 
     return true;

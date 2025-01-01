@@ -8,6 +8,7 @@ Checks: >
   performance-*,
   portability-*,
   readability-*,
+  -bugprone-branch-clone,
   -bugprone-easily-swappable-parameters,
   -bugprone-implicit-widening-of-multiplication-result,
   -bugprone-narrowing-conversions,
@@ -21,9 +22,11 @@ Checks: >
   -modernize-avoid-c-arrays,
   -modernize-return-braced-init-list,
   -modernize-use-nodiscard,
+  -modernize-use-equals-default,
   -modernize-use-trailing-return-type,
   -performance-move-const-arg,
   -readability-braces-around-statements,
+  -readability-convert-member-functions-to-static,
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
@@ -33,7 +36,7 @@ Checks: >
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: "*"
 
-HeaderFilterRegex: "(sponge/src/|game/src/).*\\.hpp$"
+HeaderFilterRegex: ""
 
 CheckOptions:
   - { key: readability-identifier-naming.NamespaceCase,          value: lower_case }
