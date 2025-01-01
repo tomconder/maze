@@ -7,9 +7,8 @@ namespace game::ui {
 class Button {
    public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-           const std::string& message, uint32_t fontSize,
-           const std::string& fontName, const glm::vec4& buttonColor,
-           const glm::vec3& textColor);
+           std::string message, uint32_t fontSize, std::string fontName,
+           const glm::vec4& buttonColor, const glm::vec3& textColor);
 
     bool onUpdate(double elapsedTime) const;
 
@@ -33,8 +32,9 @@ class Button {
     std::string text;
     uint32_t textSize;
     std::string textFontName;
-    glm::vec4 buttonColor;
+    glm::vec4 color;
     glm::vec3 textColor;
+    uint32_t length;
 
     std::shared_ptr<sponge::platform::opengl::scene::Font> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;

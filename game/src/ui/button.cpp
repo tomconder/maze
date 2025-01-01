@@ -1,22 +1,24 @@
 #include "button.hpp"
+#include <utility>
 
 namespace game::ui {
 
 using sponge::platform::opengl::renderer::ResourceManager;
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               const std::string& message, const uint32_t fontSize,
-               const std::string& fontName, const glm::vec4& buttonColor,
+               std::string message, const uint32_t fontSize,
+               std::string fontName, const glm::vec4& buttonColor,
                const glm::vec3& textColor)
     : top(topLeft),
       bottom(bottomRight),
-      text(message),
+      text(std::move(message)),
       textSize(fontSize),
-      textFontName(fontName),
-      buttonColor(buttonColor),
+      textFontName(std::move(fontName)),
+      color(buttonColor),
       textColor(textColor),
       textPosition({ topLeft.x, topLeft.y }) {
     font = ResourceManager::getFont(textFontName);
+    length = font->getLength(text, textSize);
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
 }
@@ -24,7 +26,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
 bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
-    quad->render(top, bottom, buttonColor);
+    quad->render(top, bottom, color);
     font->render(text, textPosition, textSize, textColor);
 
     return true;
@@ -36,10 +38,10 @@ bool Button::isInside(const glm::vec2& position) const {
 }
 
 void Button::setButtonColor(const glm::vec4& color) {
-    buttonColor.r = color.r;
-    buttonColor.g = color.g;
-    buttonColor.b = color.b;
-    buttonColor.a = color.a;
+    this->color.r = color.r;
+    this->color.g = color.g;
+    this->color.b = color.b;
+    this->color.a = color.a;
 }
 
 void Button::setPosition(const glm::vec2& topLeft,
@@ -53,7 +55,6 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto width = std::abs(topLeft.x - bottomRight.x);
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
-    const auto length = font->getLength(text, textSize);
     textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
                      top.y + ((height - static_cast<float>(textSize)) / 2.F) };
 }
