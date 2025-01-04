@@ -1,5 +1,5 @@
 #include "input.hpp"
-#include "application.hpp"
+#include "platform/glfw/core/application.hpp"
 #include <tuple>
 
 namespace sponge::platform::glfw::core {

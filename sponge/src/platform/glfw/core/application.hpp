@@ -4,11 +4,11 @@
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/core/window.hpp"
 #include "platform/glfw/imgui/glfwmanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
-#include "window.hpp"
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
@@ -73,24 +73,6 @@ class Application : public sponge::core::Application {
 
     uint32_t getWidth() const {
         return w;
-    }
-
-    static uint32_t getWindowHeight() {
-        int32_t width;
-        int32_t height;
-        glfwGetWindowSize(
-            static_cast<GLFWwindow*>(get().window->getNativeWindow()), &width,
-            &height);
-        return static_cast<uint32_t>(height);
-    }
-
-    static uint32_t getWindowWidth() {
-        int32_t width;
-        int32_t height;
-        glfwGetWindowSize(
-            static_cast<GLFWwindow*>(get().window->getNativeWindow()), &width,
-            &height);
-        return static_cast<uint32_t>(width);
     }
 
     bool hasVerticalSync() const {

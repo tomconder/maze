@@ -4,6 +4,7 @@
 
 #include "core/application.hpp"
 #include "core/base.hpp"
+#include "core/color.hpp"
 #include "core/file.hpp"
 #include "core/timer.hpp"
 #include "core/window.hpp"

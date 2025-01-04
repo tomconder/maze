@@ -1,10 +1,10 @@
 #include "window.hpp"
-#include "application.hpp"
 #include "event/applicationevent.hpp"
 #include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
-#include "input.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/core/application.hpp"
+#include "platform/glfw/core/input.hpp"
 
 namespace sponge::platform::glfw::core {
 
@@ -65,9 +65,6 @@ void Window::init(const sponge::core::WindowProps& props) {
         auto h = static_cast<uint32_t>(height);
 
         Application::get().adjustAspectRatio(w, h);
-
-        w = Application::get().getWidth();
-        h = Application::get().getHeight();
 
         auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 

@@ -5,8 +5,8 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr auto keyboardSpeed = .125F;
-constexpr auto mouseSpeed = .25F;
+constexpr auto keyboardSpeed = .075F;
+constexpr auto mouseSpeed = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
@@ -14,9 +14,8 @@ constexpr auto lightCubeScale = glm::vec3(.1F);
 
 constexpr char cameraName[] = "maze";
 
-constexpr glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
-                                       { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
-                                       { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
+constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
+                                    "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
 
@@ -114,17 +113,16 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
-
     timer.tick();
 
     elapsedSeconds += timer.getElapsedSeconds();
     if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
-        updateShaderLights();
-        updateCamera();
+        updateShaderLights(elapsedSeconds);
 
         elapsedSeconds = -CYCLE_TIME;
     }
+
+    updateCamera(elapsedTime);
 
     renderGameObjects();
     renderLightCubes();
@@ -176,6 +174,7 @@ void MazeLayer::setNumLights(const int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
+        pointLights[i].color = sponge::core::Color::hexToRGB(colors[i]);
         pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
@@ -255,7 +254,7 @@ void MazeLayer::renderLightCubes() const {
 
     for (auto i = 0; i < numLights; ++i) {
         shader->bind();
-        shader->setFloat3("lightColor", lightColors[i]);
+        shader->setFloat3("lightColor", pointLights[i].color);
         shader->setMat4(
             "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
                          lightCubeScale));
@@ -264,19 +263,19 @@ void MazeLayer::renderLightCubes() const {
     }
 }
 
-void MazeLayer::updateCamera() const {
+void MazeLayer::updateCamera(const double elapsedTime) const {
     if (Input::isKeyDown(KeyCode::SpongeKey_W) ||
         Input::isKeyDown(KeyCode::SpongeKey_Up)) {
-        camera->moveForward(elapsedSeconds * keyboardSpeed);
+        camera->moveForward(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_S) ||
                Input::isKeyDown(KeyCode::SpongeKey_Down)) {
-        camera->moveBackward(elapsedSeconds * keyboardSpeed);
+        camera->moveBackward(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_A) ||
                Input::isKeyDown(KeyCode::SpongeKey_Left)) {
-        camera->strafeLeft(elapsedSeconds * keyboardSpeed);
+        camera->strafeLeft(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_D) ||
                Input::isKeyDown(KeyCode::SpongeKey_Right)) {
-        camera->strafeRight(elapsedSeconds * keyboardSpeed);
+        camera->strafeRight(elapsedTime * keyboardSpeed);
     }
 
     if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
@@ -286,7 +285,7 @@ void MazeLayer::updateCamera() const {
     }
 }
 
-void MazeLayer::updateShaderLights() const {
+void MazeLayer::updateShaderLights(const double elapsedTime) const {
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
 
@@ -294,7 +293,7 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     const auto rotateLight =
-        rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
+        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime * 6),
                { 0.F, -1.F, 0.F });
 
     for (int32_t i = 0; i < numLights; ++i) {
@@ -307,7 +306,7 @@ void MazeLayer::updateShaderLights() const {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
                           pointLights[i].getAttenuation());
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                          lightColors[i]);
+                          pointLights[i].color);
     }
 
     shader->unbind();

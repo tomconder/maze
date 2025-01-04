@@ -15,6 +15,7 @@ class PointLight {
 
     glm::vec3 position;
     glm::vec3 translation;
+    glm::vec3 color;
 
     float distance;
     float constant;

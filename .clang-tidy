@@ -36,7 +36,7 @@ Checks: >
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: "*"
 
-HeaderFilterRegex: ""
+HeaderFilterRegex: "(sponge/src/|game/src/).*\\.hpp$"
 
 CheckOptions:
   - { key: readability-identifier-naming.NamespaceCase,          value: lower_case }
