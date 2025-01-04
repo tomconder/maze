@@ -16,11 +16,7 @@ using sponge::input::KeyCode;
 
 namespace {
 sponge::core::Timer systemTimer;
-sponge::core::Timer physicsTimer;
 
-constexpr uint16_t UPDATE_FREQUENCY{ 120 };
-constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
-double elapsedSeconds{ 0.F };
 constexpr uint32_t defaultWidth{ 1600 };
 constexpr uint32_t defaultHeight{ 900 };
 
@@ -115,15 +111,8 @@ bool Application::iterateLoop() {
     auto quit = false;
 
     systemTimer.tick();
-    elapsedSeconds += systemTimer.getElapsedSeconds();
 
-    if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
-        elapsedSeconds = -CYCLE_TIME;
-
-        physicsTimer.tick();
-
-        glfwPollEvents();
-    }
+    glfwPollEvents();
 
     imguiManager->begin();
 
@@ -133,7 +122,7 @@ bool Application::iterateLoop() {
 
     renderer->clear();
 
-    if (!onUserUpdate(physicsTimer.getElapsedSeconds())) {
+    if (!onUserUpdate(systemTimer.getElapsedSeconds())) {
         quit = true;
     }
 

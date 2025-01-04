@@ -75,24 +75,6 @@ class Application : public sponge::core::Application {
         return w;
     }
 
-    static uint32_t getWindowHeight() {
-        int32_t width;
-        int32_t height;
-        glfwGetWindowSize(
-            static_cast<GLFWwindow*>(get().window->getNativeWindow()), &width,
-            &height);
-        return static_cast<uint32_t>(height);
-    }
-
-    static uint32_t getWindowWidth() {
-        int32_t width;
-        int32_t height;
-        glfwGetWindowSize(
-            static_cast<GLFWwindow*>(get().window->getNativeWindow()), &width,
-            &height);
-        return static_cast<uint32_t>(width);
-    }
-
     bool hasVerticalSync() const {
         return vsync;
     }

@@ -89,9 +89,9 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void renderLightCubes() const;
 
-    void updateCamera() const;
+    void updateCamera(double elapsedTime) const;
 
-    void updateShaderLights() const;
+    void updateShaderLights(double elapsedTime) const;
 };
 
 }  // namespace game::layer

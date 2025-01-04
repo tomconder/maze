@@ -5,8 +5,8 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace {
-constexpr auto keyboardSpeed = .125F;
-constexpr auto mouseSpeed = .25F;
+constexpr auto keyboardSpeed = .075F;
+constexpr auto mouseSpeed = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
@@ -114,17 +114,16 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
-
     timer.tick();
 
     elapsedSeconds += timer.getElapsedSeconds();
     if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
-        updateShaderLights();
-        updateCamera();
+        updateShaderLights(elapsedSeconds);
 
         elapsedSeconds = -CYCLE_TIME;
     }
+
+    updateCamera(elapsedTime);
 
     renderGameObjects();
     renderLightCubes();
@@ -264,19 +263,19 @@ void MazeLayer::renderLightCubes() const {
     }
 }
 
-void MazeLayer::updateCamera() const {
+void MazeLayer::updateCamera(const double elapsedTime) const {
     if (Input::isKeyDown(KeyCode::SpongeKey_W) ||
         Input::isKeyDown(KeyCode::SpongeKey_Up)) {
-        camera->moveForward(elapsedSeconds * keyboardSpeed);
+        camera->moveForward(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_S) ||
                Input::isKeyDown(KeyCode::SpongeKey_Down)) {
-        camera->moveBackward(elapsedSeconds * keyboardSpeed);
+        camera->moveBackward(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_A) ||
                Input::isKeyDown(KeyCode::SpongeKey_Left)) {
-        camera->strafeLeft(elapsedSeconds * keyboardSpeed);
+        camera->strafeLeft(elapsedTime * keyboardSpeed);
     } else if (Input::isKeyDown(KeyCode::SpongeKey_D) ||
                Input::isKeyDown(KeyCode::SpongeKey_Right)) {
-        camera->strafeRight(elapsedSeconds * keyboardSpeed);
+        camera->strafeRight(elapsedTime * keyboardSpeed);
     }
 
     if (Input::isMouseButtonPressed(sponge::input::MouseButton::ButtonLeft)) {
@@ -286,7 +285,7 @@ void MazeLayer::updateCamera() const {
     }
 }
 
-void MazeLayer::updateShaderLights() const {
+void MazeLayer::updateShaderLights(const double elapsedTime) const {
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
 
@@ -294,7 +293,7 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     const auto rotateLight =
-        rotate(glm::mat4(1.F), static_cast<float>(elapsedSeconds * 6),
+        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime * 6),
                { 0.F, -1.F, 0.F });
 
     for (int32_t i = 0; i < numLights; ++i) {

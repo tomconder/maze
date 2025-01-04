@@ -35,11 +35,12 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    const auto width = static_cast<float>(Application::get().getWindowWidth());
+    const auto width =
+        static_cast<float>(Application::get().window->getWidth());
     const auto height =
-        static_cast<float>(Application::get().getWindowHeight());
+        static_cast<float>(Application::get().window->getHeight());
 
-    static auto hasVsync = Application::get().hasVerticalSync();
+    auto hasVsync = Application::get().hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
 
     auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
@@ -60,8 +61,8 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
-        ImGui::Text("Resolution: %dx%d", Application::get().getWindowWidth(),
-                    Application::get().getWindowHeight());
+        ImGui::Text("Resolution: %dx%d", Application::get().window->getWidth(),
+                    Application::get().window->getHeight());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
