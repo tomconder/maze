@@ -2,9 +2,9 @@
 #include "core/timer.hpp"
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
-#include "input.hpp"
 #include "input/keycode.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/core/input.hpp"
 #include "platform/glfw/logging/sink.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
@@ -221,7 +221,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         h = static_cast<int>(aspectRatioHeight * width / aspectRatioWidth);
     }
 
-    SPONGE_CORE_DEBUG("Resizing to {}x{}", w, h);
+    SPONGE_CORE_DEBUG("Resizing viewport to {}x{}", w, h);
 
     offsetx = (eventW - w) / 2;
     offsety = (eventH - h) / 2;

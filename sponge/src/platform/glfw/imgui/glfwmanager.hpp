@@ -1,7 +1,7 @@
 #pragma once
 
-#include "imguimanager.hpp"
 #include "platform/glfw/core/window.hpp"
+#include "platform/glfw/imgui/imguimanager.hpp"
 
 namespace sponge::platform::glfw::imgui {
 

@@ -4,11 +4,11 @@
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/core/window.hpp"
 #include "platform/glfw/imgui/glfwmanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
-#include "window.hpp"
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
