@@ -35,22 +35,20 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    const auto window = Application::get().window;
-
-    const auto width = static_cast<float>(window->getWidth());
-    const auto height = static_cast<float>(window->getHeight());
+    const auto width =
+        static_cast<float>(Application::get().window->getWidth());
+    const auto height =
+        static_cast<float>(Application::get().window->getHeight());
 
     auto hasVsync = Application::get().hasVerticalSync();
     auto isFullscreen = Application::get().isFullscreen();
 
-    const auto mazeLayer = Maze::get().getMazeLayer();
-
-    auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
-    auto ambientStrength = mazeLayer->getAmbientStrength();
-    auto attenuationIndex = mazeLayer->getAttenuationIndex();
-    auto metallic = mazeLayer->isMetallic();
-    auto numLights = mazeLayer->getNumLights();
-    auto roughness = mazeLayer->getRoughness();
+    auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
+    auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
+    auto attenuationIndex = Maze::get().getMazeLayer()->getAttenuationIndex();
+    auto metallic = Maze::get().getMazeLayer()->isMetallic();
+    auto numLights = Maze::get().getMazeLayer()->getNumLights();
+    auto roughness = Maze::get().getMazeLayer()->getRoughness();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
     ImGui::SetNextWindowSize({ 376.F, 516.F });
@@ -63,8 +61,8 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
-        ImGui::Text("Resolution: %dx%d", window->getWidth(),
-                    window->getHeight());
+        ImGui::Text("Resolution: %dx%d", Application::get().window->getWidth(),
+                    Application::get().window->getHeight());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
@@ -120,13 +118,13 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Separator();
 
         if (ImGui::SliderInt("Lights", &numLights, 1, 6)) {
-            mazeLayer->setNumLights(numLights);
+            Maze::get().getMazeLayer()->setNumLights(numLights);
         }
 
         ImGui::Separator();
 
         if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10)) {
-            mazeLayer->setAttenuationIndex(attenuationIndex);
+            Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
         }
 
         const auto attenuation =
@@ -144,28 +142,28 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("Metallic", &metallic)) {
-            mazeLayer->setMetallic(metallic);
+            Maze::get().getMazeLayer()->setMetallic(metallic);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F, 1.F,
                                "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-            mazeLayer->setAmbientStrength(ambientStrength);
+            Maze::get().getMazeLayer()->setAmbientStrength(ambientStrength);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Roughness", &roughness, 0.F, 1.F, "%.3f",
                                ImGuiSliderFlags_AlwaysClamp)) {
-            mazeLayer->setRoughness(roughness);
+            Maze::get().getMazeLayer()->setRoughness(roughness);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F, 1.F,
                                "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-            mazeLayer->setAmbientOcclusion(ambientOcclusion);
+            Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
         }
 
         ImGui::EndTable();
