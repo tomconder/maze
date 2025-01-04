@@ -18,11 +18,6 @@ constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
                                     "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
-
-sponge::core::Timer timer;
-constexpr uint16_t UPDATE_FREQUENCY{ 60 };
-constexpr double CYCLE_TIME{ 1.F / UPDATE_FREQUENCY };
-double elapsedSeconds{ 0.F };
 }  // namespace
 
 namespace game::layer {
@@ -113,15 +108,7 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    timer.tick();
-
-    elapsedSeconds += timer.getElapsedSeconds();
-    if (std::isgreater(elapsedSeconds, CYCLE_TIME)) {
-        updateShaderLights(elapsedSeconds);
-
-        elapsedSeconds = -CYCLE_TIME;
-    }
-
+    updateShaderLights(elapsedTime);
     updateCamera(elapsedTime);
 
     renderGameObjects();
@@ -293,7 +280,7 @@ void MazeLayer::updateShaderLights(const double elapsedTime) const {
     shader->setInteger("numLights", numLights);
 
     const auto rotateLight =
-        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime * 6),
+        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime * 5),
                { 0.F, -1.F, 0.F });
 
     for (int32_t i = 0; i < numLights; ++i) {
