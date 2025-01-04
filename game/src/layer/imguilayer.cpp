@@ -26,8 +26,6 @@ constexpr const char* logLevels[logLevelCount] = {
 
 namespace game::layer {
 
-using sponge::platform::glfw::core::Application;
-
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -35,20 +33,22 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 void ImGuiLayer::onImGuiRender() {
     const auto& io = ImGui::GetIO();
 
-    const auto width =
-        static_cast<float>(Application::get().window->getWidth());
-    const auto height =
-        static_cast<float>(Application::get().window->getHeight());
+    const auto window = Maze::get().window;
 
-    auto hasVsync = Application::get().hasVerticalSync();
-    auto isFullscreen = Application::get().isFullscreen();
+    const auto width = static_cast<float>(window->getWidth());
+    const auto height = static_cast<float>(window->getHeight());
 
-    auto ambientOcclusion = Maze::get().getMazeLayer()->getAmbientOcclusion();
-    auto ambientStrength = Maze::get().getMazeLayer()->getAmbientStrength();
-    auto attenuationIndex = Maze::get().getMazeLayer()->getAttenuationIndex();
-    auto metallic = Maze::get().getMazeLayer()->isMetallic();
-    auto numLights = Maze::get().getMazeLayer()->getNumLights();
-    auto roughness = Maze::get().getMazeLayer()->getRoughness();
+    auto hasVsync = Maze::get().hasVerticalSync();
+    auto isFullscreen = Maze::get().isFullscreen();
+
+    const auto mazeLayer = Maze::get().getMazeLayer();
+
+    auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
+    auto ambientStrength = mazeLayer->getAmbientStrength();
+    auto attenuationIndex = mazeLayer->getAttenuationIndex();
+    auto metallic = mazeLayer->isMetallic();
+    auto numLights = mazeLayer->getNumLights();
+    auto roughness = mazeLayer->getRoughness();
 
     ImGui::SetNextWindowPos({ width - 376.F, 0.F });
     ImGui::SetNextWindowSize({ 376.F, 516.F });
@@ -61,8 +61,8 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s %s (%s)", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
-        ImGui::Text("Resolution: %dx%d", Application::get().window->getWidth(),
-                    Application::get().window->getHeight());
+        ImGui::Text("Resolution: %dx%d", window->getWidth(),
+                    window->getHeight());
         ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                     io.Framerate);
         ImGui::Separator();
@@ -103,7 +103,7 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-            Application::get().setVerticalSync(hasVsync);
+            Maze::get().setVerticalSync(hasVsync);
         }
 
         ImGui::TableNextRow();
@@ -111,20 +111,20 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("Full Screen");
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-            Application::get().toggleFullscreen();
+            Maze::get().toggleFullscreen();
         }
 
         ImGui::EndTable();
         ImGui::Separator();
 
         if (ImGui::SliderInt("Lights", &numLights, 1, 6)) {
-            Maze::get().getMazeLayer()->setNumLights(numLights);
+            mazeLayer->setNumLights(numLights);
         }
 
         ImGui::Separator();
 
         if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10)) {
-            Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
+            mazeLayer->setAttenuationIndex(attenuationIndex);
         }
 
         const auto attenuation =
@@ -142,35 +142,35 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("Metallic", &metallic)) {
-            Maze::get().getMazeLayer()->setMetallic(metallic);
+            mazeLayer->setMetallic(metallic);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F, 1.F,
                                "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-            Maze::get().getMazeLayer()->setAmbientStrength(ambientStrength);
+            mazeLayer->setAmbientStrength(ambientStrength);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Roughness", &roughness, 0.F, 1.F, "%.3f",
                                ImGuiSliderFlags_AlwaysClamp)) {
-            Maze::get().getMazeLayer()->setRoughness(roughness);
+            mazeLayer->setRoughness(roughness);
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F, 1.F,
                                "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-            Maze::get().getMazeLayer()->setAmbientOcclusion(ambientOcclusion);
+            mazeLayer->setAmbientOcclusion(ambientOcclusion);
         }
 
         ImGui::EndTable();
         ImGui::Separator();
 
         if (ImGui::CollapsingHeader("Layers", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto* const layerStack = Application::get().getLayerStack();
+            auto* const layerStack = Maze::get().getLayerStack();
             showLayersTable(layerStack);
         }
 
@@ -275,8 +275,7 @@ void ImGuiLayer::showLogging() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
     ImVec4 color;
 
-    for (const auto& [message, loggerName, level] :
-         Application::get().getMessages()) {
+    for (const auto& [message, loggerName, level] : Maze::get().getMessages()) {
         if (level < activeLogLevel) {
             continue;
         }
