@@ -14,9 +14,8 @@ constexpr auto lightCubeScale = glm::vec3(.1F);
 
 constexpr char cameraName[] = "maze";
 
-constexpr glm::vec3 lightColors[6] = { { 1.F, 1.F, 1.F }, { 1.F, .1F, .1F },
-                                       { .1F, .1F, 1.F }, { .1F, 1.F, .1F },
-                                       { 1.F, 1.F, .1F }, { .1F, 1.F, 1.F } };
+constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
+                                    "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
 
@@ -175,6 +174,7 @@ void MazeLayer::setNumLights(const int32_t numLights) {
     this->numLights = numLights;
 
     for (int32_t i = 0; i < numLights; ++i) {
+        pointLights[i].color = sponge::core::Color::hexToRGB(colors[i]);
         pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
@@ -254,7 +254,7 @@ void MazeLayer::renderLightCubes() const {
 
     for (auto i = 0; i < numLights; ++i) {
         shader->bind();
-        shader->setFloat3("lightColor", lightColors[i]);
+        shader->setFloat3("lightColor", pointLights[i].color);
         shader->setMat4(
             "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
                          lightCubeScale));
@@ -306,7 +306,7 @@ void MazeLayer::updateShaderLights(const double elapsedTime) const {
         shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
                           pointLights[i].getAttenuation());
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                          lightColors[i]);
+                          pointLights[i].color);
     }
 
     shader->unbind();
