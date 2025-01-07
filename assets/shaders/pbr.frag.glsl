@@ -28,6 +28,83 @@ uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
+// Missing Deadlines (Benjamin Wrensch): https://iolite-engine.com/blog_posts/minimal_agx_implementation
+// Filament: https://github.com/google/filament/blob/main/filament/src/ToneMapper.cpp#L263
+// https://github.com/EaryChow/AgX_LUT_Gen/blob/main/AgXBaseRec2020.py
+
+// Three.js: https://github.com/mrdoob/three.js/blob/4993e3af579a27cec950401b523b6e796eab93ec/src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js#L79-L89
+// Matrices for rec 2020 <> rec 709 color space conversion
+// matrix provided in row-major order so it has been transposed
+// https://www.itu.int/pub/R-REP-BT.2407-2017
+const mat3 LINEAR_REC2020_TO_LINEAR_SRGB = mat3(
+  1.6605, -0.1246, -0.0182,
+  -0.5876, 1.1329, -0.1006,
+  -0.0728, -0.0083, 1.1187
+);
+
+const mat3 LINEAR_SRGB_TO_LINEAR_REC2020 = mat3(
+  0.6274, 0.0691, 0.0164,
+  0.3293, 0.9195, 0.0880,
+  0.0433, 0.0113, 0.8956
+);
+
+// Converted to column major from blender: https://github.com/blender/blender/blob/fc08f7491e7eba994d86b610e5ec757f9c62ac81/release/datafiles/colormanagement/config.ocio#L358
+const mat3 agx_mat = mat3(
+  0.856627153315983, 0.137318972929847, 0.11189821299995,
+  0.0951212405381588, 0.761241990602591, 0.0767994186031903,
+  0.0482516061458583, 0.101439036467562, 0.811302368396859);
+
+const float AgxMinEv = -12.47393f;
+const float AgxMaxEv = 4.026069f;
+
+vec3 agxDefaultContrastApprox(vec3 x) {
+  vec3 x2 = x * x;
+  vec3 x4 = x2 * x2;
+
+  return + 15.5     * x4 * x2
+         - 40.14    * x4 * x
+         + 31.96    * x4
+         - 6.868    * x2 * x
+         + 0.4298   * x2
+         + 0.1191   * x
+         - 0.00232;
+}
+
+vec3 agx(vec3 val) {
+  // From three.js
+  val = LINEAR_SRGB_TO_LINEAR_REC2020 * val;
+
+  // Input transform
+  val = agx_mat * val;
+
+  // From Filament: avoid 0 or negative numbers for log2
+  val = max(val, 1e-10);
+
+  // Log2 space encoding
+  val = clamp(log2(val), AgxMinEv, AgxMaxEv);
+  val = (val - AgxMinEv) / (AgxMaxEv - AgxMinEv);
+
+  // From Filament
+  val = clamp(val, 0.0, 1.0);
+
+  // Apply sigmoid function approximation
+  // Mean error^2: 3.6705141e-06
+  val = agxDefaultContrastApprox(val);
+
+  // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
+  // NOTE: We're linearizing the output here. Comment/adjust when
+  // *not* using a sRGB render target
+  // val = pow(max(vec3(0.0), val), vec3(2.2)); // From filament: max()
+
+  // From three.js
+  val = LINEAR_REC2020_TO_LINEAR_SRGB * val;
+
+  // Gamut mapping
+  val = clamp(val, 0.0, 1.0);
+
+  return val;
+}
+
 float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -124,12 +201,12 @@ void main() {
 
     vec3 color = ambient + Lo;
 
-    // Reinhard HDR tonemapping
-    color = color / (color + vec3(1.0));
+    // AgX tonemapping
+    color = agx(color);
 
     // gamma
     float gamma = 2.2;
-    color = pow(color, vec3(1.0 / gamma));
+    color = pow(max(vec3(0.0), color), vec3(1.0 / gamma));
 
     FragColor = vec4(color, 1.0);
 }
