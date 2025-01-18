@@ -10,6 +10,7 @@
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include <glm/glm.hpp>
 #include <array>
+#include <ranges>
 #include <utility>
 
 using sponge::input::KeyCode;
@@ -169,10 +170,9 @@ bool Application::onUserDestroy() {
 void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
-    for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
-         ++layer) {
-        if ((*layer)->isActive() && !event.handled) {
-            (*layer)->onEvent(event);
+    for (const auto & layer : std::ranges::reverse_view(*layerStack)) {
+        if (layer->isActive() && !event.handled) {
+            layer->onEvent(event);
         }
     }
 }
@@ -196,8 +196,8 @@ void Application::adjustAspectRatio(const uint32_t eventW,
     };
 
     glm::vec3 ratio;
-    if (const auto it =
-            std::find_if(std::begin(ratios), std::end(ratios), exceedsRatio);
+    if (const auto *const it =
+            std::ranges::find_if(ratios, exceedsRatio);
         it != std::end(ratios)) {
         ratio = *it;
     } else {
