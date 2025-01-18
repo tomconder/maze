@@ -89,6 +89,9 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup CMake
         uses: lukka/get-cmake@latest
 
@@ -101,9 +104,6 @@ jobs:
           vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Configure CMake
         run: >
