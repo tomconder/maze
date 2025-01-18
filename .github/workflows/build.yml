@@ -15,7 +15,7 @@ env:
   BUILD_DIR: build
   BUILD_TYPE: Release
   SCCACHE_GHA_ENABLED: true
-  VCPKG_GIT_COMMIT_ID: 'dc162683a25430d1610e4846d668f22caecc6e81'
+  VCPKG_GIT_COMMIT_ID: 'cf035d9916a0a23042b41fcae7ee0386d245af08'
 
 permissions:
   contents: read
@@ -85,6 +85,9 @@ jobs:
             preset: ci-windows-release
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -92,11 +95,8 @@ jobs:
       - name: Setup CMake
         uses: lukka/get-cmake@latest
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Cache the build
-        uses: mozilla-actions/sccache-action@v0.0.6
+        uses: mozilla-actions/sccache-action@v0.0.7
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
@@ -105,7 +105,7 @@ jobs:
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Configure CMake
+      - name: Create build tree
         run: >
           cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
           -DGIT_SHA=${{github.sha}}
@@ -118,5 +118,6 @@ jobs:
         with:
           name: maze-${{matrix.name}}
           path: ${{github.workspace}}/out/install/${{matrix.preset}}/
+          overwrite: true
           retention-days: 1
           if-no-files-found: error
