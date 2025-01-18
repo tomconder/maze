@@ -89,21 +89,21 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Cache the build
-        uses: mozilla-actions/sccache-action@v0.0.6
-
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Cache the build
+        uses: mozilla-actions/sccache-action@v0.0.7
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Configure CMake
         run: >
@@ -118,5 +118,6 @@ jobs:
         with:
           name: maze-${{matrix.name}}
           path: ${{github.workspace}}/out/install/${{matrix.preset}}/
+          overwrite: true
           retention-days: 1
           if-no-files-found: error
