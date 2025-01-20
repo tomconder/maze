@@ -162,6 +162,7 @@ TODO              text
 *.webm            binary
 
 # Fonts
+*.icns            binary
 *.ttf             binary
 *.eot             binary
 *.otf             binary
