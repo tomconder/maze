@@ -9,6 +9,10 @@
 #include "spdlog/spdlog.h"
 #endif
 
+// include custom log formatters
+// ReSharper disable once CppUnusedIncludeDirective
+#include "logging/logcustom.hpp"
+
 namespace sponge::logging {
 
 struct LogItem {
