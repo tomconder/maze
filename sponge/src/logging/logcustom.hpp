@@ -3,18 +3,45 @@
 #include <glm/glm.hpp>
 #include <spdlog/fmt/fmt.h>
 
-template <glm::length_t L, typename Pre>
-struct fmt::formatter<glm::vec<L, Pre>> : formatter<Pre> {
-    auto format(const glm::vec<L, Pre>& vec, format_context& ctx) const {
-        static_assert(L > 0 && L < 5, "the vec length are not supported!");
+// the format() method cannot be both static and const
+// ReSharper disable CppMemberFunctionMayBeStatic
 
-        formatter out;
-        for (glm::length_t l = 0; l < L - 1; ++l) {
-            out = formatter<Pre>::format(vec[l], ctx);
-            out = std::copy_n(", ", 2, out);
-            ctx.advance_to(out);
-        }
-        out = formatter<Pre>::format(vec[L - 1], ctx);
-        return std::copy_n(")", 1, out);
+template <>
+struct fmt::formatter<glm::vec2> {
+    constexpr auto parse(const format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    auto format(const glm::vec2& vec, format_context& ctx) const
+        -> decltype(ctx.out()) {
+        return format_to(ctx.out(), "({:.3f}, {:.3f})", vec.x, vec.y);
     }
 };
+
+template <>
+struct fmt::formatter<glm::vec3> {
+    constexpr auto parse(const format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    auto format(const glm::vec3& vec, format_context& ctx) const
+        -> decltype(ctx.out()) {
+        return format_to(ctx.out(), "({:.3f}, {:.3f}, {:.3f})", vec.x, vec.y,
+                         vec.z);
+    }
+};
+
+template <>
+struct fmt::formatter<glm::vec4> {
+    constexpr auto parse(const format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    auto format(const glm::vec4& vec, format_context& ctx) const
+        -> decltype(ctx.out()) {
+        return format_to(ctx.out(), "({:.3f}, {:.3f}, {:.3f}, {:.3f})", vec.x,
+                         vec.y, vec.z, vec.w);
+    }
+};
+
+// ReSharper restore CppMemberFunctionMayBeStatic
