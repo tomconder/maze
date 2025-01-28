@@ -16,6 +16,12 @@ class WindowResizeEvent final : public Event {
         return height;
     }
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "WindowResizeEvent: " << width << ", " << height;
+        return ss.str();
+    }
+
     EVENT_CLASS_TYPE(WindowResize)
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 

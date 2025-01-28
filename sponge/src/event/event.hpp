@@ -2,6 +2,8 @@
 
 #include "core/base.hpp"
 #include <cstdint>
+#include <ostream>
+#include <string>
 
 namespace sponge::event {
 
@@ -35,12 +37,15 @@ enum EventCategory : uint8_t {
         return this->fn(std::forward<decltype(args)>(args)...); \
     }
 
-#define EVENT_CLASS_TYPE(type)                \
-    static EventType getStaticType() {        \
-        return EventType::type;               \
-    }                                         \
-    EventType getEventType() const override { \
-        return getStaticType();               \
+#define EVENT_CLASS_TYPE(type)                        \
+    static EventType getStaticType() {                \
+        return EventType::type;                       \
+    }                                                 \
+    virtual EventType getEventType() const override { \
+        return getStaticType();                       \
+    }                                                 \
+    virtual const char* getName() const override {    \
+        return #type;                                 \
     }
 
 #define EVENT_CLASS_CATEGORY(category)      \
@@ -51,11 +56,14 @@ enum EventCategory : uint8_t {
 class Event {
    public:
     virtual ~Event() = default;
-
+    virtual std::string toString() const {
+        return getName();
+    }
     bool handled = false;
 
     virtual EventType getEventType() const = 0;
     virtual int getCategoryFlags() const = 0;
+    virtual const char* getName() const = 0;
 
     bool isInCategory(const EventCategory category) const {
         return (getCategoryFlags() & category) != 0;
@@ -78,5 +86,9 @@ class EventDispatcher {
    private:
     Event& event;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Event& e) {
+    return os << e.toString();
+}
 
 }  // namespace sponge::event

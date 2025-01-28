@@ -2,6 +2,7 @@
 
 #include "event/event.hpp"
 #include "input/mousecode.hpp"
+#include <sstream>
 
 namespace sponge::event {
 
@@ -22,6 +23,13 @@ class MouseMovedEvent final : public Event {
     }
     float getY() const {
         return y;
+    }
+
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseMovedEvent: " << x << ", " << y << " (" << xRelative << ", "
+           << yRelative << ")";
+        return ss.str();
     }
 
     EVENT_CLASS_TYPE(MouseMoved)
@@ -46,6 +54,12 @@ class MouseScrolledEvent final : public Event {
         return yOffset;
     }
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseScrolledEvent: " << xOffset << ", " << yOffset;
+        return ss.str();
+    }
+
     EVENT_CLASS_TYPE(MouseScrolled)
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
@@ -60,14 +74,18 @@ class MouseButtonEvent : public Event {
         return button;
     }
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseButtonEvent: " << button;
+        return ss.str();
+    }
+
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput |
                          EventCategoryMouseButton)
 
    protected:
     explicit MouseButtonEvent(const input::MouseButton button)
         : button(button) {}
-
-   private:
     input::MouseButton button;
 };
 
@@ -75,6 +93,12 @@ class MouseButtonPressedEvent final : public MouseButtonEvent {
    public:
     explicit MouseButtonPressedEvent(const input::MouseButton button)
         : MouseButtonEvent(button) {}
+
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseButtonPressedEvent: " << button;
+        return ss.str();
+    }
 
     EVENT_CLASS_TYPE(MouseButtonPressed)
 };
@@ -84,6 +108,12 @@ class MouseButtonReleasedEvent final : public MouseButtonEvent {
     explicit MouseButtonReleasedEvent(const input::MouseButton button)
         : MouseButtonEvent(button) {}
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseButtonReleasedEvent: " << button;
+        return ss.str();
+    }
+
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
 
@@ -91,6 +121,12 @@ class MouseButtonDownEvent final : public MouseButtonEvent {
    public:
     explicit MouseButtonDownEvent(const input::MouseButton button)
         : MouseButtonEvent(button) {}
+
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "MouseButtonDownEvent: " << button;
+        return ss.str();
+    }
 
     EVENT_CLASS_TYPE(MouseButtonDown)
 };
