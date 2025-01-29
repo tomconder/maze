@@ -25,11 +25,11 @@ void Window::init(const sponge::core::WindowProps& props) {
         SPONGE_CORE_CRITICAL("Title cannot be empty");
     }
 
-    SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
     if (props.fullscreen) {
+        SPONGE_CORE_INFO("Creating fullscreen window");
+
         GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
 
@@ -43,16 +43,25 @@ void Window::init(const sponge::core::WindowProps& props) {
                                   static_cast<int>(props.height),
                                   props.title.c_str(), primaryMonitor, nullptr);
     } else {
+        SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
+
         window = glfwCreateWindow(static_cast<int>(props.width),
                                   static_cast<int>(props.height),
                                   props.title.c_str(), nullptr, nullptr);
     }
 
     if (window == nullptr) {
-        const char* description;
+        const char* description = nullptr;
         glfwGetError(&description);
         SPONGE_CORE_CRITICAL("Could not create window: {}", description);
     }
+
+    int w = 0;
+    int h = 0;
+    glfwGetWindowSize(window, &w, &h);
+
+    data.width = static_cast<uint32_t>(w);
+    data.height = static_cast<uint32_t>(h);
 
     glfwSetWindowAttrib(window, GLFW_DECORATED,
                         props.fullscreen ? GLFW_FALSE : GLFW_TRUE);

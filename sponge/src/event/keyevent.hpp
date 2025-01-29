@@ -2,6 +2,7 @@
 
 #include "event/event.hpp"
 #include "input/keycode.hpp"
+#include <sstream>
 
 namespace sponge::event {
 
@@ -15,8 +16,6 @@ class KeyEvent : public Event {
 
    protected:
     explicit KeyEvent(const input::KeyCode keyCode) : keyCode(keyCode) {}
-
-   private:
     input::KeyCode keyCode;
 };
 
@@ -30,6 +29,13 @@ class KeyPressedEvent final : public KeyEvent {
         return isRepeated;
     }
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "KeyPressedEvent: " << keyCode
+           << (isRepeated ? " (Repeated)" : "");
+        return ss.str();
+    }
+
     EVENT_CLASS_TYPE(KeyPressed)
 
    private:
@@ -41,12 +47,24 @@ class KeyReleasedEvent final : public KeyEvent {
     explicit KeyReleasedEvent(const input::KeyCode keycode)
         : KeyEvent(keycode) {}
 
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "KeyPressedEvent: " << keyCode;
+        return ss.str();
+    }
+
     EVENT_CLASS_TYPE(KeyReleased)
 };
 
 class KeyTypedEvent final : public KeyEvent {
    public:
     explicit KeyTypedEvent(const input::KeyCode keycode) : KeyEvent(keycode) {}
+
+    std::string toString() const override {
+        std::stringstream ss;
+        ss << "KeyTypedEvent: " << keyCode;
+        return ss.str();
+    }
 
     EVENT_CLASS_TYPE(KeyTyped)
 };
