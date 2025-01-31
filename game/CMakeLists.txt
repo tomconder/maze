@@ -88,42 +88,42 @@ if (MSVC)
     message(STATUS "Applying fast math and SIMD support")
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
 
-    # Don't omit frame pointers (for crash dumps)
+    # do not omit frame pointers for crash dumps
     target_compile_options(sponge INTERFACE /Oy-)
 
-    # "Standard C++ exception handling" (C++ stack unwinding including extern c)
+    # enable exception handling
     target_compile_options(sponge INTERFACE /EHsc)
 
-    # Enable warnings and warnings as errors
+    # enable warnings and warnings as errors
     target_compile_options(sponge INTERFACE /W4 /WX)
 
-    # Disable RTTI
+    # disable RTTI
+    message(STATUS "Disable RTTI")
     target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
-
-    # Use /O2 (Maximize Speed)
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:/O2>)
 else ()
-    # See the implications here: https://stackoverflow.com/q/45685487
+    # see the implications here: https://stackoverflow.com/q/45685487
     message(STATUS "Applying fast math and SIMD support")
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
 
-    # Don't omit frame pointers (e.g. for crash dumps)
+    # do not omit frame pointers for crash dumps
     target_compile_options(sponge INTERFACE -fno-omit-frame-pointer)
 
-    # Enable exception handling
+    # enable exception handling
     target_compile_options(sponge INTERFACE -fexceptions)
 
-    # Enable warnings and warnings as errors
+    # enable warnings and warnings as errors
     target_compile_options(sponge INTERFACE -Wall -Werror)
 
-    # Disable RTTI
+    # disable RTTI
+    message(STATUS "Disable RTTI")
     target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
-    # Enable separate sections per function/data item
+    # enable separate sections per function and data item
     target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
     target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
-    # Discard unused sections
+    # discard unused sections
+    message(STATUS "Discard unused sections")
     target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
     target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
