@@ -3,9 +3,8 @@
 #include "sponge.hpp"
 
 namespace game::ui {
-
 class Button {
-   public:
+public:
     Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
            std::string message, uint32_t fontSize, std::string fontName,
            const glm::vec4& buttonColor, const glm::vec3& textColor);
@@ -14,7 +13,7 @@ class Button {
 
     bool isInside(const glm::vec2& position) const;
 
-    void setButtonColor(const glm::vec4& color);
+    void setButtonColor(const glm::vec4& val);
 
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
@@ -26,7 +25,7 @@ class Button {
         return hover;
     }
 
-   private:
+private:
     glm::vec2 top;
     glm::vec2 bottom;
     std::string text;
@@ -42,5 +41,4 @@ class Button {
     glm::vec2 textPosition;
     bool hover = false;
 };
-
-}  // namespace game::ui
+} // namespace game::ui

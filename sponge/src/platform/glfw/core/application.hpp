@@ -14,7 +14,6 @@
 #include <string>
 
 namespace sponge::platform::glfw::core {
-
 struct ApplicationSpecification {
     std::string name = "Sponge";
     uint32_t width = 1600;
@@ -26,7 +25,7 @@ struct ApplicationSpecification {
 using logging::LogItem;
 
 class Application : public sponge::core::Application {
-   public:
+public:
     explicit Application(ApplicationSpecification specification);
 
     ~Application() override;
@@ -79,8 +78,8 @@ class Application : public sponge::core::Application {
         return vsync;
     }
 
-    void setVerticalSync(const bool vsync) {
-        this->vsync = vsync;
+    void setVerticalSync(const bool val) {
+        vsync = val;
         glfwSwapInterval(vsync ? 1 : 0);
         SPONGE_CORE_DEBUG("Set vsync to {}", vsync);
     }
@@ -113,7 +112,7 @@ class Application : public sponge::core::Application {
         return imguiManager->isEventHandled();
     }
 
-   private:
+private:
     std::string appName = "undefined";
     std::unique_ptr<opengl::renderer::Context> graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
@@ -148,5 +147,4 @@ class Application : public sponge::core::Application {
     std::shared_ptr<imgui::NoopManager> imguiManager = noopManager;
 #endif
 };
-
-}  // namespace sponge::platform::glfw::core
+} // namespace sponge::platform::glfw::core

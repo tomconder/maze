@@ -87,10 +87,45 @@ if (MSVC)
     # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
     message(STATUS "Applying fast math and SIMD support")
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
+
+    # Don't omit frame pointers (for crash dumps)
+    target_compile_options(sponge INTERFACE /Oy-)
+
+    # "Standard C++ exception handling" (C++ stack unwinding including extern c)
+    target_compile_options(sponge INTERFACE /EHsc)
+
+    # Enable warnings and warnings as errors
+    target_compile_options(sponge INTERFACE /W4 /WX)
+
+    # Disable RTTI
+    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+
+    # Use /O2 (Maximize Speed)
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:/O2>)
 else ()
     # See the implications here: https://stackoverflow.com/q/45685487
     message(STATUS "Applying fast math and SIMD support")
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
+
+    # Don't omit frame pointers (e.g. for crash dumps)
+    target_compile_options(sponge INTERFACE -fno-omit-frame-pointer)
+
+    # Enable exception handling
+    target_compile_options(sponge INTERFACE -fexceptions)
+
+    # Enable warnings and warnings as errors
+    target_compile_options(sponge INTERFACE -Wall -Werror)
+
+    # Disable RTTI
+    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+
+    # Enable separate sections per function/data item
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
+
+    # Discard unused sections
+    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
+    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 
 target_include_directories(game PUBLIC src)

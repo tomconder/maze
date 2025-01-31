@@ -4,7 +4,6 @@
 #include "sponge.hpp"
 
 namespace game::layer {
-
 struct GameObject {
     const char* name;
     const char* path;
@@ -13,7 +12,7 @@ struct GameObject {
 };
 
 class MazeLayer final : public sponge::layer::Layer {
-   public:
+public:
     MazeLayer();
 
     void onAttach() override;
@@ -32,39 +31,39 @@ class MazeLayer final : public sponge::layer::Layer {
         return metallic;
     }
 
-    void setMetallic(bool metallic);
+    void setMetallic(bool val);
 
     float getAmbientOcclusion() const {
         return ao;
     }
 
-    void setAmbientOcclusion(float ao);
+    void setAmbientOcclusion(float val);
 
     float getAmbientStrength() const {
         return ambientStrength;
     }
 
-    void setAmbientStrength(float strength);
+    void setAmbientStrength(float val);
 
     float getRoughness() const {
         return roughness;
     }
 
-    void setRoughness(float roughness);
+    void setRoughness(float val);
 
     int32_t getNumLights() const {
         return numLights;
     }
 
-    void setNumLights(int32_t numLights);
+    void setNumLights(int32_t val);
 
     int32_t getAttenuationIndex() const {
         return attenuationIndex;
     }
 
-    void setAttenuationIndex(int32_t attenuationIndex);
+    void setAttenuationIndex(int32_t val);
 
-   private:
+private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
 
@@ -93,5 +92,4 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void updateShaderLights(double elapsedTime) const;
 };
-
-}  // namespace game::layer
+} // namespace game::layer

@@ -18,55 +18,19 @@ constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
                                     "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
-}  // namespace
+} // namespace
 
 namespace game::layer {
-
 using sponge::input::KeyCode;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
 
 constexpr GameObject gameObjects[] = {
-    { .name = const_cast<char*>("cube"),
-      .path = const_cast<char*>("/models/cube/cube.obj"),
-      .scale = glm::vec3(.5F),
-      .translation = glm::vec3(-3.F, .5003F, 2.25F) },
-
-    { .name = const_cast<char*>("texcube"),
-      .path = const_cast<char*>("/models/cube/cube-tex.obj"),
-      .scale = glm::vec3(.55F),
-      .translation = glm::vec3(2.5F, .003F, 1.25F) },
-
-    { .name = const_cast<char*>("vase"),
-      .path = const_cast<char*>("/models/vase/flat_vase.obj"),
-      .scale = glm::vec3(2.5F, 2.F, 2.5F),
-      .translation = glm::vec3(-.25F, .003F, .25F) },
-
-    { .name = const_cast<char*>("smoothVase"),
-      .path = const_cast<char*>("/models/vase/smooth_vase.obj"),
-      .scale = glm::vec3(2.5F),
-      .translation = glm::vec3(.25F, .003F, .25F) },
-
-    { .name = const_cast<char*>("sphere"),
-      .path = const_cast<char*>("/models/sphere/flat_sphere.obj"),
-      .scale = glm::vec3(.25F),
-      .translation = glm::vec3(-2.25F, 1.F, 5.F) },
-
-    { .name = const_cast<char*>("smoothSphere"),
-      .path = const_cast<char*>("/models/sphere/smooth_sphere.obj"),
-      .scale = glm::vec3(.25F),
-      .translation = glm::vec3(2.8F, 1.F, 5.F) },
-
-    { .name = const_cast<char*>("spider"),
-      .path = const_cast<char*>("/models/spider/spider.obj"),
-      .scale = glm::vec3(.8F),
-      .translation = glm::vec3(2.5F, 0.003F, -0.25F) },
-
     { .name = const_cast<char*>("helmet"),
       .path = const_cast<char*>("/models/helmet/damaged_helmet.obj"),
       .scale = glm::vec3(.5F),
-      .translation = glm::vec3(-2.15F, 0.F, 0.F) },
+      .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     { .name = const_cast<char*>("floor"),
       .path = const_cast<char*>("/models/floor/floor.obj"),
@@ -117,8 +81,8 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void MazeLayer::setMetallic(const bool metallic) {
-    this->metallic = metallic;
+void MazeLayer::setMetallic(const bool val) {
+    metallic = val;
 
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
@@ -127,8 +91,8 @@ void MazeLayer::setMetallic(const bool metallic) {
     shader->unbind();
 }
 
-void MazeLayer::setAmbientOcclusion(const float ao) {
-    this->ao = ao;
+void MazeLayer::setAmbientOcclusion(const float val) {
+    ao = val;
 
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
@@ -137,8 +101,8 @@ void MazeLayer::setAmbientOcclusion(const float ao) {
     shader->unbind();
 }
 
-void MazeLayer::setAmbientStrength(const float strength) {
-    this->ambientStrength = strength;
+void MazeLayer::setAmbientStrength(const float val) {
+    ambientStrength = val;
 
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
@@ -147,8 +111,8 @@ void MazeLayer::setAmbientStrength(const float strength) {
     shader->unbind();
 }
 
-void MazeLayer::setRoughness(const float roughness) {
-    this->roughness = roughness;
+void MazeLayer::setRoughness(const float val) {
+    roughness = val;
 
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
@@ -157,8 +121,8 @@ void MazeLayer::setRoughness(const float roughness) {
     shader->unbind();
 }
 
-void MazeLayer::setNumLights(const int32_t numLights) {
-    this->numLights = numLights;
+void MazeLayer::setNumLights(const int32_t val) {
+    numLights = val;
 
     for (int32_t i = 0; i < numLights; ++i) {
         pointLights[i].color = sponge::core::Color::hexToRGB(colors[i]);
@@ -171,8 +135,8 @@ void MazeLayer::setNumLights(const int32_t numLights) {
     }
 }
 
-void MazeLayer::setAttenuationIndex(const int32_t attenuationIndex) {
-    this->attenuationIndex = attenuationIndex;
+void MazeLayer::setAttenuationIndex(const int32_t val) {
+    attenuationIndex = val;
     setNumLights(numLights);
 }
 
@@ -298,5 +262,4 @@ void MazeLayer::updateShaderLights(const double elapsedTime) const {
 
     shader->unbind();
 }
-
-}  // namespace game::layer
+} // namespace game::layer
