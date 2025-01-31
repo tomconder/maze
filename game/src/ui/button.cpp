@@ -2,7 +2,6 @@
 #include <utility>
 
 namespace game::ui {
-
 using sponge::platform::opengl::renderer::ResourceManager;
 
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
@@ -37,8 +36,8 @@ bool Button::isInside(const glm::vec2& position) const {
            bottom.x >= position.x && bottom.y >= position.y;
 }
 
-void Button::setButtonColor(const glm::vec4& color) {
-    this->color = glm::vec4(color);
+void Button::setButtonColor(const glm::vec4& val) {
+    color = glm::vec4(val);
 }
 
 void Button::setPosition(const glm::vec2& topLeft,
@@ -55,5 +54,4 @@ void Button::setPosition(const glm::vec2& topLeft,
     textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
                      top.y + ((height - static_cast<float>(textSize)) / 2.F) };
 }
-
 }  // namespace game::ui

@@ -4,16 +4,21 @@
 #include <string>
 
 namespace sponge::layer {
-
 class Layer {
    public:
     explicit Layer(std::string name = "undefined");
     virtual ~Layer() = default;
 
     virtual void onAttach() {}
+
     virtual void onDetach() {}
-    virtual void onEvent(event::Event& event) {}
+
+    virtual void onEvent(event::Event& event) {
+        UNUSED(event);
+    }
+
     virtual void onImGuiRender() {}
+
     virtual bool onUpdate(const double elapsedTime) {
         UNUSED(elapsedTime);
         return true;
