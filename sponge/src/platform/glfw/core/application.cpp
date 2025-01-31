@@ -170,7 +170,7 @@ bool Application::onUserDestroy() {
 void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
-    for (const auto & layer : std::ranges::reverse_view(*layerStack)) {
+    for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
         if (layer->isActive() && !event.handled) {
             layer->onEvent(event);
         }
@@ -196,8 +196,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
     };
 
     glm::vec3 ratio;
-    if (const auto it =
-            std::ranges::find_if(ratios, exceedsRatio);
+    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
         it != std::end(ratios)) {
         ratio = *it;
     } else {

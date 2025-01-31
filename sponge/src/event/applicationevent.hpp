@@ -1,6 +1,7 @@
 #pragma once
 
 #include "event/event.hpp"
+#include <sstream>
 
 namespace sponge::event {
 
