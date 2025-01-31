@@ -5,22 +5,19 @@
 
 namespace sponge::layer {
 class Layer {
-public:
+   public:
     explicit Layer(std::string name = "undefined");
     virtual ~Layer() = default;
 
-    virtual void onAttach() {
-    }
+    virtual void onAttach() {}
 
-    virtual void onDetach() {
-    }
+    virtual void onDetach() {}
 
     virtual void onEvent(event::Event& event) {
         UNUSED(event);
     }
 
-    virtual void onImGuiRender() {
-    }
+    virtual void onImGuiRender() {}
 
     virtual bool onUpdate(const double elapsedTime) {
         UNUSED(elapsedTime);
@@ -39,10 +36,10 @@ public:
         active = value;
     }
 
-protected:
+   protected:
     std::string debugName;
 
-private:
+   private:
     bool active = true;
 };
-} // namespace sponge::layer
+}  // namespace sponge::layer

@@ -54,4 +54,4 @@ void Button::setPosition(const glm::vec2& topLeft,
     textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
                      top.y + ((height - static_cast<float>(textSize)) / 2.F) };
 }
-} // namespace game::ui
+}  // namespace game::ui

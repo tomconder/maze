@@ -18,7 +18,7 @@ constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
                                     "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
-} // namespace
+}  // namespace
 
 namespace game::layer {
 using sponge::input::KeyCode;
@@ -262,4 +262,4 @@ void MazeLayer::updateShaderLights(const double elapsedTime) const {
 
     shader->unbind();
 }
-} // namespace game::layer
+}  // namespace game::layer
