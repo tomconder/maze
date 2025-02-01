@@ -28,6 +28,3 @@ vcpkg:
 
 feature:
   - head-branch: [ '^feature', 'feature' ]
-
-release:
-  - base-branch: 'main'
