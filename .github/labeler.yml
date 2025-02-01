@@ -25,3 +25,9 @@ sponge:
 vcpkg:
   - changed-files:
       - any-glob-to-any-file: [ 'vcpkg.json', 'vcpkg-configuration.json' ]
+
+feature:
+  - head-branch: [ '^feature', 'feature' ]
+
+release:
+  - base-branch: 'main'
