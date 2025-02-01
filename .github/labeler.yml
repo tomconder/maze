@@ -1,20 +1,27 @@
 repo:
-  - all: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
-
-documentation:
-  - any: [ 'README.md', 'docs/**' ]
-
-tests:
-  - tests/**
-
-game:
-  - game/**
-
-sponge:
-  - sponge/**
-
-cmake:
-  - any: [ '**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**' ]
+  - changed-files:
+      - all-glob-to-all-file: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
 
 ci:
-  - .github/workflows/**
+  - changed-files:
+      - any-glob-to-any-file: '.github/workflows/**'
+
+cmake:
+  - changed-files:
+      - any-glob-to-any-file: [ '**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**' ]
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: [ 'README.md', 'docs/**' ]
+
+game:
+  - changed-files:
+      - any-glob-to-any-file: 'game/**'
+
+sponge:
+  - changed-files:
+      - any-glob-to-any-file: 'sponge/**'
+
+vcpkg:
+  - changed-files:
+      - any-glob-to-any-file: [ 'vcpkg.json', 'vcpkg-configuration.json' ]
