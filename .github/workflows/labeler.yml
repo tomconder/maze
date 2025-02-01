@@ -1,4 +1,4 @@
-name: "Pull Request Labeler"
+name: "pull request labeler"
 
 on:
   - pull_request_target
@@ -12,5 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/labeler@v4
+      - uses: actions/checkout@v4
+
+      - id: label-pr
+        uses: actions/labeler@v5
