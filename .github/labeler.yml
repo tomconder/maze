@@ -1,6 +1,6 @@
 repo:
   - changed-files:
-      - all-glob-to-all-file: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
+      - all-globs-to-all-files: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
 
 ci:
   - changed-files:
