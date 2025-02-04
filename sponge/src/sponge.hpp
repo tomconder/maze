@@ -40,7 +40,6 @@
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/font.hpp"
-#include "platform/opengl/scene/grid.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/quad.hpp"
