@@ -23,7 +23,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.91.6"
+      "version>=": "1.91.8"
     },
     {
       "name": "meshoptimizer",
@@ -31,7 +31,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.15.0"
+      "version>=": "1.15.1"
     },
     {
       "name": "stb",
