@@ -15,10 +15,9 @@ constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
-}  // namespace
+} // namespace
 
 namespace game::layer {
-
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::opengl::scene::Quad;
@@ -65,15 +64,25 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
-        BIND_EVENT_FN(onKeyPressed));
+        [this](const sponge::event::KeyPressedEvent& event) {
+            return this->onKeyPressed(event);
+        });
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        BIND_EVENT_FN(onMouseButtonPressed));
+        [this](const sponge::event::MouseButtonPressedEvent& event) {
+            return this->onMouseButtonPressed(event);
+        });
     dispatcher.dispatch<sponge::event::MouseMovedEvent>(
-        BIND_EVENT_FN(onMouseMoved));
+        [this](const sponge::event::MouseMovedEvent& event) {
+            return this->onMouseMoved(event);
+        });
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
-        BIND_EVENT_FN(onMouseScrolled));
+        [this](const sponge::event::MouseScrolledEvent& event) {
+            return this->onMouseScrolled(event);
+        });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        BIND_EVENT_FN(onWindowResize));
+        [this](const sponge::event::WindowResizeEvent& event) {
+            return this->onWindowResize(event);
+        });
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
@@ -184,5 +193,4 @@ bool ExitLayer::onMouseScrolled(
     UNUSED(event);
     return true;
 }
-
-}  // namespace game::layer
+} // namespace game::layer

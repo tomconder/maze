@@ -2,11 +2,11 @@
 
 #include "core/base.hpp"
 #include <cstdint>
+#include <functional>
 #include <ostream>
 #include <string>
 
 namespace sponge::event {
-
 enum class EventType : uint8_t {
     None = 0,
     KeyPressed,
@@ -32,11 +32,6 @@ enum EventCategory : uint8_t {
     EventCategoryMouseButton = BIT(4)
 };
 
-#define BIND_EVENT_FN(fn)                                       \
-    [this](auto&&... args) -> decltype(auto) {                  \
-        return this->fn(std::forward<decltype(args)>(args)...); \
-    }
-
 #define EVENT_CLASS_TYPE(type)                        \
     static EventType getStaticType() {                \
         return EventType::type;                       \
@@ -54,11 +49,13 @@ enum EventCategory : uint8_t {
     }
 
 class Event {
-   public:
+public:
     virtual ~Event() = default;
+
     virtual std::string toString() const {
         return getName();
     }
+
     bool handled = false;
 
     virtual EventType getEventType() const = 0;
@@ -71,11 +68,16 @@ class Event {
 };
 
 class EventDispatcher {
-   public:
-    explicit EventDispatcher(Event& event) : event(event) {}
+    template <typename T>
+    using EventFn = std::function<bool(T&)>;
 
-    template <typename T, typename F>
-    bool dispatch(const F& func) {
+public:
+    explicit EventDispatcher(Event& event)
+        : event(event) {
+    }
+
+    template <typename T>
+    bool dispatch(EventFn<T> func) {
         if (event.getEventType() == T::getStaticType() && !event.handled) {
             event.handled |= func(static_cast<T&>(event));
             return true;
@@ -83,12 +85,11 @@ class EventDispatcher {
         return false;
     }
 
-   private:
+private:
     Event& event;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Event& e) {
     return os << e.toString();
 }
-
-}  // namespace sponge::event
+} // namespace sponge::event

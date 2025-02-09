@@ -18,7 +18,7 @@ constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
                                     "1AFF1A", "FFFF1A", "1AFFFF" };
 
 PointLight pointLights[6];
-}  // namespace
+} // namespace
 
 namespace game::layer {
 using sponge::input::KeyCode;
@@ -144,13 +144,21 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        BIND_EVENT_FN(onMouseButtonPressed));
+        [this](const sponge::event::MouseButtonPressedEvent& event) {
+            return this->onMouseButtonPressed(event);
+        });
     dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
-        BIND_EVENT_FN(onMouseButtonReleased));
+        [this](const sponge::event::MouseButtonReleasedEvent& event) {
+            return this->onMouseButtonReleased(event);
+        });
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
-        BIND_EVENT_FN(onMouseScrolled));
+        [this](const sponge::event::MouseScrolledEvent& event) {
+            return this->onMouseScrolled(event);
+        });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        BIND_EVENT_FN(onWindowResize));
+        [this](const sponge::event::WindowResizeEvent& event) {
+            return this->onWindowResize(event);
+        });
 }
 
 bool MazeLayer::onMouseButtonPressed(
@@ -262,4 +270,4 @@ void MazeLayer::updateShaderLights(const double elapsedTime) const {
 
     shader->unbind();
 }
-}  // namespace game::layer
+} // namespace game::layer

@@ -5,10 +5,9 @@ namespace {
 constexpr char cameraName[] = "hud";
 constexpr char textureName[] = "coffee";
 constexpr char texturePath[] = "/textures/coffee.png";
-}  // namespace
+} // namespace
 
 namespace game::layer {
-
 using sponge::platform::opengl::renderer::ResourceManager;
 
 HUDLayer::HUDLayer() : Layer("hud") {
@@ -45,7 +44,9 @@ void HUDLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        BIND_EVENT_FN(onWindowResize));
+        [this](const sponge::event::WindowResizeEvent& event) {
+            return this->onWindowResize(event);
+        });
 }
 
 bool HUDLayer::onWindowResize(
@@ -60,5 +61,4 @@ bool HUDLayer::onWindowResize(
 
     return false;
 }
-
-}  // namespace game::layer
+} // namespace game::layer
