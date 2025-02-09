@@ -25,7 +25,6 @@ constexpr const char* logLevels[logLevelCount] = {
 }  // namespace
 
 namespace game::layer {
-
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -78,18 +77,6 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::Text("FOV");
         ImGui::TableNextColumn();
         ImGui::Text("%.0f", camera->getFov());
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Pitch");
-        ImGui::TableNextColumn();
-        ImGui::Text("%.0f", camera->getPitch());
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Yaw");
-        ImGui::TableNextColumn();
-        ImGui::Text("%.0f", camera->getYaw());
 
         ImGui::EndTable();
         ImGui::Separator();
@@ -327,5 +314,4 @@ void ImGuiLayer::showLogging() {
 
     ImGui::EndChild();
 }
-
 }  // namespace game::layer

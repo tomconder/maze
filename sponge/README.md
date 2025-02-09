@@ -1,3 +1,3 @@
 Sponge
 ===
-Introducing the sponge engine. Game on!
+Introducing the sponge engine.
