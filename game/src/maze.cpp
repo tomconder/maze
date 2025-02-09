@@ -44,11 +44,11 @@ void Maze::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         [this](const sponge::event::KeyPressedEvent& event) {
-            return onKeyPressed(event);
+            return this->onKeyPressed(event);
         });
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
         [this](const sponge::event::WindowCloseEvent& event) {
-            return onWindowClose(event);
+            return this->onWindowClose(event);
         });
 
     Application::onEvent(event);

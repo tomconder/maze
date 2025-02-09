@@ -4,9 +4,8 @@
 #include "ui/button.hpp"
 
 namespace game::layer {
-
 class ExitLayer final : public sponge::layer::Layer {
-   public:
+public:
     ExitLayer();
 
     void onAttach() override;
@@ -17,7 +16,7 @@ class ExitLayer final : public sponge::layer::Layer {
 
     bool onUpdate(double elapsedTime) override;
 
-   private:
+private:
     std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
     std::string fontShaderName;
     std::string quadShaderName;
@@ -35,9 +34,8 @@ class ExitLayer final : public sponge::layer::Layer {
 
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
-    static bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
+    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };
-
-}  // namespace game::layer
+} // namespace game::layer

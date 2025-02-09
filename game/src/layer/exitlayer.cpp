@@ -65,23 +65,23 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
 
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         [this](const sponge::event::KeyPressedEvent& event) {
-            return onKeyPressed(event);
+            return this->onKeyPressed(event);
         });
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         [this](const sponge::event::MouseButtonPressedEvent& event) {
-            return onMouseButtonPressed(event);
+            return this->onMouseButtonPressed(event);
         });
     dispatcher.dispatch<sponge::event::MouseMovedEvent>(
         [this](const sponge::event::MouseMovedEvent& event) {
-            return onMouseMoved(event);
+            return this->onMouseMoved(event);
         });
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
         [this](const sponge::event::MouseScrolledEvent& event) {
-            return onMouseScrolled(event);
+            return this->onMouseScrolled(event);
         });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         [this](const sponge::event::WindowResizeEvent& event) {
-            return onWindowResize(event);
+            return this->onWindowResize(event);
         });
 }
 

@@ -145,19 +145,19 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
 
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         [this](const sponge::event::MouseButtonPressedEvent& event) {
-            return onMouseButtonPressed(event);
+            return this->onMouseButtonPressed(event);
         });
     dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
         [this](const sponge::event::MouseButtonReleasedEvent& event) {
-            return onMouseButtonReleased(event);
+            return this->onMouseButtonReleased(event);
         });
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
         [this](const sponge::event::MouseScrolledEvent& event) {
-            return onMouseScrolled(event);
+            return this->onMouseScrolled(event);
         });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         [this](const sponge::event::WindowResizeEvent& event) {
-            return onWindowResize(event);
+            return this->onWindowResize(event);
         });
 }
 

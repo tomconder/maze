@@ -45,7 +45,7 @@ void HUDLayer::onEvent(sponge::event::Event& event) {
 
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         [this](const sponge::event::WindowResizeEvent& event) {
-            return onWindowResize(event);
+            return this->onWindowResize(event);
         });
 }
 
