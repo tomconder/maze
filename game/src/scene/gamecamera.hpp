@@ -4,27 +4,14 @@
 #include <glm/mat4x4.hpp>
 
 namespace game::scene {
-
 class GameCamera final : public sponge::scene::Camera {
-   public:
+public:
     GameCamera();
 
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
 
     const glm::mat4& getMVP() const {
         return mvp;
-    }
-
-    const glm::mat4& getProjection() const {
-        return projection;
-    }
-
-    const glm::mat4& getView() const {
-        return view;
-    }
-
-    const glm::mat4& getViewportMatrix() const {
-        return viewport;
     }
 
     void setPosition(const glm::vec3& position);
@@ -35,22 +22,6 @@ class GameCamera final : public sponge::scene::Camera {
 
     float getFov() const {
         return fov;
-    }
-
-    float getWidth() const {
-        return width;
-    }
-
-    float getHeight() const {
-        return height;
-    }
-
-    float getPitch() const {
-        return pitch;
-    }
-
-    float getYaw() const {
-        return yaw;
     }
 
     void moveForward(double_t delta);
@@ -65,7 +36,7 @@ class GameCamera final : public sponge::scene::Camera {
 
     void mouseScroll(const glm::vec2& offset);
 
-   private:
+private:
     void updateProjection();
 
     void updateView();
@@ -95,5 +66,4 @@ class GameCamera final : public sponge::scene::Camera {
     static constexpr glm::vec3 up = { 0.F, 1.F, 0.F };
     glm::vec3 cameraFront = { 0.F, 0.F, -1.F };
 };
-
-}  // namespace game::scene
+} // namespace game::scene
