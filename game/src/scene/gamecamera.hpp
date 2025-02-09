@@ -5,7 +5,7 @@
 
 namespace game::scene {
 class GameCamera final : public sponge::scene::Camera {
-   public:
+  public:
     GameCamera();
 
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
@@ -36,7 +36,7 @@ class GameCamera final : public sponge::scene::Camera {
 
     void mouseScroll(const glm::vec2& offset);
 
-   private:
+  private:
     void updateProjection();
 
     void updateView();
@@ -57,7 +57,6 @@ class GameCamera final : public sponge::scene::Camera {
     glm::mat4 projection = glm::mat4(1.F);
     glm::mat4 view = glm::mat4(1.F);
     glm::mat4 model = glm::mat4(1.F);
-    glm::mat4 viewport = glm::mat4(1.F);
 
     // mvp = model * view * projection
     glm::mat4 mvp = glm::mat4(1.F);
@@ -66,4 +65,4 @@ class GameCamera final : public sponge::scene::Camera {
     static constexpr glm::vec3 up = { 0.F, 1.F, 0.F };
     glm::vec3 cameraFront = { 0.F, 0.F, -1.F };
 };
-}  // namespace game::scene
+} // namespace game::scene

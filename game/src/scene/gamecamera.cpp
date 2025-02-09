@@ -3,14 +3,13 @@
 #include <glm/ext/matrix_transform.hpp>
 
 namespace game::scene {
-
 GameCamera::GameCamera() {
     updateView();
 
     const auto radYaw = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
-    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch),  //
-                    glm::sin(radPitch),                     //
+    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch), //
+                    glm::sin(radPitch), //
                     glm::sin(radYaw) * glm::cos(radPitch) };
 }
 
@@ -18,13 +17,6 @@ void GameCamera::updateProjection() {
     projection =
         glm::perspectiveFov(glm::radians(fov), width, height, zNear, zFar);
     mvp = projection * view;
-
-    const float halfH = height / 2.F;
-    const float halfW = width / 2.F;
-    viewport = glm::mat4{ halfW, 0.F,   0.F, halfW,  //
-                          0.F,   halfH, 0.F, halfH,  //
-                          0.F,   0.F,   1.F, 0.F,    //
-                          0.F,   0.F,   0.F, 1.F };
 }
 
 void GameCamera::updateView() {
@@ -56,13 +48,13 @@ void GameCamera::moveForward(const double_t delta) {
 
 void GameCamera::strafeLeft(const double_t delta) {
     cameraPos -= normalize(cross(cameraFront, up)) *
-                 static_cast<float>(delta * cameraSpeed);
+        static_cast<float>(delta * cameraSpeed);
     updateView();
 }
 
 void GameCamera::strafeRight(const double_t delta) {
     cameraPos += normalize(cross(cameraFront, up)) *
-                 static_cast<float>(delta * cameraSpeed);
+        static_cast<float>(delta * cameraSpeed);
     updateView();
 }
 
@@ -76,8 +68,8 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     const auto radYaw = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
     cameraFront =
-        normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),  //
-                             glm::sin(radPitch),                     //
+        normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch), //
+                             glm::sin(radPitch), //
                              glm::sin(radYaw) * glm::cos(radPitch) });
 
     updateView();
@@ -92,5 +84,4 @@ void GameCamera::mouseScroll(const glm::vec2& offset) {
     fov = glm::clamp(fov, 30.F, 120.0F);
     updateProjection();
 }
-
-}  // namespace game::scene
+} // namespace game::scene
