@@ -3,6 +3,7 @@
 #include "scene/pointlight.hpp"
 #include "sponge.hpp"
 #include <glm/ext/matrix_transform.hpp>
+#include <array>
 
 namespace {
 constexpr auto keyboardSpeed = .075F;
@@ -12,12 +13,9 @@ constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
 
 constexpr auto lightCubeScale = glm::vec3(.1F);
 
-constexpr char cameraName[] = "maze";
+constexpr std::string_view cameraName = "maze";
 
-constexpr const char* colors[6] = { "FFFFFF", "FF1A1A", "1A1AFF",
-                                    "1AFF1A", "FFFF1A", "1AFFFF" };
-
-PointLight pointLights[6];
+std::array<PointLight, 6> pointLights;
 } // namespace
 
 namespace game::layer {
@@ -26,16 +24,18 @@ using sponge::platform::glfw::core::Application;
 using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
 
-constexpr GameObject gameObjects[] = {
-    { .name = const_cast<char*>("helmet"),
-      .path = const_cast<char*>("/models/helmet/damaged_helmet.obj"),
-      .scale = glm::vec3(.5F),
-      .translation = glm::vec3(0.F, 0.F, 0.F) },
+constexpr std::array gameObjects = {
+    GameObject{ .name = "helmet",
+                .path = "/models/helmet/damaged_helmet.obj",
+                .scale = glm::vec3(.5F),
+                .translation = glm::vec3(0.F, 0.F, 0.F) },
 
-    { .name = const_cast<char*>("floor"),
-      .path = const_cast<char*>("/models/floor/floor.obj"),
-      .scale = glm::vec3(1.F),
-      .translation = glm::vec3(0.F, 0.002F, 0.F) }
+    GameObject{
+        .name = "floor",
+        .path = "/models/floor/floor.obj",
+        .scale = glm::vec3(1.F),
+        .translation = glm::vec3(0.F, 0.002F, 0.F)
+    }
 };
 
 MazeLayer::MazeLayer() : Layer("maze") {
@@ -47,7 +47,7 @@ void MazeLayer::onAttach() {
         ResourceManager::loadModel(gameObject.name, gameObject.path);
     }
 
-    camera = game::ResourceManager::createGameCamera(cameraName);
+    camera = game::ResourceManager::createGameCamera(std::string(cameraName));
     camera->setPosition(cameraPosition);
 
     const auto shaderName =
@@ -65,6 +65,7 @@ void MazeLayer::onAttach() {
     cube = std::make_unique<sponge::platform::opengl::scene::Cube>();
 
     setNumLights(numLights);
+    updateShaderLights();
 }
 
 void MazeLayer::onDetach() {
@@ -72,7 +73,6 @@ void MazeLayer::onDetach() {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    updateShaderLights(elapsedTime);
     updateCamera(elapsedTime);
 
     renderGameObjects();
@@ -125,7 +125,7 @@ void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
     for (int32_t i = 0; i < numLights; ++i) {
-        pointLights[i].color = sponge::core::Color::hexToRGB(colors[i]);
+        pointLights[i].color = glm::vec3(1.F);
         pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
@@ -133,6 +133,8 @@ void MazeLayer::setNumLights(const int32_t val) {
 
         pointLights[i].setAttenuationFromIndex(attenuationIndex);
     }
+
+    updateShaderLights();
 }
 
 void MazeLayer::setAttenuationIndex(const int32_t val) {
@@ -144,20 +146,20 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        [this](const sponge::event::MouseButtonPressedEvent& event) {
-            return this->onMouseButtonPressed(event);
+        [this](const sponge::event::MouseButtonPressedEvent& mbEvent) {
+            return this->onMouseButtonPressed(mbEvent);
         });
     dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
-        [this](const sponge::event::MouseButtonReleasedEvent& event) {
-            return this->onMouseButtonReleased(event);
+        [this](const sponge::event::MouseButtonReleasedEvent& mrEvent) {
+            return this->onMouseButtonReleased(mrEvent);
         });
     dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
-        [this](const sponge::event::MouseScrolledEvent& event) {
-            return this->onMouseScrolled(event);
+        [this](const sponge::event::MouseScrolledEvent& msEvent) {
+            return this->onMouseScrolled(msEvent);
         });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        [this](const sponge::event::WindowResizeEvent& event) {
-            return this->onWindowResize(event);
+        [this](const sponge::event::WindowResizeEvent& wsEvent) {
+            return this->onWindowResize(wsEvent);
         });
 }
 
@@ -244,20 +246,14 @@ void MazeLayer::updateCamera(const double elapsedTime) const {
     }
 }
 
-void MazeLayer::updateShaderLights(const double elapsedTime) const {
+void MazeLayer::updateShaderLights() const {
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
 
     shader->bind();
     shader->setInteger("numLights", numLights);
 
-    const auto rotateLight =
-        rotate(glm::mat4(1.F), static_cast<float>(elapsedTime * 5),
-               { 0.F, -1.F, 0.F });
-
     for (int32_t i = 0; i < numLights; ++i) {
-        pointLights[i].translation =
-            glm::vec3(rotateLight * glm::vec4(pointLights[i].translation, 1.F));
         pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
 
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
