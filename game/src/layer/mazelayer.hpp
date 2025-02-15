@@ -12,7 +12,7 @@ struct GameObject {
 };
 
 class MazeLayer final : public sponge::layer::Layer {
-public:
+   public:
     MazeLayer();
 
     void onAttach() override;
@@ -63,7 +63,7 @@ public:
 
     void setAttenuationIndex(int32_t val);
 
-private:
+   private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
 
@@ -92,4 +92,4 @@ private:
 
     void updateShaderLights() const;
 };
-} // namespace game::layer
+}  // namespace game::layer

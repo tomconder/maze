@@ -16,7 +16,7 @@ constexpr auto lightCubeScale = glm::vec3(.1F);
 constexpr std::string_view cameraName = "maze";
 
 std::array<PointLight, 6> pointLights;
-} // namespace
+}  // namespace
 
 namespace game::layer {
 using sponge::input::KeyCode;
@@ -30,12 +30,10 @@ constexpr std::array gameObjects = {
                 .scale = glm::vec3(.5F),
                 .translation = glm::vec3(0.F, 0.F, 0.F) },
 
-    GameObject{
-        .name = "floor",
-        .path = "/models/floor/floor.obj",
-        .scale = glm::vec3(1.F),
-        .translation = glm::vec3(0.F, 0.002F, 0.F)
-    }
+    GameObject{ .name = "floor",
+                .path = "/models/floor/floor.obj",
+                .scale = glm::vec3(1.F),
+                .translation = glm::vec3(0.F, 0.002F, 0.F) }
 };
 
 MazeLayer::MazeLayer() : Layer("maze") {
@@ -266,4 +264,4 @@ void MazeLayer::updateShaderLights() const {
 
     shader->unbind();
 }
-} // namespace game::layer
+}  // namespace game::layer
