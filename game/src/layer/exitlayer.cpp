@@ -15,7 +15,7 @@ constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
-} // namespace
+}  // namespace
 
 namespace game::layer {
 using sponge::platform::glfw::core::Application;
@@ -193,4 +193,4 @@ bool ExitLayer::onMouseScrolled(
     UNUSED(event);
     return true;
 }
-} // namespace game::layer
+}  // namespace game::layer

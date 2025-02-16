@@ -5,7 +5,7 @@
 
 namespace game::layer {
 class ExitLayer final : public sponge::layer::Layer {
-public:
+   public:
     ExitLayer();
 
     void onAttach() override;
@@ -16,7 +16,7 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
-private:
+   private:
     std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
     std::string fontShaderName;
     std::string quadShaderName;
@@ -38,4 +38,4 @@ private:
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };
-} // namespace game::layer
+}  // namespace game::layer

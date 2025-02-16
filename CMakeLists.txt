@@ -76,11 +76,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-# Use flag /Z7 to embed debug symbols into .obj files -- similar to GCC/Clang -- instead of creating an external .pdb
+# This function finds and replaces values in the current flag
+function(replace_flag_value flag_var_name match_string replace_string)
+    STRING(REPLACE "${match_string}" "${replace_string}" ${flag_var_name} "${${flag_var_name}}")
+    STRING(STRIP "${${flag_var_name}}" ${${flag_var_name}})
+    SET(${flag_var_name} "${${flag_var_name}}" PARENT_SCOPE)
+endfunction()
+
+# Use flag /Z7 to embed debug symbols into .obj files instead of creating an external .pdb. sccache needs this to
+# cache effectively
 if (MSVC)
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+    replace_flag_value(CMAKE_C_FLAGS_DEBUG "/Zi" "/Z7")
+    replace_flag_value(CMAKE_CXX_FLAGS_DEBUG "/Zi" "/Z7")
+    replace_flag_value(CMAKE_EXE_LINKER_FLAGS "/Zi" "/Z7")
 endif ()
 
 add_subdirectory(sponge)

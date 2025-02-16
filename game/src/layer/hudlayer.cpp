@@ -5,7 +5,7 @@ namespace {
 constexpr char cameraName[] = "hud";
 constexpr char textureName[] = "coffee";
 constexpr char texturePath[] = "/textures/coffee.png";
-} // namespace
+}  // namespace
 
 namespace game::layer {
 using sponge::platform::opengl::renderer::ResourceManager;
@@ -61,4 +61,4 @@ bool HUDLayer::onWindowResize(
 
     return false;
 }
-} // namespace game::layer
+}  // namespace game::layer
