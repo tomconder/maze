@@ -42,7 +42,7 @@ void Info::logInfo() {
                       reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
-    int32_t extensions;
+    int32_t extensions = 0;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
     ss << fmt::format("  {:12} {}", "Extensions:", extensions);
