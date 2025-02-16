@@ -5,19 +5,31 @@
 #include <sstream>
 
 namespace sponge::platform::opengl::renderer {
+void Info::logInfo() {
+    auto minorVersion = 0;
+    auto majorVersion = 0;
+    glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 
-void Info::logContextInfo() {
-    SPONGE_CORE_INFO("OpenGL Info:");
+    SPONGE_CORE_INFO("Detected OpenGL version {}.{}", majorVersion,
+                     minorVersion);
+
+#ifdef GL_GLEXT_VERSION
+    SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
+#endif
 
     std::stringstream ss;
-    ss << fmt::format("  {:14} {}", "Version:",
-                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    ss.str("");
+    ss << fmt::format("Detected GLSL version {}",
+                      reinterpret_cast<const char*>(glGetString(
+                          GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
+    SPONGE_CORE_INFO("OpenGL graphics engine:");
+
     ss.str("");
-    ss << fmt::format("  {:14} {}", "GLSL:",
-                      reinterpret_cast<const char*>(
-                          glGetString(GL_SHADING_LANGUAGE_VERSION)));
+    ss << fmt::format("  {:14} {}", "Vendor:",
+                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
@@ -26,9 +38,8 @@ void Info::logContextInfo() {
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Vendor:",
-                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
-
+    ss << fmt::format("  {:14} {}", "Version:",
+                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     int32_t extensions;
@@ -48,21 +59,4 @@ void Info::logContextInfo() {
         SPONGE_CORE_DEBUG(ss.str());
     }
 }
-
-void Info::logStaticInfo() {
-#ifdef GL_GLEXT_VERSION
-    SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
-#endif
-}
-
-void Info::logVersion() {
-    auto minorVersion = 0;
-    auto majorVersion = 0;
-    glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
-
-    SPONGE_CORE_INFO("Created OpenGL context: {}.{}", majorVersion,
-                     minorVersion);
-}
-
-}  // namespace sponge::platform::opengl::renderer
+} // namespace sponge::platform::opengl::renderer

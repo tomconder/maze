@@ -3,12 +3,8 @@
 #include "renderer/graphicsinfo.hpp"
 
 namespace sponge::platform::opengl::renderer {
-
 class Info final : public sponge::renderer::GraphicsInfo {
-   public:
-    static void logContextInfo();
-    static void logStaticInfo();
-    static void logVersion();
+public:
+    static void logInfo();
 };
-
-}  // namespace sponge::platform::opengl::renderer
+} // namespace sponge::platform::opengl::renderer
