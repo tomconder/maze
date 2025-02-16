@@ -18,36 +18,22 @@ void Info::logInfo() {
     SPONGE_CORE_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
 
-    std::stringstream ss;
-    ss.str("");
-    ss << fmt::format("Detected GLSL version {}",
-                      reinterpret_cast<const char*>(glGetString(
-                          GL_SHADING_LANGUAGE_VERSION)));
-    SPONGE_CORE_INFO(ss.str());
-
+    SPONGE_CORE_INFO("Detected GLSL version {}",
+                     reinterpret_cast<const char*>(glGetString(
+                         GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO("OpenGL graphics engine:");
-
-    ss.str("");
-    ss << fmt::format("  {:12} {}", "Vendor:",
-                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
-    SPONGE_CORE_INFO(ss.str());
-
-    ss.str("");
-    ss << fmt::format("  {:12} {}", "Renderer:",
-                      reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
-    SPONGE_CORE_INFO(ss.str());
-
-    ss.str("");
-    ss << fmt::format("  {:12} {}", "Version:",
-                      reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-    SPONGE_CORE_INFO(ss.str());
+    SPONGE_CORE_INFO("  {:12} {}", "Vendor:",
+                     reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+    SPONGE_CORE_INFO("  {:12} {}", "Renderer:",
+                     reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    SPONGE_CORE_INFO("  {:12} {}", "Version:",
+                     reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 
     int32_t extensions = 0;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
-    ss.str("");
-    ss << fmt::format("  {:12} {}", "Extensions:", extensions);
-    SPONGE_CORE_DEBUG(ss.str());
+    SPONGE_CORE_INFO("  {:12} {}", "Extensions:", extensions);
 
+    std::stringstream ss;
     for (int i = 0; i < extensions / 3; i++) {
         ss.str("");
         ss << "   ";
