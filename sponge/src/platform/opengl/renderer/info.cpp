@@ -28,24 +28,24 @@ void Info::logInfo() {
     SPONGE_CORE_INFO("OpenGL graphics engine:");
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Vendor:",
+    ss << fmt::format("  {:12} {}", "Vendor:",
                       reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Renderer:",
+    ss << fmt::format("  {:12} {}", "Renderer:",
                       reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
     SPONGE_CORE_INFO(ss.str());
 
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Version:",
+    ss << fmt::format("  {:12} {}", "Version:",
                       reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     SPONGE_CORE_INFO(ss.str());
 
     int32_t extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     ss.str("");
-    ss << fmt::format("  {:14} {}", "Extensions:", extensions);
+    ss << fmt::format("  {:12} {}", "Extensions:", extensions);
     SPONGE_CORE_DEBUG(ss.str());
 
     for (int i = 0; i < extensions / 3; i++) {
