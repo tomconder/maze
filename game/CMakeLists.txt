@@ -146,7 +146,7 @@ if (APPLE)
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
             COMMENT "Copying assets to bundle content folder"
-            VERBATIM DEPENDS ${ASSETS})
+            VERBATIM)
 
     install(TARGETS game BUNDLE DESTINATION .)
 
