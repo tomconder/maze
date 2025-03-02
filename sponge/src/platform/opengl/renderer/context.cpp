@@ -31,8 +31,7 @@ void Context::init(GLFWwindow* window) {
     if (glfwGetCurrentContext() == nullptr) {
         const char* description = nullptr;
         glfwGetError(&description);
-        SPONGE_CORE_ERROR("Context could not be created: {}",
-                          description);
+        SPONGE_CORE_ERROR("Context could not be created: {}", description);
         return;
     }
 
@@ -57,4 +56,4 @@ void Context::flip(void* window) {
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer

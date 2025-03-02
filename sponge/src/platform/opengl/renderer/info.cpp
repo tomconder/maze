@@ -19,8 +19,8 @@ void Info::logInfo() {
 #endif
 
     SPONGE_CORE_INFO("Detected GLSL version {}",
-                     reinterpret_cast<const char*>(glGetString(
-                         GL_SHADING_LANGUAGE_VERSION)));
+                     reinterpret_cast<const char*>(
+                         glGetString(GL_SHADING_LANGUAGE_VERSION)));
     SPONGE_CORE_INFO("OpenGL graphics engine:");
     SPONGE_CORE_INFO("  {:12} {}", "Vendor:",
                      reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
@@ -45,4 +45,4 @@ void Info::logInfo() {
         SPONGE_CORE_DEBUG(ss.str());
     }
 }
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer

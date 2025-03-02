@@ -4,7 +4,7 @@
 
 namespace sponge::platform::opengl::renderer {
 class Info final : public sponge::renderer::GraphicsInfo {
-public:
+   public:
     static void logInfo();
 };
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer
