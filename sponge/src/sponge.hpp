@@ -23,9 +23,6 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/input.hpp"
 #include "platform/glfw/core/window.hpp"
-#include "platform/glfw/imgui/glfwmanager.hpp"
-#include "platform/glfw/imgui/imguimanager.hpp"
-#include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/glfw/logging/sink.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/context.hpp"
@@ -55,3 +52,9 @@
 #include "scene/mesh.hpp"
 #include "scene/orthocamera.hpp"
 #include "scene/sprite.hpp"
+
+#ifdef ENABLE_IMGUI
+#include "platform/glfw/imgui/glfwmanager.hpp"
+#include "platform/glfw/imgui/imguimanager.hpp"
+#include "platform/glfw/imgui/noopmanager.hpp"
+#endif

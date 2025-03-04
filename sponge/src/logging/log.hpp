@@ -4,7 +4,7 @@
 #if !NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_ERROR
 #endif
 #include "spdlog/spdlog.h"
 #endif
@@ -14,7 +14,6 @@
 #include "logging/logcustom.hpp"
 
 namespace sponge::logging {
-
 struct LogItem {
     std::string message;
     std::string loggerName;
@@ -22,7 +21,7 @@ struct LogItem {
 };
 
 class Log {
-   public:
+public:
     static void init(const std::string& logfile);
 
     static void shutdown() {
@@ -50,7 +49,7 @@ class Log {
         "%*%m%d %T.%f %7t %s:%# [%n] %v";
     static constexpr char guiFormatPattern[] = "%*%m%d %T.%f %7t %s:%# [%n] %v";
 
-   private:
+private:
     static std::shared_ptr<spdlog::logger> appLogger;
     static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> glLogger;
@@ -87,8 +86,7 @@ class Log {
     SPDLOG_LOGGER_ERROR(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_CRITICAL(...) \
     SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-
-}  // namespace sponge::logging
+} // namespace sponge::logging
 
 #define SPONGE_TRACE(...) \
     SPDLOG_LOGGER_TRACE(sponge::logging::Log::getAppLogger(), __VA_ARGS__)

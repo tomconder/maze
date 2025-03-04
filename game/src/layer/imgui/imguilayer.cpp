@@ -18,13 +18,13 @@ constexpr const char* categories[categoryCount] = { "categories", "app",
 constexpr int logLevelCount = 7;
 constexpr const char* logLevels[logLevelCount] = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
-    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
+    SPDLOG_LEVEL_NAME_INFO.data(), SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
-}  // namespace
+} // namespace
 
-namespace game::layer {
+namespace game::layer::imgui {
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -243,8 +243,8 @@ void ImGuiLayer::showLogging() {
     ImGui::SameLine();
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
-                                ImGui::CalcTextSize("Reset").x -
-                                (ImGui::GetStyle().FramePadding.x * 6));
+                            ImGui::CalcTextSize("Reset").x -
+                            (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {
@@ -314,4 +314,4 @@ void ImGuiLayer::showLogging() {
 
     ImGui::EndChild();
 }
-}  // namespace game::layer
+} // namespace game::layer
