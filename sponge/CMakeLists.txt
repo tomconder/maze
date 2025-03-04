@@ -8,7 +8,6 @@ file(
         src/core/*.hpp
         src/debug/*.hpp
         src/event/*.hpp
-        src/imgui/*.hpp
         src/input/*.hpp
         src/layer/*.hpp
         src/logging/*.hpp
@@ -20,7 +19,6 @@ file(
         LIST_DIRECTORIES false
         src/core/*.cpp
         src/event/*.cpp
-        src/imgui/*.cpp
         src/input/*.cpp
         src/layer/*.cpp
         src/logging/*.cpp
@@ -49,7 +47,6 @@ file(
         GLOB GLFW_HEADERS
         LIST_DIRECTORIES false
         src/platform/glfw/core/*.hpp
-        src/platform/glfw/imgui/*.hpp
         src/platform/glfw/logging/*.hpp
 )
 list(APPEND HEADER_FILES ${GLFW_HEADERS})
@@ -57,11 +54,28 @@ file(
         GLOB GLFW_SOURCES
         LIST_DIRECTORIES false
         src/platform/glfw/core/*.cpp
-        src/platform/glfw/imgui/*.cpp
         src/platform/glfw/input/*.cpp
         src/platform/glfw/logging/*.cpp
 )
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
+
+if (ENABLE_IMGUI)
+    message(STATUS "Including imgui platform files")
+    file(
+            GLOB IMGUI_HEADERS
+            LIST_DIRECTORIES false
+            src/imgui/*.hpp
+            src/platform/glfw/imgui/*.hpp
+    )
+    list(APPEND HEADER_FILES ${IMGUI_HEADERS})
+    file(
+            GLOB IMGUI_SOURCES
+            LIST_DIRECTORIES false
+            src/imgui/*.cpp
+            src/platform/glfw/imgui/*.cpp
+    )
+    list(APPEND SOURCE_FILES ${IMGUI_SOURCES})
+endif ()
 
 if (APPLE)
     message(STATUS "Including OSX platform files")
@@ -82,13 +96,17 @@ endif ()
 find_package(glad CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 find_package(Stb REQUIRED)
+
+if (ENABLE_IMGUI)
+    find_package(imgui CONFIG REQUIRED)
+endif ()
+
 if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
@@ -152,11 +170,13 @@ target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 target_link_libraries(sponge PRIVATE glad::glad)
 target_link_libraries(sponge PRIVATE glfw)
 target_link_libraries(sponge PRIVATE glm::glm)
-target_link_libraries(sponge PRIVATE imgui::imgui)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
+if (ENABLE_IMGUI)
+    target_link_libraries(sponge PRIVATE imgui::imgui)
+endif ()
 if (ENABLE_PROFILING)
     target_link_libraries(sponge PRIVATE Tracy::TracyClient)
 endif ()

@@ -24,7 +24,7 @@ constexpr const char* logLevels[logLevelCount] = {
 };
 }  // namespace
 
-namespace game::layer {
+namespace game::layer::imgui {
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
 }
@@ -314,4 +314,4 @@ void ImGuiLayer::showLogging() {
 
     ImGui::EndChild();
 }
-}  // namespace game::layer
+}  // namespace game::layer::imgui

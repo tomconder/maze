@@ -3,7 +3,6 @@
 #include "platform/glfw/core/window.hpp"
 
 namespace sponge::platform::glfw::imgui {
-
 template <class T>
 struct ImGuiManager {
     void onAttach(GLFWwindow* window) {
@@ -26,5 +25,4 @@ struct ImGuiManager {
         static_cast<T*>(this)->endImpl();
     }
 };
-
 }  // namespace sponge::platform::glfw::imgui

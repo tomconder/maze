@@ -48,11 +48,18 @@ set(default_build_type "Release")
 option(ENABLE_PROFILING "Enables compilation with the Tracy profiler" OFF)
 if (ENABLE_PROFILING)
     message(STATUS "Enabling Tracy")
+    add_definitions(-DENABLE_PROFILING)
 
     option(TRACY_STATIC "" OFF)
     option(TRACY_ENABLE "" ON)
     option(TRACY_ON_DEMAND "" ON)
 endif (ENABLE_PROFILING)
+
+option(ENABLE_IMGUI "Enables compilation with the imgui user interface library" ON)
+if (ENABLE_IMGUI)
+    message(STATUS "Enabling imgui")
+    add_definitions(-DENABLE_IMGUI)
+endif (ENABLE_IMGUI)
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
     set(default_build_type "Debug")
@@ -76,11 +83,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-# Use flag /Z7 to embed debug symbols into .obj files -- similar to GCC/Clang -- instead of creating an external .pdb
+# This function finds and replaces values in the current flag
+function(replace_flag_value flag_var_name match_string replace_string)
+    STRING(REPLACE "${match_string}" "${replace_string}" ${flag_var_name} "${${flag_var_name}}")
+    STRING(STRIP "${${flag_var_name}}" ${${flag_var_name}})
+    SET(${flag_var_name} "${${flag_var_name}}" PARENT_SCOPE)
+endfunction()
+
+# Use flag /Z7 to embed debug symbols into .obj files instead of creating an external .pdb. sccache needs this to
+# cache effectively
 if (MSVC)
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    STRING(REGEX REPLACE "/Zi" "/Z7" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+    replace_flag_value(CMAKE_C_FLAGS_DEBUG "/Zi" "/Z7")
+    replace_flag_value(CMAKE_CXX_FLAGS_DEBUG "/Zi" "/Z7")
+    replace_flag_value(CMAKE_EXE_LINKER_FLAGS "/Zi" "/Z7")
 endif ()
 
 add_subdirectory(sponge)

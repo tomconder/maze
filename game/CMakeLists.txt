@@ -23,12 +23,29 @@ file(
         LIST_DIRECTORIES false
         ${CMAKE_SOURCE_DIR}/assets/*)
 
+
+if (ENABLE_IMGUI)
+    file(
+            GLOB IMGUI_HEADERS
+            LIST_DIRECTORIES false
+            src/layer/imgui/*.hpp)
+    list(APPEND HEADER_FILES ${IMGUI_HEADERS})
+    file(
+            GLOB IMGUI_SOURCES
+            LIST_DIRECTORIES false
+            src/layer/imgui/*.cpp)
+    list(APPEND SOURCE_FILES ${IMGUI_SOURCES})
+endif ()
+
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
 find_package(glfw3 CONFIG REQUIRED)
+if (ENABLE_IMGUI)
+    find_package(imgui CONFIG REQUIRED)
+endif ()
 if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
@@ -89,43 +106,43 @@ if (MSVC)
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge INTERFACE /Oy-)
+    target_compile_options(game INTERFACE /Oy-)
 
     # enable exception handling
-    target_compile_options(sponge INTERFACE /EHsc)
+    target_compile_options(game INTERFACE /EHsc)
 
     # enable warnings and warnings as errors
-    target_compile_options(sponge INTERFACE /W4 /WX)
+    target_compile_options(game INTERFACE /W4 /WX)
 
     # disable RTTI
     message(STATUS "Disable RTTI")
-    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+    target_compile_options(game INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
     message(STATUS "Applying fast math and SIMD support")
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge INTERFACE -fno-omit-frame-pointer)
+    target_compile_options(game INTERFACE -fno-omit-frame-pointer)
 
     # enable exception handling
-    target_compile_options(sponge INTERFACE -fexceptions)
+    target_compile_options(game INTERFACE -fexceptions)
 
     # enable warnings and warnings as errors
-    target_compile_options(sponge INTERFACE -Wall -Werror)
+    target_compile_options(game INTERFACE -Wall -Werror)
 
     # disable RTTI
     message(STATUS "Disable RTTI")
-    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+    target_compile_options(game INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
+    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
     message(STATUS "Discard unused sections")
-    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
-    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
+    target_link_options(game PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
+    target_link_options(game PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 
 target_include_directories(game PUBLIC src)
@@ -135,6 +152,9 @@ target_link_libraries(game PRIVATE glfw)
 target_link_libraries(game PRIVATE glm::glm)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)
+if (ENABLE_IMGUI)
+    target_link_libraries(game PRIVATE imgui::imgui)
+endif ()
 if (ENABLE_PROFILING)
     target_link_libraries(game PRIVATE Tracy::TracyClient)
 endif ()
@@ -146,7 +166,7 @@ if (APPLE)
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
             COMMENT "Copying assets to bundle content folder"
-            VERBATIM DEPENDS ${ASSETS})
+            VERBATIM)
 
     install(TARGETS game BUNDLE DESTINATION .)
 

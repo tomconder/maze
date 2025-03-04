@@ -12,7 +12,7 @@ struct GameObject {
 };
 
 class MazeLayer final : public sponge::layer::Layer {
-public:
+   public:
     MazeLayer();
 
     void onAttach() override;
@@ -63,16 +63,16 @@ public:
 
     void setAttenuationIndex(int32_t val);
 
-private:
+   private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
 
     bool metallic = false;
-    float ambientStrength = .03F;
+    float ambientStrength = .25F;
     float ao = .25F;
     float roughness = .5F;
-    int32_t numLights = 6;
-    int32_t attenuationIndex = 4;
+    int32_t numLights = 1;
+    int32_t attenuationIndex = 6;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
@@ -90,6 +90,6 @@ private:
 
     void updateCamera(double elapsedTime) const;
 
-    void updateShaderLights(double elapsedTime) const;
+    void updateShaderLights() const;
 };
-} // namespace game::layer
+}  // namespace game::layer

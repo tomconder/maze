@@ -8,8 +8,8 @@ GameCamera::GameCamera() {
 
     const auto radYaw = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
-    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch), //
-                    glm::sin(radPitch), //
+    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch),  //
+                    glm::sin(radPitch),                     //
                     glm::sin(radYaw) * glm::cos(radPitch) };
 }
 
@@ -48,13 +48,13 @@ void GameCamera::moveForward(const double_t delta) {
 
 void GameCamera::strafeLeft(const double_t delta) {
     cameraPos -= normalize(cross(cameraFront, up)) *
-        static_cast<float>(delta * cameraSpeed);
+                 static_cast<float>(delta * cameraSpeed);
     updateView();
 }
 
 void GameCamera::strafeRight(const double_t delta) {
     cameraPos += normalize(cross(cameraFront, up)) *
-        static_cast<float>(delta * cameraSpeed);
+                 static_cast<float>(delta * cameraSpeed);
     updateView();
 }
 
@@ -68,8 +68,8 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     const auto radYaw = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
     cameraFront =
-        normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch), //
-                             glm::sin(radPitch), //
+        normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),  //
+                             glm::sin(radPitch),                     //
                              glm::sin(radYaw) * glm::cos(radPitch) });
 
     updateView();
@@ -84,4 +84,4 @@ void GameCamera::mouseScroll(const glm::vec2& offset) {
     fov = glm::clamp(fov, 30.F, 120.0F);
     updateProjection();
 }
-} // namespace game::scene
+}  // namespace game::scene

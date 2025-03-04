@@ -28,7 +28,6 @@ constexpr auto ratios = std::to_array(
 }  // namespace
 
 namespace sponge::platform::glfw::core {
-
 Application* Application::instance = nullptr;
 
 Application::Application(ApplicationSpecification specification)
@@ -117,7 +116,7 @@ bool Application::iterateLoop() {
 
     imguiManager->begin();
 
-#if !NDEBUG
+#ifdef ENABLE_IMGUI
     onImGuiRender();
 #endif
 
@@ -330,5 +329,4 @@ void Application::run() {
     SPONGE_INFO("Shutting down");
     shutdown();
 }
-
 }  // namespace sponge::platform::glfw::core

@@ -2,8 +2,7 @@
 
 #include "sponge.hpp"
 
-namespace game::layer {
-
+namespace game::layer::imgui {
 class ImGuiLayer final : public sponge::layer::Layer {
    public:
     ImGuiLayer();
@@ -18,5 +17,4 @@ class ImGuiLayer final : public sponge::layer::Layer {
 
     static void showLogging();
 };
-
-}  // namespace game::layer
+}  // namespace game::layer::imgui

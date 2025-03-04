@@ -4,7 +4,7 @@
 #if !NDEBUG
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_ERROR
 #endif
 #include "spdlog/spdlog.h"
 #endif
@@ -14,7 +14,6 @@
 #include "logging/logcustom.hpp"
 
 namespace sponge::logging {
-
 struct LogItem {
     std::string message;
     std::string loggerName;
@@ -87,7 +86,6 @@ class Log {
     SPDLOG_LOGGER_ERROR(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 #define SPONGE_GL_CRITICAL(...) \
     SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-
 }  // namespace sponge::logging
 
 #define SPONGE_TRACE(...) \
