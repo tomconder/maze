@@ -16,7 +16,7 @@ constexpr auto lightCubeScale = glm::vec3(.1F);
 constexpr std::string_view cameraName = "maze";
 
 std::array<PointLight, 6> pointLights;
-} // namespace
+}  // namespace
 
 namespace game::layer {
 using sponge::input::KeyCode;
@@ -264,4 +264,4 @@ void MazeLayer::updateShaderLights() const {
 
     shader->unbind();
 }
-} // namespace game::layer
+}  // namespace game::layer

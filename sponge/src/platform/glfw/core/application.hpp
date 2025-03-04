@@ -25,7 +25,7 @@ struct ApplicationSpecification {
 using logging::LogItem;
 
 class Application : public sponge::core::Application {
-public:
+   public:
     explicit Application(ApplicationSpecification specification);
 
     ~Application() override;
@@ -112,7 +112,7 @@ public:
         return imguiManager->isEventHandled();
     }
 
-private:
+   private:
     std::string appName = "undefined";
     std::unique_ptr<opengl::renderer::Context> graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
@@ -147,4 +147,4 @@ private:
     std::shared_ptr<imgui::NoopManager> imguiManager = noopManager;
 #endif
 };
-} // namespace sponge::platform::glfw::core
+}  // namespace sponge::platform::glfw::core

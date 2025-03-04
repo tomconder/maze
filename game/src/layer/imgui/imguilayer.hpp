@@ -4,7 +4,7 @@
 
 namespace game::layer::imgui {
 class ImGuiLayer final : public sponge::layer::Layer {
-public:
+   public:
     ImGuiLayer();
 
     void onImGuiRender() override;
@@ -12,9 +12,9 @@ public:
     static float getLogSelectionMaxWidth(const char* const list[],
                                          std::size_t size);
 
-private:
+   private:
     static void showLayersTable(sponge::layer::LayerStack*);
 
     static void showLogging();
 };
-} // namespace game::layer
+}  // namespace game::layer::imgui

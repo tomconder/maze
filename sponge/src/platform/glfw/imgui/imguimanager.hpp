@@ -25,4 +25,4 @@ struct ImGuiManager {
         static_cast<T*>(this)->endImpl();
     }
 };
-} // namespace sponge::platform::glfw::imgui
+}  // namespace sponge::platform::glfw::imgui
