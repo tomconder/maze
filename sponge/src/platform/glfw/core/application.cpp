@@ -309,7 +309,7 @@ void Application::centerMouse() const {
 }
 
 void Application::run() {
-#ifdef TRACY_ENABLE
+#ifdef ENABLE_PROFILING
     SPONGE_DEBUG("Tracy profiler enabled");
 #endif
 
