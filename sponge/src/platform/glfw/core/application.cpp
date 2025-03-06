@@ -22,10 +22,10 @@ constexpr uint32_t defaultWidth{ 1600 };
 constexpr uint32_t defaultHeight{ 900 };
 
 constexpr auto ratios = std::to_array(
-{ glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
-  glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
-  glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
-} // namespace
+    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
+      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
+      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
+}  // namespace
 
 namespace sponge::platform::glfw::core {
 Application* Application::instance = nullptr;
@@ -89,9 +89,7 @@ bool Application::start() {
     w = window->getWidth();
     h = window->getHeight();
 
-    window->setEventCallback([this](event::Event& e) {
-        onEvent(e);
-    });
+    window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
     adjustAspectRatio(w, h);
 
@@ -331,4 +329,4 @@ void Application::run() {
     SPONGE_INFO("Shutting down");
     shutdown();
 }
-} // namespace sponge::platform::glfw::core
+}  // namespace sponge::platform::glfw::core
