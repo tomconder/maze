@@ -9,15 +9,14 @@
 #include "stb_image.h"
 
 namespace sponge::platform::opengl::renderer {
-
 std::unordered_map<std::string, std::shared_ptr<scene::Font>>
-    ResourceManager::fonts;
+ResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<scene::Model>>
-    ResourceManager::models;
+ResourceManager::models;
 std::unordered_map<std::string, std::shared_ptr<Shader>>
-    ResourceManager::shaders;
+ResourceManager::shaders;
 std::unordered_map<std::string, std::shared_ptr<Texture>>
-    ResourceManager::textures;
+ResourceManager::textures;
 std::string ResourceManager::assetsFolder = core::File::getResourceDir();
 
 std::shared_ptr<scene::Font> ResourceManager::getFont(const std::string& name) {
@@ -122,8 +121,8 @@ std::shared_ptr<Texture> ResourceManager::getTexture(const std::string& name) {
 }
 
 std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
-                                                      const std::string& path,
-                                                      const uint8_t flag) {
+    const std::string& path,
+    const uint8_t flag) {
     assert(!path.empty());
     assert(!name.empty());
 
@@ -197,9 +196,9 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
 
     const std::filesystem::path name{ path };
 
-    int bytesPerPixel;
-    int height;
-    int width;
+    int bytesPerPixel = 0;
+    int height = 0;
+    int width = 0;
 
     void* data =
         stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
@@ -216,5 +215,4 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
 
     return texture;
 }
-
-}  // namespace sponge::platform::opengl::renderer
+} // namespace sponge::platform::opengl::renderer

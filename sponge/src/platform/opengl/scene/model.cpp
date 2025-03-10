@@ -17,11 +17,10 @@
 #include "tiny_obj_loader.h"
 
 namespace {
-constexpr double SECONDS_TO_MILLISECONDS = 1000.F;
+constexpr double secondsToMilliseconds = 1000.F;
 }
 
 namespace sponge::platform::opengl::scene {
-
 using sponge::scene::Vertex;
 
 void Model::load(const std::string& path) {
@@ -60,7 +59,7 @@ void Model::load(const std::string& path) {
 
     // from viewer.cc in tinyobjloader example
     SPONGE_CORE_DEBUG("Parsing time: {:.2f} ms",
-                      timer.getElapsedSeconds() * SECONDS_TO_MILLISECONDS);
+                      timer.getElapsedSeconds() * secondsToMilliseconds);
 
     SPONGE_CORE_DEBUG("# of vertices  = {}",
                       static_cast<int>(attrib.vertices.size() / 3));
@@ -104,7 +103,7 @@ std::shared_ptr<Mesh> Model::processMesh(
     vertices.reserve(mesh.indices.size());
     indices.reserve(mesh.indices.size());
 
-    Vertex vertex;
+    Vertex vertex{};
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
         auto i = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
@@ -172,7 +171,9 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
 
     auto name = baseName(material.diffuse_texname);
     std::ranges::transform(name, name.begin(),
-                           [](const uint8_t c) { return std::tolower(c); });
+                           [](const uint8_t c) {
+                               return std::tolower(c);
+                           });
 
     return renderer::ResourceManager::loadTexture(
         name, filename.string(), renderer::ExcludeAssetsFolder);
@@ -186,5 +187,4 @@ void Model::render() const {
         mesh->render();
     }
 }
-
-}  // namespace sponge::platform::opengl::scene
+} // namespace sponge::platform::opengl::scene

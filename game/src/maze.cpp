@@ -15,7 +15,7 @@ Maze::Maze(const ApplicationSpecification& specification)
 }
 
 bool Maze::onUserCreate() {
-#ifdef ENABLE_IMGUI
+#if defined(ENABLE_IMGUI)
     pushOverlay(imguiLayer);
 #endif
     pushOverlay(hudLayer);
@@ -68,7 +68,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-#ifdef ENABLE_IMGUI
+#if defined(ENABLE_IMGUI)
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_GraveAccent) {
         if (imguiLayer->isActive()) {
             imguiLayer->setActive(false);
