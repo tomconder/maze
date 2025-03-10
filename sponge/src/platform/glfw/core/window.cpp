@@ -233,4 +233,4 @@ void Window::shutdown() const {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
-} // namespace sponge::platform::glfw::core
+}  // namespace sponge::platform::glfw::core
