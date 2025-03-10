@@ -9,7 +9,6 @@
 #include "stb_image.h"
 
 namespace sponge::platform::opengl::renderer {
-
 std::unordered_map<std::string, std::shared_ptr<scene::Font>>
     ResourceManager::fonts;
 std::unordered_map<std::string, std::shared_ptr<scene::Model>>
@@ -197,9 +196,9 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
 
     const std::filesystem::path name{ path };
 
-    int bytesPerPixel;
-    int height;
-    int width;
+    int bytesPerPixel = 0;
+    int height = 0;
+    int width = 0;
 
     void* data =
         stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
@@ -216,5 +215,4 @@ std::shared_ptr<Texture> ResourceManager::loadTextureFromFile(
 
     return texture;
 }
-
 }  // namespace sponge::platform::opengl::renderer

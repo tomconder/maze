@@ -7,7 +7,6 @@
 #include "platform/glfw/core/input.hpp"
 
 namespace sponge::platform::glfw::core {
-
 Window::Window(const sponge::core::WindowProps& props) {
     init(props);
 }
@@ -72,6 +71,10 @@ void Window::init(const sponge::core::WindowProps& props) {
                                          const int height) {
         auto w = static_cast<uint32_t>(width);
         auto h = static_cast<uint32_t>(height);
+
+        if (w == 0 && h == 0) {
+            return;
+        }
 
         Application::get().adjustAspectRatio(w, h);
 
@@ -218,8 +221,8 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwSetCursorEnterCallback(window,
                                [](GLFWwindow* window, const int entered) {
-                                   double x;
-                                   double y;
+                                   double x = 0;
+                                   double y = 0;
                                    glfwGetCursorPos(window, &x, &y);
                                    Input::setPrevCursorPos({ x, y });
                                    Input::setCursorEnteredWindow(entered);
@@ -230,5 +233,4 @@ void Window::shutdown() const {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
-
 }  // namespace sponge::platform::glfw::core

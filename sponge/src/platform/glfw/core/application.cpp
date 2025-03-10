@@ -116,7 +116,7 @@ bool Application::iterateLoop() {
 
     imguiManager->begin();
 
-#ifdef ENABLE_IMGUI
+#if defined(ENABLE_IMGUI)
     onImGuiRender();
 #endif
 
@@ -309,7 +309,7 @@ void Application::centerMouse() const {
 }
 
 void Application::run() {
-#ifdef ENABLE_PROFILING
+#if defined(ENABLE_PROFILING)
     SPONGE_DEBUG("Tracy profiler enabled");
 #endif
 

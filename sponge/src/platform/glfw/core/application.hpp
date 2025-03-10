@@ -141,7 +141,7 @@ class Application : public sponge::core::Application {
     std::shared_ptr<imgui::NoopManager> noopManager =
         std::make_shared<imgui::NoopManager>();
 
-#ifdef ENABLE_IMGUI
+#if defined(ENABLE_IMGUI)
     std::shared_ptr<imgui::GLFWManager> imguiManager = glfwManager;
 #else
     std::shared_ptr<imgui::NoopManager> imguiManager = noopManager;

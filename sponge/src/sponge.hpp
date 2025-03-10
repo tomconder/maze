@@ -53,7 +53,7 @@
 #include "scene/orthocamera.hpp"
 #include "scene/sprite.hpp"
 
-#ifdef ENABLE_IMGUI
+#if defined(ENABLE_IMGUI)
 #include "platform/glfw/imgui/glfwmanager.hpp"
 #include "platform/glfw/imgui/imguimanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"
