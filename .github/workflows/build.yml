@@ -31,25 +31,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
         run: |
           CURRENT_COMMIT=$(git rev-parse HEAD)
-          
-          if git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
-            echo "Merge commit detected"
-            PREVIOUS_COMMIT=$(git rev-parse HEAD^1)  # Compare with first parent
-          else
-            echo "Regular commit"
-            PREVIOUS_COMMIT=$(git rev-parse HEAD^)
-          fi
-          
-          only_changed=false
-
+          PREVIOUS_COMMIT=$(git rev-parse HEAD^)
           CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
+
+          only_changed=false
           if [ -n "$CHANGED_FILES" ]; then
             echo "Changed files:"
             echo "$CHANGED_FILES"
