@@ -31,16 +31,36 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            docs/**
-            .github/**
-            !.github/workflows/build.yml
-            **.md
+        run: |
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          
+          if git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            echo "Merge commit detected"
+            PREVIOUS_COMMIT=$(git rev-parse HEAD^1)  # Compare with first parent
+          else
+            echo "Regular commit"
+            PREVIOUS_COMMIT=$(git rev-parse HEAD^)
+          fi
+          
+          only_changed=false
+
+          CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
+
+            if echo "$CHANGED_FILES" | grep -v "^\.github/workflows/build.yml$" | grep -qE "^(docs|\.github|.*\.md)"; then
+              echo "Found only documentation changes"          
+              only_changed=true
+            fi
+          fi
+
+          echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
 
   lint:
     needs: changed
