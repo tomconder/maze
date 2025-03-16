@@ -72,8 +72,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Lint code
         uses: cpp-linter/cpp-linter-action@v2
@@ -109,8 +107,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
