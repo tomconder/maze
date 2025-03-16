@@ -36,12 +36,17 @@ jobs:
         id: changed
         run: |
           should_skip=false
-          CHANGED_FILES=$(git diff --name-only $GITHUB_BASE_REF...HEAD)
-          echo 
-          if echo "$CHANGED_FILES" | grep -q "^docs|^\.github|^.*\.md"; then
-              echo "Found changed files"
-              should_skip=true
+
+          CHANGED_FILES=$(git diff --name-only "${GITHUB_BASE_REF}...HEAD" 2>/dev/null || echo "")
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          echo
+
+          if [ -n "$CHANGED_FILES" ] && echo "$CHANGED_FILES" | grep -qE "^(docs|\.github|.*\.md)"; then
+            echo "Found changed files"
+            should_skip=true
           fi
+
           echo "should_skip=$should_skip" >> $GITHUB_OUTPUT
 
   lint:
