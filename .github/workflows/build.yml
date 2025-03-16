@@ -55,12 +55,12 @@ jobs:
           
           should_skip=false
           if [ -n "$CHANGED_FILES" ] && ! echo "$CHANGED_FILES" | grep -qE "^(docs|\.github|.*\.md)"; then
-            should_skip = true
+            should_skip=true
           else
             echo "Found only documentation changes"
           fi
 
-          echo "only_changed=should_skip" >> $GITHUB_OUTPUT
+          echo "only_changed=$should_skip" >> $GITHUB_OUTPUT
 
   lint:
     needs: changed
