@@ -6,6 +6,7 @@ A nice walk through a maze.
 
 ## Project Organization
 
+    assets/          # game assets
     docs/            # documentation
     game/            # source files for maze
     sponge/          # source files for sponge game engine
