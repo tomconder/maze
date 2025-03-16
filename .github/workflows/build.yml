@@ -42,12 +42,13 @@ jobs:
           CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
 
           only_changed=false
+
           if [ -n "$CHANGED_FILES" ]; then
             echo "Changed files:"
             echo "$CHANGED_FILES"
 
-            BUILDYML_FILES=$(echo "$CHANGED_FILES" | grep -q "^\.github/workflows/build.yml$")
-            FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -qv "^docs/" | grep -v "^\.github/" | grep -v "\.md$")
+            BUILDYML_FILES=$(echo "$CHANGED_FILES" | grep -qs "^\.github/workflows/build.yml$")
+            FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -qsv "^docs/" | grep -v "^\.github/" | grep -v "\.md$")
             if [ -n "$BUILDYML_FILES" ] || [ -n "$FILTERED_FILES" ]; then
               echo "Found only documentation changes"          
               only_changed=true
