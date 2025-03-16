@@ -37,7 +37,7 @@ jobs:
         run: |
           should_skip=false
 
-          CHANGED_FILES=$(git diff --name-only "${GITHUB_BASE_REF}...HEAD" 2>/dev/null || echo "")
+          CHANGED_FILES=$(git diff --name-only "${{ github.base_ref }}...HEAD")
           echo "Changed files:"
           echo "$CHANGED_FILES"
           echo
