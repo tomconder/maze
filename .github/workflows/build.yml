@@ -46,7 +46,7 @@ jobs:
             echo "Changed files:"
             echo "$CHANGED_FILES"
 
-            if echo "$CHANGED_FILES" | grep -v "^\.github/workflows/build.yml$" | grep -qE "^(docs|\.github|.*\.md)"; then
+            if ! echo "$CHANGED_FILES" | grep -vE "^(docs|.*\.md|\.github(?!\/workflows\/build.yml))"; then
               echo "Found only documentation changes"          
               only_changed=true
             fi
