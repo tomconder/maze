@@ -36,7 +36,7 @@ jobs:
         id: changed-files
         run: |
           should_skip=false
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          CHANGED_FILES=$(git diff --name-only $GITHUB_BASE_REF...HEAD)
           if echo "$CHANGED_FILES" | grep -q "^docs" | grep -q "^\.github" | grep -q "*\.md"; then
               should_skip=true
           fi
