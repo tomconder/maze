@@ -27,7 +27,7 @@
     },
     {
       "name": "meshoptimizer",
-      "version>=": "0.22"
+      "version>=": "0.23"
     },
     {
       "name": "spdlog",
