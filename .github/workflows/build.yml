@@ -32,15 +32,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Look for changed files
+        id: changed-files-list
+        uses: jitterbit/get-changed-files@b17fbb00bdc0c0f63fcf166580804b4d2cdc2a42 # v1
+        with:
+          format: 'json'
+
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v44
-        with:
-          files: |
-            docs/**
-            .github/**
-            !.github/workflows/build.yml
-            **.md
+        run: |
+          should_skip=false
+          readarray -t changed_files <<<"$(jq -r '.[]' <<<'${{ steps.changed-files-list.outputs.all }}')"
+          for file in ${changed_files[@]}; do
+            if [[ "$file" == docs* || "$file" == .github* || "$file" == *md ]]; then
+              should_skip=true
+              break
+            fi
+          done
+          echo "should_skip=$should_skip" >> $GITHUB_OUTPUT
 
   lint:
     needs: changed
