@@ -42,14 +42,21 @@ jobs:
           CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
 
           only_changed=false
+
           if [ -n "$CHANGED_FILES" ]; then
             echo "Changed files:"
             echo "$CHANGED_FILES"
 
-            if echo "$CHANGED_FILES" | grep -v "^\.github/workflows/build.yml$" | grep -qE "^(docs|\.github|.*\.md)"; then
+            FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
+            if [ -n "$FILTERED_FILES" ]; then
+              echo "Found non-documentation changes"          
+            else
               echo "Found only documentation changes"          
               only_changed=true
             fi
+          else
+            echo "No changes found"
+            only_changed=true
           fi
 
           echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
