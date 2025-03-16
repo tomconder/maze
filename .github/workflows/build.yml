@@ -47,8 +47,10 @@ jobs:
             echo "Changed files:"
             echo "$CHANGED_FILES"
 
-            BUILDYML_FILES=$(echo "$CHANGED_FILES" | grep "^\.github.workflows.build\.yml$")
+            BUILDYML_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$")
+            echo "BUILDYML_FILES=[$BUILDYML_FILES]"
             FILTERED_FILES=$(echo "$CHANGED_FILES" | grep -v "^docs" | grep -v "^\.github" | grep -v "\.md$")
+            echo "FILTERED_FILES=[$FILTERED_FILES]"
             if [ -n "$BUILDYML_FILES" ] || [ -n "$FILTERED_FILES" ]; then
               echo "Found non-documentation changes"          
             else
