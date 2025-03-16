@@ -35,13 +35,10 @@ jobs:
           fetch-depth: 2
 
       - name: Get changed files
-        id: changed
+        id: changed-files
         run: |
-          should_skip=false
-
           CURRENT_COMMIT=$(git rev-parse HEAD)
           
-          # Detect and handle merge commit
           if git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
             echo "Merge commit detected"
             PREVIOUS_COMMIT=$(git rev-parse HEAD^1)  # Compare with first parent
@@ -51,16 +48,19 @@ jobs:
           fi
           
           CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
+          fi
           
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          if [ -n "$CHANGED_FILES" ] && echo "$CHANGED_FILES" | grep -qE "^(docs|\.github|.*\.md)"; then
-            echo "Found changed files"
-            should_skip=true
+          should_skip=false
+          if [ -n "$CHANGED_FILES" ] && ! echo "$CHANGED_FILES" | grep -qE "^(docs|\.github|.*\.md)"; then
+            should_skip = true
+          else
+            echo "Found only documentation changes"
           fi
 
-          echo "should_skip=$should_skip" >> $GITHUB_OUTPUT
+          echo "only_changed=should_skip" >> $GITHUB_OUTPUT
 
   lint:
     needs: changed
@@ -72,6 +72,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Lint code
         uses: cpp-linter/cpp-linter-action@v2
@@ -107,6 +109,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
