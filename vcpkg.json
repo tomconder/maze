@@ -23,7 +23,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.91.8"
+      "version>=": "1.91.9"
     },
     {
       "name": "meshoptimizer",
