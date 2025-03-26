@@ -15,7 +15,7 @@ env:
   BUILD_DIR: build
   BUILD_TYPE: Release
   SCCACHE_GHA_ENABLED: true
-  VCPKG_GIT_COMMIT_ID: 'a7d06b3a72d5ec48353bacb84152bd027ee9999b'
+  VCPKG_GIT_COMMIT_ID: '21816e0df975ab3ba13ab75263c4deeb080ef681'
 
 permissions:
   contents: read
@@ -48,9 +48,7 @@ jobs:
             echo "$CHANGED_FILES"
 
             FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
-            if [ -n "$FILTERED_FILES" ]; then
-              echo "Found non-documentation changes"          
-            else
+            if [ ! -n "$FILTERED_FILES" ]; then
               echo "Found only documentation changes"          
               only_changed=true
             fi
