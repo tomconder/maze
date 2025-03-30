@@ -60,4 +60,4 @@ void Context::flip(void* window) {
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer
