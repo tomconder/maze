@@ -3,13 +3,6 @@
   "version-string": "latest",
   "dependencies": [
     {
-      "name": "glad",
-      "features": [
-        "gl-api-latest"
-      ],
-      "version>=": "0.1.36"
-    },
-    {
       "name": "glfw3",
       "version>=": "3.4"
     },

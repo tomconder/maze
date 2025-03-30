@@ -35,7 +35,11 @@ void Context::init(GLFWwindow* window) {
         return;
     }
 
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+    const int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0) {
+        SPONGE_CORE_ERROR("Failed to initialize OpenGL context");
+        return;
+    }
 
     Info::logInfo();
 

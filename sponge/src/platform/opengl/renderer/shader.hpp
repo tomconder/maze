@@ -1,13 +1,12 @@
 #pragma once
 
 #include "renderer/shader.hpp"
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
 namespace sponge::platform::opengl::renderer {
-
 class Shader final : public sponge::renderer::Shader {
    public:
     Shader(const std::string& vertexSource, const std::string& fragmentSource,
@@ -39,5 +38,4 @@ class Shader final : public sponge::renderer::Shader {
 
     GLint getUniformLocation(const std::string& name) const;
 };
-
 }  // namespace sponge::platform::opengl::renderer
