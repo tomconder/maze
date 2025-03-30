@@ -2,7 +2,7 @@
 
 #if defined(ENABLE_PROFILING)
 
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <tracy/TracyOpenGL.hpp>
 
 #define SPONGE_PROFILE_GPU(text)   TracyGpuZone(text)

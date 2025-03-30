@@ -37,6 +37,7 @@ list(APPEND HEADER_FILES ${OPENGL_HEADERS})
 file(
         GLOB OPENGL_SOURCES
         LIST_DIRECTORIES false
+        deps/glad2/src/gl.c
         src/platform/opengl/renderer/*.cpp
         src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
@@ -165,6 +166,7 @@ endif ()
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(sponge PUBLIC src)
+target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE glad::glad)

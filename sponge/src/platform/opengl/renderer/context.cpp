@@ -35,7 +35,11 @@ void Context::init(GLFWwindow* window) {
         return;
     }
 
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+    const int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0) {
+        SPONGE_CORE_ERROR("Failed to initialize OpenGL context");
+        return;
+    }
 
     Info::logInfo();
 
@@ -56,4 +60,4 @@ void Context::flip(void* window) {
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
-}  // namespace sponge::platform::opengl::renderer
+} // namespace sponge::platform::opengl::renderer
