@@ -78,7 +78,7 @@ jobs:
         with:
           style: 'file'
           tidy-checks: ''
-          ignore: '.github|assets|docs|tools'
+          ignore: '.github|assets|docs|tools|sponge/deps'
           step-summary: true
 
   build:
