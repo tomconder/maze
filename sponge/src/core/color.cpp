@@ -3,7 +3,6 @@
 #include <algorithm>
 
 namespace sponge::core {
-
 glm::vec3 Color::hexToRGB(const char* hex) {
     if (hex[6] != '\0') {
         SPONGE_CORE_ERROR("Hex color must be 6 characters long.");
@@ -18,8 +17,12 @@ void Color::rgbToHex(const glm::vec3& rgb, char* hex) {
         int value =
             static_cast<int>(std::clamp(rgb[i] * 255.F + .5F, 0.F, 255.F));
 
-        hex[i * 2] = (value >> 4) + (value > 0x9F ? 'A' - 10 : '0');
-        hex[i * 2 + 1] = (value & 0xF) + ((value & 0xF) > 9 ? 'A' - 10 : '0');
+        hex[i * 2] = static_cast<char>((value >> 4) + (value > 0x9F
+                                               ? 'A' - 10
+                                               : '0'));
+        hex[i * 2 + 1] = static_cast<char>((value & 0xF) + ((value & 0xF) > 9
+                                                   ? 'A' - 10
+                                                   : '0'));
     }
     hex[6] = '\0';
 }
@@ -29,5 +32,4 @@ float Color::hexToFloat(const char* hex) {
             (hex[1] >= 'A' ? hex[1] - 'A' + 10 : hex[1] - '0')) /
            255.F;
 }
-
-}  // namespace sponge::core
+} // namespace sponge::core
