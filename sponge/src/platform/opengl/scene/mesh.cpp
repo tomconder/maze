@@ -7,7 +7,7 @@ namespace {
 constexpr char normal[] = "normal";
 constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
-} // namespace
+}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
@@ -92,4 +92,4 @@ void Mesh::render() const {
 
     vao->unbind();
 }
-} // namespace sponge::platform::opengl::scene
+}  // namespace sponge::platform::opengl::scene

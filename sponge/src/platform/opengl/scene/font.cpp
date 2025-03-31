@@ -13,7 +13,7 @@ constexpr size_t vertexCount = 8;
 
 std::array<uint32_t, maxLength * indexCount> batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
-} // namespace
+}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
@@ -126,16 +126,14 @@ void Font::render(const std::string& text, const glm::vec2& position,
               { texx + texw, texy + texh } }
         };
 
-        std::ranges::move(vertices,
-                          batchVertices.begin() + (i * vertexCount));
+        std::ranges::move(vertices, batchVertices.begin() + (i * vertexCount));
 
         const std::array indices = {
-            i * 4, (i * 4) + 2, (i * 4) + 1, //
-            i * 4, (i * 4) + 3, (i * 4) + 2 //
+            i * 4, (i * 4) + 2, (i * 4) + 1,  //
+            i * 4, (i * 4) + 3, (i * 4) + 2   //
         };
 
-        std::ranges::move(indices,
-                          batchIndices.begin() + (i * indexCount));
+        std::ranges::move(indices, batchIndices.begin() + (i * indexCount));
 
         x += xadvance * scale;
 
@@ -163,11 +161,10 @@ void Font::render(const std::string& text, const glm::vec2& position,
     ebo->update(batchIndices.data(), numChars * indexCount);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numChars * indexCount),
-                   GL_UNSIGNED_INT,
-                   nullptr);
+                   GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     vao->unbind();
 }
-} // namespace sponge::platform::opengl::scene
+}  // namespace sponge::platform::opengl::scene
