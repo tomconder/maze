@@ -1,7 +1,6 @@
 #pragma once
 
 #include "layer/exitlayer.hpp"
-#include "layer/hudlayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
 
@@ -11,9 +10,9 @@
 
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
-   public:
+public:
     explicit Maze(const sponge::platform::glfw::core::ApplicationSpecification&
-                      specification);
+        specification);
 
     bool onUserCreate() override;
 
@@ -31,13 +30,15 @@ class Maze final : public sponge::platform::glfw::core::Application {
         return mazeLayer;
     }
 
-   private:
+    void exit() {
+        isRunning = false;
+    }
+
+private:
     bool isRunning = true;
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-    std::shared_ptr<layer::HUDLayer> hudLayer =
-        std::make_shared<layer::HUDLayer>();
 #if defined(ENABLE_IMGUI)
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
@@ -51,4 +52,4 @@ class Maze final : public sponge::platform::glfw::core::Application {
 
     static Maze* instance;
 };
-}  // namespace game
+} // namespace game
