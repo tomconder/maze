@@ -2,6 +2,7 @@
 #include "core/base.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <fmt/format.h>
+#include <algorithm>
 #include <array>
 
 namespace {
@@ -15,7 +16,6 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
-
 using renderer::ResourceManager;
 
 Font::Font() {
@@ -57,7 +57,7 @@ uint32_t Font::getLength(const std::string_view text,
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::string prev;
-    uint32_t x = 0;
+    float x = 0;
 
     for (const char& c : str) {
         auto index = std::to_string(c);
@@ -70,7 +70,7 @@ uint32_t Font::getLength(const std::string_view text,
         prev = index;
     }
 
-    return x;
+    return static_cast<uint32_t>(x);
 }
 
 void Font::load(const std::string& path) {
@@ -98,7 +98,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
 
     std::string prev;
 
-    uint32_t x = position.x;
+    float x = position.x;
 
     for (uint32_t i = 0; i < str.size(); i++) {
         auto index = std::to_string(str[i]);
@@ -126,16 +126,14 @@ void Font::render(const std::string& text, const glm::vec2& position,
               { texx + texw, texy + texh } }
         };
 
-        std::move(vertices.begin(), vertices.end(),
-                  batchVertices.begin() + (i * vertexCount));
+        std::ranges::move(vertices, batchVertices.begin() + (i * vertexCount));
 
         const std::array indices = {
             i * 4, (i * 4) + 2, (i * 4) + 1,  //
             i * 4, (i * 4) + 3, (i * 4) + 2   //
         };
 
-        std::move(indices.begin(), indices.end(),
-                  batchIndices.begin() + (i * indexCount));
+        std::ranges::move(indices, batchIndices.begin() + (i * indexCount));
 
         x += xadvance * scale;
 
@@ -155,19 +153,18 @@ void Font::render(const std::string& text, const glm::vec2& position,
     const auto tex = ResourceManager::getTexture(textureName);
     tex->bind();
 
-    const uint32_t numChars = str.size();
+    const size_t numChars = str.size();
 
     vbo->update(batchVertices.data(),
                 numChars * vertexCount * sizeof(glm::vec2));
 
     ebo->update(batchIndices.data(), numChars * indexCount);
 
-    glDrawElements(GL_TRIANGLES, numChars * indexCount, GL_UNSIGNED_INT,
-                   nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numChars * indexCount),
+                   GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     vao->unbind();
 }
-
 }  // namespace sponge::platform::opengl::scene

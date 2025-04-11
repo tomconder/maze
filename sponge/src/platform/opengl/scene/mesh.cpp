@@ -10,7 +10,6 @@ constexpr char texCoord[] = "texCoord";
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
-
 using renderer::ResourceManager;
 using sponge::scene::Vertex;
 
@@ -86,11 +85,11 @@ void Mesh::render() const {
         shader->setBoolean("hasNoTexture", true);
     }
 
-    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numIndices),
+                   GL_UNSIGNED_INT, nullptr);
 
     shader->unbind();
 
     vao->unbind();
 }
-
 }  // namespace sponge::platform::opengl::scene
