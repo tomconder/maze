@@ -15,8 +15,6 @@ A nice walk through a maze.
 * HDR
 * Performance Profiling with Tracy
 
-![work in progress](docs/workinprogress.png)
-
 ## Features
 
 * Physically based rendering (PBR)
