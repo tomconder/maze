@@ -4,6 +4,17 @@ A nice walk through a maze.
 
 > For more information please check out the [full documentation](https://tomconder.github.io/maze/)
 
+![work in progress](docs/workinprogress.png "work in progress")
+
+## Features
+
+* Physically based rendering (PBR)
+* Multi-channel signed distance field (MSDF) text rendering
+* Platform portability - OpenGL and C++ for Windows and Mac
+* Point lights
+* HDR
+* Performance Profiling with Tracy
+
 ## Project Organization
 
     assets/          # game assets
