@@ -92,10 +92,10 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
     isRunning = false;
     return true;
 }
-} // namespace game
+}  // namespace game
 
 sponge::core::Application* sponge::core::createApplication(const int argc,
-    char** argv) {
+                                                           char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 

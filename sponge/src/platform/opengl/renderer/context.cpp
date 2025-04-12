@@ -24,8 +24,8 @@ Context::Context() {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-        GLFWwindow* window = glfwCreateWindow(640, 480, "GL Version Test",
-                                              nullptr, nullptr);
+        GLFWwindow* window =
+            glfwCreateWindow(640, 480, "GL Version Test", nullptr, nullptr);
         if (window) {
             glfwDestroyWindow(window);
             break;
@@ -82,4 +82,4 @@ void Context::flip(void* window) {
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer

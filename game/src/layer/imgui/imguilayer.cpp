@@ -19,11 +19,11 @@ constexpr const char* categories[categoryCount] = { "categories", "app",
 constexpr int logLevelCount = 7;
 constexpr const char* logLevels[logLevelCount] = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
-    SPDLOG_LEVEL_NAME_INFO.data(), SPDLOG_LEVEL_NAME_WARNING.data(),
+    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
-} // namespace
+}  // namespace
 
 namespace game::layer::imgui {
 bool ImGuiLayer::hasAppInfoMenu = true;
@@ -62,15 +62,14 @@ void ImGuiLayer::onImGuiRender() {
         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
     if (hasAppInfoMenu) {
-        ImGui::SetNextWindowPos({ width - 376.F,
-                                  ImGui::GetFontSize() + ImGui::GetStyle().
-                                  FramePadding.y * 2 });
+        ImGui::SetNextWindowPos(
+            { width - 376.F,
+              ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
         ImGui::SetNextWindowSize({ 376.F, 656.F });
 
-        const std::string appInfo = fmt::format(
-            "{} {} ({})", project_name.c_str(),
-            project_version.c_str(),
-            git_sha.c_str());
+        const std::string appInfo =
+            fmt::format("{} {} ({})", project_name.c_str(),
+                        project_version.c_str(), git_sha.c_str());
 
         if (ImGui::Begin(appInfo.c_str(), nullptr, windowFlags)) {
             if (ImGui::CollapsingHeader("App Info##Header"),
@@ -79,8 +78,7 @@ void ImGuiLayer::onImGuiRender() {
                 ImGui::Text("Resolution: %dx%d", window->getWidth(),
                             window->getHeight());
                 ImGui::Text("Average %.3f ms/frame (%.1f FPS)",
-                            1000.F / io.Framerate,
-                            io.Framerate);
+                            1000.F / io.Framerate, io.Framerate);
 
                 ImGui::BeginTable(
                     "##CameraTable", 2,
@@ -127,11 +125,11 @@ void ImGuiLayer::onImGuiRender() {
                     mazeLayer->setNumLights(numLights);
                 }
 
-                auto attenuation = PointLight::getAttenuationFromIndex(
-                    attenuationIndex);
+                auto attenuation =
+                    PointLight::getAttenuationFromIndex(attenuationIndex);
                 std::string label = fmt::format(
-                    "{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]",
-                    attenuation.x, attenuation.y, attenuation.z, attenuation.w);
+                    "{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
+                    attenuation.y, attenuation.z, attenuation.w);
 
                 if (ImGui::SliderInt("Attentuation", &attenuationIndex, 0, 10,
                                      label.c_str())) {
@@ -152,26 +150,23 @@ void ImGuiLayer::onImGuiRender() {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 if (ImGui::SliderFloat("Ambient Strength", &ambientStrength,
-                                       0.F,
-                                       1.F,
-                                       "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                                       0.F, 1.F, "%.3f",
+                                       ImGuiSliderFlags_AlwaysClamp)) {
                     mazeLayer->setAmbientStrength(ambientStrength);
                 }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 if (ImGui::SliderFloat("Roughness", &roughness, 0.F, 1.F,
-                                       "%.3f",
-                                       ImGuiSliderFlags_AlwaysClamp)) {
+                                       "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                     mazeLayer->setRoughness(roughness);
                 }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion,
-                                       0.F,
-                                       1.F,
-                                       "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                                       0.F, 1.F, "%.3f",
+                                       ImGuiSliderFlags_AlwaysClamp)) {
                     mazeLayer->setAmbientOcclusion(ambientOcclusion);
                 }
 
@@ -400,8 +395,8 @@ void ImGuiLayer::showLogging() {
     ImGui::SameLine();
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
-                            ImGui::CalcTextSize("Reset").x -
-                            (ImGui::GetStyle().FramePadding.x * 6));
+                                ImGui::CalcTextSize("Reset").x -
+                                (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {
@@ -471,4 +466,4 @@ void ImGuiLayer::showLogging() {
 
     ImGui::EndChild();
 }
-} // namespace game::layer::imgui
+}  // namespace game::layer::imgui
