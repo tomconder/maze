@@ -319,9 +319,10 @@ void ImGuiLayer::showModelsTable() {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             const auto& model = models.at(key);
-            ImGui::Text(fmt::format("{:10s} vertices {:7d} indices {:7d}", key,
-                                    model->getNumVertices(),
-                                    model->getNumIndices()).c_str());
+            ImGui::Text("%s", fmt::format("{:10s} vertices {:7d} indices {:7d}",
+                                          key, model->getNumVertices(),
+                                          model->getNumIndices())
+                                  .c_str());
         }
 
         ImGui::PopStyleVar();
