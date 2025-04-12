@@ -17,7 +17,7 @@ enum LoadFlag : uint8_t {
 };
 
 class ResourceManager {
-public:
+   public:
     static std::shared_ptr<scene::Font> getFont(const std::string& name);
     static std::shared_ptr<scene::Font> loadFont(const std::string& name,
                                                  const std::string& path);
@@ -57,7 +57,7 @@ public:
         assetsFolder = folder;
     }
 
-private:
+   private:
     ResourceManager() = default;
 
     static std::shared_ptr<scene::Font> loadFontFromFile(
@@ -66,14 +66,14 @@ private:
         const std::string& path);
     static std::string loadSourceFromFile(const std::string& path);
     static std::shared_ptr<Texture> loadTextureFromFile(const std::string& path,
-        bool gammaCorrection);
+                                                        bool gammaCorrection);
 
     static std::string assetsFolder;
 
     static std::unordered_map<std::string, std::shared_ptr<scene::Font>> fonts;
     static std::unordered_map<std::string, std::shared_ptr<scene::Model>>
-    models;
+        models;
     static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
     static std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
 };
-} // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::renderer
