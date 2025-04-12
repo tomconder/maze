@@ -35,7 +35,6 @@ Context::Context() {
 
     glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
 #ifdef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -82,4 +81,4 @@ void Context::flip(void* window) {
     glfwSwapBuffers(static_cast<GLFWwindow*>(window));
     SPONGE_PROFILE_GPU_COLLECT;
 }
-}  // namespace sponge::platform::opengl::renderer
+} // namespace sponge::platform::opengl::renderer
