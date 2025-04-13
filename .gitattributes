@@ -1,6 +1,7 @@
 # Auto detect text files and perform LF normalization
 *          text=auto
-tools/scripts/**   -linguist-detectable
+tools/scripts/**        -linguist-detectable
+sponge/deps/glad2/**    -linguist-detectable
 
 # Sources
 *.c     text diff=cpp
