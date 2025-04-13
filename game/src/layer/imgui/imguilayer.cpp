@@ -19,11 +19,11 @@ constexpr const char* categories[categoryCount] = { "categories", "app",
 constexpr int logLevelCount = 7;
 constexpr const char* logLevels[logLevelCount] = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
-    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
+    SPDLOG_LEVEL_NAME_INFO.data(), SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
-}  // namespace
+} // namespace
 
 namespace game::layer::imgui {
 bool ImGuiLayer::hasAppInfoMenu = true;
@@ -63,8 +63,8 @@ void ImGuiLayer::onImGuiRender() {
 
     if (hasAppInfoMenu) {
         ImGui::SetNextWindowPos(
-            { width - 376.F,
-              ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
+        { width - 376.F,
+          ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
         ImGui::SetNextWindowSize({ 376.F, 656.F });
 
         const std::string appInfo =
@@ -157,7 +157,7 @@ void ImGuiLayer::onImGuiRender() {
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                if (ImGui::SliderFloat("Roughness", &roughness, 0.F, 1.F,
+                if (ImGui::SliderFloat("Roughness", &roughness, .089F, 1.F,
                                        "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                     mazeLayer->setRoughness(roughness);
                 }
@@ -317,7 +317,7 @@ void ImGuiLayer::showModelsTable() {
             ImGui::Text("%s", fmt::format("{:10s} vertices {:7d} indices {:7d}",
                                           key, model->getNumVertices(),
                                           model->getNumIndices())
-                                  .c_str());
+                        .c_str());
         }
 
         ImGui::PopStyleVar();
@@ -395,8 +395,8 @@ void ImGuiLayer::showLogging() {
     ImGui::SameLine();
 
     filter.Draw("##filter", ImGui::GetWindowWidth() - ImGui::GetCursorPosX() -
-                                ImGui::CalcTextSize("Reset").x -
-                                (ImGui::GetStyle().FramePadding.x * 6));
+                            ImGui::CalcTextSize("Reset").x -
+                            (ImGui::GetStyle().FramePadding.x * 6));
     ImGui::SameLine();
 
     if (ImGui::Button("Reset")) {
@@ -466,4 +466,4 @@ void ImGuiLayer::showLogging() {
 
     ImGui::EndChild();
 }
-}  // namespace game::layer::imgui
+} // namespace game::layer::imgui

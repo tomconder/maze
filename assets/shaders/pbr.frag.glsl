@@ -28,8 +28,8 @@ uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
-float distributionGGX(vec3 N, vec3 H, float roughness) {
-    float a = roughness * roughness;
+float distributionGGX(vec3 N, vec3 H, float rough) {
+    float a = rough * rough;
     float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
@@ -41,8 +41,8 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     return nom / denom;
 }
 
-float geometrySchlickGGX(float NdotV, float roughness) {
-    float r = (roughness + 1.0);
+float geometrySchlickGGX(float NdotV, float rough) {
+    float r = (rough + 1.0);
     float k = (r * r) / 8.0;
 
     float nom = NdotV;
@@ -51,11 +51,11 @@ float geometrySchlickGGX(float NdotV, float roughness) {
     return nom / denom;
 }
 
-float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+float geometrySmith(vec3 N, vec3 V, vec3 L, float rough) {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = geometrySchlickGGX(NdotV, roughness);
-    float ggx1 = geometrySchlickGGX(NdotL, roughness);
+    float ggx2 = geometrySchlickGGX(NdotV, rough);
+    float ggx1 = geometrySchlickGGX(NdotL, rough);
 
     return ggx1 * ggx2;
 }
@@ -100,8 +100,9 @@ void main() {
         vec3 radiance = pointLights[i].color * attenuation;
 
         // Cook-Torrance BRDF
-        float NDF = distributionGGX(N, H, roughness);
-        float G = geometrySmith(N, V, L, roughness);
+        float rough = clamp(roughness, 0.089, 1.0);
+        float NDF = distributionGGX(N, H, rough);
+        float G = geometrySmith(N, V, L, rough);
         vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
         vec3 numerator = NDF * G * F;
