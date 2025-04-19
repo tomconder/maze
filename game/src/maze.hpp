@@ -4,7 +4,7 @@
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
 
-#if defined(ENABLE_IMGUI)
+#if defined(SPONGE_ENABLE_IMGUI)
 #include "layer/imgui/imguilayer.hpp"
 #endif
 
@@ -39,7 +39,7 @@ class Maze final : public sponge::platform::glfw::core::Application {
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-#if defined(ENABLE_IMGUI)
+#if defined(SPONGE_ENABLE_IMGUI)
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
 #endif

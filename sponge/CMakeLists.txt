@@ -60,7 +60,7 @@ file(
 )
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     message(STATUS "Including imgui platform files")
     file(
             GLOB IMGUI_HEADERS
@@ -103,11 +103,11 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Stb REQUIRED)
 
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     find_package(imgui CONFIG REQUIRED)
 endif ()
 
-if (ENABLE_PROFILING)
+if (SPONGE_ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
@@ -174,9 +174,9 @@ target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     target_link_libraries(sponge PRIVATE imgui::imgui)
 endif ()
-if (ENABLE_PROFILING)
+if (SPONGE_ENABLE_PROFILING)
     target_link_libraries(sponge PRIVATE Tracy::TracyClient)
 endif ()

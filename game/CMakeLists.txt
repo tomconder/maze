@@ -24,7 +24,7 @@ file(
         ${CMAKE_SOURCE_DIR}/assets/*)
 
 
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     file(
             GLOB IMGUI_HEADERS
             LIST_DIRECTORIES false
@@ -43,10 +43,10 @@ find_package(spdlog CONFIG REQUIRED)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
 find_package(glfw3 CONFIG REQUIRED)
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     find_package(imgui CONFIG REQUIRED)
 endif ()
-if (ENABLE_PROFILING)
+if (SPONGE_ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
@@ -152,10 +152,10 @@ target_link_libraries(game PRIVATE glfw)
 target_link_libraries(game PRIVATE glm::glm)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)
-if (ENABLE_IMGUI)
+if (SPONGE_ENABLE_IMGUI)
     target_link_libraries(game PRIVATE imgui::imgui)
 endif ()
-if (ENABLE_PROFILING)
+if (SPONGE_ENABLE_PROFILING)
     target_link_libraries(game PRIVATE Tracy::TracyClient)
 endif ()
 

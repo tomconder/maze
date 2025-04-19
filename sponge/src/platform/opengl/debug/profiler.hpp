@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(ENABLE_PROFILING)
+#if defined(SPONGE_ENABLE_PROFILING)
 
 #include <glad/gl.h>
 #include <tracy/TracyOpenGL.hpp>

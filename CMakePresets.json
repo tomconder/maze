@@ -18,8 +18,8 @@
         "VCPKG_FEATURE_FLAGS": "manifests,versions,binarycaching,registries"
       },
       "cacheVariables": {
-        "ENABLE_IMGUI": "OFF",
-        "ENABLE_PROFILING": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF",
+        "SPONGE_ENABLE_PROFILING": "OFF"
       }
     },
     {
@@ -75,7 +75,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_IMGUI": "ON"
+        "SPONGE_ENABLE_IMGUI": "ON"
       }
     },
     {
@@ -85,7 +85,7 @@
       "inherits": "ci-windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_IMGUI": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF"
       }
     },
     {
@@ -98,7 +98,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_IMGUI": "ON"
+        "SPONGE_ENABLE_IMGUI": "ON"
       }
     },
     {
@@ -108,7 +108,7 @@
       "inherits": "windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_IMGUI": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF"
       }
     },
     {
@@ -125,7 +125,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_IMGUI": "ON"
+        "SPONGE_ENABLE_IMGUI": "ON"
       }
     },
     {
@@ -135,7 +135,7 @@
       "inherits": "windows-msvc-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_IMGUI": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF"
       }
     },
     {
@@ -163,7 +163,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_IMGUI": "ON"
+        "SPONGE_ENABLE_IMGUI": "ON"
       }
     },
     {
@@ -173,7 +173,7 @@
       "inherits": "ci-osx-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_IMGUI": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF"
       }
     },
     {
@@ -186,7 +186,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_IMGUI": "ON"
+        "SPONGE_ENABLE_IMGUI": "ON"
       }
     },
     {
@@ -196,7 +196,7 @@
       "inherits": "osx-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_IMGUI": "OFF"
+        "SPONGE_ENABLE_IMGUI": "OFF"
       }
     }
   ],
