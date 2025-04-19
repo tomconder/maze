@@ -4,15 +4,15 @@
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
 
-#if defined(SPONGE_ENABLE_IMGUI)
+#if defined(ENABLE_IMGUI)
 #include "layer/imgui/imguilayer.hpp"
 #endif
 
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
-   public:
+public:
     explicit Maze(const sponge::platform::glfw::core::ApplicationSpecification&
-                      specification);
+        specification);
 
     bool onUserCreate() override;
 
@@ -34,12 +34,12 @@ class Maze final : public sponge::platform::glfw::core::Application {
         isRunning = false;
     }
 
-   private:
+private:
     bool isRunning = true;
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-#if defined(SPONGE_ENABLE_IMGUI)
+#if defined(ENABLE_IMGUI)
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
 #endif
@@ -52,4 +52,4 @@ class Maze final : public sponge::platform::glfw::core::Application {
 
     static Maze* instance;
 };
-}  // namespace game
+} // namespace game

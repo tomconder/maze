@@ -15,7 +15,7 @@ Maze::Maze(const ApplicationSpecification& specification)
 }
 
 bool Maze::onUserCreate() {
-#if defined(SPONGE_ENABLE_IMGUI)
+#if defined(ENABLE_IMGUI)
     pushOverlay(imguiLayer);
 #endif
     pushOverlay(exitLayer);
@@ -67,7 +67,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-#if defined(SPONGE_ENABLE_IMGUI)
+#if defined(ENABLE_IMGUI)
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_GraveAccent) {
         if (imguiLayer->isActive()) {
             imguiLayer->setActive(false);
@@ -92,10 +92,10 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
     isRunning = false;
     return true;
 }
-}  // namespace game
+} // namespace game
 
 sponge::core::Application* sponge::core::createApplication(const int argc,
-                                                           char** argv) {
+    char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 

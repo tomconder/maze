@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(SPONGE_ENABLE_PROFILING)
+#if defined(ENABLE_PROFILING)
 
 #include <tracy/Tracy.hpp>
 
