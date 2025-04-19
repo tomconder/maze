@@ -113,7 +113,7 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Cache the build
-        uses: mozilla-actions/sccache-action@v0.0.7
+        uses: mozilla-actions/sccache-action@v0.0.9
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
