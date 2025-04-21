@@ -1,3 +1,4 @@
+// ReSharper disable CppRedundantCastExpression
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
@@ -8,21 +9,19 @@
 #include <ranges>
 
 namespace {
-constexpr ImColor DARK_DEBUG_COLOR{ .3F, .8F, .8F, 1.F };
-constexpr ImColor DARK_ERROR_COLOR{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor DARK_WARN_COLOR{ .8F, .8F, 0.3F, 1.F };
-constexpr char cameraName[] = "maze";
-constexpr int categoryCount = 4;
-constexpr const char* categories[categoryCount] = { "categories", "app",
-                                                    "sponge", "opengl" };
-
-constexpr int logLevelCount = 7;
-constexpr const char* logLevels[logLevelCount] = {
+constexpr ImColor darkDebugColor{ .3F, .8F, .8F, 1.F };
+constexpr ImColor darkErrorColor{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor darkWarnColor{ .8F, .8F, 0.3F, 1.F };
+constexpr std::string_view cameraName = "maze";
+constexpr std::array categories = { "categories", "app", "sponge", "opengl" };
+constexpr int categoryCount = static_cast<int>(categories.size());
+constexpr std::array logLevels = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
+constexpr int logLevelCount = static_cast<int>(logLevels.size());
 }  // namespace
 
 namespace game::layer::imgui {
@@ -43,8 +42,8 @@ void ImGuiLayer::onImGuiRender() {
     const auto width = static_cast<float>(window->getWidth());
     const auto height = static_cast<float>(window->getHeight());
 
-    hasVsync = game::Maze::get().hasVerticalSync();
-    isFullscreen = game::Maze::get().isFullscreen();
+    hasVsync = Maze::get().hasVerticalSync();
+    isFullscreen = Maze::get().isFullscreen();
 
     const auto mazeLayer = Maze::get().getMazeLayer();
 
@@ -84,7 +83,8 @@ void ImGuiLayer::onImGuiRender() {
                     "##CameraTable", 2,
                     ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
 
-                const auto camera = ResourceManager::getGameCamera(cameraName);
+                const auto camera =
+                    ResourceManager::getGameCamera(cameraName.data());
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -127,7 +127,7 @@ void ImGuiLayer::onImGuiRender() {
 
                 auto attenuation =
                     PointLight::getAttenuationFromIndex(attenuationIndex);
-                std::string label = fmt::format(
+                const std::string label = fmt::format(
                     "{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
                     attenuation.y, attenuation.z, attenuation.w);
 
@@ -213,11 +213,11 @@ void ImGuiLayer::onImGuiRender() {
     }
 }
 
-float ImGuiLayer::getLogSelectionMaxWidth(const char* const list[],
-                                          const std::size_t size) {
+float ImGuiLayer::getLogSelectionMaxWidth(
+    const std::span<const char* const> list) {
     float maxWidth = 0;
-    for (std::size_t i = 0; i < size; i++) {
-        const auto width = ImGui::CalcTextSize(list[i]).x;
+    for (const auto* item : list) {
+        const auto width = ImGui::CalcTextSize(item).x;
         maxWidth = std::max(width, maxWidth);
     }
 
@@ -366,10 +366,8 @@ void ImGuiLayer::showTexturesTable() {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static auto logLevelWidth =
-        getLogSelectionMaxWidth(logLevels, logLevelCount);
-    static auto categoriesWidth =
-        getLogSelectionMaxWidth(categories, categoryCount);
+    static auto logLevelWidth = getLogSelectionMaxWidth(logLevels);
+    static auto categoriesWidth = getLogSelectionMaxWidth(categories);
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
     static auto activeCategory = 0;
 
@@ -384,11 +382,12 @@ void ImGuiLayer::showLogging() {
 
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels, logLevelCount);
+                 logLevels.data(), logLevelCount);
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
-    ImGui::Combo("##categories", &activeCategory, categories, categoryCount);
+    ImGui::Combo("##categories", &activeCategory, categories.data(),
+                 categoryCount);
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");
@@ -432,15 +431,15 @@ void ImGuiLayer::showLogging() {
         switch (level) {
             case spdlog::level::debug:
                 hasColor = true;
-                color = DARK_DEBUG_COLOR;
+                color = darkDebugColor;
                 break;
             case spdlog::level::warn:
                 hasColor = true;
-                color = DARK_WARN_COLOR;
+                color = darkWarnColor;
                 break;
             case spdlog::level::err:
                 hasColor = true;
-                color = DARK_ERROR_COLOR;
+                color = darkErrorColor;
                 break;
             default:
                 hasColor = false;

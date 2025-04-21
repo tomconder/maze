@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sponge.hpp"
+#include <span>
 
 namespace game::layer::imgui {
 class ImGuiLayer final : public sponge::layer::Layer {
@@ -9,8 +10,8 @@ class ImGuiLayer final : public sponge::layer::Layer {
 
     void onImGuiRender() override;
 
-    static float getLogSelectionMaxWidth(const char* const list[],
-                                         std::size_t size);
+    static float getLogSelectionMaxWidth(std::span<const char* const> list
+        );
 
    private:
     static bool hasAppInfoMenu;
