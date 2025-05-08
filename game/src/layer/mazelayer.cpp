@@ -25,10 +25,27 @@ using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
 
 constexpr std::array gameObjects = {
-    GameObject{ .name = "helmet",
-                .path = "/models/helmet/damaged_helmet.obj",
+    GameObject{ .name = "cube1",
+                .path = "/models/cube/cube-tex.obj",
+                .scale = glm::vec3(1.F),
+                .translation = glm::vec3(-.5F, .85F, -.5F) },
+
+    GameObject{ .name = "cube2",
+                .path = "/models/cube/cube-tex.obj",
                 .scale = glm::vec3(.5F),
-                .translation = glm::vec3(0.F, 0.F, 0.F) },
+                .translation = glm::vec3(1.5F, .25F, 1.F) },
+
+    GameObject{ .name = "cube3",
+                .path = "/models/cube/cube-tex.obj",
+                .scale = glm::vec3(.25F),
+                .rotation = { .angle = glm::radians(60.F),
+                              .axis = glm::vec3(1.F, 0.F, 1.F) },
+                .translation = glm::vec3(-1.F, 0.25F, 2.F) },
+
+    // GameObject{ .name = "helmet",
+    //             .path = "/models/helmet/damaged_helmet.obj",
+    //             .scale = glm::vec3(.5F),
+    //             .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     GameObject{ .name = "floor",
                 .path = "/models/floor/floor.obj",
@@ -199,9 +216,12 @@ void MazeLayer::renderGameObjects() const {
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setFloat3("viewPos", camera->getPosition());
-        shader->setMat4("mvp",
-                        translate(scale(camera->getMVP(), gameObject.scale),
-                                  gameObject.translation));
+        shader->setMat4(
+            "mvp",
+            scale(rotate(translate(camera->getMVP(), gameObject.translation),
+                         gameObject.rotation.angle, gameObject.rotation.axis),
+                  gameObject.scale));
+
         ResourceManager::getModel(gameObject.name)->render();
         shader->unbind();
     }

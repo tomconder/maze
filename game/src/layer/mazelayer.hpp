@@ -8,6 +8,10 @@ struct GameObject {
     const char* name;
     const char* path;
     glm::vec3 scale{ 1.F };
+    struct {
+        float angle{ 0.F };
+        glm::vec3 axis{ 0.F, 1.F, 0.F };
+    } rotation;
     glm::vec3 translation{ 0.F };
 };
 
