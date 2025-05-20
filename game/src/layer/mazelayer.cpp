@@ -45,6 +45,8 @@ constexpr std::array gameObjects = {
     // GameObject{ .name = "helmet",
     //             .path = "/models/helmet/damaged_helmet.obj",
     //             .scale = glm::vec3(.5F),
+    //             .rotation = { .angle = glm::radians(45.F),
+    //                           .axis = glm::vec3(0.F, 1.F, 0.F) },
     //             .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     GameObject{ .name = "floor",
