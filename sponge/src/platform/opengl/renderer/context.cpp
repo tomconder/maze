@@ -13,6 +13,15 @@ constexpr std::pair<int, int> glVersions[13] = {
 
 namespace sponge::platform::opengl::renderer {
 Context::Context() {
+    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    // enable 4x MSAA
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
+    // dpi scaling
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, 1);
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -32,9 +41,6 @@ Context::Context() {
         }
     }
 #endif
-
-    glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
