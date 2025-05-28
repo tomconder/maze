@@ -80,8 +80,7 @@ void Mesh::render(std::shared_ptr<renderer::Shader>& shader) const {
         if (!textures.empty()) {
             shader->setInteger("texture_diffuse1", 0);
             shader->setBoolean("hasNoTexture", false);
-            glActiveTexture(GL_TEXTURE0);
-            textures[0]->bind();
+            textures[0]->activateAndBind(0);
         } else {
             shader->setBoolean("hasNoTexture", true);
         }

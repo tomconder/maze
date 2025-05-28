@@ -10,6 +10,8 @@ class Texture final : public sponge::renderer::Texture {
     Texture();
     ~Texture() override;
 
+    void createDepthMap(uint32_t width, uint32_t height) const;
+
     void generate(uint32_t textureWidth, uint32_t textureHeight,
                   uint32_t bytesPerPixel, const uint8_t* data,
                   bool gammaCorrection = false);
@@ -27,6 +29,7 @@ class Texture final : public sponge::renderer::Texture {
         return type;
     }
 
+    void activateAndBind(uint8_t unit) const;
     void bind() const override;
     void setType(const std::string_view& typeName) {
         type = typeName;
