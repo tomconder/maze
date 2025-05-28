@@ -14,6 +14,7 @@ class FrameBuffer final : public sponge::renderer::Buffer {
 
     void bind() const override;
     void unbind() const override;
+    static bool checkStatus();
 };
 
 }  // namespace sponge::platform::opengl::renderer

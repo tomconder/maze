@@ -21,4 +21,11 @@ void FrameBuffer::unbind() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+bool FrameBuffer::checkStatus() {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        return false;
+    }
+    return true;
+}
+
 }  // namespace sponge::platform::opengl::renderer

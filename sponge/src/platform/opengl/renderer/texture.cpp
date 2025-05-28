@@ -6,6 +6,24 @@ namespace sponge::platform::opengl::renderer {
 Texture::Texture() {
     glGenTextures(1, &id);
 }
+
+Texture::~Texture() {
+    glDeleteTextures(1, &id);
+}
+
+void Texture::createDepthMap(const uint32_t width,
+                             const uint32_t height) const {
+    glBindTexture(GL_TEXTURE_2D, id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    constexpr float borderColor[] = { 1.F, 1.F, 1.F, 1.F };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+}
+
 void Texture::generate(const uint32_t textureWidth,
                        const uint32_t textureHeight,
                        const uint32_t bytesPerPixel, const uint8_t* data,
@@ -39,8 +57,9 @@ void Texture::generate(const uint32_t textureWidth,
     glActiveTexture(GL_TEXTURE0);
 }
 
-Texture::~Texture() {
-    glDeleteTextures(1, &id);
+void Texture::activateAndBind(const uint8_t unit) const {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, id);
 }
 
 void Texture::bind() const {

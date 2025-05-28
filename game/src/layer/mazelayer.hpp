@@ -79,7 +79,7 @@ class MazeLayer final : public sponge::layer::Layer {
     float ao = .25F;
     float roughness = .5F;
     int32_t numLights = 1;
-    int32_t attenuationIndex = 4;
+    int32_t attenuationIndex = 6;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);

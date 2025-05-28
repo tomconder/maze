@@ -18,13 +18,12 @@ class ShadowMap {
     void bind() const;
     void unbind() const;
 
+    void activateAndBindDepthMap(uint8_t unit) const;
+
     static std::string getShaderName() {
         return std::string(shaderName);
     }
 
-    uint32_t getDepthMapId() const {
-        return depthMap;
-    }
     const glm::mat4& getLightSpaceMatrix() const {
         return lightSpaceMatrix;
     }
@@ -34,12 +33,12 @@ class ShadowMap {
    private:
     static constexpr char shaderName[] = "shadowmap";
     std::shared_ptr<renderer::Shader> shader;
+    std::unique_ptr<renderer::FrameBuffer> framebuffer;
+    std::unique_ptr<renderer::Texture> depthMap;
 
     static constexpr float nearPlane = 1.0f;
     static constexpr float farPlane = 25.0f;
 
-    uint32_t depthMap{ 0 };
-    uint32_t fbo{ 0 };
     glm::mat4 lightSpaceMatrix{ 1.0f };
 };
 }  // namespace sponge::platform::opengl::scene

@@ -10,7 +10,8 @@ namespace {
 constexpr auto keyboardSpeed = .075F;
 constexpr auto mouseSpeed = .125F;
 
-constexpr auto cameraPosition = glm::vec3(0.F, 2.5F, 6.5F);
+constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
+constexpr auto spotlightPosition = glm::vec3(-2.F, 4.F, -1.F);
 
 constexpr auto lightCubeScale = glm::vec3(.1F);
 
@@ -150,7 +151,7 @@ void MazeLayer::setNumLights(const int32_t val) {
         pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(-1.F, 2.5F, -1.F, 1.F));
+            glm::vec4(-1.F, 2.75F, -1.F, 1.F));
 
         pointLights[i].setAttenuationFromIndex(attenuationIndex);
     }
@@ -218,8 +219,7 @@ bool MazeLayer::onWindowResize(
 void MazeLayer::renderGameObjects() const {
     shadowMap->bind();
 
-    glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
-    shadowMap->updateLightSpaceMatrix(lightPos);
+    shadowMap->updateLightSpaceMatrix(spotlightPosition);
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
     // render scene from light's perspective
@@ -260,8 +260,7 @@ void MazeLayer::renderGameObjects() const {
         shader->setMat4("lightSpaceMatrix", shadowMap->getLightSpaceMatrix());
 
         shader->setInteger("shadowMap", 1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, shadowMap->getDepthMapId());
+        shadowMap->activateAndBindDepthMap(1);
 
         ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();
@@ -272,12 +271,11 @@ void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Cube::getShaderName());
 
-    // render the sun as a cube
-    const glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+    // render the spotlight as a cube
     shader->bind();
     shader->setFloat3("lightColor", glm::vec3(1.F, .87F, 0.F));
-    shader->setMat4(
-        "mvp", scale(translate(camera->getMVP(), lightPos), lightCubeScale));
+    shader->setMat4("mvp", scale(translate(camera->getMVP(), spotlightPosition),
+                                 lightCubeScale));
     cube->render();
     shader->unbind();
 
