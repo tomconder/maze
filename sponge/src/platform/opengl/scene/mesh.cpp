@@ -1,5 +1,6 @@
 #include "mesh.hpp"
 #include "debug/profiler.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <cstddef>
 
@@ -22,8 +23,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     this->vertices = vertices;
     this->numVertices = numVertices;
 
-    shader = ResourceManager::loadShader(shaderName, "/shaders/pbr.vert.glsl",
-                                         "/shaders/pbr.frag.glsl");
+    const auto shader = ResourceManager::loadShader(
+        shaderName, "/shaders/pbr.vert.glsl", "/shaders/pbr.frag.glsl");
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -70,25 +71,24 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     vao->unbind();
 }
 
-void Mesh::render() const {
+void Mesh::render(std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
 
     vao->bind();
 
-    shader->bind();
-
-    if (!textures.empty()) {
-        shader->setInteger("texture_diffuse1", 0);
-        shader->setBoolean("hasNoTexture", false);
-        textures[0]->bind();
-    } else {
-        shader->setBoolean("hasNoTexture", true);
+    if (shader->getName() == "mesh") {
+        if (!textures.empty()) {
+            shader->setInteger("texture_diffuse1", 0);
+            shader->setBoolean("hasNoTexture", false);
+            glActiveTexture(GL_TEXTURE0);
+            textures[0]->bind();
+        } else {
+            shader->setBoolean("hasNoTexture", true);
+        }
     }
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
-
-    shader->unbind();
 
     vao->unbind();
 }

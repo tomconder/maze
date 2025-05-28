@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/opengl/scene/cube.hpp"
+#include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
@@ -8,6 +10,10 @@ struct GameObject {
     const char* name;
     const char* path;
     glm::vec3 scale{ 1.F };
+    struct {
+        float angle{ 0.F };
+        glm::vec3 axis{ 0.F, 1.F, 0.F };
+    } rotation;
     glm::vec3 translation{ 0.F };
 };
 
@@ -66,13 +72,14 @@ class MazeLayer final : public sponge::layer::Layer {
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
+    std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
     bool metallic = false;
     float ambientStrength = .25F;
     float ao = .25F;
     float roughness = .5F;
     int32_t numLights = 1;
-    int32_t attenuationIndex = 6;
+    int32_t attenuationIndex = 4;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);

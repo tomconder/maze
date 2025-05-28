@@ -177,12 +177,12 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
         name, filename.string(), renderer::ExcludeAssetsFolder);
 }
 
-void Model::render() const {
+void Model::render(std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model");
 
     for (auto&& mesh : meshes) {
-        mesh->render();
+        mesh->render(shader);
     }
 }
 }  // namespace sponge::platform::opengl::scene

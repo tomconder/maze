@@ -9,7 +9,8 @@
 namespace sponge::platform::opengl::renderer {
 class Shader final : public sponge::renderer::Shader {
    public:
-    Shader(const std::string& vertexSource, const std::string& fragmentSource,
+    Shader(const std::string& name, const std::string& vertexSource,
+           const std::string& fragmentSource,
            const std::optional<std::string>& geometrySource = std::nullopt);
     ~Shader() override;
 
@@ -27,6 +28,10 @@ class Shader final : public sponge::renderer::Shader {
         return program;
     }
 
+    const std::string& getName() const {
+        return name;
+    }
+
    private:
     mutable std::unordered_map<std::string, GLint> uniformLocations;
 
@@ -35,6 +40,7 @@ class Shader final : public sponge::renderer::Shader {
                                 std::optional<uint32_t> gs = std::nullopt);
 
     uint32_t program = 0;
+    std::string name;
 
     GLint getUniformLocation(const std::string& name) const;
 };
