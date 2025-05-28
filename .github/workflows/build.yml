@@ -16,6 +16,7 @@ env:
   BUILD_TYPE: Release
   SCCACHE_GHA_ENABLED: true
   VCPKG_GIT_COMMIT_ID: 'f26ec398c25c4980f33a50391f00a75f7ad62ef7'
+  VCPKG_BINARY_SOURCES: ''
 
 permissions:
   contents: read
