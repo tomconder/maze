@@ -6,11 +6,14 @@
 
 namespace sponge::platform::opengl::renderer {
 
-Shader::Shader(const std::string& vertexSource,
+Shader::Shader(const std::string& name, const std::string& vertexSource,
                const std::string& fragmentSource,
                const std::optional<std::string>& geometrySource) {
+    assert(!name.empty());
     assert(!vertexSource.empty());
     assert(!fragmentSource.empty());
+
+    this->name = name;
 
     const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);

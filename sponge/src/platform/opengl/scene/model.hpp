@@ -11,7 +11,7 @@ class Model {
    public:
     Model() = default;
     void load(const std::string& path);
-    void render() const;
+    void render(std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {
         return numIndices;
     }

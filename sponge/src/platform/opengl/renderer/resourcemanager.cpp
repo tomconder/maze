@@ -103,10 +103,10 @@ std::shared_ptr<Shader> ResourceManager::loadShader(
 
         assert(!geometrySource.empty());
 
-        shader = std::make_shared<Shader>(vertexSource, fragmentSource,
+        shader = std::make_shared<Shader>(name, vertexSource, fragmentSource,
                                           geometrySource);
     } else {
-        shader = std::make_shared<Shader>(vertexSource, fragmentSource);
+        shader = std::make_shared<Shader>(name, vertexSource, fragmentSource);
     }
 
     SPONGE_CORE_INFO("Created shader: [{}, {}]", name, shader->getId());

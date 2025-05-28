@@ -5,6 +5,7 @@ layout (location = 0) out vec4 FragColor;
 in vec3 vPosition;
 in vec2 vTexCoord;
 in vec3 vNormal;
+in vec4 vFragPosLightSpace;
 
 // material parameters
 uniform float metallic;
@@ -22,11 +23,37 @@ uniform int numLights = 1;
 uniform PointLight pointLights[6];
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D shadowMap;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
+
+float calculateShadow(vec4 fragPosLightSpace) {
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // get closest depth value from light's perspective
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+
+    // get current depth value
+    float currentDepth = projCoords.z;
+
+    // check whether current frag pos is in shadow
+    float bias = 0.005; // Use small bias to prevent shadow acne
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+    // keep shadow at 0.0 when outside the far plane region of the light's frustum
+    if (projCoords.z > 1.0) {
+        shadow = 0.0;
+    }
+
+    return shadow;
+}
 
 float distributionGGX(vec3 N, vec3 H, float rough) {
     float a = rough * rough;
@@ -117,7 +144,9 @@ void main() {
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);
 
-        Lo += (kD * albedo / M_PI + specular) * radiance * NdotL;
+        // apply shadow
+        float shadow = calculateShadow(vFragPosLightSpace);
+        Lo += (kD * albedo / M_PI + specular) * radiance * NdotL * (1.0 - shadow);
     }
 
     // ambient

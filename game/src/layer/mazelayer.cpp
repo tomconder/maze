@@ -1,4 +1,5 @@
 #include "mazelayer.hpp"
+#include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/pointlight.hpp"
 #include "sponge.hpp"
@@ -25,22 +26,27 @@ using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
 
 constexpr std::array gameObjects = {
+    GameObject{ .name = "floor",
+                .path = "/models/floor/floor.obj",
+                .scale = glm::vec3(1.F),
+                .translation = glm::vec3(0.F, 0.002F, 0.F) },
+
     GameObject{ .name = "cube1",
                 .path = "/models/cube/cube-tex.obj",
                 .scale = glm::vec3(1.F),
-                .translation = glm::vec3(-.5F, .85F, -.5F) },
+                .translation = glm::vec3(-1.5F, .85F, -.5F) },
 
     GameObject{ .name = "cube2",
                 .path = "/models/cube/cube-tex.obj",
                 .scale = glm::vec3(.5F),
-                .translation = glm::vec3(1.5F, .25F, 1.F) },
+                .translation = glm::vec3(0.F, 0.F, .5F) },
 
     GameObject{ .name = "cube3",
                 .path = "/models/cube/cube-tex.obj",
                 .scale = glm::vec3(.25F),
                 .rotation = { .angle = glm::radians(60.F),
                               .axis = glm::vec3(1.F, 0.F, 1.F) },
-                .translation = glm::vec3(-1.F, 0.25F, 2.F) },
+                .translation = glm::vec3(-1.F, 0.25F, 1.F) }
 
     // GameObject{ .name = "helmet",
     //             .path = "/models/helmet/damaged_helmet.obj",
@@ -49,22 +55,18 @@ constexpr std::array gameObjects = {
     //                           .axis = glm::vec3(0.F, 1.F, 0.F) },
     //             .translation = glm::vec3(0.F, 0.F, 0.F) },
 
-    GameObject{ .name = "floor",
-                .path = "/models/floor/floor.obj",
-                .scale = glm::vec3(1.F),
-                .translation = glm::vec3(0.F, 0.002F, 0.F) }
 };
 
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
 }
-
 void MazeLayer::onAttach() {
     for (const auto& gameObject : gameObjects) {
         ResourceManager::loadModel(gameObject.name, gameObject.path);
     }
 
     camera = game::ResourceManager::createGameCamera(std::string(cameraName));
+    camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
     const auto shaderName =
@@ -78,6 +80,8 @@ void MazeLayer::onAttach() {
 
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
+
+    shadowMap = std::make_unique<sponge::platform::opengl::scene::ShadowMap>();
 
     cube = std::make_unique<sponge::platform::opengl::scene::Cube>();
 
@@ -146,7 +150,7 @@ void MazeLayer::setNumLights(const int32_t val) {
         pointLights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(-1.F, 1.5F, -1.F, 1.F));
+            glm::vec4(-1.F, 2.5F, -1.F, 1.F));
 
         pointLights[i].setAttenuationFromIndex(attenuationIndex);
     }
@@ -212,19 +216,54 @@ bool MazeLayer::onWindowResize(
 }
 
 void MazeLayer::renderGameObjects() const {
-    const auto shader = ResourceManager::getShader(
+    shadowMap->bind();
+
+    glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+    shadowMap->updateLightSpaceMatrix(lightPos);
+    const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+
+    // render scene from light's perspective
+    auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::ShadowMap::getShaderName());
+
+    for (const auto& gameObject : gameObjects) {
+        shader->bind();
+        shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        const auto model = glm::scale(
+            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
+                        gameObject.rotation.angle, gameObject.rotation.axis),
+            gameObject.scale);
+        shader->setMat4("model", model);
+
+        ResourceManager::getModel(gameObject.name)->render(shader);
+        shader->unbind();
+    }
+
+    shadowMap->unbind();
+
+    // render scene normally with shadow mapping
+    glViewport(0, 0, Maze::get().getWidth(), Maze::get().getHeight());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setFloat3("viewPos", camera->getPosition());
-        shader->setMat4(
-            "mvp",
-            scale(rotate(translate(camera->getMVP(), gameObject.translation),
-                         gameObject.rotation.angle, gameObject.rotation.axis),
-                  gameObject.scale));
+        const auto model = glm::scale(
+            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
+                        gameObject.rotation.angle, gameObject.rotation.axis),
+            gameObject.scale);
+        shader->setMat4("mvp", camera->getMVP() * model);
+        shader->setMat4("model", model);
+        shader->setMat4("lightSpaceMatrix", shadowMap->getLightSpaceMatrix());
 
-        ResourceManager::getModel(gameObject.name)->render();
+        shader->setInteger("shadowMap", 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, shadowMap->getDepthMapId());
+
+        ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();
     }
 }
@@ -233,6 +272,16 @@ void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Cube::getShaderName());
 
+    // render the sun as a cube
+    const glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+    shader->bind();
+    shader->setFloat3("lightColor", glm::vec3(1.F, .87F, 0.F));
+    shader->setMat4(
+        "mvp", scale(translate(camera->getMVP(), lightPos), lightCubeScale));
+    cube->render();
+    shader->unbind();
+
+    // render the point lights as cubes
     for (auto i = 0; i < numLights; ++i) {
         shader->bind();
         shader->setFloat3("lightColor", pointLights[i].color);
