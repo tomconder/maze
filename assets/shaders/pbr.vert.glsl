@@ -7,11 +7,11 @@ layout (location = 2) in vec3 normal;
 out vec3 vPosition;
 out vec2 vTexCoord;
 out vec3 vNormal;
-out vec4 vFragPosLightSpace;
+// out vec4 vFragPosLightSpace; // Removed
 
 uniform mat4 mvp;
 uniform mat4 model;
-uniform mat4 lightSpaceMatrix;
+// uniform mat4 lightSpaceMatrix; // Removed
 
 void main() {
     vec4 worldPos = model * vec4(position, 1.0);
@@ -22,5 +22,5 @@ void main() {
     vNormal = mat3(transpose(inverse(model))) * normal;
 
     // transform to light space
-    vFragPosLightSpace = lightSpaceMatrix * worldPos;
+    // vFragPosLightSpace = lightSpaceMatrix * worldPos; // Removed
 }

@@ -17,20 +17,25 @@ struct PointLight {
     vec3 position;
     vec3 color;
     vec3 attenuation;
+    mat4 lightSpaceMatrix; // New
+    sampler2D shadowMapSampler; // New
+    int castsShadows;      // New (bool as int)
 };
 
 uniform int numLights = 1;
 uniform PointLight pointLights[6];
 
 uniform sampler2D texture_diffuse1;
-uniform sampler2D shadowMap;
+// uniform sampler2D shadowMap; // Removed
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
-float calculateShadow(vec4 fragPosLightSpace) {
+float calculateShadow(vec3 worldPos, mat4 currentLightSpaceMatrix, sampler2D currentShadowMapSampler, vec3 lightDir) {
+    vec4 fragPosLightSpace = currentLightSpaceMatrix * vec4(worldPos, 1.0);
+
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -38,17 +43,20 @@ float calculateShadow(vec4 fragPosLightSpace) {
     projCoords = projCoords * 0.5 + 0.5;
 
     // get closest depth value from light's perspective
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float closestDepth = texture(currentShadowMapSampler, projCoords.xy).r;
 
     // get current depth value
     float currentDepth = projCoords.z;
 
-    // check whether current frag pos is in shadow
-    float bias = 0.005; // Use small bias to prevent shadow acne
+    // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
+    float bias = max(0.01 * (1.0 - dot(normalize(vNormal), normalize(lightDir))), 0.001);
+    // For now, use a simpler fixed bias, can be refined.
+    // float bias = 0.005; // Old fixed bias
+
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
     // keep shadow at 0.0 when outside the far plane region of the light's frustum
-    if (projCoords.z > 1.0) {
+    if (projCoords.z > 1.0 || projCoords.z < 0.0) { // Also check < 0.0
         shadow = 0.0;
     }
 
@@ -145,7 +153,11 @@ void main() {
         float NdotL = max(dot(N, L), 0.0);
 
         // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace);
+        float shadow = 0.0;
+        if (pointLights[i].castsShadows == 1) {
+             // For directional lights, the 'direction' is L. For spot/point, L is also the direction from surface to light.
+             shadow = calculateShadow(vPosition, pointLights[i].lightSpaceMatrix, pointLights[i].shadowMapSampler, L);
+        }
         Lo += (kD * albedo / M_PI + specular) * radiance * NdotL * (1.0 - shadow);
     }
 

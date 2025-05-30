@@ -24,12 +24,6 @@ class ShadowMap {
         return std::string(shaderName);
     }
 
-    const glm::mat4& getLightSpaceMatrix() const {
-        return lightSpaceMatrix;
-    }
-
-    void updateLightSpaceMatrix(const glm::vec3& lightPos);
-
    private:
     static constexpr char shaderName[] = "shadowmap";
     std::shared_ptr<renderer::Shader> shader;
@@ -39,6 +33,6 @@ class ShadowMap {
     static constexpr float nearPlane = 1.0f;
     static constexpr float farPlane = 25.0f;
 
-    glm::mat4 lightSpaceMatrix{ 1.0f };
+    // glm::mat4 lightSpaceMatrix{ 1.0f }; // Removed
 };
 }  // namespace sponge::platform::opengl::scene

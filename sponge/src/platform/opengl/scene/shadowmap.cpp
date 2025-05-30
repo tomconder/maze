@@ -47,13 +47,14 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
 }
 
-void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightPos) {
-    const auto lightProjection =
-        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
-
-    const auto lightView =
-        glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    lightSpaceMatrix = lightProjection * lightView;
-}
+// Removed ShadowMap::updateLightSpaceMatrix
+// void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightPos) {
+//     const auto lightProjection =
+//         glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+//
+//     const auto lightView =
+//         glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+//
+//     lightSpaceMatrix = lightProjection * lightView;
+// }
 }  // namespace sponge::platform::opengl::scene
