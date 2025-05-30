@@ -1,7 +1,5 @@
 #pragma once
 
-#include "platform/opengl/scene/cube.hpp"
-#include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
@@ -94,6 +92,8 @@ class MazeLayer final : public sponge::layer::Layer {
     void renderGameObjects() const;
 
     void renderLightCubes() const;
+
+    void renderSceneToDepthMap() const;
 
     void updateCamera(double elapsedTime) const;
 

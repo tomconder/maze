@@ -1,5 +1,4 @@
 #include "exitlayer.hpp"
-#include "platform/glfw/core/input.hpp"
 #include "resourcemanager.hpp"
 
 namespace {
