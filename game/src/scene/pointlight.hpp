@@ -1,11 +1,11 @@
 #pragma once
+#include <glm/glm.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-#include <glm/glm.hpp>
 #include <memory>
 
 namespace sponge::platform::opengl::scene {
-    class ShadowMap;
+class ShadowMap;
 }
 
 enum class LightType { DIRECTIONAL, POINT, SPOT };
@@ -37,4 +37,6 @@ class PointLight {
     float constant;
     float linear;
     float quadratic;
+
+    uint8_t castsShadows = 0;
 };

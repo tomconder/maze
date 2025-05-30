@@ -71,7 +71,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     vao->unbind();
 }
 
-void Mesh::render(std::shared_ptr<renderer::Shader>& shader) const {
+void Mesh::render(const std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
 
     vao->bind();

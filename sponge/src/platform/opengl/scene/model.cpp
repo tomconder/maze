@@ -16,12 +16,10 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
-namespace {
-constexpr double secondsToMilliseconds = 1000.F;
-}
-
 namespace sponge::platform::opengl::scene {
 using sponge::scene::Vertex;
+
+constexpr double secondsToMilliseconds = 1000.F;
 
 void Model::load(const std::string& path) {
     assert(!path.empty());
@@ -177,7 +175,7 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
         name, filename.string(), renderer::ExcludeAssetsFolder);
 }
 
-void Model::render(std::shared_ptr<renderer::Shader>& shader) const {
+void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model");
 
