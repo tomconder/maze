@@ -40,6 +40,7 @@
 #include "platform/opengl/scene/mesh.hpp"
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/quad.hpp"
+#include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/sprite.hpp"
 #include "renderer/buffer.hpp"
 #include "renderer/graphicscontext.hpp"

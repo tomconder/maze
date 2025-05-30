@@ -2,7 +2,6 @@
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/pointlight.hpp"
-#include "sponge.hpp"
 #include <glm/ext/matrix_transform.hpp>
 #include <array>
 
@@ -97,6 +96,7 @@ void MazeLayer::onDetach() {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     updateCamera(elapsedTime);
 
+    renderSceneToDepthMap();
     renderGameObjects();
     renderLightCubes();
 
@@ -217,35 +217,11 @@ bool MazeLayer::onWindowResize(
 }
 
 void MazeLayer::renderGameObjects() const {
-    shadowMap->bind();
-
-    shadowMap->updateLightSpaceMatrix(spotlightPosition);
-    const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
-
-    // render scene from light's perspective
-    auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::ShadowMap::getShaderName());
-
-    for (const auto& gameObject : gameObjects) {
-        shader->bind();
-        shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        const auto model = glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
-        shader->setMat4("model", model);
-
-        ResourceManager::getModel(gameObject.name)->render(shader);
-        shader->unbind();
-    }
-
-    shadowMap->unbind();
-
     // render scene normally with shadow mapping
     glViewport(0, 0, Maze::get().getWidth(), Maze::get().getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shader = ResourceManager::getShader(
+    auto shader = ResourceManager::getShader(
         sponge::platform::opengl::scene::Mesh::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
@@ -289,6 +265,32 @@ void MazeLayer::renderLightCubes() const {
         cube->render();
         shader->unbind();
     }
+}
+
+void MazeLayer::renderSceneToDepthMap() const {
+    shadowMap->bind();
+
+    shadowMap->updateLightSpaceMatrix(spotlightPosition);
+    const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+
+    // render scene from light's perspective
+    auto shader = ResourceManager::getShader(
+        sponge::platform::opengl::scene::ShadowMap::getShaderName());
+
+    for (const auto& gameObject : gameObjects) {
+        shader->bind();
+        shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        const auto model = glm::scale(
+            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
+                        gameObject.rotation.angle, gameObject.rotation.axis),
+            gameObject.scale);
+        shader->setMat4("model", model);
+
+        ResourceManager::getModel(gameObject.name)->render(shader);
+        shader->unbind();
+    }
+
+    shadowMap->unbind();
 }
 
 void MazeLayer::updateCamera(const double elapsedTime) const {

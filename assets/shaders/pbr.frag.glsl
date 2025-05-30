@@ -30,7 +30,7 @@ uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
-float calculateShadow(vec4 fragPosLightSpace) {
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -43,12 +43,25 @@ float calculateShadow(vec4 fragPosLightSpace) {
     // get current depth value
     float currentDepth = projCoords.z;
 
-    // check whether current frag pos is in shadow
-    float bias = 0.005; // Use small bias to prevent shadow acne
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
+    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.001);
+
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; y++)
+        {
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
 
     // keep shadow at 0.0 when outside the far plane region of the light's frustum
-    if (projCoords.z > 1.0) {
+    if (projCoords.z > 1.0 || projCoords.z < 0.0) {
         shadow = 0.0;
     }
 
@@ -145,7 +158,7 @@ void main() {
         float NdotL = max(dot(N, L), 0.0);
 
         // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace);
+        float shadow = calculateShadow(vFragPosLightSpace, N, L);
         Lo += (kD * albedo / M_PI + specular) * radiance * NdotL * (1.0 - shadow);
     }
 
