@@ -16,9 +16,6 @@ Context::Context() {
     glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // enable 4x MSAA
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
     // dpi scaling
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, 1);
 

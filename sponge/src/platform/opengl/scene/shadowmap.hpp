@@ -28,6 +28,13 @@ class ShadowMap {
         return lightSpaceMatrix;
     }
 
+    uint32_t getDepthMapTextureId() const {
+        if (depthMap != nullptr) {
+            return depthMap->getId();
+        }
+        return 0;
+    }
+
     void updateLightSpaceMatrix(const glm::vec3& lightPos);
 
    private:

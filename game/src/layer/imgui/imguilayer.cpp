@@ -70,14 +70,17 @@ void ImGuiLayer::onImGuiRender() {
             fmt::format("{} {} ({})", project_name.c_str(),
                         project_version.c_str(), git_sha.c_str());
 
-        if (ImGui::Begin(appInfo.c_str(), nullptr, windowFlags)) {
-            if (ImGui::CollapsingHeader("App Info##Header"),
-                ImGuiTreeNodeFlags_DefaultOpen) {
+        if (ImGui::Begin("App Info", nullptr, windowFlags)) {
+            if (ImGui::CollapsingHeader("Settings##Header",
+                                        ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::AlignTextToFramePadding();
+                ImGui::Text("%s", appInfo.c_str());
                 ImGui::Text("Resolution: %dx%d", window->getWidth(),
                             window->getHeight());
                 ImGui::Text("Average %.3f ms/frame (%.1f FPS)",
                             1000.F / io.Framerate, io.Framerate);
+
+                ImGui::Separator();
 
                 ImGui::BeginTable(
                     "##CameraTable", 2,
@@ -93,8 +96,6 @@ void ImGuiLayer::onImGuiRender() {
                 ImGui::Text("%.0f", camera->getFov());
 
                 ImGui::EndTable();
-
-                ImGui::SeparatorText("Settings##App");
 
                 ImGui::BeginTable(
                     "##AppTable", 2,
@@ -171,6 +172,14 @@ void ImGuiLayer::onImGuiRender() {
                 }
 
                 ImGui::EndTable();
+            }
+
+            if (ImGui::CollapsingHeader("Shadow Map",
+                                        ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Image(
+                    mazeLayer->getDepthMapTextureId(),
+                    ImVec2(376.F - ImGui::GetStyle().FramePadding.y * 8,
+                           376.F - ImGui::GetStyle().FramePadding.y * 8));
             }
 
             if (ImGui::CollapsingHeader("Resources")) {
