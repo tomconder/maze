@@ -70,7 +70,7 @@ void ImGuiLayer::onImGuiRender() {
             fmt::format("{} {} ({})", project_name.c_str(),
                         project_version.c_str(), git_sha.c_str());
 
-        if (ImGui::Begin("App Info", nullptr, windowFlags)) {
+        if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
             if (ImGui::CollapsingHeader("Settings##Header",
                                         ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::AlignTextToFramePadding();
@@ -172,6 +172,8 @@ void ImGuiLayer::onImGuiRender() {
                 }
 
                 ImGui::EndTable();
+            } else {
+                hasAppInfoMenu = false;
             }
 
             if (ImGui::CollapsingHeader("Shadow Map",
@@ -214,10 +216,12 @@ void ImGuiLayer::onImGuiRender() {
         ImGui::SetNextWindowPos({ 0.F, height - 220.F });
         ImGui::SetNextWindowSize({ width, 220.F });
 
-        if (ImGui::Begin("Logging", nullptr,
+        if (ImGui::Begin("Logging", &hasLogMenu,
                          windowFlags | ImGuiWindowFlags_NoScrollbar)) {
             showLogging();
             ImGui::End();
+        } else {
+            hasLogMenu = false;
         }
     }
 }
