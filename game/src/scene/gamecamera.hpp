@@ -46,7 +46,7 @@ class GameCamera final : public sponge::scene::Camera {
     static constexpr float zNear = 0.1F;
     static constexpr float zFar = 100.F;
 
-    float pitch = -30.F;
+    float pitch = -24.F;
     float yaw = 270.F;
 
     float width = 0.F;

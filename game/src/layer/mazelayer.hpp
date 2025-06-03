@@ -67,6 +67,10 @@ class MazeLayer final : public sponge::layer::Layer {
 
     void setAttenuationIndex(int32_t val);
 
+    uint32_t getDepthMapTextureId() const {
+        return shadowMap->getDepthMapTextureId();
+    }
+
    private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
