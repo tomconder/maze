@@ -176,8 +176,7 @@ void ImGuiLayer::onImGuiRender() {
                 hasAppInfoMenu = false;
             }
 
-            if (ImGui::CollapsingHeader("Shadow Map",
-                                        ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Shadow Map")) {
                 ImGui::Image(mazeLayer->getDepthMapTextureId(),
                              ImVec2(376.F * .85F, 376.F * .85F));
             }
