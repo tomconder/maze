@@ -176,12 +176,9 @@ void ImGuiLayer::onImGuiRender() {
                 hasAppInfoMenu = false;
             }
 
-            if (ImGui::CollapsingHeader("Shadow Map",
-                                        ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Image(
-                    mazeLayer->getDepthMapTextureId(),
-                    ImVec2(376.F - ImGui::GetStyle().FramePadding.y * 8,
-                           376.F - ImGui::GetStyle().FramePadding.y * 8));
+            if (ImGui::CollapsingHeader("Shadow Map")) {
+                ImGui::Image(mazeLayer->getDepthMapTextureId(),
+                             ImVec2(376.F * .85F, 376.F * .85F));
             }
 
             if (ImGui::CollapsingHeader("Resources")) {
@@ -369,6 +366,7 @@ void ImGuiLayer::showTexturesTable() {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("%s", key.c_str());
+            ImGui::Image(textures.at(key)->getId(), ImVec2(200, 200));
         }
 
         ImGui::PopStyleVar();
