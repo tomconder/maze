@@ -143,6 +143,8 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string& name,
 
     auto texture = loadTextureFromFile(
         texturePath, (flag & GammaCorrection) == GammaCorrection);
+
+    SPONGE_CORE_INFO("Created texture: [{}, {}]", name, texture->getId());
     textures[name] = texture;
 
     return texture;
