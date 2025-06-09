@@ -2,9 +2,9 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-class PointLight {
+class Light {
    public:
-    PointLight() = default;
+    Light() = default;
 
     glm::vec3 getAttenuation() const {
         return { constant, linear, quadratic };

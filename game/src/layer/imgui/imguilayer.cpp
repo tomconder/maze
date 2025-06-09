@@ -2,7 +2,7 @@
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
-#include "scene/pointlight.hpp"
+#include "scene/light.hpp"
 #include "version.hpp"
 #include <imgui.h>
 #include <algorithm>
@@ -127,7 +127,7 @@ void ImGuiLayer::onImGuiRender() {
                 }
 
                 auto attenuation =
-                    PointLight::getAttenuationFromIndex(attenuationIndex);
+                    Light::getAttenuationFromIndex(attenuationIndex);
                 const std::string label = fmt::format(
                     "{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
                     attenuation.y, attenuation.z, attenuation.w);
