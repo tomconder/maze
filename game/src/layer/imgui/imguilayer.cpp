@@ -20,17 +20,17 @@ constexpr std::array logLevels = {
     SPDLOG_LEVEL_NAME_OFF.data()
 };
 
-constexpr ImGuiWindowFlags WINDOW_FLAGS =
+constexpr ImGuiWindowFlags windowFlags =
     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
-constexpr ImGuiTableFlags TABLE_FLAGS =
+constexpr ImGuiTableFlags tableFlags =
     ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX;
 
-constexpr ImVec2 COMPACT_SPACING{ 4, 1 };
-constexpr float APP_INFO_WIDTH = 376.F;
-constexpr float APP_INFO_HEIGHT = 656.F;
-constexpr float LOG_HEIGHT = 220.F;
+constexpr ImVec2 compactSpacing{ 4, 1 };
+constexpr float appInfoWidth = 376.F;
+constexpr float appInfoHeight = 656.F;
+constexpr float logHeight = 220.F;
 }  // namespace
 
 namespace game::layer::imgui {
@@ -67,11 +67,11 @@ void ImGuiLayer::updateState() {
 
 void ImGuiLayer::showAppInfoWindow(const float width) {
     ImGui::SetNextWindowPos(
-        { width - APP_INFO_WIDTH,
+        { width - appInfoWidth,
           ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
-    ImGui::SetNextWindowSize({ APP_INFO_WIDTH, APP_INFO_HEIGHT });
+    ImGui::SetNextWindowSize({ appInfoWidth, appInfoHeight });
 
-    if (ImGui::Begin("App Info", &hasAppInfoMenu, WINDOW_FLAGS)) {
+    if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
         showSettingsSection();
         showLightsSection();
         showShadowMapSection();
@@ -80,12 +80,12 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
     }
 }
 
-void ImGuiLayer::showLogWindow(float width, float height) {
-    ImGui::SetNextWindowPos({ 0.F, height - LOG_HEIGHT });
-    ImGui::SetNextWindowSize({ width, LOG_HEIGHT });
+void ImGuiLayer::showLogWindow(const float width, const float height) {
+    ImGui::SetNextWindowPos({ 0.F, height - logHeight });
+    ImGui::SetNextWindowSize({ width, logHeight });
 
     if (ImGui::Begin("Logging", &hasLogMenu,
-                     WINDOW_FLAGS | ImGuiWindowFlags_NoScrollbar)) {
+                     windowFlags | ImGuiWindowFlags_NoScrollbar)) {
         showLogging();
         ImGui::End();
     } else {
@@ -117,7 +117,7 @@ void ImGuiLayer::showSettingsSection() {
 }
 
 void ImGuiLayer::showCameraTable() {
-    if (ImGui::BeginTable("##CameraTable", 2, TABLE_FLAGS)) {
+    if (ImGui::BeginTable("##CameraTable", 2, tableFlags)) {
         const auto camera = ResourceManager::getGameCamera(cameraName.data());
 
         ImGui::TableNextRow();
@@ -131,7 +131,7 @@ void ImGuiLayer::showCameraTable() {
 }
 
 void ImGuiLayer::showAppSettingsTable() {
-    if (ImGui::BeginTable("##AppTable", 2, TABLE_FLAGS)) {
+    if (ImGui::BeginTable("##AppTable", 2, tableFlags)) {
         // Vertical Sync
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -185,27 +185,27 @@ void ImGuiLayer::showPBRControls() {
         auto roughness = mazeLayer->getRoughness();
         auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
 
-        showTableRow([&]() {
+        showTableRow([&] {
             if (ImGui::Checkbox("Metallic", &metallic)) {
                 mazeLayer->setMetallic(metallic);
             }
         });
 
-        showTableRow([&]() {
+        showTableRow([&] {
             if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F,
                                    1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setAmbientStrength(ambientStrength);
             }
         });
 
-        showTableRow([&]() {
+        showTableRow([&] {
             if (ImGui::SliderFloat("Roughness", &roughness, .089F, 1.F, "%.3f",
                                    ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setRoughness(roughness);
             }
         });
 
-        showTableRow([&]() {
+        showTableRow([&] {
             if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F,
                                    1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setAmbientOcclusion(ambientOcclusion);
@@ -216,14 +216,15 @@ void ImGuiLayer::showPBRControls() {
     }
 }
 
-void ImGuiLayer::showAttenuationSlider(int32_t& index) {
-    auto attenuation = scene::Light::getAttenuationFromIndex(index);
+void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
+    auto attenuation = scene::Light::getAttenuationFromIndex(attenuationIndex);
     const std::string label =
         fmt::format("{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
                     attenuation.y, attenuation.z, attenuation.w);
 
-    if (ImGui::SliderInt("Attenuation", &index, 0, 10, label.c_str())) {
-        Maze::get().getMazeLayer()->setAttenuationIndex(index);
+    if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10,
+                         label.c_str())) {
+        Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
     }
 }
 
@@ -231,7 +232,7 @@ void ImGuiLayer::showShadowMapSection() {
     if (ImGui::CollapsingHeader("Shadow Map")) {
         const auto mazeLayer = Maze::get().getMazeLayer();
         ImGui::Image(mazeLayer->getDepthMapTextureId(),
-                     ImVec2(APP_INFO_WIDTH * .85F, APP_INFO_WIDTH * .85F));
+                     ImVec2(appInfoWidth * .85F, appInfoWidth * .85F));
     }
 }
 
@@ -240,14 +241,14 @@ void ImGuiLayer::showResourcesSection() {
         return;
     }
 
-    showResourceTree("Fonts", []() { showFontsTable(); });
-    showResourceTree("Layers", []() {
+    showResourceTree("Fonts", [] { showFontsTable(); });
+    showResourceTree("Layers", [] {
         auto* const layerStack = Maze::get().getLayerStack();
         showLayersTable(layerStack);
     });
-    showResourceTree("Models", []() { showModelsTable(); });
-    showResourceTree("Shaders", []() { showShadersTable(); });
-    showResourceTree("Textures", []() { showTexturesTable(); });
+    showResourceTree("Models", [] { showModelsTable(); });
+    showResourceTree("Shaders", [] { showShadersTable(); });
+    showResourceTree("Textures", [] { showTexturesTable(); });
 }
 
 float ImGuiLayer::getLogSelectionMaxWidth(
@@ -306,18 +307,17 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
     if (ImGui::BeginTable("layerTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
-             ++layer) {
+        for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
             ImGui::TableNextRow();
 
             const ImU32 cellBgColor =
-                (*layer)->isActive() ? activeColor : inactiveColor;
+                layer->isActive() ? activeColor : inactiveColor;
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
             ImGui::TableNextColumn();
-            ImGui::Text("%s", (*layer)->getName().c_str());
+            ImGui::Text("%s", layer->getName().c_str());
         }
 
         ImGui::PopStyleVar();
@@ -327,7 +327,7 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 
 void ImGuiLayer::showModelsTable() {
     if (ImGui::BeginTable("modelsTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
         const auto models =
             sponge::platform::opengl::renderer::ResourceManager::getModels();
@@ -355,7 +355,7 @@ void ImGuiLayer::showShadersTable() {
 
 void ImGuiLayer::showTexturesTable() {
     if (ImGui::BeginTable("textureTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
         const auto textures =
             sponge::platform::opengl::renderer::ResourceManager::getTextures();
@@ -384,8 +384,9 @@ void ImGuiLayer::showLogging() {
     showLogMessages(filter, activeLogLevel, activeCategory);
 }
 
-void ImGuiLayer::showLogControls(ImGuiTextFilter& filter, float logLevelWidth,
-                                 float categoriesWidth,
+void ImGuiLayer::showLogControls(ImGuiTextFilter& filter,
+                                 const float logLevelWidth,
+                                 const float categoriesWidth,
                                  spdlog::level::level_enum& activeLogLevel,
                                  int& activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
@@ -416,8 +417,8 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter& filter, float logLevelWidth,
 }
 
 void ImGuiLayer::showLogMessages(const ImGuiTextFilter& filter,
-                                 spdlog::level::level_enum activeLogLevel,
-                                 int activeCategory) {
+                                 const spdlog::level::level_enum activeLogLevel,
+                                 const int activeCategory) {
     ImGui::BeginChild("LogTextView",
                       ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
                       ImGuiChildFlags_AlwaysUseWindowPadding,
@@ -443,19 +444,17 @@ void ImGuiLayer::showLogMessages(const ImGuiTextFilter& filter,
     ImGui::EndChild();
 }
 
-bool ImGuiLayer::shouldShowLogMessage(const std::string& message,
-                                      const std::string& loggerName,
-                                      spdlog::level::level_enum level,
-                                      const ImGuiTextFilter& filter,
-                                      spdlog::level::level_enum activeLogLevel,
-                                      int activeCategory) {
+bool ImGuiLayer::shouldShowLogMessage(
+    const std::string& message, const std::string& loggerName,
+    const spdlog::level::level_enum level, const ImGuiTextFilter& filter,
+    const spdlog::level::level_enum activeLogLevel, const int activeCategory) {
     if (level < activeLogLevel) {
         return false;
     }
 
     if (activeCategory > 0) {
-        const auto category = std::string(categories[activeCategory]);
-        if (!isCaseInsensitiveEqual(loggerName, category)) {
+        if (const auto category = std::string(categories[activeCategory]);
+            !isCaseInsensitiveEqual(loggerName, category)) {
             return false;
         }
     }
@@ -464,7 +463,7 @@ bool ImGuiLayer::shouldShowLogMessage(const std::string& message,
 }
 
 void ImGuiLayer::renderLogMessage(const std::string& message,
-                                  spdlog::level::level_enum level) {
+                                  const spdlog::level::level_enum level) {
     const auto color = getLogLevelColor(level);
     const bool hasColor = color.has_value();
 
@@ -480,7 +479,7 @@ void ImGuiLayer::renderLogMessage(const std::string& message,
 }
 
 std::optional<ImVec4> ImGuiLayer::getLogLevelColor(
-    spdlog::level::level_enum level) {
+    const spdlog::level::level_enum level) {
     switch (level) {
         case spdlog::level::debug:
             return darkDebugColor;
