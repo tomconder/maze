@@ -1,7 +1,8 @@
-// ReSharper disable CppRedundantCastExpression
+// ReSharper disable CppRedundantParentheses
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
+#include "scene/light.hpp"
 #include "version.hpp"
 #include <algorithm>
 #include <optional>
@@ -391,12 +392,12 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter& filter,
                                  int& activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), static_cast<int>(logLevels.size()));
+                 logLevels.data(), logLevels.size());
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
     ImGui::Combo("##categories", &activeCategory, categories.data(),
-                 static_cast<int>(categories.size()));
+                 categories.size());
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");
