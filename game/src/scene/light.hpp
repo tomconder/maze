@@ -2,6 +2,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+namespace game::scene {
 class Light {
    public:
     Light() = default;
@@ -22,3 +23,4 @@ class Light {
     float linear;
     float quadratic;
 };
+}  // namespace game::scene

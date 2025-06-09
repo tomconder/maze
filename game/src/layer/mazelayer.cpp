@@ -16,7 +16,7 @@ constexpr auto cubeScale = glm::vec3(.1F);
 
 constexpr std::string_view cameraName = "maze";
 
-std::array<Light, 6> lights;
+std::array<game::scene::Light, 6> lights;
 }  // namespace
 
 namespace game::layer {

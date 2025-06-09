@@ -1,6 +1,6 @@
 #include "light.hpp"
 
-namespace {
+namespace game::scene {
 
 // Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
 constexpr float lightAttenuationData[][4] = {
@@ -11,7 +11,6 @@ constexpr float lightAttenuationData[][4] = {
     { 200.F, 1.F, 0.022F, 0.0019F }, { 325.F, 1.F, 0.014F, 0.0007F },
     { 600.F, 1.F, 0.007F, 0.0002F }
 };
-}  // namespace
 
 void Light::setAttenuationFromIndex(const int32_t index) {
     const auto* data = lightAttenuationData[index];
@@ -25,3 +24,4 @@ glm::vec4 Light::getAttenuationFromIndex(const int32_t index) {
     const auto* data = lightAttenuationData[index];
     return { data[0], data[1], data[2], data[3] };
 }
+}  // namespace game::scene
