@@ -1,11 +1,10 @@
 #pragma once
 
 #include "imgui.h"
-#include "scene/light.hpp"
 #include "sponge.hpp"
-#include <functional>
 #include <optional>
 #include <span>
+#include <utility>
 
 // Forward declarations
 struct ImGuiTextFilter;
@@ -83,7 +82,7 @@ class ImGuiLayer final : public sponge::layer::Layer {
 template <typename Func>
 void ImGuiLayer::showResourceTree(const char* name, Func&& func) {
     if (ImGui::TreeNode(name)) {
-        func();
+        std::forward<Func>(func)();
         ImGui::TreePop();
     }
 }
@@ -92,7 +91,7 @@ template <typename Func>
 void ImGuiLayer::showTableRow(Func&& func) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    func();
+    std::forward<Func>(func)();
 }
 
 template <typename Container>
