@@ -2,10 +2,9 @@
 #include "imguilayer.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
-#include "scene/pointlight.hpp"
 #include "version.hpp"
-#include <imgui.h>
 #include <algorithm>
+#include <optional>
 #include <ranges>
 
 namespace {
@@ -14,14 +13,24 @@ constexpr ImColor darkErrorColor{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor darkWarnColor{ .8F, .8F, 0.3F, 1.F };
 constexpr std::string_view cameraName = "maze";
 constexpr std::array categories = { "categories", "app", "sponge", "opengl" };
-constexpr int categoryCount = static_cast<int>(categories.size());
 constexpr std::array logLevels = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
     SPDLOG_LEVEL_NAME_OFF.data()
 };
-constexpr int logLevelCount = static_cast<int>(logLevels.size());
+
+constexpr ImGuiWindowFlags WINDOW_FLAGS =
+    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+constexpr ImGuiTableFlags TABLE_FLAGS =
+    ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX;
+
+constexpr ImVec2 COMPACT_SPACING{ 4, 1 };
+constexpr float APP_INFO_WIDTH = 376.F;
+constexpr float APP_INFO_HEIGHT = 656.F;
+constexpr float LOG_HEIGHT = 220.F;
 }  // namespace
 
 namespace game::layer::imgui {
@@ -35,192 +44,210 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 }
 
 void ImGuiLayer::onImGuiRender() {
-    const auto& io = ImGui::GetIO();
-
     const auto window = Maze::get().window;
-
     const auto width = static_cast<float>(window->getWidth());
     const auto height = static_cast<float>(window->getHeight());
 
-    hasVsync = Maze::get().hasVerticalSync();
-    isFullscreen = Maze::get().isFullscreen();
-
-    const auto mazeLayer = Maze::get().getMazeLayer();
-
-    auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
-    auto ambientStrength = mazeLayer->getAmbientStrength();
-    auto attenuationIndex = mazeLayer->getAttenuationIndex();
-    auto metallic = mazeLayer->isMetallic();
-    auto numLights = mazeLayer->getNumLights();
-    auto roughness = mazeLayer->getRoughness();
-
+    updateState();
     showMenu();
 
-    constexpr auto windowFlags =
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
-
     if (hasAppInfoMenu) {
-        ImGui::SetNextWindowPos(
-            { width - 376.F,
-              ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
-        ImGui::SetNextWindowSize({ 376.F, 656.F });
-
-        const std::string appInfo =
-            fmt::format("{} {} ({})", project_name.c_str(),
-                        project_version.c_str(), git_sha.c_str());
-
-        if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
-            if (ImGui::CollapsingHeader("Settings##Header",
-                                        ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("%s", appInfo.c_str());
-                ImGui::Text("Resolution: %dx%d", window->getWidth(),
-                            window->getHeight());
-                ImGui::Text("Average %.3f ms/frame (%.1f FPS)",
-                            1000.F / io.Framerate, io.Framerate);
-
-                ImGui::Separator();
-
-                ImGui::BeginTable(
-                    "##CameraTable", 2,
-                    ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
-
-                const auto camera =
-                    ResourceManager::getGameCamera(cameraName.data());
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("FOV");
-                ImGui::TableNextColumn();
-                ImGui::Text("%.0f", camera->getFov());
-
-                ImGui::EndTable();
-
-                ImGui::BeginTable(
-                    "##AppTable", 2,
-                    ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Vertical Sync");
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
-                    Maze::get().setVerticalSync(hasVsync);
-                }
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("Full Screen");
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-                    Maze::get().toggleFullscreen();
-                }
-
-                ImGui::EndTable();
-            }
-
-            if (ImGui::CollapsingHeader("Lights##Header",
-                                        ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ImGui::SliderInt("Lights ", &numLights, 1, 6)) {
-                    mazeLayer->setNumLights(numLights);
-                }
-
-                auto attenuation =
-                    PointLight::getAttenuationFromIndex(attenuationIndex);
-                const std::string label = fmt::format(
-                    "{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
-                    attenuation.y, attenuation.z, attenuation.w);
-
-                if (ImGui::SliderInt("Attentuation", &attenuationIndex, 0, 10,
-                                     label.c_str())) {
-                    mazeLayer->setAttenuationIndex(attenuationIndex);
-                }
-
-                ImGui::SeparatorText("PBR");
-                ImGui::BeginTable(
-                    "PBR##Table", 1,
-                    ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX);
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("Metallic", &metallic)) {
-                    mazeLayer->setMetallic(metallic);
-                }
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if (ImGui::SliderFloat("Ambient Strength", &ambientStrength,
-                                       0.F, 1.F, "%.3f",
-                                       ImGuiSliderFlags_AlwaysClamp)) {
-                    mazeLayer->setAmbientStrength(ambientStrength);
-                }
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if (ImGui::SliderFloat("Roughness", &roughness, .089F, 1.F,
-                                       "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                    mazeLayer->setRoughness(roughness);
-                }
-
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion,
-                                       0.F, 1.F, "%.3f",
-                                       ImGuiSliderFlags_AlwaysClamp)) {
-                    mazeLayer->setAmbientOcclusion(ambientOcclusion);
-                }
-
-                ImGui::EndTable();
-            } else {
-                hasAppInfoMenu = false;
-            }
-
-            if (ImGui::CollapsingHeader("Shadow Map")) {
-                ImGui::Image(mazeLayer->getDepthMapTextureId(),
-                             ImVec2(376.F * .85F, 376.F * .85F));
-            }
-
-            if (ImGui::CollapsingHeader("Resources")) {
-                if (ImGui::TreeNode("Fonts")) {
-                    showFontsTable();
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Layers")) {
-                    auto* const layerStack = Maze::get().getLayerStack();
-                    showLayersTable(layerStack);
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Models")) {
-                    showModelsTable();
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Shaders")) {
-                    showShadersTable();
-                    ImGui::TreePop();
-                }
-                if (ImGui::TreeNode("Textures")) {
-                    showTexturesTable();
-                    ImGui::TreePop();
-                }
-            }
-
-            ImGui::End();
-        }
+        showAppInfoWindow(width);
     }
 
     if (hasLogMenu) {
-        ImGui::SetNextWindowPos({ 0.F, height - 220.F });
-        ImGui::SetNextWindowSize({ width, 220.F });
-
-        if (ImGui::Begin("Logging", &hasLogMenu,
-                         windowFlags | ImGuiWindowFlags_NoScrollbar)) {
-            showLogging();
-            ImGui::End();
-        } else {
-            hasLogMenu = false;
-        }
+        showLogWindow(width, height);
     }
+}
+
+void ImGuiLayer::updateState() {
+    hasVsync = Maze::get().hasVerticalSync();
+    isFullscreen = Maze::get().isFullscreen();
+}
+
+void ImGuiLayer::showAppInfoWindow(const float width) {
+    ImGui::SetNextWindowPos(
+        { width - APP_INFO_WIDTH,
+          ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
+    ImGui::SetNextWindowSize({ APP_INFO_WIDTH, APP_INFO_HEIGHT });
+
+    if (ImGui::Begin("App Info", &hasAppInfoMenu, WINDOW_FLAGS)) {
+        showSettingsSection();
+        showLightsSection();
+        showShadowMapSection();
+        showResourcesSection();
+        ImGui::End();
+    }
+}
+
+void ImGuiLayer::showLogWindow(float width, float height) {
+    ImGui::SetNextWindowPos({ 0.F, height - LOG_HEIGHT });
+    ImGui::SetNextWindowSize({ width, LOG_HEIGHT });
+
+    if (ImGui::Begin("Logging", &hasLogMenu,
+                     WINDOW_FLAGS | ImGuiWindowFlags_NoScrollbar)) {
+        showLogging();
+        ImGui::End();
+    } else {
+        hasLogMenu = false;
+    }
+}
+
+void ImGuiLayer::showSettingsSection() {
+    if (!ImGui::CollapsingHeader("Settings##Header",
+                                 ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    const auto& io = ImGui::GetIO();
+    const auto window = Maze::get().window;
+    const std::string appInfo =
+        fmt::format("{} {} ({})", project_name.c_str(), project_version.c_str(),
+                    git_sha.c_str());
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("%s", appInfo.c_str());
+    ImGui::Text("Resolution: %dx%d", window->getWidth(), window->getHeight());
+    ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
+                io.Framerate);
+    ImGui::Separator();
+
+    showCameraTable();
+    showAppSettingsTable();
+}
+
+void ImGuiLayer::showCameraTable() {
+    if (ImGui::BeginTable("##CameraTable", 2, TABLE_FLAGS)) {
+        const auto camera = ResourceManager::getGameCamera(cameraName.data());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("FOV");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.0f", camera->getFov());
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showAppSettingsTable() {
+    if (ImGui::BeginTable("##AppTable", 2, TABLE_FLAGS)) {
+        // Vertical Sync
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Vertical Sync");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
+            Maze::get().setVerticalSync(hasVsync);
+        }
+
+        // Full Screen
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Full Screen");
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
+            Maze::get().toggleFullscreen();
+        }
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showLightsSection() {
+    if (!ImGui::CollapsingHeader("Lights##Header",
+                                 ImGuiTreeNodeFlags_DefaultOpen)) {
+        hasAppInfoMenu = false;
+        return;
+    }
+
+    const auto mazeLayer = Maze::get().getMazeLayer();
+    auto numLights = mazeLayer->getNumLights();
+    int32_t attenuationIndex = mazeLayer->getAttenuationIndex();
+    if (ImGui::SliderInt("Lights ", &numLights, 1, 6)) {
+        mazeLayer->setNumLights(numLights);
+    }
+
+    showAttenuationSlider(attenuationIndex);
+    showPBRControls();
+}
+
+void ImGuiLayer::showPBRControls() {
+    ImGui::SeparatorText("PBR");
+
+    if (ImGui::BeginTable(
+            "PBR##Table", 1,
+            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
+        auto metallic = mazeLayer->isMetallic();
+        auto ambientStrength = mazeLayer->getAmbientStrength();
+        auto roughness = mazeLayer->getRoughness();
+        auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
+
+        showTableRow([&]() {
+            if (ImGui::Checkbox("Metallic", &metallic)) {
+                mazeLayer->setMetallic(metallic);
+            }
+        });
+
+        showTableRow([&]() {
+            if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F,
+                                   1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setAmbientStrength(ambientStrength);
+            }
+        });
+
+        showTableRow([&]() {
+            if (ImGui::SliderFloat("Roughness", &roughness, .089F, 1.F, "%.3f",
+                                   ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setRoughness(roughness);
+            }
+        });
+
+        showTableRow([&]() {
+            if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F,
+                                   1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setAmbientOcclusion(ambientOcclusion);
+            }
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showAttenuationSlider(int32_t& index) {
+    auto attenuation = scene::Light::getAttenuationFromIndex(index);
+    const std::string label =
+        fmt::format("{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
+                    attenuation.y, attenuation.z, attenuation.w);
+
+    if (ImGui::SliderInt("Attenuation", &index, 0, 10, label.c_str())) {
+        Maze::get().getMazeLayer()->setAttenuationIndex(index);
+    }
+}
+
+void ImGuiLayer::showShadowMapSection() {
+    if (ImGui::CollapsingHeader("Shadow Map")) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+        ImGui::Image(mazeLayer->getDepthMapTextureId(),
+                     ImVec2(APP_INFO_WIDTH * .85F, APP_INFO_WIDTH * .85F));
+    }
+}
+
+void ImGuiLayer::showResourcesSection() {
+    if (!ImGui::CollapsingHeader("Resources")) {
+        return;
+    }
+
+    showResourceTree("Fonts", []() { showFontsTable(); });
+    showResourceTree("Layers", []() {
+        auto* const layerStack = Maze::get().getLayerStack();
+        showLayersTable(layerStack);
+    });
+    showResourceTree("Models", []() { showModelsTable(); });
+    showResourceTree("Shaders", []() { showShadersTable(); });
+    showResourceTree("Textures", []() { showTexturesTable(); });
 }
 
 float ImGuiLayer::getLogSelectionMaxWidth(
@@ -269,22 +296,9 @@ void ImGuiLayer::showMenu() {
 }
 
 void ImGuiLayer::showFontsTable() {
-    if (ImGui::BeginTable("fontsTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-
-        const auto fonts =
-            sponge::platform::opengl::renderer::ResourceManager::getFonts();
-
-        for (const auto& key : fonts | std::views::keys) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", key.c_str());
-        }
-
-        ImGui::PopStyleVar();
-
-        ImGui::EndTable();
-    }
+    const auto fonts =
+        sponge::platform::opengl::renderer::ResourceManager::getFonts();
+    showSimpleTable("fontsTable", fonts);
 }
 
 void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
@@ -292,7 +306,7 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
     if (ImGui::BeginTable("layerTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
 
         for (auto layer = layerStack->rbegin(); layer != layerStack->rend();
              ++layer) {
@@ -300,7 +314,6 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
 
             const ImU32 cellBgColor =
                 (*layer)->isActive() ? activeColor : inactiveColor;
-
             ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, cellBgColor);
 
             ImGui::TableNextColumn();
@@ -308,14 +321,13 @@ void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
         }
 
         ImGui::PopStyleVar();
-
         ImGui::EndTable();
     }
 }
 
 void ImGuiLayer::showModelsTable() {
     if (ImGui::BeginTable("modelsTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
 
         const auto models =
             sponge::platform::opengl::renderer::ResourceManager::getModels();
@@ -331,33 +343,19 @@ void ImGuiLayer::showModelsTable() {
         }
 
         ImGui::PopStyleVar();
-
         ImGui::EndTable();
     }
 }
 
 void ImGuiLayer::showShadersTable() {
-    if (ImGui::BeginTable("shaderTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-
-        const auto shaders =
-            sponge::platform::opengl::renderer::ResourceManager::getShaders();
-
-        for (const auto& key : shaders | std::views::keys) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", key.c_str());
-        }
-
-        ImGui::PopStyleVar();
-
-        ImGui::EndTable();
-    }
+    const auto shaders =
+        sponge::platform::opengl::renderer::ResourceManager::getShaders();
+    showSimpleTable("shaderTable", shaders);
 }
 
 void ImGuiLayer::showTexturesTable() {
     if (ImGui::BeginTable("textureTable", 1)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, COMPACT_SPACING);
 
         const auto textures =
             sponge::platform::opengl::renderer::ResourceManager::getTextures();
@@ -370,7 +368,6 @@ void ImGuiLayer::showTexturesTable() {
         }
 
         ImGui::PopStyleVar();
-
         ImGui::EndTable();
     }
 }
@@ -382,23 +379,23 @@ void ImGuiLayer::showLogging() {
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
     static auto activeCategory = 0;
 
-    // C++ does not have a case-insensitive string compare
-    auto stricmp = [](const std::string& str1, const std::string& str2) {
-        return str1.size() == str2.size() &&
-               std::equal(str1.begin(), str1.end(), str2.begin(),
-                          [](auto a, auto b) {
-                              return std::tolower(a) == std::tolower(b);
-                          });
-    };
+    showLogControls(filter, logLevelWidth, categoriesWidth, activeLogLevel,
+                    activeCategory);
+    showLogMessages(filter, activeLogLevel, activeCategory);
+}
 
+void ImGuiLayer::showLogControls(ImGuiTextFilter& filter, float logLevelWidth,
+                                 float categoriesWidth,
+                                 spdlog::level::level_enum& activeLogLevel,
+                                 int& activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), logLevelCount);
+                 logLevels.data(), static_cast<int>(logLevels.size()));
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
     ImGui::Combo("##categories", &activeCategory, categories.data(),
-                 categoryCount);
+                 static_cast<int>(categories.size()));
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");
@@ -416,56 +413,25 @@ void ImGuiLayer::showLogging() {
     }
 
     ImGui::Separator();
+}
+
+void ImGuiLayer::showLogMessages(const ImGuiTextFilter& filter,
+                                 spdlog::level::level_enum activeLogLevel,
+                                 int activeCategory) {
     ImGui::BeginChild("LogTextView",
                       ImVec2(0, -ImGui::GetStyle().ItemSpacing.y),
                       ImGuiChildFlags_AlwaysUseWindowPadding,
                       ImGuiWindowFlags_HorizontalScrollbar);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-    ImVec4 color;
 
     for (const auto& [message, loggerName, level] : Maze::get().getMessages()) {
-        if (level < activeLogLevel) {
+        if (!shouldShowLogMessage(message, loggerName, level, filter,
+                                  activeLogLevel, activeCategory)) {
             continue;
         }
 
-        const auto category = std::string(categories[activeCategory]);
-        if (activeCategory > 0 && !stricmp(loggerName, category)) {
-            continue;
-        }
-
-        if (!filter.PassFilter(message.c_str())) {
-            continue;
-        }
-
-        bool hasColor = false;
-        switch (level) {
-            case spdlog::level::debug:
-                hasColor = true;
-                color = darkDebugColor;
-                break;
-            case spdlog::level::warn:
-                hasColor = true;
-                color = darkWarnColor;
-                break;
-            case spdlog::level::err:
-                hasColor = true;
-                color = darkErrorColor;
-                break;
-            default:
-                hasColor = false;
-                break;
-        }
-
-        if (hasColor) {
-            ImGui::PushStyleColor(ImGuiCol_Text, color);
-        }
-
-        ImGui::TextUnformatted(message.c_str());
-
-        if (hasColor) {
-            ImGui::PopStyleColor();
-        }
+        renderLogMessage(message, level);
     }
 
     ImGui::PopStyleVar();
@@ -475,5 +441,64 @@ void ImGuiLayer::showLogging() {
     }
 
     ImGui::EndChild();
+}
+
+bool ImGuiLayer::shouldShowLogMessage(const std::string& message,
+                                      const std::string& loggerName,
+                                      spdlog::level::level_enum level,
+                                      const ImGuiTextFilter& filter,
+                                      spdlog::level::level_enum activeLogLevel,
+                                      int activeCategory) {
+    if (level < activeLogLevel) {
+        return false;
+    }
+
+    if (activeCategory > 0) {
+        const auto category = std::string(categories[activeCategory]);
+        if (!isCaseInsensitiveEqual(loggerName, category)) {
+            return false;
+        }
+    }
+
+    return filter.PassFilter(message.c_str());
+}
+
+void ImGuiLayer::renderLogMessage(const std::string& message,
+                                  spdlog::level::level_enum level) {
+    const auto color = getLogLevelColor(level);
+    const bool hasColor = color.has_value();
+
+    if (hasColor) {
+        ImGui::PushStyleColor(ImGuiCol_Text, color.value());
+    }
+
+    ImGui::TextUnformatted(message.c_str());
+
+    if (hasColor) {
+        ImGui::PopStyleColor();
+    }
+}
+
+std::optional<ImVec4> ImGuiLayer::getLogLevelColor(
+    spdlog::level::level_enum level) {
+    switch (level) {
+        case spdlog::level::debug:
+            return darkDebugColor;
+        case spdlog::level::warn:
+            return darkWarnColor;
+        case spdlog::level::err:
+            return darkErrorColor;
+        default:
+            return std::nullopt;
+    }
+}
+
+bool ImGuiLayer::isCaseInsensitiveEqual(const std::string& str1,
+                                        const std::string& str2) {
+    return str1.size() == str2.size() &&
+           std::equal(str1.begin(), str1.end(), str2.begin(),
+                      [](auto a, auto b) {
+                          return std::tolower(a) == std::tolower(b);
+                      });
 }
 }  // namespace game::layer::imgui

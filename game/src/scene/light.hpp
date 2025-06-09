@@ -2,9 +2,10 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-class PointLight {
+namespace game::scene {
+class Light {
    public:
-    PointLight() = default;
+    Light() = default;
 
     glm::vec3 getAttenuation() const {
         return { constant, linear, quadratic };
@@ -22,3 +23,4 @@ class PointLight {
     float linear;
     float quadratic;
 };
+}  // namespace game::scene
