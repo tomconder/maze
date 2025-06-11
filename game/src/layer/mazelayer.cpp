@@ -217,8 +217,7 @@ bool MazeLayer::onWindowResize(
 }
 
 void MazeLayer::renderGameObjects() const {
-    // render scene normally with shadow mapping
-    glViewport(0, 0, Maze::get().getWidth(), Maze::get().getHeight());
+    glViewport(Maze::get().getOffsetX(), Maze::get().getOffsetY(), Maze::get().getWidth(), Maze::get().getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto shader = ResourceManager::getShader(
