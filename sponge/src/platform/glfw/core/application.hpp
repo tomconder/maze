@@ -74,6 +74,14 @@ class Application : public sponge::core::Application {
         return w;
     }
 
+    uint32_t getOffsetX() const {
+        return offsetx;
+    }
+
+    uint32_t getOffsetY() const {
+        return offsety;
+    }
+
     bool hasVerticalSync() const {
         return vsync;
     }
