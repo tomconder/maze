@@ -24,6 +24,9 @@ using sponge::input::KeyCode;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Cube;
+using sponge::platform::opengl::scene::Mesh;
+using sponge::platform::opengl::scene::ShadowMap;
 
 constexpr std::array gameObjects = {
     GameObject{ .name = "floor",
@@ -69,8 +72,7 @@ void MazeLayer::onAttach() {
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
-    const auto shaderName =
-        sponge::platform::opengl::scene::Mesh::getShaderName();
+    const auto shaderName = Mesh::getShaderName();
     const auto shader = ResourceManager::getShader(shaderName);
     shader->bind();
 
@@ -81,9 +83,8 @@ void MazeLayer::onAttach() {
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
 
-    shadowMap = std::make_unique<sponge::platform::opengl::scene::ShadowMap>();
-
-    cube = std::make_unique<sponge::platform::opengl::scene::Cube>();
+    shadowMap = std::make_unique<ShadowMap>();
+    cube = std::make_unique<Cube>();
 
     setNumLights(numLights);
     updateShaderLights();
@@ -106,8 +107,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::setMetallic(const bool val) {
     metallic = val;
 
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
     shader->unbind();
@@ -116,8 +116,7 @@ void MazeLayer::setMetallic(const bool val) {
 void MazeLayer::setAmbientOcclusion(const float val) {
     ao = val;
 
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ao", ao);
     shader->unbind();
@@ -126,8 +125,7 @@ void MazeLayer::setAmbientOcclusion(const float val) {
 void MazeLayer::setAmbientStrength(const float val) {
     ambientStrength = val;
 
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
@@ -136,8 +134,7 @@ void MazeLayer::setAmbientStrength(const float val) {
 void MazeLayer::setRoughness(const float val) {
     roughness = val;
 
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("roughness", roughness);
     shader->unbind();
@@ -217,11 +214,11 @@ bool MazeLayer::onWindowResize(
 }
 
 void MazeLayer::renderGameObjects() const {
-    glViewport(Maze::get().getOffsetX(), Maze::get().getOffsetY(), Maze::get().getWidth(), Maze::get().getHeight());
+    glViewport(Maze::get().getOffsetX(), Maze::get().getOffsetY(),
+               Maze::get().getWidth(), Maze::get().getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    auto shader = ResourceManager::getShader(Mesh::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();
@@ -243,8 +240,7 @@ void MazeLayer::renderGameObjects() const {
 }
 
 void MazeLayer::renderLightCubes() const {
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Cube::getShaderName());
+    const auto shader = ResourceManager::getShader(Cube::getShaderName());
 
     // render the spotlight as a cube
     shader->bind();
@@ -272,9 +268,7 @@ void MazeLayer::renderSceneToDepthMap() const {
     shadowMap->updateLightSpaceMatrix(spotlightPosition);
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
-    // render scene from light's perspective
-    auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::ShadowMap::getShaderName());
+    auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();
@@ -315,8 +309,7 @@ void MazeLayer::updateCamera(const double elapsedTime) const {
 }
 
 void MazeLayer::updateShaderLights() const {
-    const auto shader = ResourceManager::getShader(
-        sponge::platform::opengl::scene::Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
 
     shader->bind();
     shader->setInteger("numLights", numLights);
