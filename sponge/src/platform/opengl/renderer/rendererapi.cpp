@@ -105,7 +105,7 @@ void RendererAPI::init() {
 
     glEnable(GL_MULTISAMPLE);
 
-    glDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
 
     glDisable(GL_SCISSOR_TEST);
