@@ -1,11 +1,11 @@
 #pragma once
 
-#include "renderer/buffer.hpp"
+#include "platform/opengl/renderer/buffer.hpp"
 #include <vector>
 
 namespace sponge::platform::opengl::renderer {
 
-class IndexBuffer final : public sponge::renderer::Buffer {
+class IndexBuffer final : public Buffer {
    public:
     IndexBuffer(const uint32_t* indices, std::size_t size);
 

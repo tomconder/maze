@@ -1,28 +1,29 @@
 #pragma once
 
-#include "renderer/shader.hpp"
 #include <glad/gl.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
 namespace sponge::platform::opengl::renderer {
-class Shader final : public sponge::renderer::Shader {
+class Shader final {
    public:
     Shader(const std::string& name, const std::string& vertexSource,
            const std::string& fragmentSource,
            const std::optional<std::string>& geometrySource = std::nullopt);
-    ~Shader() override;
+    ~Shader();
 
-    void bind() const override;
-    void unbind() const override;
+    void bind() const;
+    void unbind() const;
 
-    void setBoolean(const std::string& name, bool value) override;
-    void setFloat(const std::string& name, float value) override;
-    void setFloat3(const std::string& name, const glm::vec3& value) override;
-    void setFloat4(const std::string& name, const glm::vec4& value) override;
-    void setInteger(const std::string& name, int value) override;
-    void setMat4(const std::string& name, const glm::mat4& value) override;
+    void setBoolean(const std::string& name, bool value);
+    void setFloat(const std::string& name, float value);
+    void setFloat3(const std::string& name, const glm::vec3& value);
+    void setFloat4(const std::string& name, const glm::vec4& value);
+    void setInteger(const std::string& name, int value);
+    void setMat4(const std::string& name, const glm::mat4& value);
 
     uint32_t getId() const {
         return program;

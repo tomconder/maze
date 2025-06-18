@@ -1,11 +1,11 @@
 #pragma once
 
-#include "renderer/buffer.hpp"
+#include "platform/opengl/renderer/buffer.hpp"
 #include <memory>
 
 namespace sponge::platform::opengl::renderer {
 
-class VertexArray final : public sponge::renderer::Buffer {
+class VertexArray final : public Buffer {
    public:
     static std::unique_ptr<VertexArray> create();
 

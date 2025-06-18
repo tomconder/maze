@@ -14,14 +14,15 @@ project(
 
 set(COPYRIGHT "Copyright 2025 Tom Conder")
 
-set(GIT_SHA
-        "no-hash"
-        CACHE STRING "Hash this build was generated from")
-string(
-        SUBSTRING "${GIT_SHA}"
-        0
-        8
-        GIT_SHORT_SHA)
+message(STATUS "Getting the current git hash")
+execute_process(
+        COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+set(GIT_SHA ${GIT_HASH} CACHE STRING "Hash this build was generated from")
 
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 

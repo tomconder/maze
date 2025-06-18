@@ -11,7 +11,6 @@ file(
         src/input/*.hpp
         src/layer/*.hpp
         src/logging/*.hpp
-        src/renderer/*.hpp
         src/scene/*.hpp)
 
 file(
@@ -22,7 +21,6 @@ file(
         src/input/*.cpp
         src/layer/*.cpp
         src/logging/*.cpp
-        src/renderer/*.cpp
         src/scene/*.cpp)
 
 # OpenGL
@@ -38,6 +36,7 @@ file(
         GLOB OPENGL_SOURCES
         LIST_DIRECTORIES false
         deps/glad2/src/gl.c
+        src/platform/opengl/debug/*.cpp
         src/platform/opengl/renderer/*.cpp
         src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "renderer/buffer.hpp"
+#include "platform/opengl/renderer/buffer.hpp"
 #include <cstddef>
 
 namespace sponge::platform::opengl::renderer {
 
-class VertexBuffer final : public sponge::renderer::Buffer {
+class VertexBuffer final : Buffer {
    public:
     VertexBuffer(const void* vertices, std::size_t size);
 
