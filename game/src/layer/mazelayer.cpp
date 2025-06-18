@@ -34,29 +34,29 @@ constexpr std::array gameObjects = {
                 .scale = glm::vec3(1.F),
                 .translation = glm::vec3(0.F, 0.002F, 0.F) },
 
-    GameObject{ .name = "cube1",
-                .path = "/models/cube/cube-tex.obj",
-                .scale = glm::vec3(1.F),
-                .translation = glm::vec3(-1.5F, .85F, -.5F) },
-
-    GameObject{ .name = "cube2",
-                .path = "/models/cube/cube-tex.obj",
-                .scale = glm::vec3(.5F),
-                .translation = glm::vec3(0.F, 0.F, .5F) },
-
-    GameObject{ .name = "cube3",
-                .path = "/models/cube/cube-tex.obj",
-                .scale = glm::vec3(.25F),
-                .rotation = { .angle = glm::radians(60.F),
-                              .axis = glm::vec3(1.F, 0.F, 1.F) },
-                .translation = glm::vec3(-1.F, 0.25F, 1.F) }
-
-    // GameObject{ .name = "helmet",
-    //             .path = "/models/helmet/damaged_helmet.obj",
+    // GameObject{ .name = "cube1",
+    //             .path = "/models/cube/cube-tex.obj",
+    //             .scale = glm::vec3(1.F),
+    //             .translation = glm::vec3(-1.5F, .85F, -.5F) },
+    //
+    // GameObject{ .name = "cube2",
+    //             .path = "/models/cube/cube-tex.obj",
     //             .scale = glm::vec3(.5F),
-    //             .rotation = { .angle = glm::radians(45.F),
-    //                           .axis = glm::vec3(0.F, 1.F, 0.F) },
-    //             .translation = glm::vec3(0.F, 0.F, 0.F) },
+    //             .translation = glm::vec3(0.F, 0.F, .5F) },
+    //
+    // GameObject{ .name = "cube3",
+    //             .path = "/models/cube/cube-tex.obj",
+    //             .scale = glm::vec3(.25F),
+    //             .rotation = { .angle = glm::radians(60.F),
+    //                           .axis = glm::vec3(1.F, 0.F, 1.F) },
+    //             .translation = glm::vec3(-1.F, 0.25F, 1.F) }
+
+    GameObject{ .name = "helmet",
+                .path = "/models/helmet/damaged_helmet.obj",
+                .scale = glm::vec3(.5F),
+                .rotation = { .angle = glm::radians(45.F),
+                              .axis = glm::vec3(0.F, 1.F, 0.F) },
+                .translation = glm::vec3(0.F, 0.F, 0.F) },
 
 };
 
