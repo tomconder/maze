@@ -1,17 +1,15 @@
 #pragma once
 
-#include "renderer/graphicscontext.hpp"
-
 struct GLFWwindow;
 
 namespace sponge::platform::opengl::renderer {
 
-class Context final : public sponge::renderer::GraphicsContext {
+class Context final {
    public:
     Context();
     void init(GLFWwindow* window);
 
-    void flip(void* window) override;
+    void flip(void* window);
 };
 
 }  // namespace sponge::platform::opengl::renderer

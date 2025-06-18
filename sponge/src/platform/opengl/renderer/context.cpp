@@ -1,5 +1,4 @@
 #include "context.hpp"
-#include "info.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/gl.hpp"
@@ -60,8 +59,6 @@ void Context::init(GLFWwindow* window) {
         SPONGE_CORE_ERROR("Failed to initialize OpenGL context");
         return;
     }
-
-    Info::logInfo();
 
     SPONGE_PROFILE_GPU_CONTEXT;
 

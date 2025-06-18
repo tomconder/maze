@@ -1,10 +1,10 @@
 #pragma once
 
-#include "renderer/buffer.hpp"
+#include "platform/opengl/renderer/buffer.hpp"
 
 namespace sponge::platform::opengl::renderer {
 
-class FrameBuffer final : public sponge::renderer::Buffer {
+class FrameBuffer final : public Buffer {
    public:
     FrameBuffer();
 

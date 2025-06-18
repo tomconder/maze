@@ -2,8 +2,7 @@
 
 #include <cstdint>
 
-namespace sponge::renderer {
-
+namespace sponge::platform::opengl::renderer {
 class Buffer {
    public:
     virtual ~Buffer() = default;
@@ -19,4 +18,4 @@ class Buffer {
     uint32_t id = 0;
 };
 
-}  // namespace sponge::renderer
+}  // namespace sponge::platform::opengl::renderer

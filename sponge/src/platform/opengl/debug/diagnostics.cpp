@@ -1,11 +1,11 @@
-#include "info.hpp"
+#include "diagnostics.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include <spdlog/fmt/fmt.h>
 #include <sstream>
 
-namespace sponge::platform::opengl::renderer {
-void Info::logInfo() {
+namespace sponge::platform::opengl::debug {
+void Diagnostics::log() {
     auto minorVersion = 0;
     auto majorVersion = 0;
     glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
@@ -45,4 +45,4 @@ void Info::logInfo() {
         SPONGE_CORE_DEBUG(ss.str());
     }
 }
-}  // namespace sponge::platform::opengl::renderer
+}  // namespace sponge::platform::opengl::debug

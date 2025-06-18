@@ -6,6 +6,7 @@
 #include "logging/log.hpp"
 #include "platform/glfw/core/input.hpp"
 #include "platform/glfw/logging/sink.hpp"
+#include "platform/opengl/debug/diagnostics.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include <glm/glm.hpp>
@@ -28,6 +29,8 @@ constexpr auto ratios = std::to_array(
 }  // namespace
 
 namespace sponge::platform::glfw::core {
+using opengl::debug::Diagnostics;
+
 Application* Application::instance = nullptr;
 
 Application::Application(ApplicationSpecification specification)
@@ -77,6 +80,8 @@ bool Application::start() {
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
 
     graphics->init(glfwWindow);
+
+    Diagnostics::log();
 
     imguiManager->onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
 

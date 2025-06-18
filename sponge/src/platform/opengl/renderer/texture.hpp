@@ -1,14 +1,14 @@
 #pragma once
 
-#include "renderer/texture.hpp"
+#include <cstdint>
 #include <string>
 
 namespace sponge::platform::opengl::renderer {
 
-class Texture final : public sponge::renderer::Texture {
+class Texture final {
    public:
     Texture();
-    ~Texture() override;
+    ~Texture();
 
     void createDepthMap(uint32_t width, uint32_t height) const;
 
@@ -16,13 +16,13 @@ class Texture final : public sponge::renderer::Texture {
                   uint32_t bytesPerPixel, const uint8_t* data,
                   bool gammaCorrection = false);
 
-    uint32_t getWidth() const override {
+    uint32_t getWidth() const {
         return width;
     }
-    uint32_t getHeight() const override {
+    uint32_t getHeight() const {
         return height;
     }
-    uint32_t getId() const override {
+    uint32_t getId() const {
         return id;
     }
     std::string getType() const {
@@ -30,7 +30,7 @@ class Texture final : public sponge::renderer::Texture {
     }
 
     void activateAndBind(uint8_t unit) const;
-    void bind() const override;
+    void bind() const;
     void setType(const std::string_view& typeName) {
         type = typeName;
     }
