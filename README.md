@@ -4,7 +4,7 @@ A nice walk through a maze.
 
 > For more information please check out the [full documentation](https://tomconder.github.io/maze/)
 
-![work in progress](docs/workinprogress.png "work in progress")
+![work in progress](docs/docs/static/img/workinprogress.png "work in progress")
 
 ## Features
 
