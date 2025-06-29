@@ -2,7 +2,7 @@
 
 A nice walk through a maze.
 
-![work in progress](workinprogress.png "work in progress")
+![work in progress](static/img/workinprogress.png "work in progress")
 
 ## Features
 
