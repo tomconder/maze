@@ -1,0 +1,85 @@
+site_name: Maze
+site_description: 'A nice walk through a maze'
+site_author: 'Tom Conder <tom@itstom.co>'
+site_url: 'http://github.com/tomconder/maze'
+
+repo_name: 'maze'
+repo_url: 'http://github.com/tomconder/maze'
+edit_uri: 'tree/main/docs/'
+remote_branch: gh-pages
+
+docs_dir: "docs"
+
+nav:
+  - 'Overview': index.md
+
+theme:
+  name: material
+  features:
+    - navigation.path
+    - navigation.indexes
+    - navigation.expand
+    - toc.follow
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+    - navigation.footer
+  language: en
+  icon:
+    repo: fontawesome/brands/git-alt
+    view: material/eye
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: black
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: lime
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - social
+
+extra:
+  social:
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/tomconder
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/tomconder
+    - icon: fontawesome/brands/github
+      link: https://github.com/tomconder/maze
+
+# Extensions
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+  - pymdownx.superfences:
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true
+
+copyright: |
+  &copy; 2025 Tom Conder
