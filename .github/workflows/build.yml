@@ -94,9 +94,9 @@ jobs:
       matrix:
         include:
           - name: mac
-            os: macos-latest
+            os: macos-13
             preset: ci-osx-release
-            generator: "Ninja Multi-Config"
+            generator: "Xcode"
 
           - name: windows
             os: windows-latest
