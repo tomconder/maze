@@ -96,12 +96,10 @@ jobs:
           - name: mac
             os: macos-13
             preset: ci-osx-release
-            generator: "Xcode"
 
           - name: windows
             os: windows-latest
             preset: ci-windows-release
-            generator: "Visual Studio 17 2022"
 
     steps:
       - name: Checkout code
@@ -129,7 +127,7 @@ jobs:
 
       - name: Create build tree
         run: >
-          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G "${{matrix.generator}}" --preset ${{matrix.preset}}
+          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
 
       - name: Build
         run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
