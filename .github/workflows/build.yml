@@ -96,7 +96,7 @@ jobs:
           - name: mac
             os: macos-latest
             preset: ci-osx-release
-            generator: "Xcode"
+            generator: "Ninja Multi-Config"
 
           - name: windows
             os: windows-latest
