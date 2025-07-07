@@ -79,6 +79,7 @@ elseif (APPLE)
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION})
     set(MACOSX_BUNDLE_COPYRIGHT ${COPYRIGHT})
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.7.6)
 
     set(app_icon_macos "bundle/icons/maze.icns")
     set_source_files_properties(
