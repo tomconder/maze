@@ -114,13 +114,9 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-    vec3 albedo;
-
-    if (hasNoTexture) {
-        albedo = pow(vec3(1.0), vec3(2.2));
-    } else {
-        albedo = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
-    }
+    vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
+    vec3 constColor = pow(vec3(1.0), vec3(2.2));
+    vec3 albedo = mix(texColor, constColor, float(hasNoTexture));
 
     vec3 N = normalize(vNormal);
     vec3 V = normalize(viewPos - vPosition);
