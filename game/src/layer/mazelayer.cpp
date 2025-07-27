@@ -65,7 +65,10 @@ MazeLayer::MazeLayer() : Layer("maze") {
 }
 void MazeLayer::onAttach() {
     for (const auto& gameObject : gameObjects) {
-        ResourceManager::loadModel(gameObject.name, gameObject.path);
+        sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
+            .name = gameObject.name, .path = gameObject.path
+        };
+        ResourceManager::loadModel(modelCreateInfo);
     }
 
     camera = game::ResourceManager::createGameCamera(std::string(cameraName));

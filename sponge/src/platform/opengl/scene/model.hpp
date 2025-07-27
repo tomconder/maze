@@ -7,10 +7,15 @@
 
 namespace sponge::platform::opengl::scene {
 
+struct ModelCreateInfo {
+    std::string name;
+    std::string path;
+    std::string assetsFolder = core::File::getResourceDir();
+};
+
 class Model {
    public:
-    Model() = default;
-    void load(const std::string& path);
+    explicit Model(const ModelCreateInfo& createInfo);
     void render(std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {
         return numIndices;
@@ -26,6 +31,7 @@ class Model {
     size_t numIndices = 0;
     size_t numVertices = 0;
 
+    void load(const std::string& path);
     void process(tinyobj::attrib_t& attrib,
                  std::vector<tinyobj::shape_t>& shapes,
                  const std::vector<tinyobj::material_t>& materials,

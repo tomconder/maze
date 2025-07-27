@@ -7,13 +7,21 @@
 
 namespace sponge::platform::opengl::scene {
 ShadowMap::ShadowMap() {
-    shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/shadowmap.vert.glsl",
-        "/shaders/shadowmap.frag.glsl");
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/shadowmap.vert.glsl",
+        .fragmentShaderPath = "/shaders/shadowmap.frag.glsl",
+    };
+    shader = renderer::ResourceManager::loadShader(shaderCreateInfo);
     shader->bind();
 
-    depthMap = std::make_unique<renderer::Texture>();
-    depthMap->createDepthMap(SHADOW_WIDTH, SHADOW_HEIGHT);
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name = "depth_map",
+        .width = SHADOW_WIDTH,
+        .height = SHADOW_HEIGHT,
+        .loadFlag = renderer::DepthMap
+    };
+    depthMap = renderer::ResourceManager::loadTexture(textureCreateInfo);
 
     framebuffer = std::make_unique<renderer::FrameBuffer>();
 

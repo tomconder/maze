@@ -26,7 +26,10 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    ResourceManager::loadFont(fontName, fontPath);
+    const auto fontCreateInfo =
+        sponge::platform::opengl::scene::FontCreateInfo{ .name = fontName,
+                                                         .path = fontPath };
+    ResourceManager::loadFont(fontCreateInfo);
     fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);

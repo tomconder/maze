@@ -24,8 +24,12 @@ constexpr uint32_t vertexCount = 36;
 namespace sponge::platform::opengl::scene {
 
 Cube::Cube() {
-    shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/cube.vert.glsl", "/shaders/cube.frag.glsl");
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/cube.vert.glsl",
+        .fragmentShaderPath = "/shaders/cube.frag.glsl"
+    };
+    shader = renderer::ResourceManager::loadShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();
