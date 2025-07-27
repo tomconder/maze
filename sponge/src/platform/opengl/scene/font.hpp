@@ -5,8 +5,7 @@
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/font.hpp"
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <string>
 
 namespace sponge::platform::opengl::scene {

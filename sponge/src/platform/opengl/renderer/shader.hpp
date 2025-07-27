@@ -1,8 +1,7 @@
 #pragma once
 
 #include <glad/gl.h>
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <optional>
 #include <string>
 #include <unordered_map>

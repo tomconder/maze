@@ -1,6 +1,6 @@
 #include "sprite.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
-#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/glm.hpp>
 #include <array>
 
 namespace {

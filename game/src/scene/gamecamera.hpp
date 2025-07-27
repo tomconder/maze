@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sponge.hpp"
-#include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
 
 namespace game::scene {
 class GameCamera final : public sponge::scene::Camera {

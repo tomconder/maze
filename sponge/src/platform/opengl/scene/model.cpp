@@ -4,7 +4,6 @@
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
-#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
 #include <cassert>

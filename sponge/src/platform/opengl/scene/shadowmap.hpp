@@ -3,7 +3,7 @@
 #include "platform/opengl/renderer/framebuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace sponge::platform::opengl::scene {
