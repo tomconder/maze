@@ -1,29 +1,46 @@
 #include "shader.hpp"
+#include "core/file.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 
 namespace sponge::platform::opengl::renderer {
 
-Shader::Shader(const std::string& name, const std::string& vertexSource,
-               const std::string& fragmentSource,
-               const std::optional<std::string>& geometrySource) {
-    assert(!name.empty());
-    assert(!vertexSource.empty());
-    assert(!fragmentSource.empty());
+Shader::Shader(const ShaderCreateInfo& createInfo) {
+    assert(!createInfo.name.empty());
+    assert(!createInfo.vertexShaderPath.empty());
+    assert(!createInfo.fragmentShaderPath.empty());
 
-    this->name = name;
+    this->name = createInfo.name;
+
+    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
+                     createInfo.vertexShaderPath);
+    const std::string vertexSource = loadSourceFromFile(
+        createInfo.assetsFolder + createInfo.vertexShaderPath);
+    assert(!vertexSource.empty());
+
+    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", createInfo.name,
+                     createInfo.fragmentShaderPath);
+    const std::string fragmentSource = loadSourceFromFile(
+        createInfo.assetsFolder + createInfo.fragmentShaderPath);
+    assert(!fragmentSource.empty());
 
     const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
     const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
 
     uint32_t gs = 0;
-    if (geometrySource) {
-        gs = compileShader(GL_GEOMETRY_SHADER, *geometrySource);
-    }
+    if (!createInfo.geometryShaderPath.empty()) {
+        SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]",
+                         createInfo.name, createInfo.geometryShaderPath);
 
-    if (geometrySource) {
+        const std::string geometrySource = loadSourceFromFile(
+            createInfo.assetsFolder + createInfo.geometryShaderPath);
+        assert(!geometrySource.empty());
+
+        gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
         program = linkProgram(vs, fs, gs);
     } else {
         program = linkProgram(vs, fs);
@@ -31,13 +48,13 @@ Shader::Shader(const std::string& name, const std::string& vertexSource,
 
     glDetachShader(program, vs);
     glDetachShader(program, fs);
-    if (geometrySource) {
+    if (!createInfo.geometryShaderPath.empty()) {
         glDetachShader(program, gs);
     }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-    if (geometrySource) {
+    if (!createInfo.geometryShaderPath.empty()) {
         glDeleteShader(gs);
     }
 }
@@ -148,6 +165,25 @@ GLint Shader::getUniformLocation(const std::string& name) const {
     uniformLocations[name] = location;
 
     return location;
+}
+
+std::string Shader::loadSourceFromFile(const std::string& path) {
+    assert(!path.empty());
+
+    std::string code;
+    if (std::ifstream file(path, std::ios::in | std::ios::binary);
+        file.good()) {
+        file.seekg(0, std::ios::end);
+        const auto size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        code.resize(size);
+        file.read(code.data(), size);
+        file.close();
+    } else {
+        SPONGE_CORE_ERROR("Unable to open file: {}", path);
+    }
+
+    return code;
 }
 
 }  // namespace sponge::platform::opengl::renderer

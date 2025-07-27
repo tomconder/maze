@@ -16,8 +16,12 @@ constexpr uint32_t vertexCount = 8;
 namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
-    shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/sprite.vert.glsl", "/shaders/sprite.frag.glsl");
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/sprite.vert.glsl",
+        .fragmentShaderPath = "/shaders/sprite.frag.glsl",
+    };
+    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -43,7 +47,9 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     vbo->unbind();
     vao->unbind();
 
-    tex = renderer::ResourceManager::loadTexture(name, texturePath);
+    const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
+                                                         .path = texturePath };
+    const auto tex = renderer::ResourceManager::createTexture(textureCreateInfo);
     tex->bind();
 
     shader->unbind();

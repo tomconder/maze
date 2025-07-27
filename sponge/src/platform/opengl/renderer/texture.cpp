@@ -1,10 +1,33 @@
 #include "texture.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
-namespace sponge::platform::opengl::renderer {
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#include <filesystem>
 
-Texture::Texture() {
+namespace sponge::platform::opengl::renderer {
+Texture::Texture(const TextureCreateInfo& createInfo) {
     glGenTextures(1, &id);
+
+    if (!createInfo.path.empty()) {
+        SPONGE_CORE_INFO("Loading texture file: [{}, {}]", createInfo.name,
+                         createInfo.path);
+
+        const bool excludeAssetsFolder =
+            (createInfo.loadFlag & ExcludeAssetsFolder) == ExcludeAssetsFolder;
+        const std::string texturePath =
+            excludeAssetsFolder ? createInfo.path
+                                : createInfo.assetsFolder + createInfo.path;
+
+        loadFromFile(texturePath, createInfo.loadFlag);
+    } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {
+        SPONGE_CORE_INFO("Creating depth map texture: [{}, {}x{}]",
+                         createInfo.name, createInfo.width, createInfo.height);
+        createDepthMap(createInfo.width, createInfo.height);
+    } else {
+        SPONGE_CORE_ERROR("Unable to create texture");
+    }
 }
 
 Texture::~Texture() {
@@ -27,9 +50,11 @@ void Texture::createDepthMap(const uint32_t width,
 void Texture::generate(const uint32_t textureWidth,
                        const uint32_t textureHeight,
                        const uint32_t bytesPerPixel, const uint8_t* data,
-                       const bool gammaCorrection) {
+                       const uint8_t flag) {
     width = textureWidth;
     height = textureHeight;
+
+    const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
 
     uint32_t internalFormat = GL_RGB;
     uint32_t format = GL_RGB;
@@ -53,6 +78,30 @@ void Texture::generate(const uint32_t textureWidth,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glActiveTexture(GL_TEXTURE0);
+}
+
+void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
+    assert(!path.empty());
+
+    const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
+
+    const std::filesystem::path name{ path };
+
+    int bytesPerPixel = 0;
+    int height = 0;
+    int width = 0;
+
+    void* data =
+        stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
+    if (data == nullptr) {
+        SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}",
+                          name.string(), stbi_failure_reason());
+    }
+
+    generate(width, height, bytesPerPixel, static_cast<const uint8_t*>(data),
+             flag);
+
+    stbi_image_free(data);
 }
 
 void Texture::activateAndBind(const uint8_t unit) const {

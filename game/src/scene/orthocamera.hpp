@@ -1,12 +1,17 @@
 #pragma once
 
-#include "camera.hpp"
 #include <glm/glm.hpp>
+#include <string>
 
-namespace sponge::scene {
+namespace game::scene {
+struct OrthoCameraCreateInfo {
+    std::string name;
+};
 
-class OrthoCamera final : public Camera {
+class OrthoCamera final {
    public:
+    explicit OrthoCamera(const OrthoCameraCreateInfo& createInfo);
+
     const glm::mat4& getProjection() const {
         return projection;
     }
@@ -30,4 +35,4 @@ class OrthoCamera final : public Camera {
     uint32_t h = 0;
 };
 
-}  // namespace sponge::scene
+}  // namespace game::scene

@@ -1,56 +1,28 @@
 #include "resourcemanager.hpp"
 
 namespace game {
+ResourceHandler<scene::OrthoCamera, scene::OrthoCameraCreateInfo>
+    ResourceManager::orthoCameraHandler;
+ResourceHandler<scene::GameCamera, scene::GameCameraCreateInfo>
+    ResourceManager::gameCameraHandler;
 
-using sponge::scene::OrthoCamera;
-
-std::unordered_map<std::string, std::shared_ptr<OrthoCamera>>
-    ResourceManager::orthoCameras;
-std::unordered_map<std::string, std::shared_ptr<scene::GameCamera>>
-    ResourceManager::gameCameras;
-
-std::shared_ptr<OrthoCamera> ResourceManager::createOrthoCamera(
-    const std::string& name) {
-    assert(!name.empty());
-
-    if (orthoCameras.contains(name)) {
-        return orthoCameras[name];
-    }
-
-    SPONGE_INFO("Creating ortho camera: {}", name);
-
-    auto camera = std::make_shared<OrthoCamera>();
-    orthoCameras[name] = camera;
-
-    return camera;
+std::shared_ptr<scene::OrthoCamera> ResourceManager::createOrthoCamera(
+    const scene::OrthoCameraCreateInfo& createInfo) {
+    return orthoCameraHandler.load(createInfo);
 }
 
-std::shared_ptr<OrthoCamera> ResourceManager::getOrthoCamera(
+std::shared_ptr<scene::OrthoCamera> ResourceManager::getOrthoCamera(
     const std::string& name) {
-    assert(!name.empty());
-    return orthoCameras.at(name);
+    return ResourceManager::orthoCameraHandler.get(name);
 }
 
 std::shared_ptr<scene::GameCamera> ResourceManager::createGameCamera(
-    const std::string& name) {
-    assert(!name.empty());
-
-    if (gameCameras.contains(name)) {
-        return gameCameras[name];
-    }
-
-    SPONGE_INFO("Creating game camera: {}", name);
-
-    auto camera = std::make_shared<scene::GameCamera>();
-    gameCameras[name] = camera;
-
-    return camera;
+    const scene::GameCameraCreateInfo& creatInfo) {
+    return gameCameraHandler.load(creatInfo);
 }
 
 std::shared_ptr<scene::GameCamera> ResourceManager::getGameCamera(
     const std::string& name) {
-    assert(!name.empty());
-    return gameCameras.at(name);
+    return gameCameraHandler.get(name);
 }
-
 }  // namespace game

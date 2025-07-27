@@ -23,8 +23,12 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     this->vertices = vertices;
     this->numVertices = numVertices;
 
-    const auto shader = ResourceManager::loadShader(
-        shaderName, "/shaders/pbr.vert.glsl", "/shaders/pbr.frag.glsl");
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/pbr.vert.glsl",
+        .fragmentShaderPath = "/shaders/pbr.frag.glsl",
+    };
+    const auto shader = ResourceManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();

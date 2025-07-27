@@ -1,9 +1,14 @@
 #include "gamecamera.hpp"
+#include "core/base.hpp"
+#include "logging/log.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 namespace game::scene {
-GameCamera::GameCamera() {
+GameCamera::GameCamera(const GameCameraCreateInfo& createInfo) {
+    SPONGE_INFO("Creating game camera: {}", createInfo.name);
+    UNUSED(createInfo);
+
     updateView();
 
     const auto radYaw = glm::radians(yaw);

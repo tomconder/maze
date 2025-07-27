@@ -1,12 +1,17 @@
 #pragma once
 
-#include "sponge.hpp"
 #include <glm/glm.hpp>
+#include <string>
 
 namespace game::scene {
-class GameCamera final : public sponge::scene::Camera {
+struct GameCameraCreateInfo {
+    std::string name;
+};
+
+class GameCamera final {
    public:
-    GameCamera();
+    GameCamera() = delete;
+    explicit GameCamera(const GameCameraCreateInfo& createInfo);
 
     void setViewportSize(uint32_t viewportWidth, uint32_t viewportHeight);
 
