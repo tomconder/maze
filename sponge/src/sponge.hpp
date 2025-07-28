@@ -2,7 +2,6 @@
 
 // for use by Sponge applications
 
-#include "../../game/src/scene/orthocamera.hpp"
 #include "core/application.hpp"
 #include "core/base.hpp"
 #include "core/color.hpp"
