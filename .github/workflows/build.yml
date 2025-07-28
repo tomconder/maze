@@ -110,7 +110,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       - name: Setup CMake
-        uses: lukka/get-cmake@1d9a1bc96afe19e7086492f9c7d59a371927c806 # v4.1.0-rc2
+        uses: lukka/get-cmake@6b3e96a9bc9976b8b546346fdd102effedae0ca8 # v4.0.3
 
       - name: Configure sccache
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -130,7 +130,6 @@ jobs:
           vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
           vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-          doNotCache: 'true'
 
       - name: Create build tree
         run: >

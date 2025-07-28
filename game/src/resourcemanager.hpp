@@ -27,23 +27,23 @@ class ResourceHandler final {
         return resources.at(name);
     }
 
+    std::unordered_map<std::string, std::shared_ptr<T>> getResources() const {
+        return resources;
+    }
+
    private:
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
+// RESOURCE_MANAGER_FUNCS macro defined in sponge
+
 class ResourceManager {
    public:
-    static std::shared_ptr<scene::OrthoCamera> createOrthoCamera(
-        const scene::OrthoCameraCreateInfo& createInfo);
+    RESOURCE_MANAGER_FUNCS(OrthoCamera, scene::OrthoCamera,
+                           scene::OrthoCameraCreateInfo, orthoCameraHandler);
 
-    static std::shared_ptr<scene::OrthoCamera> getOrthoCamera(
-        const std::string& name);
-
-    static std::shared_ptr<scene::GameCamera> createGameCamera(
-        const scene::GameCameraCreateInfo& creatInfo);
-
-    static std::shared_ptr<scene::GameCamera> getGameCamera(
-        const std::string& name);
+    RESOURCE_MANAGER_FUNCS(GameCamera, scene::GameCamera,
+                           scene::GameCameraCreateInfo, gameCameraHandler);
 
    private:
     ResourceManager() = default;

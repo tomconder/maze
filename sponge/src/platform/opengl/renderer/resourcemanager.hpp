@@ -37,39 +37,32 @@ class ResourceHandler final {
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
+#define RESOURCE_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler)   \
+    static std::shared_ptr<Type> create##Name(                        \
+        const CreateInfoType& createInfo) {                           \
+        return Handler.load(createInfo);                              \
+    }                                                                 \
+                                                                      \
+    static std::shared_ptr<Type> get##Name(const std::string& name) { \
+        return Handler.get(name);                                     \
+    }                                                                 \
+                                                                      \
+    static std::unordered_map<std::string, std::shared_ptr<Type>>     \
+    get##Name##s() {                                                  \
+        return Handler.getResources();                                \
+    }
+
 class ResourceManager {
    public:
-    static std::shared_ptr<scene::Font> createFont(
-        const scene::FontCreateInfo& fontCreateInfo);
+    RESOURCE_MANAGER_FUNCS(Font, scene::Font, scene::FontCreateInfo,
+                           fontHandler);
 
-    static std::shared_ptr<scene::Font> getFont(const std::string& name);
+    RESOURCE_MANAGER_FUNCS(Model, scene::Model, scene::ModelCreateInfo,
+                           modelHandler);
 
-    static std::unordered_map<std::string, std::shared_ptr<scene::Font>>
-    getFonts();
+    RESOURCE_MANAGER_FUNCS(Shader, Shader, ShaderCreateInfo, shaderHandler);
 
-    static std::shared_ptr<scene::Model> createModel(
-        const scene::ModelCreateInfo& modelCreateInfo);
-
-    static std::shared_ptr<scene::Model> getModel(const std::string& name);
-
-    static std::unordered_map<std::string, std::shared_ptr<scene::Model>>
-    getModels();
-
-    static std::shared_ptr<Shader> createShader(
-        const ShaderCreateInfo& createInfo);
-
-    static std::shared_ptr<Shader> getShader(const std::string& name);
-
-    static std::unordered_map<std::string, std::shared_ptr<Shader>>
-    getShaders();
-
-    static std::shared_ptr<Texture> createTexture(
-        const TextureCreateInfo& textureCreateInfo);
-
-    static std::shared_ptr<Texture> getTexture(const std::string& name);
-
-    static std::unordered_map<std::string, std::shared_ptr<Texture>>
-    getTextures();
+    RESOURCE_MANAGER_FUNCS(Texture, Texture, TextureCreateInfo, textureHandler);
 
    private:
     ResourceManager() = default;
