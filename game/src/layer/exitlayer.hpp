@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 
 namespace game::layer {
@@ -17,7 +17,7 @@ class ExitLayer final : public sponge::layer::Layer {
     bool onUpdate(double elapsedTime) override;
 
    private:
-    std::shared_ptr<sponge::scene::OrthoCamera> orthoCamera;
+    std::shared_ptr<scene::OrthoCamera> orthoCamera;
     std::string fontShaderName;
     std::string quadShaderName;
 

@@ -4,7 +4,6 @@
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
-#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
 #include <cassert>
@@ -23,8 +22,15 @@ constexpr double secondsToMilliseconds = 1000.F;
 namespace sponge::platform::opengl::scene {
 using sponge::scene::Vertex;
 
+Model::Model(const ModelCreateInfo& createInfo) {
+    assert(!createInfo.path.empty());
+    load(createInfo.assetsFolder + createInfo.path);
+}
+
 void Model::load(const std::string& path) {
     assert(!path.empty());
+
+    SPONGE_CORE_INFO("Loading model file: [{}]", path);
 
     meshes.clear();
 
@@ -173,8 +179,12 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
     std::ranges::transform(name, name.begin(),
                            [](const uint8_t c) { return std::tolower(c); });
 
-    return renderer::ResourceManager::loadTexture(
-        name, filename.string(), renderer::ExcludeAssetsFolder);
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name = name,
+        .path = filename.string(),
+        .loadFlag = renderer::ExcludeAssetsFolder
+    };
+    return renderer::ResourceManager::createTexture(textureCreateInfo);
 }
 
 void Model::render(std::shared_ptr<renderer::Shader>& shader) const {

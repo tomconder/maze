@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec2.hpp>
+#include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
 

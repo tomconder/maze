@@ -21,7 +21,7 @@ class Application {
     virtual void run() = 0;
 };
 
-// implemented by client
+// implemented by the client
 Application* createApplication(int argc, char** argv);
 
 }  // namespace sponge::core

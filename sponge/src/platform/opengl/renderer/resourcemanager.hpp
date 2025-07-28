@@ -1,79 +1,82 @@
 #pragma once
 
-#include "core/base.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/font.hpp"
 #include "platform/opengl/scene/model.hpp"
-#include <optional>
 #include <string>
 #include <unordered_map>
 
 namespace sponge::platform::opengl::renderer {
-enum LoadFlag : uint8_t {
-    None = 0,
-    ExcludeAssetsFolder = BIT(0),
-    GammaCorrection = BIT(1)
+template <typename T, typename C>
+class ResourceHandler final {
+   public:
+    std::shared_ptr<T> load(const C& createInfo) {
+        assert(!createInfo.name.empty());
+
+        if (resources.contains(createInfo.name)) {
+            return resources[createInfo.name];
+        }
+
+        auto resource = std::make_shared<T>(createInfo);
+        resources[createInfo.name] = resource;
+
+        return resource;
+    }
+
+    std::shared_ptr<T> get(const std::string& name) const {
+        assert(!name.empty());
+        return resources.at(name);
+    }
+
+    std::unordered_map<std::string, std::shared_ptr<T>> getResources() const {
+        return resources;
+    }
+
+   private:
+    std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
 class ResourceManager {
    public:
-    static std::shared_ptr<scene::Font> getFont(const std::string& name);
-    static std::shared_ptr<scene::Font> loadFont(const std::string& name,
-                                                 const std::string& path);
+    static std::shared_ptr<scene::Font> createFont(
+        const scene::FontCreateInfo& fontCreateInfo);
 
-    static auto getFonts() {
-        return fonts;
-    }
+    static std::shared_ptr<scene::Font> getFont(const std::string& name);
+
+    static std::unordered_map<std::string, std::shared_ptr<scene::Font>>
+    getFonts();
+
+    static std::shared_ptr<scene::Model> createModel(
+        const scene::ModelCreateInfo& modelCreateInfo);
 
     static std::shared_ptr<scene::Model> getModel(const std::string& name);
-    static std::shared_ptr<scene::Model> loadModel(const std::string& name,
-                                                   const std::string& path);
 
-    static auto getModels() {
-        return models;
-    }
+    static std::unordered_map<std::string, std::shared_ptr<scene::Model>>
+    getModels();
 
-    static std::shared_ptr<Shader> loadShader(
-        const std::string& name, const std::string& vertexShader,
-        const std::string& fragmentShader,
-        const std::optional<std::string>& geometryShader = std::nullopt);
+    static std::shared_ptr<Shader> createShader(
+        const ShaderCreateInfo& createInfo);
+
     static std::shared_ptr<Shader> getShader(const std::string& name);
 
-    static auto getShaders() {
-        return shaders;
-    }
+    static std::unordered_map<std::string, std::shared_ptr<Shader>>
+    getShaders();
+
+    static std::shared_ptr<Texture> createTexture(
+        const TextureCreateInfo& textureCreateInfo);
 
     static std::shared_ptr<Texture> getTexture(const std::string& name);
-    static std::shared_ptr<Texture> loadTexture(const std::string& name,
-                                                const std::string& path,
-                                                uint8_t flag = 0);
 
-    static auto getTextures() {
-        return textures;
-    }
-
-    static void setAssetsFolder(const std::string& folder) {
-        assetsFolder = folder;
-    }
+    static std::unordered_map<std::string, std::shared_ptr<Texture>>
+    getTextures();
 
    private:
     ResourceManager() = default;
 
-    static std::shared_ptr<scene::Font> loadFontFromFile(
-        const std::string& path);
-    static std::shared_ptr<scene::Model> loadModelFromFile(
-        const std::string& path);
-    static std::string loadSourceFromFile(const std::string& path);
-    static std::shared_ptr<Texture> loadTextureFromFile(const std::string& path,
-                                                        bool gammaCorrection);
-
-    static std::string assetsFolder;
-
-    static std::unordered_map<std::string, std::shared_ptr<scene::Font>> fonts;
-    static std::unordered_map<std::string, std::shared_ptr<scene::Model>>
-        models;
-    static std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
-    static std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
+    static ResourceHandler<Shader, ShaderCreateInfo> shaderHandler;
+    static ResourceHandler<Texture, TextureCreateInfo> textureHandler;
+    static ResourceHandler<scene::Font, scene::FontCreateInfo> fontHandler;
+    static ResourceHandler<scene::Model, scene::ModelCreateInfo> modelHandler;
 };
 }  // namespace sponge::platform::opengl::renderer

@@ -14,7 +14,7 @@ glm::vec3 Color::hexToRGB(const char* hex) {
 
 void Color::rgbToHex(const glm::vec3& rgb, char* hex) {
     for (int i = 0; i < 3; i++) {
-        int value =
+        const int value =
             static_cast<int>(std::clamp(rgb[i] * 255.F + .5F, 0.F, 255.F));
 
         hex[i * 2] =

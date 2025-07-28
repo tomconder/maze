@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec4.hpp>
+#include <glm/glm.hpp>
 
 namespace sponge::platform::opengl::renderer {
 

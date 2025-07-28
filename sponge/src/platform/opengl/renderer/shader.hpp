@@ -1,18 +1,24 @@
 #pragma once
 
+#include "core/file.hpp"
 #include <glad/gl.h>
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
 namespace sponge::platform::opengl::renderer {
+struct ShaderCreateInfo {
+    std::string name;
+    std::string vertexShaderPath;
+    std::string fragmentShaderPath;
+    std::string geometryShaderPath;
+    std::string assetsFolder = core::File::getResourceDir();
+};
+
 class Shader final {
    public:
-    Shader(const std::string& name, const std::string& vertexSource,
-           const std::string& fragmentSource,
-           const std::optional<std::string>& geometrySource = std::nullopt);
+    Shader(const ShaderCreateInfo& createInfo);
     ~Shader();
 
     void bind() const;
@@ -36,9 +42,10 @@ class Shader final {
    private:
     mutable std::unordered_map<std::string, GLint> uniformLocations;
 
-    static uint32_t compileShader(GLenum type, const std::string& source);
-    static uint32_t linkProgram(uint32_t vs, uint32_t fs,
-                                std::optional<uint32_t> gs = std::nullopt);
+    uint32_t compileShader(GLenum type, const std::string& source);
+    uint32_t linkProgram(uint32_t vs, uint32_t fs,
+                         std::optional<uint32_t> gs = std::nullopt);
+    std::string loadSourceFromFile(const std::string& path);
 
     uint32_t program = 0;
     std::string name;

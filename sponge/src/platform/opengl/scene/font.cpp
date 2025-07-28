@@ -1,5 +1,4 @@
 #include "font.hpp"
-#include "core/base.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 #include <fmt/format.h>
 #include <algorithm>
@@ -18,9 +17,15 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
-Font::Font() {
-    shader = ResourceManager::loadShader(shaderName, "/shaders/text.vert.glsl",
-                                         "/shaders/text.frag.glsl");
+Font::Font(const FontCreateInfo& createInfo) {
+    assert(!createInfo.path.empty());
+
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/text.vert.glsl",
+        .fragmentShaderPath = "/shaders/text.frag.glsl"
+    };
+    shader = ResourceManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -48,6 +53,9 @@ Font::Font() {
     vao->unbind();
 
     shader->unbind();
+
+    load(createInfo.assetsFolder + createInfo.path);
+    log();
 }
 
 uint32_t Font::getLength(const std::string_view text,
@@ -79,8 +87,12 @@ void Font::load(const std::string& path) {
     const auto pos = path.find_last_of('/');
     const auto fontFolder = path.substr(0, pos + 1);
 
-    const auto texture = ResourceManager::loadTexture(
-        textureName, fontFolder + textureName, renderer::ExcludeAssetsFolder);
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name = textureName,
+        .path = std::string(fontFolder + textureName),
+        .loadFlag = renderer::ExcludeAssetsFolder
+    };
+    const auto texture = ResourceManager::createTexture(textureCreateInfo);
     UNUSED(texture);
 }
 

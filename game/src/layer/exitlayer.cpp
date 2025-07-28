@@ -26,10 +26,16 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    ResourceManager::loadFont(fontName, fontPath);
+    const auto fontCreateInfo =
+        sponge::platform::opengl::scene::FontCreateInfo{ .name = fontName,
+                                                         .path = fontPath };
+    ResourceManager::createFont(fontCreateInfo);
     fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
-    orthoCamera = game::ResourceManager::createOrthoCamera(cameraName);
+    const auto orthoCameraCreateInfo =
+        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
+    orthoCamera =
+        game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
     quad = std::make_unique<Quad>();
     quadShaderName = Quad::getShaderName();

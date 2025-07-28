@@ -15,8 +15,12 @@ constexpr uint32_t vertexCount = 4;
 namespace sponge::platform::opengl::scene {
 
 Quad::Quad() {
-    shader = renderer::ResourceManager::loadShader(
-        shaderName, "/shaders/quad.vert.glsl", "/shaders/quad.frag.glsl");
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name = shaderName,
+        .vertexShaderPath = "/shaders/quad.vert.glsl",
+        .fragmentShaderPath = "/shaders/quad.frag.glsl",
+    };
+    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();

@@ -1,7 +1,13 @@
 #include "orthocamera.hpp"
+#include "core/base.hpp"
+#include "logging/log.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 
-namespace sponge::scene {
+namespace game::scene {
+OrthoCamera::OrthoCamera(const OrthoCameraCreateInfo& createInfo) {
+    SPONGE_INFO("Creating ortho camera: {}", createInfo.name);
+    UNUSED(createInfo);
+}
 
 void OrthoCamera::setWidthAndHeight(const uint32_t width,
                                     const uint32_t height) {
@@ -16,4 +22,4 @@ void OrthoCamera::updateProjection(const uint32_t width,
                             static_cast<float>(height), 0.F, -1.F, 1.F);
 }
 
-}  // namespace sponge::scene
+}  // namespace game::scene

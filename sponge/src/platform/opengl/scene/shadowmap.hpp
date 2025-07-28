@@ -3,7 +3,7 @@
 #include "platform/opengl/renderer/framebuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace sponge::platform::opengl::scene {
@@ -40,8 +40,8 @@ class ShadowMap {
    private:
     static constexpr char shaderName[] = "shadowmap";
     std::shared_ptr<renderer::Shader> shader;
+    std::shared_ptr<renderer::Texture> depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;
-    std::unique_ptr<renderer::Texture> depthMap;
 
     static constexpr float nearPlane = 1.0f;
     static constexpr float farPlane = 25.0f;

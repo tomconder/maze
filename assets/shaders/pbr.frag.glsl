@@ -44,7 +44,7 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     float currentDepth = projCoords.z;
 
     // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
-    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.001);
+    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.01);
 
     // PCF
     float shadow = 0.0;
@@ -92,7 +92,7 @@ float geometrySchlickGGX(float NdotV, float rough) {
 }
 
 float geometrySmith(vec3 N, vec3 V, vec3 L, float rough) {
-    float NdotV = max(dot(N, V), 0.0);
+    float NdotV = max(dot(N, V), 1e-5f);
     float NdotL = max(dot(N, L), 0.0);
     float ggx2 = geometrySchlickGGX(NdotV, rough);
     float ggx1 = geometrySchlickGGX(NdotL, rough);
@@ -114,13 +114,9 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-    vec3 albedo;
-
-    if (hasNoTexture) {
-        albedo = pow(vec3(1.0), vec3(2.2));
-    } else {
-        albedo = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
-    }
+    vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
+    vec3 constColor = pow(vec3(1.0), vec3(2.2));
+    vec3 albedo = mix(texColor, constColor, float(hasNoTexture));
 
     vec3 N = normalize(vNormal);
     vec3 V = normalize(viewPos - vPosition);

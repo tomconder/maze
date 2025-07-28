@@ -110,7 +110,14 @@ jobs:
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
       - name: Setup CMake
-        uses: lukka/get-cmake@6b3e96a9bc9976b8b546346fdd102effedae0ca8 # latest
+        uses: lukka/get-cmake@1d9a1bc96afe19e7086492f9c7d59a371927c806 # v4.1.0-rc2
+
+      - name: Configure sccache
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Cache the build
         uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9

@@ -7,8 +7,6 @@ constexpr char spongeLogFile[] = "log.txt";
 constexpr char appFolder[] = "ItsTom";
 }  // namespace
 
-#define ASNFAM1
-
 namespace sponge::core {
 
 using logging::Log;

@@ -43,10 +43,8 @@
 #include "platform/opengl/scene/quad.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/sprite.hpp"
-#include "scene/camera.hpp"
 #include "scene/font.hpp"
 #include "scene/mesh.hpp"
-#include "scene/orthocamera.hpp"
 #include "scene/sprite.hpp"
 
 #if defined(ENABLE_IMGUI)
