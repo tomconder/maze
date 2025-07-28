@@ -24,13 +24,13 @@ using sponge::scene::Vertex;
 
 Model::Model(const ModelCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
+    SPONGE_CORE_INFO("Loading model file: [{}, {}]", createInfo.name,
+                     createInfo.path);
     load(createInfo.assetsFolder + createInfo.path);
 }
 
 void Model::load(const std::string& path) {
     assert(!path.empty());
-
-    SPONGE_CORE_INFO("Loading model file: [{}]", path);
 
     meshes.clear();
 
