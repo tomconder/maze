@@ -49,7 +49,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
                                                          .path = texturePath };
-    const auto tex = renderer::ResourceManager::createTexture(textureCreateInfo);
+    const auto tex =
+        renderer::ResourceManager::createTexture(textureCreateInfo);
     tex->bind();
 
     shader->unbind();
