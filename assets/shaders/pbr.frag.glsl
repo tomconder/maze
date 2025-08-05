@@ -136,7 +136,6 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     vec3 kD = vec3(1.0) - kS;
     kD *= vec3(1.0 - metallic);
 
-    // add to outgoing radiance result
     float NdotL = max(dot(N, L), 0.0);
     result += (kD * albedo / M_PI + specular) * radiance * NdotL;
 
@@ -156,10 +155,8 @@ void main() {
     for (int i = 0; i < numLights; i++) {
         PointLight light = pointLights[i];
 
-        // calculate per-light radiance
         float attenuation = attenuationFromLight(light);
         vec3 radiance = light.color * attenuation;
-
         vec3 lightDir = normalize(light.position - vPosition);
         vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
 
@@ -168,7 +165,6 @@ void main() {
         Lo += L * (1.0 - shadow);
     }
 
-    // ambient
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
 
     vec3 color = ambient + Lo;
@@ -176,7 +172,6 @@ void main() {
     // Reinhard HDR tonemapping
     color = color / (color + vec3(1.0));
 
-    // gamma
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
