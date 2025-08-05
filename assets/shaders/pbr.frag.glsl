@@ -16,7 +16,9 @@ uniform float ao;
 struct PointLight {
     vec3 position;
     vec3 color;
-    vec3 attenuation;
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 uniform int numLights = 1;
@@ -102,10 +104,7 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float rough) {
 
 float attenuationFromLight(PointLight light) {
     float distance = length(light.position - vPosition);
-    float constant = light.attenuation.r;
-    float linear = light.attenuation.g;
-    float quadratic = light.attenuation.b;
-    return 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+    return 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {

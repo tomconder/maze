@@ -324,10 +324,14 @@ void MazeLayer::updateShaderLights() const {
 
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
                           lights[i].position);
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
-                          lights[i].getAttenuation());
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
                           lights[i].color);
+        shader->setFloat("pointLights[" + std::to_string(i) + "].constant",
+                         lights[i].getAttenuationConstant());
+        shader->setFloat("pointLights[" + std::to_string(i) + "].linear",
+                         lights[i].getAttenuationLinear());
+        shader->setFloat("pointLights[" + std::to_string(i) + "].quadratic",
+                         lights[i].getAttenuationQuadratic());
     }
 
     shader->unbind();
