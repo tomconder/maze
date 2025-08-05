@@ -86,11 +86,7 @@ class Application : public sponge::core::Application {
         return vsync;
     }
 
-    void setVerticalSync(const bool val) {
-        vsync = val;
-        glfwSwapInterval(vsync ? 1 : 0);
-        SPONGE_CORE_DEBUG("Set vsync to {}", vsync);
-    }
+    void setVerticalSync(bool val);
 
     std::vector<LogItem>& getMessages() const {
         return *messages;
