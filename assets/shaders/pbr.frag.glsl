@@ -113,6 +113,35 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
 }
 
+vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
+    vec3 result = vec3(0.0);
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    // light contribution
+    vec3 H = normalize(V + L);
+
+    // Cook-Torrance BRDF
+    float NDF = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 1e-5f;
+    vec3 specular = numerator / denominator;
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= vec3(1.0 - metallic);
+
+    float NdotL = max(dot(N, L), 0.0);
+    result += (kD * albedo / M_PI + specular) * radiance * NdotL;
+
+    return result;
+}
+
 void main() {
     vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
     vec3 constColor = pow(vec3(1.0), vec3(2.2));
@@ -121,44 +150,21 @@ void main() {
     vec3 N = normalize(vNormal);
     vec3 V = normalize(viewPos - vPosition);
 
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // reflectance equation
     vec3 Lo = vec3(0.0);
 
     for (int i = 0; i < numLights; i++) {
-        // calculate per-light radiance
-        vec3 L = normalize(pointLights[i].position - vPosition);
-        vec3 H = normalize(V + L);
-        float attenuation = attenuationFromLight(pointLights[i]);
-        vec3 radiance = pointLights[i].color * attenuation;
+        PointLight light = pointLights[i];
 
-        // Cook-Torrance BRDF
-        float rough = clamp(roughness, 0.089, 1.0);
-        float NDF = distributionGGX(N, H, rough);
-        float G = geometrySmith(N, V, L, rough);
-        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-        vec3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular = numerator / denominator;
-
-        // kS is equal to Fresnel
-        vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
-        kD *= vec3(1.0 - metallic);
-
-        // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);
+        float attenuation = attenuationFromLight(light);
+        vec3 radiance = light.color * attenuation;
+        vec3 lightDir = normalize(light.position - vPosition);
+        vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
 
         // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace, N, L);
-        Lo += (kD * albedo / M_PI + specular) * radiance * NdotL * (1.0 - shadow);
+        float shadow = calculateShadow(vFragPosLightSpace, N, lightDir);
+        Lo += L * (1.0 - shadow);
     }
 
-    // ambient
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
 
     vec3 color = ambient + Lo;
@@ -166,7 +172,6 @@ void main() {
     // Reinhard HDR tonemapping
     color = color / (color + vec3(1.0));
 
-    // gamma
     float gamma = 2.2;
     color = pow(color, vec3(1.0 / gamma));
 
