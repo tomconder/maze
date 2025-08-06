@@ -10,7 +10,9 @@ constexpr auto keyboardSpeed = .075F;
 constexpr auto mouseSpeed = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
-constexpr auto spotlightPosition = glm::vec3(-2.F, 4.F, -1.F);
+
+constexpr auto sunColor = glm::vec3(1.F, .87F, 0.F);
+constexpr auto sunPosition = glm::vec3(-2.F, 4.F, -1.F);
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
@@ -148,7 +150,7 @@ void MazeLayer::setRoughness(const float val) {
 void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
-    for (int32_t i = 0; i < numLights; ++i) {
+    for (int32_t i = 0; i < numLights; i++) {
         lights[i].color = glm::vec3(1.F);
         lights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
@@ -247,16 +249,16 @@ void MazeLayer::renderGameObjects() const {
 void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(Cube::getShaderName());
 
-    // render the spotlight as a cube
+    // render the sun as a cube
     shader->bind();
-    shader->setFloat3("lightColor", glm::vec3(1.F, .87F, 0.F));
-    shader->setMat4("mvp", scale(translate(camera->getMVP(), spotlightPosition),
-                                 cubeScale));
+    shader->setFloat3("lightColor", sunColor);
+    shader->setMat4("mvp",
+                    scale(translate(camera->getMVP(), sunPosition), cubeScale));
     cube->render();
     shader->unbind();
 
     // render the point lights as cubes
-    for (auto i = 0; i < numLights; ++i) {
+    for (auto i = 0; i < numLights; i++) {
         shader->bind();
         shader->setFloat3("lightColor", lights[i].color);
         shader->setMat4(
@@ -270,7 +272,7 @@ void MazeLayer::renderLightCubes() const {
 void MazeLayer::renderSceneToDepthMap() const {
     shadowMap->bind();
 
-    shadowMap->updateLightSpaceMatrix(spotlightPosition);
+    shadowMap->updateLightSpaceMatrix(sunPosition);
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
     auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
@@ -319,15 +321,19 @@ void MazeLayer::updateShaderLights() const {
     shader->bind();
     shader->setInteger("numLights", numLights);
 
-    for (int32_t i = 0; i < numLights; ++i) {
+    for (int32_t i = 0; i < numLights; i++) {
         lights[i].position = glm::vec4(lights[i].translation, 1.F);
 
         shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
                           lights[i].position);
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].attenuation",
-                          lights[i].getAttenuation());
         shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
                           lights[i].color);
+        shader->setFloat("pointLights[" + std::to_string(i) + "].constant",
+                         lights[i].getAttenuationConstant());
+        shader->setFloat("pointLights[" + std::to_string(i) + "].linear",
+                         lights[i].getAttenuationLinear());
+        shader->setFloat("pointLights[" + std::to_string(i) + "].quadratic",
+                         lights[i].getAttenuationQuadratic());
     }
 
     shader->unbind();

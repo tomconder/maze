@@ -6,8 +6,16 @@ class Light {
    public:
     Light() = default;
 
-    glm::vec3 getAttenuation() const {
-        return { constant, linear, quadratic };
+    float getAttenuationConstant() const {
+        return constant;
+    }
+
+    float getAttenuationLinear() const {
+        return linear;
+    }
+
+    float getAttenuationQuadratic() const {
+        return quadratic;
     }
 
     static glm::vec4 getAttenuationFromIndex(int32_t index);

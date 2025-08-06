@@ -9,12 +9,11 @@
 #include "platform/opengl/debug/diagnostics.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <array>
 #include <ranges>
 #include <utility>
-
-using sponge::input::KeyCode;
 
 namespace {
 sponge::core::Timer systemTimer;
@@ -62,9 +61,10 @@ bool Application::start() {
     SPONGE_CORE_INFO("Initializing glfw");
 
     if (glfwInit() == GLFW_FALSE) {
-        const char* description;
+        const char* description = nullptr;
         glfwGetError(&description);
-        SPONGE_CORE_CRITICAL("Unable to initialize glfw: {}", description);
+        SPONGE_CORE_CRITICAL(
+            fmt::format("Unable to initialize glfw: {}", description));
         return false;
     }
 
@@ -224,7 +224,7 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         h = static_cast<int>(aspectRatioHeight * width / aspectRatioWidth);
     }
 
-    SPONGE_CORE_DEBUG("Resizing viewport to {}x{}", w, h);
+    SPONGE_CORE_DEBUG(fmt::format("Resizing viewport to {}x{}", w, h));
 
     offsetx = (eventW - w) / 2;
     offsety = (eventH - h) / 2;
@@ -313,25 +313,31 @@ void Application::centerMouse() const {
     Input::setPrevCursorPos({ w / 2.F, h / 2.F });
 }
 
+void Application::setVerticalSync(const bool val) {
+    vsync = val;
+    glfwSwapInterval(vsync ? 1 : 0);
+    SPONGE_CORE_DEBUG(fmt::format("Set vsync to {}", vsync));
+}
+
 void Application::run() {
 #if defined(ENABLE_PROFILING)
-    SPONGE_DEBUG("Tracy profiler enabled");
+    SPONGE_CORE_DEBUG("Tracy profiler enabled");
 #endif
 
-    SPONGE_INFO("Starting");
+    SPONGE_CORE_INFO("Starting");
 
     if (!start()) {
         return;
     }
 
-    SPONGE_INFO("Iterating loop");
+    SPONGE_CORE_INFO("Iterating loop");
 
     bool quit = false;
     while (!quit) {
         quit = iterateLoop();
     }
 
-    SPONGE_INFO("Shutting down");
+    SPONGE_CORE_INFO("Shutting down");
     shutdown();
 }
 }  // namespace sponge::platform::glfw::core

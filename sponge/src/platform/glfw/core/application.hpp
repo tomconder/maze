@@ -9,7 +9,6 @@
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
-#include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
 
@@ -86,11 +85,7 @@ class Application : public sponge::core::Application {
         return vsync;
     }
 
-    void setVerticalSync(const bool val) {
-        vsync = val;
-        glfwSwapInterval(vsync ? 1 : 0);
-        SPONGE_CORE_DEBUG("Set vsync to {}", vsync);
-    }
+    void setVerticalSync(bool val);
 
     std::vector<LogItem>& getMessages() const {
         return *messages;
@@ -127,8 +122,8 @@ class Application : public sponge::core::Application {
 
     std::unique_ptr<std::vector<LogItem>> messages;
 
-    bool fullscreen;
-    bool vsync;
+    bool fullscreen = false;
+    bool vsync = true;
     int32_t prevH = 0;
     int32_t prevW = 0;
     int32_t prevX = 0;
