@@ -96,7 +96,7 @@ jobs:
       matrix:
         include:
           - name: mac
-            os: macos-13
+            os: macos-latest
             preset: ci-osx-release
 
           - name: windows
@@ -129,8 +129,6 @@ jobs:
         env:
           VCPKG_BINARY_SOURCES: 'clear;default,readwrite'
         with:
-          vcpkgDirectory: '${{github.workspace}}/b/vcpkg'
-          vcpkgGitCommitId: '${{env.VCPKG_GIT_COMMIT_ID}}'
           vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Create build tree
