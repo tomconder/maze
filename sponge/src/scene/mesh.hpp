@@ -11,7 +11,7 @@ struct Vertex {
 };
 
 class Mesh {
-   public:
+public:
     void optimize();
     size_t getNumIndices() const {
         return numIndices;
@@ -20,7 +20,7 @@ class Mesh {
         return numVertices;
     }
 
-   protected:
+protected:
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     size_t numIndices = 0;

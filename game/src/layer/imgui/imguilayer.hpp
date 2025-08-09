@@ -12,11 +12,11 @@ struct ImVec4;
 
 namespace game::layer::imgui {
 class ImGuiLayer final : public sponge::layer::Layer {
-   public:
+public:
     ImGuiLayer();
     void onImGuiRender() override;
 
-   private:
+private:
     static bool hasAppInfoMenu;
     static bool hasLogMenu;
     static bool hasVsync;

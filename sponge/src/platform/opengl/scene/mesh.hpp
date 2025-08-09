@@ -13,7 +13,7 @@
 namespace sponge::platform::opengl::scene {
 
 class Mesh : public sponge::scene::Mesh {
-   public:
+public:
     Mesh(const std::vector<sponge::scene::Vertex>& vertices,
          std::size_t numVertices, const std::vector<uint32_t>& indices,
          std::size_t numIndices,
@@ -24,7 +24,7 @@ class Mesh : public sponge::scene::Mesh {
         return std::string(shaderName);
     }
 
-   private:
+private:
     static constexpr char shaderName[] = "mesh";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;

@@ -9,7 +9,7 @@ struct GameCameraCreateInfo {
 };
 
 class GameCamera final {
-   public:
+public:
     GameCamera() = delete;
     explicit GameCamera(const GameCameraCreateInfo& createInfo);
 
@@ -41,7 +41,7 @@ class GameCamera final {
 
     void mouseScroll(const glm::vec2& offset);
 
-   private:
+private:
     void updateProjection();
 
     void updateView();

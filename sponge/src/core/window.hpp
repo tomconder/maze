@@ -6,7 +6,7 @@
 namespace sponge::core {
 
 class WindowProps {
-   public:
+public:
     std::string title;
     uint32_t width;
     uint32_t height;
@@ -14,7 +14,7 @@ class WindowProps {
 };
 
 class Window {
-   public:
+public:
     virtual ~Window() noexcept = default;
 
     virtual uint32_t getWidth() const = 0;

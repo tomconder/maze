@@ -3,7 +3,7 @@
 
 namespace game::scene {
 class Light {
-   public:
+public:
     Light() = default;
 
     float getAttenuationConstant() const {

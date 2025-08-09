@@ -7,15 +7,15 @@ using sponge::platform::opengl::renderer::ResourceManager;
 Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
                std::string message, const uint32_t fontSize,
                std::string fontName, const glm::vec4& buttonColor,
-               const glm::vec3& textColor)
-    : top(topLeft),
-      bottom(bottomRight),
-      text(std::move(message)),
-      textSize(fontSize),
-      textFontName(std::move(fontName)),
-      color(buttonColor),
-      textColor(textColor),
-      textPosition({ topLeft.x, topLeft.y }) {
+               const glm::vec3& textColor) :
+    top(topLeft),
+    bottom(bottomRight),
+    text(std::move(message)),
+    textSize(fontSize),
+    textFontName(std::move(fontName)),
+    color(buttonColor),
+    textColor(textColor),
+    textPosition({ topLeft.x, topLeft.y }) {
     font = ResourceManager::getFont(textFontName);
     length = font->getLength(text, textSize);
 

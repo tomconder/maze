@@ -5,7 +5,7 @@
 namespace sponge::core {
 
 class File {
-   public:
+public:
     static std::string getLogDir(const std::string& app);
     static std::string getResourceDir();
 };

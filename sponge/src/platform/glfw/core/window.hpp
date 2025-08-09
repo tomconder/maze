@@ -17,7 +17,7 @@ struct WindowData {
 };
 
 class Window final : public sponge::core::Window {
-   public:
+public:
     explicit Window(const sponge::core::WindowProps& props);
     ~Window() noexcept override;
 
@@ -37,7 +37,7 @@ class Window final : public sponge::core::Window {
         data.eventCallback = callback;
     }
 
-   private:
+private:
     void init(const sponge::core::WindowProps& props);
     void shutdown() const;
 

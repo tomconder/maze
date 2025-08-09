@@ -14,7 +14,7 @@ struct ModelCreateInfo {
 };
 
 class Model {
-   public:
+public:
     explicit Model(const ModelCreateInfo& createInfo);
     void render(std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {
@@ -24,10 +24,10 @@ class Model {
         return numVertices;
     }
 
-   protected:
+protected:
     std::vector<std::shared_ptr<Mesh>> meshes;
 
-   private:
+private:
     size_t numIndices = 0;
     size_t numVertices = 0;
 

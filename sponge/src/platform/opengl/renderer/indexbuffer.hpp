@@ -6,7 +6,7 @@
 namespace sponge::platform::opengl::renderer {
 
 class IndexBuffer final : public Buffer {
-   public:
+public:
     IndexBuffer(const uint32_t* indices, std::size_t size);
 
     IndexBuffer(const IndexBuffer& indexBuffer) = delete;

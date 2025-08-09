@@ -6,7 +6,7 @@
 namespace sponge::platform::opengl::renderer {
 
 class VertexArray final : public Buffer {
-   public:
+public:
     static std::unique_ptr<VertexArray> create();
 
     VertexArray(const VertexArray& vertexArray) = delete;
@@ -16,7 +16,7 @@ class VertexArray final : public Buffer {
     void bind() const override;
     void unbind() const override;
 
-   private:
+private:
     VertexArray();
 };
 

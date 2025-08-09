@@ -17,7 +17,7 @@ struct ShaderCreateInfo {
 };
 
 class Shader final {
-   public:
+public:
     Shader(const ShaderCreateInfo& createInfo);
     ~Shader();
 
@@ -39,7 +39,7 @@ class Shader final {
         return name;
     }
 
-   private:
+private:
     mutable std::unordered_map<std::string, GLint> uniformLocations;
 
     uint32_t compileShader(GLenum type, const std::string& source);

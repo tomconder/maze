@@ -5,7 +5,7 @@
 namespace sponge::core {
 
 class Application {
-   public:
+public:
     virtual ~Application() = default;
 
     virtual bool start() = 0;

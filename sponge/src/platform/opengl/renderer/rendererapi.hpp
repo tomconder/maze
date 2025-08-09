@@ -5,7 +5,7 @@
 namespace sponge::platform::opengl::renderer {
 
 class RendererAPI final {
-   public:
+public:
     void init();
     void setViewport(int32_t x, int32_t y, int32_t width, int32_t height);
 

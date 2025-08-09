@@ -5,7 +5,7 @@
 namespace sponge::platform::windows::core {
 
 class WinFile {
-   public:
+public:
     static std::string getLogDir(const std::string& app);
 };
 

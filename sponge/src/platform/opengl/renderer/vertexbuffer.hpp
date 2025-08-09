@@ -6,7 +6,7 @@
 namespace sponge::platform::opengl::renderer {
 
 class VertexBuffer final : Buffer {
-   public:
+public:
     VertexBuffer(const void* vertices, std::size_t size);
 
     VertexBuffer(const VertexBuffer& vertexBuffer) = delete;

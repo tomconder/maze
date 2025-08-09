@@ -8,8 +8,8 @@ using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze* Maze::instance = nullptr;
 
-Maze::Maze(const ApplicationSpecification& specification)
-    : Application(specification) {
+Maze::Maze(const ApplicationSpecification& specification) :
+    Application(specification) {
     assert(!instance && "Maze already exists!");
     instance = this;
 }

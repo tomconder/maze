@@ -5,7 +5,7 @@
 namespace sponge::scene {
 
 class Sprite {
-   public:
+public:
     virtual ~Sprite() = default;
 
     virtual void render(const glm::vec2& position,

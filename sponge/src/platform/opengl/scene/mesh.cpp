@@ -16,8 +16,8 @@ using sponge::scene::Vertex;
 
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
            const std::vector<uint32_t>& indices, const std::size_t numIndices,
-           const std::vector<std::shared_ptr<renderer::Texture>>& textures)
-    : textures(textures) {
+           const std::vector<std::shared_ptr<renderer::Texture>>& textures) :
+    textures(textures) {
     this->indices = indices;
     this->numIndices = numIndices;
     this->vertices = vertices;

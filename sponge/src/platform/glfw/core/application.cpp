@@ -32,8 +32,8 @@ using opengl::debug::Diagnostics;
 
 Application* Application::instance = nullptr;
 
-Application::Application(ApplicationSpecification specification)
-    : appSpec(std::move(specification)) {
+Application::Application(ApplicationSpecification specification) :
+    appSpec(std::move(specification)) {
     const auto guiSink = std::make_shared<imgui::Sink<std::mutex>>();
     logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
 

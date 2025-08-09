@@ -6,7 +6,7 @@
 namespace sponge::platform::glfw::imgui {
 
 class GLFWManager : public ImGuiManager<GLFWManager> {
-   public:
+public:
     static void onAttachImpl(GLFWwindow* window);
 
     static void onDetachImpl();

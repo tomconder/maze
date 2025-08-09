@@ -5,7 +5,7 @@
 
 namespace sponge::layer {
 class Layer {
-   public:
+public:
     explicit Layer(std::string name = "undefined");
     virtual ~Layer() = default;
 
@@ -36,10 +36,10 @@ class Layer {
         active = value;
     }
 
-   protected:
+protected:
     std::string debugName;
 
-   private:
+private:
     bool active = true;
 };
 }  // namespace sponge::layer

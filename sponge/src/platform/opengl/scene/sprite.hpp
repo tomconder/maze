@@ -12,7 +12,7 @@
 namespace sponge::platform::opengl::scene {
 
 class Sprite final : public sponge::scene::Sprite {
-   public:
+public:
     explicit Sprite(const std::string& name, const std::string& texturePath);
 
     void render(const glm::vec2& position,
@@ -22,7 +22,7 @@ class Sprite final : public sponge::scene::Sprite {
         return std::string(shaderName);
     }
 
-   private:
+private:
     static constexpr char shaderName[] = "sprite";
 
     std::shared_ptr<renderer::Shader> shader;
