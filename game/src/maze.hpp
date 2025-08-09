@@ -10,7 +10,7 @@
 
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
-   public:
+public:
     explicit Maze(const sponge::platform::glfw::core::ApplicationSpecification&
                       specification);
 
@@ -34,7 +34,7 @@ class Maze final : public sponge::platform::glfw::core::Application {
         isRunning = false;
     }
 
-   private:
+private:
     bool isRunning = true;
 
     std::shared_ptr<layer::ExitLayer> exitLayer =

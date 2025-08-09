@@ -2,7 +2,7 @@
 
 namespace sponge::platform::opengl::debug {
 class Diagnostics final {
-   public:
+public:
     static void log();
 };
 }  // namespace sponge::platform::opengl::debug

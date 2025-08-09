@@ -7,7 +7,7 @@
 namespace sponge::layer {
 
 class LayerStack {
-   public:
+public:
     LayerStack() = default;
     ~LayerStack();
 
@@ -29,7 +29,7 @@ class LayerStack {
         return layers.rend();
     }
 
-   private:
+private:
     std::vector<std::shared_ptr<Layer>> layers;
     uint32_t layerInsertIndex = 0;
 };

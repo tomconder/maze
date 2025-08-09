@@ -5,7 +5,7 @@ struct GLFWwindow;
 namespace sponge::platform::opengl::renderer {
 
 class Context final {
-   public:
+public:
     Context();
     void init(GLFWwindow* window);
 

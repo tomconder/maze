@@ -16,7 +16,7 @@ struct FontCreateInfo {
 };
 
 class Font : public sponge::scene::Font {
-   public:
+public:
     explicit Font(const FontCreateInfo& createInfo);
     uint32_t getLength(std::string_view text, uint32_t targetSize);
     void render(const std::string& text, const glm::vec2& position,
@@ -26,7 +26,7 @@ class Font : public sponge::scene::Font {
         return std::string(shaderName);
     }
 
-   private:
+private:
     static constexpr char shaderName[] = "text";
 
     std::shared_ptr<renderer::Shader> shader;

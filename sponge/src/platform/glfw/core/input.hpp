@@ -21,7 +21,7 @@ struct ButtonData {
 };
 
 class Input {
-   public:
+public:
     static bool isKeyPressed(input::KeyCode keycode);
     static bool isKeyHeld(input::KeyCode keycode);
     static bool isKeyDown(input::KeyCode keycode);
@@ -45,7 +45,7 @@ class Input {
     static void setRelativeCursorPos(const std::pair<double, double>& val);
     static void setCursorEnteredWindow(bool val);
 
-   private:
+private:
     inline static bool cursorEnteredWindow = false;
     inline static double prevCursorPosX = 0;
     inline static double prevCursorPosY = 0;

@@ -8,7 +8,7 @@
 namespace sponge::platform::opengl::scene {
 
 class Cube {
-   public:
+public:
     Cube();
     void render() const;
 
@@ -16,7 +16,7 @@ class Cube {
         return std::string(shaderName);
     }
 
-   private:
+private:
     static constexpr char shaderName[] = "cube";
 
     std::shared_ptr<renderer::Shader> shader;

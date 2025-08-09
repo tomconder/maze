@@ -6,9 +6,9 @@
 namespace sponge::event {
 
 class WindowResizeEvent final : public Event {
-   public:
-    WindowResizeEvent(const uint32_t width, const uint32_t height)
-        : width(width), height(height) {}
+public:
+    WindowResizeEvent(const uint32_t width, const uint32_t height) :
+        width(width), height(height) {}
 
     uint32_t getWidth() const {
         return width;
@@ -26,13 +26,13 @@ class WindowResizeEvent final : public Event {
     EVENT_CLASS_TYPE(WindowResize)
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
-   private:
+private:
     uint32_t width;
     uint32_t height;
 };
 
 class WindowCloseEvent final : public Event {
-   public:
+public:
     WindowCloseEvent() = default;
 
     EVENT_CLASS_TYPE(WindowClose)
@@ -40,7 +40,7 @@ class WindowCloseEvent final : public Event {
 };
 
 class WindowFullscreenEvent final : public Event {
-   public:
+public:
     WindowFullscreenEvent() = default;
 
     EVENT_CLASS_TYPE(WindowFullscreen)
@@ -48,7 +48,7 @@ class WindowFullscreenEvent final : public Event {
 };
 
 class WindowMinimizeEvent final : public Event {
-   public:
+public:
     explicit WindowMinimizeEvent(const bool minimized) : minimized(minimized) {}
 
     bool isMinimized() const {
@@ -58,7 +58,7 @@ class WindowMinimizeEvent final : public Event {
     EVENT_CLASS_TYPE(WindowMinimize)
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
-   private:
+private:
     bool minimized;
 };
 

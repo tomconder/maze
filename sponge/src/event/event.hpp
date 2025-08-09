@@ -49,7 +49,7 @@ enum EventCategory : uint8_t {
     }
 
 class Event {
-   public:
+public:
     virtual ~Event() = default;
 
     virtual std::string toString() const {
@@ -71,7 +71,7 @@ class EventDispatcher {
     template <typename T>
     using EventFn = std::function<bool(T&)>;
 
-   public:
+public:
     explicit EventDispatcher(Event& event) : event(event) {}
 
     template <typename T>
@@ -83,7 +83,7 @@ class EventDispatcher {
         return false;
     }
 
-   private:
+private:
     Event& event;
 };
 

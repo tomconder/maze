@@ -7,10 +7,10 @@
 namespace sponge::event {
 
 class MouseMovedEvent final : public Event {
-   public:
+public:
     MouseMovedEvent(const float xrel, const float yrel, const float xpos,
-                    const float ypos)
-        : xRelative(xrel), yRelative(yrel), x(xpos), y(ypos) {}
+                    const float ypos) :
+        xRelative(xrel), yRelative(yrel), x(xpos), y(ypos) {}
 
     float getXRelative() const {
         return xRelative;
@@ -35,7 +35,7 @@ class MouseMovedEvent final : public Event {
     EVENT_CLASS_TYPE(MouseMoved)
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
-   private:
+private:
     float xRelative;
     float yRelative;
     float x;
@@ -43,9 +43,9 @@ class MouseMovedEvent final : public Event {
 };
 
 class MouseScrolledEvent final : public Event {
-   public:
-    MouseScrolledEvent(const float xOffset, const float yOffset)
-        : xOffset(xOffset), yOffset(yOffset) {}
+public:
+    MouseScrolledEvent(const float xOffset, const float yOffset) :
+        xOffset(xOffset), yOffset(yOffset) {}
 
     float getXOffset() const {
         return xOffset;
@@ -63,13 +63,13 @@ class MouseScrolledEvent final : public Event {
     EVENT_CLASS_TYPE(MouseScrolled)
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
-   private:
+private:
     float xOffset;
     float yOffset;
 };
 
 class MouseButtonEvent : public Event {
-   public:
+public:
     input::MouseButton getMouseButton() const {
         return button;
     }
@@ -83,16 +83,16 @@ class MouseButtonEvent : public Event {
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput |
                          EventCategoryMouseButton)
 
-   protected:
-    explicit MouseButtonEvent(const input::MouseButton button)
-        : button(button) {}
+protected:
+    explicit MouseButtonEvent(const input::MouseButton button) :
+        button(button) {}
     input::MouseButton button;
 };
 
 class MouseButtonPressedEvent final : public MouseButtonEvent {
-   public:
-    explicit MouseButtonPressedEvent(const input::MouseButton button)
-        : MouseButtonEvent(button) {}
+public:
+    explicit MouseButtonPressedEvent(const input::MouseButton button) :
+        MouseButtonEvent(button) {}
 
     std::string toString() const override {
         std::stringstream ss;
@@ -104,9 +104,9 @@ class MouseButtonPressedEvent final : public MouseButtonEvent {
 };
 
 class MouseButtonReleasedEvent final : public MouseButtonEvent {
-   public:
-    explicit MouseButtonReleasedEvent(const input::MouseButton button)
-        : MouseButtonEvent(button) {}
+public:
+    explicit MouseButtonReleasedEvent(const input::MouseButton button) :
+        MouseButtonEvent(button) {}
 
     std::string toString() const override {
         std::stringstream ss;
@@ -118,9 +118,9 @@ class MouseButtonReleasedEvent final : public MouseButtonEvent {
 };
 
 class MouseButtonDownEvent final : public MouseButtonEvent {
-   public:
-    explicit MouseButtonDownEvent(const input::MouseButton button)
-        : MouseButtonEvent(button) {}
+public:
+    explicit MouseButtonDownEvent(const input::MouseButton button) :
+        MouseButtonEvent(button) {}
 
     std::string toString() const override {
         std::stringstream ss;

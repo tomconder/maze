@@ -26,7 +26,7 @@ struct TextureCreateInfo {
 };
 
 class Texture final {
-   public:
+public:
     explicit Texture(const TextureCreateInfo& createInfo);
     ~Texture();
 
@@ -43,7 +43,7 @@ class Texture final {
     void activateAndBind(uint8_t unit) const;
     void bind() const;
 
-   private:
+private:
     uint32_t id = 0;
     uint32_t width = 0;
     uint32_t height = 0;

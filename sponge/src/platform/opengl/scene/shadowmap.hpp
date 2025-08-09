@@ -8,7 +8,7 @@
 
 namespace sponge::platform::opengl::scene {
 class ShadowMap {
-   public:
+public:
     static constexpr uint32_t SHADOW_WIDTH = 1024;
     static constexpr uint32_t SHADOW_HEIGHT = 1024;
 
@@ -37,7 +37,7 @@ class ShadowMap {
 
     void updateLightSpaceMatrix(const glm::vec3& lightPos);
 
-   private:
+private:
     static constexpr char shaderName[] = "shadowmap";
     std::shared_ptr<renderer::Shader> shader;
     std::shared_ptr<renderer::Texture> depthMap;

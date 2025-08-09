@@ -21,7 +21,7 @@ struct LogItem {
 };
 
 class Log {
-   public:
+public:
     static void init(const std::string& logfile);
 
     static void shutdown() {
@@ -49,7 +49,7 @@ class Log {
         "%*%m%d %T.%f %7t %s:%# [%n] %v";
     static constexpr char guiFormatPattern[] = "%*%m%d %T.%f %7t %s:%# [%n] %v";
 
-   private:
+private:
     static std::shared_ptr<spdlog::logger> appLogger;
     static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> glLogger;

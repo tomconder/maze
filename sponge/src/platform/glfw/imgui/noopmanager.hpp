@@ -6,7 +6,7 @@
 namespace sponge::platform::glfw::imgui {
 
 class NoopManager : public ImGuiManager<NoopManager> {
-   public:
+public:
     static void onAttachImpl(GLFWwindow* window) {
         UNUSED(window);
     }

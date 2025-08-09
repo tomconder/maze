@@ -4,7 +4,7 @@
 
 namespace sponge::platform::opengl::renderer {
 class Buffer {
-   public:
+public:
     virtual ~Buffer() = default;
 
     virtual void bind() const = 0;
@@ -14,7 +14,7 @@ class Buffer {
         return id;
     }
 
-   protected:
+protected:
     uint32_t id = 0;
 };
 

@@ -10,7 +10,7 @@
 namespace sponge::platform::opengl::scene {
 
 class Quad {
-   public:
+public:
     Quad();
     void render(const glm::vec2& top, const glm::vec2& bottom,
                 const glm::vec4& color) const;
@@ -19,7 +19,7 @@ class Quad {
         return std::string(shaderName);
     }
 
-   private:
+private:
     static constexpr char shaderName[] = "quad";
 
     std::shared_ptr<renderer::Shader> shader;

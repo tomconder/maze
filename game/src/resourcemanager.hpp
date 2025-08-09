@@ -8,7 +8,7 @@
 namespace game {
 template <typename T, typename C>
 class ResourceHandler final {
-   public:
+public:
     std::shared_ptr<T> load(const C& createInfo) {
         assert(!createInfo.name.empty());
 
@@ -31,21 +31,21 @@ class ResourceHandler final {
         return resources;
     }
 
-   private:
+private:
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
 // RESOURCE_MANAGER_FUNCS macro defined in sponge
 
 class ResourceManager {
-   public:
+public:
     RESOURCE_MANAGER_FUNCS(OrthoCamera, scene::OrthoCamera,
                            scene::OrthoCameraCreateInfo, orthoCameraHandler);
 
     RESOURCE_MANAGER_FUNCS(GameCamera, scene::GameCamera,
                            scene::GameCameraCreateInfo, gameCameraHandler);
 
-   private:
+private:
     ResourceManager() = default;
 
     static ResourceHandler<scene::OrthoCamera, scene::OrthoCameraCreateInfo>

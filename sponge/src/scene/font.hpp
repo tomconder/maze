@@ -16,11 +16,11 @@ struct Character {
 };
 
 class Font {
-   public:
+public:
     void load(const std::string& path);
     void log() const;
 
-   protected:
+protected:
     std::unordered_map<std::string, Character> fontChars;
     std::unordered_map<std::string, float> kerning;
 

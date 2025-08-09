@@ -9,7 +9,7 @@ constexpr double MICROSECONDS_TO_SECONDS = 1e-6F;
 using std::chrono::high_resolution_clock;
 
 class Timer {
-   public:
+public:
     Timer() = default;
 
     void tick() {
@@ -25,7 +25,7 @@ class Timer {
         return elapsedSeconds;
     }
 
-   private:
+private:
     double elapsedSeconds{ 0.0 };
     high_resolution_clock::time_point previousTicks{
         high_resolution_clock::now()

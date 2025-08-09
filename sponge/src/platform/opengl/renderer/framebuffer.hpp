@@ -5,7 +5,7 @@
 namespace sponge::platform::opengl::renderer {
 
 class FrameBuffer final : public Buffer {
-   public:
+public:
     FrameBuffer();
 
     FrameBuffer(const FrameBuffer& vertexBuffer) = delete;

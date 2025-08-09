@@ -9,7 +9,7 @@ struct OrthoCameraCreateInfo {
 };
 
 class OrthoCamera final {
-   public:
+public:
     explicit OrthoCamera(const OrthoCameraCreateInfo& createInfo);
 
     const glm::mat4& getProjection() const {
@@ -26,7 +26,7 @@ class OrthoCamera final {
         return h;
     }
 
-   private:
+private:
     void updateProjection(uint32_t width, uint32_t height);
 
     glm::mat4 projection = glm::mat4(1.F);

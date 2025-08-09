@@ -10,7 +10,7 @@
 namespace sponge::platform::opengl::renderer {
 template <typename T, typename C>
 class ResourceHandler final {
-   public:
+public:
     std::shared_ptr<T> load(const C& createInfo) {
         assert(!createInfo.name.empty());
 
@@ -33,7 +33,7 @@ class ResourceHandler final {
         return resources;
     }
 
-   private:
+private:
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
@@ -53,7 +53,7 @@ class ResourceHandler final {
     }
 
 class ResourceManager {
-   public:
+public:
     RESOURCE_MANAGER_FUNCS(Font, scene::Font, scene::FontCreateInfo,
                            fontHandler);
 
@@ -64,7 +64,7 @@ class ResourceManager {
 
     RESOURCE_MANAGER_FUNCS(Texture, Texture, TextureCreateInfo, textureHandler);
 
-   private:
+private:
     ResourceManager() = default;
 
     static ResourceHandler<Shader, ShaderCreateInfo> shaderHandler;

@@ -16,7 +16,7 @@ struct GameObject {
 };
 
 class MazeLayer final : public sponge::layer::Layer {
-   public:
+public:
     MazeLayer();
 
     void onAttach() override;
@@ -71,7 +71,7 @@ class MazeLayer final : public sponge::layer::Layer {
         return shadowMap->getDepthMapTextureId();
     }
 
-   private:
+private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
