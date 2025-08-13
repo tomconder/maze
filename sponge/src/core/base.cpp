@@ -14,7 +14,7 @@ using logging::Log;
 
 void startupCore() {
     const auto path = std::filesystem::path(File::getLogDir(appFolder));
-    const auto logfile = std::filesystem::path(File::getLogDir(path / spongeLogFile)).string();
+    const auto logfile = (path / spongeLogFile).string();
     Log::init(logfile);
 }
 
