@@ -1,6 +1,7 @@
 #include "base.hpp"
 #include "file.hpp"
 #include "logging/log.hpp"
+#include <filesystem>
 
 namespace {
 constexpr char spongeLogFile[] = "log.txt";
@@ -12,7 +13,8 @@ namespace sponge::core {
 using logging::Log;
 
 void startupCore() {
-    const auto logfile = File::getLogDir(appFolder) + spongeLogFile;
+    const auto path = std::filesystem::path(File::getLogDir(appFolder));
+    const auto logfile = (path / spongeLogFile).string();
     Log::init(logfile);
 }
 
