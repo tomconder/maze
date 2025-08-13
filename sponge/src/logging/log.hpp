@@ -24,9 +24,7 @@ class Log {
 public:
     static void init(const std::string& logfile);
 
-    static void shutdown() {
-        spdlog::shutdown();
-    }
+    static void shutdown();
 
     static std::shared_ptr<spdlog::logger> getAppLogger() {
         return appLogger;

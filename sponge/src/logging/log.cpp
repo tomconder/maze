@@ -31,6 +31,13 @@ void Log::init(const std::string& logfile) {
     glLogger = registerLogger("OPENGL", sinks);
 }
 
+void Log::shutdown() {
+    appLogger.reset();
+    coreLogger.reset();
+    glLogger.reset();
+    spdlog::shutdown();
+}
+
 void Log::addSink(const spdlog::sink_ptr& sink, const std::string& pattern) {
     setFormatter(sink, pattern);
 
