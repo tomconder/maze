@@ -14,6 +14,10 @@ repos:
       - id: end-of-file-fixer
         name: Fix End of Files
         exclude: .vscode|assets/models|sponge/deps
+      - id: mixed-line-ending
+        name: Fix Line Endings
+        exclude: .vscode|assets/models|sponge/deps
+        args: [ '--fix=crlf' ]
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v20.1.8
