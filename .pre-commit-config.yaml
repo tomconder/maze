@@ -1,0 +1,24 @@
+fail_fast: false
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+        name: Check YAML
+      - id: check-json
+        name: Check JSON
+        exclude: .vscode
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        exclude: .vscode|assets/models|sponge/deps
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        exclude: .vscode|assets/models|sponge/deps
+
+#  - repo: https://github.com/pre-commit/mirrors-clang-format
+#    rev: 'v16.0.3'
+#    hooks:
+#      - id: clang-format
+#        exclude: sponge/deps
+#        exclude_types: [ javascript, json ]
+#        types: [ text, c++ ]
