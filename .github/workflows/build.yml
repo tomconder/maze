@@ -49,7 +49,7 @@ jobs:
 
             FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
             if [ ! -n "$FILTERED_FILES" ]; then
-              echo "Found only documentation changes"          
+              echo "Found only documentation changes"
               only_changed=true
             fi
           else
