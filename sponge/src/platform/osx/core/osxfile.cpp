@@ -40,7 +40,7 @@ std::string OSXFile::getLogDir(const std::string& app) {
         SYSDIR_DIRECTORY_APPLICATION_SUPPORT, SYSDIR_DOMAIN_MASK_USER);
     if (sysdir_get_next_search_path_enumeration(state, path) != 0) {
         const std::filesystem::path fpath(expandTilde(path));
-        return (fpath / app ).string();
+        return (fpath / app).string();
     }
 
     throw std::runtime_error("Failed to get settings folder");
