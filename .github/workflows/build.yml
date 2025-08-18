@@ -81,7 +81,6 @@ jobs:
           ignore: '.github|assets|docs|tools|sponge/deps'
           files-changed-only: false
           step-summary: true
-          version: 20
 
   build:
     needs: changed
