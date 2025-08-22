@@ -97,7 +97,6 @@ if (MSVC)
     # hardening
     message(STATUS "Applying Windows hardening support")
     target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
-    target_link_options(game PUBLIC "/NXCOMPAT /CETCOMPAT")
 
     # properly report what c++ version is being used
     target_compile_options(game INTERFACE /Zc:__cplusplus)
