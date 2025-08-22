@@ -116,7 +116,7 @@ add_library(sponge::sponge ALIAS sponge)
 if (MSVC)
     # hardening
     target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
-    target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
+    # target_link_options(sponge PUBLIC "/NXCOMPAT /CETCOMPAT")
 
     # properly report what c++ version is being used
     target_compile_options(sponge INTERFACE /Zc:__cplusplus)
