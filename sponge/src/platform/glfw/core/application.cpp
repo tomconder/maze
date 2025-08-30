@@ -325,13 +325,11 @@ void Application::run() {
 #endif
 
     SPONGE_CORE_INFO("Starting");
-
     if (!start()) {
         return;
     }
 
     SPONGE_CORE_INFO("Iterating loop");
-
     bool quit = false;
     while (!quit) {
         quit = iterateLoop();
