@@ -121,7 +121,7 @@ if (MSVC)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
     message(STATUS "Applying fast math and SIMD support")
-    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
+    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
     # do not omit frame pointers for crash dumps
     target_compile_options(game INTERFACE -fno-omit-frame-pointer)
