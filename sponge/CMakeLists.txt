@@ -137,7 +137,7 @@ if (MSVC)
     target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-Ofast>)
+    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
     # do not omit frame pointers for crash dumps
     target_compile_options(sponge INTERFACE -fno-omit-frame-pointer)
