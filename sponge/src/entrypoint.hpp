@@ -12,9 +12,11 @@ namespace sponge::core {
 
 int main(const int argc, char** argv) {
     startupCore();
+
     Application* app = createApplication(argc, argv);
     app->run();
     delete app;
+
     shutdownCore();
 
     return 0;
