@@ -1,4 +1,5 @@
 # See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 # To install the pre-commit hook: pre-commit install
 # To run the command: pre-commit run --all-files
 
@@ -7,23 +8,25 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: check-yaml
-        name: Check YAML
-      - id: check-json
-        name: Check JSON
-        exclude: .vscode
       - id: trailing-whitespace
-        name: Trim Trailing Whitespace
         exclude: .vscode|assets/models|sponge/deps
       - id: end-of-file-fixer
-        name: Fix End of Files
         exclude: .vscode|assets/models|sponge/deps
+      - id: check-case-conflict
+        exclude: .vscode|assets/models|sponge/deps
+      - id: check-executables-have-shebangs
+        exclude: .vscode|assets/models|sponge/deps
+      - id: check-merge-conflict
+        exclude: .vscode|assets/models|sponge/deps
+      - id: check-yaml
+        exclude: .vscode
+      - id: check-json
+        exclude: .vscode
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v20.1.8
     hooks:
       - id: clang-format
-        name: Format C/C++
         types: [ file ]
         files: \.(c|cpp|h|hpp|glsl)$
-        exclude: sponge/deps
+        exclude: sponge/deps|out|tools
