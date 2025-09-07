@@ -29,9 +29,4 @@ repos:
       - id: clang-format
         types: [ file ]
         files: \.(c|cpp|h|hpp|glsl)$
-        exclude: |
-          (?x)^(
-          sponge/deps/.*|
-          out/.*|
-          tools/.*|
-          )$
+        exclude: sponge/deps|out|tools
