@@ -1,5 +1,5 @@
 # Auto detect text files and perform LF normalization
-*          text=auto
+*          text eol=lf
 tools/scripts/**        -linguist-detectable
 sponge/deps/glad2/**    -linguist-detectable
 
@@ -51,12 +51,14 @@ sponge/deps/glad2/**    -linguist-detectable
 *.cnf             text
 *.conf            text
 *.config          text
-.editorconfig     text
-.gitconfig        text
+*.ini             text
+*.json            text
 *.lock            text -diff
 *.toml            text
 *.yaml            text
 *.yml             text
+.editorconfig     text
+.gitconfig        text
 
 # Documents
 *.bibtex   text diff=bibtex

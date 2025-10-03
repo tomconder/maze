@@ -8,6 +8,9 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      - id: mixed-line-ending
+        exclude: .vscode|assets/models|sponge/deps
+        args: [ '--fix=lf' ]
       - id: trailing-whitespace
         exclude: .vscode|assets/models|sponge/deps
       - id: end-of-file-fixer
