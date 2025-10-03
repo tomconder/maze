@@ -1,5 +1,6 @@
 # Auto detect text files and perform LF normalization
-*          text=auto
+*       text eol=lf
+
 tools/scripts/**        -linguist-detectable
 sponge/deps/glad2/**    -linguist-detectable
 
@@ -51,12 +52,18 @@ sponge/deps/glad2/**    -linguist-detectable
 *.cnf             text
 *.conf            text
 *.config          text
-.editorconfig     text
-.gitconfig        text
+*.ini             text
+*.json            text
 *.lock            text -diff
 *.toml            text
 *.yaml            text
 *.yml             text
+.editorconfig     text
+.gitconfig        text
+.gitignore        text
+.gitattributes    text
+.clang-format     text
+.clang-tidy       text
 
 # Documents
 *.bibtex   text diff=bibtex
@@ -113,13 +120,13 @@ TODO              text
 *.eps      binary
 
 # Scripts
-*.bash     text eol=lf
-*.fish     text eol=lf
-*.sh       text eol=lf
-# These are explicitly windows files and should use crlf
-*.bat      text eol=crlf
-*.cmd      text eol=crlf
-*.ps1      text eol=crlf
+*.bash     text
+*.fish     text
+*.sh       text
+# Windows scripts use LF to keep project-wide consistency
+*.bat      text
+*.cmd      text
+*.ps1      text
 
 # Serialization
 *.json     text
