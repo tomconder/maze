@@ -62,7 +62,7 @@ public:
     }
 
     layer::LayerStack* getLayerStack() const {
-        return layerStack;
+        return layerStack.get();
     }
 
     uint32_t getHeight() const {
@@ -133,7 +133,7 @@ private:
     uint32_t offsety = 0;
     uint32_t w = 0;
 
-    layer::LayerStack* layerStack;
+    std::unique_ptr<layer::LayerStack> layerStack;
 
     ApplicationSpecification appSpec;
 
