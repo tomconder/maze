@@ -40,12 +40,12 @@ Application::Application(ApplicationSpecification specification) :
     assert(!instance && "Application already exists!");
     instance = this;
 
-    layerStack = new layer::LayerStack();
+    layerStack = std::make_unique<layer::LayerStack>();
     messages = std::make_unique<std::vector<LogItem>>();
 }
 
 Application::~Application() {
-    delete layerStack;
+    // unique_ptr handles deletion of layerStack
 }
 
 bool Application::start() {
