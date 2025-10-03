@@ -7,6 +7,7 @@ LayerStack::~LayerStack() {
         layer->onDetach();
     }
 }
+
 void LayerStack::pushLayer(const std::shared_ptr<Layer>& layer) {
     layers.emplace(layers.begin() + layerInsertIndex, layer);
     layerInsertIndex++;
