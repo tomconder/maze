@@ -6,7 +6,11 @@ LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
         layer->onDetach();
     }
+    // Ensure the container releases references promptly
+    layers.clear();
+    layerInsertIndex = 0;
 }
+
 void LayerStack::pushLayer(const std::shared_ptr<Layer>& layer) {
     layers.emplace(layers.begin() + layerInsertIndex, layer);
     layerInsertIndex++;
