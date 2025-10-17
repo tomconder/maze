@@ -8,7 +8,7 @@ A nice walk through a maze.
 
 ## Features
 
-* Platform portability — OpenGL and C++ for Windows and Mac
+* Platform portability: OpenGL and C++ for Windows and macOS
 * Physically based rendering (PBR)
 * Cook-Torrance microfacet specular BRDF
 * Point lights and directional light
@@ -73,15 +73,15 @@ are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-ms
 On Windows, you can use
 
 ```
-cmake -B build -DCMAKE_BUILD_TYPE=Release --preset windows-msvc-release
-cmake --build build --config Release --target game
+cmake -B build --preset windows-msvc-release
+cmake --build build --target game
 ```
 
 Or, for MacOS, you can use
 
 ```
-cmake -B build -DCMAKE_BUILD_TYPE=Release --preset osx-release
-cmake --build build --config Release --target install game
+cmake -B build --preset osx-release
+cmake --build build --target game
 ```
 
 ## Running
