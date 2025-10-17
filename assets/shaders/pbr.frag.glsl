@@ -94,8 +94,8 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     // light contribution
     vec3 H = normalize(V + L);
 
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 1e-5);
+    float NdotL = max(dot(N, L), 1e-5);
 
     // Cook-Torrance BRDF
     float NDF = distributionGGX(N, H, roughness);
