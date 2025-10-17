@@ -155,7 +155,7 @@ void MazeLayer::setNumLights(const int32_t val) {
         lights[i].translation = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(-1.F, 2.75F, -1.F, 1.F));
+            glm::vec4(0.F, 2.75F, -3.F, 1.F));
 
         lights[i].setAttenuationFromIndex(attenuationIndex);
     }

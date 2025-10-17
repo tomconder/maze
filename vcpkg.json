@@ -8,7 +8,7 @@
     },
     {
       "name": "glm",
-      "version>=": "1.0.1"
+      "version>=": "1.0.2"
     },
     {
       "name": "imgui",
@@ -24,7 +24,7 @@
     },
     {
       "name": "spdlog",
-      "version>=": "1.15.3"
+      "version>=": "1.16.0"
     },
     {
       "name": "stb",
