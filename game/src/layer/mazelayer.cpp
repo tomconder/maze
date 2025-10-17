@@ -12,7 +12,7 @@ constexpr auto mouseSpeed = .125F;
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
 constexpr auto sunColor = glm::vec3(1.F, .87F, 0.F);
-constexpr auto sunPosition = glm::vec3(-2.F, 4.F, -1.F);
+constexpr auto sunPosition = glm::vec3(-2.F, 14.F, -1.F);
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
