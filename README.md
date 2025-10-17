@@ -8,12 +8,14 @@ A nice walk through a maze.
 
 ## Features
 
+* Platform portability — OpenGL and C++ for Windows and Mac
 * Physically based rendering (PBR)
+* Cook-Torrance microfacet specular BRDF
+* Point lights and directional light
+* PCF shadows
+* Reinhard tone mapping
 * Multi-channel signed distance field (MSDF) text rendering
-* Platform portability - OpenGL and C++ for Windows and Mac
-* Point lights
-* HDR
-* Performance Profiling with Tracy
+* Performance profiling with Tracy
 
 ## Project Organization
 
@@ -66,13 +68,13 @@ choco install cmake
 ## Building
 
 Now you can use a preset to compile `maze`. Possible values
-are: `x64-debug`, `x64-release`, `osx-debug`, `osx-release`
+are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-msvc-release`, `osx-debug`, `osx-release`
 
 On Windows, you can use
 
 ```
-cmake -B build -DCMAKE_BUILD_TYPE=Release --preset x64-release
-cmake --build build --config Release --target install game
+cmake -B build -DCMAKE_BUILD_TYPE=Release --preset windows-msvc-release
+cmake --build build --config Release --target game
 ```
 
 Or, for MacOS, you can use
@@ -84,4 +86,4 @@ cmake --build build --config Release --target install game
 
 ## Running
 
-The maze executable will be found in the build directory: `out\build\x64-release\maze\Release\maze.exe`
+The maze executable will be found in the build directory: `build\maze\Release\maze.exe`
