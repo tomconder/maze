@@ -70,7 +70,7 @@ void main() {
 
     vec3 color = ambient + Lo;
 
-    // Reinhard HDR tonemapping
+    // Reinhard HDR tone mapping
     color = color / (color + vec3(1.0));
 
     float gamma = 2.2;
