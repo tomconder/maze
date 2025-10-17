@@ -32,6 +32,89 @@ uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
+// function prototypes
+float attenuationFromLight(PointLight light);
+vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir);
+
+// PBR function prototypes
+vec3 fresnelSchlick(float cosTheta, vec3 F0);
+float distributionGGX(vec3 N, vec3 H, float rough);
+float geometrySchlickGGX(float NdotV, float rough);
+float geometrySmith(float NdotV, float NdotL, float rough);
+
+void main() {
+    vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
+    vec3 constColor = pow(vec3(1.0), vec3(2.2));
+    vec3 albedo = mix(texColor, constColor, float(hasNoTexture));
+
+    vec3 N = normalize(vNormal);
+    vec3 V = normalize(viewPos - vPosition);
+
+    vec3 Lo = vec3(0.0);
+
+    for (int i = 0; i < numLights; i++) {
+        PointLight light = pointLights[i];
+
+        float attenuation = attenuationFromLight(light);
+        vec3 radiance = light.color * attenuation;
+        vec3 lightDir = normalize(light.position - vPosition);
+        vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
+
+        // apply shadow
+        float shadow = calculateShadow(vFragPosLightSpace, N, lightDir);
+        Lo += L * (1.0 - shadow);
+    }
+
+    vec3 ambient = vec3(ambientStrength) * albedo * ao;
+
+    vec3 color = ambient + Lo;
+
+    // Reinhard HDR tonemapping
+    color = color / (color + vec3(1.0));
+
+    float gamma = 2.2;
+    color = pow(color, vec3(1.0 / gamma));
+
+    FragColor = vec4(color, 1.0);
+}
+
+float attenuationFromLight(PointLight light) {
+    float distance = length(light.position - vPosition);
+    return 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+}
+
+vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
+    vec3 result = vec3(0.0);
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    // light contribution
+    vec3 H = normalize(V + L);
+
+    float NdotV = max(dot(N, V), 1e-5);
+    float NdotL = max(dot(N, L), 1e-5);
+
+    // Cook-Torrance BRDF
+    float NDF = distributionGGX(N, H, roughness);
+    float G = geometrySmith(NdotV, NdotL, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * NdotV * NdotL + 1e-5f;
+    vec3 specular = numerator / denominator;
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= vec3(1.0 - metallic);
+
+    result += (kD * albedo / M_PI + specular) * radiance * NdotL;
+
+    return result;
+}
+
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -70,9 +153,15 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     return shadow;
 }
 
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    // Optimized exponent version, from: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
+    return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
+}
+
 float distributionGGX(vec3 N, vec3 H, float rough) {
     float a = rough * rough;
     float a2 = a * a;
+
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
 
@@ -93,86 +182,9 @@ float geometrySchlickGGX(float NdotV, float rough) {
     return nom / denom;
 }
 
-float geometrySmith(vec3 N, vec3 V, vec3 L, float rough) {
-    float NdotV = max(dot(N, V), 1e-5f);
-    float NdotL = max(dot(N, L), 0.0);
+float geometrySmith(float NdotV, float NdotL, float rough) {
     float ggx2 = geometrySchlickGGX(NdotV, rough);
     float ggx1 = geometrySchlickGGX(NdotL, rough);
 
     return ggx1 * ggx2;
-}
-
-float attenuationFromLight(PointLight light) {
-    float distance = length(light.position - vPosition);
-    return 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-}
-
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    // Optimized exponent version, from: http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
-    return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
-}
-
-vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
-    vec3 result = vec3(0.0);
-
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // light contribution
-    vec3 H = normalize(V + L);
-
-    // Cook-Torrance BRDF
-    float NDF = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 1e-5f;
-    vec3 specular = numerator / denominator;
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= vec3(1.0 - metallic);
-
-    float NdotL = max(dot(N, L), 0.0);
-    result += (kD * albedo / M_PI + specular) * radiance * NdotL;
-
-    return result;
-}
-
-void main() {
-    vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
-    vec3 constColor = pow(vec3(1.0), vec3(2.2));
-    vec3 albedo = mix(texColor, constColor, float(hasNoTexture));
-
-    vec3 N = normalize(vNormal);
-    vec3 V = normalize(viewPos - vPosition);
-
-    vec3 Lo = vec3(0.0);
-
-    for (int i = 0; i < numLights; i++) {
-        PointLight light = pointLights[i];
-
-        float attenuation = attenuationFromLight(light);
-        vec3 radiance = light.color * attenuation;
-        vec3 lightDir = normalize(light.position - vPosition);
-        vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
-
-        // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace, N, lightDir);
-        Lo += L * (1.0 - shadow);
-    }
-
-    vec3 ambient = vec3(ambientStrength) * albedo * ao;
-
-    vec3 color = ambient + Lo;
-
-    // Reinhard HDR tonemapping
-    color = color / (color + vec3(1.0));
-
-    float gamma = 2.2;
-    color = pow(color, vec3(1.0 / gamma));
-
-    FragColor = vec4(color, 1.0);
 }
