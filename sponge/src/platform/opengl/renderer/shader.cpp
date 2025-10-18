@@ -18,7 +18,7 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
     assert(!createInfo.vertexShaderPath.empty());
     assert(!createInfo.fragmentShaderPath.empty());
 
-    shaderName = std::move(createInfo.name);
+    shaderName = createInfo.name;
 
     SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
                      createInfo.vertexShaderPath);
