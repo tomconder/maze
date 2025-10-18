@@ -1,4 +1,5 @@
-#include "framebuffer.hpp"
+#include "platform/opengl/renderer/framebuffer.hpp"
+
 #include "platform/opengl/renderer/gl.hpp"
 
 namespace sponge::platform::opengl::renderer {

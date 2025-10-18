@@ -1,6 +1,8 @@
-#include "orthocamera.hpp"
+#include "scene/orthocamera.hpp"
+
 #include "core/base.hpp"
 #include "logging/log.hpp"
+
 #include <glm/ext/matrix_clip_space.hpp>
 
 namespace game::scene {

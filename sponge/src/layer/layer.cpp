@@ -1,4 +1,5 @@
 #include "layer/layer.hpp"
+
 #include <utility>
 
 namespace sponge::layer {

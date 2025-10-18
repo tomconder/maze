@@ -1,5 +1,7 @@
-#include "color.hpp"
+#include "core/color.hpp"
+
 #include "logging/log.hpp"
+
 #include <algorithm>
 
 namespace sponge::core {

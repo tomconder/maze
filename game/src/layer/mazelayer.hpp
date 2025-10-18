@@ -3,6 +3,8 @@
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
+#include <memory>
+
 namespace game::layer {
 struct GameObject {
     const char* name;

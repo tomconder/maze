@@ -3,8 +3,11 @@
 #include "platform/opengl/renderer/framebuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+
 #include <glm/glm.hpp>
+
 #include <memory>
+#include <string>
 
 namespace sponge::platform::opengl::scene {
 class ShadowMap {

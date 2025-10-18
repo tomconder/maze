@@ -1,6 +1,9 @@
-#include "cube.hpp"
+#include "platform/opengl/scene/cube.hpp"
+
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
+#include <memory>
 
 namespace {
 constexpr char position[] = "position";

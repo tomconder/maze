@@ -1,9 +1,13 @@
-#include "shadowmap.hpp"
+#include "platform/opengl/scene/shadowmap.hpp"
+
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+
+#include <memory>
 
 namespace sponge::platform::opengl::scene {
 ShadowMap::ShadowMap() {

@@ -1,5 +1,8 @@
-#include "vertexarray.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+
 #include "platform/opengl/renderer/gl.hpp"
+
+#include <memory>
 
 namespace sponge::platform::opengl::renderer {
 

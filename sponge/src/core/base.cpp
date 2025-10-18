@@ -1,7 +1,10 @@
-#include "base.hpp"
-#include "file.hpp"
+#include "core/base.hpp"
+
+#include "core/file.hpp"
 #include "logging/log.hpp"
+
 #include <filesystem>
+#include <string>
 
 namespace {
 constexpr char spongeLogFile[] = "log.txt";

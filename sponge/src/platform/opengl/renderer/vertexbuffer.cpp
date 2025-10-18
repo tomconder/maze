@@ -1,4 +1,5 @@
-#include "vertexbuffer.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
+
 #include "platform/opengl/renderer/gl.hpp"
 
 namespace sponge::platform::opengl::renderer {
