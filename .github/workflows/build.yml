@@ -110,7 +110,7 @@ jobs:
       - name: Extract vcpkg git commit id from vcpkg-configuration.yaml
         id: extract
         run: |
-          VCPKG_GIT_COMMIT_ID=$(grep -oP '"baseline":\s*"\K[^"]+' vcpkg-configuration.yaml)
+          VCPKG_COMMIT_ID=$(cat vcpkg-configuration.yaml | grep "baseline" | cut -d'"' -f4)
           echo "VCPKG_GIT_COMMIT_ID=$VCPKG_GIT_COMMIT_ID" >> $GITHUB_ENV
 
       - name: Verify environment variable
