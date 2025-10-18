@@ -4,7 +4,10 @@
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+
 #include <glm/glm.hpp>
+
+#include <memory>
 #include <string>
 
 namespace sponge::platform::opengl::scene {

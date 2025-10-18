@@ -1,9 +1,11 @@
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
-#include "imguilayer.hpp"
+#include "layer/imgui/imguilayer.hpp"
+
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
 #include "version.hpp"
+
 #include <algorithm>
 #include <optional>
 #include <ranges>

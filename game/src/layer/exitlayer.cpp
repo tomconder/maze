@@ -1,5 +1,9 @@
-#include "exitlayer.hpp"
+#include "layer/exitlayer.hpp"
+
 #include "resourcemanager.hpp"
+
+#include <memory>
+#include <string>
 
 namespace {
 constexpr char cancelButtonMessage[] = "Cancel";

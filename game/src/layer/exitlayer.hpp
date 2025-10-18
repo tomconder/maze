@@ -3,6 +3,9 @@
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 
+#include <memory>
+#include <string>
+
 namespace game::layer {
 class ExitLayer final : public sponge::layer::Layer {
 public:

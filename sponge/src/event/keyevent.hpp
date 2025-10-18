@@ -2,7 +2,9 @@
 
 #include "event/event.hpp"
 #include "input/keycode.hpp"
+
 #include <sstream>
+#include <string>
 
 namespace sponge::event {
 

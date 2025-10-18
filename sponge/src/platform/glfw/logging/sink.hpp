@@ -2,6 +2,7 @@
 
 #include "logging/log.hpp"
 #include "platform/glfw/core/application.hpp"
+
 #include <spdlog/sinks/base_sink.h>
 
 namespace sponge::platform::glfw::imgui {

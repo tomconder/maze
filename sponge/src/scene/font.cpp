@@ -1,11 +1,15 @@
-#include "font.hpp"
+#include "scene/font.hpp"
+
 #include "core/base.hpp"
 #include "logging/log.hpp"
+
 #include <fmt/format.h>
+
 #include <cstddef>
 #include <fstream>
 #include <ios>
 #include <sstream>
+#include <string>
 
 namespace sponge::scene {
 

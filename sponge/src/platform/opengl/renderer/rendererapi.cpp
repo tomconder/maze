@@ -1,7 +1,10 @@
-#include "rendererapi.hpp"
+#include "platform/opengl/renderer/rendererapi.hpp"
+
 #include "core/base.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+
+#include <string>
 
 namespace {
 void APIENTRY glLogMessage(const GLenum source, const GLenum type,

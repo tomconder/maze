@@ -2,6 +2,7 @@
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+
 #include <memory>
 #include <string>
 

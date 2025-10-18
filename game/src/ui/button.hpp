@@ -2,6 +2,9 @@
 
 #include "sponge.hpp"
 
+#include <memory>
+#include <string>
+
 namespace game::ui {
 class Button {
 public:

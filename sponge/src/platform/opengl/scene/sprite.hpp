@@ -6,6 +6,7 @@
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/sprite.hpp"
+
 #include <memory>
 #include <string>
 

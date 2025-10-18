@@ -2,6 +2,8 @@
 
 #include <spdlog/pattern_formatter.h>
 
+#include <memory>
+
 namespace sponge {
 
 class LogFlag final : public spdlog::custom_flag_formatter {

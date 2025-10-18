@@ -1,7 +1,10 @@
-#include "diagnostics.hpp"
+#include "platform/opengl/debug/diagnostics.hpp"
+
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+
 #include <spdlog/fmt/fmt.h>
+
 #include <sstream>
 
 namespace sponge::platform::opengl::debug {

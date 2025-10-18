@@ -2,8 +2,11 @@
 #include "core/window.hpp"
 #include "event/event.hpp"
 #include "logging/log.hpp"
+
 #include <GLFW/glfw3.h>
+
 #include <functional>
+#include <string>
 
 namespace sponge::platform::glfw::core {
 

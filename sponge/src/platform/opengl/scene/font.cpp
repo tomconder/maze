@@ -1,8 +1,13 @@
-#include "font.hpp"
+#include "platform/opengl/scene/font.hpp"
+
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <fmt/format.h>
+
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <string>
 
 namespace {
 constexpr char vertex[] = "vertex";

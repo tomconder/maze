@@ -1,5 +1,7 @@
 #include "core/file.hpp"
 
+#include <string>
+
 namespace sponge::core {
 
 std::string File::getLogDir(const std::string& app) {

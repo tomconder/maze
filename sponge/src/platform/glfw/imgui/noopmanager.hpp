@@ -1,13 +1,13 @@
 #pragma once
 
 #include "core/base.hpp"
-#include "imguimanager.hpp"
+#include "platform/glfw/imgui/imguimanager.hpp"
 
 namespace sponge::platform::glfw::imgui {
 
 class NoopManager : public ImGuiManager<NoopManager> {
 public:
-    static void onAttachImpl(GLFWwindow* window) {
+    static void onAttachImpl(const GLFWwindow* window) {
         UNUSED(window);
     }
 

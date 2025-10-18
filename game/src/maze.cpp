@@ -1,4 +1,5 @@
 #include "maze.hpp"
+
 #include "entrypoint.hpp"
 #include "sponge.hpp"
 #include "version.hpp"
@@ -42,12 +43,12 @@ bool Maze::onUserDestroy() {
 void Maze::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
-        [this](const sponge::event::KeyPressedEvent& event) {
-            return this->onKeyPressed(event);
+        [this](const sponge::event::KeyPressedEvent& ev) {
+            return this->onKeyPressed(ev);
         });
     dispatcher.dispatch<sponge::event::WindowCloseEvent>(
-        [this](const sponge::event::WindowCloseEvent& event) {
-            return this->onWindowClose(event);
+        [this](const sponge::event::WindowCloseEvent& ev) {
+            return this->onWindowClose(ev);
         });
 
     Application::onEvent(event);

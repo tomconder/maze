@@ -6,6 +6,7 @@
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/mesh.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ public:
          std::size_t numVertices, const std::vector<uint32_t>& indices,
          std::size_t numIndices,
          const std::vector<std::shared_ptr<renderer::Texture>>& textures);
-    void render(std::shared_ptr<renderer::Shader>& shader) const;
+    void render(const std::shared_ptr<renderer::Shader>& shader) const;
 
     static std::string getShaderName() {
         return std::string(shaderName);

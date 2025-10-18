@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/base.hpp"
+
 #include <cstdint>
 #include <functional>
 #include <ostream>
@@ -32,15 +33,15 @@ enum EventCategory : uint8_t {
     EventCategoryMouseButton = BIT(4)
 };
 
-#define EVENT_CLASS_TYPE(type)                        \
-    static EventType getStaticType() {                \
-        return EventType::type;                       \
-    }                                                 \
-    virtual EventType getEventType() const override { \
-        return getStaticType();                       \
-    }                                                 \
-    virtual const char* getName() const override {    \
-        return #type;                                 \
+#define EVENT_CLASS_TYPE(type)                \
+    static EventType getStaticType() {        \
+        return EventType::type;               \
+    }                                         \
+    EventType getEventType() const override { \
+        return getStaticType();               \
+    }                                         \
+    const char* getName() const override {    \
+        return #type;                         \
     }
 
 #define EVENT_CLASS_CATEGORY(category)      \

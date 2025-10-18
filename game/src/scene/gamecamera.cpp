@@ -1,6 +1,8 @@
-#include "gamecamera.hpp"
+#include "scene/gamecamera.hpp"
+
 #include "core/base.hpp"
 #include "logging/log.hpp"
+
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 

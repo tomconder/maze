@@ -1,8 +1,12 @@
-#include "osxfile.hpp"
+#include "platform/osx/core/osxfile.hpp"
+
 #include <CoreFoundation/CFBundle.h>
+
 #include <glob.h>
 #include <sysdir.h>
+
 #include <filesystem>
+#include <string>
 
 namespace sponge::platform::osx::core {
 

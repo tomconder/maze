@@ -1,6 +1,9 @@
-#include "quad.hpp"
+#include "platform/opengl/scene/quad.hpp"
+
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <array>
+#include <memory>
 
 namespace {
 constexpr char vertex[] = "position";

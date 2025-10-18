@@ -1,10 +1,13 @@
-#include "texture.hpp"
+#include "platform/opengl/renderer/texture.hpp"
+
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
 #include <filesystem>
+#include <string>
 
 namespace sponge::platform::opengl::renderer {
 Texture::Texture(const TextureCreateInfo& createInfo) {

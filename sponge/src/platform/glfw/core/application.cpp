@@ -1,4 +1,5 @@
-#include "application.hpp"
+#include "platform/glfw/core/application.hpp"
+
 #include "core/timer.hpp"
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
@@ -9,9 +10,12 @@
 #include "platform/opengl/debug/diagnostics.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
+
 #include <fmt/format.h>
 #include <glm/glm.hpp>
+
 #include <array>
+#include <memory>
 #include <ranges>
 #include <utility>
 

@@ -7,7 +7,6 @@ DerivePointerAlignment: false
 
 QualifierAlignment: Left
 
-IncludeBlocks: Merge
 IncludeCategories:
   - Regex: ^\"
     Priority: 1500

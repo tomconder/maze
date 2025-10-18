@@ -1,7 +1,14 @@
-#include "log.hpp"
-#include "logflag.hpp"
+#include "logging/log.hpp"
+
+#include "logging/logflag.hpp"
+
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace sponge::logging {
 std::shared_ptr<spdlog::logger> Log::appLogger;

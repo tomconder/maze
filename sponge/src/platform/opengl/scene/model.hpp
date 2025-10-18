@@ -2,7 +2,11 @@
 
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/mesh.hpp"
+
 #include <tiny_obj_loader.h>
+
+#include <memory>
+#include <string>
 #include <vector>
 
 namespace sponge::platform::opengl::scene {
@@ -16,7 +20,7 @@ struct ModelCreateInfo {
 class Model {
 public:
     explicit Model(const ModelCreateInfo& createInfo);
-    void render(std::shared_ptr<renderer::Shader>& shader) const;
+    void render(const std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {
         return numIndices;
     }

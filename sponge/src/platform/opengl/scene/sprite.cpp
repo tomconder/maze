@@ -1,7 +1,12 @@
-#include "sprite.hpp"
+#include "platform/opengl/scene/sprite.hpp"
+
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <glm/glm.hpp>
+
 #include <array>
+#include <memory>
+#include <string>
 
 namespace {
 constexpr char vertex[] = "vertex";

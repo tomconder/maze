@@ -1,4 +1,4 @@
-#include "light.hpp"
+#include "scene/light.hpp"
 
 namespace game::scene {
 

@@ -8,6 +8,8 @@
 #include "layer/imgui/imguilayer.hpp"
 #endif
 
+#include <memory>
+
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
 public:

@@ -3,7 +3,10 @@
 #include "scene/gamecamera.hpp"
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
+
+#include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace game {
 template <typename T, typename C>

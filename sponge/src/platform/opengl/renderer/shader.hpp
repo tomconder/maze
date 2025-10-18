@@ -1,8 +1,10 @@
 #pragma once
 
 #include "core/file.hpp"
+
 #include <glad/gl.h>
 #include <glm/glm.hpp>
+
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -18,25 +20,25 @@ struct ShaderCreateInfo {
 
 class Shader final {
 public:
-    Shader(const ShaderCreateInfo& createInfo);
+    explicit Shader(const ShaderCreateInfo& createInfo);
     ~Shader();
 
     void bind() const;
     void unbind() const;
 
-    void setBoolean(const std::string& name, bool value);
-    void setFloat(const std::string& name, float value);
-    void setFloat3(const std::string& name, const glm::vec3& value);
-    void setFloat4(const std::string& name, const glm::vec4& value);
-    void setInteger(const std::string& name, int value);
-    void setMat4(const std::string& name, const glm::mat4& value);
+    void setBoolean(const std::string& name, bool value) const;
+    void setFloat(const std::string& name, float value) const;
+    void setFloat3(const std::string& name, const glm::vec3& value) const;
+    void setFloat4(const std::string& name, const glm::vec4& value) const;
+    void setInteger(const std::string& name, int value) const;
+    void setMat4(const std::string& name, const glm::mat4& value) const;
 
     uint32_t getId() const {
         return program;
     }
 
     const std::string& getName() const {
-        return name;
+        return shaderName;
     }
 
 private:
@@ -48,7 +50,7 @@ private:
     std::string loadSourceFromFile(const std::string& path);
 
     uint32_t program = 0;
-    std::string name;
+    std::string shaderName;
 
     GLint getUniformLocation(const std::string& name) const;
 };
