@@ -15,7 +15,6 @@ env:
   BUILD_DIR: build
   BUILD_TYPE: Release
   SCCACHE_GHA_ENABLED: true
-  VCPKG_GIT_COMMIT_ID: '74e6536215718009aae747d86d84b78376bf9e09'
 
 permissions:
   contents: read
@@ -110,7 +109,7 @@ jobs:
       - name: Extract vcpkg git commit id from vcpkg-configuration.yaml
         id: extract
         run: |
-          VCPKG_COMMIT_ID=$(cat vcpkg-configuration.yaml | grep "baseline" | cut -d'"' -f4)
+          VCPKG_COMMIT_ID=$(cat ${{ github.workspace }}\vcpkg-configuration.yaml | grep "baseline" | cut -d'"' -f4)
           echo "VCPKG_GIT_COMMIT_ID=$VCPKG_GIT_COMMIT_ID" >> $GITHUB_ENV
 
       - name: Verify environment variable
