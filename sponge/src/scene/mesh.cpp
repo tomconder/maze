@@ -1,5 +1,8 @@
-#include "mesh.hpp"
+#include "scene/mesh.hpp"
+
 #include <meshoptimizer.h>
+
+#include <vector>
 
 namespace sponge::scene {
 

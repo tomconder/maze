@@ -9,8 +9,10 @@
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
+
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace sponge::platform::glfw::core {
 struct ApplicationSpecification {

@@ -1,8 +1,12 @@
-#include "mesh.hpp"
+#include "platform/opengl/scene/mesh.hpp"
+
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <cstddef>
+#include <memory>
+#include <vector>
 
 namespace {
 constexpr char normal[] = "normal";
@@ -75,7 +79,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     vao->unbind();
 }
 
-void Mesh::render(std::shared_ptr<renderer::Shader>& shader) const {
+void Mesh::render(const std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
 
     vao->bind();

@@ -1,4 +1,4 @@
-#include "resourcemanager.hpp"
+#include "platform/opengl/renderer/resourcemanager.hpp"
 
 namespace sponge::platform::opengl::renderer {
 ResourceHandler<scene::Font, scene::FontCreateInfo>

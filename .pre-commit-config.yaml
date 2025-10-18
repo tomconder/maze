@@ -33,3 +33,11 @@ repos:
         types: [ file ]
         files: \.(c|cpp|h|hpp|glsl)$
         exclude: sponge/deps|out|tools
+
+  - repo: https://github.com/cpplint/cpplint
+    rev: 2.0.0
+    hooks:
+      - id: cpplint
+        exclude: sponge/deps|out|tools
+        args:
+          - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent

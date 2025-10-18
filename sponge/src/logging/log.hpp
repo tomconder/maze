@@ -13,6 +13,10 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include "logging/logcustom.hpp"
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace sponge::logging {
 struct LogItem {
     std::string message;

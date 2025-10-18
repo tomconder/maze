@@ -1,9 +1,14 @@
-#include "mazelayer.hpp"
+#include "layer/mazelayer.hpp"
+
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
+
 #include <glm/ext/matrix_transform.hpp>
+
 #include <array>
+#include <memory>
+#include <string>
 
 namespace {
 constexpr auto keyboardSpeed = .075F;
@@ -58,8 +63,7 @@ constexpr std::array gameObjects = {
                 .scale = glm::vec3(.5F),
                 .rotation = { .angle = glm::radians(45.F),
                               .axis = glm::vec3(0.F, 1.F, 0.F) },
-                .translation = glm::vec3(0.F, 0.F, 0.F) },
-
+                .translation = glm::vec3(0.F, 0.F, 0.F) }
 };
 
 MazeLayer::MazeLayer() : Layer("maze") {

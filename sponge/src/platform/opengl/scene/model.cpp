@@ -1,14 +1,20 @@
-#include "model.hpp"
+#include "platform/opengl/scene/model.hpp"
+
 #include "core/timer.hpp"
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
+
 #include <glm/gtc/constants.hpp>
+
 #include <algorithm>
 #include <cassert>
 #include <filesystem>
+#include <memory>
 #include <ranges>
+#include <string>
+#include <vector>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // earcut gives robust triangulation
@@ -187,7 +193,7 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
     return renderer::ResourceManager::createTexture(textureCreateInfo);
 }
 
-void Model::render(std::shared_ptr<renderer::Shader>& shader) const {
+void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model");
 

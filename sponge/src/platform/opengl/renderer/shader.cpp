@@ -1,11 +1,15 @@
-#include "shader.hpp"
-#include "core/file.hpp"
+#include "platform/opengl/renderer/shader.hpp"
+
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+
 #include <glm/gtc/type_ptr.hpp>
+
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <vector>
 
 namespace sponge::platform::opengl::renderer {
 
@@ -14,7 +18,7 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
     assert(!createInfo.vertexShaderPath.empty());
     assert(!createInfo.fragmentShaderPath.empty());
 
-    this->name = createInfo.name;
+    shaderName = createInfo.name;
 
     SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
                      createInfo.vertexShaderPath);
@@ -126,27 +130,27 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
     return id;
 }
 
-void Shader::setBoolean(const std::string& name, const bool value) {
+void Shader::setBoolean(const std::string& name, const bool value) const {
     glUniform1i(getUniformLocation(name), static_cast<int>(value));
 }
 
-void Shader::setFloat(const std::string& name, const float value) {
+void Shader::setFloat(const std::string& name, const float value) const {
     glUniform1f(getUniformLocation(name), value);
 }
 
-void Shader::setFloat3(const std::string& name, const glm::vec3& value) {
+void Shader::setFloat3(const std::string& name, const glm::vec3& value) const {
     glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-void Shader::setFloat4(const std::string& name, const glm::vec4& value) {
+void Shader::setFloat4(const std::string& name, const glm::vec4& value) const {
     glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
 }
 
-void Shader::setInteger(const std::string& name, const int value) {
+void Shader::setInteger(const std::string& name, const int value) const {
     glUniform1i(getUniformLocation(name), value);
 }
 
-void Shader::setMat4(const std::string& name, const glm::mat4& value) {
+void Shader::setMat4(const std::string& name, const glm::mat4& value) const {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
 }
 

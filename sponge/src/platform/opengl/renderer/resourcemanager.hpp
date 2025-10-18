@@ -4,6 +4,8 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/font.hpp"
 #include "platform/opengl/scene/model.hpp"
+
+#include <memory>
 #include <string>
 #include <unordered_map>
 

@@ -1,4 +1,5 @@
-#include "window.hpp"
+#include "platform/glfw/core/window.hpp"
+
 #include "event/applicationevent.hpp"
 #include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
@@ -69,8 +70,8 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwSetWindowSizeCallback(window, [](GLFWwindow* window, const int width,
                                          const int height) {
-        auto w = static_cast<uint32_t>(width);
-        auto h = static_cast<uint32_t>(height);
+        const auto w = static_cast<uint32_t>(width);
+        const auto h = static_cast<uint32_t>(height);
 
         if (w == 0 && h == 0) {
             return;

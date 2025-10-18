@@ -1,5 +1,7 @@
 #include "layer/layerstack.hpp"
 
+#include <memory>
+
 namespace sponge::layer {
 
 LayerStack::~LayerStack() {
