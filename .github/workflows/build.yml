@@ -117,8 +117,8 @@ jobs:
             const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
             const id = config['default-registry']['baseline'];
             core.setOutput('id', id);
-            core.exportVariable('$VCPKG_GIT_COMMIT_ID', id);
-            console.log(`Extracted id: ${id}`);
+            core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
+            console.log(`Extracted vcpkg git commit id: ${id}`);
 
       - name: Verify environment variable
         run: |
