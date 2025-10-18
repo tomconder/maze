@@ -108,14 +108,15 @@ jobs:
 
       - name: Extract vcpkg git commit id from vcpkg-configuration.yaml
         uses: actions/github-script@v7
+        id: vcpkg-commit-id
         with:
           script: |
             const fs = require('fs');
-            const yaml = JSON.parse(fs.readFileSync('${{ github.workspace}}/vcpkg-configuration.yaml', 'utf8'));
-            const baseline = yaml['default-registry']['baseline'];
-            core.setOutput('baseline', baseline);
-            core.exportVariable('VCPKG_COMMIT_ID', baseline);
-            console.log(`Extracted baseline: ${baseline}`);
+            const config = JSON.parse(fs.readFileSync('${{ github.workspace}}/vcpkg-configuration.json', 'utf8'));
+            const id = config['default-registry']['baseline'];
+            core.setOutput('id', id);
+            core.exportVariable('VCPKG_COMMIT_ID', id);
+            console.log(`Extracted id: ${id}`);
 
       - name: Verify environment variable
         run: |
