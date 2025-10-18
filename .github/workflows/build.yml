@@ -111,7 +111,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const yaml = JSON.parse(fs.readFileSync('vcpkg-configuration.yaml', 'utf8'));
+            const yaml = JSON.parse(fs.readFileSync('${{ github.workspace}}/vcpkg-configuration.yaml', 'utf8'));
             const baseline = yaml['default-registry']['baseline'];
             core.setOutput('baseline', baseline);
             core.exportVariable('VCPKG_COMMIT_ID', baseline);
