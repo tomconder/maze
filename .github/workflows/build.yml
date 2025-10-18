@@ -120,10 +120,6 @@ jobs:
             core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
             console.log(`Extracted vcpkg git commit id: ${id}`);
 
-      - name: Verify environment variable
-        run: |
-          echo "VCPKG_GIT_COMMIT_ID is set to: $VCPKG_GIT_COMMIT_ID"
-
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
