@@ -107,6 +107,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
+      - name: Extract vcpkg git commit id from vcpkg-configuration.yaml
+        id: extract
+        run: |
+          VCPKG_GIT_COMMIT_ID=$(grep -oP '"baseline":\s*"\K[^"]+' vcpkg-configuration.yaml)
+          echo "VCPKG_GIT_COMMIT_ID=$VCPKG_GIT_COMMIT_ID" >> $GITHUB_ENV
+
+      - name: Verify environment variable
+        run: |
+          echo "VCPKG_GIT_COMMIT_ID is set to: $VCPKG_GIT_COMMIT_ID"
+
       - name: Setup MSVC toolchain
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
