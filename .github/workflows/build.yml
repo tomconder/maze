@@ -112,10 +112,12 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('${{ github.workspace}}/vcpkg-configuration.json', 'utf8'));
+            const path = require('path');
+            const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg-configuration.json');
+            const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
             const id = config['default-registry']['baseline'];
             core.setOutput('id', id);
-            core.exportVariable('VCPKG_COMMIT_ID', id);
+            core.exportVariable('$VCPKG_GIT_COMMIT_ID', id);
             console.log(`Extracted id: ${id}`);
 
       - name: Verify environment variable
