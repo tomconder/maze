@@ -28,6 +28,7 @@
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/buffer.hpp"
 #include "platform/opengl/renderer/context.hpp"
+#include "platform/opengl/renderer/errorhandler.hpp"
 #include "platform/opengl/renderer/framebuffer.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"

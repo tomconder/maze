@@ -12,8 +12,8 @@
 namespace sponge::platform::opengl::scene {
 class ShadowMap {
 public:
-    static constexpr uint32_t SHADOW_WIDTH = 1024;
-    static constexpr uint32_t SHADOW_HEIGHT = 1024;
+    static constexpr uint32_t SHADOW_WIDTH = 2048;
+    static constexpr uint32_t SHADOW_HEIGHT = 2048;
 
     ShadowMap();
     ~ShadowMap() = default;
