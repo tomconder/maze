@@ -25,9 +25,19 @@ repos:
         exclude: .vscode
       - id: check-json
         exclude: .vscode
+      - id: detect-private-key
+        exclude: .vscode|assets/models|sponge/deps
+      - id: detect-aws-credentials
+        exclude: .vscode|assets/models|sponge/deps
+
+  - repo: https://github.com/sirosen/texthooks
+    rev: 0.7.1
+    hooks:
+      - id: fix-smartquotes
+        exclude: .vscode|assets/models|sponge/deps
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v20.1.8
+    rev: v21.1.2
     hooks:
       - id: clang-format
         types: [ file ]
@@ -35,7 +45,7 @@ repos:
         exclude: sponge/deps|out|tools
 
   - repo: https://github.com/cpplint/cpplint
-    rev: 2.0.0
+    rev: 2.0.2
     hooks:
       - id: cpplint
         exclude: sponge/deps|out|tools
