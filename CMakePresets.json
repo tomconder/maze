@@ -1,8 +1,8 @@
 {
-  "version": 3,
+  "version": 10,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 24,
     "patch": 0
   },
   "configurePresets": [
@@ -75,6 +75,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
         "ENABLE_IMGUI": "ON"
       }
     },
@@ -85,6 +86,7 @@
       "inherits": "ci-windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
         "ENABLE_IMGUI": "OFF"
       }
     },
@@ -99,6 +101,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
         "ENABLE_IMGUI": "ON"
       }
     },
@@ -110,6 +113,7 @@
       "inherits": "windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
         "ENABLE_IMGUI": "OFF"
       }
     },
@@ -127,6 +131,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
         "ENABLE_IMGUI": "ON"
       }
     },
@@ -137,6 +142,7 @@
       "inherits": "windows-msvc-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
         "ENABLE_IMGUI": "OFF"
       }
     },
@@ -188,6 +194,7 @@
       ],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
         "ENABLE_IMGUI": "ON"
       }
     },
@@ -198,6 +205,7 @@
       "inherits": "osx-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
         "ENABLE_IMGUI": "OFF"
       }
     }
@@ -207,19 +215,29 @@
       "name": "build-windows",
       "displayName": "build windows ninja",
       "configurePreset": "ci-windows-release",
-      "description": "Build windows"
+      "description": "Build windows",
+      "configuration": "Release",
+      "nativeToolOptions": [
+        "-nodeReuse:false"
+      ]
+
     },
     {
       "name": "build-windows-msvc",
       "displayName": "build windows msvc",
       "configurePreset": "windows-msvc-release",
-      "description": "Build windows (MSVC)"
+      "description": "Build windows (MSVC)",
+      "configuration": "Release",
+      "nativeToolOptions": [
+        "-nodeReuse:false"
+      ]
     },
     {
       "name": "build-osx",
       "displayName": "build osx",
       "configurePreset": "ci-osx-release",
-      "description": "Build osx"
+      "description": "Build osx",
+      "configuration": "Release"
     }
   ],
   "testPresets": [
