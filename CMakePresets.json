@@ -19,10 +19,7 @@
       },
       "cacheVariables": {
         "ENABLE_IMGUI": "OFF",
-        "ENABLE_PROFILING": "OFF",
-
-        "SPDLOG_FMT_EXTERNAL": "ON",
-        "SPDLOG_FMT_EXTERNAL_HO": "OFF"
+        "ENABLE_PROFILING": "OFF"
       }
     },
     {
