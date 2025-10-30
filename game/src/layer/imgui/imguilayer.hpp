@@ -26,14 +26,15 @@ private:
 
     // Main sections
     static void updateState();
+    static void showInfoSection();
     static void showAppInfoWindow(float width);
     static void showLogWindow(float width, float height);
     static void showMenu();  // App info window sections
     static void showSettingsSection();
-    static void showCameraTable();
     static void showAppSettingsTable();
     static void showLightsSection();
-    static void showPBRControls();
+    static void showDirectionalLightControls();
+    static void showPointLightControls();
     static void showAttenuationSlider(int32_t& attenuationIndex);
 
     static void showShadowMapSection();
@@ -91,7 +92,8 @@ void ImGuiLayer::showResourceTree(const char* name, Func&& func) {
 
 template <typename Func>
 void ImGuiLayer::showTableRow(Func&& func) {
-    ImGui::TableNextRow();
+    ImGui::TableNextRow(ImGuiTableRowFlags_None,
+                        ImGui::GetTextLineHeightWithSpacing() * 1.4F);
     ImGui::TableNextColumn();
     std::forward<Func>(func)();
 }
