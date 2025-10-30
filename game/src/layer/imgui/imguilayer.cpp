@@ -196,15 +196,6 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        showTableRow([&] {
-            ImGui::Text("Cast Shadow");
-            ImGui::TableNextColumn();
-
-            if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
-                // Maze::get().setDirectionalLightEnabled(directional);
-            }
-        });
-
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
         static ImVec4 color = ImVec4(1.F, .87F, 0.F, 1.F);
@@ -223,7 +214,16 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::InputFloat3("##directionalposition", position);
         });
 
-        const float step = .01F;
+        showTableRow([&] {
+            ImGui::Text("Cast Shadow");
+            ImGui::TableNextColumn();
+
+            if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
+                // Maze::get().setDirectionalLightEnabled(directional);
+            }
+        });
+
+        constexpr float step = .01F;
 
         showTableRow([&] {
             ImGui::Text("Shadow Bias");
