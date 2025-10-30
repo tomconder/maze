@@ -205,9 +205,8 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        static auto colorEditFlags = ImGuiColorEditFlags_NoInputs |
-                                     ImGuiColorEditFlags_NoLabel |
-                                     ImGuiColorEditFlags_None;
+        static auto colorEditFlags =
+            ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
         static ImVec4 color = ImVec4(1.F, .87F, 0.F, 1.F);
         showTableRow([&] {
             ImGui::Text("Color");
@@ -224,7 +223,6 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::InputFloat3("##directionalposition", position);
         });
 
-        static ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
         const float step = .01F;
 
         showTableRow([&] {
@@ -232,7 +230,7 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             ImGui::InputScalar("##directionalbias", ImGuiDataType_Float, &bias,
-                               &step, NULL, NULL, flags);
+                               &step);
         });
 
         showTableRow([&] {
