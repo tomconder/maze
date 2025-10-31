@@ -2,25 +2,13 @@
 #include <glm/glm.hpp>
 
 namespace game::scene {
-class Light {
-public:
-    Light() = default;
 
-    float getAttenuationConstant() const {
-        return constant;
-    }
+struct DirectionalLight {
+    glm::vec3 direction;
+    glm::vec3 color;
+};
 
-    float getAttenuationLinear() const {
-        return linear;
-    }
-
-    float getAttenuationQuadratic() const {
-        return quadratic;
-    }
-
-    static glm::vec4 getAttenuationFromIndex(int32_t index);
-    void setAttenuationFromIndex(int32_t index);
-
+struct PointLight {
     glm::vec3 position;
     glm::vec3 translation;
     glm::vec3 color;
@@ -30,4 +18,12 @@ public:
     float linear;
     float quadratic;
 };
+
+class Light {
+public:
+    Light() = default;
+
+    static glm::vec4 getAttenuationFromIndex(int32_t index);
+};
+
 }  // namespace game::scene
