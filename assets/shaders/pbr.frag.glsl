@@ -13,6 +13,11 @@ uniform float roughness;
 uniform float ao;
 
 // lights
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+};
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -21,6 +26,7 @@ struct PointLight {
     float quadratic;
 };
 
+uniform DirectionalLight directionalLight;
 uniform int numLights = 1;
 uniform PointLight pointLights[6];
 
@@ -29,6 +35,8 @@ uniform sampler2D shadowMap;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
+uniform bool directionalLightCastsShadow;
+uniform float shadowBias;
 
 const float M_PI = 3.14159265359;
 
@@ -53,6 +61,19 @@ void main() {
 
     vec3 Lo = vec3(0.0);
 
+    // Directional light contribution
+    vec3 dirLightDir = normalize(-directionalLight.direction);
+    vec3 dirRadiance = directionalLight.color;
+    vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
+
+    // apply shadow to directional light if enabled
+    float shadow = 0.0;
+    if (directionalLightCastsShadow) {
+        shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir);
+    }
+    Lo += dirL * (1.0 - shadow);
+
+    // Point lights contribution
     for (int i = 0; i < numLights; i++) {
         PointLight light = pointLights[i];
 
@@ -61,9 +82,7 @@ void main() {
         vec3 lightDir = normalize(light.position - vPosition);
         vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
 
-        // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace, N, lightDir);
-        Lo += L * (1.0 - shadow);
+        Lo += L;
     }
 
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
@@ -129,7 +148,7 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     float currentDepth = projCoords.z;
 
     // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
-    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.01);
+    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), shadowBias);
 
     // PCF
     float shadow = 0.0;

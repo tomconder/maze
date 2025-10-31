@@ -12,14 +12,6 @@ constexpr float lightAttenuationData[][4] = {
     { 600.F, 1.F, 0.007F, 0.0002F }
 };
 
-void Light::setAttenuationFromIndex(const int32_t index) {
-    const auto* data = lightAttenuationData[index];
-    distance = data[0];
-    constant = data[1];
-    linear = data[2];
-    quadratic = data[3];
-}
-
 glm::vec4 Light::getAttenuationFromIndex(const int32_t index) {
     const auto* data = lightAttenuationData[index];
     return { data[0], data[1], data[2], data[3] };

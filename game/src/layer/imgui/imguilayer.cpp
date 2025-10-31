@@ -182,10 +182,10 @@ void ImGuiLayer::showLightsSection() {
 
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
-        // auto metallic = mazeLayer->isMetallic();
+        const auto mazeLayer = Maze::get().getMazeLayer();
         bool directional = true;
-        bool castShadow = true;
-        float bias = .01F;
+        bool castShadow = mazeLayer->getDirectionalLightCastsShadow();
+        float bias = mazeLayer->getShadowBias();
 
         showTableRow([&] {
             ImGui::Text("Enable");
@@ -198,12 +198,17 @@ void ImGuiLayer::showDirectionalLightControls() {
 
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
-        static ImVec4 color = ImVec4(1.F, .87F, 0.F, 1.F);
+        auto dirColor = mazeLayer->getDirectionalLightColor();
+        ImVec4 color = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
         showTableRow([&] {
             ImGui::Text("Color");
             ImGui::TableNextColumn();
-            ImGui::ColorEdit4("##directionalcolor",
-                              reinterpret_cast<float*>(&color), colorEditFlags);
+            if (ImGui::ColorEdit4("##directionalcolor",
+                                  reinterpret_cast<float*>(&color),
+                                  colorEditFlags)) {
+                mazeLayer->setDirectionalLightColor(
+                    glm::vec3(color.x, color.y, color.z));
+            }
         });
 
         float position[3] = { -2.F, 14.F, -1.F };
@@ -219,18 +224,20 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::TableNextColumn();
 
             if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
-                // Maze::get().setDirectionalLightEnabled(directional);
+                mazeLayer->setDirectionalLightCastsShadow(castShadow);
             }
         });
 
-        constexpr float step = .01F;
+        constexpr float step = .001F;
 
         showTableRow([&] {
             ImGui::Text("Shadow Bias");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::InputScalar("##directionalbias", ImGuiDataType_Float, &bias,
-                               &step);
+            if (ImGui::InputScalar("##directionalbias", ImGuiDataType_Float,
+                                   &bias, &step)) {
+                mazeLayer->setShadowBias(bias);
+            }
         });
 
         showTableRow([&] {
@@ -306,8 +313,7 @@ void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
 
 void ImGuiLayer::showShadowMapSection() {
     if (ImGui::CollapsingHeader("Shadow Map")) {
-        const auto mazeLayer = Maze::get().getMazeLayer();
-        ImGui::Image(mazeLayer->getDepthMapTextureId(),
+        ImGui::Image(Maze::get().getMazeLayer()->getDepthMapTextureId(),
                      ImVec2(appInfoWidth * .85F, appInfoWidth * .85F));
     }
 }
