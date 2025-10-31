@@ -62,7 +62,6 @@ void main() {
 
     vec3 Lo = vec3(0.0);
 
-    // Directional light contribution
     if (directionalLightEnabled) {
         vec3 dirLightDir = normalize(-directionalLight.direction);
         vec3 dirRadiance = directionalLight.color;
@@ -76,7 +75,6 @@ void main() {
         Lo += dirL * (1.0 - shadow);
     }
 
-    // Point lights contribution
     for (int i = 0; i < numLights; i++) {
         PointLight light = pointLights[i];
 
