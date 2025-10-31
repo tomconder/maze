@@ -183,16 +183,16 @@ void ImGuiLayer::showLightsSection() {
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
-        bool directional = true;
-        bool castShadow = mazeLayer->getDirectionalLightCastsShadow();
-        float bias = mazeLayer->getShadowBias();
+        auto directional = mazeLayer->getDirectionalLightEnabled();
+        auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
+        auto bias = mazeLayer->getShadowBias();
 
         showTableRow([&] {
             ImGui::Text("Enable");
             ImGui::TableNextColumn();
 
             if (ImGui::Checkbox("##directionalenable", &directional)) {
-                // Maze::get().setDirectionalLightEnabled(directional);
+                mazeLayer->setDirectionalLightEnabled(directional);
             }
         });
 

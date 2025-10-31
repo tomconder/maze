@@ -95,6 +95,7 @@ void MazeLayer::onAttach() {
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
+    shader->setBoolean("directionalLightEnabled", directionalLightEnabled);
     shader->setBoolean("directionalLightCastsShadow",
                        directionalLightCastsShadow);
     shader->setFloat("shadowBias", shadowBias);
@@ -193,6 +194,15 @@ glm::vec3 MazeLayer::getDirectionalLightColor() const {
 void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     directionalLight.color = color;
     updateShaderLights();
+}
+
+void MazeLayer::setDirectionalLightEnabled(const bool value) {
+    directionalLightEnabled = value;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setBoolean("directionalLightEnabled", directionalLightEnabled);
+    shader->unbind();
 }
 
 void MazeLayer::setDirectionalLightCastsShadow(const bool value) {

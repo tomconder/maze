@@ -77,6 +77,12 @@ public:
 
     void setDirectionalLightColor(const glm::vec3& color);
 
+    bool getDirectionalLightEnabled() const {
+        return directionalLightEnabled;
+    }
+
+    void setDirectionalLightEnabled(bool value);
+
     bool getDirectionalLightCastsShadow() const {
         return directionalLightCastsShadow;
     }
@@ -100,6 +106,7 @@ private:
     float roughness = .5F;
     int32_t numLights = 1;
     int32_t attenuationIndex = 6;
+    bool directionalLightEnabled = true;
     bool directionalLightCastsShadow = true;
     float shadowBias = 0.005F;
 
