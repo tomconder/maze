@@ -30,8 +30,8 @@ using sponge::scene::Vertex;
 
 Model::Model(const ModelCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
-    SPONGE_CORE_INFO("Loading model file: [{}, {}]", createInfo.name,
-                     createInfo.path);
+    SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
+                   createInfo.path);
     load(createInfo.assetsFolder + createInfo.path);
 }
 
@@ -55,33 +55,32 @@ void Model::load(const std::string& path) {
                 dir.parent_path().string().data());
 
     if (!warn.empty()) {
-        SPONGE_CORE_WARN(warn);
+        SPONGE_GL_WARN(warn);
     }
 
     if (!err.empty()) {
-        SPONGE_CORE_ERROR(err);
+        SPONGE_GL_ERROR(err);
     }
 
     if (!ret) {
-        SPONGE_CORE_ERROR("Unable to load model: {}", dir.string());
+        SPONGE_GL_ERROR("Unable to load model: {}", dir.string());
         return;
     }
 
     timer.tick();
 
     // from viewer.cc in tinyobjloader example
-    SPONGE_CORE_DEBUG("Parsing time: {:.2f} ms",
-                      timer.getElapsedSeconds() * secondsToMilliseconds);
+    SPONGE_GL_DEBUG("Parsing time: {:.2f} ms",
+                    timer.getElapsedSeconds() * secondsToMilliseconds);
 
-    SPONGE_CORE_DEBUG("# of vertices  = {}",
-                      static_cast<int>(attrib.vertices.size() / 3));
-    SPONGE_CORE_DEBUG("# of normals   = {}",
-                      static_cast<int>(attrib.normals.size() / 3));
-    SPONGE_CORE_DEBUG("# of texcoords = {}",
-                      static_cast<int>(attrib.texcoords.size() / 2));
-    SPONGE_CORE_DEBUG("# of materials = {}",
-                      static_cast<int>(materials.size()));
-    SPONGE_CORE_DEBUG("# of shapes    = {}", static_cast<int>(shapes.size()));
+    SPONGE_GL_DEBUG("# of vertices  = {}",
+                    static_cast<int>(attrib.vertices.size() / 3));
+    SPONGE_GL_DEBUG("# of normals   = {}",
+                    static_cast<int>(attrib.normals.size() / 3));
+    SPONGE_GL_DEBUG("# of texcoords = {}",
+                    static_cast<int>(attrib.texcoords.size() / 2));
+    SPONGE_GL_DEBUG("# of materials = {}", static_cast<int>(materials.size()));
+    SPONGE_GL_DEBUG("# of shapes    = {}", static_cast<int>(shapes.size()));
 
     process(attrib, shapes, materials, dir.parent_path().string());
 }

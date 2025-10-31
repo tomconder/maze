@@ -14,8 +14,8 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
     glGenTextures(1, &id);
 
     if (!createInfo.path.empty()) {
-        SPONGE_CORE_INFO("Loading texture file: [{}, {}]", createInfo.name,
-                         createInfo.path);
+        SPONGE_GL_INFO("Loading texture file: [{}, {}]", createInfo.name,
+                       createInfo.path);
 
         const bool excludeAssetsFolder =
             (createInfo.loadFlag & ExcludeAssetsFolder) == ExcludeAssetsFolder;
@@ -25,11 +25,11 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
 
         loadFromFile(texturePath, createInfo.loadFlag);
     } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {
-        SPONGE_CORE_INFO("Creating depth map texture: [{}, {}x{}]",
-                         createInfo.name, createInfo.width, createInfo.height);
+        SPONGE_GL_INFO("Creating depth map texture: [{}, {}x{}]",
+                       createInfo.name, createInfo.width, createInfo.height);
         createDepthMap(createInfo.width, createInfo.height);
     } else {
-        SPONGE_CORE_ERROR("Unable to create texture");
+        SPONGE_GL_ERROR("Unable to create texture");
     }
 }
 
@@ -97,8 +97,8 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     void* data =
         stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
     if (data == nullptr) {
-        SPONGE_CORE_ERROR("Unable to load texture, path = {}: {}",
-                          name.string(), stbi_failure_reason());
+        SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),
+                        stbi_failure_reason());
     }
 
     generate(width, height, bytesPerPixel, static_cast<const uint8_t*>(data),
