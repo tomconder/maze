@@ -35,6 +35,7 @@ uniform sampler2D shadowMap;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
+uniform bool directionalLightEnabled;
 uniform bool directionalLightCastsShadow;
 uniform float shadowBias;
 
@@ -62,16 +63,18 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     // Directional light contribution
-    vec3 dirLightDir = normalize(-directionalLight.direction);
-    vec3 dirRadiance = directionalLight.color;
-    vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
+    if (directionalLightEnabled) {
+        vec3 dirLightDir = normalize(-directionalLight.direction);
+        vec3 dirRadiance = directionalLight.color;
+        vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
 
-    // apply shadow to directional light if enabled
-    float shadow = 0.0;
-    if (directionalLightCastsShadow) {
-        shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir);
+        // apply shadow to directional light if enabled
+        float shadow = 0.0;
+        if (directionalLightCastsShadow) {
+            shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir);
+        }
+        Lo += dirL * (1.0 - shadow);
     }
-    Lo += dirL * (1.0 - shadow);
 
     // Point lights contribution
     for (int i = 0; i < numLights; i++) {
