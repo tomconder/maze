@@ -245,7 +245,9 @@ void ImGuiLayer::showDirectionalLightControls() {
         showTableRow([&] {
             ImGui::Text("Shadow Map Size");
             ImGui::TableNextColumn();
-            ImGui::Text("2048 x 2048");
+            const auto width = mazeLayer->getShadowMapWidth();
+            const auto height = mazeLayer->getShadowMapHeight();
+            ImGui::Text("%ux%u", width, height);
         });
 
         ImGui::EndTable();

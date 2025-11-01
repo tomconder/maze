@@ -73,6 +73,14 @@ public:
         return shadowMap->getDepthMapTextureId();
     }
 
+    uint32_t getShadowMapWidth() const {
+        return shadowMap->getWidth();
+    }
+
+    uint32_t getShadowMapHeight() const {
+        return shadowMap->getHeight();
+    }
+
     glm::vec3 getDirectionalLightColor() const;
 
     void setDirectionalLightColor(const glm::vec3& color);

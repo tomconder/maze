@@ -12,10 +12,8 @@
 namespace sponge::platform::opengl::scene {
 class ShadowMap {
 public:
-    static constexpr uint32_t SHADOW_WIDTH = 2048;
-    static constexpr uint32_t SHADOW_HEIGHT = 2048;
-
-    ShadowMap();
+    ShadowMap() = delete;
+    explicit ShadowMap(uint32_t res);
     ~ShadowMap() = default;
 
     void bind() const;
@@ -38,6 +36,14 @@ public:
         return 0;
     }
 
+    uint32_t getWidth() const {
+        return shadowWidth;
+    }
+
+    uint32_t getHeight() const {
+        return shadowHeight;
+    }
+
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 
 private:
@@ -49,6 +55,11 @@ private:
     static constexpr float nearPlane = 1.0f;
     static constexpr float farPlane = 25.0f;
 
+    uint32_t shadowWidth;
+    uint32_t shadowHeight;
+
     glm::mat4 lightSpaceMatrix{ 1.0f };
+
+    void initialize();
 };
 }  // namespace sponge::platform::opengl::scene

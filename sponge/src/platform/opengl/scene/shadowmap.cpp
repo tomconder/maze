@@ -10,7 +10,11 @@
 #include <memory>
 
 namespace sponge::platform::opengl::scene {
-ShadowMap::ShadowMap() {
+ShadowMap::ShadowMap(const uint32_t res) : shadowWidth(res), shadowHeight(res) {
+    initialize();
+}
+
+void ShadowMap::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name = shaderName,
         .vertexShaderPath = "/shaders/shadowmap.vert.glsl",
@@ -21,8 +25,8 @@ ShadowMap::ShadowMap() {
 
     const renderer::TextureCreateInfo textureCreateInfo{
         .name = "depth_map",
-        .width = SHADOW_WIDTH,
-        .height = SHADOW_HEIGHT,
+        .width = shadowWidth,
+        .height = shadowHeight,
         .loadFlag = renderer::DepthMap
     };
     depthMap = renderer::ResourceManager::createTexture(textureCreateInfo);
@@ -45,7 +49,7 @@ ShadowMap::ShadowMap() {
 }
 
 void ShadowMap::bind() const {
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glViewport(0, 0, shadowWidth, shadowHeight);
     framebuffer->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
     depthMap->activateAndBind(0);
