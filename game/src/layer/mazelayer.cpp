@@ -328,7 +328,8 @@ void MazeLayer::renderLightCubes() const {
 void MazeLayer::renderSceneToDepthMap() const {
     shadowMap->bind();
 
-    shadowMap->updateLightSpaceMatrix(directionalLight.direction);
+    shadowMap->updateLightSpaceMatrix(
+        glm::normalize(directionalLight.direction));
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
     auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
