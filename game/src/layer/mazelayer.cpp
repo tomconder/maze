@@ -99,12 +99,16 @@ void MazeLayer::onAttach() {
     shader->setBoolean("directionalLightCastsShadow",
                        directionalLightCastsShadow);
     shader->setFloat("shadowBias", shadowBias);
+
+    directionalLight = { .direction = sunDirection, .color = sunColor };
+
+    shader->setFloat3("directionalLight.direction", directionalLight.direction);
+    shader->setFloat3("directionalLight.color", directionalLight.color);
+
     shader->unbind();
 
     shadowMap = std::make_unique<ShadowMap>(shadowMapRes);
     cube = std::make_unique<Cube>();
-
-    directionalLight = { .direction = sunDirection, .color = sunColor };
 
     setNumLights(numLights);
     updateShaderLights();
@@ -194,7 +198,11 @@ glm::vec3 MazeLayer::getDirectionalLightColor() const {
 
 void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     directionalLight.color = color;
-    updateShaderLights();
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->unbind();
 }
 
 glm::vec3 MazeLayer::getDirectionalLightDirection() const {
@@ -203,7 +211,11 @@ glm::vec3 MazeLayer::getDirectionalLightDirection() const {
 
 void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     directionalLight.direction = direction;
-    updateShaderLights();
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat3("directionalLight.direction", directionalLight.direction);
+    shader->unbind();
 }
 
 void MazeLayer::setDirectionalLightEnabled(const bool value) {
@@ -379,11 +391,6 @@ void MazeLayer::updateShaderLights() const {
 
     shader->bind();
 
-    // Set directional light
-    shader->setFloat3("directionalLight.direction", directionalLight.direction);
-    shader->setFloat3("directionalLight.color", directionalLight.color);
-
-    // Set point lights
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
