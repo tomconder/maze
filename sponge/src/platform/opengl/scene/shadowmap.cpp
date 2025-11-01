@@ -66,10 +66,10 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
     constexpr float orthoBoxSize = 10.F;
 
-    float left = orthoBoxSize;
-    float right = -orthoBoxSize;
-    float bottom = orthoBoxSize;
-    float top = -orthoBoxSize;
+    constexpr float left = -orthoBoxSize;
+    constexpr float right = orthoBoxSize;
+    constexpr float bottom = -orthoBoxSize;
+    constexpr float top = orthoBoxSize;
 
     const auto lightProjection =
         glm::ortho(left, right, bottom, top, nearPlane, farPlane);
