@@ -77,6 +77,10 @@ public:
 
     void setDirectionalLightColor(const glm::vec3& color);
 
+    glm::vec3 getDirectionalLightDirection() const;
+
+    void setDirectionalLightDirection(const glm::vec3& direction);
+
     bool getDirectionalLightEnabled() const {
         return directionalLightEnabled;
     }

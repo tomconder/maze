@@ -17,7 +17,7 @@ constexpr auto mouseSpeed = .125F;
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
 constexpr auto sunColor = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto sunDirection = glm::vec3(2.F, -14.F, 1.F);
+constexpr auto sunDirection = glm::vec3(0.F, -2.F, .333F);
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
@@ -103,8 +103,7 @@ void MazeLayer::onAttach() {
     shadowMap = std::make_unique<ShadowMap>();
     cube = std::make_unique<Cube>();
 
-    directionalLight = { .direction = glm::normalize(sunDirection),
-                         .color = sunColor };
+    directionalLight = { .direction = sunDirection, .color = sunColor };
 
     setNumLights(numLights);
     updateShaderLights();
@@ -192,6 +191,15 @@ glm::vec3 MazeLayer::getDirectionalLightColor() const {
 
 void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     directionalLight.color = color;
+    updateShaderLights();
+}
+
+glm::vec3 MazeLayer::getDirectionalLightDirection() const {
+    return directionalLight.direction;
+}
+
+void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
+    directionalLight.direction = direction;
     updateShaderLights();
 }
 
