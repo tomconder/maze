@@ -209,12 +209,16 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        float direction[3] = { -2.F, 14.F, -1.F };
+        auto dirDirection = mazeLayer->getDirectionalLightDirection();
+        float direction[3] = { dirDirection.x, dirDirection.y, dirDirection.z };
         showTableRow([&] {
             ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::InputFloat3("##directionalposition", direction);
+            if (ImGui::InputFloat3("##directionalposition", direction)) {
+                mazeLayer->setDirectionalLightDirection(
+                    glm::vec3(direction[0], direction[1], direction[2]));
+            }
         });
 
         showTableRow([&] {
