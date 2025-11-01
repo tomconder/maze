@@ -123,7 +123,7 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * NdotV * NdotL + 1e-5f;
+    float denominator = 4.0 * NdotV * NdotL + 1e-5;
     vec3 specular = numerator / denominator;
 
     vec3 kS = F;
