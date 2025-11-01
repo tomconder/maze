@@ -163,11 +163,6 @@ void ImGuiLayer::showLightsSection() {
     }
 
     if (ImGui::BeginTabBar("LightsTabBar")) {
-        if (ImGui::BeginTabItem("Directional##Tab")) {
-            showDirectionalLightControls();
-            ImGui::EndTabItem();
-        }
-
         if (ImGui::BeginTabItem("Point##Tab", nullptr,
                                 ImGui::IsWindowAppearing()
                                     ? ImGuiTabItemFlags_SetSelected
@@ -175,7 +170,10 @@ void ImGuiLayer::showLightsSection() {
             showPointLightControls();
             ImGui::EndTabItem();
         }
-
+        if (ImGui::BeginTabItem("Directional##Tab")) {
+            showDirectionalLightControls();
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
 }
@@ -211,12 +209,12 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        float position[3] = { -2.F, 14.F, -1.F };
+        float direction[3] = { -2.F, 14.F, -1.F };
         showTableRow([&] {
-            ImGui::Text("Position");
+            ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::InputFloat3("##directionalposition", position);
+            ImGui::InputFloat3("##directionalposition", direction);
         });
 
         showTableRow([&] {
