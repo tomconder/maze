@@ -230,14 +230,12 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        constexpr float step = .001F;
-
         showTableRow([&] {
             ImGui::Text("Shadow Bias");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputScalar("##directionalbias", ImGuiDataType_Float,
-                                   &bias, &step)) {
+            if (ImGui::SliderFloat("##directionalbias", &bias, 0.001F, 0.03F,
+                                   "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setShadowBias(bias);
             }
         });
