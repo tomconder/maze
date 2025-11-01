@@ -176,6 +176,8 @@ void MazeLayer::setNumLights(const int32_t val) {
         pointLights[i].constant = attenuation.y;
         pointLights[i].linear = attenuation.z;
         pointLights[i].quadratic = attenuation.w;
+
+        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
     }
 
     updateShaderLights();
@@ -385,18 +387,29 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
-        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
+        const std::string base = "pointLights[" + std::to_string(i) + "].";
+        std::string uniformName;
+        uniformName.reserve(base.size() + 16);
 
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          pointLights[i].position);
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                          pointLights[i].color);
-        shader->setFloat("pointLights[" + std::to_string(i) + "].constant",
-                         pointLights[i].constant);
-        shader->setFloat("pointLights[" + std::to_string(i) + "].linear",
-                         pointLights[i].linear);
-        shader->setFloat("pointLights[" + std::to_string(i) + "].quadratic",
-                         pointLights[i].quadratic);
+        uniformName = base;
+        uniformName += "position";
+        shader->setFloat3(uniformName, pointLights[i].position);
+
+        uniformName = base;
+        uniformName += "color";
+        shader->setFloat3(uniformName, pointLights[i].color);
+
+        uniformName = base;
+        uniformName += "constant";
+        shader->setFloat(uniformName, pointLights[i].constant);
+
+        uniformName = base;
+        uniformName += "linear";
+        shader->setFloat(uniformName, pointLights[i].linear);
+
+        uniformName = base;
+        uniformName += "quadratic";
+        shader->setFloat(uniformName, pointLights[i].quadratic);
     }
 
     shader->unbind();
