@@ -38,7 +38,7 @@ public:
         return 0;
     }
 
-    void updateLightSpaceMatrix(const glm::vec3& lightPos);
+    void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 
 private:
     static constexpr char shaderName[] = "shadowmap";
