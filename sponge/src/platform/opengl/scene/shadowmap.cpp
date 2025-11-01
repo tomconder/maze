@@ -59,12 +59,19 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
 }
 
-void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightPos) {
-    const auto lightProjection =
-        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
+    constexpr float orthoBoxSize = 10.F;
 
-    const auto lightView =
-        glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    float left = orthoBoxSize;
+    float right = -orthoBoxSize;
+    float bottom = orthoBoxSize;
+    float top = -orthoBoxSize;
+
+    const auto lightProjection =
+        glm::ortho(left, right, bottom, top, nearPlane, farPlane);
+
+    const auto lightView = glm::lookAt(10.F * -lightDirection, glm::vec3(0.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f));
 
     lightSpaceMatrix = lightProjection * lightView;
 }

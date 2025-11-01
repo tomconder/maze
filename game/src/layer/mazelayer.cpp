@@ -17,7 +17,6 @@ constexpr auto mouseSpeed = .125F;
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
 constexpr auto sunColor = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto sunPosition = glm::vec3(-2.F, 14.F, -1.F);
 constexpr auto sunDirection = glm::vec3(2.F, -14.F, 1.F);
 
 constexpr auto cubeScale = glm::vec3(.1F);
@@ -305,14 +304,6 @@ void MazeLayer::renderGameObjects() const {
 void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(Cube::getShaderName());
 
-    // render the directional light (sun) as a cube
-    shader->bind();
-    shader->setFloat3("lightColor", directionalLight.color);
-    shader->setMat4("mvp",
-                    scale(translate(camera->getMVP(), sunPosition), cubeScale));
-    cube->render();
-    shader->unbind();
-
     // render the point lights as cubes
     for (auto i = 0; i < numLights; i++) {
         shader->bind();
@@ -328,7 +319,7 @@ void MazeLayer::renderLightCubes() const {
 void MazeLayer::renderSceneToDepthMap() const {
     shadowMap->bind();
 
-    shadowMap->updateLightSpaceMatrix(sunPosition);
+    shadowMap->updateLightSpaceMatrix(directionalLight.direction);
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
     auto shader = ResourceManager::getShader(ShadowMap::getShaderName());

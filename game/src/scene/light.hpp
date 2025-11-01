@@ -6,12 +6,19 @@ namespace game::scene {
 struct DirectionalLight {
     glm::vec3 direction;
     glm::vec3 color;
+
+    // float distance;
+    // float strength;
+    // float zNear;
+    // float zFar;
+    // float orthoSize;
+    // uint32_t shadowRes;
 };
 
 struct PointLight {
     glm::vec3 position;
-    glm::vec3 translation;
     glm::vec3 color;
+    glm::vec3 translation;
 
     float distance;
     float constant;
