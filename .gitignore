@@ -3,6 +3,10 @@
 /venv/
 
 !assets/**/*.obj
+
+.claude/
+CLAUDE.md
+
 .cache
 
 ### C++ ###

@@ -9,8 +9,22 @@
 
 #include <memory>
 
+namespace {
+constexpr float nearPlane = 0.1f;
+constexpr float farPlane = 200.0f;
+constexpr float orthogonalProjectionBoxSize = 10.F;
+}  // namespace
+
 namespace sponge::platform::opengl::scene {
-ShadowMap::ShadowMap() {
+ShadowMap::ShadowMap(const uint32_t res) : shadowWidth(res), shadowHeight(res) {
+    initialize();
+}
+
+void ShadowMap::initialize() {
+    zNear = nearPlane;
+    zFar = farPlane;
+    orthoBoxSize = orthogonalProjectionBoxSize;
+
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name = shaderName,
         .vertexShaderPath = "/shaders/shadowmap.vert.glsl",
@@ -21,8 +35,8 @@ ShadowMap::ShadowMap() {
 
     const renderer::TextureCreateInfo textureCreateInfo{
         .name = "depth_map",
-        .width = SHADOW_WIDTH,
-        .height = SHADOW_HEIGHT,
+        .width = shadowWidth,
+        .height = shadowHeight,
         .loadFlag = renderer::DepthMap
     };
     depthMap = renderer::ResourceManager::createTexture(textureCreateInfo);
@@ -45,7 +59,7 @@ ShadowMap::ShadowMap() {
 }
 
 void ShadowMap::bind() const {
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glViewport(0, 0, shadowWidth, shadowHeight);
     framebuffer->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
     depthMap->activateAndBind(0);
@@ -59,12 +73,17 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
 }
 
-void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightPos) {
-    const auto lightProjection =
-        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
+    const float left = -orthoBoxSize;
+    const float right = orthoBoxSize;
+    const float bottom = -orthoBoxSize;
+    const float top = orthoBoxSize;
 
-    const auto lightView =
-        glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto lightProjection =
+        glm::ortho(left, right, bottom, top, nearPlane, farPlane);
+
+    const auto lightView = glm::lookAt(10.F * -lightDirection, glm::vec3(0.0f),
+                                       glm::vec3(0.0f, 1.0f, 0.0f));
 
     lightSpaceMatrix = lightProjection * lightView;
 }

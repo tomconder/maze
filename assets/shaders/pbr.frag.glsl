@@ -13,14 +13,21 @@ uniform float roughness;
 uniform float ao;
 
 // lights
-struct PointLight {
-    vec3 position;
+struct DirectionalLight {
+    bool enabled;
+    bool castShadow;
     vec3 color;
-    float constant;
-    float linear;
-    float quadratic;
+    vec3 direction;
+    float shadowBias;
 };
 
+struct PointLight {
+    vec3 color;
+    vec3 position;
+    int attenuationIndex;
+};
+
+uniform DirectionalLight directionalLight;
 uniform int numLights = 1;
 uniform PointLight pointLights[6];
 
@@ -32,10 +39,25 @@ uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
 
+// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
+vec3 lightAttenuationData[11] = vec3[11](
+    vec3(1.0, 0.7, 1.8),
+    vec3(1.0, 0.35, 0.44),
+    vec3(1.0, 0.22, 0.2),
+    vec3(1.0, 0.14, 0.07),
+    vec3(1.0, 0.09, 0.032),
+    vec3(1.0, 0.07, 0.017),
+    vec3(1.0, 0.045, 0.0075),
+    vec3(1.0, 0.027, 0.0028),
+    vec3(1.0, 0.022, 0.0019),
+    vec3(1.0, 0.014, 0.0007),
+    vec3(1.0, 0.007, 0.0002)
+);
+
 // function prototypes
 float attenuationFromLight(PointLight light);
 vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir);
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowBias);
 
 // PBR function prototypes
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
@@ -53,6 +75,19 @@ void main() {
 
     vec3 Lo = vec3(0.0);
 
+    if (directionalLight.enabled) {
+        vec3 dirLightDir = normalize(-directionalLight.direction);
+        vec3 dirRadiance = directionalLight.color;
+        vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
+
+        float shadow = 0.0;
+        if (directionalLight.castShadow) {
+            shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
+        }
+
+        Lo += dirL * (1.0 - shadow);
+    }
+
     for (int i = 0; i < numLights; i++) {
         PointLight light = pointLights[i];
 
@@ -61,9 +96,7 @@ void main() {
         vec3 lightDir = normalize(light.position - vPosition);
         vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
 
-        // apply shadow
-        float shadow = calculateShadow(vFragPosLightSpace, N, lightDir);
-        Lo += L * (1.0 - shadow);
+        Lo += L;
     }
 
     vec3 ambient = vec3(ambientStrength) * albedo * ao;
@@ -81,7 +114,9 @@ void main() {
 
 float attenuationFromLight(PointLight light) {
     float distance = length(light.position - vPosition);
-    return 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+    int index = clamp(light.attenuationIndex, 0, 10);
+    vec3 attenuation = lightAttenuationData[index];
+    return 1.0 / (attenuation.x + attenuation.y * distance + attenuation.z * (distance * distance));
 }
 
 vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
@@ -103,7 +138,7 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * NdotV * NdotL + 1e-5f;
+    float denominator = 4.0 * NdotV * NdotL + 1e-5;
     vec3 specular = numerator / denominator;
 
     vec3 kS = F;
@@ -115,7 +150,7 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     return result;
 }
 
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowBias) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -129,7 +164,7 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     float currentDepth = projCoords.z;
 
     // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
-    float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.01);
+    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), shadowBias);
 
     // PCF
     float shadow = 0.0;

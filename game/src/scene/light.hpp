@@ -2,32 +2,27 @@
 #include <glm/glm.hpp>
 
 namespace game::scene {
+
+struct DirectionalLight {
+    bool enabled;
+    bool castShadow;
+    glm::vec3 color;
+    glm::vec3 direction;
+    float shadowBias;
+    uint32_t shadowMapRes;
+};
+
+struct PointLight {
+    glm::vec3 color;
+    glm::vec3 position;
+    uint32_t attenuationIndex;
+};
+
 class Light {
 public:
-    Light() = default;
+    Light() = delete;
 
-    float getAttenuationConstant() const {
-        return constant;
-    }
-
-    float getAttenuationLinear() const {
-        return linear;
-    }
-
-    float getAttenuationQuadratic() const {
-        return quadratic;
-    }
-
-    static glm::vec4 getAttenuationFromIndex(int32_t index);
-    void setAttenuationFromIndex(int32_t index);
-
-    glm::vec3 position;
-    glm::vec3 translation;
-    glm::vec3 color;
-
-    float distance;
-    float constant;
-    float linear;
-    float quadratic;
+    static float getAttenuationDistance(int32_t index);
 };
+
 }  // namespace game::scene
