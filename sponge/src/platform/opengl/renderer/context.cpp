@@ -47,19 +47,19 @@ Context::Context() {
 }
 
 void Context::init(GLFWwindow* window) {
-    SPONGE_CORE_INFO("Initializing context");
+    SPONGE_GL_INFO("Initializing context");
 
     glfwMakeContextCurrent(window);
     if (glfwGetCurrentContext() == nullptr) {
         const char* description = nullptr;
         glfwGetError(&description);
-        SPONGE_CORE_ERROR("Context could not be created: {}", description);
+        SPONGE_GL_ERROR("Context could not be created: {}", description);
         return;
     }
 
     const int version = gladLoadGL(glfwGetProcAddress);
     if (version == 0) {
-        SPONGE_CORE_ERROR("Failed to initialize OpenGL context");
+        SPONGE_GL_ERROR("Failed to initialize OpenGL context");
         return;
     }
 

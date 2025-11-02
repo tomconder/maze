@@ -46,7 +46,7 @@ void ShadowMap::initialize() {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                            depthMap->getId(), 0);
     if (!renderer::FrameBuffer::checkStatus()) {
-        SPONGE_CORE_CRITICAL("Framebuffer is not complete!");
+        SPONGE_GL_CRITICAL("Framebuffer is not complete!");
         return;
     }
 
