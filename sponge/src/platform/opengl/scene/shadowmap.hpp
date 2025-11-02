@@ -44,6 +44,14 @@ public:
         return shadowHeight;
     }
 
+    float getZNear() const {
+        return zNear;
+    }
+
+    float getZFar() const {
+        return zFar;
+    }
+
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 
 private:
@@ -52,8 +60,8 @@ private:
     std::shared_ptr<renderer::Texture> depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;
 
-    static constexpr float nearPlane = 1.0f;
-    static constexpr float farPlane = 25.0f;
+    float zNear = 0.F;
+    float zFar = 1.F;
 
     uint32_t shadowWidth;
     uint32_t shadowHeight;

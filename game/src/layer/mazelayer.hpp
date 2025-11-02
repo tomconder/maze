@@ -73,6 +73,14 @@ public:
         return shadowMap->getDepthMapTextureId();
     }
 
+    float getDepthMapZNear() const {
+        return shadowMap->getZNear();
+    }
+
+    float getDepthMapZFar() const {
+        return shadowMap->getZFar();
+    }
+
     bool getDirectionalLightCastsShadow() const;
 
     void setDirectionalLightCastsShadow(bool value);
