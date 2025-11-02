@@ -16,14 +16,19 @@ constexpr auto mouseSpeed = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
-constexpr auto sunColor = glm::vec3(1.F, .87F, 0.F);
-constexpr auto sunPosition = glm::vec3(-2.F, 14.F, -1.F);
+constexpr auto sunCastsShadow = true;
+constexpr auto sunColor = glm::vec3(1.F, 1.F, 1.F);
+constexpr auto sunDirection = glm::vec3(0.F, -2.F, 1.333F);
+constexpr auto sunEnabled = true;
+constexpr auto sunShadowBias = 0.001F;
+constexpr auto sunShadowMapRes = 2048;
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
 constexpr std::string_view cameraName = "maze";
 
-std::array<game::scene::Light, 6> lights;
+game::scene::DirectionalLight directionalLight;
+std::array<game::scene::PointLight, 6> pointLights;
 }  // namespace
 
 namespace game::layer {
@@ -69,6 +74,7 @@ constexpr std::array gameObjects = {
 MazeLayer::MazeLayer() : Layer("maze") {
     // nothing
 }
+
 void MazeLayer::onAttach() {
     for (const auto& gameObject : gameObjects) {
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
@@ -92,9 +98,25 @@ void MazeLayer::onAttach() {
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
+
+    directionalLight = { .enabled = sunEnabled,
+                         .castShadow = sunCastsShadow,
+                         .color = sunColor,
+                         .direction = sunDirection,
+                         .shadowBias = sunShadowBias,
+                         .shadowMapRes = sunShadowMapRes };
+
+    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
+    shader->setBoolean("directionalLight.castShadow",
+                       directionalLight.castShadow);
+    shader->setFloat3("directionalLight.direction", directionalLight.direction);
+    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->setFloat("directionalLight.shadowBias",
+                     directionalLight.shadowBias);
+
     shader->unbind();
 
-    shadowMap = std::make_unique<ShadowMap>();
+    shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube = std::make_unique<Cube>();
 
     setNumLights(numLights);
@@ -155,13 +177,12 @@ void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
     for (int32_t i = 0; i < numLights; i++) {
-        lights[i].color = glm::vec3(1.F);
-        lights[i].translation = glm::vec3(
+        pointLights[i].color = glm::vec3(1.F);
+        pointLights[i].position = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
             glm::vec4(0.F, 2.75F, -3.F, 1.F));
-
-        lights[i].setAttenuationFromIndex(attenuationIndex);
+        pointLights[i].attenuationIndex = attenuationIndex;
     }
 
     updateShaderLights();
@@ -170,6 +191,77 @@ void MazeLayer::setNumLights(const int32_t val) {
 void MazeLayer::setAttenuationIndex(const int32_t val) {
     attenuationIndex = val;
     setNumLights(numLights);
+}
+
+bool MazeLayer::getDirectionalLightCastsShadow() const {
+    return directionalLight.castShadow;
+}
+
+void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
+    directionalLight.castShadow = value;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setBoolean("directionalLight.castShadow",
+                       directionalLight.castShadow);
+    shader->unbind();
+}
+
+glm::vec3 MazeLayer::getDirectionalLightColor() const {
+    return directionalLight.color;
+}
+
+void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
+    directionalLight.color = color;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->unbind();
+}
+
+glm::vec3 MazeLayer::getDirectionalLightDirection() const {
+    return directionalLight.direction;
+}
+
+void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
+    directionalLight.direction = direction;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat3("directionalLight.direction", directionalLight.direction);
+    shader->unbind();
+}
+
+bool MazeLayer::getDirectionalLightEnabled() const {
+    return directionalLight.enabled;
+}
+
+void MazeLayer::setDirectionalLightEnabled(const bool value) {
+    directionalLight.enabled = value;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
+    shader->unbind();
+}
+
+float MazeLayer::getDirectionalLightShadowBias() const {
+    return directionalLight.shadowBias;
+}
+
+void MazeLayer::setDirectionalLightShadowBias(const float value) {
+    directionalLight.shadowBias = value;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat("directionalLight.shadowBias",
+                     directionalLight.shadowBias);
+    shader->unbind();
+}
+
+uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
+    return directionalLight.shadowMapRes;
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {
@@ -253,21 +345,13 @@ void MazeLayer::renderGameObjects() const {
 void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(Cube::getShaderName());
 
-    // render the sun as a cube
-    shader->bind();
-    shader->setFloat3("lightColor", sunColor);
-    shader->setMat4("mvp",
-                    scale(translate(camera->getMVP(), sunPosition), cubeScale));
-    cube->render();
-    shader->unbind();
-
     // render the point lights as cubes
     for (auto i = 0; i < numLights; i++) {
         shader->bind();
-        shader->setFloat3("lightColor", lights[i].color);
+        shader->setFloat3("lightColor", pointLights[i].color);
         shader->setMat4(
-            "mvp",
-            scale(translate(camera->getMVP(), lights[i].position), cubeScale));
+            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
+                         cubeScale));
         cube->render();
         shader->unbind();
     }
@@ -276,7 +360,8 @@ void MazeLayer::renderLightCubes() const {
 void MazeLayer::renderSceneToDepthMap() const {
     shadowMap->bind();
 
-    shadowMap->updateLightSpaceMatrix(sunPosition);
+    shadowMap->updateLightSpaceMatrix(
+        glm::normalize(directionalLight.direction));
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
     auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
@@ -323,21 +408,25 @@ void MazeLayer::updateShaderLights() const {
     const auto shader = ResourceManager::getShader(Mesh::getShaderName());
 
     shader->bind();
+
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
-        lights[i].position = glm::vec4(lights[i].translation, 1.F);
+        const std::string base = "pointLights[" + std::to_string(i) + "].";
+        std::string uniformName;
+        uniformName.reserve(base.size() + 16);
 
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].position",
-                          lights[i].position);
-        shader->setFloat3("pointLights[" + std::to_string(i) + "].color",
-                          lights[i].color);
-        shader->setFloat("pointLights[" + std::to_string(i) + "].constant",
-                         lights[i].getAttenuationConstant());
-        shader->setFloat("pointLights[" + std::to_string(i) + "].linear",
-                         lights[i].getAttenuationLinear());
-        shader->setFloat("pointLights[" + std::to_string(i) + "].quadratic",
-                         lights[i].getAttenuationQuadratic());
+        uniformName = base;
+        uniformName += "position";
+        shader->setFloat3(uniformName, pointLights[i].position);
+
+        uniformName = base;
+        uniformName += "color";
+        shader->setFloat3(uniformName, pointLights[i].color);
+
+        uniformName = base;
+        uniformName += "attenuationIndex";
+        shader->setInteger(uniformName, pointLights[i].attenuationIndex);
     }
 
     shader->unbind();

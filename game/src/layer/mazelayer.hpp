@@ -73,6 +73,40 @@ public:
         return shadowMap->getDepthMapTextureId();
     }
 
+    float getDepthMapZNear() const {
+        return shadowMap->getZNear();
+    }
+
+    float getDepthMapZFar() const {
+        return shadowMap->getZFar();
+    }
+
+    float getDepthMapOrthoBoxSize() const {
+        return shadowMap->getOrthoBoxSize();
+    }
+
+    bool getDirectionalLightCastsShadow() const;
+
+    void setDirectionalLightCastsShadow(bool value);
+
+    glm::vec3 getDirectionalLightColor() const;
+
+    void setDirectionalLightColor(const glm::vec3& color);
+
+    glm::vec3 getDirectionalLightDirection() const;
+
+    void setDirectionalLightDirection(const glm::vec3& direction);
+
+    bool getDirectionalLightEnabled() const;
+
+    void setDirectionalLightEnabled(bool value);
+
+    float getDirectionalLightShadowBias() const;
+
+    void setDirectionalLightShadowBias(float value);
+
+    uint32_t getDirectionalLightShadowMapRes() const;
+
 private:
     std::shared_ptr<scene::GameCamera> camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
@@ -83,7 +117,7 @@ private:
     float ao = .25F;
     float roughness = .5F;
     int32_t numLights = 1;
-    int32_t attenuationIndex = 6;
+    int32_t attenuationIndex = 4;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);

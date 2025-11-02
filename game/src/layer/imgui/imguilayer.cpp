@@ -75,6 +75,7 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
     ImGui::SetNextWindowSize({ appInfoWidth, appInfoHeight });
 
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
+        showInfoSection();
         showSettingsSection();
         showLightsSection();
         showShadowMapSection();
@@ -83,21 +84,8 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
     }
 }
 
-void ImGuiLayer::showLogWindow(const float width, const float height) {
-    ImGui::SetNextWindowPos({ 0.F, height - logHeight });
-    ImGui::SetNextWindowSize({ width, logHeight });
-
-    if (ImGui::Begin("Logging", &hasLogMenu,
-                     windowFlags | ImGuiWindowFlags_NoScrollbar)) {
-        showLogging();
-        ImGui::End();
-    } else {
-        hasLogMenu = false;
-    }
-}
-
-void ImGuiLayer::showSettingsSection() {
-    if (!ImGui::CollapsingHeader("Settings##Header",
+void ImGuiLayer::showInfoSection() {
+    if (!ImGui::CollapsingHeader("Info##Header",
                                  ImGuiTreeNodeFlags_DefaultOpen)) {
         return;
     }
@@ -110,16 +98,21 @@ void ImGuiLayer::showSettingsSection() {
 
     ImGui::AlignTextToFramePadding();
     ImGui::Text("%s", appInfo.c_str());
-    ImGui::Text("Resolution: %dx%d", window->getWidth(), window->getHeight());
     ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.F / io.Framerate,
                 io.Framerate);
-    ImGui::Separator();
 
-    showCameraTable();
-    showAppSettingsTable();
-}
+    const std::string resolution =
+        fmt::format("{}x{}", window->getWidth(), window->getHeight());
 
-void ImGuiLayer::showCameraTable() {
+    if (ImGui::BeginTable("##ResolutionTable", 2, tableFlags)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Resolution");
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", resolution.c_str());
+        ImGui::EndTable();
+    }
+
     if (ImGui::BeginTable("##CameraTable", 2, tableFlags)) {
         const auto camera = ResourceManager::getGameCamera(cameraName.data());
 
@@ -133,18 +126,24 @@ void ImGuiLayer::showCameraTable() {
     }
 }
 
+void ImGuiLayer::showSettingsSection() {
+    if (!ImGui::CollapsingHeader("Settings##Header")) {
+        return;
+    }
+
+    showAppSettingsTable();
+}
+
 void ImGuiLayer::showAppSettingsTable() {
     if (ImGui::BeginTable("##AppTable", 2, tableFlags)) {
-        // Vertical Sync
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Vertical Sync");
         ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##vertical-sync", &hasVsync)) {
+        if (ImGui::Checkbox("##verticalsync", &hasVsync)) {
             Maze::get().setVerticalSync(hasVsync);
         }
 
-        // Full Screen
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Full Screen");
@@ -160,10 +159,120 @@ void ImGuiLayer::showAppSettingsTable() {
 void ImGuiLayer::showLightsSection() {
     if (!ImGui::CollapsingHeader("Lights##Header",
                                  ImGuiTreeNodeFlags_DefaultOpen)) {
-        hasAppInfoMenu = false;
         return;
     }
 
+    if (ImGui::BeginTabBar("LightsTabBar")) {
+        if (ImGui::BeginTabItem("Point##Tab", nullptr,
+                                ImGui::IsWindowAppearing()
+                                    ? ImGuiTabItemFlags_SetSelected
+                                    : ImGuiTabItemFlags_None)) {
+            showPointLightControls();
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Directional##Tab")) {
+            showDirectionalLightControls();
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+}
+
+void ImGuiLayer::showDirectionalLightControls() {
+    if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+        auto directional = mazeLayer->getDirectionalLightEnabled();
+        auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
+        auto bias = mazeLayer->getDirectionalLightShadowBias();
+
+        showTableRow([&] {
+            ImGui::Text("Enable");
+            ImGui::TableNextColumn();
+
+            if (ImGui::Checkbox("##directionalenable", &directional)) {
+                mazeLayer->setDirectionalLightEnabled(directional);
+            }
+        });
+
+        static auto colorEditFlags =
+            ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
+        auto dirColor = mazeLayer->getDirectionalLightColor();
+        ImVec4 color = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
+        showTableRow([&] {
+            ImGui::Text("Color");
+            ImGui::TableNextColumn();
+            if (ImGui::ColorEdit4("##directionalcolor",
+                                  reinterpret_cast<float*>(&color),
+                                  colorEditFlags)) {
+                mazeLayer->setDirectionalLightColor(
+                    glm::vec3(color.x, color.y, color.z));
+            }
+        });
+
+        auto dirDirection = mazeLayer->getDirectionalLightDirection();
+        float direction[3] = { dirDirection.x, dirDirection.y, dirDirection.z };
+        showTableRow([&] {
+            ImGui::Text("Direction");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputFloat3("##directionalposition", direction)) {
+                mazeLayer->setDirectionalLightDirection(
+                    glm::vec3(direction[0], direction[1], direction[2]));
+            }
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Cast Shadow");
+            ImGui::TableNextColumn();
+
+            if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
+                mazeLayer->setDirectionalLightCastsShadow(castShadow);
+            }
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Bias");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderFloat("##directionalbias", &bias, 0.001F, 0.03F,
+                                   "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setDirectionalLightShadowBias(bias);
+            }
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Map Size");
+            ImGui::TableNextColumn();
+            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
+            ImGui::Text("%ux%u", res, res);
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Near");
+            ImGui::TableNextColumn();
+            const auto near = mazeLayer->getDepthMapZNear();
+            ImGui::Text("%3.1f", near);
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Far");
+            ImGui::TableNextColumn();
+            const auto far = mazeLayer->getDepthMapZFar();
+            ImGui::Text("%3.1f", far);
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Ortho Box Size");
+            ImGui::TableNextColumn();
+            const auto size = mazeLayer->getDepthMapOrthoBoxSize();
+            ImGui::Text("%3.1f", size);
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showPointLightControls() {
     const auto mazeLayer = Maze::get().getMazeLayer();
     auto numLights = mazeLayer->getNumLights();
     int32_t attenuationIndex = mazeLayer->getAttenuationIndex();
@@ -172,17 +281,10 @@ void ImGuiLayer::showLightsSection() {
     }
 
     showAttenuationSlider(attenuationIndex);
-    showPBRControls();
-}
-
-void ImGuiLayer::showPBRControls() {
-    ImGui::SeparatorText("PBR");
 
     if (ImGui::BeginTable(
-            "PBR##Table", 1,
+            "PointLights##Table", 1,
             ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX)) {
-        const auto mazeLayer = Maze::get().getMazeLayer();
-
         auto metallic = mazeLayer->isMetallic();
         auto ambientStrength = mazeLayer->getAmbientStrength();
         auto roughness = mazeLayer->getRoughness();
@@ -220,10 +322,8 @@ void ImGuiLayer::showPBRControls() {
 }
 
 void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
-    auto attenuation = scene::Light::getAttenuationFromIndex(attenuationIndex);
-    const std::string label =
-        fmt::format("{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
-                    attenuation.y, attenuation.z, attenuation.w);
+    auto distance = scene::Light::getAttenuationDistance(attenuationIndex);
+    const std::string label = fmt::format("{:3.0f}", distance);
 
     if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10,
                          label.c_str())) {
@@ -233,8 +333,7 @@ void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
 
 void ImGuiLayer::showShadowMapSection() {
     if (ImGui::CollapsingHeader("Shadow Map")) {
-        const auto mazeLayer = Maze::get().getMazeLayer();
-        ImGui::Image(mazeLayer->getDepthMapTextureId(),
+        ImGui::Image(Maze::get().getMazeLayer()->getDepthMapTextureId(),
                      ImVec2(appInfoWidth * .85F, appInfoWidth * .85F));
     }
 }
@@ -252,6 +351,19 @@ void ImGuiLayer::showResourcesSection() {
     showResourceTree("Models", [] { showModelsTable(); });
     showResourceTree("Shaders", [] { showShadersTable(); });
     showResourceTree("Textures", [] { showTexturesTable(); });
+}
+
+void ImGuiLayer::showLogWindow(const float width, const float height) {
+    ImGui::SetNextWindowPos({ 0.F, height - logHeight });
+    ImGui::SetNextWindowSize({ width, logHeight });
+
+    if (ImGui::Begin("Logging", &hasLogMenu,
+                     windowFlags | ImGuiWindowFlags_NoScrollbar)) {
+        showLogging();
+        ImGui::End();
+    } else {
+        hasLogMenu = false;
+    }
 }
 
 float ImGuiLayer::getLogSelectionMaxWidth(

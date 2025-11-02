@@ -20,14 +20,14 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     shaderName = createInfo.name;
 
-    SPONGE_CORE_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
-                     createInfo.vertexShaderPath);
+    SPONGE_GL_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
+                   createInfo.vertexShaderPath);
     const std::string vertexSource = loadSourceFromFile(
         createInfo.assetsFolder + createInfo.vertexShaderPath);
     assert(!vertexSource.empty());
 
-    SPONGE_CORE_INFO("Loading fragment shader file: [{}, {}]", createInfo.name,
-                     createInfo.fragmentShaderPath);
+    SPONGE_GL_INFO("Loading fragment shader file: [{}, {}]", createInfo.name,
+                   createInfo.fragmentShaderPath);
     const std::string fragmentSource = loadSourceFromFile(
         createInfo.assetsFolder + createInfo.fragmentShaderPath);
     assert(!fragmentSource.empty());
@@ -37,8 +37,8 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     uint32_t gs = 0;
     if (!createInfo.geometryShaderPath.empty()) {
-        SPONGE_CORE_INFO("Loading geometry shader file: [{}, {}]",
-                         createInfo.name, createInfo.geometryShaderPath);
+        SPONGE_GL_INFO("Loading geometry shader file: [{}, {}]",
+                       createInfo.name, createInfo.geometryShaderPath);
 
         const std::string geometrySource = loadSourceFromFile(
             createInfo.assetsFolder + createInfo.geometryShaderPath);
@@ -91,7 +91,7 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
         if (length > 0) {
             std::vector<GLchar> message(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR("Shader compiling failed: {0}", message.data());
+            SPONGE_GL_ERROR("Shader compiling failed: {0}", message.data());
             glDeleteShader(id);
             return 0;
         }
@@ -121,7 +121,7 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
         if (length > 0) {
             std::vector<GLchar> message(length);
             glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_CORE_ERROR("Shader linking failed: {0}", message.data());
+            SPONGE_GL_ERROR("Shader linking failed: {0}", message.data());
         }
     }
 
@@ -163,8 +163,8 @@ GLint Shader::getUniformLocation(const std::string& name) const {
 
     const auto location = glGetUniformLocation(program, name.c_str());
     if (location == -1) {
-        SPONGE_CORE_WARN("Uniform name not found: [{}, {}]", name.c_str(),
-                         program);
+        SPONGE_GL_WARN("Uniform name not found: [{}, {}]", name.c_str(),
+                       program);
     }
     uniformLocations[name] = location;
 
@@ -184,7 +184,7 @@ std::string Shader::loadSourceFromFile(const std::string& path) {
         file.read(code.data(), size);
         file.close();
     } else {
-        SPONGE_CORE_ERROR("Unable to open file: {}", path);
+        SPONGE_GL_ERROR("Unable to open file: {}", path);
     }
 
     return code;

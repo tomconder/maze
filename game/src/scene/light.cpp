@@ -1,27 +1,14 @@
 #include "scene/light.hpp"
 
+#include <algorithm>
+
 namespace game::scene {
 
-// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
-constexpr float lightAttenuationData[][4] = {
-    { 7.F, 1.F, 0.7F, 1.8F },        { 13.F, 1.F, 0.35F, 0.44F },
-    { 20.F, 1.F, 0.22F, 0.2F },      { 32.F, 1.F, 0.14F, 0.07F },
-    { 50.F, 1.F, 0.09F, 0.032F },    { 65.F, 1.F, 0.07F, 0.017F },
-    { 100.F, 1.F, 0.045F, 0.0075F }, { 160.F, 1.F, 0.027F, 0.0028F },
-    { 200.F, 1.F, 0.022F, 0.0019F }, { 325.F, 1.F, 0.014F, 0.0007F },
-    { 600.F, 1.F, 0.007F, 0.0002F }
-};
+constexpr float distance[11] = { 7.F,   13.F,  20.F,  32.F,  50.F, 65.F,
+                                 100.F, 160.F, 200.F, 325.F, 600.F };
 
-void Light::setAttenuationFromIndex(const int32_t index) {
-    const auto* data = lightAttenuationData[index];
-    distance = data[0];
-    constant = data[1];
-    linear = data[2];
-    quadratic = data[3];
-}
-
-glm::vec4 Light::getAttenuationFromIndex(const int32_t index) {
-    const auto* data = lightAttenuationData[index];
-    return { data[0], data[1], data[2], data[3] };
+float Light::getAttenuationDistance(const int32_t index) {
+    const uint32_t value = std::clamp(index, 0, 10);
+    return distance[value];
 }
 }  // namespace game::scene
