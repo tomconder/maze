@@ -301,10 +301,8 @@ void ImGuiLayer::showPointLightControls() {
 }
 
 void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
-    auto attenuation = scene::Light::getAttenuationFromIndex(attenuationIndex);
-    const std::string label =
-        fmt::format("{:3.0f} [{:1.1f}, {:1.3f}, {:1.4f}]", attenuation.x,
-                    attenuation.y, attenuation.z, attenuation.w);
+    auto distance = scene::Light::getAttenuationDistance(attenuationIndex);
+    const std::string label = fmt::format("{:3.0f}", distance);
 
     if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10,
                          label.c_str())) {
