@@ -12,6 +12,7 @@
 namespace {
 constexpr float nearPlane = 0.1f;
 constexpr float farPlane = 200.0f;
+constexpr float orthogonalProjectionBoxSize = 10.F;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -22,6 +23,7 @@ ShadowMap::ShadowMap(const uint32_t res) : shadowWidth(res), shadowHeight(res) {
 void ShadowMap::initialize() {
     zNear = nearPlane;
     zFar = farPlane;
+    orthoBoxSize = orthogonalProjectionBoxSize;
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name = shaderName,
@@ -72,14 +74,10 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
 }
 
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
-    constexpr float orthoBoxSize = 10.F;
-
-    constexpr float left = -orthoBoxSize;
-    constexpr float right = orthoBoxSize;
-    constexpr float bottom = -orthoBoxSize;
-    constexpr float top = orthoBoxSize;
-
-    // TODO(tomc): add orthoBoxSize to imgui
+    const float left = -orthoBoxSize;
+    const float right = orthoBoxSize;
+    const float bottom = -orthoBoxSize;
+    const float top = orthoBoxSize;
 
     const auto lightProjection =
         glm::ortho(left, right, bottom, top, nearPlane, farPlane);

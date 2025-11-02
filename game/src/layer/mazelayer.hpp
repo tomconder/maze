@@ -81,6 +81,10 @@ public:
         return shadowMap->getZFar();
     }
 
+    float getDepthMapOrthoBoxSize() const {
+        return shadowMap->getOrthoBoxSize();
+    }
+
     bool getDirectionalLightCastsShadow() const;
 
     void setDirectionalLightCastsShadow(bool value);
