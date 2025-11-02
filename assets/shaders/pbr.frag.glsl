@@ -24,9 +24,7 @@ struct DirectionalLight {
 struct PointLight {
     vec3 color;
     vec3 position;
-    float constant;
-    float linear;
-    float quadratic;
+    int attenuationIndex;
 };
 
 uniform DirectionalLight directionalLight;
@@ -40,6 +38,21 @@ uniform float ambientStrength;
 uniform bool hasNoTexture;
 
 const float M_PI = 3.14159265359;
+
+// Attenuation intensity; see https://learnopengl.com/Lighting/Light-casters
+vec3 lightAttenuationData[11] = vec3[11](
+    vec3(1.0, 0.7, 1.8),
+    vec3(1.0, 0.35, 0.44),
+    vec3(1.0, 0.22, 0.2),
+    vec3(1.0, 0.14, 0.07),
+    vec3(1.0, 0.09, 0.032),
+    vec3(1.0, 0.07, 0.017),
+    vec3(1.0, 0.045, 0.0075),
+    vec3(1.0, 0.027, 0.0028),
+    vec3(1.0, 0.022, 0.0019),
+    vec3(1.0, 0.014, 0.0007),
+    vec3(1.0, 0.007, 0.0002)
+);
 
 // function prototypes
 float attenuationFromLight(PointLight light);
@@ -101,7 +114,9 @@ void main() {
 
 float attenuationFromLight(PointLight light) {
     float distance = length(light.position - vPosition);
-    return 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+    int index = clamp(light.attenuationIndex, 0, 10);
+    vec3 attenuation = lightAttenuationData[index];
+    return 1.0 / (attenuation.x + attenuation.y * distance + attenuation.z * (distance * distance));
 }
 
 vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {

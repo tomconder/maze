@@ -182,13 +182,7 @@ void MazeLayer::setNumLights(const int32_t val) {
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
             glm::vec4(0.F, 2.75F, -3.F, 1.F));
-
-        const glm::vec4 attenuation =
-            scene::Light::getAttenuationFromIndex(attenuationIndex);
-        pointLights[i].distance = attenuation.x;
-        pointLights[i].constant = attenuation.y;
-        pointLights[i].linear = attenuation.z;
-        pointLights[i].quadratic = attenuation.w;
+        pointLights[i].attenuationIndex = attenuationIndex;
     }
 
     updateShaderLights();
@@ -431,16 +425,8 @@ void MazeLayer::updateShaderLights() const {
         shader->setFloat3(uniformName, pointLights[i].color);
 
         uniformName = base;
-        uniformName += "constant";
-        shader->setFloat(uniformName, pointLights[i].constant);
-
-        uniformName = base;
-        uniformName += "linear";
-        shader->setFloat(uniformName, pointLights[i].linear);
-
-        uniformName = base;
-        uniformName += "quadratic";
-        shader->setFloat(uniformName, pointLights[i].quadratic);
+        uniformName += "attenuationIndex";
+        shader->setInteger(uniformName, pointLights[i].attenuationIndex);
     }
 
     shader->unbind();

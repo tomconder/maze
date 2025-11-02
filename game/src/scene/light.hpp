@@ -15,18 +15,14 @@ struct DirectionalLight {
 struct PointLight {
     glm::vec3 color;
     glm::vec3 position;
-
-    float distance;
-    float constant;
-    float linear;
-    float quadratic;
+    uint32_t attenuationIndex;
 };
 
 class Light {
 public:
-    Light() = default;
+    Light() = delete;
 
-    static glm::vec4 getAttenuationFromIndex(int32_t index);
+    static float getAttenuationDistance(int32_t index);
 };
 
 }  // namespace game::scene
