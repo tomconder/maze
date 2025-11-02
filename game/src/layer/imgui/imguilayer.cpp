@@ -247,6 +247,20 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("%ux%u", res, res);
         });
 
+        showTableRow([&] {
+            ImGui::Text("Shadow Near");
+            ImGui::TableNextColumn();
+            const auto near = mazeLayer->getDepthMapZNear();
+            ImGui::Text("%3.1f", near);
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Far");
+            ImGui::TableNextColumn();
+            const auto far = mazeLayer->getDepthMapZFar();
+            ImGui::Text("%3.1f", far);
+        });
+
         ImGui::EndTable();
     }
 }

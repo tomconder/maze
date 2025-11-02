@@ -9,12 +9,20 @@
 
 #include <memory>
 
+namespace {
+constexpr float nearPlane = 0.1f;
+constexpr float farPlane = 200.0f;
+}  // namespace
+
 namespace sponge::platform::opengl::scene {
 ShadowMap::ShadowMap(const uint32_t res) : shadowWidth(res), shadowHeight(res) {
     initialize();
 }
 
 void ShadowMap::initialize() {
+    zNear = nearPlane;
+    zFar = farPlane;
+
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name = shaderName,
         .vertexShaderPath = "/shaders/shadowmap.vert.glsl",
@@ -71,7 +79,7 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
     constexpr float bottom = -orthoBoxSize;
     constexpr float top = orthoBoxSize;
 
-    // TODO(tomc): add orthoBoxSize, zNear and zFar to imgui
+    // TODO(tomc): add orthoBoxSize to imgui
 
     const auto lightProjection =
         glm::ortho(left, right, bottom, top, nearPlane, farPlane);
