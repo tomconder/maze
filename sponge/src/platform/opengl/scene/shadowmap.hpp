@@ -52,8 +52,8 @@ public:
         return zFar;
     }
 
-    float getOrthoBoxSize() const {
-        return orthoBoxSize;
+    float getOrthoSize() const {
+        return orthoSize;
     }
 
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
@@ -67,7 +67,7 @@ private:
     float zNear = 0.F;
     float zFar = 1.F;
 
-    float orthoBoxSize;
+    float orthoSize;
     uint32_t shadowWidth;
     uint32_t shadowHeight;
 

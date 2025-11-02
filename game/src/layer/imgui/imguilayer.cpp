@@ -250,21 +250,21 @@ void ImGuiLayer::showDirectionalLightControls() {
         showTableRow([&] {
             ImGui::Text("Shadow Near");
             ImGui::TableNextColumn();
-            const auto near = mazeLayer->getDepthMapZNear();
+            const auto near = mazeLayer->getShadowMapZNear();
             ImGui::Text("%3.1f", near);
         });
 
         showTableRow([&] {
             ImGui::Text("Shadow Far");
             ImGui::TableNextColumn();
-            const auto far = mazeLayer->getDepthMapZFar();
+            const auto far = mazeLayer->getShadowMapZFar();
             ImGui::Text("%3.1f", far);
         });
 
         showTableRow([&] {
-            ImGui::Text("Ortho Box Size");
+            ImGui::Text("Ortho Size");
             ImGui::TableNextColumn();
-            const auto size = mazeLayer->getDepthMapOrthoBoxSize();
+            const auto size = mazeLayer->getShadowMapOrthoSize();
             ImGui::Text("%3.1f", size);
         });
 
@@ -333,7 +333,7 @@ void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
 
 void ImGuiLayer::showShadowMapSection() {
     if (ImGui::CollapsingHeader("Shadow Map")) {
-        ImGui::Image(Maze::get().getMazeLayer()->getDepthMapTextureId(),
+        ImGui::Image(Maze::get().getMazeLayer()->getShadowMapTextureId(),
                      ImVec2(appInfoWidth * .85F, appInfoWidth * .85F));
     }
 }
