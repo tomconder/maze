@@ -183,7 +183,7 @@ void ImGuiLayer::showDirectionalLightControls() {
         const auto mazeLayer = Maze::get().getMazeLayer();
         auto directional = mazeLayer->getDirectionalLightEnabled();
         auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
-        auto bias = mazeLayer->getShadowBias();
+        auto bias = mazeLayer->getDirectionalLightShadowBias();
 
         showTableRow([&] {
             ImGui::Text("Enable");
@@ -236,16 +236,15 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::SliderFloat("##directionalbias", &bias, 0.001F, 0.03F,
                                    "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setShadowBias(bias);
+                mazeLayer->setDirectionalLightShadowBias(bias);
             }
         });
 
         showTableRow([&] {
             ImGui::Text("Shadow Map Size");
             ImGui::TableNextColumn();
-            const auto width = mazeLayer->getShadowMapWidth();
-            const auto height = mazeLayer->getShadowMapHeight();
-            ImGui::Text("%ux%u", width, height);
+            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
+            ImGui::Text("%ux%u", res, res);
         });
 
         ImGui::EndTable();

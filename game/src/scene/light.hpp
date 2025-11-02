@@ -4,14 +4,17 @@
 namespace game::scene {
 
 struct DirectionalLight {
-    glm::vec3 direction;
+    bool enabled;
+    bool castShadow;
     glm::vec3 color;
+    glm::vec3 direction;
+    float shadowBias;
+    uint32_t shadowMapRes;
 };
 
 struct PointLight {
-    glm::vec3 position;
     glm::vec3 color;
-    glm::vec3 translation;
+    glm::vec3 position;
 
     float distance;
     float constant;

@@ -14,13 +14,16 @@ uniform float ao;
 
 // lights
 struct DirectionalLight {
-    vec3 direction;
+    bool enabled;
+    bool castShadow;
     vec3 color;
+    vec3 direction;
+    float shadowBias;
 };
 
 struct PointLight {
-    vec3 position;
     vec3 color;
+    vec3 position;
     float constant;
     float linear;
     float quadratic;
@@ -35,16 +38,13 @@ uniform sampler2D shadowMap;
 uniform vec3 viewPos;
 uniform float ambientStrength;
 uniform bool hasNoTexture;
-uniform bool directionalLightEnabled;
-uniform bool directionalLightCastsShadow;
-uniform float shadowBias;
 
 const float M_PI = 3.14159265359;
 
 // function prototypes
 float attenuationFromLight(PointLight light);
 vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir);
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowBias);
 
 // PBR function prototypes
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
@@ -62,16 +62,16 @@ void main() {
 
     vec3 Lo = vec3(0.0);
 
-    if (directionalLightEnabled) {
+    if (directionalLight.enabled) {
         vec3 dirLightDir = normalize(-directionalLight.direction);
         vec3 dirRadiance = directionalLight.color;
         vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
 
-        // apply shadow to directional light if enabled
         float shadow = 0.0;
-        if (directionalLightCastsShadow) {
-            shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir);
+        if (directionalLight.castShadow) {
+            shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
         }
+
         Lo += dirL * (1.0 - shadow);
     }
 
@@ -135,7 +135,7 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     return result;
 }
 
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowBias) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 

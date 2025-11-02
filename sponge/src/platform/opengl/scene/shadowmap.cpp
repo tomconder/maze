@@ -71,6 +71,8 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
     constexpr float bottom = -orthoBoxSize;
     constexpr float top = orthoBoxSize;
 
+    // TODO(tomc): add orthoBoxSize, zNear and zFar to imgui
+
     const auto lightProjection =
         glm::ortho(left, right, bottom, top, nearPlane, farPlane);
 
