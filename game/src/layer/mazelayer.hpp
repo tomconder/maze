@@ -73,13 +73,9 @@ public:
         return shadowMap->getDepthMapTextureId();
     }
 
-    uint32_t getShadowMapWidth() const {
-        return shadowMap->getWidth();
-    }
+    bool getDirectionalLightCastsShadow() const;
 
-    uint32_t getShadowMapHeight() const {
-        return shadowMap->getHeight();
-    }
+    void setDirectionalLightCastsShadow(bool value);
 
     glm::vec3 getDirectionalLightColor() const;
 
@@ -89,23 +85,15 @@ public:
 
     void setDirectionalLightDirection(const glm::vec3& direction);
 
-    bool getDirectionalLightEnabled() const {
-        return directionalLightEnabled;
-    }
+    bool getDirectionalLightEnabled() const;
 
     void setDirectionalLightEnabled(bool value);
 
-    bool getDirectionalLightCastsShadow() const {
-        return directionalLightCastsShadow;
-    }
+    float getDirectionalLightShadowBias() const;
 
-    void setDirectionalLightCastsShadow(bool value);
+    void setDirectionalLightShadowBias(float value);
 
-    float getShadowBias() const {
-        return shadowBias;
-    }
-
-    void setShadowBias(float value);
+    uint32_t getDirectionalLightShadowMapRes() const;
 
 private:
     std::shared_ptr<scene::GameCamera> camera;
@@ -118,9 +106,6 @@ private:
     float roughness = .5F;
     int32_t numLights = 1;
     int32_t attenuationIndex = 6;
-    bool directionalLightEnabled = true;
-    bool directionalLightCastsShadow = true;
-    float shadowBias = 0.005F;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);

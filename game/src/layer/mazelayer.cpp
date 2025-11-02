@@ -16,9 +16,12 @@ constexpr auto mouseSpeed = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
+constexpr auto sunCastsShadow = true;
 constexpr auto sunColor = glm::vec3(1.F, 1.F, 1.F);
 constexpr auto sunDirection = glm::vec3(0.F, -2.F, 1.333F);
-constexpr auto shadowMapRes = 2048;
+constexpr auto sunEnabled = true;
+constexpr auto sunShadowBias = 0.005F;
+constexpr auto sunShadowMapRes = 2048;
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
@@ -95,19 +98,25 @@ void MazeLayer::onAttach() {
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->setBoolean("directionalLightEnabled", directionalLightEnabled);
-    shader->setBoolean("directionalLightCastsShadow",
-                       directionalLightCastsShadow);
-    shader->setFloat("shadowBias", shadowBias);
 
-    directionalLight = { .direction = sunDirection, .color = sunColor };
+    directionalLight = { .enabled = sunEnabled,
+                         .castShadow = sunCastsShadow,
+                         .color = sunColor,
+                         .direction = sunDirection,
+                         .shadowBias = sunShadowBias,
+                         .shadowMapRes = sunShadowMapRes };
 
+    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
+    shader->setBoolean("directionalLight.castShadow",
+                       directionalLight.castShadow);
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
     shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->setFloat("directionalLight.shadowBias",
+                     directionalLight.shadowBias);
 
     shader->unbind();
 
-    shadowMap = std::make_unique<ShadowMap>(shadowMapRes);
+    shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube = std::make_unique<Cube>();
 
     setNumLights(numLights);
@@ -169,7 +178,7 @@ void MazeLayer::setNumLights(const int32_t val) {
 
     for (int32_t i = 0; i < numLights; i++) {
         pointLights[i].color = glm::vec3(1.F);
-        pointLights[i].translation = glm::vec3(
+        pointLights[i].position = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
             glm::vec4(0.F, 2.75F, -3.F, 1.F));
@@ -180,8 +189,6 @@ void MazeLayer::setNumLights(const int32_t val) {
         pointLights[i].constant = attenuation.y;
         pointLights[i].linear = attenuation.z;
         pointLights[i].quadratic = attenuation.w;
-
-        pointLights[i].position = glm::vec4(pointLights[i].translation, 1.F);
     }
 
     updateShaderLights();
@@ -190,6 +197,20 @@ void MazeLayer::setNumLights(const int32_t val) {
 void MazeLayer::setAttenuationIndex(const int32_t val) {
     attenuationIndex = val;
     setNumLights(numLights);
+}
+
+bool MazeLayer::getDirectionalLightCastsShadow() const {
+    return directionalLight.castShadow;
+}
+
+void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
+    directionalLight.castShadow = value;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setBoolean("directionalLight.castShadow",
+                       directionalLight.castShadow);
+    shader->unbind();
 }
 
 glm::vec3 MazeLayer::getDirectionalLightColor() const {
@@ -218,32 +239,35 @@ void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     shader->unbind();
 }
 
+bool MazeLayer::getDirectionalLightEnabled() const {
+    return directionalLight.enabled;
+}
+
 void MazeLayer::setDirectionalLightEnabled(const bool value) {
-    directionalLightEnabled = value;
+    directionalLight.enabled = value;
 
     const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
-    shader->setBoolean("directionalLightEnabled", directionalLightEnabled);
+    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
     shader->unbind();
 }
 
-void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
-    directionalLightCastsShadow = value;
+float MazeLayer::getDirectionalLightShadowBias() const {
+    return directionalLight.shadowBias;
+}
+
+void MazeLayer::setDirectionalLightShadowBias(const float value) {
+    directionalLight.shadowBias = value;
 
     const auto shader = ResourceManager::getShader(Mesh::getShaderName());
     shader->bind();
-    shader->setBoolean("directionalLightCastsShadow",
-                       directionalLightCastsShadow);
+    shader->setFloat("directionalLight.shadowBias",
+                     directionalLight.shadowBias);
     shader->unbind();
 }
 
-void MazeLayer::setShadowBias(const float value) {
-    shadowBias = value;
-
-    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
-    shader->bind();
-    shader->setFloat("shadowBias", shadowBias);
-    shader->unbind();
+uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
+    return directionalLight.shadowMapRes;
 }
 
 void MazeLayer::onEvent(sponge::event::Event& event) {
