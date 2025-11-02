@@ -261,6 +261,13 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("%3.1f", far);
         });
 
+        showTableRow([&] {
+            ImGui::Text("Ortho Box Size");
+            ImGui::TableNextColumn();
+            const auto size = mazeLayer->getDepthMapOrthoBoxSize();
+            ImGui::Text("%3.1f", size);
+        });
+
         ImGui::EndTable();
     }
 }
