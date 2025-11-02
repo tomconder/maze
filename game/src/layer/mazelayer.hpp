@@ -69,20 +69,20 @@ public:
 
     void setAttenuationIndex(int32_t val);
 
-    uint32_t getDepthMapTextureId() const {
+    uint32_t getShadowMapTextureId() const {
         return shadowMap->getDepthMapTextureId();
     }
 
-    float getDepthMapZNear() const {
+    float getShadowMapZNear() const {
         return shadowMap->getZNear();
     }
 
-    float getDepthMapZFar() const {
+    float getShadowMapZFar() const {
         return shadowMap->getZFar();
     }
 
-    float getDepthMapOrthoBoxSize() const {
-        return shadowMap->getOrthoBoxSize();
+    float getShadowMapOrthoSize() const {
+        return shadowMap->getOrthoSize();
     }
 
     bool getDirectionalLightCastsShadow() const;
