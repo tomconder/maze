@@ -215,7 +215,9 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputFloat3("##directionalposition", direction)) {
+            if (ImGui::SliderFloat3("##directionalposition", direction, -10.F,
+                                    10.F, "%2.2f",
+                                    ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setDirectionalLightDirection(
                     glm::vec3(direction[0], direction[1], direction[2]));
             }
@@ -325,8 +327,7 @@ void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
     auto distance = scene::Light::getAttenuationDistance(attenuationIndex);
     const std::string label = fmt::format("{:3.0f}", distance);
 
-    if (ImGui::SliderInt("Attenuation", &attenuationIndex, 0, 10,
-                         label.c_str())) {
+    if (ImGui::SliderInt("Distance", &attenuationIndex, 0, 10, label.c_str())) {
         Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
     }
 }
