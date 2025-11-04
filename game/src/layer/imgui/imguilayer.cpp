@@ -181,16 +181,20 @@ void ImGuiLayer::showLightsSection() {
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
-        auto directional = mazeLayer->getDirectionalLightEnabled();
-        auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
         auto bias = mazeLayer->getDirectionalLightShadowBias();
+        auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
+        auto direction = mazeLayer->getDirectionalLightDirection();
+        auto enabled = mazeLayer->getDirectionalLightEnabled();
+        auto orthoSize = mazeLayer->getShadowMapOrthoSize();
+        auto zFar = mazeLayer->getShadowMapZFar();
+        auto zNear = mazeLayer->getShadowMapZNear();
 
         showTableRow([&] {
             ImGui::Text("Enable");
             ImGui::TableNextColumn();
 
-            if (ImGui::Checkbox("##directionalenable", &directional)) {
-                mazeLayer->setDirectionalLightEnabled(directional);
+            if (ImGui::Checkbox("##directionalenable", &enabled)) {
+                mazeLayer->setDirectionalLightEnabled(enabled);
             }
         });
 
@@ -209,17 +213,15 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        auto dirDirection = mazeLayer->getDirectionalLightDirection();
-        float direction[3] = { dirDirection.x, dirDirection.y, dirDirection.z };
+        float vec[3] = { direction.x, direction.y, direction.z };
         showTableRow([&] {
             ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat3("##directionalposition", direction, -10.F,
-                                    10.F, "%2.2f",
-                                    ImGuiSliderFlags_AlwaysClamp)) {
+            if (ImGui::SliderFloat3("##directionaldirection", vec, -10.F, 10.F,
+                                    "%2.2f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setDirectionalLightDirection(
-                    glm::vec3(direction[0], direction[1], direction[2]));
+                    glm::vec3(vec[0], vec[1], vec[2]));
             }
         });
 
@@ -243,31 +245,34 @@ void ImGuiLayer::showDirectionalLightControls() {
         });
 
         showTableRow([&] {
-            ImGui::Text("Shadow Map Size");
-            ImGui::TableNextColumn();
-            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
-            ImGui::Text("%ux%u", res, res);
-        });
-
-        showTableRow([&] {
             ImGui::Text("Shadow Near");
             ImGui::TableNextColumn();
-            const auto near = mazeLayer->getShadowMapZNear();
-            ImGui::Text("%3.1f", near);
+            if (ImGui::SliderFloat("##znear", &zNear, 0.01F, 1.F, "%1.2f")) {
+                mazeLayer->setShadowMapZNear(zNear);
+            }
         });
 
         showTableRow([&] {
             ImGui::Text("Shadow Far");
             ImGui::TableNextColumn();
-            const auto far = mazeLayer->getShadowMapZFar();
-            ImGui::Text("%3.1f", far);
+            if (ImGui::SliderFloat("##zfar", &zFar, 10.F, 500.F, "%3.1f")) {
+                mazeLayer->setShadowMapZFar(zFar);
+            }
         });
 
         showTableRow([&] {
             ImGui::Text("Ortho Size");
             ImGui::TableNextColumn();
-            const auto size = mazeLayer->getShadowMapOrthoSize();
-            ImGui::Text("%3.1f", size);
+            if (ImGui::SliderFloat("##orthosize", &orthoSize, 5.F, 50.F)) {
+                mazeLayer->setShadowMapOrthoSize(orthoSize);
+            }
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Shadow Map Size");
+            ImGui::TableNextColumn();
+            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
+            ImGui::Text("%ux%u", res, res);
         });
 
         ImGui::EndTable();

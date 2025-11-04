@@ -48,12 +48,24 @@ public:
         return zNear;
     }
 
+    void setZNear(const float val) {
+        zNear = val;
+    }
+
     float getZFar() const {
         return zFar;
     }
 
+    void setZFar(const float val) {
+        zFar = val;
+    }
+
     float getOrthoSize() const {
         return orthoSize;
+    }
+
+    void setOrthoSize(const float val) {
+        orthoSize = val;
     }
 
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);

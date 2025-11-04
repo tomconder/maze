@@ -193,6 +193,18 @@ void MazeLayer::setAttenuationIndex(const int32_t val) {
     setNumLights(numLights);
 }
 
+void MazeLayer::setShadowMapZNear(float val) {
+    shadowMap->setZNear(val);
+}
+
+void MazeLayer::setShadowMapZFar(float val) {
+    shadowMap->setZFar(val);
+}
+
+void MazeLayer::setShadowMapOrthoSize(float val) {
+    shadowMap->setOrthoSize(val);
+}
+
 bool MazeLayer::getDirectionalLightCastsShadow() const {
     return directionalLight.castShadow;
 }
