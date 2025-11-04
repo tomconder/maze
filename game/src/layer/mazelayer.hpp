@@ -77,13 +77,19 @@ public:
         return shadowMap->getZNear();
     }
 
+    void setShadowMapZNear(float val);
+
     float getShadowMapZFar() const {
         return shadowMap->getZFar();
     }
 
+    void setShadowMapZFar(float val);
+
     float getShadowMapOrthoSize() const {
         return shadowMap->getOrthoSize();
     }
+
+    void setShadowMapOrthoSize(float val);
 
     bool getDirectionalLightCastsShadow() const;
 

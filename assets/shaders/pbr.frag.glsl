@@ -164,7 +164,7 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float 
     float currentDepth = projCoords.z;
 
     // calculate bias based on light direction and normal (helps with peter panning and shadow acne)
-    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), shadowBias);
+    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
 
     // PCF
     float shadow = 0.0;
