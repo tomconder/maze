@@ -5,6 +5,7 @@
 #include "platform/opengl/scene/font.hpp"
 #include "platform/opengl/scene/model.hpp"
 
+#include <cassert>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -31,7 +32,8 @@ public:
         return resources.at(name);
     }
 
-    std::unordered_map<std::string, std::shared_ptr<T>> getResources() const {
+    const std::unordered_map<std::string, std::shared_ptr<T>>& getResources()
+        const {
         return resources;
     }
 
@@ -39,19 +41,19 @@ private:
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
 };
 
-#define RESOURCE_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler)   \
-    static std::shared_ptr<Type> create##Name(                        \
-        const CreateInfoType& createInfo) {                           \
-        return Handler.load(createInfo);                              \
-    }                                                                 \
-                                                                      \
-    static std::shared_ptr<Type> get##Name(const std::string& name) { \
-        return Handler.get(name);                                     \
-    }                                                                 \
-                                                                      \
-    static std::unordered_map<std::string, std::shared_ptr<Type>>     \
-    get##Name##s() {                                                  \
-        return Handler.getResources();                                \
+#define RESOURCE_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler)     \
+    static std::shared_ptr<Type> create##Name(                          \
+        const CreateInfoType& createInfo) {                             \
+        return (Handler).load(createInfo);                              \
+    }                                                                   \
+                                                                        \
+    static std::shared_ptr<Type> get##Name(const std::string& name) {   \
+        return (Handler).get(name);                                     \
+    }                                                                   \
+                                                                        \
+    static const std::unordered_map<std::string, std::shared_ptr<Type>> \
+    get##Name##s() {                                                    \
+        return (Handler).getResources();                                \
     }
 
 class ResourceManager {
