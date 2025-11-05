@@ -29,67 +29,19 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
-    std::shared_ptr<scene::GameCamera> getCamera() const {
-        return camera;
-    }
-
-    bool isMetallic() const {
-        return metallic;
-    }
-
-    void setMetallic(bool val);
-
-    float getAmbientOcclusion() const {
-        return ao;
-    }
+    float getAmbientOcclusion() const;
 
     void setAmbientOcclusion(float val);
 
-    float getAmbientStrength() const {
-        return ambientStrength;
-    }
+    float getAmbientStrength() const;
 
     void setAmbientStrength(float val);
 
-    float getRoughness() const {
-        return roughness;
-    }
-
-    void setRoughness(float val);
-
-    int32_t getNumLights() const {
-        return numLights;
-    }
-
-    void setNumLights(int32_t val);
-
-    int32_t getAttenuationIndex() const {
-        return attenuationIndex;
-    }
+    int32_t getAttenuationIndex() const;
 
     void setAttenuationIndex(int32_t val);
 
-    uint32_t getShadowMapTextureId() const {
-        return shadowMap->getDepthMapTextureId();
-    }
-
-    float getShadowMapZNear() const {
-        return shadowMap->getZNear();
-    }
-
-    void setShadowMapZNear(float val);
-
-    float getShadowMapZFar() const {
-        return shadowMap->getZFar();
-    }
-
-    void setShadowMapZFar(float val);
-
-    float getShadowMapOrthoSize() const {
-        return shadowMap->getOrthoSize();
-    }
-
-    void setShadowMapOrthoSize(float val);
+    std::shared_ptr<scene::GameCamera> getCamera() const;
 
     bool getDirectionalLightCastsShadow() const;
 
@@ -112,6 +64,32 @@ public:
     void setDirectionalLightShadowBias(float value);
 
     uint32_t getDirectionalLightShadowMapRes() const;
+
+    bool isMetallic() const;
+
+    void setMetallic(bool val);
+
+    int32_t getNumLights() const;
+
+    void setNumLights(int32_t val);
+
+    float getRoughness() const;
+
+    void setRoughness(float val);
+
+    float getShadowMapOrthoSize() const;
+
+    void setShadowMapOrthoSize(float val);
+
+    uint32_t getShadowMapTextureId() const;
+
+    float getShadowMapZFar() const;
+
+    void setShadowMapZFar(float val);
+
+    float getShadowMapZNear() const;
+
+    void setShadowMapZNear(float val);
 
 private:
     std::shared_ptr<scene::GameCamera> camera;

@@ -255,7 +255,7 @@ void ImGuiLayer::showDirectionalLightControls() {
         showTableRow([&] {
             ImGui::Text("Shadow Far");
             ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##zfar", &zFar, 10.F, 500.F, "%3.1f")) {
+            if (ImGui::SliderFloat("##zfar", &zFar, 5.F, 500.F, "%3.1f")) {
                 mazeLayer->setShadowMapZFar(zFar);
             }
         });
@@ -263,7 +263,7 @@ void ImGuiLayer::showDirectionalLightControls() {
         showTableRow([&] {
             ImGui::Text("Ortho Size");
             ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##orthosize", &orthoSize, 5.F, 50.F)) {
+            if (ImGui::SliderFloat("##orthosize", &orthoSize, 1.F, 50.F)) {
                 mazeLayer->setShadowMapOrthoSize(orthoSize);
             }
         });
