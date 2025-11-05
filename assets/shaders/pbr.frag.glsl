@@ -2,10 +2,12 @@
 
 layout (location = 0) out vec4 FragColor;
 
-in vec3 vPosition;
-in vec2 vTexCoord;
-in vec3 vNormal;
-in vec4 vFragPosLightSpace;
+in VS_OUT {
+    vec3 position;
+    vec3 normal;
+    vec2 texCoords;
+    vec4 fragPosLightSpace;
+} fs_in;
 
 // material parameters
 uniform float metallic;
@@ -66,12 +68,12 @@ float geometrySchlickGGX(float NdotV, float rough);
 float geometrySmith(float NdotV, float NdotL, float rough);
 
 void main() {
-    vec3 texColor = pow(texture(texture_diffuse1, vTexCoord).rgb, vec3(2.2));
+    vec3 texColor = pow(texture(texture_diffuse1, fs_in.texCoords).rgb, vec3(2.2));
     vec3 constColor = pow(vec3(1.0), vec3(2.2));
     vec3 albedo = mix(texColor, constColor, float(hasNoTexture));
 
-    vec3 N = normalize(vNormal);
-    vec3 V = normalize(viewPos - vPosition);
+    vec3 N = normalize(fs_in.normal);
+    vec3 V = normalize(viewPos - fs_in.position);
 
     vec3 Lo = vec3(0.0);
 
@@ -82,7 +84,7 @@ void main() {
 
         float shadow = 0.0;
         if (directionalLight.castShadow) {
-            shadow = calculateShadow(vFragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
+            shadow = calculateShadow(fs_in.fragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
         }
 
         Lo += dirL * (1.0 - shadow);
@@ -93,7 +95,7 @@ void main() {
 
         float attenuation = attenuationFromLight(light);
         vec3 radiance = light.color * attenuation;
-        vec3 lightDir = normalize(light.position - vPosition);
+        vec3 lightDir = normalize(light.position - fs_in.position);
         vec3 L = calculatePBR(albedo, N, V, lightDir, radiance);
 
         Lo += L;
@@ -113,7 +115,7 @@ void main() {
 }
 
 float attenuationFromLight(PointLight light) {
-    float distance = length(light.position - vPosition);
+    float distance = length(light.position - fs_in.position);
     int index = clamp(light.attenuationIndex, 0, 10);
     vec3 attenuation = lightAttenuationData[index];
     return 1.0 / (attenuation.x + attenuation.y * distance + attenuation.z * (distance * distance));
