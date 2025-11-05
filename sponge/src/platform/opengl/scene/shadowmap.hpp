@@ -21,52 +21,27 @@ public:
 
     void activateAndBindDepthMap(uint8_t unit) const;
 
-    static std::string getShaderName() {
-        return std::string(shaderName);
-    }
+    static std::string getShaderName();
 
-    const glm::mat4& getLightSpaceMatrix() const {
-        return lightSpaceMatrix;
-    }
+    uint32_t getDepthMapTextureId() const;
 
-    uint32_t getDepthMapTextureId() const {
-        if (depthMap != nullptr) {
-            return depthMap->getId();
-        }
-        return 0;
-    }
+    uint32_t getHeight() const;
 
-    uint32_t getWidth() const {
-        return shadowWidth;
-    }
+    float getOrthoSize() const;
 
-    uint32_t getHeight() const {
-        return shadowHeight;
-    }
+    void setOrthoSize(float val);
 
-    float getZNear() const {
-        return zNear;
-    }
+    uint32_t getWidth() const;
 
-    void setZNear(const float val) {
-        zNear = val;
-    }
+    float getZFar() const;
 
-    float getZFar() const {
-        return zFar;
-    }
+    void setZFar(float val);
 
-    void setZFar(const float val) {
-        zFar = val;
-    }
+    float getZNear() const;
 
-    float getOrthoSize() const {
-        return orthoSize;
-    }
+    void setZNear(float val);
 
-    void setOrthoSize(const float val) {
-        orthoSize = val;
-    }
+    const glm::mat4& getLightSpaceMatrix() const;
 
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 

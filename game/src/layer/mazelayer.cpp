@@ -127,6 +127,27 @@ void MazeLayer::onDetach() {
     // nothing
 }
 
+void MazeLayer::onEvent(sponge::event::Event& event) {
+    sponge::event::EventDispatcher dispatcher(event);
+
+    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
+        [this](const sponge::event::MouseButtonPressedEvent& mbEvent) {
+            return this->onMouseButtonPressed(mbEvent);
+        });
+    dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
+        [this](const sponge::event::MouseButtonReleasedEvent& mrEvent) {
+            return this->onMouseButtonReleased(mrEvent);
+        });
+    dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
+        [this](const sponge::event::MouseScrolledEvent& msEvent) {
+            return this->onMouseScrolled(msEvent);
+        });
+    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
+        [this](const sponge::event::WindowResizeEvent& wsEvent) {
+            return this->onWindowResize(wsEvent);
+        });
+}
+
 bool MazeLayer::onUpdate(const double elapsedTime) {
     updateCamera(elapsedTime);
 
@@ -137,13 +158,8 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void MazeLayer::setMetallic(const bool val) {
-    metallic = val;
-
-    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
-    shader->bind();
-    shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->unbind();
+float MazeLayer::getAmbientOcclusion() const {
+    return ao;
 }
 
 void MazeLayer::setAmbientOcclusion(const float val) {
@@ -155,6 +171,10 @@ void MazeLayer::setAmbientOcclusion(const float val) {
     shader->unbind();
 }
 
+float MazeLayer::getAmbientStrength() const {
+    return ambientStrength;
+}
+
 void MazeLayer::setAmbientStrength(const float val) {
     ambientStrength = val;
 
@@ -164,28 +184,8 @@ void MazeLayer::setAmbientStrength(const float val) {
     shader->unbind();
 }
 
-void MazeLayer::setRoughness(const float val) {
-    roughness = val;
-
-    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
-    shader->bind();
-    shader->setFloat("roughness", roughness);
-    shader->unbind();
-}
-
-void MazeLayer::setNumLights(const int32_t val) {
-    numLights = val;
-
-    for (int32_t i = 0; i < numLights; i++) {
-        pointLights[i].color = glm::vec3(1.F);
-        pointLights[i].position = glm::vec3(
-            rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
-                   glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(0.F, 2.75F, -3.F, 1.F));
-        pointLights[i].attenuationIndex = attenuationIndex;
-    }
-
-    updateShaderLights();
+int32_t MazeLayer::getAttenuationIndex() const {
+    return attenuationIndex;
 }
 
 void MazeLayer::setAttenuationIndex(const int32_t val) {
@@ -193,16 +193,8 @@ void MazeLayer::setAttenuationIndex(const int32_t val) {
     setNumLights(numLights);
 }
 
-void MazeLayer::setShadowMapZNear(float val) {
-    shadowMap->setZNear(val);
-}
-
-void MazeLayer::setShadowMapZFar(float val) {
-    shadowMap->setZFar(val);
-}
-
-void MazeLayer::setShadowMapOrthoSize(float val) {
-    shadowMap->setOrthoSize(val);
+std::shared_ptr<scene::GameCamera> MazeLayer::getCamera() const {
+    return camera;
 }
 
 bool MazeLayer::getDirectionalLightCastsShadow() const {
@@ -276,25 +268,77 @@ uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
     return directionalLight.shadowMapRes;
 }
 
-void MazeLayer::onEvent(sponge::event::Event& event) {
-    sponge::event::EventDispatcher dispatcher(event);
+bool MazeLayer::isMetallic() const {
+    return metallic;
+}
 
-    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        [this](const sponge::event::MouseButtonPressedEvent& mbEvent) {
-            return this->onMouseButtonPressed(mbEvent);
-        });
-    dispatcher.dispatch<sponge::event::MouseButtonReleasedEvent>(
-        [this](const sponge::event::MouseButtonReleasedEvent& mrEvent) {
-            return this->onMouseButtonReleased(mrEvent);
-        });
-    dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
-        [this](const sponge::event::MouseScrolledEvent& msEvent) {
-            return this->onMouseScrolled(msEvent);
-        });
-    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        [this](const sponge::event::WindowResizeEvent& wsEvent) {
-            return this->onWindowResize(wsEvent);
-        });
+void MazeLayer::setMetallic(const bool val) {
+    metallic = val;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat("metallic", metallic ? 1.F : 0.F);
+    shader->unbind();
+}
+
+int32_t MazeLayer::getNumLights() const {
+    return numLights;
+}
+
+void MazeLayer::setNumLights(const int32_t val) {
+    numLights = val;
+
+    for (int32_t i = 0; i < numLights; i++) {
+        pointLights[i].color = glm::vec3(1.F);
+        pointLights[i].position = glm::vec3(
+            rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
+                   glm::vec3(0.F, 1.F, 0.F)) *
+            glm::vec4(0.F, 2.75F, -3.F, 1.F));
+        pointLights[i].attenuationIndex = attenuationIndex;
+    }
+
+    updateShaderLights();
+}
+
+float MazeLayer::getRoughness() const {
+    return roughness;
+}
+
+void MazeLayer::setRoughness(const float val) {
+    roughness = val;
+
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat("roughness", roughness);
+    shader->unbind();
+}
+
+float MazeLayer::getShadowMapOrthoSize() const {
+    return shadowMap->getOrthoSize();
+}
+
+void MazeLayer::setShadowMapOrthoSize(float val) {
+    shadowMap->setOrthoSize(val);
+}
+
+uint32_t MazeLayer::getShadowMapTextureId() const {
+    return shadowMap->getDepthMapTextureId();
+}
+
+float MazeLayer::getShadowMapZFar() const {
+    return shadowMap->getZFar();
+}
+
+void MazeLayer::setShadowMapZFar(float val) {
+    shadowMap->setZFar(val);
+}
+
+float MazeLayer::getShadowMapZNear() const {
+    return shadowMap->getZNear();
+}
+
+void MazeLayer::setShadowMapZNear(float val) {
+    shadowMap->setZNear(val);
 }
 
 bool MazeLayer::onMouseButtonPressed(

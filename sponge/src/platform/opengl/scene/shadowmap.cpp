@@ -12,7 +12,7 @@
 namespace {
 constexpr float nearPlane = 1.F;
 constexpr float farPlane = 100.F;
-constexpr float orthoBoxSize = 10.F;
+constexpr float orthoBoxSize = 5.F;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -71,6 +71,53 @@ void ShadowMap::unbind() const {
 
 void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
+}
+
+std::string ShadowMap::getShaderName() {
+    return std::string(shaderName);
+}
+
+uint32_t ShadowMap::getDepthMapTextureId() const {
+    if (depthMap != nullptr) {
+        return depthMap->getId();
+    }
+    return 0;
+}
+
+uint32_t ShadowMap::getHeight() const {
+    return shadowHeight;
+}
+
+float ShadowMap::getOrthoSize() const {
+    return orthoSize;
+}
+
+void ShadowMap::setOrthoSize(const float val) {
+    orthoSize = val;
+}
+
+uint32_t ShadowMap::getWidth() const {
+    return shadowWidth;
+}
+
+float ShadowMap::getZFar() const {
+    return zFar;
+}
+
+void ShadowMap::setZFar(const float val) {
+    zFar = val;
+}
+
+float ShadowMap::getZNear() const {
+    return zNear;
+}
+
+void ShadowMap::setZNear(const float val) {
+    zNear = val;
+}
+
+const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
+    return lightSpaceMatrix;
 }
 
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
