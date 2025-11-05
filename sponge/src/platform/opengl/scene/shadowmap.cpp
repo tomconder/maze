@@ -17,14 +17,15 @@ constexpr float orthoBoxSize = 5.F;
 
 namespace sponge::platform::opengl::scene {
 ShadowMap::ShadowMap(const uint32_t res) :
-    orthoSize(orthoBoxSize), shadowWidth(res), shadowHeight(res) {
+    orthoSize(orthoBoxSize),
+    shadowHeight(res),
+    shadowWidth(res),
+    zFar(farPlane),
+    zNear(nearPlane) {
     initialize();
 }
 
 void ShadowMap::initialize() {
-    zNear = nearPlane;
-    zFar = farPlane;
-
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name = shaderName,
         .vertexShaderPath = "/shaders/shadowmap.vert.glsl",

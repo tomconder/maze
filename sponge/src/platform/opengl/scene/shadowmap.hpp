@@ -51,12 +51,11 @@ private:
     std::shared_ptr<renderer::Texture> depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;
 
-    float zNear = 0.F;
-    float zFar = 1.F;
-
     float orthoSize;
-    uint32_t shadowWidth;
     uint32_t shadowHeight;
+    uint32_t shadowWidth;
+    float zFar;
+    float zNear;
 
     glm::mat4 lightSpaceMatrix{ 1.0f };
 
