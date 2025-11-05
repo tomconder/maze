@@ -1,6 +1,6 @@
 repo:
   - changed-files:
-      - all-globs-to-all-files: [ '*', '!CMakeLists.txt', '!CMakePresets.json' ]
+      - all-globs-to-all-files: ['*', '!CMakeLists.txt', '!CMakePresets.json']
 
 ci:
   - changed-files:
@@ -8,11 +8,11 @@ ci:
 
 cmake:
   - changed-files:
-      - any-glob-to-any-file: [ '**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**' ]
+      - any-glob-to-any-file: ['**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**']
 
 documentation:
   - changed-files:
-      - any-glob-to-any-file: [ 'README.md', 'docs/**' ]
+      - any-glob-to-any-file: ['README.md', 'docs/**']
 
 game:
   - changed-files:
@@ -24,7 +24,7 @@ sponge:
 
 vcpkg:
   - changed-files:
-      - any-glob-to-any-file: [ 'vcpkg.json', 'vcpkg-configuration.json' ]
+      - any-glob-to-any-file: ['vcpkg.json', 'vcpkg-configuration.json']
 
 feature:
-  - head-branch: [ '^feature', 'feature' ]
+  - head-branch: ['^feature', 'feature']
