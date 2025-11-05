@@ -5,49 +5,53 @@
 
 fail_fast: false
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: mixed-line-ending
-        exclude: .vscode|assets/models|sponge/deps
-        args: [ '--fix=lf' ]
-      - id: trailing-whitespace
-        exclude: .vscode|assets/models|sponge/deps
-      - id: end-of-file-fixer
-        exclude: .vscode|assets/models|sponge/deps
-      - id: check-case-conflict
-        exclude: .vscode|assets/models|sponge/deps
-      - id: check-executables-have-shebangs
-        exclude: .vscode|assets/models|sponge/deps
-      - id: check-merge-conflict
-        exclude: .vscode|assets/models|sponge/deps
-      - id: check-yaml
-        exclude: .vscode
-      - id: check-json
-        exclude: .vscode
-      - id: detect-private-key
-        exclude: .vscode|assets/models|sponge/deps
-      - id: detect-aws-credentials
-        exclude: .vscode|assets/models|sponge/deps
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: mixed-line-ending
+            exclude: .vscode|assets/models|sponge/deps
+            args: ['--fix=lf']
+          - id: trailing-whitespace
+            exclude: .vscode|assets/models|sponge/deps
+          - id: end-of-file-fixer
+            exclude: .vscode|assets/models|sponge/deps
+          - id: check-case-conflict
+            exclude: .vscode|assets/models|sponge/deps
+          - id: check-executables-have-shebangs
+            exclude: .vscode|assets/models|sponge/deps
+          - id: check-merge-conflict
+            exclude: .vscode|assets/models|sponge/deps
+          - id: detect-private-key
+            exclude: .vscode|assets/models|sponge/deps
+          - id: detect-aws-credentials
+            exclude: .vscode|assets/models|sponge/deps
 
-  - repo: https://github.com/sirosen/texthooks
-    rev: 0.7.1
-    hooks:
-      - id: fix-smartquotes
-        exclude: .vscode|assets/models|sponge/deps
+    - repo: https://github.com/sirosen/texthooks
+      rev: 0.7.1
+      hooks:
+          - id: fix-smartquotes
+            exclude: .vscode|assets/models|sponge/deps
 
-  - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v21.1.2
-    hooks:
-      - id: clang-format
-        types: [ file ]
-        files: \.(c|cpp|h|hpp|glsl)$
-        exclude: sponge/deps|out|tools
+    - repo: https://github.com/pre-commit/mirrors-clang-format
+      rev: v21.1.5
+      hooks:
+          - id: clang-format
+            types: [file]
+            files: \.(c|cpp|h|hpp|glsl)$
+            exclude: sponge/deps|out|tools
 
-  - repo: https://github.com/cpplint/cpplint
-    rev: 2.0.2
-    hooks:
-      - id: cpplint
-        exclude: sponge/deps|out|tools
-        args:
-          - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent
+    - repo: https://github.com/cpplint/cpplint
+      rev: 2.0.2
+      hooks:
+          - id: cpplint
+            exclude: sponge/deps|out|tools
+            args:
+                - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent
+
+    - repo: https://github.com/pre-commit/mirrors-prettier
+      rev: 'v3.1.0'
+      hooks:
+          - id: prettier
+            args: ['--write']
+            files: "\\.(js|jsx|ts|tsx|css|scss|json|yaml|yml|md)$"
+            exclude: .vscode|assets/models|sponge/deps

@@ -8,7 +8,7 @@ repo_url: 'http://github.com/tomconder/maze'
 edit_uri: 'tree/main/docs/'
 remote_branch: gh-pages
 
-docs_dir: "docs"
+docs_dir: 'docs'
 
 nav:
   - 'Overview': index.md
@@ -32,14 +32,14 @@ theme:
     repo: fontawesome/brands/git-alt
     view: material/eye
   palette:
-    - media: "(prefers-color-scheme: light)"
+    - media: '(prefers-color-scheme: light)'
       scheme: default
       primary: white
       accent: black
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
+    - media: '(prefers-color-scheme: dark)'
       scheme: slate
       primary: black
       accent: lime

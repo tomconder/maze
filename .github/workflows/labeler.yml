@@ -1,8 +1,8 @@
-name: "pull request labeler"
+name: 'pull request labeler'
 
 on:
   pull_request_target:
-    types: [ opened, synchronize ]
+    types: [opened, synchronize]
 
 permissions:
   contents: read
