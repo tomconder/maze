@@ -127,7 +127,7 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
     const float top = orthoSize;
 
     const auto lightProjection =
-        glm::ortho(left, right, bottom, top, nearPlane, farPlane);
+        glm::ortho(left, right, bottom, top, zNear, zFar);
 
     const auto lightView = glm::lookAt(10.F * -lightDirection, glm::vec3(0.0f),
                                        glm::vec3(0.0f, 1.0f, 0.0f));
