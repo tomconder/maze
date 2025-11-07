@@ -43,8 +43,8 @@ using sponge::platform::opengl::scene::ShadowMap;
 constexpr std::array gameObjects = {
     GameObject{ .name = "floor",
                 .path = "/models/floor/floor.obj",
-                .scale = glm::vec3(1.F),
-                .translation = glm::vec3(0.F, 0.002F, 0.F) },
+                .scale = glm::vec3(2.F),
+                .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     // GameObject{ .name = "cube1",
     //             .path = "/models/cube/cube-tex.obj",
