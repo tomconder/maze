@@ -2,7 +2,6 @@
 /build/
 /venv/
 
-!assets/**/*.obj
 
 .claude/
 CLAUDE.md
@@ -18,6 +17,7 @@ CLAUDE.md
 *.lo
 *.o
 *.obj
+!assets/models/**/*.obj
 
 # Precompiled Headers
 *.gch
@@ -158,3 +158,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+node_modules
