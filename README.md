@@ -4,18 +4,18 @@ A nice walk through a maze.
 
 > For more information please check out the [full documentation](https://tomconder.github.io/maze/)
 
-![work in progress](docs/docs/static/img/workinprogress.png "work in progress")
+![work in progress](docs/docs/static/img/workinprogress.png 'work in progress')
 
 ## Features
 
-* Platform portability: OpenGL and C++ for Windows and macOS
-* Physically based rendering (PBR)
-* Cook-Torrance microfacet specular BRDF
-* Point lights and directional light
-* PCF shadows
-* Reinhard tone mapping
-* Multi-channel signed distance field (MSDF) text rendering
-* Performance profiling with Tracy
+-   Platform portability: OpenGL and C++ for Windows and macOS
+-   Physically based rendering (PBR)
+-   Cook-Torrance microfacet specular BRDF
+-   Point lights and directional light
+-   PCF shadows
+-   Reinhard tone mapping
+-   Multi-channel signed distance field (MSDF) text rendering
+-   Performance profiling with Tracy
 
 ## Project Organization
 
