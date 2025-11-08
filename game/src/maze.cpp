@@ -96,18 +96,18 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 }  // namespace game
 
 sponge::core::Application* sponge::core::createApplication(const int argc,
-                                                           char** argv) {
+                                                           char**    argv) {
     UNUSED(argc);
     UNUSED(argv);
 
-    constexpr uint32_t width = 1600;
-    constexpr uint32_t height = 900;
-    constexpr bool fullscreen = false;
+    constexpr uint32_t width      = 1600;
+    constexpr uint32_t height     = 900;
+    constexpr bool     fullscreen = false;
 
     using platform::glfw::core::ApplicationSpecification;
 
-    const auto spec = ApplicationSpecification{ .name = game::project_name,
-                                                .width = width,
+    const auto spec = ApplicationSpecification{ .name   = game::project_name,
+                                                .width  = width,
                                                 .height = height,
                                                 .fullscreen = fullscreen };
 

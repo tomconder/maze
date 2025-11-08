@@ -11,12 +11,12 @@
 #include <ranges>
 
 namespace {
-constexpr ImColor darkDebugColor{ .3F, .8F, .8F, 1.F };
-constexpr ImColor darkErrorColor{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor darkWarnColor{ .8F, .8F, 0.3F, 1.F };
+constexpr ImColor          darkDebugColor{ .3F, .8F, .8F, 1.F };
+constexpr ImColor          darkErrorColor{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor          darkWarnColor{ .8F, .8F, 0.3F, 1.F };
 constexpr std::string_view cameraName = "maze";
 constexpr std::array categories = { "categories", "app", "sponge", "opengl" };
-constexpr std::array logLevels = {
+constexpr std::array logLevels  = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
@@ -31,16 +31,16 @@ constexpr ImGuiTableFlags tableFlags =
     ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX;
 
 constexpr ImVec2 compactSpacing{ 4, 1 };
-constexpr float appInfoWidth = 376.F;
-constexpr float appInfoHeight = 656.F;
-constexpr float logHeight = 220.F;
+constexpr float  appInfoWidth  = 376.F;
+constexpr float  appInfoHeight = 656.F;
+constexpr float  logHeight     = 220.F;
 }  // namespace
 
 namespace game::layer::imgui {
 bool ImGuiLayer::hasAppInfoMenu = true;
-bool ImGuiLayer::hasLogMenu = true;
-bool ImGuiLayer::hasVsync = true;
-bool ImGuiLayer::isFullscreen = false;
+bool ImGuiLayer::hasLogMenu     = true;
+bool ImGuiLayer::hasVsync       = true;
+bool ImGuiLayer::isFullscreen   = false;
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     // nothing
@@ -48,7 +48,7 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 
 void ImGuiLayer::onImGuiRender() {
     const auto window = Maze::get().window;
-    const auto width = static_cast<float>(window->getWidth());
+    const auto width  = static_cast<float>(window->getWidth());
     const auto height = static_cast<float>(window->getHeight());
 
     updateState();
@@ -64,7 +64,7 @@ void ImGuiLayer::onImGuiRender() {
 }
 
 void ImGuiLayer::updateState() {
-    hasVsync = Maze::get().hasVerticalSync();
+    hasVsync     = Maze::get().hasVerticalSync();
     isFullscreen = Maze::get().isFullscreen();
 }
 
@@ -90,8 +90,8 @@ void ImGuiLayer::showInfoSection() {
         return;
     }
 
-    const auto& io = ImGui::GetIO();
-    const auto window = Maze::get().window;
+    const auto&       io     = ImGui::GetIO();
+    const auto        window = Maze::get().window;
     const std::string appInfo =
         fmt::format("{} {} ({})", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
@@ -164,9 +164,9 @@ void ImGuiLayer::showLightsSection() {
 
     if (ImGui::BeginTabBar("LightsTabBar")) {
         if (ImGui::BeginTabItem("Point##Tab", nullptr,
-                                ImGui::IsWindowAppearing()
-                                    ? ImGuiTabItemFlags_SetSelected
-                                    : ImGuiTabItemFlags_None)) {
+                                ImGui::IsWindowAppearing() ?
+                                    ImGuiTabItemFlags_SetSelected :
+                                    ImGuiTabItemFlags_None)) {
             showPointLightControls();
             ImGui::EndTabItem();
         }
@@ -180,14 +180,14 @@ void ImGuiLayer::showLightsSection() {
 
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
-        const auto mazeLayer = Maze::get().getMazeLayer();
-        auto bias = mazeLayer->getDirectionalLightShadowBias();
-        auto castShadow = mazeLayer->getDirectionalLightCastsShadow();
-        auto direction = mazeLayer->getDirectionalLightDirection();
-        auto enabled = mazeLayer->getDirectionalLightEnabled();
-        auto orthoSize = mazeLayer->getShadowMapOrthoSize();
-        auto zFar = mazeLayer->getShadowMapZFar();
-        auto zNear = mazeLayer->getShadowMapZNear();
+        const auto mazeLayer  = Maze::get().getMazeLayer();
+        auto       bias       = mazeLayer->getDirectionalLightShadowBias();
+        auto       castShadow = mazeLayer->getDirectionalLightCastsShadow();
+        auto       direction  = mazeLayer->getDirectionalLightDirection();
+        auto       enabled    = mazeLayer->getDirectionalLightEnabled();
+        auto       orthoSize  = mazeLayer->getShadowMapOrthoSize();
+        auto       zFar       = mazeLayer->getShadowMapZFar();
+        auto       zNear      = mazeLayer->getShadowMapZNear();
 
         showTableRow([&] {
             ImGui::Text("Enable");
@@ -200,8 +200,8 @@ void ImGuiLayer::showDirectionalLightControls() {
 
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
-        auto dirColor = mazeLayer->getDirectionalLightColor();
-        ImVec4 color = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
+        auto   dirColor = mazeLayer->getDirectionalLightColor();
+        ImVec4 color    = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
         showTableRow([&] {
             ImGui::Text("Color");
             ImGui::TableNextColumn();
@@ -280,21 +280,21 @@ void ImGuiLayer::showDirectionalLightControls() {
 }
 
 void ImGuiLayer::showPointLightControls() {
-    const auto mazeLayer = Maze::get().getMazeLayer();
-    auto numLights = mazeLayer->getNumLights();
-    int32_t attenuationIndex = mazeLayer->getAttenuationIndex();
+    const auto mazeLayer        = Maze::get().getMazeLayer();
+    auto       numLights        = mazeLayer->getNumLights();
+    int32_t    attenuationIndex = mazeLayer->getAttenuationIndex();
     if (ImGui::SliderInt("Lights ", &numLights, 1, 6)) {
         mazeLayer->setNumLights(numLights);
     }
 
     showAttenuationSlider(attenuationIndex);
 
-    if (ImGui::BeginTable(
-            "PointLights##Table", 1,
-            ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX)) {
-        auto metallic = mazeLayer->isMetallic();
-        auto ambientStrength = mazeLayer->getAmbientStrength();
-        auto roughness = mazeLayer->getRoughness();
+    if (ImGui::BeginTable("PointLights##Table", 1,
+                          ImGuiTableFlags_NoPadInnerX |
+                              ImGuiTableFlags_NoPadOuterX)) {
+        auto metallic         = mazeLayer->isMetallic();
+        auto ambientStrength  = mazeLayer->getAmbientStrength();
+        auto roughness        = mazeLayer->getRoughness();
         auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
 
         showTableRow([&] {
@@ -377,7 +377,7 @@ float ImGuiLayer::getLogSelectionMaxWidth(
     float maxWidth = 0;
     for (const auto* item : list) {
         const auto width = ImGui::CalcTextSize(item).x;
-        maxWidth = std::max(width, maxWidth);
+        maxWidth         = std::max(width, maxWidth);
     }
 
     return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
@@ -424,7 +424,7 @@ void ImGuiLayer::showFontsTable() {
 }
 
 void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
-    const auto activeColor = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
+    const auto activeColor   = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
     if (ImGui::BeginTable("layerTable", 1)) {
@@ -495,21 +495,21 @@ void ImGuiLayer::showTexturesTable() {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static auto logLevelWidth = getLogSelectionMaxWidth(logLevels);
-    static auto categoriesWidth = getLogSelectionMaxWidth(categories);
+    static auto            logLevelWidth = getLogSelectionMaxWidth(logLevels);
+    static auto categoriesWidth          = getLogSelectionMaxWidth(categories);
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
-    static auto activeCategory = 0;
+    static auto                      activeCategory = 0;
 
     showLogControls(filter, logLevelWidth, categoriesWidth, activeLogLevel,
                     activeCategory);
     showLogMessages(filter, activeLogLevel, activeCategory);
 }
 
-void ImGuiLayer::showLogControls(ImGuiTextFilter& filter,
-                                 const float logLevelWidth,
-                                 const float categoriesWidth,
+void ImGuiLayer::showLogControls(ImGuiTextFilter&           filter,
+                                 const float                logLevelWidth,
+                                 const float                categoriesWidth,
                                  spdlog::level::level_enum& activeLogLevel,
-                                 int& activeCategory) {
+                                 int&                       activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
                  logLevels.data(), static_cast<int>(logLevels.size()));
@@ -537,7 +537,7 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter& filter,
     ImGui::Separator();
 }
 
-void ImGuiLayer::showLogMessages(const ImGuiTextFilter& filter,
+void ImGuiLayer::showLogMessages(const ImGuiTextFilter&          filter,
                                  const spdlog::level::level_enum activeLogLevel,
                                  const int activeCategory) {
     ImGui::BeginChild("LogTextView",
@@ -583,9 +583,9 @@ bool ImGuiLayer::shouldShowLogMessage(
     return filter.PassFilter(message.c_str());
 }
 
-void ImGuiLayer::renderLogMessage(const std::string& message,
+void ImGuiLayer::renderLogMessage(const std::string&              message,
                                   const spdlog::level::level_enum level) {
-    const auto color = getLogLevelColor(level);
+    const auto color    = getLogLevelColor(level);
     const bool hasColor = color.has_value();
 
     if (hasColor) {
@@ -599,8 +599,8 @@ void ImGuiLayer::renderLogMessage(const std::string& message,
     }
 }
 
-std::optional<ImVec4> ImGuiLayer::getLogLevelColor(
-    const spdlog::level::level_enum level) {
+std::optional<ImVec4>
+    ImGuiLayer::getLogLevelColor(const spdlog::level::level_enum level) {
     switch (level) {
         case spdlog::level::debug:
             return darkDebugColor;

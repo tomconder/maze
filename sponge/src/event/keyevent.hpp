@@ -24,7 +24,7 @@ protected:
 class KeyPressedEvent final : public KeyEvent {
 public:
     explicit KeyPressedEvent(const input::KeyCode keycode,
-                             const bool isRepeated = false) :
+                             const bool           isRepeated = false) :
         KeyEvent(keycode), isRepeated(isRepeated) {}
 
     bool isHeld() const {

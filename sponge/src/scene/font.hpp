@@ -9,11 +9,11 @@ namespace sponge::scene {
 
 struct Character {
     glm::vec2 loc;
-    float width;
-    float height;
+    float     width;
+    float     height;
     glm::vec2 offset;
-    float xadvance;
-    uint32_t page;
+    float     xadvance;
+    uint32_t  page;
 };
 
 class Font {
@@ -23,7 +23,7 @@ public:
 
 protected:
     std::unordered_map<std::string, Character> fontChars;
-    std::unordered_map<std::string, float> kerning;
+    std::unordered_map<std::string, float>     kerning;
 
     // the name of the texture page in the resource manager
     std::string textureName;

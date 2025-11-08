@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace {
-constexpr char normal[] = "normal";
+constexpr char normal[]   = "normal";
 constexpr char position[] = "position";
 constexpr char texCoord[] = "texCoord";
 }  // namespace
@@ -22,14 +22,14 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
            const std::vector<uint32_t>& indices, const std::size_t numIndices,
            const std::vector<std::shared_ptr<renderer::Texture>>& textures) :
     textures(textures) {
-    this->indices = indices;
-    this->numIndices = numIndices;
-    this->vertices = vertices;
+    this->indices     = indices;
+    this->numIndices  = numIndices;
+    this->vertices    = vertices;
     this->numVertices = numVertices;
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/pbr.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/pbr.vert.glsl",
         .fragmentShaderPath = "/shaders/pbr.frag.glsl",
     };
     const auto shader = ResourceManager::createShader(shaderCreateInfo);

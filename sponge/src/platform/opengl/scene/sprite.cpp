@@ -9,12 +9,12 @@
 #include <string>
 
 namespace {
-constexpr char vertex[] = "vertex";
+constexpr char     vertex[]  = "vertex";
 constexpr uint32_t indices[] = {
     0, 1, 2,  //
     0, 2, 3   //
 };
-constexpr uint32_t indexCount = 6;
+constexpr uint32_t indexCount  = 6;
 constexpr uint32_t vertexCount = 8;
 }  // namespace
 
@@ -22,8 +22,8 @@ namespace sponge::platform::opengl::scene {
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/sprite.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/sprite.vert.glsl",
         .fragmentShaderPath = "/shaders/sprite.frag.glsl",
     };
     shader = renderer::ResourceManager::createShader(shaderCreateInfo);
@@ -54,7 +54,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
                                                          .path = texturePath };
-    const auto tex =
+    const auto                        tex =
         renderer::ResourceManager::createTexture(textureCreateInfo);
     tex->bind();
 

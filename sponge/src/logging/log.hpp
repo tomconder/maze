@@ -19,8 +19,8 @@
 
 namespace sponge::logging {
 struct LogItem {
-    std::string message;
-    std::string loggerName;
+    std::string               message;
+    std::string               loggerName;
     spdlog::level::level_enum level;
 };
 
@@ -43,7 +43,7 @@ public:
     }
 
     static void addSink(const spdlog::sink_ptr& sink,
-                        const std::string& pattern);
+                        const std::string&      pattern);
 
     static constexpr char colorFormatPattern[] =
         "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
@@ -56,11 +56,12 @@ private:
     static std::shared_ptr<spdlog::logger> coreLogger;
     static std::shared_ptr<spdlog::logger> glLogger;
 
-    static std::shared_ptr<spdlog::logger> registerLogger(
-        const std::string& name, const std::vector<spdlog::sink_ptr>& sinks);
+    static std::shared_ptr<spdlog::logger>
+        registerLogger(const std::string&                   name,
+                       const std::vector<spdlog::sink_ptr>& sinks);
 
     static void setFormatter(const spdlog::sink_ptr& sink,
-                             const std::string& pattern);
+                             const std::string&      pattern);
 };
 
 #define SPONGE_CORE_TRACE(...) \

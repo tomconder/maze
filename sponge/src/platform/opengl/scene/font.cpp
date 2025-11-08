@@ -10,12 +10,12 @@
 #include <string>
 
 namespace {
-constexpr char vertex[] = "vertex";
-constexpr size_t indexCount = 6;
-constexpr size_t maxLength = 256;
+constexpr char   vertex[]    = "vertex";
+constexpr size_t indexCount  = 6;
+constexpr size_t maxLength   = 256;
 constexpr size_t vertexCount = 8;
 
-std::array<uint32_t, maxLength * indexCount> batchIndices;
+std::array<uint32_t, maxLength * indexCount>   batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 }  // namespace
 
@@ -26,8 +26,8 @@ Font::Font(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/text.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/text.vert.glsl",
         .fragmentShaderPath = "/shaders/text.frag.glsl"
     };
     shader = ResourceManager::createShader(shaderCreateInfo);
@@ -64,16 +64,16 @@ Font::Font(const FontCreateInfo& createInfo) {
 }
 
 uint32_t Font::getLength(const std::string_view text,
-                         const uint32_t targetSize) {
+                         const uint32_t         targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::string prev;
-    float x = 0;
+    float       x = 0;
 
     for (const char& c : str) {
-        auto index = std::to_string(c);
+        auto index                                        = std::to_string(c);
         auto [loc, width, height, offset, xadvance, page] = fontChars[index];
         x += xadvance * scale;
         if (!prev.empty()) {
@@ -89,12 +89,12 @@ uint32_t Font::getLength(const std::string_view text,
 void Font::load(const std::string& path) {
     sponge::scene::Font::load(path);
 
-    const auto pos = path.find_last_of('/');
+    const auto pos        = path.find_last_of('/');
     const auto fontFolder = path.substr(0, pos + 1);
 
     const renderer::TextureCreateInfo textureCreateInfo{
-        .name = textureName,
-        .path = std::string(fontFolder + textureName),
+        .name     = textureName,
+        .path     = std::string(fontFolder + textureName),
         .loadFlag = renderer::ExcludeAssetsFolder
     };
     const auto texture = ResourceManager::createTexture(textureCreateInfo);
@@ -108,9 +108,9 @@ void Font::render(const std::string& text, const glm::vec2& position,
         return;
     }
 
-    const auto fontSize = static_cast<float>(targetSize);
-    const float scale = fontSize / size;
-    const auto str =
+    const auto  fontSize = static_cast<float>(targetSize);
+    const float scale    = fontSize / size;
+    const auto  str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::string prev;

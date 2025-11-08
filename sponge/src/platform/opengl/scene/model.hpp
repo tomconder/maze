@@ -20,7 +20,7 @@ struct ModelCreateInfo {
 class Model {
 public:
     explicit Model(const ModelCreateInfo& createInfo);
-    void render(const std::shared_ptr<renderer::Shader>& shader) const;
+    void   render(const std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {
         return numIndices;
     }
@@ -32,20 +32,21 @@ protected:
     std::vector<std::shared_ptr<Mesh>> meshes;
 
 private:
-    size_t numIndices = 0;
+    size_t numIndices  = 0;
     size_t numVertices = 0;
 
     void load(const std::string& path);
-    void process(tinyobj::attrib_t& attrib,
-                 std::vector<tinyobj::shape_t>& shapes,
+    void process(tinyobj::attrib_t&                      attrib,
+                 std::vector<tinyobj::shape_t>&          shapes,
                  const std::vector<tinyobj::material_t>& materials,
-                 const std::string& path);
-    static std::shared_ptr<Mesh> processMesh(
-        tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-        const std::vector<tinyobj::material_t>& materials,
-        const std::string& path);
-    static std::shared_ptr<renderer::Texture> loadMaterialTextures(
-        const tinyobj::material_t& material, const std::string& path);
+                 const std::string&                      path);
+    static std::shared_ptr<Mesh>
+        processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+                    const std::vector<tinyobj::material_t>& materials,
+                    const std::string&                      path);
+    static std::shared_ptr<renderer::Texture>
+        loadMaterialTextures(const tinyobj::material_t& material,
+                             const std::string&         path);
 };
 
 }  // namespace sponge::platform::opengl::scene

@@ -6,12 +6,12 @@
 #include <memory>
 
 namespace {
-constexpr char vertex[] = "position";
+constexpr char     vertex[]  = "position";
 constexpr uint32_t indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
-constexpr uint32_t indexCount = 6;
+constexpr uint32_t indexCount  = 6;
 constexpr uint32_t vertexCount = 4;
 }  // namespace
 
@@ -19,8 +19,8 @@ namespace sponge::platform::opengl::scene {
 
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/quad.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/quad.vert.glsl",
         .fragmentShaderPath = "/shaders/quad.frag.glsl",
     };
     shader = renderer::ResourceManager::createShader(shaderCreateInfo);
