@@ -1,44 +1,45 @@
 ---
 Language: Cpp
-# BasedOnStyle: LLVM
+BasedOnStyle: LLVM
+
+# Alignment
 AccessModifierOffset: -4
-AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignConsecutiveMacros: true
 AlignEscapedNewlines: Left
-AlignOperands: true
-AlignTrailingComments: true
-AllowAllParametersOfDeclarationOnNextLine: true
+PointerAlignment: Left
+
+# Short constructs
 AllowShortBlocksOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterDefinitionReturnType: None
-AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: false
+
+# Breaking
 AlwaysBreakTemplateDeclarations: true
-BinPackArguments: true
-BinPackParameters: true
-BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
-BreakBeforeInheritanceComma: false
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
 BreakConstructorInitializers: AfterColon
-BreakStringLiterals: true
-ColumnLimit: 80
-CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
-ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 4
+PackConstructorInitializers: NextLine
+
+# Style
 Cpp11BracedListStyle: false
-DerivePointerAlignment: false
-DisableFormat: false
-ExperimentalAutoDetectBinPacking: false
-FixNamespaceComments: true
-IncludeBlocks: Preserve
+
+# Includes
 IncludeCategories:
   - Regex: ^\"
     Priority: 1500
@@ -48,41 +49,18 @@ IncludeCategories:
     Priority: 3000
   - Regex: ^<.*
     Priority: 4000
-IncludeIsMainRegex: '(Test)?$'
+
+# Indentation
 IndentCaseLabels: true
 IndentWidth: 4
 IndentWrappedFunctionNames: true
 KeepEmptyLinesAtTheStartOfBlocks: false
-MacroBlockBegin: ''
-MacroBlockEnd: ''
-MaxEmptyLinesToKeep: 1
-NamespaceIndentation: None
-PenaltyBreakAssignment: 2
-PenaltyBreakBeforeFirstCallParameter: 19
-PenaltyBreakComment: 300
-PenaltyBreakFirstLessLess: 120
-PenaltyBreakString: 1000
-PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 60
-PointerAlignment: Left
-QualifierAlignment: Left
-ReflowComments: true
-SortIncludes: true
-SortUsingDeclarations: true
-SpaceAfterTemplateKeyword: true
-SpaceBeforeAssignmentOperators: true
-SpaceBeforeCtorInitializerColon: true
-SpaceBeforeInheritanceColon: true
-SpaceBeforeParens: ControlStatements
-SpaceBeforeRangeBasedForLoopColon: true
-SpaceInEmptyParentheses: false
+
+# Spacing
 SpacesBeforeTrailingComments: 2
-SpacesInAngles: false
 SpacesInContainerLiterals: false
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
+
+# Other
 Standard: Cpp11
 TabWidth: 4
-UseTab: Never
 ...
