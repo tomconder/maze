@@ -40,17 +40,17 @@ void Model::load(const std::string& path) {
 
     meshes.clear();
 
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
+    tinyobj::attrib_t                attrib;
+    std::vector<tinyobj::shape_t>    shapes;
     std::vector<tinyobj::material_t> materials;
-    std::string warn;
-    std::string err;
+    std::string                      warn;
+    std::string                      err;
 
     core::Timer timer;
     timer.tick();
 
     const std::filesystem::path dir{ path };
-    const auto ret =
+    const auto                  ret =
         LoadObj(&attrib, &shapes, &materials, &warn, &err, dir.string().data(),
                 dir.parent_path().string().data());
 
@@ -85,11 +85,11 @@ void Model::load(const std::string& path) {
     process(attrib, shapes, materials, dir.parent_path().string());
 }
 
-void Model::process(tinyobj::attrib_t& attrib,
-                    std::vector<tinyobj::shape_t>& shapes,
+void Model::process(tinyobj::attrib_t&                      attrib,
+                    std::vector<tinyobj::shape_t>&          shapes,
                     const std::vector<tinyobj::material_t>& materials,
-                    const std::string& path) {
-    numIndices = 0;
+                    const std::string&                      path) {
+    numIndices  = 0;
     numVertices = 0;
 
     for (auto& [name, mesh, lines, points] : shapes) {
@@ -101,12 +101,12 @@ void Model::process(tinyobj::attrib_t& attrib,
     }
 }
 
-std::shared_ptr<Mesh> Model::processMesh(
-    tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-    const std::vector<tinyobj::material_t>& materials,
-    const std::string& path) {
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+std::shared_ptr<Mesh>
+    Model::processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+                       const std::vector<tinyobj::material_t>& materials,
+                       const std::string&                      path) {
+    std::vector<Vertex>                             vertices;
+    std::vector<uint32_t>                           indices;
     std::vector<std::shared_ptr<renderer::Texture>> textures;
 
     auto numIndices = 0;
@@ -116,12 +116,12 @@ std::shared_ptr<Mesh> Model::processMesh(
 
     Vertex vertex{};
     for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
-        auto i = vertex_index * 3;
+        auto i          = vertex_index * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
                                      attrib.vertices[i + 2] };
 
         if (!attrib.texcoords.empty()) {
-            i = texcoord_index * 2;
+            i                = texcoord_index * 2;
             vertex.texCoords = glm::vec2{ attrib.texcoords[i],
                                           1.0F - attrib.texcoords[i + 1] };
         } else {
@@ -129,7 +129,7 @@ std::shared_ptr<Mesh> Model::processMesh(
         }
 
         if (!attrib.normals.empty()) {
-            i = normal_index * 3;
+            i             = normal_index * 3;
             vertex.normal = glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
                                        attrib.normals[i + 2] };
         }
@@ -167,8 +167,9 @@ std::shared_ptr<Mesh> Model::processMesh(
                                   textures);
 }
 
-std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
-    const tinyobj::material_t& material, const std::string& path) {
+std::shared_ptr<renderer::Texture>
+    Model::loadMaterialTextures(const tinyobj::material_t& material,
+                                const std::string&         path) {
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
             pos != std::string::npos) {
@@ -185,8 +186,8 @@ std::shared_ptr<renderer::Texture> Model::loadMaterialTextures(
                            [](const uint8_t c) { return std::tolower(c); });
 
     const renderer::TextureCreateInfo textureCreateInfo{
-        .name = name,
-        .path = filename.string(),
+        .name     = name,
+        .path     = filename.string(),
         .loadFlag = renderer::ExcludeAssetsFolder
     };
     return renderer::ResourceManager::createTexture(textureCreateInfo);

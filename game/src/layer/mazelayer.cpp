@@ -12,22 +12,22 @@
 
 namespace {
 constexpr auto keyboardSpeed = .075F;
-constexpr auto mouseSpeed = .125F;
+constexpr auto mouseSpeed    = .125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
-constexpr auto sunCastsShadow = true;
-constexpr auto sunColor = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto sunDirection = glm::vec3(0.F, -2.F, 1.333F);
-constexpr auto sunEnabled = true;
-constexpr auto sunShadowBias = 0.001F;
+constexpr auto sunCastsShadow  = true;
+constexpr auto sunColor        = glm::vec3(1.F, 1.F, 1.F);
+constexpr auto sunDirection    = glm::vec3(0.F, -2.F, 1.333F);
+constexpr auto sunEnabled      = true;
+constexpr auto sunShadowBias   = 0.001F;
 constexpr auto sunShadowMapRes = 2048;
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
 constexpr std::string_view cameraName = "maze";
 
-game::scene::DirectionalLight directionalLight;
+game::scene::DirectionalLight          directionalLight;
 std::array<game::scene::PointLight, 6> pointLights;
 }  // namespace
 
@@ -41,9 +41,9 @@ using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::ShadowMap;
 
 constexpr std::array gameObjects = {
-    GameObject{ .name = "floor",
-                .path = "/models/floor/floor.obj",
-                .scale = glm::vec3(2.F),
+    GameObject{ .name        = "floor",
+                .path        = "/models/floor/floor.obj",
+                .scale       = glm::vec3(2.F),
                 .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     // GameObject{ .name = "cube1",
@@ -63,11 +63,11 @@ constexpr std::array gameObjects = {
     //                           .axis = glm::vec3(1.F, 0.F, 1.F) },
     //             .translation = glm::vec3(-1.F, 0.25F, 1.F) }
 
-    GameObject{ .name = "helmet",
-                .path = "/models/helmet/damaged_helmet.obj",
-                .scale = glm::vec3(.5F),
-                .rotation = { .angle = glm::radians(45.F),
-                              .axis = glm::vec3(0.F, 1.F, 0.F) },
+    GameObject{ .name        = "helmet",
+                .path        = "/models/helmet/damaged_helmet.obj",
+                .scale       = glm::vec3(.5F),
+                .rotation    = { .angle = glm::radians(45.F),
+                                 .axis  = glm::vec3(0.F, 1.F, 0.F) },
                 .translation = glm::vec3(0.F, 0.F, 0.F) }
 };
 
@@ -90,7 +90,7 @@ void MazeLayer::onAttach() {
     camera->setPosition(cameraPosition);
 
     const auto shaderName = Mesh::getShaderName();
-    const auto shader = ResourceManager::getShader(shaderName);
+    const auto shader     = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
@@ -99,11 +99,11 @@ void MazeLayer::onAttach() {
 
     shader->setFloat("ambientStrength", ambientStrength);
 
-    directionalLight = { .enabled = sunEnabled,
-                         .castShadow = sunCastsShadow,
-                         .color = sunColor,
-                         .direction = sunDirection,
-                         .shadowBias = sunShadowBias,
+    directionalLight = { .enabled      = sunEnabled,
+                         .castShadow   = sunCastsShadow,
+                         .color        = sunColor,
+                         .direction    = sunDirection,
+                         .shadowBias   = sunShadowBias,
                          .shadowMapRes = sunShadowMapRes };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
@@ -117,7 +117,7 @@ void MazeLayer::onAttach() {
     shader->unbind();
 
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
-    cube = std::make_unique<Cube>();
+    cube      = std::make_unique<Cube>();
 
     setNumLights(numLights);
     updateShaderLights();
@@ -289,7 +289,7 @@ void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
     for (int32_t i = 0; i < numLights; i++) {
-        pointLights[i].color = glm::vec3(1.F);
+        pointLights[i].color    = glm::vec3(1.F);
         pointLights[i].position = glm::vec3(
             rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
                    glm::vec3(0.F, 1.F, 0.F)) *
@@ -469,7 +469,7 @@ void MazeLayer::updateShaderLights() const {
 
     for (int32_t i = 0; i < numLights; i++) {
         const std::string base = "pointLights[" + std::to_string(i) + "].";
-        std::string uniformName;
+        std::string       uniformName;
         uniformName.reserve(base.size() + 16);
 
         uniformName = base;

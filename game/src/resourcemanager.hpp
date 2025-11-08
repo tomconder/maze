@@ -19,7 +19,7 @@ public:
             return resources[createInfo.name];
         }
 
-        auto resource = std::make_shared<T>(createInfo);
+        auto resource              = std::make_shared<T>(createInfo);
         resources[createInfo.name] = resource;
 
         return resource;

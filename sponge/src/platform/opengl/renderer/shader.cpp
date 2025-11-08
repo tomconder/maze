@@ -44,7 +44,7 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
             createInfo.assetsFolder + createInfo.geometryShaderPath);
         assert(!geometrySource.empty());
 
-        gs = compileShader(GL_GEOMETRY_SHADER, geometrySource);
+        gs      = compileShader(GL_GEOMETRY_SHADER, geometrySource);
         program = linkProgram(vs, fs, gs);
     } else {
         program = linkProgram(vs, fs);

@@ -26,11 +26,11 @@ public:
 private:
     static constexpr char shaderName[] = "sprite";
 
-    std::shared_ptr<renderer::Shader> shader;
+    std::shared_ptr<renderer::Shader>  shader;
     std::shared_ptr<renderer::Texture> tex;
 
-    std::unique_ptr<renderer::IndexBuffer> ebo;
-    std::unique_ptr<renderer::VertexArray> vao;
+    std::unique_ptr<renderer::IndexBuffer>  ebo;
+    std::unique_ptr<renderer::VertexArray>  vao;
     std::unique_ptr<renderer::VertexBuffer> vbo;
 };
 

@@ -70,7 +70,7 @@ void Context::init(GLFWwindow* window) {
         float yscale = 0.F;
         glfwGetWindowContentScale(window, &xscale, &yscale);
 
-        int32_t width = 0;
+        int32_t width  = 0;
         int32_t height = 0;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);

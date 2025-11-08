@@ -21,7 +21,7 @@ public:
             return resources[createInfo.name];
         }
 
-        auto resource = std::make_shared<T>(createInfo);
+        auto resource              = std::make_shared<T>(createInfo);
         resources[createInfo.name] = resource;
 
         return resource;
@@ -32,8 +32,8 @@ public:
         return resources.at(name);
     }
 
-    const std::unordered_map<std::string, std::shared_ptr<T>>& getResources()
-        const {
+    const std::unordered_map<std::string, std::shared_ptr<T>>&
+        getResources() const {
         return resources;
     }
 
@@ -52,7 +52,7 @@ private:
     }                                                                   \
                                                                         \
     static const std::unordered_map<std::string, std::shared_ptr<Type>> \
-    get##Name##s() {                                                    \
+        get##Name##s() {                                                \
         return (Handler).getResources();                                \
     }
 
@@ -71,9 +71,9 @@ public:
 private:
     ResourceManager() = default;
 
-    static ResourceHandler<Shader, ShaderCreateInfo> shaderHandler;
-    static ResourceHandler<Texture, TextureCreateInfo> textureHandler;
-    static ResourceHandler<scene::Font, scene::FontCreateInfo> fontHandler;
+    static ResourceHandler<Shader, ShaderCreateInfo>             shaderHandler;
+    static ResourceHandler<Texture, TextureCreateInfo>           textureHandler;
+    static ResourceHandler<scene::Font, scene::FontCreateInfo>   fontHandler;
     static ResourceHandler<scene::Model, scene::ModelCreateInfo> modelHandler;
 };
 }  // namespace sponge::platform::opengl::renderer

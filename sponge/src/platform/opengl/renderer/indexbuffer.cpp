@@ -15,7 +15,7 @@ IndexBuffer::~IndexBuffer() {
     glDeleteBuffers(1, &id);
 }
 
-void IndexBuffer::update(const uint32_t* indices,
+void IndexBuffer::update(const uint32_t*   indices,
                          const std::size_t size) const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size * sizeof(uint32_t),

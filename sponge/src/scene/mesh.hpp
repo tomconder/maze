@@ -13,7 +13,7 @@ struct Vertex {
 
 class Mesh {
 public:
-    void optimize();
+    void   optimize();
     size_t getNumIndices() const {
         return numIndices;
     }
@@ -22,10 +22,10 @@ public:
     }
 
 protected:
-    std::vector<Vertex> vertices;
+    std::vector<Vertex>   vertices;
     std::vector<uint32_t> indices;
-    size_t numIndices = 0;
-    size_t numVertices = 0;
+    size_t                numIndices  = 0;
+    size_t                numVertices = 0;
 };
 
 }  // namespace sponge::scene

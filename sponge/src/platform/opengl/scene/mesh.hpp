@@ -17,7 +17,7 @@ class Mesh : public sponge::scene::Mesh {
 public:
     Mesh(const std::vector<sponge::scene::Vertex>& vertices,
          std::size_t numVertices, const std::vector<uint32_t>& indices,
-         std::size_t numIndices,
+         std::size_t                                            numIndices,
          const std::vector<std::shared_ptr<renderer::Texture>>& textures);
     void render(const std::shared_ptr<renderer::Shader>& shader) const;
 
@@ -29,8 +29,8 @@ private:
     static constexpr char shaderName[] = "mesh";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
-    std::unique_ptr<renderer::IndexBuffer> ebo;
-    std::unique_ptr<renderer::VertexArray> vao;
+    std::unique_ptr<renderer::IndexBuffer>  ebo;
+    std::unique_ptr<renderer::VertexArray>  vao;
 
     std::vector<std::shared_ptr<renderer::Texture>> textures;
 };

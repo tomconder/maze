@@ -54,7 +54,7 @@ void Font::load(const std::string& path) {
     };
 
     while (!stream.eof()) {
-        std::string line;
+        std::string       line;
         std::stringstream lineStream;
         std::getline(stream, line);
         lineStream << line;
@@ -69,10 +69,10 @@ void Font::load(const std::string& path) {
 
         if (str == "common") {
             lineHeight = nextFloat(lineStream);
-            base = nextFloat(lineStream);
-            scaleW = nextFloat(lineStream);
-            scaleH = nextFloat(lineStream);
-            pages = nextInt(lineStream);
+            base       = nextFloat(lineStream);
+            scaleW     = nextFloat(lineStream);
+            scaleH     = nextFloat(lineStream);
+            pages      = nextInt(lineStream);
         }
 
         if (str == "page") {
@@ -87,12 +87,12 @@ void Font::load(const std::string& path) {
             const auto id = std::to_string(nextInt(lineStream));
 
             Character ch;
-            ch.loc = { nextFloat(lineStream), nextFloat(lineStream) };
-            ch.width = nextFloat(lineStream);
-            ch.height = nextFloat(lineStream);
-            ch.offset = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.loc      = { nextFloat(lineStream), nextFloat(lineStream) };
+            ch.width    = nextFloat(lineStream);
+            ch.height   = nextFloat(lineStream);
+            ch.offset   = { nextFloat(lineStream), nextFloat(lineStream) };
             ch.xadvance = nextFloat(lineStream);
-            ch.page = static_cast<uint32_t>(nextInt(lineStream));
+            ch.page     = static_cast<uint32_t>(nextInt(lineStream));
 
             if (const auto iter = fontChars.find(id); iter == fontChars.end()) {
                 fontChars.emplace(id, ch);
@@ -100,9 +100,9 @@ void Font::load(const std::string& path) {
         }
 
         if (str == "kerning") {
-            uint32_t first = nextInt(lineStream);
+            uint32_t first  = nextInt(lineStream);
             uint32_t second = nextInt(lineStream);
-            auto key = fmt::format("{}.{}", first, second);
+            auto     key    = fmt::format("{}.{}", first, second);
 
             float amount = nextFloat(lineStream);
 
@@ -116,10 +116,9 @@ void Font::load(const std::string& path) {
 void Font::log() const {
     SPONGE_CORE_DEBUG("Font {:>6} face={} size={}", "INFO", face, size);
 
-    SPONGE_CORE_DEBUG(
-        "Font {:>6} lineHeight={:>3} base={:>3} scaleW={:>2} "
-        "scaleH={:>3} pages={:2}",
-        "COMMON", lineHeight, base, scaleW, scaleH, pages);
+    SPONGE_CORE_DEBUG("Font {:>6} lineHeight={:>3} base={:>3} scaleW={:>2} "
+                      "scaleH={:>3} pages={:2}",
+                      "COMMON", lineHeight, base, scaleW, scaleH, pages);
 
     for (const auto& [key, value] : fontChars) {
         SPONGE_CORE_DEBUG(

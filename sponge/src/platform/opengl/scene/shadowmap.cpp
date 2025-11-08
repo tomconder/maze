@@ -10,8 +10,8 @@
 #include <memory>
 
 namespace {
-constexpr float nearPlane = 1.F;
-constexpr float farPlane = 100.F;
+constexpr float nearPlane    = 1.F;
+constexpr float farPlane     = 100.F;
 constexpr float orthoBoxSize = 5.F;
 }  // namespace
 
@@ -27,17 +27,17 @@ ShadowMap::ShadowMap(const uint32_t res) :
 
 void ShadowMap::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/shadowmap.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/shadowmap.vert.glsl",
         .fragmentShaderPath = "/shaders/shadowmap.frag.glsl",
     };
     shader = renderer::ResourceManager::createShader(shaderCreateInfo);
     shader->bind();
 
     const renderer::TextureCreateInfo textureCreateInfo{
-        .name = "depth_map",
-        .width = shadowWidth,
-        .height = shadowHeight,
+        .name     = "depth_map",
+        .width    = shadowWidth,
+        .height   = shadowHeight,
         .loadFlag = renderer::DepthMap
     };
     depthMap = renderer::ResourceManager::createTexture(textureCreateInfo);
@@ -122,10 +122,10 @@ const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
 }
 
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
-    const float left = -orthoSize;
-    const float right = orthoSize;
+    const float left   = -orthoSize;
+    const float right  = orthoSize;
     const float bottom = -orthoSize;
-    const float top = orthoSize;
+    const float top    = orthoSize;
 
     const auto lightProjection =
         glm::ortho(left, right, bottom, top, zNear, zFar);

@@ -8,12 +8,12 @@ namespace sponge::scene {
 
 void Mesh::optimize() {
     std::vector<uint32_t> remap(numIndices);
-    const auto optimalVertexCount = meshopt_generateVertexRemap(
+    const auto            optimalVertexCount = meshopt_generateVertexRemap(
         remap.data(), indices.data(), numIndices, vertices.data(), numVertices,
         sizeof(Vertex));
 
     std::vector<uint32_t> optimalIndices;
-    std::vector<Vertex> optimalVertices;
+    std::vector<Vertex>   optimalVertices;
     optimalIndices.resize(numIndices);
     optimalVertices.resize(numVertices);
 

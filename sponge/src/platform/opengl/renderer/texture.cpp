@@ -20,8 +20,8 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
         const bool excludeAssetsFolder =
             (createInfo.loadFlag & ExcludeAssetsFolder) == ExcludeAssetsFolder;
         const std::string texturePath =
-            excludeAssetsFolder ? createInfo.path
-                                : createInfo.assetsFolder + createInfo.path;
+            excludeAssetsFolder ? createInfo.path :
+                                  createInfo.assetsFolder + createInfo.path;
 
         loadFromFile(texturePath, createInfo.loadFlag);
     } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {
@@ -54,21 +54,21 @@ void Texture::generate(const uint32_t textureWidth,
                        const uint32_t textureHeight,
                        const uint32_t bytesPerPixel, const uint8_t* data,
                        const uint8_t flag) {
-    width = textureWidth;
+    width  = textureWidth;
     height = textureHeight;
 
     const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
 
     uint32_t internalFormat = GL_RGB;
-    uint32_t format = GL_RGB;
+    uint32_t format         = GL_RGB;
     if (bytesPerPixel == 1) {
         internalFormat = format = GL_RED;
     } else if (bytesPerPixel == 3) {
         internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
-        format = GL_RGB;
+        format         = GL_RGB;
     } else if (bytesPerPixel == 4) {
         internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
-        format = GL_RGBA;
+        format         = GL_RGBA;
     }
 
     glBindTexture(GL_TEXTURE_2D, id);
@@ -91,8 +91,8 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     const std::filesystem::path name{ path };
 
     int bytesPerPixel = 0;
-    int height = 0;
-    int width = 0;
+    int height        = 0;
+    int width         = 0;
 
     void* data =
         stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);

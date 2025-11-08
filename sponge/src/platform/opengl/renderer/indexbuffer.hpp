@@ -10,7 +10,7 @@ class IndexBuffer final : public Buffer {
 public:
     IndexBuffer(const uint32_t* indices, std::size_t size);
 
-    IndexBuffer(const IndexBuffer& indexBuffer) = delete;
+    IndexBuffer(const IndexBuffer& indexBuffer)            = delete;
     IndexBuffer& operator=(const IndexBuffer& indexBuffer) = delete;
     ~IndexBuffer() override;
 

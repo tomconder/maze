@@ -46,16 +46,16 @@ public:
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 
 private:
-    static constexpr char shaderName[] = "shadowmap";
-    std::shared_ptr<renderer::Shader> shader;
-    std::shared_ptr<renderer::Texture> depthMap;
+    static constexpr char                  shaderName[] = "shadowmap";
+    std::shared_ptr<renderer::Shader>      shader;
+    std::shared_ptr<renderer::Texture>     depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;
 
-    float orthoSize;
+    float    orthoSize;
     uint32_t shadowHeight;
     uint32_t shadowWidth;
-    float zFar;
-    float zNear;
+    float    zFar;
+    float    zNear;
 
     glm::mat4 lightSpaceMatrix{ 1.0f };
 

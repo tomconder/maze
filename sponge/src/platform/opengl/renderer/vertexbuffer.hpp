@@ -10,7 +10,7 @@ class VertexBuffer final : Buffer {
 public:
     VertexBuffer(const void* vertices, std::size_t size);
 
-    VertexBuffer(const VertexBuffer& vertexBuffer) = delete;
+    VertexBuffer(const VertexBuffer& vertexBuffer)            = delete;
     VertexBuffer& operator=(const VertexBuffer& vertexBuffer) = delete;
     ~VertexBuffer() override;
 
