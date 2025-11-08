@@ -5,7 +5,7 @@
 #include "windows.h"
 #endif
 
-extern sponge::core::Application* sponge::core::createApplication(int argc,
+extern sponge::core::Application* sponge::core::createApplication(int    argc,
                                                                   char** argv);
 
 namespace sponge::core {

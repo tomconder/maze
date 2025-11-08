@@ -34,8 +34,8 @@ void Log::init(const std::string& logfile) {
     sinks.emplace_back(fileSink);
 
     coreLogger = registerLogger("SPONGE", sinks);
-    appLogger = registerLogger("APP", sinks);
-    glLogger = registerLogger("OPENGL", sinks);
+    appLogger  = registerLogger("APP", sinks);
+    glLogger   = registerLogger("OPENGL", sinks);
 }
 
 void Log::shutdown() {
@@ -54,14 +54,15 @@ void Log::addSink(const spdlog::sink_ptr& sink, const std::string& pattern) {
 }
 
 void Log::setFormatter(const spdlog::sink_ptr& sink,
-                       const std::string& pattern) {
+                       const std::string&      pattern) {
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<LogFlag>('*').set_pattern(pattern);
     sink->set_formatter(std::move(formatter));
 }
 
-std::shared_ptr<spdlog::logger> Log::registerLogger(
-    const std::string& name, const std::vector<spdlog::sink_ptr>& sinks) {
+std::shared_ptr<spdlog::logger>
+    Log::registerLogger(const std::string&                   name,
+                        const std::vector<spdlog::sink_ptr>& sinks) {
     auto logger =
         std::make_shared<spdlog::logger>(name, sinks.begin(), sinks.end());
     logger->set_level(spdlog::level::trace);

@@ -36,9 +36,9 @@ bool Input::isKeyReleased(const input::KeyCode keycode) {
 
 void Input::updateKeyState(const input::KeyCode keycode, const KeyState state) {
     auto& [key, keyState, oldState] = keyData[keycode];
-    key = keycode;
-    oldState = keyState;
-    keyState = state;
+    key                             = keycode;
+    oldState                        = keyState;
+    keyState                        = state;
 }
 
 bool Input::isMouseButtonPressed(const input::MouseButton button) {
@@ -57,7 +57,7 @@ bool Input::isMouseButtonDown(const input::MouseButton button) {
     }
 
     const auto window = Application::get().window;
-    const auto state = glfwGetMouseButton(
+    const auto state  = glfwGetMouseButton(
         static_cast<GLFWwindow*>(window->getNativeWindow()), button);
     return state == GLFW_PRESS;
 }
@@ -99,11 +99,11 @@ std::pair<float, float> Input::getRelativeMousePosition() {
 }
 
 void Input::updateButtonState(const input::MouseButton button,
-                              const KeyState state) {
+                              const KeyState           state) {
     auto& [mouseButton, keyState, oldState] = mouseData[button];
-    mouseButton = button;
-    oldState = keyState;
-    keyState = state;
+    mouseButton                             = button;
+    oldState                                = keyState;
+    keyState                                = state;
 }
 
 std::pair<double, double> Input::getPrevCursorPos() {

@@ -21,14 +21,14 @@ public:
 
 private:
     std::shared_ptr<scene::OrthoCamera> orthoCamera;
-    std::string fontShaderName;
-    std::string quadShaderName;
+    std::string                         fontShaderName;
+    std::string                         quadShaderName;
 
     bool isRunning = true;
 
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
-    std::unique_ptr<ui::Button> cancelButton;
-    std::unique_ptr<ui::Button> confirmButton;
+    std::unique_ptr<ui::Button>                            cancelButton;
+    std::unique_ptr<ui::Button>                            confirmButton;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 

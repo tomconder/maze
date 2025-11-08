@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace {
-constexpr char position[] = "position";
+constexpr char      position[] = "position";
 constexpr glm::vec3 vertices[] = {
     { -0.5, 0.5, -0.5 }, { -0.5, 0.5, 0.5 },   { 0.5, 0.5, 0.5 },
     { -0.5, 0.5, -0.5 }, { 0.5, 0.5, 0.5 },    { 0.5, 0.5, -0.5 },
@@ -28,8 +28,8 @@ namespace sponge::platform::opengl::scene {
 
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name = shaderName,
-        .vertexShaderPath = "/shaders/cube.vert.glsl",
+        .name               = shaderName,
+        .vertexShaderPath   = "/shaders/cube.vert.glsl",
         .fragmentShaderPath = "/shaders/cube.frag.glsl"
     };
     shader = renderer::ResourceManager::createShader(shaderCreateInfo);

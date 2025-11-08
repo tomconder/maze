@@ -29,19 +29,19 @@ public:
     }
 
 private:
-    glm::vec2 top;
-    glm::vec2 bottom;
+    glm::vec2   top;
+    glm::vec2   bottom;
     std::string text;
-    uint32_t textSize;
+    uint32_t    textSize;
     std::string textFontName;
-    glm::vec4 color;
-    glm::vec3 textColor;
-    uint32_t length;
+    glm::vec4   color;
+    glm::vec3   textColor;
+    uint32_t    length;
 
     std::shared_ptr<sponge::platform::opengl::scene::Font> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
     glm::vec2 textPosition;
-    bool hover = false;
+    bool      hover = false;
 };
 }  // namespace game::ui

@@ -44,12 +44,12 @@ public:
 private:
     mutable std::unordered_map<std::string, GLint> uniformLocations;
 
-    uint32_t compileShader(GLenum type, const std::string& source);
-    uint32_t linkProgram(uint32_t vs, uint32_t fs,
-                         std::optional<uint32_t> gs = std::nullopt);
+    uint32_t    compileShader(GLenum type, const std::string& source);
+    uint32_t    linkProgram(uint32_t vs, uint32_t fs,
+                            std::optional<uint32_t> gs = std::nullopt);
     std::string loadSourceFromFile(const std::string& path);
 
-    uint32_t program = 0;
+    uint32_t    program = 0;
     std::string shaderName;
 
     GLint getUniformLocation(const std::string& name) const;

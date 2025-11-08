@@ -45,7 +45,7 @@ Application::Application(ApplicationSpecification specification) :
     instance = this;
 
     layerStack = std::make_unique<layer::LayerStack>();
-    messages = std::make_unique<std::vector<LogItem>>();
+    messages   = std::make_unique<std::vector<LogItem>>();
 }
 
 Application::~Application() {
@@ -77,9 +77,9 @@ bool Application::start() {
     graphics = std::make_unique<opengl::renderer::Context>();
 
     window = std::make_unique<Window>(
-        sponge::core::WindowProps{ .title = appName,
-                                   .width = appSpec.width,
-                                   .height = appSpec.height,
+        sponge::core::WindowProps{ .title      = appName,
+                                   .width      = appSpec.width,
+                                   .height     = appSpec.height,
                                    .fullscreen = appSpec.fullscreen });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
 
@@ -211,12 +211,12 @@ void Application::adjustAspectRatio(const uint32_t eventW,
         ratio = *(ratios.end() - 1);
     }
 
-    const float aspectRatioWidth = ratio.x;
+    const float aspectRatioWidth  = ratio.x;
     const float aspectRatioHeight = ratio.y;
 
     const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
 
-    const auto width = static_cast<float>(eventW);
+    const auto width  = static_cast<float>(eventW);
     const auto height = static_cast<float>(eventH);
 
     if (const float newAspectRatio = width / height;
@@ -272,8 +272,8 @@ void Application::toggleFullscreen() {
         glfwGetWindowPos(glfwWindow, &prevX, &prevY);
         glfwGetWindowSize(glfwWindow, &prevW, &prevH);
 
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
         glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, mode->width,
                              mode->height, mode->refreshRate);
     } else {
@@ -284,8 +284,8 @@ void Application::toggleFullscreen() {
             prevH = defaultHeight;
         }
 
-        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
         if (prevX <= 0) {
             prevX = prevW - mode->width / 2;

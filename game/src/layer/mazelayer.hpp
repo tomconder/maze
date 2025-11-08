@@ -9,9 +9,9 @@ namespace game::layer {
 struct GameObject {
     const char* name;
     const char* path;
-    glm::vec3 scale{ 1.F };
+    glm::vec3   scale{ 1.F };
     struct {
-        float angle{ 0.F };
+        float     angle{ 0.F };
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation;
     glm::vec3 translation{ 0.F };
@@ -92,15 +92,15 @@ public:
     void setShadowMapZNear(float val);
 
 private:
-    std::shared_ptr<scene::GameCamera> camera;
-    std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
+    std::shared_ptr<scene::GameCamera>                          camera;
+    std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
-    bool metallic = false;
-    float ambientStrength = .25F;
-    float ao = .25F;
-    float roughness = .5F;
-    int32_t numLights = 1;
+    bool    metallic         = false;
+    float   ambientStrength  = .25F;
+    float   ao               = .25F;
+    float   roughness        = .5F;
+    int32_t numLights        = 1;
     int32_t attenuationIndex = 4;
 
     bool onMouseButtonPressed(

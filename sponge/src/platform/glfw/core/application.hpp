@@ -16,11 +16,11 @@
 
 namespace sponge::platform::glfw::core {
 struct ApplicationSpecification {
-    std::string name = "Sponge";
-    uint32_t width = 1600;
-    uint32_t height = 900;
-    bool fullscreen = true;
-    bool vsync = true;
+    std::string name       = "Sponge";
+    uint32_t    width      = 1600;
+    uint32_t    height     = 900;
+    bool        fullscreen = true;
+    bool        vsync      = true;
 };
 
 using logging::LogItem;
@@ -118,22 +118,22 @@ public:
     }
 
 private:
-    std::string appName = "undefined";
-    std::unique_ptr<opengl::renderer::Context> graphics;
+    std::string                                    appName = "undefined";
+    std::unique_ptr<opengl::renderer::Context>     graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
 
     std::unique_ptr<std::vector<LogItem>> messages;
 
-    bool fullscreen = false;
-    bool vsync = true;
-    int32_t prevH = 0;
-    int32_t prevW = 0;
-    int32_t prevX = 0;
-    int32_t prevY = 0;
-    uint32_t h = 0;
-    uint32_t offsetx = 0;
-    uint32_t offsety = 0;
-    uint32_t w = 0;
+    bool     fullscreen = false;
+    bool     vsync      = true;
+    int32_t  prevH      = 0;
+    int32_t  prevW      = 0;
+    int32_t  prevX      = 0;
+    int32_t  prevY      = 0;
+    uint32_t h          = 0;
+    uint32_t offsetx    = 0;
+    uint32_t offsety    = 0;
+    uint32_t w          = 0;
 
     std::unique_ptr<layer::LayerStack> layerStack;
 

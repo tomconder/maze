@@ -13,11 +13,11 @@ GameCamera::GameCamera(const GameCameraCreateInfo& createInfo) {
 
     updateView();
 
-    const auto radYaw = glm::radians(yaw);
+    const auto radYaw   = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
-    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch),  //
-                    glm::sin(radPitch),                     //
-                    glm::sin(radYaw) * glm::cos(radPitch) };
+    cameraFront         = { glm::cos(radYaw) * glm::cos(radPitch),  //
+                            glm::sin(radPitch),                     //
+                            glm::sin(radYaw) * glm::cos(radPitch) };
 }
 
 void GameCamera::updateProjection() {
@@ -28,12 +28,12 @@ void GameCamera::updateProjection() {
 
 void GameCamera::updateView() {
     view = lookAt(cameraPos, cameraPos + cameraFront, up);
-    mvp = projection * view;
+    mvp  = projection * view;
 }
 
 void GameCamera::setViewportSize(const uint32_t viewportWidth,
                                  const uint32_t viewportHeight) {
-    width = static_cast<float>(viewportWidth);
+    width  = static_cast<float>(viewportWidth);
     height = static_cast<float>(viewportHeight);
     updateProjection();
 }
@@ -69,10 +69,10 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
     yaw += offset.x;
     pitch += offset.y;
 
-    yaw = glm::mod(yaw, 360.F);
+    yaw   = glm::mod(yaw, 360.F);
     pitch = glm::clamp(pitch, -89.F, 89.F);
 
-    const auto radYaw = glm::radians(yaw);
+    const auto radYaw   = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
     cameraFront =
         normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),  //

@@ -25,9 +25,9 @@ void Sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
     spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
     const auto formattedText = fmt::to_string(formatted);
 
-    const LogItem it{ .message = formattedText,
+    const LogItem it{ .message    = formattedText,
                       .loggerName = msg.logger_name.data(),
-                      .level = msg.level };
+                      .level      = msg.level };
 
     core::Application::get().addMessage(it);
 }

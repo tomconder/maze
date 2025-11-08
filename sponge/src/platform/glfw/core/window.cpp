@@ -17,8 +17,8 @@ Window::~Window() noexcept {
 }
 
 void Window::init(const sponge::core::WindowProps& props) {
-    data.title = props.title;
-    data.width = props.width;
+    data.title  = props.title;
+    data.width  = props.width;
     data.height = props.height;
 
     if (props.title.empty()) {
@@ -30,8 +30,8 @@ void Window::init(const sponge::core::WindowProps& props) {
     if (props.fullscreen) {
         SPONGE_CORE_INFO("Creating fullscreen window");
 
-        GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+        GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
 
         glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
         glfwWindowHint(GLFW_RED_BITS, mode->redBits);
@@ -60,7 +60,7 @@ void Window::init(const sponge::core::WindowProps& props) {
     int h = 0;
     glfwGetWindowSize(window, &w, &h);
 
-    data.width = static_cast<uint32_t>(w);
+    data.width  = static_cast<uint32_t>(w);
     data.height = static_cast<uint32_t>(h);
 
     glfwSetWindowAttrib(window, GLFW_DECORATED,
@@ -83,7 +83,7 @@ void Window::init(const sponge::core::WindowProps& props) {
 
         event::WindowResizeEvent event(w, h);
         data->eventCallback(event);
-        data->width = w;
+        data->width  = w;
         data->height = h;
     });
 
@@ -95,44 +95,44 @@ void Window::init(const sponge::core::WindowProps& props) {
         data->eventCallback(event);
     });
 
-    glfwSetKeyCallback(
-        window, [](GLFWwindow* window, const int key, const int scancode,
-                   const int action, const int mods) {
-            UNUSED(scancode);
-            UNUSED(mods);
+    glfwSetKeyCallback(window, [](GLFWwindow* window, const int key,
+                                  const int scancode, const int action,
+                                  const int mods) {
+        UNUSED(scancode);
+        UNUSED(mods);
 
-            if (Application::get().isEventHandledByImGui()) {
-                return;
+        if (Application::get().isEventHandledByImGui()) {
+            return;
+        }
+
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+
+        const auto keycode = static_cast<input::KeyCode>(key);
+
+        switch (action) {
+            case GLFW_PRESS: {
+                Input::updateKeyState(keycode, KeyState::Pressed);
+                event::KeyPressedEvent event(keycode);
+                data->eventCallback(event);
+                break;
             }
-
-            const auto* data =
-                static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-            const auto keycode = static_cast<input::KeyCode>(key);
-
-            switch (action) {
-                case GLFW_PRESS: {
-                    Input::updateKeyState(keycode, KeyState::Pressed);
-                    event::KeyPressedEvent event(keycode);
-                    data->eventCallback(event);
-                    break;
-                }
-                case GLFW_RELEASE: {
-                    Input::updateKeyState(keycode, KeyState::Released);
-                    event::KeyReleasedEvent event(keycode);
-                    data->eventCallback(event);
-                    break;
-                }
-                case GLFW_REPEAT: {
-                    Input::updateKeyState(keycode, KeyState::Held);
-                    event::KeyPressedEvent event(keycode, true);
-                    data->eventCallback(event);
-                    break;
-                }
-                default:
-                    break;
+            case GLFW_RELEASE: {
+                Input::updateKeyState(keycode, KeyState::Released);
+                event::KeyReleasedEvent event(keycode);
+                data->eventCallback(event);
+                break;
             }
-        });
+            case GLFW_REPEAT: {
+                Input::updateKeyState(keycode, KeyState::Held);
+                event::KeyPressedEvent event(keycode, true);
+                data->eventCallback(event);
+                break;
+            }
+            default:
+                break;
+        }
+    });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, uint32_t codepoint) {
         const auto* data =
