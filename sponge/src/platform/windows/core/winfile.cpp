@@ -5,8 +5,8 @@
 namespace sponge::platform::windows::core {
 
 std::string WinFile::getLogDir(const std::string& app) {
-    char* appdata = nullptr;
-    size_t sz = 0;
+    char*  appdata = nullptr;
+    size_t sz      = 0;
     if (_dupenv_s(&appdata, &sz, "LOCALAPPDATA") == 0 && appdata != nullptr) {
         const std::filesystem::path path(appdata);
         return (path / app).string();

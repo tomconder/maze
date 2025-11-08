@@ -1,12 +1,45 @@
 ---
-BasedOnStyle: Google
+Language: Cpp
+BasedOnStyle: LLVM
 
-IndentWidth: 4
+# Alignment
+AccessModifierOffset: -4
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Left
+PointerAlignment: Left
 
-DerivePointerAlignment: false
+# Short constructs
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
 
-QualifierAlignment: Left
+# Breaking
+AlwaysBreakTemplateDeclarations: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: AfterColon
+PackConstructorInitializers: NextLine
 
+# Style
+Cpp11BracedListStyle: false
+
+# Includes
 IncludeCategories:
   - Regex: ^\"
     Priority: 1500
@@ -17,14 +50,17 @@ IncludeCategories:
   - Regex: ^<.*
     Priority: 4000
 
-AccessModifierOffset: -4
-AlignConsecutiveMacros: true
+# Indentation
+IndentCaseLabels: true
+IndentWidth: 4
+IndentWrappedFunctionNames: true
+KeepEmptyLinesAtTheStartOfBlocks: false
 
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
+# Spacing
+SpacesBeforeTrailingComments: 2
+SpacesInContainerLiterals: false
 
-BreakConstructorInitializers: AfterColon
-Cpp11BracedListStyle: false
+# Other
+Standard: Cpp11
 TabWidth: 4
-UseTab: Never
+...

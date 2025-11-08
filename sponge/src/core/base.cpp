@@ -8,7 +8,7 @@
 
 namespace {
 constexpr char spongeLogFile[] = "log.txt";
-constexpr char appFolder[] = "ItsTom";
+constexpr char appFolder[]     = "ItsTom";
 }  // namespace
 
 namespace sponge::core {
@@ -16,7 +16,7 @@ namespace sponge::core {
 using logging::Log;
 
 void startupCore() {
-    const auto path = std::filesystem::path(File::getLogDir(appFolder));
+    const auto path    = std::filesystem::path(File::getLogDir(appFolder));
     const auto logfile = (path / spongeLogFile).string();
     Log::init(logfile);
 }

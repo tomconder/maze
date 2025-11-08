@@ -6,17 +6,17 @@
 #include <string>
 
 namespace {
-constexpr char cancelButtonMessage[] = "Cancel";
+constexpr char cancelButtonMessage[]  = "Cancel";
 constexpr char confirmButtonMessage[] = "Confirm";
-constexpr char message[] = "Exit the Game?";
+constexpr char message[]              = "Exit the Game?";
 
 constexpr char cameraName[] = "exit";
-constexpr char fontName[] = "league-gothic";
-constexpr char fontPath[] = "/fonts/league-gothic.fnt";
+constexpr char fontName[]   = "league-gothic";
+constexpr char fontPath[]   = "/fonts/league-gothic.fnt";
 
-constexpr glm::vec4 cancelButtonColor = { .35F, .35F, .35F, 1.F };
-constexpr glm::vec4 cancelButtonHoverColor = { .63F, .63F, .63F, 1.F };
-constexpr glm::vec4 confirmButtonColor = { .05F, .5F, .35F, 1.F };
+constexpr glm::vec4 cancelButtonColor       = { .35F, .35F, .35F, 1.F };
+constexpr glm::vec4 cancelButtonHoverColor  = { .63F, .63F, .63F, 1.F };
+constexpr glm::vec4 confirmButtonColor      = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 }  // namespace
 
@@ -41,7 +41,7 @@ void ExitLayer::onAttach() {
     orthoCamera =
         game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    quad = std::make_unique<Quad>();
+    quad           = std::make_unique<Quad>();
     quadShaderName = Quad::getShaderName();
 
     confirmButton = std::make_unique<ui::Button>(
@@ -95,7 +95,7 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
-    auto width = static_cast<float>(orthoCamera->getWidth());
+    auto width  = static_cast<float>(orthoCamera->getWidth());
     auto height = static_cast<float>(orthoCamera->getHeight());
 
     quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, 0.56F });
@@ -131,7 +131,7 @@ bool ExitLayer::onWindowResize(
     shader->setMat4("projection", orthoCamera->getProjection());
     shader->unbind();
 
-    const auto inWidth = static_cast<float>(event.getWidth());
+    const auto inWidth  = static_cast<float>(event.getWidth());
     const auto inHeight = static_cast<float>(event.getHeight());
 
     confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },

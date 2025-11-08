@@ -19,7 +19,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
     color(buttonColor),
     textColor(textColor),
     textPosition({ topLeft.x, topLeft.y }) {
-    font = ResourceManager::getFont(textFontName);
+    font   = ResourceManager::getFont(textFontName);
     length = font->getLength(text, textSize);
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
@@ -51,7 +51,7 @@ void Button::setPosition(const glm::vec2& topLeft,
     bottom.x = bottomRight.x;
     bottom.y = bottomRight.y;
 
-    const auto width = std::abs(topLeft.x - bottomRight.x);
+    const auto width  = std::abs(topLeft.x - bottomRight.x);
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
     textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),

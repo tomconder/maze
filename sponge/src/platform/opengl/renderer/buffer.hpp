@@ -7,7 +7,7 @@ class Buffer {
 public:
     virtual ~Buffer() = default;
 
-    virtual void bind() const = 0;
+    virtual void bind() const   = 0;
     virtual void unbind() const = 0;
 
     uint32_t getId() const {

@@ -13,9 +13,9 @@ namespace sponge::platform::glfw::core {
 using EventCallbackFn = std::function<void(event::Event&)>;
 
 struct WindowData {
-    std::string title;
-    uint32_t width;
-    uint32_t height;
+    std::string     title;
+    uint32_t        width;
+    uint32_t        height;
     EventCallbackFn eventCallback;
 };
 
@@ -44,7 +44,7 @@ private:
     void init(const sponge::core::WindowProps& props);
     void shutdown() const;
 
-    WindowData data;
+    WindowData  data;
     GLFWwindow* window;
 };
 

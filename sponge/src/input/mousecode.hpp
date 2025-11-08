@@ -14,8 +14,8 @@ using Button = enum MouseButton : uint8_t {
     Button4 = 4,
     Button5 = 5,
 
-    ButtonLeft = Button0,
-    ButtonRight = Button1,
+    ButtonLeft   = Button0,
+    ButtonRight  = Button1,
     ButtonMiddle = Button2
 };
 

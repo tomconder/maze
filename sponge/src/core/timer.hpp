@@ -18,7 +18,7 @@ public:
             std::chrono::duration_cast<std::chrono::microseconds>(
                 currentTicks - previousTicks);
         elapsedSeconds = duration.count() * MICROSECONDS_TO_SECONDS;
-        previousTicks = currentTicks;
+        previousTicks  = currentTicks;
     }
 
     double getElapsedSeconds() const {
@@ -26,7 +26,7 @@ public:
     }
 
 private:
-    double elapsedSeconds{ 0.0 };
+    double                            elapsedSeconds{ 0.0 };
     high_resolution_clock::time_point previousTicks{
         high_resolution_clock::now()
     };

@@ -23,7 +23,7 @@ private:
     std::shared_ptr<renderer::Shader> shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
-    std::unique_ptr<renderer::VertexArray> vao;
+    std::unique_ptr<renderer::VertexArray>  vao;
 };
 
 }  // namespace sponge::platform::opengl::scene
