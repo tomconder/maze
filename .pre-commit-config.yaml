@@ -25,6 +25,7 @@ repos:
             exclude: .vscode|assets/models|sponge/deps
           - id: detect-aws-credentials
             exclude: .vscode|assets/models|sponge/deps
+            args: ['--allow-missing-credentials']
 
     - repo: https://github.com/sirosen/texthooks
       rev: 0.7.1
