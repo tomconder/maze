@@ -30,6 +30,8 @@ public:
         return fov;
     }
 
+    void setFov(float value);
+
     void moveForward(double_t delta);
 
     void moveBackward(double_t delta);
