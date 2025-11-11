@@ -48,6 +48,11 @@ void GameCamera::moveBackward(const double_t delta) {
     updateView();
 }
 
+void GameCamera::setFov(const float value) {
+    fov = value;
+    updateProjection();
+}
+
 void GameCamera::moveForward(const double_t delta) {
     cameraPos += static_cast<float>(delta * cameraSpeed) * cameraFront;
     updateView();

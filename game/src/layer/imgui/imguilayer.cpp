@@ -120,8 +120,12 @@ void ImGuiLayer::showInfoSection() {
         ImGui::TableNextColumn();
         ImGui::Text("FOV");
         ImGui::TableNextColumn();
-        ImGui::Text("%.0f", camera->getFov());
 
+        auto fov = camera->getFov();
+        if (ImGui::SliderFloat("##FOV", &fov, 30, 120, "%3.0f",
+                               ImGuiSliderFlags_AlwaysClamp)) {
+            camera->setFov(fov);
+        }
         ImGui::EndTable();
     }
 }
