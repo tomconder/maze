@@ -151,7 +151,9 @@ void MazeLayer::onEvent(sponge::event::Event& event) {
 bool MazeLayer::onUpdate(const double elapsedTime) {
     updateCamera(elapsedTime);
 
-    renderSceneToDepthMap();
+    if (directionalLight.enabled && directionalLight.castShadow) {
+        renderSceneToDepthMap();
+    }
     renderGameObjects();
     renderLightCubes();
 
@@ -388,10 +390,13 @@ void MazeLayer::renderGameObjects() const {
             gameObject.scale);
         shader->setMat4("mvp", camera->getMVP() * model);
         shader->setMat4("model", model);
-        shader->setMat4("lightSpaceMatrix", shadowMap->getLightSpaceMatrix());
 
-        shader->setInteger("shadowMap", 1);
-        shadowMap->activateAndBindDepthMap(1);
+        if (directionalLight.enabled && directionalLight.castShadow) {
+            shader->setMat4("lightSpaceMatrix",
+                            shadowMap->getLightSpaceMatrix());
+            shader->setInteger("shadowMap", 1);
+            shadowMap->activateAndBindDepthMap(1);
+        }
 
         ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();

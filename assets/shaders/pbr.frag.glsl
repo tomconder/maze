@@ -77,18 +77,17 @@ void main() {
 
     vec3 Lo = vec3(0.0);
 
-    if (directionalLight.enabled) {
-        vec3 dirLightDir = normalize(-directionalLight.direction);
-        vec3 dirRadiance = directionalLight.color;
-        vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
+    vec3 dirLightDir = normalize(-directionalLight.direction);
+    vec3 dirRadiance = directionalLight.color;
+    vec3 dirL = calculatePBR(albedo, N, V, dirLightDir, dirRadiance);
 
-        float shadow = 0.0;
-        if (directionalLight.castShadow) {
-            shadow = calculateShadow(fs_in.fragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
-        }
-
-        Lo += dirL * (1.0 - shadow);
+    float shadow = 0.0;
+    if (directionalLight.castShadow) {
+        shadow = calculateShadow(fs_in.fragPosLightSpace, N, dirLightDir, directionalLight.shadowBias);
     }
+
+    // zeroes out directional light if not enabled
+    Lo += dirL * (1.0 - shadow) * float(directionalLight.enabled);
 
     for (int i = 0; i < numLights; i++) {
         PointLight light = pointLights[i];
