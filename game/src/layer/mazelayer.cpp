@@ -319,7 +319,7 @@ float MazeLayer::getShadowMapOrthoSize() const {
     return shadowMap->getOrthoSize();
 }
 
-void MazeLayer::setShadowMapOrthoSize(float val) {
+void MazeLayer::setShadowMapOrthoSize(float val) const {
     shadowMap->setOrthoSize(val);
 }
 
@@ -331,7 +331,7 @@ float MazeLayer::getShadowMapZFar() const {
     return shadowMap->getZFar();
 }
 
-void MazeLayer::setShadowMapZFar(float val) {
+void MazeLayer::setShadowMapZFar(float val) const {
     shadowMap->setZFar(val);
 }
 
@@ -339,7 +339,7 @@ float MazeLayer::getShadowMapZNear() const {
     return shadowMap->getZNear();
 }
 
-void MazeLayer::setShadowMapZNear(float val) {
+void MazeLayer::setShadowMapZNear(float val) const {
     shadowMap->setZNear(val);
 }
 
@@ -379,7 +379,7 @@ void MazeLayer::renderGameObjects() const {
                Maze::get().getWidth(), Maze::get().getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    auto shader = ResourceManager::getShader(Mesh::getShaderName());
+    const auto shader = ResourceManager::getShader(Mesh::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();
@@ -406,7 +406,6 @@ void MazeLayer::renderGameObjects() const {
 void MazeLayer::renderLightCubes() const {
     const auto shader = ResourceManager::getShader(Cube::getShaderName());
 
-    // render the point lights as cubes
     for (auto i = 0; i < numLights; i++) {
         shader->bind();
         shader->setFloat3("lightColor", pointLights[i].color);
