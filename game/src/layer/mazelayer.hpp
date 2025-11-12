@@ -79,17 +79,17 @@ public:
 
     float getShadowMapOrthoSize() const;
 
-    void setShadowMapOrthoSize(float val);
+    void setShadowMapOrthoSize(float val) const;
 
     uint32_t getShadowMapTextureId() const;
 
     float getShadowMapZFar() const;
 
-    void setShadowMapZFar(float val);
+    void setShadowMapZFar(float val) const;
 
     float getShadowMapZNear() const;
 
-    void setShadowMapZNear(float val);
+    void setShadowMapZNear(float val) const;
 
 private:
     std::shared_ptr<scene::GameCamera>                          camera;
