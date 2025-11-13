@@ -287,7 +287,7 @@ void ImGuiLayer::showPointLightControls() {
     const auto mazeLayer        = Maze::get().getMazeLayer();
     auto       numLights        = mazeLayer->getNumLights();
     int32_t    attenuationIndex = mazeLayer->getAttenuationIndex();
-    if (ImGui::SliderInt("Lights ", &numLights, 1, 6)) {
+    if (ImGui::SliderInt("Lights ", &numLights, 0, 6)) {
         mazeLayer->setNumLights(numLights);
     }
 
