@@ -45,8 +45,9 @@ void Diagnostics::log() {
         ss.str("");
         ss << "   ";
         for (int j = 0; j < 3; j++) {
-            const std::string ext(reinterpret_cast<const char*>(
-                glGetStringi(GL_EXTENSIONS, (i * 3) + j)));
+            const char* extPtr = reinterpret_cast<const char*>(
+                glGetStringi(GL_EXTENSIONS, (i * 3) + j));
+            const std::string ext = extPtr ? extPtr : "";
             ss << fmt::format(" {:49}", ext);
         }
         SPONGE_GL_DEBUG(ss.str());
