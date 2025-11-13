@@ -11,7 +11,7 @@
 
 namespace {
 constexpr float nearPlane    = 1.F;
-constexpr float farPlane     = 100.F;
+constexpr float farPlane     = 75.F;
 constexpr float orthoBoxSize = 5.F;
 }  // namespace
 

@@ -20,7 +20,7 @@ constexpr auto sunCastsShadow  = true;
 constexpr auto sunColor        = glm::vec3(1.F, 1.F, 1.F);
 constexpr auto sunDirection    = glm::vec3(0.F, -2.F, 1.333F);
 constexpr auto sunEnabled      = true;
-constexpr auto sunShadowBias   = 0.001F;
+constexpr auto sunShadowBias   = 0.004F;
 constexpr auto sunShadowMapRes = 2048;
 
 constexpr auto cubeScale = glm::vec3(.1F);

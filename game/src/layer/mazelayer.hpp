@@ -100,7 +100,7 @@ private:
     float   ambientStrength  = .25F;
     float   ao               = .25F;
     float   roughness        = .5F;
-    int32_t numLights        = 1;
+    int32_t numLights        = 0;
     int32_t attenuationIndex = 4;
 
     bool onMouseButtonPressed(
