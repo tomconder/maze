@@ -69,22 +69,22 @@ private:
     static bool isCaseInsensitiveEqual(const std::string& str1,
                                        const std::string& str2);
 
-    static float getLogSelectionMaxWidth(std::span<const char* const> list);
+    static float getLogSelectionMaxWidth(std::span<const std::string> list);
 
     template <typename Func>
-    static void showResourceTree(const char* name, Func&& func);
+    static void showResourceTree(const std::string& name, Func&& func);
 
     template <typename Func>
     static void showTableRow(Func&& func);
 
     template <typename Container>
-    static void showSimpleTable(const char*      tableName,
-                                const Container& container);
+    static void showSimpleTable(const std::string& tableName,
+                                const Container&   container);
 };
 
 template <typename Func>
-void ImGuiLayer::showResourceTree(const char* name, Func&& func) {
-    if (ImGui::TreeNode(name)) {
+void ImGuiLayer::showResourceTree(const std::string& name, Func&& func) {
+    if (ImGui::TreeNode(name.c_str())) {
         std::forward<Func>(func)();
         ImGui::TreePop();
     }
@@ -99,9 +99,9 @@ void ImGuiLayer::showTableRow(Func&& func) {
 }
 
 template <typename Container>
-void ImGuiLayer::showSimpleTable(const char*      tableName,
-                                 const Container& container) {
-    if (ImGui::BeginTable(tableName, 1)) {
+void ImGuiLayer::showSimpleTable(const std::string& tableName,
+                                 const Container&   container) {
+    if (ImGui::BeginTable(tableName.c_str(), 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
         for (const auto& pair : container) {

@@ -10,7 +10,7 @@ public:
     static std::string getResourceDir();
 
 private:
-    static std::string expandTilde(const char* str);
+    static std::string expandTilde(const std::string& str);
 };
 
 }  // namespace sponge::platform::osx::core

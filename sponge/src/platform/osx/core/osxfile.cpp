@@ -10,9 +10,9 @@
 
 namespace sponge::platform::osx::core {
 
-std::string OSXFile::expandTilde(const char* str) {
+std::string OSXFile::expandTilde(const std::string& str) {
     glob_t globbuf{};
-    if (glob(str, GLOB_TILDE, nullptr, &globbuf) == 0) {
+    if (glob(str.c_str(), GLOB_TILDE, nullptr, &globbuf) == 0) {
         std::string result(globbuf.gl_pathv[0]);
         globfree(&globbuf);
         return result;

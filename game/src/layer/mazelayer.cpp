@@ -78,7 +78,8 @@ MazeLayer::MazeLayer() : Layer("maze") {
 void MazeLayer::onAttach() {
     for (const auto& gameObject : gameObjects) {
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
-            .name = gameObject.name, .path = gameObject.path
+            .name = std::string(gameObject.name),
+            .path = std::string(gameObject.path)
         };
         ResourceManager::createModel(modelCreateInfo);
     }
@@ -398,7 +399,7 @@ void MazeLayer::renderGameObjects() const {
             shadowMap->activateAndBindDepthMap(1);
         }
 
-        ResourceManager::getModel(gameObject.name)->render(shader);
+        ResourceManager::getModel(std::string(gameObject.name))->render(shader);
         shader->unbind();
     }
 }
@@ -435,7 +436,7 @@ void MazeLayer::renderSceneToDepthMap() const {
             gameObject.scale);
         shader->setMat4("model", model);
 
-        ResourceManager::getModel(gameObject.name)->render(shader);
+        ResourceManager::getModel(std::string(gameObject.name))->render(shader);
         shader->unbind();
     }
 

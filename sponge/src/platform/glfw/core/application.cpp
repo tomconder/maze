@@ -65,8 +65,9 @@ bool Application::start() {
     SPONGE_CORE_INFO("Initializing glfw");
 
     if (glfwInit() == GLFW_FALSE) {
-        const char* description = nullptr;
-        glfwGetError(&description);
+        const char* descCStr = nullptr;
+        glfwGetError(&descCStr);
+        const std::string description = descCStr ? descCStr : "Unknown error";
         SPONGE_CORE_CRITICAL(
             fmt::format("Unable to initialize glfw: {}", description));
         return false;

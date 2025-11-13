@@ -79,8 +79,8 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     const uint32_t id = glCreateShader(type);
     assert(id != 0);
 
-    const char* shader = source.c_str();
-    glShaderSource(id, 1, &shader, nullptr);
+    const char* srcPtr = source.c_str();
+    glShaderSource(id, 1, &srcPtr, nullptr);
     glCompileShader(id);
 
     int32_t result = GL_FALSE;
