@@ -51,8 +51,9 @@ void Context::init(GLFWwindow* window) {
 
     glfwMakeContextCurrent(window);
     if (glfwGetCurrentContext() == nullptr) {
-        const char* description = nullptr;
-        glfwGetError(&description);
+        const char* descCStr = nullptr;
+        glfwGetError(&descCStr);
+        const std::string description = descCStr ? descCStr : "Unknown error";
         SPONGE_GL_ERROR("Context could not be created: {}", description);
         return;
     }

@@ -4,12 +4,13 @@
 #include "sponge.hpp"
 
 #include <memory>
+#include <string_view>
 
 namespace game::layer {
 struct GameObject {
-    const char* name;
-    const char* path;
-    glm::vec3   scale{ 1.F };
+    std::string_view name;
+    std::string_view path;
+    glm::vec3        scale{ 1.F };
     struct {
         float     angle{ 0.F };
         glm::vec3 axis{ 0.F, 1.F, 0.F };

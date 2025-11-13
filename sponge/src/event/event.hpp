@@ -40,7 +40,7 @@ enum EventCategory : uint8_t {
     EventType getEventType() const override { \
         return getStaticType();               \
     }                                         \
-    const char* getName() const override {    \
+    std::string getName() const override {    \
         return #type;                         \
     }
 
@@ -61,7 +61,7 @@ public:
 
     virtual EventType   getEventType() const     = 0;
     virtual int         getCategoryFlags() const = 0;
-    virtual const char* getName() const          = 0;
+    virtual std::string getName() const          = 0;
 
     bool isInCategory(const EventCategory category) const {
         return (getCategoryFlags() & category) != 0;
