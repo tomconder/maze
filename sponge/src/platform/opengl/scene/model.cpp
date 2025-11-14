@@ -50,9 +50,9 @@ void Model::load(const std::string& path) {
     timer.tick();
 
     const std::filesystem::path dir{ path };
-    const auto                  ret =
-        LoadObj(&attrib, &shapes, &materials, &warn, &err, dir.string().data(),
-                dir.parent_path().string().data());
+    const auto                  parentPath = dir.parent_path().string();
+    const auto ret = LoadObj(&attrib, &shapes, &materials, &warn, &err,
+                             dir.string().data(), parentPath.data());
 
     if (!warn.empty()) {
         SPONGE_GL_WARN(warn);
@@ -163,8 +163,9 @@ std::shared_ptr<Mesh>
         }
     }
 
-    return std::make_shared<Mesh>(vertices, numIndices, indices, numIndices,
-                                  textures);
+    return std::make_shared<Mesh>(std::move(vertices), numIndices,
+                                  std::move(indices), numIndices,
+                                  std::move(textures));
 }
 
 std::shared_ptr<renderer::Texture>
@@ -179,7 +180,7 @@ std::shared_ptr<renderer::Texture>
     };
 
     const auto filename = std::filesystem::weakly_canonical(
-        path + "/" + baseName(material.diffuse_texname));
+        std::filesystem::path(path) / baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
     std::ranges::transform(name, name.begin(),

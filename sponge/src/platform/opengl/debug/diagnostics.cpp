@@ -20,14 +20,17 @@ void Diagnostics::log() {
     SPONGE_GL_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
 
-    const char* glslVersionPtr = reinterpret_cast<const char*>(
-        glGetString(GL_SHADING_LANGUAGE_VERSION));
+    const char* glslVersionPtr =
+        reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     const std::string glslVersion = glslVersionPtr ? glslVersionPtr : "Unknown";
-    const char* vendorPtr = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    const char*       vendorPtr =
+        reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string vendor = vendorPtr ? vendorPtr : "Unknown";
-    const char* rendererPtr = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const char*       rendererPtr =
+        reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::string renderer = rendererPtr ? rendererPtr : "Unknown";
-    const char* versionPtr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    const char*       versionPtr =
+        reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::string version = versionPtr ? versionPtr : "Unknown";
 
     SPONGE_GL_INFO("Detected GLSL version {}", glslVersion);

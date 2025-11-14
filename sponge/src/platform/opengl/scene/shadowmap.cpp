@@ -74,10 +74,6 @@ void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
 }
 
-std::string ShadowMap::getShaderName() {
-    return std::string(shaderName);
-}
-
 uint32_t ShadowMap::getDepthMapTextureId() const {
     if (depthMap != nullptr) {
         return depthMap->getId();

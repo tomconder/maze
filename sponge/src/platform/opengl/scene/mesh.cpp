@@ -18,13 +18,13 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 using sponge::scene::Vertex;
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
-           const std::vector<uint32_t>& indices, const std::size_t numIndices,
-           const std::vector<std::shared_ptr<renderer::Texture>>& textures) :
-    textures(textures) {
-    this->indices     = indices;
+Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
+           std::vector<uint32_t>&& indices, const std::size_t numIndices,
+           std::vector<std::shared_ptr<renderer::Texture>>&& textures) :
+    textures(std::move(textures)) {
+    this->indices     = std::move(indices);
     this->numIndices  = numIndices;
-    this->vertices    = vertices;
+    this->vertices    = std::move(vertices);
     this->numVertices = numVertices;
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -39,7 +39,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        vertices.data(), numVertices * sizeof(Vertex));
+        this->vertices.data(), numVertices * sizeof(Vertex));
     vbo->bind();
 
     const auto program = shader->getId();
@@ -72,7 +72,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::size_t numVertices,
     }
 
     ebo = std::make_unique<renderer::IndexBuffer>(
-        indices.data(), numIndices * sizeof(uint32_t));
+        this->indices.data(), numIndices * sizeof(uint32_t));
     ebo->bind();
 
     shader->unbind();
