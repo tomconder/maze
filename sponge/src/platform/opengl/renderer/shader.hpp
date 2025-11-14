@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/file.hpp"
+#include "core/stringutils.hpp"
 
 #include <glad/gl.h>
 #include <glm/glm.hpp>
@@ -26,12 +27,12 @@ public:
     void bind() const;
     void unbind() const;
 
-    void setBoolean(const std::string& name, bool value) const;
-    void setFloat(const std::string& name, float value) const;
-    void setFloat3(const std::string& name, const glm::vec3& value) const;
-    void setFloat4(const std::string& name, const glm::vec4& value) const;
-    void setInteger(const std::string& name, int value) const;
-    void setMat4(const std::string& name, const glm::mat4& value) const;
+    void setBoolean(std::string_view name, bool value) const;
+    void setFloat(std::string_view name, float value) const;
+    void setFloat3(std::string_view name, const glm::vec3& value) const;
+    void setFloat4(std::string_view name, const glm::vec4& value) const;
+    void setInteger(std::string_view name, int value) const;
+    void setMat4(std::string_view name, const glm::mat4& value) const;
 
     uint32_t getId() const {
         return program;
@@ -42,7 +43,9 @@ public:
     }
 
 private:
-    mutable std::unordered_map<std::string, GLint> uniformLocations;
+    mutable std::unordered_map<std::string, GLint, core::TransparentStringHash,
+                               core::TransparentStringEqual>
+        uniformLocations;
 
     uint32_t    compileShader(GLenum type, const std::string& source);
     uint32_t    linkProgram(uint32_t vs, uint32_t fs,
@@ -52,6 +55,6 @@ private:
     uint32_t    program = 0;
     std::string shaderName;
 
-    GLint getUniformLocation(const std::string& name) const;
+    GLint getUniformLocation(std::string_view name) const;
 };
 }  // namespace sponge::platform::opengl::renderer

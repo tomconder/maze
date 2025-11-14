@@ -21,7 +21,9 @@ public:
 
     void activateAndBindDepthMap(uint8_t unit) const;
 
-    static std::string getShaderName();
+    static constexpr std::string_view getShaderName() {
+        return shaderName;
+    }
 
     uint32_t getDepthMapTextureId() const;
 

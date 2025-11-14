@@ -6,6 +6,7 @@
 #include "core/base.hpp"
 #include "core/color.hpp"
 #include "core/file.hpp"
+#include "core/stringutils.hpp"
 #include "core/timer.hpp"
 #include "core/window.hpp"
 #include "debug/profiler.hpp"

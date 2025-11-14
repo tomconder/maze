@@ -40,7 +40,7 @@ using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::ShadowMap;
 
-constexpr std::array gameObjects = {
+std::array gameObjects = {
     GameObject{ .name        = "floor",
                 .path        = "/models/floor/floor.obj",
                 .scale       = glm::vec3(2.F),
@@ -72,11 +72,21 @@ constexpr std::array gameObjects = {
 };
 
 MazeLayer::MazeLayer() : Layer("maze") {
-    // nothing
+    for (int32_t i = 0; i < 6; i++) {
+        const std::string base = "pointLights[" + std::to_string(i) + "].";
+        lightUniformNames[i].position         = base + "position";
+        lightUniformNames[i].color            = base + "color";
+        lightUniformNames[i].attenuationIndex = base + "attenuationIndex";
+    }
 }
 
 void MazeLayer::onAttach() {
-    for (const auto& gameObject : gameObjects) {
+    for (auto& gameObject : gameObjects) {
+        gameObject.modelMatrix = glm::scale(
+            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
+                        gameObject.rotation.angle, gameObject.rotation.axis),
+            gameObject.scale);
+
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
             .name = std::string(gameObject.name),
             .path = std::string(gameObject.path)
@@ -385,12 +395,8 @@ void MazeLayer::renderGameObjects() const {
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setFloat3("viewPos", camera->getPosition());
-        const auto model = glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
-        shader->setMat4("mvp", camera->getMVP() * model);
-        shader->setMat4("model", model);
+        shader->setMat4("mvp", camera->getMVP() * gameObject.modelMatrix);
+        shader->setMat4("model", gameObject.modelMatrix);
 
         if (directionalLight.enabled && directionalLight.castShadow) {
             shader->setMat4("lightSpaceMatrix",
@@ -399,7 +405,7 @@ void MazeLayer::renderGameObjects() const {
             shadowMap->activateAndBindDepthMap(1);
         }
 
-        ResourceManager::getModel(std::string(gameObject.name))->render(shader);
+        ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();
     }
 }
@@ -430,13 +436,9 @@ void MazeLayer::renderSceneToDepthMap() const {
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        const auto model = glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
-        shader->setMat4("model", model);
+        shader->setMat4("model", gameObject.modelMatrix);
 
-        ResourceManager::getModel(std::string(gameObject.name))->render(shader);
+        ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();
     }
 
@@ -473,21 +475,11 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
-        const std::string base = "pointLights[" + std::to_string(i) + "].";
-        std::string       uniformName;
-        uniformName.reserve(base.size() + 16);
-
-        uniformName = base;
-        uniformName += "position";
-        shader->setFloat3(uniformName, pointLights[i].position);
-
-        uniformName = base;
-        uniformName += "color";
-        shader->setFloat3(uniformName, pointLights[i].color);
-
-        uniformName = base;
-        uniformName += "attenuationIndex";
-        shader->setInteger(uniformName, pointLights[i].attenuationIndex);
+        shader->setFloat3(lightUniformNames[i].position,
+                          pointLights[i].position);
+        shader->setFloat3(lightUniformNames[i].color, pointLights[i].color);
+        shader->setInteger(lightUniformNames[i].attenuationIndex,
+                           pointLights[i].attenuationIndex);
     }
 
     shader->unbind();

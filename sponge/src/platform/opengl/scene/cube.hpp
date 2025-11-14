@@ -13,8 +13,8 @@ public:
     Cube();
     void render() const;
 
-    static std::string getShaderName() {
-        return std::string(shaderName);
+    static constexpr std::string_view getShaderName() {
+        return shaderName;
     }
 
 private:
