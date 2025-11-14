@@ -20,7 +20,7 @@ constexpr auto sunCastsShadow  = true;
 constexpr auto sunColor        = glm::vec3(1.F, 1.F, 1.F);
 constexpr auto sunDirection    = glm::vec3(0.F, -2.F, 1.333F);
 constexpr auto sunEnabled      = true;
-constexpr auto sunShadowBias   = 0.001F;
+constexpr auto sunShadowBias   = 0.004F;
 constexpr auto sunShadowMapRes = 2048;
 
 constexpr auto cubeScale = glm::vec3(.1F);
@@ -29,18 +29,9 @@ constexpr std::string_view cameraName = "maze";
 
 game::scene::DirectionalLight          directionalLight;
 std::array<game::scene::PointLight, 6> pointLights;
-}  // namespace
 
-namespace game::layer {
-using sponge::input::KeyCode;
-using sponge::platform::glfw::core::Application;
-using sponge::platform::glfw::core::Input;
-using sponge::platform::opengl::renderer::ResourceManager;
-using sponge::platform::opengl::scene::Cube;
-using sponge::platform::opengl::scene::Mesh;
-using sponge::platform::opengl::scene::ShadowMap;
-
-constexpr std::array gameObjects = {
+using game::layer::GameObject;
+std::array gameObjects = {
     GameObject{ .name        = "floor",
                 .path        = "/models/floor/floor.obj",
                 .scale       = glm::vec3(2.F),
@@ -70,15 +61,37 @@ constexpr std::array gameObjects = {
                                  .axis  = glm::vec3(0.F, 1.F, 0.F) },
                 .translation = glm::vec3(0.F, 0.F, 0.F) }
 };
+}  // namespace
+
+namespace game::layer {
+using sponge::input::KeyCode;
+using sponge::platform::glfw::core::Application;
+using sponge::platform::glfw::core::Input;
+using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Cube;
+using sponge::platform::opengl::scene::Mesh;
+using sponge::platform::opengl::scene::ShadowMap;
 
 MazeLayer::MazeLayer() : Layer("maze") {
-    // nothing
+    for (int32_t i = 0; i < 6; i++) {
+        const std::string base = "pointLights[" + std::to_string(i) + "].";
+        lightUniformNames[i].position         = base + "position";
+        lightUniformNames[i].color            = base + "color";
+        lightUniformNames[i].attenuationIndex = base + "attenuationIndex";
+    }
 }
 
 void MazeLayer::onAttach() {
-    for (const auto& gameObject : gameObjects) {
+    for (auto& gameObject : gameObjects) {
+        // compute the model matrix to avoid recalculating it on every frame
+        gameObject.modelMatrix = glm::scale(
+            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
+                        gameObject.rotation.angle, gameObject.rotation.axis),
+            gameObject.scale);
+
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
-            .name = gameObject.name, .path = gameObject.path
+            .name = std::string(gameObject.name),
+            .path = std::string(gameObject.path)
         };
         ResourceManager::createModel(modelCreateInfo);
     }
@@ -89,8 +102,8 @@ void MazeLayer::onAttach() {
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
-    const auto shaderName = Mesh::getShaderName();
-    const auto shader     = ResourceManager::getShader(shaderName);
+    constexpr auto shaderName = Mesh::getShaderName();
+    const auto     shader     = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
@@ -384,12 +397,8 @@ void MazeLayer::renderGameObjects() const {
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setFloat3("viewPos", camera->getPosition());
-        const auto model = glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
-        shader->setMat4("mvp", camera->getMVP() * model);
-        shader->setMat4("model", model);
+        shader->setMat4("mvp", camera->getMVP() * gameObject.modelMatrix);
+        shader->setMat4("model", gameObject.modelMatrix);
 
         if (directionalLight.enabled && directionalLight.castShadow) {
             shader->setMat4("lightSpaceMatrix",
@@ -429,11 +438,7 @@ void MazeLayer::renderSceneToDepthMap() const {
     for (const auto& gameObject : gameObjects) {
         shader->bind();
         shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        const auto model = glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
-        shader->setMat4("model", model);
+        shader->setMat4("model", gameObject.modelMatrix);
 
         ResourceManager::getModel(gameObject.name)->render(shader);
         shader->unbind();
@@ -472,21 +477,11 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
-        const std::string base = "pointLights[" + std::to_string(i) + "].";
-        std::string       uniformName;
-        uniformName.reserve(base.size() + 16);
-
-        uniformName = base;
-        uniformName += "position";
-        shader->setFloat3(uniformName, pointLights[i].position);
-
-        uniformName = base;
-        uniformName += "color";
-        shader->setFloat3(uniformName, pointLights[i].color);
-
-        uniformName = base;
-        uniformName += "attenuationIndex";
-        shader->setInteger(uniformName, pointLights[i].attenuationIndex);
+        shader->setFloat3(lightUniformNames[i].position,
+                          pointLights[i].position);
+        shader->setFloat3(lightUniformNames[i].color, pointLights[i].color);
+        shader->setInteger(lightUniformNames[i].attenuationIndex,
+                           pointLights[i].attenuationIndex);
     }
 
     shader->unbind();

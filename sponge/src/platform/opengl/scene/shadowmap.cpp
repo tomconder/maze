@@ -11,7 +11,7 @@
 
 namespace {
 constexpr float nearPlane    = 1.F;
-constexpr float farPlane     = 100.F;
+constexpr float farPlane     = 75.F;
 constexpr float orthoBoxSize = 5.F;
 }  // namespace
 
@@ -72,10 +72,6 @@ void ShadowMap::unbind() const {
 
 void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
     depthMap->activateAndBind(unit);
-}
-
-std::string ShadowMap::getShaderName() {
-    return std::string(shaderName);
 }
 
 uint32_t ShadowMap::getDepthMapTextureId() const {

@@ -79,8 +79,8 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     const uint32_t id = glCreateShader(type);
     assert(id != 0);
 
-    const char* shader = source.c_str();
-    glShaderSource(id, 1, &shader, nullptr);
+    const char* srcPtr = source.c_str();
+    glShaderSource(id, 1, &srcPtr, nullptr);
     glCompileShader(id);
 
     int32_t result = GL_FALSE;
@@ -130,43 +130,49 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
     return id;
 }
 
-void Shader::setBoolean(const std::string& name, const bool value) const {
+void Shader::setBoolean(const std::string_view name, const bool value) const {
     glUniform1i(getUniformLocation(name), static_cast<int>(value));
 }
 
-void Shader::setFloat(const std::string& name, const float value) const {
+void Shader::setFloat(const std::string_view name, const float value) const {
     glUniform1f(getUniformLocation(name), value);
 }
 
-void Shader::setFloat3(const std::string& name, const glm::vec3& value) const {
+void Shader::setFloat3(const std::string_view name,
+                       const glm::vec3&       value) const {
     glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
 }
 
-void Shader::setFloat4(const std::string& name, const glm::vec4& value) const {
+void Shader::setFloat4(const std::string_view name,
+                       const glm::vec4&       value) const {
     glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
 }
 
-void Shader::setInteger(const std::string& name, const int value) const {
+void Shader::setInteger(const std::string_view name, const int value) const {
     glUniform1i(getUniformLocation(name), value);
 }
 
-void Shader::setMat4(const std::string& name, const glm::mat4& value) const {
+void Shader::setMat4(const std::string_view name,
+                     const glm::mat4&       value) const {
     glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
 }
 
-GLint Shader::getUniformLocation(const std::string& name) const {
+GLint Shader::getUniformLocation(const std::string_view name) const {
     assert(!name.empty());
 
-    if (uniformLocations.contains(name)) {
-        return uniformLocations[name];
+    if (const auto it = uniformLocations.find(name);
+        it != uniformLocations.end()) {
+        return it->second;
     }
 
-    const auto location = glGetUniformLocation(program, name.c_str());
+    // allocate string if not cached
+    std::string nameStr(name);
+    const auto  location = glGetUniformLocation(program, nameStr.c_str());
     if (location == -1) {
-        SPONGE_GL_WARN("Uniform name not found: [{}, {}]", name.c_str(),
+        SPONGE_GL_WARN("Uniform name not found: [{}, {}]", nameStr.c_str(),
                        program);
     }
-    uniformLocations[name] = location;
+    uniformLocations.emplace(std::move(nameStr), location);
 
     return location;
 }

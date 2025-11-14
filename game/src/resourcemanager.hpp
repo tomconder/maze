@@ -25,17 +25,23 @@ public:
         return resource;
     }
 
-    std::shared_ptr<T> get(const std::string& name) const {
+    std::shared_ptr<T> get(std::string_view name) const {
         assert(!name.empty());
-        return resources.at(name);
+        if (const auto it = resources.find(name); it != resources.end()) {
+            return it->second;
+        }
+        return nullptr;
     }
 
-    std::unordered_map<std::string, std::shared_ptr<T>> getResources() const {
+    const auto& getResources() const {
         return resources;
     }
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<T>> resources;
+    std::unordered_map<std::string, std::shared_ptr<T>,
+                       sponge::core::TransparentStringHash,
+                       sponge::core::TransparentStringEqual>
+        resources;
 };
 
 // RESOURCE_MANAGER_FUNCS macro defined in sponge

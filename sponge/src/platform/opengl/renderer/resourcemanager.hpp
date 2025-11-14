@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/stringutils.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/font.hpp"
@@ -11,6 +12,8 @@
 #include <unordered_map>
 
 namespace sponge::platform::opengl::renderer {
+
+// Resource cache with heterogeneous string_view lookup support
 template <typename T, typename C>
 class ResourceHandler final {
 public:
@@ -27,33 +30,37 @@ public:
         return resource;
     }
 
-    std::shared_ptr<T> get(const std::string& name) const {
+    std::shared_ptr<T> get(std::string_view name) const {
         assert(!name.empty());
-        return resources.at(name);
+        if (const auto it = resources.find(name); it != resources.end()) {
+            return it->second;
+        }
+        return nullptr;
     }
 
-    const std::unordered_map<std::string, std::shared_ptr<T>>&
-        getResources() const {
+    const auto& getResources() const {
         return resources;
     }
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<T>> resources;
+    std::unordered_map<std::string, std::shared_ptr<T>,
+                       core::TransparentStringHash,
+                       core::TransparentStringEqual>
+        resources;
 };
 
-#define RESOURCE_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler)     \
-    static std::shared_ptr<Type> create##Name(                          \
-        const CreateInfoType& createInfo) {                             \
-        return (Handler).load(createInfo);                              \
-    }                                                                   \
-                                                                        \
-    static std::shared_ptr<Type> get##Name(const std::string& name) {   \
-        return (Handler).get(name);                                     \
-    }                                                                   \
-                                                                        \
-    static const std::unordered_map<std::string, std::shared_ptr<Type>> \
-        get##Name##s() {                                                \
-        return (Handler).getResources();                                \
+#define RESOURCE_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler) \
+    static std::shared_ptr<Type> create##Name(                      \
+        const CreateInfoType& createInfo) {                         \
+        return (Handler).load(createInfo);                          \
+    }                                                               \
+                                                                    \
+    static std::shared_ptr<Type> get##Name(std::string_view name) { \
+        return (Handler).get(name);                                 \
+    }                                                               \
+                                                                    \
+    static auto& get##Name##s() {                                   \
+        return (Handler).getResources();                            \
     }
 
 class ResourceManager {
