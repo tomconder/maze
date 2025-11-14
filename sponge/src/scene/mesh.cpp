@@ -34,8 +34,8 @@ void Mesh::optimize() {
                                 numIndices, optimalVertices.data(),
                                 optimalVertexCount, sizeof(Vertex));
 
-    indices.assign(optimalIndices.begin(), optimalIndices.end());
-    vertices.assign(optimalVertices.begin(), optimalVertices.end());
+    indices.swap(optimalIndices);
+    vertices.swap(optimalVertices);
     numVertices = optimalVertexCount;
 }
 

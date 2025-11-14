@@ -51,8 +51,9 @@ void Window::init(const sponge::core::WindowProps& props) {
     }
 
     if (window == nullptr) {
-        const char* description = nullptr;
-        glfwGetError(&description);
+        const char* descCStr = nullptr;
+        glfwGetError(&descCStr);
+        const std::string description = descCStr ? descCStr : "Unknown error";
         SPONGE_CORE_CRITICAL("Could not create window: {}", description);
     }
 

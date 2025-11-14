@@ -11,16 +11,21 @@
 #include <ranges>
 
 namespace {
-constexpr ImColor          darkDebugColor{ .3F, .8F, .8F, 1.F };
-constexpr ImColor          darkErrorColor{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor          darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-constexpr std::string_view cameraName = "maze";
-constexpr std::array categories = { "categories", "app", "sponge", "opengl" };
-constexpr std::array logLevels  = {
-    SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
-    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
-    SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
-    SPDLOG_LEVEL_NAME_OFF.data()
+constexpr ImColor                darkDebugColor{ .3F, .8F, .8F, 1.F };
+constexpr ImColor                darkErrorColor{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor                darkWarnColor{ .8F, .8F, 0.3F, 1.F };
+constexpr char                   cameraName[] = "maze";
+const std::array<std::string, 4> categories   = { "categories", "app", "sponge",
+                                                  "opengl" };
+// spdlog uses its own string_view type, convert to std::string
+const std::array<std::string, 7> logLevels = {
+    std::string(SPDLOG_LEVEL_NAME_TRACE.data()),
+    std::string(SPDLOG_LEVEL_NAME_DEBUG.data()),
+    std::string(SPDLOG_LEVEL_NAME_INFO.data()),
+    std::string(SPDLOG_LEVEL_NAME_WARNING.data()),
+    std::string(SPDLOG_LEVEL_NAME_ERROR.data()),
+    std::string(SPDLOG_LEVEL_NAME_CRITICAL.data()),
+    std::string(SPDLOG_LEVEL_NAME_OFF.data())
 };
 
 constexpr ImGuiWindowFlags windowFlags =
@@ -114,7 +119,7 @@ void ImGuiLayer::showInfoSection() {
     }
 
     if (ImGui::BeginTable("##CameraTable", 2, tableFlags)) {
-        const auto camera = ResourceManager::getGameCamera(cameraName.data());
+        const auto camera = ResourceManager::getGameCamera(cameraName);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -287,7 +292,7 @@ void ImGuiLayer::showPointLightControls() {
     const auto mazeLayer        = Maze::get().getMazeLayer();
     auto       numLights        = mazeLayer->getNumLights();
     int32_t    attenuationIndex = mazeLayer->getAttenuationIndex();
-    if (ImGui::SliderInt("Lights ", &numLights, 1, 6)) {
+    if (ImGui::SliderInt("Lights ", &numLights, 0, 6)) {
         mazeLayer->setNumLights(numLights);
     }
 
@@ -377,10 +382,10 @@ void ImGuiLayer::showLogWindow(const float width, const float height) {
 }
 
 float ImGuiLayer::getLogSelectionMaxWidth(
-    const std::span<const char* const> list) {
+    const std::span<const std::string> list) {
     float maxWidth = 0;
-    for (const auto* item : list) {
-        const auto width = ImGui::CalcTextSize(item).x;
+    for (const auto& item : list) {
+        const auto width = ImGui::CalcTextSize(item.c_str()).x;
         maxWidth         = std::max(width, maxWidth);
     }
 
@@ -515,13 +520,27 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter&           filter,
                                  spdlog::level::level_enum& activeLogLevel,
                                  int&                       activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
-    ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-                 logLevels.data(), static_cast<int>(logLevels.size()));
+    ImGui::Combo(
+        "##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
+        [](void* data, int idx, const char** out_text) -> bool {
+            auto* strs = static_cast<const std::array<std::string, 7>*>(data);
+            *out_text  = (*strs)[idx].c_str();
+            return true;
+        },
+        const_cast<void*>(static_cast<const void*>(&logLevels)),
+        static_cast<int>(logLevels.size()));
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
-    ImGui::Combo("##categories", &activeCategory, categories.data(),
-                 static_cast<int>(categories.size()));
+    ImGui::Combo(
+        "##categories", &activeCategory,
+        [](void* data, int idx, const char** out_text) -> bool {
+            auto* strs = static_cast<const std::array<std::string, 4>*>(data);
+            *out_text  = (*strs)[idx].c_str();
+            return true;
+        },
+        const_cast<void*>(static_cast<const void*>(&categories)),
+        static_cast<int>(categories.size()));
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");

@@ -20,8 +20,11 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
         const bool excludeAssetsFolder =
             (createInfo.loadFlag & ExcludeAssetsFolder) == ExcludeAssetsFolder;
         const std::string texturePath =
-            excludeAssetsFolder ? createInfo.path :
-                                  createInfo.assetsFolder + createInfo.path;
+            excludeAssetsFolder ?
+                createInfo.path :
+                (std::filesystem::path(createInfo.assetsFolder) /
+                 createInfo.path)
+                    .string();
 
         loadFromFile(texturePath, createInfo.loadFlag);
     } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {

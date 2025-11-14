@@ -3,18 +3,22 @@
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
+#include <array>
 #include <memory>
+#include <string>
+#include <string_view>
 
 namespace game::layer {
 struct GameObject {
-    const char* name;
-    const char* path;
-    glm::vec3   scale{ 1.F };
+    std::string_view name;
+    std::string_view path;
+    glm::vec3        scale{ 1.F };
     struct {
         float     angle{ 0.F };
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation;
     glm::vec3 translation{ 0.F };
+    glm::mat4 modelMatrix{ 1.F };
 };
 
 class MazeLayer final : public sponge::layer::Layer {
@@ -100,8 +104,15 @@ private:
     float   ambientStrength  = .25F;
     float   ao               = .25F;
     float   roughness        = .5F;
-    int32_t numLights        = 1;
+    int32_t numLights        = 0;
     int32_t attenuationIndex = 4;
+
+    struct LightUniforms {
+        std::string position;
+        std::string color;
+        std::string attenuationIndex;
+    };
+    std::array<LightUniforms, 6> lightUniformNames;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
