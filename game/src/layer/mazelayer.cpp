@@ -83,6 +83,7 @@ MazeLayer::MazeLayer() : Layer("maze") {
 
 void MazeLayer::onAttach() {
     for (auto& gameObject : gameObjects) {
+        // compute the model matrix to avoid recalculating it on every frame
         gameObject.modelMatrix = glm::scale(
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
