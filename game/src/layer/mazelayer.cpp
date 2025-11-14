@@ -29,17 +29,8 @@ constexpr std::string_view cameraName = "maze";
 
 game::scene::DirectionalLight          directionalLight;
 std::array<game::scene::PointLight, 6> pointLights;
-}  // namespace
 
-namespace game::layer {
-using sponge::input::KeyCode;
-using sponge::platform::glfw::core::Application;
-using sponge::platform::glfw::core::Input;
-using sponge::platform::opengl::renderer::ResourceManager;
-using sponge::platform::opengl::scene::Cube;
-using sponge::platform::opengl::scene::Mesh;
-using sponge::platform::opengl::scene::ShadowMap;
-
+using game::layer::GameObject;
 std::array gameObjects = {
     GameObject{ .name        = "floor",
                 .path        = "/models/floor/floor.obj",
@@ -70,6 +61,16 @@ std::array gameObjects = {
                                  .axis  = glm::vec3(0.F, 1.F, 0.F) },
                 .translation = glm::vec3(0.F, 0.F, 0.F) }
 };
+}  // namespace
+
+namespace game::layer {
+using sponge::input::KeyCode;
+using sponge::platform::glfw::core::Application;
+using sponge::platform::glfw::core::Input;
+using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Cube;
+using sponge::platform::opengl::scene::Mesh;
+using sponge::platform::opengl::scene::ShadowMap;
 
 MazeLayer::MazeLayer() : Layer("maze") {
     for (int32_t i = 0; i < 6; i++) {
@@ -100,8 +101,8 @@ void MazeLayer::onAttach() {
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
-    const auto shaderName = Mesh::getShaderName();
-    const auto shader     = ResourceManager::getShader(shaderName);
+    constexpr auto shaderName = Mesh::getShaderName();
+    const auto     shader     = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
