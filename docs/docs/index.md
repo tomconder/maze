@@ -2,18 +2,18 @@
 
 A nice walk through a maze.
 
-![work in progress](static/img/workinprogress.png 'work in progress')
+![work in progress](static/img/workinprogress.png "work in progress")
 
 ## Features
 
--   Platform portability: OpenGL and C++ for Windows and macOS
--   Physically based rendering (PBR)
--   Cook-Torrance microfacet specular BRDF
--   Point lights and directional light
--   PCF shadows
--   Reinhard tone mapping
--   Multi-channel signed distance field (MSDF) text rendering
--   Performance profiling with Tracy
+*   Platform portability: OpenGL and C++ for Windows and macOS
+*   Physically based rendering (PBR)
+*   Cook-Torrance microfacet specular BRDF
+*   Point lights and directional light
+*   PCF shadows
+*   Reinhard tone mapping
+*   Multi-channel signed distance field (MSDF) text rendering
+*   Performance profiling with Tracy
 
 ## Project Organization
 
@@ -27,9 +27,7 @@ A nice walk through a maze.
 
 Clone this repository.
 
-```
-git clone https://github.com/tomconder/maze.git
-```
+    git clone https://github.com/tomconder/maze.git
 
 ### Install vcpkg
 
@@ -37,21 +35,17 @@ git clone https://github.com/tomconder/maze.git
 
 By far the quickest way to install vcpkg is to clone it into this project.
 
-```
-cd maze
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-bootstrap-vcpkg.bat
-cd ..
-setx VCPKG_ROOT vcpkg
-```
+    cd maze
+    git clone https://github.com/microsoft/vcpkg.git
+    cd vcpkg
+    bootstrap-vcpkg.bat
+    cd ..
+    setx VCPKG_ROOT vcpkg
 
 If you installed vcpkg elsewhere, add an environment variable called `VCPKG_ROOT` that contains the location where you
 installed vcpkg.
 
-```
-setx VCPKG_ROOT <path to vcpkg>
-```
+    setx VCPKG_ROOT <path to vcpkg>
 
 ### Install CMake
 
@@ -59,9 +53,7 @@ setx VCPKG_ROOT <path to vcpkg>
 
 For example, use [Chocolatey](https://chocolatey.org/install) to install CMake.
 
-```
-choco install cmake
-```
+    choco install cmake
 
 ## Building
 
@@ -70,17 +62,13 @@ are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-ms
 
 On Windows, you can use
 
-```
-cmake -B build --preset windows-msvc-release
-cmake --build build --target game
-```
+    cmake -B build --preset windows-msvc-release
+    cmake --build build --target game
 
 Or, for MacOS, you can use
 
-```
-cmake -B build --preset osx-release
-cmake --build build --target game
-```
+    cmake -B build --preset osx-release
+    cmake --build build --target game
 
 ## Running
 
