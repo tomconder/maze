@@ -54,5 +54,14 @@ repos:
       hooks:
           - id: prettier
             args: ['--write']
-            files: "\\.(js|jsx|ts|tsx|css|scss|json|yaml|yml|md)$"
+            files: "\\.(js|jsx|ts|tsx|css|scss|json|yaml|yml)$"
             exclude: .vscode|assets/models|sponge/deps
+
+    - repo: https://github.com/MaratFM/pre-commit-remark
+      rev: 1.0.0
+      hooks:
+          - id: remark
+            args: ['--output', '--frail']
+            files: "\\.md$"
+            exclude: .vscode|assets/models|sponge/deps
+            additional_dependencies: ['remark-cli@10.0.1', 'remark-preset-lint-recommended@7.0.1', 'remark-preset-lint-consistent@6.0.1']
