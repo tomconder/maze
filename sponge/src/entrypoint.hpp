@@ -5,17 +5,18 @@
 #include "windows.h"
 #endif
 
-extern sponge::core::Application* sponge::core::createApplication(int    argc,
-                                                                  char** argv);
+#include <memory>
+
+extern std::unique_ptr<sponge::core::Application>
+    sponge::core::createApplication(int argc, char** argv);
 
 namespace sponge::core {
 
 int main(const int argc, char** argv) {
     startupCore();
 
-    Application* app = createApplication(argc, argv);
+    auto app = createApplication(argc, argv);
     app->run();
-    delete app;
 
     shutdownCore();
 

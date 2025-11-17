@@ -95,8 +95,8 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 }
 }  // namespace game
 
-sponge::core::Application* sponge::core::createApplication(const int argc,
-                                                           char**    argv) {
+std::unique_ptr<sponge::core::Application>
+    sponge::core::createApplication(const int argc, char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 
@@ -111,5 +111,5 @@ sponge::core::Application* sponge::core::createApplication(const int argc,
                                                 .height = height,
                                                 .fullscreen = fullscreen };
 
-    return new game::Maze{ spec };
+    return std::make_unique<game::Maze>(spec);
 }
