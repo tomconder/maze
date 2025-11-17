@@ -2,6 +2,8 @@
 
 #include "event/event.hpp"
 
+#include <memory>
+
 namespace sponge::core {
 
 class Application {
@@ -22,6 +24,6 @@ public:
 };
 
 // implemented by the client
-Application* createApplication(int argc, char** argv);
+std::unique_ptr<Application> createApplication(int argc, char** argv);
 
 }  // namespace sponge::core
