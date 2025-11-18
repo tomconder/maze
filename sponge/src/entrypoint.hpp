@@ -15,7 +15,7 @@ namespace sponge::core {
 int main(const int argc, char** argv) {
     startupCore();
 
-    auto app = createApplication(argc, argv);
+    const auto app = createApplication(argc, argv);
     app->run();
 
     shutdownCore();
