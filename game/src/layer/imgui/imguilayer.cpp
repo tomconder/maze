@@ -19,15 +19,13 @@ inline const std::string         cameraName = "maze";
 const std::array<std::string, 4> categories = { "categories", "app", "sponge",
                                                 "opengl" };
 // spdlog uses its own string_view type, convert to std::string
-const std::array<std::string, 7> logLevels = {
-    std::string(SPDLOG_LEVEL_NAME_TRACE.data()),
-    std::string(SPDLOG_LEVEL_NAME_DEBUG.data()),
-    std::string(SPDLOG_LEVEL_NAME_INFO.data()),
-    std::string(SPDLOG_LEVEL_NAME_WARNING.data()),
-    std::string(SPDLOG_LEVEL_NAME_ERROR.data()),
-    std::string(SPDLOG_LEVEL_NAME_CRITICAL.data()),
-    std::string(SPDLOG_LEVEL_NAME_OFF.data())
-};
+const std::array logLevels = { std::string(SPDLOG_LEVEL_NAME_TRACE.data()),
+                               std::string(SPDLOG_LEVEL_NAME_DEBUG.data()),
+                               std::string(SPDLOG_LEVEL_NAME_INFO.data()),
+                               std::string(SPDLOG_LEVEL_NAME_WARNING.data()),
+                               std::string(SPDLOG_LEVEL_NAME_ERROR.data()),
+                               std::string(SPDLOG_LEVEL_NAME_CRITICAL.data()),
+                               std::string(SPDLOG_LEVEL_NAME_OFF.data()) };
 
 constexpr ImGuiWindowFlags windowFlags =
     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -43,13 +41,23 @@ constexpr float  logHeight     = 220.F;
 }  // namespace
 
 namespace game::layer::imgui {
-bool ImGuiLayer::hasAppInfoMenu = true;
-bool ImGuiLayer::hasLogMenu     = true;
-bool ImGuiLayer::hasVsync       = true;
-bool ImGuiLayer::isFullscreen   = false;
+bool                     ImGuiLayer::hasAppInfoMenu = true;
+bool                     ImGuiLayer::hasLogMenu     = true;
+bool                     ImGuiLayer::hasVsync       = true;
+bool                     ImGuiLayer::isFullscreen   = false;
+std::vector<const char*> ImGuiLayer::levelNames;
+std::vector<const char*> ImGuiLayer::categoryNames;
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
-    // nothing
+    levelNames.reserve(logLevels.size());
+    for (const auto& s : logLevels) {
+        levelNames.push_back(s.c_str());
+    }
+
+    categoryNames.reserve(categories.size());
+    for (const auto& s : categories) {
+        categoryNames.push_back(s.c_str());
+    }
 }
 
 void ImGuiLayer::onImGuiRender() {
@@ -522,29 +530,13 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter&           filter,
                                  spdlog::level::level_enum& activeLogLevel,
                                  int&                       activeCategory) {
     ImGui::SetNextItemWidth(logLevelWidth);
-    ImGui::Combo(
-        "##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-        [](void* data, int idx, const char** outText) -> bool {
-            const auto* strs =
-                static_cast<const std::array<std::string, 7>*>(data);
-            *outText = (*strs)[idx].c_str();
-            return true;
-        },
-        const_cast<void*>(static_cast<const void*>(&logLevels)),
-        static_cast<int>(logLevels.size()));
+    ImGui::Combo("##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
+                 levelNames.data(), static_cast<int>(levelNames.size()));
     ImGui::SameLine();
 
     ImGui::SetNextItemWidth(categoriesWidth);
-    ImGui::Combo(
-        "##categories", &activeCategory,
-        [](void* data, int idx, const char** outText) -> bool {
-            const auto* strs =
-                static_cast<const std::array<std::string, 4>*>(data);
-            *outText = (*strs)[idx].c_str();
-            return true;
-        },
-        const_cast<void*>(static_cast<const void*>(&categories)),
-        static_cast<int>(categories.size()));
+    ImGui::Combo("##categories", reinterpret_cast<int*>(&activeCategory),
+                 categoryNames.data(), static_cast<int>(categories.size()));
     ImGui::SameLine();
 
     ImGui::TextUnformatted("Filter:");
