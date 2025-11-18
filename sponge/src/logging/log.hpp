@@ -45,11 +45,9 @@ public:
     static void addSink(const spdlog::sink_ptr& sink,
                         const std::string&      pattern);
 
-    static constexpr char colorFormatPattern[] =
-        "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
-    static constexpr char fileFormatPattern[] =
-        "%*%m%d %T.%f %7t %s:%# [%n] %v";
-    static constexpr char guiFormatPattern[] = "%*%m%d %T.%f %7t %s:%# [%n] %v";
+    static const std::string colorFormatPattern;
+    static const std::string fileFormatPattern;
+    static const std::string guiFormatPattern;
 
 private:
     static std::shared_ptr<spdlog::logger> appLogger;

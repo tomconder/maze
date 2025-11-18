@@ -6,13 +6,13 @@
 #include <string>
 
 namespace {
-constexpr char cancelButtonMessage[]  = "Cancel";
-constexpr char confirmButtonMessage[] = "Confirm";
-constexpr char message[]              = "Exit the Game?";
+inline const std::string cancelButtonMessage  = "Cancel";
+inline const std::string confirmButtonMessage = "Confirm";
+inline const std::string message              = "Exit the Game?";
 
-constexpr char cameraName[] = "exit";
-constexpr char fontName[]   = "league-gothic";
-constexpr char fontPath[]   = "/fonts/league-gothic.fnt";
+inline const std::string cameraName = "exit";
+inline const std::string fontName   = "league-gothic";
+inline const std::string fontPath   = "/fonts/league-gothic.fnt";
 
 constexpr glm::vec4 cancelButtonColor       = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor  = { .63F, .63F, .63F, 1.F };
@@ -23,10 +23,15 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 namespace game::layer {
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Font;
 using sponge::platform::opengl::scene::Quad;
 
+inline std::string fontShaderName;
+inline std::string quadShaderName;
+
 ExitLayer::ExitLayer() : Layer("exit") {
-    // nothing
+    fontShaderName = Font::getShaderName();
+    quadShaderName = Quad::getShaderName();
 }
 
 void ExitLayer::onAttach() {
@@ -34,15 +39,13 @@ void ExitLayer::onAttach() {
         sponge::platform::opengl::scene::FontCreateInfo{ .name = fontName,
                                                          .path = fontPath };
     ResourceManager::createFont(fontCreateInfo);
-    fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
+        scene::OrthoCameraCreateInfo{ .name = cameraName };
     orthoCamera =
         game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    quad           = std::make_unique<Quad>();
-    quadShaderName = Quad::getShaderName();
+    quad = std::make_unique<Quad>();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, fontName,

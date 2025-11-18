@@ -15,6 +15,13 @@ std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::glLogger;
 
+inline const std::string Log::colorFormatPattern =
+    "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
+inline const std::string Log::fileFormatPattern =
+    "%*%m%d %T.%f %7t %s:%# [%n] %v";
+inline const std::string Log::guiFormatPattern =
+    "%*%m%d %T.%f %7t %s:%# [%n] %v";
+
 void Log::init(const std::string& logfile) {
     const auto console = spdlog::stdout_color_mt("console");
     set_default_logger(console);

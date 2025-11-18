@@ -49,7 +49,7 @@
 #include "scene/mesh.hpp"
 #include "scene/sprite.hpp"
 
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
 #include "platform/glfw/imgui/glfwmanager.hpp"
 #include "platform/glfw/imgui/imguimanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"

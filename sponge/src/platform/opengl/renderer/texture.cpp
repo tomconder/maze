@@ -97,7 +97,7 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     int height        = 0;
     int width         = 0;
 
-    void* data =
+    auto* data =
         stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
     if (data == nullptr) {
         SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),

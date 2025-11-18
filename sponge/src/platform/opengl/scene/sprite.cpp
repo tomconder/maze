@@ -9,8 +9,8 @@
 #include <string>
 
 namespace {
-constexpr char     vertex[]  = "vertex";
-constexpr uint32_t indices[] = {
+inline const std::string vertex    = "vertex";
+constexpr uint32_t       indices[] = {
     0, 1, 2,  //
     0, 2, 3   //
 };
@@ -19,6 +19,7 @@ constexpr uint32_t vertexCount = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+inline const std::string Sprite::shaderName = "sprite";
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -41,7 +42,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     const auto program = shader->getId();
 
-    if (const auto location = glGetAttribLocation(program, vertex);
+    if (const auto location = glGetAttribLocation(program, vertex.c_str());
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);

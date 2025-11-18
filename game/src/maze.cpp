@@ -16,7 +16,7 @@ Maze::Maze(const ApplicationSpecification& specification) :
 }
 
 bool Maze::onUserCreate() {
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
     pushOverlay(imguiLayer);
 #endif
     pushOverlay(exitLayer);
@@ -68,7 +68,7 @@ bool Maze::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_GraveAccent) {
         if (imguiLayer->isActive()) {
             imguiLayer->setActive(false);
@@ -95,8 +95,8 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 }
 }  // namespace game
 
-sponge::core::Application* sponge::core::createApplication(const int argc,
-                                                           char**    argv) {
+std::unique_ptr<sponge::core::Application>
+    sponge::core::createApplication(const int argc, char** argv) {
     UNUSED(argc);
     UNUSED(argv);
 
@@ -111,5 +111,5 @@ sponge::core::Application* sponge::core::createApplication(const int argc,
                                                 .height = height,
                                                 .fullscreen = fullscreen };
 
-    return new game::Maze{ spec };
+    return std::make_unique<game::Maze>(spec);
 }

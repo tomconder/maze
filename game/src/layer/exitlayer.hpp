@@ -21,8 +21,6 @@ public:
 
 private:
     std::shared_ptr<scene::OrthoCamera> orthoCamera;
-    std::string                         fontShaderName;
-    std::string                         quadShaderName;
 
     bool isRunning = true;
 
