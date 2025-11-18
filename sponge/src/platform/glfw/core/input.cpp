@@ -80,8 +80,8 @@ float Input::getMouseY() {
 std::pair<float, float> Input::getMousePosition() {
     const auto window = Application::get().window;
 
-    double x;
-    double y;
+    double x = 0.F;
+    double y = 0.F;
     glfwGetCursorPos(static_cast<GLFWwindow*>(window->getNativeWindow()), &x,
                      &y);
     return { static_cast<float>(x), static_cast<float>(y) };
@@ -90,8 +90,8 @@ std::pair<float, float> Input::getMousePosition() {
 std::pair<float, float> Input::getRelativeMousePosition() {
     const auto window = Application::get().window;
 
-    double x;
-    double y;
+    double x = 0.F;
+    double y = 0.F;
     glfwGetCursorPos(static_cast<GLFWwindow*>(window->getNativeWindow()), &x,
                      &y);
     return { static_cast<float>(x - prevCursorPosX),
