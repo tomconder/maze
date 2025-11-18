@@ -433,7 +433,7 @@ void MazeLayer::renderSceneToDepthMap() const {
         glm::normalize(directionalLight.direction));
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
-    auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
+    const auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();

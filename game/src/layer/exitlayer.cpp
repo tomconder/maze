@@ -23,10 +23,15 @@ constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
 namespace game::layer {
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::scene::Font;
 using sponge::platform::opengl::scene::Quad;
 
+inline std::string fontShaderName;
+inline std::string quadShaderName;
+
 ExitLayer::ExitLayer() : Layer("exit") {
-    // nothing
+    fontShaderName = Font::getShaderName();
+    quadShaderName = Quad::getShaderName();
 }
 
 void ExitLayer::onAttach() {
@@ -34,15 +39,13 @@ void ExitLayer::onAttach() {
         sponge::platform::opengl::scene::FontCreateInfo{ .name = fontName,
                                                          .path = fontPath };
     ResourceManager::createFont(fontCreateInfo);
-    fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = cameraName };
     orthoCamera =
         game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    quad           = std::make_unique<Quad>();
-    quadShaderName = Quad::getShaderName();
+    quad = std::make_unique<Quad>();
 
     confirmButton = std::make_unique<ui::Button>(
         glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, fontName,
