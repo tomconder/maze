@@ -26,6 +26,8 @@ constexpr uint32_t vertexCount = 36;
 
 namespace sponge::platform::opengl::scene {
 
+inline const std::string Cube::shaderName = "cube";
+
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName,

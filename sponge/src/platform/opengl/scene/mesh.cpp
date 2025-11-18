@@ -18,6 +18,8 @@ namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 using sponge::scene::Vertex;
 
+inline const std::string Mesh::shaderName = "mesh";
+
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
            std::vector<std::shared_ptr<renderer::Texture>>&& textures) :

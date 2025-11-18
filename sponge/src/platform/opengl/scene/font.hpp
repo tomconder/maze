@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace sponge::platform::opengl::scene {
 struct FontCreateInfo {
@@ -25,12 +26,12 @@ public:
     void     render(const std::string& text, const glm::vec2& position,
                     uint32_t targetSize, const glm::vec3& color);
 
-    static std::string getShaderName() {
-        return std::string(shaderName);
+    static std::string_view getShaderName() {
+        return shaderName;
     }
 
 private:
-    static constexpr char shaderName[] = "text";
+    static const std::string shaderName;
 
     std::shared_ptr<renderer::Shader> shader;
 
