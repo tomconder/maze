@@ -7,6 +7,7 @@
 #include "version.hpp"
 
 #include <algorithm>
+#include <numeric>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -18,14 +19,12 @@ constexpr ImColor                darkWarnColor{ .8F, .8F, 0.3F, 1.F };
 inline const std::string         cameraName = "maze";
 const std::array<std::string, 4> categories = { "categories", "app", "sponge",
                                                 "opengl" };
-// spdlog uses its own string_view type, convert to std::string
-const std::array logLevels = { std::string(SPDLOG_LEVEL_NAME_TRACE.data()),
-                               std::string(SPDLOG_LEVEL_NAME_DEBUG.data()),
-                               std::string(SPDLOG_LEVEL_NAME_INFO.data()),
-                               std::string(SPDLOG_LEVEL_NAME_WARNING.data()),
-                               std::string(SPDLOG_LEVEL_NAME_ERROR.data()),
-                               std::string(SPDLOG_LEVEL_NAME_CRITICAL.data()),
-                               std::string(SPDLOG_LEVEL_NAME_OFF.data()) };
+constexpr std::array             logLevels  = {
+    SPDLOG_LEVEL_NAME_TRACE, SPDLOG_LEVEL_NAME_DEBUG,
+    SPDLOG_LEVEL_NAME_INFO,  SPDLOG_LEVEL_NAME_WARNING,
+    SPDLOG_LEVEL_NAME_ERROR, SPDLOG_LEVEL_NAME_CRITICAL,
+    SPDLOG_LEVEL_NAME_OFF
+};
 
 constexpr ImGuiWindowFlags windowFlags =
     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
@@ -51,7 +50,7 @@ std::vector<const char*> ImGuiLayer::categoryNames;
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     levelNames.reserve(logLevels.size());
     for (const auto& s : logLevels) {
-        levelNames.push_back(s.c_str());
+        levelNames.push_back(s.data());
     }
 
     categoryNames.reserve(categories.size());
@@ -391,13 +390,12 @@ void ImGuiLayer::showLogWindow(const float width, const float height) {
     }
 }
 
-float ImGuiLayer::getLogSelectionMaxWidth(
-    const std::span<const std::string> list) {
-    float maxWidth = 0;
-    for (const auto& item : list) {
-        const auto width = ImGui::CalcTextSize(item.c_str()).x;
-        maxWidth         = std::max(width, maxWidth);
-    }
+float ImGuiLayer::getLogSelectionMaxWidth(const std::span<const char*> list) {
+    const auto maxWidth = std::accumulate(
+        list.begin(), list.end(), 0.0f,
+        [](const float currMax, const char* item) {
+            return std::max(ImGui::CalcTextSize(item).x, currMax);
+        });
 
     return maxWidth + (ImGui::GetStyle().FramePadding.x * 2) +
            ImGui::GetFrameHeight();
@@ -514,8 +512,8 @@ void ImGuiLayer::showTexturesTable() {
 
 void ImGuiLayer::showLogging() {
     static ImGuiTextFilter filter;
-    static auto            logLevelWidth = getLogSelectionMaxWidth(logLevels);
-    static auto categoriesWidth          = getLogSelectionMaxWidth(categories);
+    static auto            logLevelWidth = getLogSelectionMaxWidth(levelNames);
+    static auto categoriesWidth = getLogSelectionMaxWidth(categoryNames);
     static spdlog::level::level_enum activeLogLevel = spdlog::get_level();
     static auto                      activeCategory = 0;
 
@@ -636,8 +634,9 @@ bool ImGuiLayer::isCaseInsensitiveEqual(const std::string& str1,
                                         const std::string& str2) {
     return str1.size() == str2.size() &&
            std::equal(str1.begin(), str1.end(), str2.begin(),
-                      [](auto a, auto b) {
-                          return std::tolower(a) == std::tolower(b);
+                      [](char a, char b) {
+                          return std::tolower(static_cast<unsigned char>(a)) ==
+                                 std::tolower(static_cast<unsigned char>(b));
                       });
 }
 }  // namespace game::layer::imgui

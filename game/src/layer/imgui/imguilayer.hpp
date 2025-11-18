@@ -72,7 +72,7 @@ private:
     static bool isCaseInsensitiveEqual(const std::string& str1,
                                        const std::string& str2);
 
-    static float getLogSelectionMaxWidth(std::span<const std::string> list);
+    static float getLogSelectionMaxWidth(std::span<const char*> list);
 
     template <typename Func>
     static void showResourceTree(const std::string& name, Func&& func);
