@@ -24,6 +24,9 @@ private:
     static bool hasVsync;
     static bool isFullscreen;
 
+    static std::vector<const char*> levelNames;
+    static std::vector<const char*> categoryNames;
+
     // Main sections
     static void updateState();
     static void showInfoSection();
