@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 
 #include <memory>
-#include <string>
 
 namespace sponge::platform::opengl::scene {
 class ShadowMap {
