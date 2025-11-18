@@ -4,10 +4,11 @@
 
 #include <array>
 #include <memory>
+#include <string>
 
 namespace {
-constexpr char     vertex[]  = "position";
-constexpr uint32_t indices[] = {
+inline const std::string vertex    = "position";
+constexpr uint32_t       indices[] = {
     0, 2, 1,  //
     0, 3, 2   //
 };
@@ -39,7 +40,7 @@ Quad::Quad() {
 
     const auto program = shader->getId();
 
-    if (const auto location = glGetAttribLocation(program, vertex);
+    if (const auto location = glGetAttribLocation(program, vertex.c_str());
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
