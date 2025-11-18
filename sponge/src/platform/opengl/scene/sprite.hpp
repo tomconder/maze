@@ -19,12 +19,12 @@ public:
     void render(const glm::vec2& position,
                 const glm::vec2& size) const override;
 
-    static std::string getShaderName() {
-        return std::string(shaderName);
+    static std::string_view getShaderName() {
+        return shaderName;
     }
 
 private:
-    static constexpr char shaderName[] = "sprite";
+    static const std::string shaderName;
 
     std::shared_ptr<renderer::Shader>  shader;
     std::shared_ptr<renderer::Texture> tex;

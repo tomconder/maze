@@ -4,7 +4,7 @@
 #include "layer/mazelayer.hpp"
 #include "sponge.hpp"
 
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
 #include "layer/imgui/imguilayer.hpp"
 #endif
 
@@ -41,7 +41,7 @@ private:
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
 #endif

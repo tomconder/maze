@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace sponge::platform::opengl::scene {
 
@@ -18,12 +19,12 @@ public:
     void render(const glm::vec2& top, const glm::vec2& bottom,
                 const glm::vec4& color) const;
 
-    static std::string getShaderName() {
-        return std::string(shaderName);
+    static std::string_view getShaderName() {
+        return shaderName;
     }
 
 private:
-    static constexpr char shaderName[] = "quad";
+    static const std::string shaderName;
 
     std::shared_ptr<renderer::Shader> shader;
 

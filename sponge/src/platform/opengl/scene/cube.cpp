@@ -4,10 +4,11 @@
 #include "platform/opengl/renderer/resourcemanager.hpp"
 
 #include <memory>
+#include <string>
 
 namespace {
-constexpr char      position[] = "position";
-constexpr glm::vec3 vertices[] = {
+inline const std::string position   = "position";
+constexpr glm::vec3      vertices[] = {
     { -0.5, 0.5, -0.5 }, { -0.5, 0.5, 0.5 },   { 0.5, 0.5, 0.5 },
     { -0.5, 0.5, -0.5 }, { 0.5, 0.5, 0.5 },    { 0.5, 0.5, -0.5 },
     { -0.5, 0.5, -0.5 }, { -0.5, -0.5, -0.5 }, { -0.5, -0.5, 0.5 },
@@ -26,6 +27,8 @@ constexpr uint32_t vertexCount = 36;
 
 namespace sponge::platform::opengl::scene {
 
+inline const std::string Cube::shaderName = "cube";
+
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName,
@@ -42,7 +45,7 @@ Cube::Cube() {
     vbo->bind();
 
     const auto program = shader->getId();
-    if (const auto location = glGetAttribLocation(program, position);
+    if (const auto location = glGetAttribLocation(program, position.c_str());
         location != -1) {
         const auto pos = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(pos);

@@ -102,8 +102,8 @@ void MazeLayer::onAttach() {
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
-    constexpr auto shaderName = Mesh::getShaderName();
-    const auto     shader     = ResourceManager::getShader(shaderName);
+    const auto shaderName = Mesh::getShaderName();
+    const auto shader     = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
@@ -433,7 +433,7 @@ void MazeLayer::renderSceneToDepthMap() const {
         glm::normalize(directionalLight.direction));
     const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
 
-    auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
+    const auto shader = ResourceManager::getShader(ShadowMap::getShaderName());
 
     for (const auto& gameObject : gameObjects) {
         shader->bind();

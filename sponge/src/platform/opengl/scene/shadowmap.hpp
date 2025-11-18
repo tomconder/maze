@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace sponge::platform::opengl::scene {
 class ShadowMap {
@@ -21,7 +22,7 @@ public:
 
     void activateAndBindDepthMap(uint8_t unit) const;
 
-    static constexpr std::string_view getShaderName() {
+    static std::string_view getShaderName() {
         return shaderName;
     }
 
@@ -48,7 +49,7 @@ public:
     void updateLightSpaceMatrix(const glm::vec3& lightDirection);
 
 private:
-    static constexpr char                  shaderName[] = "shadowmap";
+    static const std::string               shaderName;
     std::shared_ptr<renderer::Shader>      shader;
     std::shared_ptr<renderer::Texture>     depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;

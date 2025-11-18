@@ -10,10 +10,10 @@
 #include <string>
 
 namespace {
-constexpr char   vertex[]    = "vertex";
-constexpr size_t indexCount  = 6;
-constexpr size_t maxLength   = 256;
-constexpr size_t vertexCount = 8;
+inline const std::string vertex      = "vertex";
+constexpr size_t         indexCount  = 6;
+constexpr size_t         maxLength   = 256;
+constexpr size_t         vertexCount = 8;
 
 std::array<uint32_t, maxLength * indexCount>   batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
@@ -21,6 +21,8 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 
 namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
+
+inline const std::string Font::shaderName = "text";
 
 Font::Font(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
@@ -46,7 +48,7 @@ Font::Font(const FontCreateInfo& createInfo) {
 
     const auto program = shader->getId();
 
-    if (const auto location = glGetAttribLocation(program, vertex);
+    if (const auto location = glGetAttribLocation(program, vertex.c_str());
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);

@@ -17,8 +17,7 @@ VertexArray::~VertexArray() {
 }
 
 std::unique_ptr<VertexArray> VertexArray::create() {
-    std::unique_ptr<VertexArray> buffer(new VertexArray());
-    return buffer;
+    return std::unique_ptr<VertexArray>(new VertexArray());
 }
 
 void VertexArray::bind() const {
