@@ -9,14 +9,15 @@
 #include <algorithm>
 #include <optional>
 #include <ranges>
+#include <string>
 
 namespace {
 constexpr ImColor                darkDebugColor{ .3F, .8F, .8F, 1.F };
 constexpr ImColor                darkErrorColor{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor                darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-constexpr char                   cameraName[] = "maze";
-const std::array<std::string, 4> categories   = { "categories", "app", "sponge",
-                                                  "opengl" };
+inline const std::string         cameraName = "maze";
+const std::array<std::string, 4> categories = { "categories", "app", "sponge",
+                                                "opengl" };
 // spdlog uses its own string_view type, convert to std::string
 const std::array<std::string, 7> logLevels = {
     std::string(SPDLOG_LEVEL_NAME_TRACE.data()),
@@ -222,13 +223,14 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        float vec[3] = { direction.x, direction.y, direction.z };
+        std::array vec = { direction.x, direction.y, direction.z };
         showTableRow([&] {
             ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat3("##directionaldirection", vec, -10.F, 10.F,
-                                    "%2.2f", ImGuiSliderFlags_AlwaysClamp)) {
+            if (ImGui::SliderFloat3("##directionaldirection", vec.data(), -10.F,
+                                    10.F, "%2.2f",
+                                    ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setDirectionalLightDirection(
                     glm::vec3(vec[0], vec[1], vec[2]));
             }
@@ -427,7 +429,7 @@ void ImGuiLayer::showMenu() {
 }
 
 void ImGuiLayer::showFontsTable() {
-    const auto fonts =
+    const auto& fonts =
         sponge::platform::opengl::renderer::ResourceManager::getFonts();
     showSimpleTable("fontsTable", fonts);
 }
@@ -459,7 +461,7 @@ void ImGuiLayer::showModelsTable() {
     if (ImGui::BeginTable("modelsTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        const auto models =
+        const auto& models =
             sponge::platform::opengl::renderer::ResourceManager::getModels();
 
         for (const auto& key : models | std::views::keys) {
@@ -478,7 +480,7 @@ void ImGuiLayer::showModelsTable() {
 }
 
 void ImGuiLayer::showShadersTable() {
-    const auto shaders =
+    const auto& shaders =
         sponge::platform::opengl::renderer::ResourceManager::getShaders();
     showSimpleTable("shaderTable", shaders);
 }
@@ -487,7 +489,7 @@ void ImGuiLayer::showTexturesTable() {
     if (ImGui::BeginTable("textureTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        const auto textures =
+        const auto& textures =
             sponge::platform::opengl::renderer::ResourceManager::getTextures();
 
         for (const auto& key : textures | std::views::keys) {
@@ -522,9 +524,10 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter&           filter,
     ImGui::SetNextItemWidth(logLevelWidth);
     ImGui::Combo(
         "##activeLogLevel", reinterpret_cast<int*>(&activeLogLevel),
-        [](void* data, int idx, const char** out_text) -> bool {
-            auto* strs = static_cast<const std::array<std::string, 7>*>(data);
-            *out_text  = (*strs)[idx].c_str();
+        [](void* data, int idx, const char** outText) -> bool {
+            const auto* strs =
+                static_cast<const std::array<std::string, 7>*>(data);
+            *outText = (*strs)[idx].c_str();
             return true;
         },
         const_cast<void*>(static_cast<const void*>(&logLevels)),
@@ -534,9 +537,10 @@ void ImGuiLayer::showLogControls(ImGuiTextFilter&           filter,
     ImGui::SetNextItemWidth(categoriesWidth);
     ImGui::Combo(
         "##categories", &activeCategory,
-        [](void* data, int idx, const char** out_text) -> bool {
-            auto* strs = static_cast<const std::array<std::string, 4>*>(data);
-            *out_text  = (*strs)[idx].c_str();
+        [](void* data, int idx, const char** outText) -> bool {
+            const auto* strs =
+                static_cast<const std::array<std::string, 4>*>(data);
+            *outText = (*strs)[idx].c_str();
             return true;
         },
         const_cast<void*>(static_cast<const void*>(&categories)),
