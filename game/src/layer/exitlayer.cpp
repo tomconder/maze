@@ -6,13 +6,13 @@
 #include <string>
 
 namespace {
-constexpr char cancelButtonMessage[]  = "Cancel";
-constexpr char confirmButtonMessage[] = "Confirm";
-constexpr char message[]              = "Exit the Game?";
+inline const std::string cancelButtonMessage  = "Cancel";
+inline const std::string confirmButtonMessage = "Confirm";
+inline const std::string message              = "Exit the Game?";
 
-constexpr char cameraName[] = "exit";
-constexpr char fontName[]   = "league-gothic";
-constexpr char fontPath[]   = "/fonts/league-gothic.fnt";
+inline const std::string cameraName = "exit";
+inline const std::string fontName   = "league-gothic";
+inline const std::string fontPath   = "/fonts/league-gothic.fnt";
 
 constexpr glm::vec4 cancelButtonColor       = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor  = { .63F, .63F, .63F, 1.F };
@@ -37,7 +37,7 @@ void ExitLayer::onAttach() {
     fontShaderName = sponge::platform::opengl::scene::Font::getShaderName();
 
     const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
+        scene::OrthoCameraCreateInfo{ .name = cameraName };
     orthoCamera =
         game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
