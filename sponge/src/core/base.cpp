@@ -7,8 +7,8 @@
 #include <string>
 
 namespace {
-constexpr char spongeLogFile[] = "log.txt";
-constexpr char appFolder[]     = "ItsTom";
+inline const std::string spongeLogFile = "log.txt";
+inline const std::string appFolder     = "ItsTom";
 }  // namespace
 
 namespace sponge::core {
