@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace sponge::platform::opengl::scene {
 
@@ -13,12 +14,12 @@ public:
     Cube();
     void render() const;
 
-    static constexpr std::string_view getShaderName() {
+    static std::string_view getShaderName() {
         return shaderName;
     }
 
 private:
-    static constexpr char shaderName[] = "cube";
+    static const std::string shaderName;
 
     std::shared_ptr<renderer::Shader> shader;
 

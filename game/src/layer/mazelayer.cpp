@@ -102,8 +102,8 @@ void MazeLayer::onAttach() {
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
-    constexpr auto shaderName = Mesh::getShaderName();
-    const auto     shader     = ResourceManager::getShader(shaderName);
+    const auto shaderName = Mesh::getShaderName();
+    const auto shader     = ResourceManager::getShader(shaderName);
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);

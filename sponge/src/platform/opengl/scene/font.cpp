@@ -22,6 +22,8 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 namespace sponge::platform::opengl::scene {
 using renderer::ResourceManager;
 
+inline const std::string Font::shaderName = "text";
+
 Font::Font(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 

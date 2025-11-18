@@ -19,6 +19,7 @@ constexpr uint32_t vertexCount = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+inline const std::string Sprite::shaderName = "sprite";
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
