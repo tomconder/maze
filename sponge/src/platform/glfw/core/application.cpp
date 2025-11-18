@@ -126,7 +126,7 @@ bool Application::iterateLoop() {
 
     imguiManager->begin();
 
-#if defined(ENABLE_IMGUI)
+#ifdef ENABLE_IMGUI
     onImGuiRender();
 #endif
 
@@ -325,7 +325,7 @@ void Application::setVerticalSync(const bool val) {
 }
 
 void Application::run() {
-#if defined(ENABLE_PROFILING)
+#ifdef ENABLE_PROFILING
     SPONGE_CORE_DEBUG("Tracy profiler enabled");
 #endif
 
