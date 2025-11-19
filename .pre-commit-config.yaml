@@ -9,18 +9,18 @@ repos:
       rev: v6.0.0
       hooks:
           - id: mixed-line-ending
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
             args: ['--fix=lf']
           - id: trailing-whitespace
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
           - id: end-of-file-fixer
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
           - id: check-case-conflict
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
           - id: check-executables-have-shebangs
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
           - id: check-merge-conflict
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
           - id: detect-private-key
           - id: detect-aws-credentials
             args: ['--allow-missing-credentials']
@@ -29,7 +29,12 @@ repos:
       rev: 0.7.1
       hooks:
           - id: fix-smartquotes
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
+
+    - repo: https://github.com/shellcheck-py/shellcheck-py
+      rev: v0.11.0.1
+      hooks:
+          - id: shellcheck
 
     - repo: https://github.com/gitleaks/gitleaks
       rev: v8.29.0
@@ -40,7 +45,7 @@ repos:
       rev: v1.39.2
       hooks:
           - id: typos
-            exclude: .clang-tidy|.vscode|assets/models|sponge/deps
+            exclude: .clang-tidy|assets/models|sponge/deps
 
     - repo: https://github.com/pre-commit/mirrors-clang-format
       rev: v21.1.5
@@ -64,7 +69,7 @@ repos:
           - id: prettier
             args: ['--write']
             files: "\\.(js|jsx|ts|tsx|css|scss|json|yaml|yml)$"
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
 
     - repo: https://github.com/MaratFM/pre-commit-remark
       rev: 1.0.0
@@ -72,5 +77,5 @@ repos:
           - id: remark
             args: ['--output', '--frail']
             files: "\\.md$"
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: assets/models|sponge/deps
             additional_dependencies: ['remark-cli@10.0.1', 'remark-preset-lint-recommended@7.0.1', 'remark-preset-lint-consistent@6.0.1']
