@@ -28,37 +28,31 @@ repos:
           - id: fix-smartquotes
             exclude: assets/models|sponge/deps
 
-    - repo: https://github.com/shellcheck-py/shellcheck-py
-      rev: v0.11.0.1
-      hooks:
-          - id: shellcheck
-
     - repo: https://github.com/gitleaks/gitleaks
       rev: v8.29.0
       hooks:
           - id: gitleaks
 
-    - repo: https://github.com/crate-ci/typos
-      rev: v1.39.2
+    - repo: https://github.com/shellcheck-py/shellcheck-py
+      rev: v0.11.0.1
       hooks:
-          - id: typos
-            exclude: .clang-tidy|assets/models|sponge/deps
-
-    - repo: https://github.com/pre-commit/mirrors-clang-format
-      rev: v21.1.5
-      hooks:
-          - id: clang-format
-            types: [file]
-            files: \.(c|cpp|h|hpp|glsl)$
-            exclude: sponge/deps|out|tools
+          - id: shellcheck
 
     - repo: https://github.com/cpplint/cpplint
       rev: 2.0.2
       hooks:
           - id: cpplint
-            exclude: sponge/deps|out|tools
+            exclude: sponge/deps
             args:
                 - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent
+
+    - repo: https://github.com/Takishima/cmake-pre-commit-hooks
+      rev: v1.9.6
+      hooks:
+          - id: clang-format
+            args: [--style=file, -i]
+            files: "\\.(c|cpp|h|hpp|glsl)$"
+            exclude: sponge/deps
 
     - repo: https://github.com/pre-commit/mirrors-prettier
       rev: 'v3.1.0'
@@ -76,3 +70,9 @@ repos:
             files: "\\.md$"
             exclude: assets/models|sponge/deps
             additional_dependencies: ['remark-cli@10.0.1', 'remark-preset-lint-recommended@7.0.1', 'remark-preset-lint-consistent@6.0.1']
+
+    - repo: https://github.com/crate-ci/typos
+      rev: v1.39.2
+      hooks:
+          - id: typos
+            exclude: .clang-tidy|assets/models|sponge/deps

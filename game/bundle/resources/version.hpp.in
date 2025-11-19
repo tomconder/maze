@@ -1,18 +1,18 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 namespace game {
 
-inline const std::string project_name { "@PROJECT_NAME@" };
-inline const std::string project_version { "@PROJECT_VERSION@" };
+inline const std::string project_name{ "@PROJECT_NAME@" };
+inline const std::string project_version{ "@PROJECT_VERSION@" };
 
-inline constexpr uint8_t project_version_major { @PROJECT_VERSION_MAJOR@ };
-inline constexpr uint8_t project_version_minor { @PROJECT_VERSION_MINOR@ };
-inline constexpr uint8_t project_version_patch { @PROJECT_VERSION_PATCH@ };
-inline constexpr uint8_t project_version_tweak { @PROJECT_VERSION_TWEAK@ };
+inline constexpr uint8_t project_version_major{ @PROJECT_VERSION_MAJOR@ };
+inline constexpr uint8_t project_version_minor{ @PROJECT_VERSION_MINOR@ };
+inline constexpr uint8_t project_version_patch{ @PROJECT_VERSION_PATCH@ };
+inline constexpr uint8_t project_version_tweak{ @PROJECT_VERSION_TWEAK@ };
 
-inline const std::string git_sha { "@GIT_SHA@" };
+inline const std::string git_sha{ "@GIT_SHA@" };
 
-} // namespace game
+}  // namespace game
