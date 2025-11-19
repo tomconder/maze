@@ -3,24 +3,31 @@
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/resourcemanager.hpp"
 
+#include <array>
 #include <memory>
 #include <string>
 
 namespace {
-inline const std::string position   = "position";
-constexpr glm::vec3      vertices[] = {
-    { -0.5, 0.5, -0.5 }, { -0.5, 0.5, 0.5 },   { 0.5, 0.5, 0.5 },
-    { -0.5, 0.5, -0.5 }, { 0.5, 0.5, 0.5 },    { 0.5, 0.5, -0.5 },
-    { -0.5, 0.5, -0.5 }, { -0.5, -0.5, -0.5 }, { -0.5, -0.5, 0.5 },
-    { -0.5, 0.5, -0.5 }, { -0.5, -0.5, 0.5 },  { -0.5, 0.5, 0.5 },
-    { 0.5, 0.5, 0.5 },   { 0.5, -0.5, 0.5 },   { 0.5, -0.5, -0.5 },
-    { 0.5, 0.5, 0.5 },   { 0.5, -0.5, -0.5 },  { 0.5, 0.5, -0.5 },
-    { 0.5, 0.5, -0.5 },  { 0.5, -0.5, -0.5 },  { -0.5, -0.5, -0.5 },
-    { 0.5, 0.5, -0.5 },  { -0.5, -0.5, -0.5 }, { -0.5, 0.5, -0.5 },
-    { -0.5, 0.5, 0.5 },  { -0.5, -0.5, 0.5 },  { 0.5, -0.5, 0.5 },
-    { -0.5, 0.5, 0.5 },  { 0.5, -0.5, 0.5 },   { 0.5, 0.5, 0.5 },
-    { -0.5, -0.5, 0.5 }, { -0.5, -0.5, -0.5 }, { 0.5, -0.5, -0.5 },
-    { -0.5, -0.5, 0.5 }, { 0.5, -0.5, -0.5 },  { 0.5, -0.5, 0.5 }
+inline const std::string position = "position";
+constexpr std::array     vertices = {
+    glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
+    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ -0.5, 0.5, -0.5 },
+    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, 0.5, -0.5 },
+    glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, -0.5, -0.5 },
+    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, 0.5, -0.5 },
+    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
+    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, -0.5, 0.5 },
+    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, 0.5, 0.5 },
+    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, 0.5, -0.5 },
+    glm::vec3{ 0.5, 0.5, -0.5 },   glm::vec3{ 0.5, -0.5, -0.5 },
+    glm::vec3{ -0.5, -0.5, -0.5 }, glm::vec3{ 0.5, 0.5, -0.5 },
+    glm::vec3{ -0.5, -0.5, -0.5 }, glm::vec3{ -0.5, 0.5, -0.5 },
+    glm::vec3{ -0.5, 0.5, 0.5 },   glm::vec3{ -0.5, -0.5, 0.5 },
+    glm::vec3{ 0.5, -0.5, 0.5 },   glm::vec3{ -0.5, 0.5, 0.5 },
+    glm::vec3{ 0.5, -0.5, 0.5 },   glm::vec3{ 0.5, 0.5, 0.5 },
+    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, -0.5, -0.5 },
+    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ -0.5, -0.5, 0.5 },
+    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, -0.5, 0.5 }
 };
 constexpr uint32_t vertexCount = 36;
 }  // namespace
@@ -41,7 +48,8 @@ Cube::Cube() {
     vao = renderer::VertexArray::create();
     vao->bind();
 
-    vbo = std::make_unique<renderer::VertexBuffer>(vertices, sizeof(vertices));
+    vbo = std::make_unique<renderer::VertexBuffer>(vertices.data(),
+                                                   sizeof(vertices));
     vbo->bind();
 
     const auto program = shader->getId();
