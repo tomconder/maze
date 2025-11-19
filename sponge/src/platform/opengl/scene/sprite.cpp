@@ -9,8 +9,8 @@
 #include <string>
 
 namespace {
-inline const std::string vertex    = "vertex";
-constexpr uint32_t       indices[] = {
+inline const std::string          vertex  = "vertex";
+constexpr std::array<uint32_t, 6> indices = {
     0, 1, 2,  //
     0, 2, 3   //
 };
@@ -37,7 +37,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
         nullptr, vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = std::make_unique<renderer::IndexBuffer>(indices, sizeof(indices));
+    ebo = std::make_unique<renderer::IndexBuffer>(indices.data(),
+                                                  sizeof(indices));
     ebo->bind();
 
     const auto program = shader->getId();
@@ -55,8 +56,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
                                                          .path = texturePath };
-    const auto                        tex =
-        renderer::ResourceManager::createTexture(textureCreateInfo);
+    tex = renderer::ResourceManager::createTexture(textureCreateInfo);
     tex->bind();
 
     shader->unbind();
