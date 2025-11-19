@@ -22,9 +22,7 @@ repos:
           - id: check-merge-conflict
             exclude: .vscode|assets/models|sponge/deps
           - id: detect-private-key
-            exclude: .vscode|assets/models|sponge/deps
           - id: detect-aws-credentials
-            exclude: .vscode|assets/models|sponge/deps
             args: ['--allow-missing-credentials']
 
     - repo: https://github.com/sirosen/texthooks
@@ -37,7 +35,6 @@ repos:
       rev: v8.29.0
       hooks:
           - id: gitleaks
-            exclude: .vscode|assets/models|sponge/deps
 
     - repo: https://github.com/crate-ci/typos
       rev: v1.39.2
