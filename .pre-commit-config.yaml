@@ -43,7 +43,7 @@ repos:
       rev: v1.39.2
       hooks:
           - id: typos
-            exclude: .vscode|assets/models|sponge/deps
+            exclude: .clang-tidy|.vscode|assets/models|sponge/deps
 
     - repo: https://github.com/pre-commit/mirrors-clang-format
       rev: v21.1.5
