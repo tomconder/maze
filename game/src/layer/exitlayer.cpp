@@ -18,6 +18,9 @@ constexpr glm::vec4 cancelButtonColor       = { .35F, .35F, .35F, 1.F };
 constexpr glm::vec4 cancelButtonHoverColor  = { .63F, .63F, .63F, 1.F };
 constexpr glm::vec4 confirmButtonColor      = { .05F, .5F, .35F, 1.F };
 constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
+
+inline std::string fontShaderName;
+inline std::string quadShaderName;
 }  // namespace
 
 namespace game::layer {
@@ -25,9 +28,6 @@ using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::opengl::scene::Font;
 using sponge::platform::opengl::scene::Quad;
-
-inline std::string fontShaderName;
-inline std::string quadShaderName;
 
 ExitLayer::ExitLayer() : Layer("exit") {
     fontShaderName = Font::getShaderName();
