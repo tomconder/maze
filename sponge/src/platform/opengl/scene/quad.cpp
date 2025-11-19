@@ -7,8 +7,8 @@
 #include <string>
 
 namespace {
-inline const std::string vertex    = "position";
-constexpr uint32_t       indices[] = {
+inline const std::string          vertex  = "position";
+constexpr std::array<uint32_t, 6> indices = {
     0, 2, 1,  //
     0, 3, 2   //
 };
@@ -35,7 +35,8 @@ Quad::Quad() {
         nullptr, vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = std::make_unique<renderer::IndexBuffer>(indices, sizeof(indices));
+    ebo = std::make_unique<renderer::IndexBuffer>(indices.data(),
+                                                  sizeof(indices));
     ebo->bind();
 
     const auto program = shader->getId();
