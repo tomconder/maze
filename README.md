@@ -64,14 +64,20 @@ are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-ms
 
 On Windows, you can use
 
-    cmake -B build --preset windows-msvc-release
-    cmake --build build --target game
+    cmake.exe -B build --preset windows-msvc-release
+    cmake.exe --build build --target game --config Release
 
 Or, for MacOS, you can use
 
     cmake -B build --preset osx-release
-    cmake --build build --target game
+    cmake --build build --target game --config Release
 
 ## Running
 
-The maze executable will be found in the build directory: `build\maze\Release\maze.exe`
+On Windows, you can find the maze executable will be found in the build directory.
+
+    build\maze\Release\maze.exe
+
+Or, for MacOS, the app bundle will be found in the build directory.
+
+    build/maze/maze.app
