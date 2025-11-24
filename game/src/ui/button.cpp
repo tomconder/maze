@@ -15,8 +15,8 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textFontName(createInfo.fontName),
     color(createInfo.buttonColor),
     textColor(createInfo.textColor),
-    textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }),
-    cornerRadius(createInfo.cornerRadius) {
+    cornerRadius(createInfo.cornerRadius),
+    textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
     font   = ResourceManager::getFont(textFontName);
     length = font->getLength(text, textSize);
 
