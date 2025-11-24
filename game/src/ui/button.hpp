@@ -6,11 +6,20 @@
 #include <string>
 
 namespace game::ui {
+struct ButtonCreateInfo {
+    glm::vec2   topLeft;
+    glm::vec2   bottomRight;
+    std::string message;
+    uint32_t    fontSize;
+    std::string fontName;
+    glm::vec4   buttonColor;
+    glm::vec3   textColor;
+    float       cornerRadius = 0.F;
+};
+
 class Button {
 public:
-    Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-           std::string message, uint32_t fontSize, std::string fontName,
-           const glm::vec4& buttonColor, const glm::vec3& textColor);
+    explicit Button(const ButtonCreateInfo& createInfo);
 
     bool onUpdate(double elapsedTime) const;
 
@@ -36,12 +45,13 @@ private:
     std::string textFontName;
     glm::vec4   color;
     glm::vec3   textColor;
-    uint32_t    length;
+    glm::vec2   textPosition;
+    float       cornerRadius;
+
+    bool     hover = false;
+    uint32_t length;
 
     std::shared_ptr<sponge::platform::opengl::scene::Font> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
-
-    glm::vec2 textPosition;
-    bool      hover = false;
 };
 }  // namespace game::ui
