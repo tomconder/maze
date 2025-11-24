@@ -65,16 +65,14 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
         { bottom.x, bottom.y }  //
     } };
 
-    const glm::vec2 quadSize = bottom - top;
+    const glm::vec4 corners = glm::vec4(top.x, top.y, bottom.x, bottom.y);
 
     vao->bind();
 
     shader->bind();
     shader->setFloat4("color", color);
-    shader->setFloat2("quadMin", top);
-    shader->setFloat2("quadMax", bottom);
+    shader->setFloat4("corners", corners);
     shader->setFloat("cornerRadius", cornerRadius);
-    shader->setFloat2("quadSize", quadSize);
 
     vbo->update(vertices.data(), vertexCount * sizeof(glm::vec2));
 
