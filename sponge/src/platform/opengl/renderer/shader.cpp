@@ -138,6 +138,11 @@ void Shader::setFloat(const std::string_view name, const float value) const {
     glUniform1f(getUniformLocation(name), value);
 }
 
+void Shader::setFloat2(const std::string_view name,
+                       const glm::vec2&       value) const {
+    glUniform2f(getUniformLocation(name), value.x, value.y);
+}
+
 void Shader::setFloat3(const std::string_view name,
                        const glm::vec3&       value) const {
     glUniform3f(getUniformLocation(name), value.x, value.y, value.z);

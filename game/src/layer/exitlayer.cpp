@@ -47,13 +47,30 @@ void ExitLayer::onAttach() {
 
     quad = std::make_unique<Quad>();
 
-    confirmButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, confirmButtonMessage, 54, fontName,
-        confirmButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
+    ui::ButtonCreateInfo confirmButtonCreateInfo = {
+        .topLeft     = glm::vec2{ 0.F },
+        .bottomRight = glm::vec2{ 0.F },
+        .message     = confirmButtonMessage,
+        .fontSize    = 54,
+        .fontName    = fontName,
+        .buttonColor = confirmButtonColor,
+        .textColor   = glm::vec3{ 0.03F, 0.03F, 0.03F }
+    };
 
-    cancelButton = std::make_unique<ui::Button>(
-        glm::vec2{ 0.F }, glm::vec2{ 0.F }, cancelButtonMessage, 32, fontName,
-        cancelButtonColor, glm::vec3{ 0.03F, 0.03F, 0.03F });
+    confirmButton = std::make_unique<ui::Button>(confirmButtonCreateInfo);
+
+    ui::ButtonCreateInfo cancelButtonCreateInfo = {
+        .topLeft      = glm::vec2{ 0.F },
+        .bottomRight  = glm::vec2{ 0.F },
+        .message      = cancelButtonMessage,
+        .fontSize     = 32,
+        .fontName     = fontName,
+        .buttonColor  = cancelButtonColor,
+        .textColor    = glm::vec3{ 0.03F, 0.03F, 0.03F },
+        .cornerRadius = 12.F
+    };
+
+    cancelButton = std::make_unique<ui::Button>(cancelButtonCreateInfo);
 
     auto shader = ResourceManager::getShader(quadShaderName);
 
