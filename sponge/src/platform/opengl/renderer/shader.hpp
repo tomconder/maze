@@ -29,6 +29,7 @@ public:
 
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
+    void setFloat2(std::string_view name, const glm::vec2& value) const;
     void setFloat3(std::string_view name, const glm::vec3& value) const;
     void setFloat4(std::string_view name, const glm::vec4& value) const;
     void setInteger(std::string_view name, int value) const;

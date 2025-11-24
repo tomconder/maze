@@ -7,18 +7,16 @@
 namespace game::ui {
 using sponge::platform::opengl::renderer::ResourceManager;
 
-Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
-               std::string message, const uint32_t fontSize,
-               std::string fontName, const glm::vec4& buttonColor,
-               const glm::vec3& textColor) :
-    top(topLeft),
-    bottom(bottomRight),
-    text(std::move(message)),
-    textSize(fontSize),
-    textFontName(std::move(fontName)),
-    color(buttonColor),
-    textColor(textColor),
-    textPosition({ topLeft.x, topLeft.y }) {
+Button::Button(const ButtonCreateInfo& createInfo) :
+    top(createInfo.topLeft),
+    bottom(createInfo.bottomRight),
+    text(createInfo.message),
+    textSize(createInfo.fontSize),
+    textFontName(createInfo.fontName),
+    color(createInfo.buttonColor),
+    textColor(createInfo.textColor),
+    textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }),
+    cornerRadius(createInfo.cornerRadius) {
     font   = ResourceManager::getFont(textFontName);
     length = font->getLength(text, textSize);
 
@@ -28,7 +26,7 @@ Button::Button(const glm::vec2& topLeft, const glm::vec2& bottomRight,
 bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
-    quad->render(top, bottom, color);
+    quad->render(top, bottom, color, cornerRadius);
     font->render(text, textPosition, textSize, textColor);
 
     return true;
