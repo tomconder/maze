@@ -67,7 +67,7 @@ void ExitLayer::onAttach() {
         .fontName     = fontName,
         .buttonColor  = cancelButtonColor,
         .textColor    = glm::vec3{ 0.03F, 0.03F, 0.03F },
-        .cornerRadius = 16.F
+        .cornerRadius = 12.F
     };
 
     cancelButton = std::make_unique<ui::Button>(cancelButtonCreateInfo);

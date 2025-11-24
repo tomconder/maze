@@ -45,11 +45,11 @@ private:
     std::string textFontName;
     glm::vec4   color;
     glm::vec3   textColor;
-    glm::vec2   textPosition;
+    uint32_t    length;
     float       cornerRadius;
 
-    bool     hover = false;
-    uint32_t length;
+    glm::vec2 textPosition;
+    bool      hover = false;
 
     std::shared_ptr<sponge::platform::opengl::scene::Font> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;

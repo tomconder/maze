@@ -1,18 +1,22 @@
 #version 330 core
 
 in VS_OUT {
-    vec2 localPos;
+    vec2 position;
 }
 fs_in;
 
 out vec4 FragColor;
 
-uniform vec4  color;
+uniform vec4  corners;
 uniform float cornerRadius;
-uniform vec2  quadSize;
+uniform vec4  color;
 
 void main() {
-    vec2 pos      = fs_in.localPos * quadSize;
+    // normalize position to [0,1] range within the quad
+    vec2 localPos = (fs_in.position - corners.xy) / (corners.zw - corners.xy);
+
+    vec2 quadSize = corners.zw - corners.xy;
+    vec2 pos      = localPos * quadSize;
     vec2 halfSize = quadSize * 0.5;
 
     vec2  d    = abs(pos - halfSize) - (halfSize - cornerRadius);
