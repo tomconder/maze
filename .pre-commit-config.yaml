@@ -69,7 +69,6 @@ repos:
             args: ['--output', '--frail']
             files: "\\.md$"
             exclude: assets/models|sponge/deps
-            additional_dependencies: ['remark-cli@10.0.1', 'remark-preset-lint-recommended@7.0.1', 'remark-preset-lint-consistent@6.0.1']
 
     - repo: https://github.com/crate-ci/typos
       rev: v1.39.2
