@@ -160,6 +160,10 @@ if (ENABLE_PROFILING)
     target_link_libraries(game PRIVATE Tracy::TracyClient)
 endif ()
 
+if (CMAKE_SKIP_INSTALL_RULES)
+    return()
+endif ()
+
 if (APPLE)
     add_custom_command(
             TARGET game
