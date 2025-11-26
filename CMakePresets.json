@@ -48,12 +48,6 @@
             "generator": "Ninja Multi-Config"
         },
         {
-            "name": "msvc",
-            "description": "build using MSVC generator",
-            "hidden": true,
-            "generator": "Visual Studio 17 2022"
-        },
-        {
             "name": "base-windows",
             "description": "Windows settings",
             "hidden": true,
@@ -101,7 +95,7 @@
             "name": "windows-msvc-debug",
             "displayName": "VSCode - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch",
-            "inherits": ["base-windows", "msvc"],
+            "inherits": ["base-windows", "ninja"],
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl",
                 "CMAKE_CXX_COMPILER": "cl",
@@ -114,7 +108,7 @@
             "name": "windows-msvc-release",
             "displayName": "VSCode - Windows x64 - Release",
             "description": "Sets release build type",
-            "inherits": ["base-windows", "msvc"],
+            "inherits": ["base-windows", "ninja"],
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl",
                 "CMAKE_CXX_COMPILER": "cl",
@@ -161,20 +155,34 @@
     ],
     "buildPresets": [
         {
+            "name": "build-windows-debug",
+            "displayName": "build windows ninja",
+            "configurePreset": "ci-windows-debug",
+            "description": "Build windows (Release)",
+            "configuration": "Release",
+            "nativeToolOptions": ["-nodeReuse:false"]
+        },
+        {
             "name": "build-windows",
             "displayName": "build windows ninja",
             "configurePreset": "ci-windows-release",
-            "description": "Build windows",
+            "description": "Build windows (Debug)",
             "configuration": "Release",
             "nativeToolOptions": ["-nodeReuse:false"]
+        },
+        {
+            "name": "build-windows-msvc-debug",
+            "displayName": "build windows msvc (debug)",
+            "configurePreset": "windows-msvc-debug",
+            "description": "Build windows (MSVC Debug)",
+            "configuration": "Debug"
         },
         {
             "name": "build-windows-msvc",
             "displayName": "build windows msvc",
             "configurePreset": "windows-msvc-release",
             "description": "Build windows (MSVC)",
-            "configuration": "Release",
-            "nativeToolOptions": ["-nodeReuse:false"]
+            "configuration": "Release"
         },
         {
             "name": "build-osx",
