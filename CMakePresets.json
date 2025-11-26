@@ -7,23 +7,33 @@
     },
     "configurePresets": [
         {
-            "name": "base",
-            "description": "For more information: https://aka.ms/cmakepresetsvs",
+            "name": "vcpkg",
             "hidden": true,
-            "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "installDir": "${sourceDir}/out/install/${presetName}",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                }
+            },
             "environment": {
                 "VCPKG_FEATURE_FLAGS": "manifests,versions,binarycaching,registries"
-            },
+            }
+        },
+        {
+            "name": "base",
+            "description": "For more information: https://aka.ms/cmakepresetsvs",
+            "hidden": true,
+            "inherits": "vcpkg",
             "cacheVariables": {
                 "ENABLE_IMGUI": "OFF",
                 "ENABLE_PROFILING": "OFF"
             }
         },
         {
-            "name": "sccache-env",
+            "name": "sccache",
             "description": "Sets env for sccache",
             "hidden": true,
             "environment": {
@@ -35,38 +45,41 @@
             "name": "ninja",
             "description": "build using Ninja generator",
             "hidden": true,
-            "generator": "Ninja"
+            "generator": "Ninja Multi-Config"
         },
         {
-            "name": "ci-ninja",
+            "name": "msvc",
+            "description": "build using MSVC generator",
             "hidden": true,
-            "description": "build using Ninja generator",
-            "inherits": ["ninja", "sccache-env"]
+            "generator": "Visual Studio 17 2022"
         },
         {
             "name": "base-windows",
+            "description": "Windows settings",
             "hidden": true,
-            "displayName": "Windows x64",
-            "description": "Sets x64 arch",
             "inherits": "base",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
-            },
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
             }
         },
         {
             "name": "ci-windows-debug",
             "displayName": "CI - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch, and uses sccache",
-            "inherits": ["base-windows", "ci-ninja"],
+            "inherits": ["base-windows", "ninja", "sccache"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_CONFIGURATION_TYPES": "Debug",
@@ -77,31 +90,7 @@
             "name": "ci-windows-release",
             "displayName": "CI - Windows x64 - Release",
             "description": "Sets release build type and x64 arch, and uses sccache",
-            "inherits": "ci-windows-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_CONFIGURATION_TYPES": "Release",
-                "ENABLE_IMGUI": "OFF"
-            }
-        },
-        {
-            "name": "windows-debug",
-            "hidden": true,
-            "displayName": "Windows x64 - Debug",
-            "description": "Sets debug build type and x64 arch",
-            "inherits": ["base-windows", "ninja"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CONFIGURATION_TYPES": "Debug",
-                "ENABLE_IMGUI": "ON"
-            }
-        },
-        {
-            "name": "windows-release",
-            "hidden": true,
-            "displayName": "Windows x64 - Release",
-            "description": "Sets release build type",
-            "inherits": "windows-debug",
+            "inherits": ["base-windows", "ninja", "sccache"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_CONFIGURATION_TYPES": "Release",
@@ -112,15 +101,10 @@
             "name": "windows-msvc-debug",
             "displayName": "VSCode - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch",
-            "inherits": "base-windows",
-            "generator": "Visual Studio 17 2022",
-            "toolset": "host=x64",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
+            "inherits": ["base-windows", "msvc"],
             "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_CONFIGURATION_TYPES": "Debug",
                 "ENABLE_IMGUI": "ON"
@@ -130,8 +114,10 @@
             "name": "windows-msvc-release",
             "displayName": "VSCode - Windows x64 - Release",
             "description": "Sets release build type",
-            "inherits": "windows-msvc-debug",
+            "inherits": ["base-windows", "msvc"],
             "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl",
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_CONFIGURATION_TYPES": "Release",
                 "ENABLE_IMGUI": "OFF"
@@ -156,7 +142,7 @@
             "name": "ci-osx-debug",
             "displayName": "Mac OS X - Debug",
             "description": "Sets debug build type and mac arch, and uses sccache",
-            "inherits": ["base-osx", "ci-ninja"],
+            "inherits": ["base-osx", "ninja", "sccache"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "ENABLE_IMGUI": "ON"
@@ -166,31 +152,9 @@
             "name": "ci-osx-release",
             "displayName": "Mac OS X - Release",
             "description": "Sets release build type and uses sccache",
-            "inherits": "ci-osx-debug",
+            "inherits": ["base-osx", "ninja", "sccache"],
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "ENABLE_IMGUI": "OFF"
-            }
-        },
-        {
-            "name": "osx-debug",
-            "displayName": "Mac OS X - Debug",
-            "description": "Sets debug build type and mac arch",
-            "inherits": ["base-osx", "ninja"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CONFIGURATION_TYPES": "Debug",
-                "ENABLE_IMGUI": "ON"
-            }
-        },
-        {
-            "name": "osx-release",
-            "displayName": "Mac OS X - Release",
-            "description": "Sets release build type",
-            "inherits": "osx-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_CONFIGURATION_TYPES": "Release",
                 "ENABLE_IMGUI": "OFF"
             }
         }
@@ -223,11 +187,11 @@
     "testPresets": [
         {
             "name": "windows",
-            "configurePreset": "windows-release"
+            "configurePreset": "ci-windows-release"
         },
         {
             "name": "osx",
-            "configurePreset": "osx-release"
+            "configurePreset": "ci-osx-release"
         }
     ]
 }
