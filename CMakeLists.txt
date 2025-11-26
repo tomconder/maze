@@ -27,20 +27,19 @@ set(GIT_SHA ${GIT_HASH} CACHE STRING "Hash this build was generated from")
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
 if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD
-            23
-            CACHE STRING "")
-endif ()
-
-if (CMAKE_CXX_STANDARD LESS 23)
-    message(
-            WARNING
-            "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++23"
-    )
+    set(CMAKE_CXX_STANDARD 23)
+else ()
+    if (CMAKE_CXX_STANDARD LESS 23)
+        message(
+                WARNING
+                "Incompatible C++ standard ${CMAKE_CXX_STANDARD}. This project requires C++23"
+        )
+    endif ()
 endif ()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Set a default build type if none was specified See
 # https://blog.kitware.com/cmake-and-the-default-build-type/ for details.
