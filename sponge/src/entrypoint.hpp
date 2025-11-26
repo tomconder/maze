@@ -1,14 +1,17 @@
 #pragma once
 
 #include "core/application.hpp"
-#ifdef _WIN32
-#include "windows.h"
-#endif
-
 #include <memory>
 
 extern std::unique_ptr<sponge::core::Application>
     sponge::core::createApplication(int argc, char** argv);
+
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable : 4005)  // macro redefinition
+#include "windows.h"
+#pragma warning(pop)
+#endif
 
 namespace sponge::core {
 
