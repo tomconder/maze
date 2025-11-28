@@ -39,6 +39,7 @@ endif ()
 
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(yoga CONFIG REQUIRED)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
@@ -153,6 +154,7 @@ target_link_libraries(game PRIVATE glfw)
 target_link_libraries(game PRIVATE glm::glm)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)
+target_link_libraries(game PRIVATE yoga::yogacore)
 if (ENABLE_IMGUI)
     target_link_libraries(game PRIVATE imgui::imgui)
 endif ()
