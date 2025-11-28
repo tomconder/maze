@@ -3,6 +3,7 @@
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 
+#include <yoga/Yoga.h>
 #include <memory>
 
 namespace game::layer {
@@ -26,6 +27,11 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
     std::unique_ptr<ui::Button>                            cancelButton;
     std::unique_ptr<ui::Button>                            confirmButton;
+
+    YGNodeRef rootNode    = nullptr;
+    YGNodeRef messageNode = nullptr;
+    YGNodeRef confirmNode = nullptr;
+    YGNodeRef cancelNode  = nullptr;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 

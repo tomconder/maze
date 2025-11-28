@@ -1,23 +1,25 @@
 #include "layer/exitlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "yoga/Yoga.h"
 
 #include <memory>
 #include <string>
 
 namespace {
-inline const std::string cancelButtonMessage  = "Cancel";
-inline const std::string confirmButtonMessage = "Confirm";
-inline const std::string message              = "Exit the Game?";
+constexpr std::string_view cancelMessage  = "Cancel";
+constexpr std::string_view confirmMessage = "Confirm";
+constexpr std::string_view exitMessage    = "Exit the Game?";
 
-inline const std::string cameraName = "exit";
-inline const std::string fontName   = "league-gothic";
-inline const std::string fontPath   = "/fonts/league-gothic.fnt";
+constexpr std::string_view cameraName = "exit";
+constexpr std::string_view fontName   = "league-gothic";
+constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
 
-constexpr glm::vec4 cancelButtonColor       = { .35F, .35F, .35F, 1.F };
-constexpr glm::vec4 cancelButtonHoverColor  = { .63F, .63F, .63F, 1.F };
-constexpr glm::vec4 confirmButtonColor      = { .05F, .5F, .35F, 1.F };
-constexpr glm::vec4 confirmButtonHoverColor = { .13F, .65F, .53F, 1.F };
+constexpr glm::vec4 cancelColor       = { .35F, .35F, .35F, 1.F };
+constexpr glm::vec4 cancelHoverColor  = { .63F, .63F, .63F, 1.F };
+constexpr glm::vec4 confirmColor      = { .05F, .5F, .35F, 1.F };
+constexpr glm::vec4 confirmHoverColor = { .13F, .65F, .53F, 1.F };
+constexpr glm::vec3 textColor         = { 0.03F, 0.03F, 0.03F };
 
 inline std::string fontShaderName;
 inline std::string quadShaderName;
@@ -27,6 +29,7 @@ namespace game::layer {
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::ResourceManager;
 using sponge::platform::opengl::scene::Font;
+using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::Quad;
 
 ExitLayer::ExitLayer() : Layer("exit") {
@@ -35,58 +38,77 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    const auto fontCreateInfo =
-        sponge::platform::opengl::scene::FontCreateInfo{ .name = fontName,
-                                                         .path = fontPath };
+    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
+                                                .path = std::string(fontPath) };
     ResourceManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = cameraName };
+        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
     orthoCamera =
         game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
     quad = std::make_unique<Quad>();
 
-    ui::ButtonCreateInfo confirmButtonCreateInfo = {
-        .topLeft     = glm::vec2{ 0.F },
-        .bottomRight = glm::vec2{ 0.F },
-        .message     = confirmButtonMessage,
-        .fontSize    = 54,
-        .fontName    = fontName,
-        .buttonColor = confirmButtonColor,
-        .textColor   = glm::vec3{ 0.03F, 0.03F, 0.03F }
-    };
+    confirmButton = std::make_unique<ui::Button>(
+        ui::ButtonCreateInfo{ .topLeft     = glm::vec2{ 0.F },
+                              .bottomRight = glm::vec2{ 0.F },
+                              .message     = std::string(confirmMessage),
+                              .fontSize    = 54,
+                              .fontName    = std::string(fontName),
+                              .buttonColor = confirmColor,
+                              .textColor   = textColor });
 
-    confirmButton = std::make_unique<ui::Button>(confirmButtonCreateInfo);
+    cancelButton = std::make_unique<ui::Button>(
+        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
+                              .bottomRight  = glm::vec2{ 0.F },
+                              .message      = std::string(cancelMessage),
+                              .fontSize     = 32,
+                              .fontName     = std::string(fontName),
+                              .buttonColor  = cancelColor,
+                              .textColor    = textColor,
+                              .cornerRadius = 12.F });
 
-    ui::ButtonCreateInfo cancelButtonCreateInfo = {
-        .topLeft      = glm::vec2{ 0.F },
-        .bottomRight  = glm::vec2{ 0.F },
-        .message      = cancelButtonMessage,
-        .fontSize     = 32,
-        .fontName     = fontName,
-        .buttonColor  = cancelButtonColor,
-        .textColor    = glm::vec3{ 0.03F, 0.03F, 0.03F },
-        .cornerRadius = 12.F
-    };
+    for (const auto& shaderName : { quadShaderName, fontShaderName }) {
+        const auto shader = ResourceManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
 
-    cancelButton = std::make_unique<ui::Button>(cancelButtonCreateInfo);
+    rootNode = YGNodeNew();
+    YGNodeStyleSetFlexDirection(rootNode, YGFlexDirectionColumn);
+    YGNodeStyleSetJustifyContent(rootNode, YGJustifyCenter);
+    YGNodeStyleSetAlignItems(rootNode, YGAlignStretch);
 
-    auto shader = ResourceManager::getShader(quadShaderName);
+    messageNode = YGNodeNew();
+    YGNodeStyleSetMargin(messageNode, YGEdgeBottom, 60.F);
+    YGNodeStyleSetAlignSelf(messageNode, YGAlignCenter);
+    YGNodeStyleSetPadding(messageNode, YGEdgeAll, 20.F);
+    YGNodeInsertChild(rootNode, messageNode, 0);
 
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
+    confirmNode = YGNodeNew();
+    YGNodeStyleSetHeight(confirmNode, 100.F);
+    YGNodeStyleSetWidthPercent(confirmNode, 100.F);
+    YGNodeStyleSetMargin(confirmNode, YGEdgeBottom, 40.F);
+    YGNodeInsertChild(rootNode, confirmNode, 1);
 
-    shader = ResourceManager::getShader(fontShaderName);
+    cancelNode = YGNodeNew();
+    YGNodeStyleSetHeight(cancelNode, 70.F);
+    YGNodeStyleSetWidth(cancelNode, 280.F);
+    YGNodeStyleSetAlignSelf(cancelNode, YGAlignCenter);
+    YGNodeInsertChild(rootNode, cancelNode, 2);
 
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
+    auto [width, height] =
+        std::pair{ static_cast<float>(orthoCamera->getWidth()),
+                   static_cast<float>(orthoCamera->getHeight()) };
+    const auto panelWidth = width * 0.54F;
+    YGNodeStyleSetWidth(rootNode, panelWidth);
+    YGNodeStyleSetHeight(rootNode, height);
+    YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
 }
 
 void ExitLayer::onDetach() {
-    // nothing
+    YGNodeFree(rootNode);
 }
 
 void ExitLayer::onEvent(sponge::event::Event& event) {
@@ -115,21 +137,41 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
-    auto width  = static_cast<float>(orthoCamera->getWidth());
-    auto height = static_cast<float>(orthoCamera->getHeight());
+    auto [width, height] =
+        std::pair{ static_cast<float>(orthoCamera->getWidth()),
+                   static_cast<float>(orthoCamera->getHeight()) };
 
     quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, 0.56F });
+    quad->render({ width * 0.23F, 0.F }, { width * 0.77F, height },
+                 { 0.52F, 0.57F, 0.55F, 1.F });
 
-    quad->render({ width * .23F, 0.F }, { width * .77F, height },
-                 { .52F, .57F, .55F, 1.F });
+    const float panelOffsetX = width * 0.23F;
+    const auto  rootX        = panelOffsetX + YGNodeLayoutGetLeft(rootNode);
+    const auto  rootY        = YGNodeLayoutGetTop(rootNode);
 
-    const auto font = ResourceManager::getFont(fontName);
+    auto getNodeLayout = [rootX, rootY](const YGNodeRef node) {
+        return std::tuple{ rootX + YGNodeLayoutGetLeft(node),
+                           rootY + YGNodeLayoutGetTop(node),
+                           YGNodeLayoutGetWidth(node),
+                           YGNodeLayoutGetHeight(node) };
+    };
 
-    const uint32_t length = font->getLength(message, 48);
-    font->render(
-        message,
-        { (width - static_cast<float>(length)) / 2.F, (height / 2.F) - 128.F },
-        48, { 1.F, 1.F, 1.F });
+    const auto [confirmX, confirmY, confirmW, confirmH] =
+        getNodeLayout(confirmNode);
+    const auto [cancelX, cancelY, cancelW, cancelH] = getNodeLayout(cancelNode);
+    const auto messageY = rootY + YGNodeLayoutGetTop(messageNode);
+
+    const auto font         = ResourceManager::getFont(std::string(fontName));
+    const auto length       = font->getLength(std::string(exitMessage), 48);
+    const auto panelCenterX = width * 0.5F;
+    font->render(std::string(exitMessage),
+                 { panelCenterX - static_cast<float>(length) / 2.F, messageY },
+                 48, { 1.F, 1.F, 1.F });
+
+    confirmButton->setPosition({ confirmX, confirmY },
+                               { confirmX + confirmW, confirmY + confirmH });
+    cancelButton->setPosition({ cancelX, cancelY },
+                              { cancelX + cancelW, cancelY + cancelH });
 
     UNUSED(confirmButton->onUpdate(elapsedTime));
     UNUSED(cancelButton->onUpdate(elapsedTime));
@@ -141,25 +183,21 @@ bool ExitLayer::onWindowResize(
     const sponge::event::WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
-    auto shader = ResourceManager::getShader(fontShaderName);
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
+        const auto shader = ResourceManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
 
-    shader = ResourceManager::getShader(quadShaderName);
-    shader->bind();
-    shader->setMat4("projection", orthoCamera->getProjection());
-    shader->unbind();
+    const auto [width, height] =
+        std::pair{ static_cast<float>(event.getWidth()),
+                   static_cast<float>(event.getHeight()) };
+    const auto panelWidth = width * 0.54F;
 
-    const auto inWidth  = static_cast<float>(event.getWidth());
-    const auto inHeight = static_cast<float>(event.getHeight());
-
-    confirmButton->setPosition({ inWidth * .23F, (inHeight / 2.F) - 30.F },
-                               { inWidth * .77F, (inHeight / 2.F) + 78.F });
-
-    cancelButton->setPosition(
-        { (inWidth / 2.F) - 132.F, (inHeight / 2.F) + 117.F },
-        { (inWidth / 2.F) + 132.F, (inHeight / 2.F) + 186.F });
+    YGNodeStyleSetWidth(rootNode, panelWidth);
+    YGNodeStyleSetHeight(rootNode, height);
+    YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
 
     return false;
 }
@@ -190,28 +228,22 @@ bool ExitLayer::onMouseButtonPressed(
 
 bool ExitLayer::onMouseMoved(
     const sponge::event::MouseMovedEvent& event) const {
-    if (!cancelButton->hasHover() &&
-        cancelButton->isInside({ event.getX(), event.getY() })) {
+    const auto pos = glm::vec2{ event.getX(), event.getY() };
+
+    if (!cancelButton->hasHover() && cancelButton->isInside(pos)) {
         cancelButton->setHover(true);
-        cancelButton->setButtonColor(cancelButtonHoverColor);
-    }
-
-    if (cancelButton->hasHover() &&
-        !cancelButton->isInside({ event.getX(), event.getY() })) {
+        cancelButton->setButtonColor(cancelHoverColor);
+    } else if (cancelButton->hasHover() && !cancelButton->isInside(pos)) {
         cancelButton->setHover(false);
-        cancelButton->setButtonColor(cancelButtonColor);
+        cancelButton->setButtonColor(cancelColor);
     }
 
-    if (!confirmButton->hasHover() &&
-        confirmButton->isInside({ event.getX(), event.getY() })) {
+    if (!confirmButton->hasHover() && confirmButton->isInside(pos)) {
         confirmButton->setHover(true);
-        confirmButton->setButtonColor(confirmButtonHoverColor);
-    }
-
-    if (confirmButton->hasHover() &&
-        !confirmButton->isInside({ event.getX(), event.getY() })) {
+        confirmButton->setButtonColor(confirmHoverColor);
+    } else if (confirmButton->hasHover() && !confirmButton->isInside(pos)) {
         confirmButton->setHover(false);
-        confirmButton->setButtonColor(confirmButtonColor);
+        confirmButton->setButtonColor(confirmColor);
     }
 
     return true;
