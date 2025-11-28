@@ -38,8 +38,11 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
-                                                .path = std::string(fontPath) };
+    fontNameStr    = std::string(fontName);
+    exitMessageStr = std::string(exitMessage);
+
+    const auto fontCreateInfo =
+        FontCreateInfo{ .name = fontNameStr, .path = std::string(fontPath) };
     ResourceManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
@@ -54,7 +57,7 @@ void ExitLayer::onAttach() {
                               .bottomRight = glm::vec2{ 0.F },
                               .message     = std::string(confirmMessage),
                               .fontSize    = 54,
-                              .fontName    = std::string(fontName),
+                              .fontName    = fontNameStr,
                               .buttonColor = confirmColor,
                               .textColor   = textColor });
 
@@ -63,7 +66,7 @@ void ExitLayer::onAttach() {
                               .bottomRight  = glm::vec2{ 0.F },
                               .message      = std::string(cancelMessage),
                               .fontSize     = 32,
-                              .fontName     = std::string(fontName),
+                              .fontName     = fontNameStr,
                               .buttonColor  = cancelColor,
                               .textColor    = textColor,
                               .cornerRadius = 12.F });
@@ -158,10 +161,10 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const auto [cancelX, cancelY, cancelW, cancelH] = getNodeLayout(cancelNode);
     const auto messageY = rootY + YGNodeLayoutGetTop(messageNode);
 
-    const auto font         = ResourceManager::getFont(std::string(fontName));
-    const auto length       = font->getLength(std::string(exitMessage), 48);
+    const auto font         = ResourceManager::getFont(fontNameStr);
+    const auto length       = font->getLength(exitMessageStr, 48);
     const auto panelCenterX = width * 0.5F;
-    font->render(std::string(exitMessage),
+    font->render(exitMessageStr,
                  { panelCenterX - static_cast<float>(length) / 2.F, messageY },
                  48, { 1.F, 1.F, 1.F });
 

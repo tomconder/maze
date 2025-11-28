@@ -33,6 +33,9 @@ private:
     YGNodeRef confirmNode = nullptr;
     YGNodeRef cancelNode  = nullptr;
 
+    std::string fontNameStr;
+    std::string exitMessageStr;
+
     void recalculateLayout(float width, float height) const;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
