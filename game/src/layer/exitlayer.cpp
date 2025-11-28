@@ -137,7 +137,7 @@ void ExitLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
-    auto [width, height] =
+    const auto [width, height] =
         std::pair{ static_cast<float>(orthoCamera->getWidth()),
                    static_cast<float>(orthoCamera->getHeight()) };
 
