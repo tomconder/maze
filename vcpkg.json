@@ -35,6 +35,10 @@
             "name": "tracy",
             "features": ["on-demand"],
             "version>=": "0.11.1"
+        },
+        {
+            "name": "yoga",
+            "version>=": "3.2.1"
         }
     ]
 }
