@@ -33,6 +33,8 @@ private:
     YGNodeRef confirmNode = nullptr;
     YGNodeRef cancelNode  = nullptr;
 
+    void recalculateLayout(float width, float height) const;
+
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
 
     bool onMouseButtonPressed(

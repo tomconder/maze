@@ -101,14 +101,11 @@ void ExitLayer::onAttach() {
     auto [width, height] =
         std::pair{ static_cast<float>(orthoCamera->getWidth()),
                    static_cast<float>(orthoCamera->getHeight()) };
-    const auto panelWidth = width * 0.54F;
-    YGNodeStyleSetWidth(rootNode, panelWidth);
-    YGNodeStyleSetHeight(rootNode, height);
-    YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
+    recalculateLayout(width, height);
 }
 
 void ExitLayer::onDetach() {
-    YGNodeFree(rootNode);
+    YGNodeFreeRecursive(rootNode);
 }
 
 void ExitLayer::onEvent(sponge::event::Event& event) {
@@ -193,13 +190,16 @@ bool ExitLayer::onWindowResize(
     const auto [width, height] =
         std::pair{ static_cast<float>(event.getWidth()),
                    static_cast<float>(event.getHeight()) };
-    const auto panelWidth = width * 0.54F;
+    recalculateLayout(width, height);
 
+    return false;
+}
+
+void ExitLayer::recalculateLayout(float width, float height) const {
+    const auto panelWidth = width * 0.54F;
     YGNodeStyleSetWidth(rootNode, panelWidth);
     YGNodeStyleSetHeight(rootNode, height);
     YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
-
-    return false;
 }
 
 bool ExitLayer::onKeyPressed(
