@@ -1,6 +1,7 @@
 #include "layer/exitlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "ui/yogaconfig.hpp"
 #include "yoga/Yoga.h"
 
 #include <memory>
@@ -79,26 +80,23 @@ void ExitLayer::onAttach() {
     }
 
     rootNode = YGNodeNew();
-    YGNodeStyleSetFlexDirection(rootNode, YGFlexDirectionColumn);
-    YGNodeStyleSetJustifyContent(rootNode, YGJustifyCenter);
-    YGNodeStyleSetAlignItems(rootNode, YGAlignStretch);
+    ui::YogaConfig::applyStyle(
+        rootNode,
+        "flexDirection:column;justifyContent:center;alignItems:stretch");
 
     messageNode = YGNodeNew();
-    YGNodeStyleSetMargin(messageNode, YGEdgeBottom, 60.F);
-    YGNodeStyleSetAlignSelf(messageNode, YGAlignCenter);
-    YGNodeStyleSetPadding(messageNode, YGEdgeAll, 20.F);
+    ui::YogaConfig::applyStyle(messageNode,
+                               "marginBottom:60;alignSelf:center;padding:20");
     YGNodeInsertChild(rootNode, messageNode, 0);
 
     confirmNode = YGNodeNew();
-    YGNodeStyleSetHeight(confirmNode, 100.F);
-    YGNodeStyleSetWidthPercent(confirmNode, 100.F);
-    YGNodeStyleSetMargin(confirmNode, YGEdgeBottom, 40.F);
+    ui::YogaConfig::applyStyle(confirmNode,
+                               "height:100;width:100%;marginBottom:40");
     YGNodeInsertChild(rootNode, confirmNode, 1);
 
     cancelNode = YGNodeNew();
-    YGNodeStyleSetHeight(cancelNode, 70.F);
-    YGNodeStyleSetWidth(cancelNode, 280.F);
-    YGNodeStyleSetAlignSelf(cancelNode, YGAlignCenter);
+    ui::YogaConfig::applyStyle(cancelNode,
+                               "height:70;width:280;alignSelf:center");
     YGNodeInsertChild(rootNode, cancelNode, 2);
 
     auto [width, height] =
