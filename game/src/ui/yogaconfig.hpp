@@ -5,7 +5,6 @@
 
 namespace game::ui {
 
-// Parse and apply Yoga layout configuration from a string format
 class YogaConfig {
 public:
     static void applyConfig(YGNodeRef node, std::string_view config);
