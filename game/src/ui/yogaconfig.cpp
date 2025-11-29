@@ -1,6 +1,8 @@
 #include "ui/yogaconfig.hpp"
 
+#include "logging/log.hpp"
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <ranges>
 #include <string>
@@ -45,10 +47,21 @@ const std::unordered_map<std::string_view, YGEdge> edgeMap = {
 };
 
 float parseFloat(std::string_view str) {
+    if (str.empty()) {
+        return 0.0F;
+    }
+
     const std::string temp(str);
     const char*       start = temp.c_str();
     char*             end   = nullptr;
-    return std::strtof(start, &end);
+
+    const float value = std::strtof(start, &end);
+
+    if (end == start || *end != '\0') {
+        return 0.0F;  // Invalid input
+    }
+
+    return value;
 }
 
 std::string_view trim(std::string_view str) {
@@ -88,11 +101,13 @@ void applyDimension(YGNodeRef node, std::string_view value,
 }
 }  // namespace
 
-void YogaConfig::applyConfig(YGNodeRef node, const std::string_view config) {
-    applyStyle(node, config);
-}
+void YogaConfig::applyStyle(const YGNodeRef        node,
+                            const std::string_view style) {
+    if (!node) {
+        SPONGE_WARN("Attempted to apply style to null YGNodeRef");
+        return;
+    }
 
-void YogaConfig::applyStyle(YGNodeRef node, const std::string_view style) {
     auto properties =
         style | std::views::split(';') | std::views::transform([](auto&& prop) {
             return std::string_view(prop.begin(), prop.end());
@@ -117,7 +132,7 @@ void YogaConfig::applyStyle(YGNodeRef node, const std::string_view style) {
     }
 }
 
-void YogaConfig::applyProperty(YGNodeRef node, const std::string_view key,
+void YogaConfig::applyProperty(const YGNodeRef node, const std::string_view key,
                                const std::string_view value) {
     if (key == "flexDirection") {
         applyEnumProperty(node, value, flexDirectionMap,
@@ -140,11 +155,17 @@ void YogaConfig::applyProperty(YGNodeRef node, const std::string_view key,
     } else if (key.starts_with("margin")) {
         if (const auto edge = edgeMap.find(key); edge != edgeMap.end()) {
             YGNodeStyleSetMargin(node, edge->second, parseFloat(value));
+        } else {
+            SPONGE_WARN("Unknown margin property: '{}'", key);
         }
     } else if (key.starts_with("padding")) {
         if (const auto edge = edgeMap.find(key); edge != edgeMap.end()) {
             YGNodeStyleSetPadding(node, edge->second, parseFloat(value));
+        } else {
+            SPONGE_WARN("Unknown padding property: '{}'", key);
         }
+    } else {
+        SPONGE_WARN("Unknown yoga property: '{}'", key);
     }
 }
 
