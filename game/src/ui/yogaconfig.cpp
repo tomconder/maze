@@ -1,7 +1,7 @@
 #include "ui/yogaconfig.hpp"
 
 #include <algorithm>
-#include <charconv>
+#include <cstdlib>
 #include <ranges>
 #include <string>
 #include <unordered_map>
@@ -45,9 +45,10 @@ const std::unordered_map<std::string_view, YGEdge> edgeMap = {
 };
 
 float parseFloat(std::string_view str) {
-    float value = 0.0F;
-    std::from_chars(str.data(), str.data() + str.size(), value);
-    return value;
+    const std::string temp(str);
+    const char*       start = temp.c_str();
+    char*             end   = nullptr;
+    return std::strtof(start, &end);
 }
 
 std::string_view trim(std::string_view str) {
