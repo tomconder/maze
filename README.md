@@ -70,7 +70,7 @@ choco install cmake
 ## Building
 
 Now you can use a preset to compile `maze`. Possible values
-are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-msvc-release`, `osx-debug`, `osx-release`
+are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-msvc-release`, `ci-osx-debug`, `ci-osx-release`
 
 On Windows, you can use
 
@@ -82,7 +82,7 @@ cmake.exe --build build --target game --config Release
 Or, for MacOS, you can use
 
 ```
-cmake -B build --preset osx-release
+cmake -B build --preset ci-osx-release
 cmake --build build --target game --config Release
 ```
 
@@ -97,5 +97,5 @@ build\maze\Release\maze.exe
 Or, for MacOS, the app bundle will be found in the build directory.
 
 ```
-build/maze/maze.app
+build/maze/Release/maze.app
 ```
