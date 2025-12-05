@@ -220,4 +220,5 @@ void Font::log() const {
             value.offset.x, value.offset.y, value.xadvance, value.page);
     }
 }
+
 }  // namespace sponge::scene
