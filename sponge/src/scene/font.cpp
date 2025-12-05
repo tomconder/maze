@@ -48,16 +48,10 @@ void Font::load(const std::string& path) {
     };
 
     auto parseFloat = [&](std::string_view s, float& out) -> bool {
-        const std::string tmp = unquote(s);
-#if defined(__cpp_lib_to_chars) && __cpp_lib_to_chars >= 201611L
-        auto res = std::from_chars(tmp.data(), tmp.data() + tmp.size(), out);
-        if (res.ec == std::errc{})
-            return true;
-#endif
-        // Fallback to strtof (locale-independent C locale)
-        char* endPtr = nullptr;
-        errno        = 0;
-        float val    = std::strtof(tmp.c_str(), &endPtr);
+        const std::string tmp    = unquote(s);
+        char*             endPtr = nullptr;
+        errno                    = 0;
+        float val                = std::strtof(tmp.c_str(), &endPtr);
         if (errno == 0 && endPtr != tmp.c_str()) {
             out = val;
             return true;
