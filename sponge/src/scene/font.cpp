@@ -53,10 +53,13 @@ void Font::load(const std::string& path) {
         return std::string{};
     };
 
-    while (!stream.eof()) {
-        std::string       line;
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
         std::stringstream lineStream;
-        std::getline(stream, line);
         lineStream << line;
 
         std::string str;
@@ -86,13 +89,14 @@ void Font::load(const std::string& path) {
         if (str == "char") {
             const auto id = std::to_string(nextInt(lineStream));
 
-            Character ch;
-            ch.loc      = { nextFloat(lineStream), nextFloat(lineStream) };
-            ch.width    = nextFloat(lineStream);
-            ch.height   = nextFloat(lineStream);
-            ch.offset   = { nextFloat(lineStream), nextFloat(lineStream) };
-            ch.xadvance = nextFloat(lineStream);
-            ch.page     = static_cast<uint32_t>(nextInt(lineStream));
+            const auto ch = Character{
+                .loc      = { nextFloat(lineStream), nextFloat(lineStream) },
+                .width    = nextFloat(lineStream),
+                .height   = nextFloat(lineStream),
+                .offset   = { nextFloat(lineStream), nextFloat(lineStream) },
+                .xadvance = nextFloat(lineStream),
+                .page     = static_cast<uint32_t>(nextInt(lineStream))
+            };
 
             if (const auto iter = fontChars.find(id); iter == fontChars.end()) {
                 fontChars.emplace(id, ch);
