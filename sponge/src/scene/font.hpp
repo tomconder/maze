@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -21,12 +20,6 @@ class Font {
 public:
     void load(const std::string& path);
     void log() const;
-
-    // Returns true if a glyph for the given codepoint exists in this font
-    bool hasGlyph(uint32_t cp) const;
-
-    // Returns the glyph if present
-    std::optional<Character> getGlyph(uint32_t cp) const;
 
 protected:
     std::unordered_map<std::string, Character> fontChars;
