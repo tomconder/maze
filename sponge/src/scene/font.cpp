@@ -10,7 +10,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <ios>
-#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -62,28 +61,34 @@ void Font::load(const std::string& path) {
     auto parseKV = [](std::string_view line)
         -> std::unordered_map<std::string_view, std::string_view> {
         std::unordered_map<std::string_view, std::string_view> kv;
-        // Skip leading tag
+
         const auto firstSpace = line.find(' ');
-        if (firstSpace == std::string_view::npos)
+        if (firstSpace == std::string_view::npos) {
             return kv;
+        }
         line.remove_prefix(firstSpace + 1);
 
         while (!line.empty()) {
-            // skip spaces
             const auto start = line.find_first_not_of(' ');
-            if (start == std::string_view::npos)
+            if (start == std::string_view::npos) {
                 break;
+            }
+
             line.remove_prefix(start);
             const auto end = line.find(' ');
             const auto tok = line.substr(0, end);
             const auto eq  = tok.find('=');
+
             if (eq != std::string_view::npos) {
                 const auto key = tok.substr(0, eq);
                 const auto val = tok.substr(eq + 1);
                 kv.emplace(key, val);
             }
-            if (end == std::string_view::npos)
+
+            if (end == std::string_view::npos) {
                 break;
+            }
+
             line.remove_prefix(end + 1);
         }
         return kv;
@@ -91,8 +96,9 @@ void Font::load(const std::string& path) {
 
     std::string line;
     while (std::getline(stream, line)) {
-        if (line.empty())
+        if (line.empty()) {
             continue;
+        }
 
         std::string tag;
         {
@@ -108,8 +114,9 @@ void Font::load(const std::string& path) {
             }
             if (auto it = kv.find("size"); it != kv.end()) {
                 float v = 0.0F;
-                if (parseFloat(it->second, v))
+                if (parseFloat(it->second, v)) {
                     size = v;
+                }
             }
         } else if (tag == "common") {
             if (auto it = kv.find("lineHeight"); it != kv.end()) {
@@ -126,8 +133,9 @@ void Font::load(const std::string& path) {
             }
             if (auto it = kv.find("pages"); it != kv.end()) {
                 uint32_t p = 0;
-                if (parseInt(it->second, p))
+                if (parseInt(it->second, p)) {
                     pages = p;
+                }
             }
         } else if (tag == "page") {
             if (auto it = kv.find("file"); it != kv.end()) {
@@ -140,24 +148,32 @@ void Font::load(const std::string& path) {
             }
 
             Character ch{};
-            if (auto it = kv.find("x"); it != kv.end())
+            if (auto it = kv.find("x"); it != kv.end()) {
                 parseFloat(it->second, ch.loc.x);
-            if (auto it = kv.find("y"); it != kv.end())
+            }
+            if (auto it = kv.find("y"); it != kv.end()) {
                 parseFloat(it->second, ch.loc.y);
-            if (auto it = kv.find("width"); it != kv.end())
+            }
+            if (auto it = kv.find("width"); it != kv.end()) {
                 parseFloat(it->second, ch.width);
-            if (auto it = kv.find("height"); it != kv.end())
+            }
+            if (auto it = kv.find("height"); it != kv.end()) {
                 parseFloat(it->second, ch.height);
-            if (auto it = kv.find("xoffset"); it != kv.end())
+            }
+            if (auto it = kv.find("xoffset"); it != kv.end()) {
                 parseFloat(it->second, ch.offset.x);
-            if (auto it = kv.find("yoffset"); it != kv.end())
+            }
+            if (auto it = kv.find("yoffset"); it != kv.end()) {
                 parseFloat(it->second, ch.offset.y);
-            if (auto it = kv.find("xadvance"); it != kv.end())
+            }
+            if (auto it = kv.find("xadvance"); it != kv.end()) {
                 parseFloat(it->second, ch.xadvance);
+            }
             if (auto it = kv.find("page"); it != kv.end()) {
                 uint32_t p = 0;
-                if (parseInt(it->second, p))
+                if (parseInt(it->second, p)) {
                     ch.page = p;
+                }
             }
 
             const auto id = std::to_string(idNum);
@@ -168,12 +184,15 @@ void Font::load(const std::string& path) {
             uint32_t first  = 0;
             uint32_t second = 0;
             float    amount = 0.0F;
-            if (auto it = kv.find("first"); it != kv.end())
+            if (auto it = kv.find("first"); it != kv.end()) {
                 parseInt(it->second, first);
-            if (auto it = kv.find("second"); it != kv.end())
+            }
+            if (auto it = kv.find("second"); it != kv.end()) {
                 parseInt(it->second, second);
-            if (auto it = kv.find("amount"); it != kv.end())
+            }
+            if (auto it = kv.find("amount"); it != kv.end()) {
                 parseFloat(it->second, amount);
+            }
 
             const auto key = fmt::format("{}.{}", first, second);
             if (!kerning.contains(key)) {
