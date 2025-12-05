@@ -201,18 +201,4 @@ void Font::log() const {
             value.offset.x, value.offset.y, value.xadvance, value.page);
     }
 }
-
-bool Font::hasGlyph(uint32_t cp) const {
-    const auto key = std::to_string(cp);
-    return fontChars.contains(key);
-}
-
-std::optional<Character> Font::getGlyph(uint32_t cp) const {
-    const auto key = std::to_string(cp);
-    if (const auto it = fontChars.find(key); it != fontChars.end()) {
-        return it->second;
-    }
-    return std::nullopt;
-}
-
 }  // namespace sponge::scene
