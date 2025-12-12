@@ -1,5 +1,6 @@
 #include "scene/font.hpp"
 
+#include "core/timer.hpp"
 #include "logging/log.hpp"
 
 #include <fmt/format.h>
@@ -7,7 +8,6 @@
 #include <cerrno>
 #include <charconv>
 #include <cstddef>
-#include <cstdlib>
 #include <fstream>
 #include <ios>
 #include <sstream>
@@ -15,10 +15,19 @@
 #include <string_view>
 #include <unordered_map>
 
+namespace {
+constexpr double secondsToMilliseconds = 1000.F;
+}
+
 namespace sponge::scene {
 
 void Font::load(const std::string& path) {
     assert(!path.empty());
+
+    SPONGE_CORE_DEBUG("Loading font: [{}]", path);
+
+    core::Timer timer;
+    timer.tick();
 
     std::ifstream stream(path, std::ios::in | std::ios::binary);
     if (!stream.good()) {
@@ -202,6 +211,11 @@ void Font::load(const std::string& path) {
             SPONGE_CORE_TRACE("Unknown tag: {}", tag);
         }
     }
+
+    timer.tick();
+
+    SPONGE_CORE_DEBUG("Parsing time for font: {:.2f} ms",
+                      timer.getElapsedSeconds() * secondsToMilliseconds);
 }
 
 void Font::log() const {

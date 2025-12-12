@@ -70,7 +70,7 @@ void Model::load(const std::string& path) {
     timer.tick();
 
     // from viewer.cc in tinyobjloader example
-    SPONGE_GL_DEBUG("Parsing time: {:.2f} ms",
+    SPONGE_GL_DEBUG("Parsing time for model: {:.2f} ms",
                     timer.getElapsedSeconds() * secondsToMilliseconds);
 
     SPONGE_GL_DEBUG("# of vertices  = {}",
