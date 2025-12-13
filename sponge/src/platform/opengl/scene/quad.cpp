@@ -1,6 +1,6 @@
 #include "platform/opengl/scene/quad.hpp"
 
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <array>
 #include <memory>
@@ -17,6 +17,8 @@ constexpr uint32_t vertexCount = 4;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
+
 inline const std::string Quad::shaderName = "quad";
 
 Quad::Quad() {
@@ -25,7 +27,7 @@ Quad::Quad() {
         .vertexShaderPath   = "/shaders/quad.vert.glsl",
         .fragmentShaderPath = "/shaders/quad.frag.glsl",
     };
-    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();

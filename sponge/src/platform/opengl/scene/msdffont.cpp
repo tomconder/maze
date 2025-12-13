@@ -1,6 +1,6 @@
-#include "platform/opengl/scene/font.hpp"
+#include "platform/opengl/scene/msdffont.hpp"
 
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <fmt/format.h>
 
@@ -20,11 +20,11 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
-using renderer::ResourceManager;
+using renderer::AssetManager;
 
-inline const std::string Font::shaderName = "text";
+inline const std::string MSDFFont::shaderName = "text";
 
-Font::Font(const FontCreateInfo& createInfo) {
+MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -32,7 +32,7 @@ Font::Font(const FontCreateInfo& createInfo) {
         .vertexShaderPath   = "/shaders/text.vert.glsl",
         .fragmentShaderPath = "/shaders/text.frag.glsl"
     };
-    shader = ResourceManager::createShader(shaderCreateInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -65,8 +65,8 @@ Font::Font(const FontCreateInfo& createInfo) {
     log();
 }
 
-uint32_t Font::getLength(const std::string_view text,
-                         const uint32_t         targetSize) {
+uint32_t MSDFFont::getLength(const std::string_view text,
+                             const uint32_t         targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
@@ -88,7 +88,7 @@ uint32_t Font::getLength(const std::string_view text,
     return static_cast<uint32_t>(x);
 }
 
-void Font::load(const std::string& path) {
+void MSDFFont::load(const std::string& path) {
     sponge::scene::Font::load(path);
 
     const auto pos        = path.find_last_of('/');
@@ -99,12 +99,12 @@ void Font::load(const std::string& path) {
         .path     = std::string(fontFolder + textureName),
         .loadFlag = renderer::ExcludeAssetsFolder
     };
-    const auto texture = ResourceManager::createTexture(textureCreateInfo);
+    const auto texture = AssetManager::createTexture(textureCreateInfo);
     UNUSED(texture);
 }
 
-void Font::render(const std::string& text, const glm::vec2& position,
-                  const uint32_t targetSize, const glm::vec3& color) {
+void MSDFFont::render(const std::string& text, const glm::vec2& position,
+                      const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load
         return;
@@ -169,7 +169,7 @@ void Font::render(const std::string& text, const glm::vec2& position,
     shader->setFloat3("textColor", color);
     shader->setFloat("screenPxRange", fontSize / size * 4.0F);
 
-    const auto tex = ResourceManager::getTexture(textureName);
+    const auto tex = AssetManager::getTexture(textureName);
     tex->bind();
 
     const size_t numChars = str.size();
