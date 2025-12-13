@@ -5,7 +5,7 @@
 #include <utility>
 
 namespace game::ui {
-using sponge::platform::opengl::renderer::ResourceManager;
+using sponge::platform::opengl::renderer::AssetManager;
 
 Button::Button(const ButtonCreateInfo& createInfo) :
     top(createInfo.topLeft),
@@ -17,7 +17,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textColor(createInfo.textColor),
     cornerRadius(createInfo.cornerRadius),
     textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
-    font   = ResourceManager::getFont(textFontName);
+    font   = AssetManager::getFont(textFontName);
     length = font->getLength(text, textSize);
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();

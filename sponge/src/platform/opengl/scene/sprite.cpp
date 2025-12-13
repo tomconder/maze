@@ -1,6 +1,6 @@
 #include "platform/opengl/scene/sprite.hpp"
 
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <glm/glm.hpp>
 
@@ -19,6 +19,8 @@ constexpr uint32_t vertexCount = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
+
 inline const std::string Sprite::shaderName = "sprite";
 
 Sprite::Sprite(const std::string& name, const std::string& texturePath) {
@@ -27,7 +29,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
         .vertexShaderPath   = "/shaders/sprite.vert.glsl",
         .fragmentShaderPath = "/shaders/sprite.frag.glsl",
     };
-    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -56,7 +58,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
 
     const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
                                                          .path = texturePath };
-    tex = renderer::ResourceManager::createTexture(textureCreateInfo);
+    tex = AssetManager::createTexture(textureCreateInfo);
     tex->bind();
 
     shader->unbind();

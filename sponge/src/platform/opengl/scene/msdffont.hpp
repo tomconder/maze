@@ -19,9 +19,9 @@ struct FontCreateInfo {
     std::string assetsFolder = core::File::getResourceDir();
 };
 
-class Font : public sponge::scene::Font {
+class MSDFFont : public sponge::scene::Font {
 public:
-    explicit Font(const FontCreateInfo& createInfo);
+    explicit MSDFFont(const FontCreateInfo& createInfo);
     uint32_t getLength(std::string_view text, uint32_t targetSize);
     void     render(const std::string& text, const glm::vec2& position,
                     uint32_t targetSize, const glm::vec3& color);
