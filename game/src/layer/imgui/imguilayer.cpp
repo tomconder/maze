@@ -13,17 +13,17 @@
 #include <string>
 
 namespace {
-constexpr ImColor                darkDebugColor{ .3F, .8F, .8F, 1.F };
-constexpr ImColor                darkErrorColor{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor                darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-inline const std::string         cameraName = "maze";
-const std::array<std::string, 4> categories = { "categories", "app", "sponge",
-                                                "opengl" };
-constexpr std::array             logLevels  = {
-    SPDLOG_LEVEL_NAME_TRACE, SPDLOG_LEVEL_NAME_DEBUG,
-    SPDLOG_LEVEL_NAME_INFO,  SPDLOG_LEVEL_NAME_WARNING,
-    SPDLOG_LEVEL_NAME_ERROR, SPDLOG_LEVEL_NAME_CRITICAL,
-    SPDLOG_LEVEL_NAME_OFF
+constexpr ImColor                       darkDebugColor{ .3F, .8F, .8F, 1.F };
+constexpr ImColor                       darkErrorColor{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor                       darkWarnColor{ .8F, .8F, 0.3F, 1.F };
+inline const std::string                cameraName = "maze";
+inline const std::array<std::string, 4> categories = { "categories", "app",
+                                                       "sponge", "opengl" };
+inline const std::array<std::string, 7> logLevels  = {
+    SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
+    SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
+    SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
+    SPDLOG_LEVEL_NAME_OFF.data()
 };
 
 constexpr ImGuiWindowFlags windowFlags =
@@ -46,6 +46,10 @@ bool                     ImGuiLayer::hasVsync       = true;
 bool                     ImGuiLayer::isFullscreen   = false;
 std::vector<const char*> ImGuiLayer::levelNames;
 std::vector<const char*> ImGuiLayer::categoryNames;
+
+using sponge::layer::Layer;
+using sponge::layer::LayerStack;
+using sponge::platform::opengl::renderer::AssetManager;
 
 ImGuiLayer::ImGuiLayer() : Layer("imgui") {
     levelNames.reserve(logLevels.size());
@@ -435,12 +439,11 @@ void ImGuiLayer::showMenu() {
 }
 
 void ImGuiLayer::showFontsTable() {
-    const auto& fonts =
-        sponge::platform::opengl::renderer::ResourceManager::getFonts();
+    const auto& fonts = AssetManager::getFonts();
     showSimpleTable("fontsTable", fonts);
 }
 
-void ImGuiLayer::showLayersTable(sponge::layer::LayerStack* const layerStack) {
+void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     const auto activeColor   = ImGui::GetColorU32(ImVec4(.3F, .7F, .3F, .35F));
     const auto inactiveColor = ImGui::GetColorU32(ImVec4(.5F, .5F, .3F, .3F));
 
@@ -467,8 +470,7 @@ void ImGuiLayer::showModelsTable() {
     if (ImGui::BeginTable("modelsTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        const auto& models =
-            sponge::platform::opengl::renderer::ResourceManager::getModels();
+        const auto& models = AssetManager::getModels();
 
         for (const auto& key : models | std::views::keys) {
             ImGui::TableNextRow();
@@ -486,8 +488,7 @@ void ImGuiLayer::showModelsTable() {
 }
 
 void ImGuiLayer::showShadersTable() {
-    const auto& shaders =
-        sponge::platform::opengl::renderer::ResourceManager::getShaders();
+    const auto& shaders = AssetManager::getShaders();
     showSimpleTable("shaderTable", shaders);
 }
 
@@ -495,8 +496,7 @@ void ImGuiLayer::showTexturesTable() {
     if (ImGui::BeginTable("textureTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        const auto& textures =
-            sponge::platform::opengl::renderer::ResourceManager::getTextures();
+        const auto& textures = AssetManager::getTextures();
 
         for (const auto& key : textures | std::views::keys) {
             ImGui::TableNextRow();

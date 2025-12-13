@@ -4,7 +4,7 @@
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <glm/gtc/constants.hpp>
 
@@ -26,6 +26,7 @@ constexpr double secondsToMilliseconds = 1000.F;
 }
 
 namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
 using sponge::scene::Vertex;
 
 Model::Model(const ModelCreateInfo& createInfo) {
@@ -191,7 +192,7 @@ std::shared_ptr<renderer::Texture>
         .path     = filename.string(),
         .loadFlag = renderer::ExcludeAssetsFolder
     };
-    return renderer::ResourceManager::createTexture(textureCreateInfo);
+    return AssetManager::createTexture(textureCreateInfo);
 }
 
 void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {

@@ -1,7 +1,7 @@
 #include "platform/opengl/scene/cube.hpp"
 
 #include "logging/log.hpp"
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <array>
 #include <memory>
@@ -33,6 +33,7 @@ constexpr uint32_t vertexCount = 36;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
 
 inline const std::string Cube::shaderName = "cube";
 
@@ -42,7 +43,7 @@ Cube::Cube() {
         .vertexShaderPath   = "/shaders/cube.vert.glsl",
         .fragmentShaderPath = "/shaders/cube.frag.glsl"
     };
-    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();

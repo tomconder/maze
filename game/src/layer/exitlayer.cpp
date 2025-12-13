@@ -28,13 +28,13 @@ inline std::string quadShaderName;
 
 namespace game::layer {
 using sponge::platform::glfw::core::Application;
-using sponge::platform::opengl::renderer::ResourceManager;
-using sponge::platform::opengl::scene::Font;
+using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
+using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
 
 ExitLayer::ExitLayer() : Layer("exit") {
-    fontShaderName = Font::getShaderName();
+    fontShaderName = MSDFFont::getShaderName();
     quadShaderName = Quad::getShaderName();
 }
 
@@ -44,7 +44,7 @@ void ExitLayer::onAttach() {
 
     const auto fontCreateInfo =
         FontCreateInfo{ .name = fontNameStr, .path = std::string(fontPath) };
-    ResourceManager::createFont(fontCreateInfo);
+    AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
@@ -73,7 +73,7 @@ void ExitLayer::onAttach() {
                               .cornerRadius = 12.F });
 
     for (const auto& shaderName : { quadShaderName, fontShaderName }) {
-        const auto shader = ResourceManager::getShader(shaderName);
+        const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
@@ -159,7 +159,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const auto [cancelX, cancelY, cancelW, cancelH] = getNodeLayout(cancelNode);
     const auto messageY = rootY + YGNodeLayoutGetTop(messageNode);
 
-    const auto font         = ResourceManager::getFont(fontNameStr);
+    const auto font         = AssetManager::getFont(fontNameStr);
     const auto length       = font->getLength(exitMessageStr, 48);
     const auto panelCenterX = width * 0.5F;
     font->render(exitMessageStr,
@@ -182,7 +182,7 @@ bool ExitLayer::onWindowResize(
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = ResourceManager::getShader(shaderName);
+        const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
