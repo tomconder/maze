@@ -1,8 +1,8 @@
 #include "platform/opengl/scene/shadowmap.hpp"
 
 #include "logging/log.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
-#include "platform/opengl/renderer/resourcemanager.hpp"
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -16,6 +16,8 @@ constexpr float orthoBoxSize = 5.F;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
+
 inline const std::string ShadowMap::shaderName = "shadowmap";
 
 ShadowMap::ShadowMap(const uint32_t res) :
@@ -33,7 +35,7 @@ void ShadowMap::initialize() {
         .vertexShaderPath   = "/shaders/shadowmap.vert.glsl",
         .fragmentShaderPath = "/shaders/shadowmap.frag.glsl",
     };
-    shader = renderer::ResourceManager::createShader(shaderCreateInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     const renderer::TextureCreateInfo textureCreateInfo{
@@ -42,7 +44,7 @@ void ShadowMap::initialize() {
         .height   = shadowHeight,
         .loadFlag = renderer::DepthMap
     };
-    depthMap = renderer::ResourceManager::createTexture(textureCreateInfo);
+    depthMap = AssetManager::createTexture(textureCreateInfo);
 
     framebuffer = std::make_unique<renderer::FrameBuffer>();
 

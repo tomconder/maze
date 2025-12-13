@@ -2,7 +2,7 @@
 
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
-#include "platform/opengl/renderer/resourcemanager.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <cstddef>
 #include <memory>
@@ -16,7 +16,7 @@ inline const std::string texCoord = "texCoord";
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
-using renderer::ResourceManager;
+using renderer::AssetManager;
 using sponge::scene::Vertex;
 
 inline const std::string Mesh::shaderName = "mesh";
@@ -35,7 +35,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .vertexShaderPath   = "/shaders/pbr.vert.glsl",
         .fragmentShaderPath = "/shaders/pbr.frag.glsl",
     };
-    const auto shader = ResourceManager::createShader(shaderCreateInfo);
+    const auto shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
     vao = renderer::VertexArray::create();

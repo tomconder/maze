@@ -51,7 +51,7 @@ private:
     glm::vec2 textPosition;
     bool      hover = false;
 
-    std::shared_ptr<sponge::platform::opengl::scene::Font> font;
-    std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
+    std::shared_ptr<sponge::platform::opengl::scene::MSDFFont> font;
+    std::unique_ptr<sponge::platform::opengl::scene::Quad>     quad;
 };
 }  // namespace game::ui
