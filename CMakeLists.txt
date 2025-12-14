@@ -55,7 +55,7 @@ if (ENABLE_PROFILING)
     option(TRACY_ON_DEMAND "" ON)
 endif (ENABLE_PROFILING)
 
-option(ENABLE_IMGUI "Enables compilation with the imgui user interface library" ON)
+option(ENABLE_IMGUI "Enables compilation with the imgui user interface library" OFF)
 if (ENABLE_IMGUI)
     message(STATUS "Enabling imgui")
     add_definitions(-DENABLE_IMGUI)
@@ -76,9 +76,6 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     # Set the possible values of build type for cmake-gui
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 endif ()
-
-# Generate compile_commands.json to help work with clang based tools
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)

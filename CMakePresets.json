@@ -7,10 +7,62 @@
     },
     "configurePresets": [
         {
+            "name": "default",
+            "description": "Placeholder configuration from which buildPresets and testPresets can inherit",
+            "hidden": true
+        },
+        {
+            "name": "debug",
+            "description": "Sets debug build type",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CONFIGURATION_TYPES": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "description": "Sets release build type",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CONFIGURATION_TYPES": "Release"
+            }
+        },
+        {
+            "name": "compile-commands-json",
+            "description": "Generate compile_commands.json to help work with clang based tools",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "imgui",
+            "description": "Enable imgui",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_IMGUI": "ON"
+            }
+        },
+        {
+            "name": "ninja",
+            "description": "Build using Ninja generator",
+            "hidden": true,
+            "generator": "Ninja",
+            "inherits": ["compile-commands-json"]
+        },
+        {
+            "name": "profile",
+            "description": "Enable profiling with Tracy",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_PROFILING": "ON"
+            }
+        },
+        {
             "name": "vcpkg",
             "hidden": true,
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": {
@@ -23,16 +75,6 @@
             }
         },
         {
-            "name": "base",
-            "description": "For more information: https://aka.ms/cmakepresetsvs",
-            "hidden": true,
-            "inherits": "vcpkg",
-            "cacheVariables": {
-                "ENABLE_IMGUI": "OFF",
-                "ENABLE_PROFILING": "OFF"
-            }
-        },
-        {
             "name": "sccache",
             "description": "Sets env for sccache",
             "hidden": true,
@@ -42,21 +84,34 @@
             }
         },
         {
-            "name": "ninja",
-            "description": "build using Ninja generator",
+            "name": "host-windows",
+            "displayName": "Host OS - Windows",
+            "description": "Specifies Windows host condition for configure preset",
             "hidden": true,
-            "generator": "Ninja Multi-Config"
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "host-mac",
+            "displayName": "Host OS - Mac",
+            "description": "Specifies Mac host condition for configure preset",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
         },
         {
             "name": "base-windows",
             "description": "Windows settings",
             "hidden": true,
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "inherits": ["host-windows"],
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
@@ -73,123 +128,61 @@
             "name": "ci-windows-debug",
             "displayName": "CI - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch, and uses sccache",
-            "inherits": ["base-windows", "ninja", "sccache"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CONFIGURATION_TYPES": "Debug",
-                "ENABLE_IMGUI": "ON"
-            }
+            "inherits": ["base-windows", "debug", "imgui", "ninja", "sccache", "vcpkg"]
         },
         {
             "name": "ci-windows-release",
             "displayName": "CI - Windows x64 - Release",
             "description": "Sets release build type and x64 arch, and uses sccache",
-            "inherits": ["base-windows", "ninja", "sccache"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_CONFIGURATION_TYPES": "Release",
-                "ENABLE_IMGUI": "OFF"
-            }
+            "inherits": ["base-windows", "ninja", "release", "sccache", "vcpkg"]
         },
         {
             "name": "windows-msvc-debug",
             "displayName": "VSCode - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch",
-            "inherits": ["base-windows", "ninja"],
-            "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl",
-                "CMAKE_CXX_COMPILER": "cl",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_CONFIGURATION_TYPES": "Debug",
-                "ENABLE_IMGUI": "ON"
-            }
+            "inherits": ["base-windows", "debug", "imgui", "ninja", "vcpkg"]
         },
         {
             "name": "windows-msvc-release",
             "displayName": "VSCode - Windows x64 - Release",
             "description": "Sets release build type",
-            "inherits": ["base-windows", "ninja"],
-            "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl",
-                "CMAKE_CXX_COMPILER": "cl",
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_CONFIGURATION_TYPES": "Release",
-                "ENABLE_IMGUI": "OFF"
-            }
+            "inherits": ["base-windows", "ninja", "release", "vcpkg"]
         },
         {
             "name": "base-osx",
             "description": "Mac OSX arch",
             "hidden": true,
-            "inherits": "base",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "inherits": ["host-mac"],
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
             }
         },
         {
             "name": "ci-osx-debug",
             "displayName": "Mac OS X - Debug",
             "description": "Sets debug build type and mac arch, and uses sccache",
-            "inherits": ["base-osx", "ninja", "sccache"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "ENABLE_IMGUI": "ON"
-            }
+            "inherits": ["base-osx", "debug", "imgui", "ninja", "sccache", "vcpkg"]
         },
         {
             "name": "ci-osx-release",
             "displayName": "Mac OS X - Release",
             "description": "Sets release build type and uses sccache",
-            "inherits": ["base-osx", "ninja", "sccache"],
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "ENABLE_IMGUI": "OFF"
-            }
+            "inherits": ["base-osx", "ninja", "release", "sccache", "vcpkg"]
         }
     ],
     "buildPresets": [
         {
-            "name": "build-windows-debug",
-            "displayName": "build windows ninja",
-            "configurePreset": "ci-windows-debug",
-            "description": "Build windows (Release)",
-            "configuration": "Release",
-            "nativeToolOptions": ["-nodeReuse:false"]
+            "name": "windows-release",
+            "displayName": "Windows",
+            "configurePreset": "ci-windows-release"
         },
         {
-            "name": "build-windows",
-            "displayName": "build windows ninja",
-            "configurePreset": "ci-windows-release",
-            "description": "Build windows (Debug)",
-            "configuration": "Release",
-            "nativeToolOptions": ["-nodeReuse:false"]
-        },
-        {
-            "name": "build-windows-msvc-debug",
-            "displayName": "build windows msvc (debug)",
-            "configurePreset": "windows-msvc-debug",
-            "description": "Build windows (MSVC Debug)",
-            "configuration": "Debug"
-        },
-        {
-            "name": "build-windows-msvc",
-            "displayName": "build windows msvc",
-            "configurePreset": "windows-msvc-release",
-            "description": "Build windows (MSVC)",
-            "configuration": "Release"
-        },
-        {
-            "name": "build-osx",
-            "displayName": "build osx",
-            "configurePreset": "ci-osx-release",
-            "description": "Build osx",
-            "configuration": "Release"
+            "name": "osx-release",
+            "displayName": "Mac",
+            "configurePreset": "ci-osx-release"
         }
     ],
     "testPresets": [
