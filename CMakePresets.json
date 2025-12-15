@@ -8,8 +8,9 @@
     "configurePresets": [
         {
             "name": "default",
-            "description": "Placeholder configuration from which buildPresets and testPresets can inherit",
-            "hidden": true
+            "hidden": true,
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}"
         },
         {
             "name": "debug",
@@ -109,9 +110,7 @@
             "name": "base-windows",
             "description": "Windows settings",
             "hidden": true,
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
-            "inherits": ["host-windows"],
+            "inherits": ["default", "host-windows"],
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
@@ -152,9 +151,7 @@
             "name": "base-osx",
             "description": "Mac OSX arch",
             "hidden": true,
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
-            "inherits": ["host-mac"],
+            "inherits": ["default", "host-mac"],
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
