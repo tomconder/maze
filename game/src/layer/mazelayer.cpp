@@ -35,6 +35,7 @@ std::array gameObjects = {
     GameObject{ .name        = "floor",
                 .path        = "/models/floor/floor.obj",
                 .scale       = glm::vec3(2.F),
+                .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
                 .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     // GameObject{ .name = "cube1",
