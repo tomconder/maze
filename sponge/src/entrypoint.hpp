@@ -27,7 +27,7 @@ int main(const int argc, char** argv) {
 }
 }  // namespace sponge::core
 
-extern "C" int main(const int argc, char* argv[]) {
+int main(const int argc, char* argv[]) {
     return sponge::core::main(argc, argv);
 }
 
