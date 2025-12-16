@@ -25,3 +25,11 @@ Use `iconutils` that is provided by Apple.
 ```text
 iconutil --convert icns --out maze.icns maze.iconset
 ```
+
+## Optimize Icon
+
+Use oxipng to optimize png files by stripping metadata and reducing color depth.
+
+```text
+oxipng --zopfli -o max --strip safe --scale16 .\*.png
+```
