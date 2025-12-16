@@ -5,9 +5,23 @@
 
 fail_fast: false
 repos:
+    - repo: https://github.com/gitleaks/gitleaks
+      rev: v8.30.0
+      hooks:
+          - id: gitleaks
+
+    - repo: https://github.com/sirosen/texthooks
+      rev: 0.7.1
+      hooks:
+          - id: fix-smartquotes
+            exclude: assets/models|sponge/deps
+
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v6.0.0
       hooks:
+          - id: detect-private-key
+          - id: detect-aws-credentials
+            args: ['--allow-missing-credentials']
           - id: mixed-line-ending
             exclude: assets/models|sponge/deps
             args: ['--fix=lf']
@@ -18,28 +32,15 @@ repos:
           - id: check-case-conflict
           - id: check-executables-have-shebangs
           - id: check-merge-conflict
-          - id: detect-private-key
-          - id: detect-aws-credentials
-            args: ['--allow-missing-credentials']
 
-    - repo: https://github.com/sirosen/texthooks
-      rev: 0.7.1
+    - repo: https://github.com/crate-ci/typos
+      rev: v1.39.2
       hooks:
-          - id: fix-smartquotes
-            exclude: assets/models|sponge/deps
+          - id: typos
+            exclude: .clang-tidy|assets/models|sponge/deps
 
-    - repo: https://github.com/gitleaks/gitleaks
-      rev: v8.30.0
-      hooks:
-          - id: gitleaks
-
-    - repo: https://github.com/shellcheck-py/shellcheck-py
-      rev: v0.11.0.1
-      hooks:
-          - id: shellcheck
-
-    - repo: https://github.com/Takishima/cmake-pre-commit-hooks
-      rev: v1.9.6
+    - repo: https://github.com/pre-commit/mirrors-clang-format
+      rev: v21.1.7
       hooks:
           - id: clang-format
             args: [--style=file, -i]
@@ -70,8 +71,7 @@ repos:
             files: "\\.md$"
             exclude: assets/models|sponge/deps
 
-    - repo: https://github.com/crate-ci/typos
-      rev: v1.39.2
+    - repo: https://github.com/shellcheck-py/shellcheck-py
+      rev: v0.11.0.1
       hooks:
-          - id: typos
-            exclude: .clang-tidy|assets/models|sponge/deps
+          - id: shellcheck
