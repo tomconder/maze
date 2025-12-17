@@ -3,7 +3,6 @@
 #include "logging/log.hpp"
 #include <algorithm>
 #include <cctype>
-#include <cstdlib>
 #include <ranges>
 #include <string>
 #include <unordered_map>
