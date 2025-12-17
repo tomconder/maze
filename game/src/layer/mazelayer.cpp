@@ -75,10 +75,11 @@ using sponge::platform::opengl::scene::ShadowMap;
 
 MazeLayer::MazeLayer() : Layer("maze") {
     for (int32_t i = 0; i < 6; i++) {
-        const std::string base = "pointLights[" + std::to_string(i) + "].";
-        lightUniformNames[i].position         = base + "position";
-        lightUniformNames[i].color            = base + "color";
-        lightUniformNames[i].attenuationIndex = base + "attenuationIndex";
+        const std::string base  = "pointLights[" + std::to_string(i) + "].";
+        auto&             names = lightUniformNames.at(i);
+        names.position          = base + "position";
+        names.color             = base + "color";
+        names.attenuationIndex  = base + "attenuationIndex";
     }
 }
 
@@ -305,12 +306,13 @@ void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
     for (int32_t i = 0; i < numLights; i++) {
-        pointLights[i].color    = glm::vec3(1.F);
-        pointLights[i].position = glm::vec3(
-            rotate(glm::mat4(1.F), glm::two_pi<float>() * i / numLights,
-                   glm::vec3(0.F, 1.F, 0.F)) *
-            glm::vec4(0.F, 2.75F, -3.F, 1.F));
-        pointLights[i].attenuationIndex = attenuationIndex;
+        auto& light            = pointLights.at(i);
+        light.color            = glm::vec3(1.F);
+        light.position         = glm::vec3(rotate(glm::mat4(1.F),
+                                                  glm::two_pi<float>() * i / numLights,
+                                                  glm::vec3(0.F, 1.F, 0.F)) *
+                                           glm::vec4(0.F, 2.75F, -3.F, 1.F));
+        light.attenuationIndex = attenuationIndex;
     }
 
     updateShaderLights();
