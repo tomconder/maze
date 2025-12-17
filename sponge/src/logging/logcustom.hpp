@@ -12,7 +12,7 @@ struct fmt::formatter<glm::vec2> {
         return ctx.begin();
     }
 
-    auto format(const glm::vec2& vec, format_context& ctx) const
+    auto format(const glm::vec2& vec, const format_context& ctx) const
         -> decltype(ctx.out()) {
         return format_to(ctx.out(), "({:.3f}, {:.3f})", vec.x, vec.y);
     }
@@ -24,7 +24,7 @@ struct fmt::formatter<glm::vec3> {
         return ctx.begin();
     }
 
-    auto format(const glm::vec3& vec, format_context& ctx) const
+    auto format(const glm::vec3& vec, const format_context& ctx) const
         -> decltype(ctx.out()) {
         return format_to(ctx.out(), "({:.3f}, {:.3f}, {:.3f})", vec.x, vec.y,
                          vec.z);
@@ -37,7 +37,7 @@ struct fmt::formatter<glm::vec4> {
         return ctx.begin();
     }
 
-    auto format(const glm::vec4& vec, format_context& ctx) const
+    auto format(const glm::vec4& vec, const format_context& ctx) const
         -> decltype(ctx.out()) {
         return format_to(ctx.out(), "({:.3f}, {:.3f}, {:.3f}, {:.3f})", vec.x,
                          vec.y, vec.z, vec.w);
