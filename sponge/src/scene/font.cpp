@@ -7,7 +7,6 @@
 
 #include <cerrno>
 #include <charconv>
-#include <cstddef>
 #include <fstream>
 #include <ios>
 #include <sstream>
