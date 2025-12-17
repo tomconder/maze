@@ -1,6 +1,6 @@
 # Maze
 
-A nice walk through a maze.
+A game engine featureing a nice walk through a maze.
 
 > For more information please check out the [full documentation](https://tomconder.github.io/maze/)
 
