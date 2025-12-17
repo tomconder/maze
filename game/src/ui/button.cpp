@@ -1,8 +1,6 @@
 #include "ui/button.hpp"
 
 #include <memory>
-#include <string>
-#include <utility>
 
 namespace game::ui {
 using sponge::platform::opengl::renderer::AssetManager;
