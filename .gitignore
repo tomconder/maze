@@ -1,7 +1,6 @@
-/site/
+site/
 /build/
 /venv/
-
 
 .claude/
 CLAUDE.md
@@ -94,6 +93,7 @@ fabric.properties
 
 # Icon must end with two \r
 Icon
+!docs/docs/static/icon
 
 # Thumbnails
 ._*
