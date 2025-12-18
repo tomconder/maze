@@ -2,10 +2,9 @@
 
 #include "platform/opengl/renderer/assetmanager.hpp"
 
-#include <fmt/format.h>
-
 #include <algorithm>
 #include <array>
+#include <format>
 #include <memory>
 #include <string>
 
@@ -79,7 +78,7 @@ uint32_t MSDFFont::getLength(const std::string_view text,
         auto [loc, width, height, offset, xadvance, page] = fontChars[index];
         x += xadvance * scale;
         if (!prev.empty()) {
-            const auto key = fmt::format("{}.{}", prev, index);
+            const auto key = std::format("{}.{}", prev, index);
             x += kerning[key] * scale;
         }
         prev = index;
@@ -157,7 +156,7 @@ void MSDFFont::render(const std::string& text, const glm::vec2& position,
         x += xadvance * scale;
 
         if (!prev.empty()) {
-            const auto key = fmt::format("{}.{}", prev, index);
+            const auto key = std::format("{}.{}", prev, index);
             x += kerning[key] * scale;
         }
         prev = index;
