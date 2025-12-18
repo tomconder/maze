@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <spdlog/fmt/fmt.h>
 
 // the format() method cannot be both static and const
 // ReSharper disable CppMemberFunctionMayBeStatic
