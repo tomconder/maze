@@ -7,6 +7,7 @@
 #include "version.hpp"
 
 #include <algorithm>
+#include <format>
 #include <numeric>
 #include <optional>
 #include <ranges>
@@ -110,7 +111,7 @@ void ImGuiLayer::showInfoSection() {
     const auto&       io     = ImGui::GetIO();
     const auto        window = Maze::get().window;
     const std::string appInfo =
-        fmt::format("{} {} ({})", project_name.c_str(), project_version.c_str(),
+        std::format("{} {} ({})", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
 
     ImGui::AlignTextToFramePadding();
@@ -119,7 +120,7 @@ void ImGuiLayer::showInfoSection() {
                 io.Framerate);
 
     const std::string resolution =
-        fmt::format("{}x{}", window->getWidth(), window->getHeight());
+        std::format("{}x{}", window->getWidth(), window->getHeight());
 
     if (ImGui::BeginTable("##ResolutionTable", 2, tableFlags)) {
         ImGui::TableNextRow();
@@ -352,7 +353,7 @@ void ImGuiLayer::showPointLightControls() {
 
 void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
     auto distance = scene::Light::getAttenuationDistance(attenuationIndex);
-    const std::string label = fmt::format("{:3.0f}", distance);
+    const std::string label = std::format("{:3.0f}", distance);
 
     if (ImGui::SliderInt("Distance", &attenuationIndex, 0, 10, label.c_str())) {
         Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
@@ -476,7 +477,7 @@ void ImGuiLayer::showModelsTable() {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             const auto& model = models.at(key);
-            ImGui::Text("%s", fmt::format("{:10s} vertices {:7d} indices {:7d}",
+            ImGui::Text("%s", std::format("{:10s} vertices {:7d} indices {:7d}",
                                           key, model->getNumVertices(),
                                           model->getNumIndices())
                                   .c_str());
