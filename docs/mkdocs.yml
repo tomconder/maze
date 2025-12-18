@@ -28,9 +28,8 @@ theme:
     - content.code.copy
     - navigation.footer
   language: en
-  icon:
-    repo: fontawesome/brands/git-alt
-    view: material/eye
+  favicon: static/icon/maze.ico
+  logo: static/icon/maze.png
   palette:
     - media: '(prefers-color-scheme: light)'
       scheme: default
