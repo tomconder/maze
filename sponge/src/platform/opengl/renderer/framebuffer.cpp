@@ -9,6 +9,22 @@ FrameBuffer::FrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, id);
 }
 
+FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept {
+    id       = other.id;
+    other.id = 0;
+}
+
+FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept {
+    if (this != &other) {
+        if (id != 0) {
+            glDeleteFramebuffers(1, &id);
+        }
+        id       = other.id;
+        other.id = 0;
+    }
+    return *this;
+}
+
 FrameBuffer::~FrameBuffer() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDeleteFramebuffers(1, &id);

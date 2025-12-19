@@ -11,6 +11,21 @@ VertexArray::VertexArray() {
     glBindVertexArray(id);
 }
 
+VertexArray::VertexArray(VertexArray&& other) noexcept {
+    id       = other.id;
+    other.id = 0;
+}
+
+VertexArray& VertexArray::operator=(VertexArray&& other) noexcept {
+    if (this != &other) {
+        if (id != 0) {
+            glDeleteVertexArrays(1, &id);
+        }
+        id = other.id;
+    }
+    return *this;
+}
+
 VertexArray::~VertexArray() {
     glBindVertexArray(0);
     glDeleteVertexArrays(1, &id);
