@@ -12,6 +12,10 @@ public:
 
     VertexBuffer(const VertexBuffer& vertexBuffer)            = delete;
     VertexBuffer& operator=(const VertexBuffer& vertexBuffer) = delete;
+
+    VertexBuffer(VertexBuffer&& other) noexcept;
+    VertexBuffer& operator=(VertexBuffer&& other) noexcept;
+
     ~VertexBuffer() override;
 
     void update(const void* vertices, std::size_t size) const;
