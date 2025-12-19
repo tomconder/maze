@@ -12,6 +12,10 @@ public:
 
     IndexBuffer(const IndexBuffer& indexBuffer)            = delete;
     IndexBuffer& operator=(const IndexBuffer& indexBuffer) = delete;
+
+    IndexBuffer(IndexBuffer&& other) noexcept;
+    IndexBuffer& operator=(IndexBuffer&& other) noexcept;
+
     ~IndexBuffer() override;
 
     void update(const uint32_t* indices, std::size_t size) const;

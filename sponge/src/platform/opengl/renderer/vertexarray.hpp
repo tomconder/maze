@@ -12,6 +12,10 @@ public:
 
     VertexArray(const VertexArray& vertexArray)            = delete;
     VertexArray& operator=(const VertexArray& vertexArray) = delete;
+
+    VertexArray(VertexArray&& other) noexcept;
+    VertexArray& operator=(VertexArray&& other) noexcept;
+
     ~VertexArray() override;
 
     void bind() const override;

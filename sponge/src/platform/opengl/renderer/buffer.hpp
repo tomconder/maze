@@ -15,7 +15,7 @@ public:
     }
 
 protected:
-    uint32_t id = 0;
+    mutable uint32_t id = 0;
 };
 
 }  // namespace sponge::platform::opengl::renderer
