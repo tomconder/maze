@@ -1,22 +1,22 @@
 name: 'pull request labeler'
 
 on:
-  pull_request_target:
-    types: [opened, synchronize]
+    pull_request_target:
+        types: [opened, synchronize]
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  labeler:
-    permissions:
-      contents: read
-      pull-requests: write
+    labeler:
+        permissions:
+            contents: read
+            pull-requests: write
 
-    runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        steps:
+            - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - id: label-pr
-        uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
+            - id: label-pr
+              uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
