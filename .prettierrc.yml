@@ -1,12 +1,5 @@
-useTabs: false
-tabWidth: 4
-semi: false
-singleQuote: true
 printWidth: 150
+singleQuote: true
+tabWidth: 4
 trailingComma: es5
-overrides:
-  - files:
-      - '*.yml'
-      - '*.yaml'
-    options:
-      tabWidth: 2
+useTabs: false

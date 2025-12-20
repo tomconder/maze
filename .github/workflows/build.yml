@@ -1,157 +1,157 @@
 name: build
 
 on:
-  push:
-    branches: [main, feature/*]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+    push:
+        branches: [main, feature/*]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
 
 concurrency:
-  group: ci-${{github.event.pull_request.number || github.ref}}
-  cancel-in-progress: true
+    group: ci-${{github.event.pull_request.number || github.ref}}
+    cancel-in-progress: true
 
 env:
-  BUILD_DIR: build
-  BUILD_TYPE: Release
-  SCCACHE_GHA_ENABLED: true
+    BUILD_DIR: build
+    BUILD_TYPE: Release
+    SCCACHE_GHA_ENABLED: true
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  changed:
-    name: check-changed
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{steps.changed-files.outputs.only_changed == 'true'}}
+    changed:
+        name: check-changed
+        runs-on: ubuntu-latest
+        outputs:
+            should_skip: ${{steps.changed-files.outputs.only_changed == 'true'}}
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-        with:
-          fetch-depth: 2
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+              with:
+                  fetch-depth: 2
 
-      - name: Get changed files
-        id: changed-files
-        run: |
-          CURRENT_COMMIT=$(git rev-parse HEAD)
-          PREVIOUS_COMMIT=$(git rev-parse HEAD^)
-          CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
+            - name: Get changed files
+              id: changed-files
+              run: |
+                  CURRENT_COMMIT=$(git rev-parse HEAD)
+                  PREVIOUS_COMMIT=$(git rev-parse HEAD^)
+                  CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
 
-          only_changed=false
+                  only_changed=false
 
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "Changed files:"
-            echo "$CHANGED_FILES"
+                  if [ -n "$CHANGED_FILES" ]; then
+                    echo "Changed files:"
+                    echo "$CHANGED_FILES"
 
-            FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
-            if [ ! -n "$FILTERED_FILES" ]; then
-              echo "Found only documentation changes"
-              only_changed=true
-            fi
-          else
-            echo "No changes found"
-            only_changed=true
-          fi
+                    FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
+                    if [ ! -n "$FILTERED_FILES" ]; then
+                      echo "Found only documentation changes"
+                      only_changed=true
+                    fi
+                  else
+                    echo "No changes found"
+                    only_changed=true
+                  fi
 
-          echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
+                  echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
 
-  lint:
-    needs: changed
-    if: needs.changed.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
+    lint:
+        needs: changed
+        if: needs.changed.outputs.should_skip != 'true'
+        runs-on: ubuntu-latest
 
-    timeout-minutes: 30
+        timeout-minutes: 30
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Set up python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version: '3.13'
+            - name: Set up python
+              uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+              with:
+                  python-version: '3.13'
 
-      - name: Run pre-commit
-        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-        with:
-          extra_args: cpplint --all-files
+            - name: Run pre-commit
+              uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+              with:
+                  extra_args: cpplint --all-files
 
-  build:
-    needs: changed
-    if: needs.changed.outputs.should_skip != 'true'
-    name: ${{matrix.name}}
-    runs-on: ${{matrix.os}}
+    build:
+        needs: changed
+        if: needs.changed.outputs.should_skip != 'true'
+        name: ${{matrix.name}}
+        runs-on: ${{matrix.os}}
 
-    timeout-minutes: 30
+        timeout-minutes: 30
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: mac
-            os: macos-latest
-            preset: ci-osx-release
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: mac
+                      os: macos-latest
+                      preset: ci-osx-release
 
-          - name: windows
-            os: windows-latest
-            preset: ci-windows-release
+                    - name: windows
+                      os: windows-latest
+                      preset: ci-windows-release
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Extract git commit id from vcpkg-configuration.json
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        id: vcpkg-commit-id
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg-configuration.json');
-            const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-            const id = config['default-registry']['baseline'];
-            core.setOutput('id', id);
-            core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
-            console.log(`Extracted vcpkg git commit id: ${id}`);
+            - name: Extract git commit id from vcpkg-configuration.json
+              uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+              id: vcpkg-commit-id
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const path = require('path');
+                      const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg-configuration.json');
+                      const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+                      const id = config['default-registry']['baseline'];
+                      core.setOutput('id', id);
+                      core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
+                      console.log(`Extracted vcpkg git commit id: ${id}`);
 
-      - name: Setup MSVC toolchain
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+            - name: Setup MSVC toolchain
+              if: runner.os == 'Windows'
+              uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
-      - name: Setup CMake
-        uses: lukka/get-cmake@9e07ecdcee1b12e5037e42f410b67f03e2f626e1 # v4.2.1
+            - name: Setup CMake
+              uses: lukka/get-cmake@9e07ecdcee1b12e5037e42f410b67f03e2f626e1 # v4.2.1
 
-      - name: Configure sccache
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        with:
-          script: |
-            core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+            - name: Configure sccache
+              uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+              with:
+                  script: |
+                      core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
+                      core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Cache the build
-        uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
+            - name: Cache the build
+              uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad # v0.0.9
 
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@7d259227a1fb6471a0253dd5ab7419835228f7d7 # v11
-        env:
-          VCPKG_BINARY_SOURCES: 'clear;default,readwrite'
-        with:
-          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+            - name: Setup vcpkg
+              uses: lukka/run-vcpkg@7d259227a1fb6471a0253dd5ab7419835228f7d7 # v11
+              env:
+                  VCPKG_BINARY_SOURCES: 'clear;default,readwrite'
+              with:
+                  vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-      - name: Create build tree
-        run: >
-          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
+            - name: Create build tree
+              run: >
+                  cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
 
-      - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
+            - name: Build
+              run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: maze-${{matrix.name}}
-          path: ${{github.workspace}}/out/install/${{matrix.preset}}/
-          overwrite: true
-          retention-days: 1
-          if-no-files-found: error
+            - name: Upload artifact
+              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+              with:
+                  name: maze-${{matrix.name}}
+                  path: ${{github.workspace}}/out/install/${{matrix.preset}}/
+                  overwrite: true
+                  retention-days: 1
+                  if-no-files-found: error

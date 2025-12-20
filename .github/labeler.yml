@@ -1,30 +1,30 @@
 repo:
-  - changed-files:
-      - all-globs-to-all-files: ['*', '!CMakeLists.txt', '!CMakePresets.json']
+    - changed-files:
+          - all-globs-to-all-files: ['*', '!CMakeLists.txt', '!CMakePresets.json']
 
 ci:
-  - changed-files:
-      - any-glob-to-any-file: '.github/workflows/**'
+    - changed-files:
+          - any-glob-to-any-file: '.github/workflows/**'
 
 cmake:
-  - changed-files:
-      - any-glob-to-any-file: ['**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**']
+    - changed-files:
+          - any-glob-to-any-file: ['**/CMakeLists.txt', 'CMakePresets.json', 'cmake/**']
 
 documentation:
-  - changed-files:
-      - any-glob-to-any-file: ['README.md', 'docs/**']
+    - changed-files:
+          - any-glob-to-any-file: ['README.md', 'docs/**']
 
 game:
-  - changed-files:
-      - any-glob-to-any-file: 'game/**'
+    - changed-files:
+          - any-glob-to-any-file: 'game/**'
 
 sponge:
-  - changed-files:
-      - any-glob-to-any-file: 'sponge/**'
+    - changed-files:
+          - any-glob-to-any-file: 'sponge/**'
 
 vcpkg:
-  - changed-files:
-      - any-glob-to-any-file: ['vcpkg.json', 'vcpkg-configuration.json']
+    - changed-files:
+          - any-glob-to-any-file: ['vcpkg.json', 'vcpkg-configuration.json']
 
 feature:
-  - head-branch: ['^feature', 'feature']
+    - head-branch: ['^feature', 'feature']
