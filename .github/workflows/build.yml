@@ -14,16 +14,10 @@ concurrency:
 env:
     BUILD_DIR: build
     BUILD_TYPE: Release
-    FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
     SCCACHE_GHA_ENABLED: true
-    USERNAME: tomconder
-    VCPKG_BINARY_SOURCES: 'clear;nuget,https://nuget.pkg.github.com/tomconder/index.json,readwrite'
-    VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
-    VCPKG_USE_NUGET_CACHE: true
 
 permissions:
     contents: read
-    packages: write
 
 jobs:
     changed:
@@ -144,18 +138,9 @@ jobs:
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-            - name: Setup NuGet
-              uses: actions/setup-dotnet@v5
-              with:
-                  source-url: ${{ env.FEED_URL }}
-              env:
-                  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Create build tree
               run: >
                   cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
-              env:
-                  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Build
               run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
