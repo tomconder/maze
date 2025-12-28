@@ -150,21 +150,12 @@ jobs:
                   script: |
                       const { execSync } = require('child_process');
 
-                      const vcpkgExe = process.env.VCPKG_EXE;
                       const feedUrl = process.env.FEED_URL;
-                      const username = process.env.USERNAME;
                       const token = process.env.GITHUB_TOKEN;
+                      const username = process.env.USERNAME;
+                      const vcpkgExe = process.env.VCPKG_EXE;
 
-                      execSync(`dotnet nuget
-                          sources add
-                          -Source "${feedUrl}"
-                          -StorePasswordInClearText
-                          -Name GitHubPackages
-                          -UserName "${username}"
-                          -Password "${token}"`, { stdio: 'inherit' });
-                      execSync(`dotnet nuget
-                          setapikey "${token}"
-                          -Source "${feedUrl}"`, { stdio: 'inherit' });
+                      execSync(`dotnet nuget add source "${feedUrl}" -n GitHubPackages -u "${username}" -p "${token}" --store-password-in-clear-text`, { stdio: 'inherit' });
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
