@@ -162,6 +162,8 @@ jobs:
             - name: Create build tree
               run: >
                   cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
+              env:
+                  NUGET_EXE: dotnet nuget
 
             - name: Build
               run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
