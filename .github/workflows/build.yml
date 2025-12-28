@@ -14,10 +14,16 @@ concurrency:
 env:
     BUILD_DIR: build
     BUILD_TYPE: Release
+    FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
     SCCACHE_GHA_ENABLED: true
+    USERNAME: tomconder
+    VCPKG_BINARY_SOURCES: 'clear;nuget,https://nuget.pkg.github.com/tomconder/index.json,readwrite'
+    VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
+    VCPKG_USE_NUGET_CACHE: true
 
 permissions:
     contents: read
+    packages: write
 
 jobs:
     changed:
@@ -135,8 +141,6 @@ jobs:
 
             - name: Setup vcpkg
               uses: lukka/run-vcpkg@7d259227a1fb6471a0253dd5ab7419835228f7d7 # v11
-              env:
-                  VCPKG_BINARY_SOURCES: 'clear;default,readwrite'
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
