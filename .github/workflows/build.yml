@@ -102,16 +102,16 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-            - name: Extract git commit id from vcpkg-configuration.json
+            - name: Extract git commit id from vcpkg configuration
               uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
               id: vcpkg-commit-id
               with:
                   script: |
                       const fs = require('fs');
                       const path = require('path');
-                      const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg-configuration.json');
+                      const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg.json');
                       const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-                      const id = config['default-registry']['baseline'];
+                      const id = config['builtin-baseline'];
                       core.setOutput('id', id);
                       core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
                       console.log(`Extracted vcpkg git commit id: ${id}`);
