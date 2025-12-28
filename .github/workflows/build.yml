@@ -144,11 +144,6 @@ jobs:
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-            - name: Setup NuGet
-              uses: nuget/setup-nuget@v2
-              with:
-                  nuget-api-key: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Add NuGet sources
               uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
               with:
@@ -160,15 +155,14 @@ jobs:
                       const username = process.env.USERNAME;
                       const token = process.env.GITHUB_TOKEN;
 
-                      const nugetPath = execSync(`${vcpkgExe} fetch nuget`, { encoding: 'utf8' }).trim();
-                      execSync(`${nugetPath}
+                      execSync(`dotnet nuget
                           sources add
                           -Source "${feedUrl}"
                           -StorePasswordInClearText
                           -Name GitHubPackages
                           -UserName "${username}"
                           -Password "${token}"`, { stdio: 'inherit' });
-                      execSync(`${nugetPath}
+                      execSync(`dotnet nuget
                           setapikey "${token}"
                           -Source "${feedUrl}"`, { stdio: 'inherit' });
               env:
