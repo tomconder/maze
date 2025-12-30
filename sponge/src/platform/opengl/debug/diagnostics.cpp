@@ -3,7 +3,8 @@
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
-#include <format>
+#include <fmt/format.h>
+
 #include <sstream>
 
 namespace sponge::platform::opengl::debug {
@@ -50,7 +51,7 @@ void Diagnostics::log() {
             const char* extPtr = reinterpret_cast<const char*>(
                 glGetStringi(GL_EXTENSIONS, (i * 3) + j));
             const std::string ext = extPtr ? extPtr : "";
-            ss << std::format(" {:49}", ext);
+            ss << fmt::format(" {:49}", ext);
         }
         SPONGE_GL_DEBUG(ss.str());
     }

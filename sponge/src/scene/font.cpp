@@ -3,9 +3,10 @@
 #include "core/timer.hpp"
 #include "logging/log.hpp"
 
+#include <fmt/format.h>
+
 #include <cerrno>
 #include <charconv>
-#include <format>
 #include <fstream>
 #include <ios>
 #include <sstream>
@@ -201,7 +202,7 @@ void Font::load(const std::string& path) {
                 parseFloat(it->second, amount);
             }
 
-            const auto key = std::format("{}.{}", first, second);
+            const auto key = fmt::format("{}.{}", first, second);
             if (!kerning.contains(key)) {
                 kerning.emplace(key, amount);
             }
