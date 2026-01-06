@@ -65,12 +65,6 @@
             "name": "vcpkg",
             "hidden": true,
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": {
-                    "type": "FILEPATH",
-                    "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-                }
-            },
             "environment": {
                 "VCPKG_FEATURE_FLAGS": "manifests,versions,binarycaching,registries"
             }
@@ -104,6 +98,17 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "host-linux",
+            "displayName": "Host OS - Linux",
+            "description": "Specifies Linux host condition for configure preset",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
             }
         },
         {
@@ -168,6 +173,28 @@
             "displayName": "Mac OS X - Release",
             "description": "Sets release build type and uses sccache",
             "inherits": ["base-osx", "ninja", "release", "sccache", "vcpkg"]
+        },
+        {
+            "name": "base-linux",
+            "description": "Linux arch",
+            "hidden": true,
+            "inherits": ["default", "host-linux"],
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "ci-linux-debug",
+            "displayName": "Linux - Debug",
+            "description": "Sets debug build type and linux arch, and uses sccache",
+            "inherits": ["base-linux", "debug", "imgui", "ninja", "sccache", "vcpkg"]
+        },
+        {
+            "name": "ci-linux-release",
+            "displayName": "Linux - Release",
+            "description": "Sets release build type and linux arch",
+            "inherits": ["base-linux", "ninja", "release", "sccache", "vcpkg"]
         }
     ],
     "buildPresets": [
@@ -180,6 +207,11 @@
             "name": "osx-release",
             "displayName": "Mac",
             "configurePreset": "ci-osx-release"
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Linux",
+            "configurePreset": "ci-linux-release"
         }
     ],
     "testPresets": [
@@ -190,6 +222,10 @@
         {
             "name": "osx",
             "configurePreset": "ci-osx-release"
+        },
+        {
+            "name": "linux",
+            "configurePreset": "ci-linux-release"
         }
     ]
 }
