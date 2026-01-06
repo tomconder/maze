@@ -11,6 +11,8 @@ std::string File::getLogDir(const std::string& app) {
     result = platform::osx::core::OSXFile::getLogDir(app);
 #elif defined(_WIN32) || defined(WIN32)
     result = platform::windows::core::WinFile::getLogDir(app);
+#elif defined(__linux__)
+    result = platform::linux::core::LinuxFile::getLogDir(app);
 #endif
 
     return result;
