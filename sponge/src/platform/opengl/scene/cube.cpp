@@ -5,11 +5,11 @@
 
 #include <array>
 #include <memory>
-#include <string>
+#include <string_view>
 
 namespace {
-inline const std::string position = "position";
-constexpr std::array     vertices = {
+inline constexpr std::string_view position = "position";
+constexpr std::array              vertices = {
     glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
     glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ -0.5, 0.5, -0.5 },
     glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, 0.5, -0.5 },
@@ -35,11 +35,9 @@ constexpr uint32_t vertexCount = 36;
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
-inline const std::string Cube::shaderName = "cube";
-
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
+        .name               = shaderName.data(),
         .vertexShaderPath   = "/shaders/cube.vert.glsl",
         .fragmentShaderPath = "/shaders/cube.frag.glsl"
     };
@@ -54,7 +52,7 @@ Cube::Cube() {
     vbo->bind();
 
     const auto program = shader->getId();
-    if (const auto location = glGetAttribLocation(program, position.c_str());
+    if (const auto location = glGetAttribLocation(program, position.data());
         location != -1) {
         const auto pos = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(pos);

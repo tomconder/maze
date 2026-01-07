@@ -151,7 +151,7 @@ target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 target_link_libraries(game PRIVATE glfw)
-target_link_libraries(game PRIVATE glm::glm)
+target_link_libraries(game PRIVATE glm::glm-header-only)
 target_link_libraries(game PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
 target_link_libraries(game PRIVATE sponge::sponge)
 target_link_libraries(game PRIVATE yoga::yogacore)
