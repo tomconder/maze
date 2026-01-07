@@ -7,11 +7,11 @@ namespace sponge::core {
 std::string File::getLogDir(const std::string& app) {
     std::string result = {};
 
-#if defined(__APPLE__)
+#if __APPLE__
     result = platform::osx::core::OSXFile::getLogDir(app);
-#elif defined(_WIN32) || defined(WIN32)
+#elif _WIN32 || WIN32
     result = platform::windows::core::WinFile::getLogDir(app);
-#elif defined(__UNIX__)
+#elif __linux__
     result = platform::linux::core::LinuxFile::getLogDir(app);
 #endif
 
@@ -21,7 +21,7 @@ std::string File::getLogDir(const std::string& app) {
 std::string File::getResourceDir() {
     std::string result = "assets";
 
-#if defined(__APPLE__)
+#if __APPLE__
     result = platform::osx::core::OSXFile::getResourceDir();
 #endif
 
