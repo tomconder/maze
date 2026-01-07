@@ -31,7 +31,7 @@ public:
     }
 
 private:
-    static const std::string shaderName;
+    static constexpr std::string_view shaderName = "text";
 
     std::shared_ptr<renderer::Shader> shader;
 
