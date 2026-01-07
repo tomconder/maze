@@ -1,7 +1,7 @@
 {
     "name": "maze",
     "version-string": "latest",
-    "builtin-baseline": "2cf2bcc60add50f79b2c418487d9cd1b6c7c1fec",
+    "builtin-baseline": "9b2a4d3e2552454a81a12e72cd2cc209215e70d3",
     "dependencies": [
         {
             "name": "fmt",
@@ -26,7 +26,7 @@
         },
         {
             "name": "spdlog",
-            "version>=": "1.16.0"
+            "version>=": "1.17.0"
         },
         {
             "name": "stb",
