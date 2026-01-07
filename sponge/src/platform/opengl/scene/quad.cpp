@@ -4,10 +4,10 @@
 
 #include <array>
 #include <memory>
-#include <string>
+#include <string_view>
 
 namespace {
-inline const std::string          vertex  = "position";
+inline constexpr std::string_view vertex  = "position";
 constexpr std::array<uint32_t, 6> indices = {
     0, 2, 1,  //
     0, 3, 2   //
@@ -19,11 +19,9 @@ constexpr uint32_t vertexCount = 4;
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
-inline const std::string Quad::shaderName = "quad";
-
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
+        .name               = shaderName.data(),
         .vertexShaderPath   = "/shaders/quad.vert.glsl",
         .fragmentShaderPath = "/shaders/quad.frag.glsl",
     };
@@ -43,7 +41,7 @@ Quad::Quad() {
 
     const auto program = shader->getId();
 
-    if (const auto location = glGetAttribLocation(program, vertex.c_str());
+    if (const auto location = glGetAttribLocation(program, vertex.data());
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
