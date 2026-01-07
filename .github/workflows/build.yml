@@ -98,6 +98,10 @@ jobs:
                       os: windows-latest
                       preset: ci-windows-release
 
+                    - name: linux
+                      os: ubuntu-latest
+                      preset: ci-linux-release
+
         steps:
             - name: Checkout code
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -115,6 +119,13 @@ jobs:
                       core.setOutput('id', id);
                       core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
                       console.log(`Extracted vcpkg git commit id: ${id}`);
+
+            - name: Install linux packages
+              if: runner.os == 'Linux'
+              run: >
+                  sudo apt-get update -qq &&
+                  sudo apt-get install -qq -y --no-install-recommends libtool libasound2-dev libgl1-mesa-dev libltdl-dev
+                  libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
 
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
