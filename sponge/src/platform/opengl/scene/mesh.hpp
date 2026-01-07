@@ -8,7 +8,6 @@
 #include "scene/mesh.hpp"
 
 #include <memory>
-#include <string>
 #include <string_view>
 #include <vector>
 
@@ -26,7 +25,7 @@ public:
     }
 
 private:
-    static const std::string shaderName;
+    static constexpr std::string_view shaderName = "mesh";
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;

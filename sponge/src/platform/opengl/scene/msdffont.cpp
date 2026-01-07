@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <array>
 #include <memory>
-#include <string>
+#include <string_view>
 
 namespace {
-inline const std::string vertex      = "vertex";
-constexpr size_t         indexCount  = 6;
-constexpr size_t         maxLength   = 256;
-constexpr size_t         vertexCount = 8;
+inline constexpr std::string_view vertex      = "vertex";
+constexpr size_t                  indexCount  = 6;
+constexpr size_t                  maxLength   = 256;
+constexpr size_t                  vertexCount = 8;
 
 std::array<uint32_t, maxLength * indexCount>   batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
@@ -22,13 +22,11 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
-inline const std::string MSDFFont::shaderName = "text";
-
 MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
+        .name               = shaderName.data(),
         .vertexShaderPath   = "/shaders/text.vert.glsl",
         .fragmentShaderPath = "/shaders/text.frag.glsl"
     };
@@ -48,7 +46,7 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
 
     const auto program = shader->getId();
 
-    if (const auto location = glGetAttribLocation(program, vertex.c_str());
+    if (const auto location = glGetAttribLocation(program, vertex.data());
         location != -1) {
         const auto position = static_cast<uint32_t>(location);
         glEnableVertexAttribArray(position);
