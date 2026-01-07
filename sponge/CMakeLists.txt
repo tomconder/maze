@@ -175,7 +175,7 @@ target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(sponge PRIVATE glfw)
-target_link_libraries(sponge PRIVATE glm::glm)
+target_link_libraries(sponge PRIVATE glm::glm-header-only)
 target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PRIVATE spdlog::spdlog spdlog::spdlog_header_only)
