@@ -12,10 +12,10 @@ public:
 
 }  // namespace sponge::core
 
-#if defined(__APPLE__)
+#if __APPLE__
 #include "platform/osx/core/osxfile.hpp"
-#elif defined(_WIN32) || defined(WIN32)
+#elif _WIN32 || WIN32
 #include "platform/windows/core/winfile.hpp"
-#elif defined(__UNIX__)
+#elif __linux__
 #include "platform/linux/core/linuxfile.hpp"
 #endif
