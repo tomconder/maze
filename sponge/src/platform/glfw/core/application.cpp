@@ -48,7 +48,7 @@ Application::Application(ApplicationSpecification specification) :
 }
 
 Application::~Application() {
-    // unique_ptr handles deletion of layerStack
+    instance = nullptr;
 }
 
 bool Application::start() {

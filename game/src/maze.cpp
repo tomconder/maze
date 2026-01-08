@@ -7,12 +7,9 @@
 namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;
 
-Maze* Maze::instance = nullptr;
-
-Maze::Maze(const ApplicationSpecification& specification) :
-    Application(specification) {
-    assert(!instance && "Maze already exists!");
-    instance = this;
+Maze::Maze(ApplicationSpecification specification) :
+    Application(std::move(specification)) {
+    // Base class handles singleton pattern
 }
 
 bool Maze::onUserCreate() {
