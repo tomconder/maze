@@ -13,8 +13,8 @@
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
 public:
-    explicit Maze(const sponge::platform::glfw::core::ApplicationSpecification&
-                      specification);
+    explicit Maze(
+        sponge::platform::glfw::core::ApplicationSpecification specification);
 
     bool onUserCreate() override;
 
@@ -25,7 +25,7 @@ public:
     void onEvent(sponge::event::Event& event) override;
 
     static Maze& get() {
-        return *instance;
+        return static_cast<Maze&>(Application::get());
     }
 
     std::shared_ptr<layer::MazeLayer> getMazeLayer() const {
@@ -51,7 +51,5 @@ private:
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
-
-    static Maze* instance;
 };
 }  // namespace game
