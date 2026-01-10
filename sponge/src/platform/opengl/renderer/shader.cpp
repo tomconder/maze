@@ -116,7 +116,7 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
 
     glGetProgramiv(id, GL_LINK_STATUS, &result);
     if (result == GL_FALSE) {
-        int length;
+        int length = 0;
         glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
         if (length > 0) {
             std::vector<GLchar> message(length);
@@ -131,7 +131,7 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
 }
 
 void Shader::setBoolean(const std::string_view name, const bool value) const {
-    glUniform1i(getUniformLocation(name), static_cast<int>(value));
+    glUniform1ui(getUniformLocation(name), value ? 1 : 0);
 }
 
 void Shader::setFloat(const std::string_view name, const float value) const {
