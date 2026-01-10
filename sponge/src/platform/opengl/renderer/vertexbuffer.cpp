@@ -7,7 +7,7 @@ namespace sponge::platform::opengl::renderer {
 VertexBuffer::VertexBuffer(const void* vertices, const std::size_t size) {
     glGenBuffers(1, &id);
     glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
 }
 
 VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept {
