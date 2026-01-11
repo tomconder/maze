@@ -6,7 +6,7 @@ A game engine featuring a nice walk through a maze.
 
 ## Features
 
-* Platform portability: OpenGL and C++ for Windows and macOS
+* Platform portability: OpenGL and C++ for Windows, Linux and macOS
 * Physically based rendering (PBR)
 * Cook-Torrance microfacet specular BRDF
 * Point lights and directional light
@@ -35,6 +35,8 @@ git clone https://github.com/tomconder/maze.git
 
 ### Install vcpkg
 
+> The `VCPKG_ROOT` environment variable must be set so that CMake can find vcpkg to install dependencies for the build.
+
 [Install vcpkg](https://github.com/microsoft/vcpkg#getting-started), a dependency and package manager for C++.
 
 By far the quickest way to install vcpkg is to clone it into this project.
@@ -57,31 +59,34 @@ setx VCPKG_ROOT <path to vcpkg>
 
 ### Install CMake
 
-[Install CMake](https://cmake.org/install/), a cross-platform build system.
+Use a package manager to install [CMake](https://cmake.org/), a cross-platform build system, on your platform.
 
-For example, use [Chocolatey](https://chocolatey.org/install) to install CMake.
+For example, on Windows use [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/) to install CMake.
 
 ```
-choco install cmake
+winget install cmake
 ```
 
 ## Building
 
-Now you can use a preset to compile `maze`. Possible values
-are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-msvc-release`, `osx-debug`, `osx-release`
+Use a configuration preset to compile `maze`. Possible values are:
 
-On Windows, you can use
+| Preset | Description                          |
+| ------ |--------------------------------------|
+| `ci-linux-debug` | Linux debug build                    |
+| `ci-linux-release` | Linux release build                  |
+| `ci-osx-debug` | MacOS debug build                    |
+| `ci-osx-release` | MacOS release build                  |
+| `ci-windows-debug` | Windows debug build (uses sccache)   |
+| `ci-windows-release` | Windows release build (uses sccache) |
+| `windows-msvc-debug` | Windows MSVC debug build             |
+| `windows-msvc-release` | Windows MSVC release build           |
+
+To use the preset to on Windows:
 
 ```
 cmake.exe -B build --preset windows-msvc-release
 cmake.exe --build build --target game --config Release
-```
-
-Or, for MacOS, you can use
-
-```
-cmake -B build --preset osx-release
-cmake --build build --target game --config Release
 ```
 
 ## Running
