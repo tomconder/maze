@@ -82,7 +82,7 @@ Use a configuration preset to compile `maze`. Possible values are:
 | `windows-msvc-debug` | Windows MSVC debug build             |
 | `windows-msvc-release` | Windows MSVC release build           |
 
-To use the preset to on Windows:
+To use the preset on Windows:
 
 ```
 cmake.exe -B build --preset windows-msvc-release
