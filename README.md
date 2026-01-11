@@ -37,6 +37,9 @@ git clone https://github.com/tomconder/maze.git
 
 ### Install vcpkg
 
+> \[!IMPORTANT]
+> The `VCPKG_ROOT` environment variable must be set so that the CMake can find vcpkg to install dependencies for the build.
+
 [Install vcpkg](https://github.com/microsoft/vcpkg#getting-started), a dependency and package manager for C++.
 
 By far the quickest way to install vcpkg is to clone it into this project.
@@ -69,21 +72,24 @@ choco install cmake
 
 ## Building
 
-Now you can use a preset to compile `maze`. Possible values
-are: `ci-windows-debug`, `ci-windows-release`, `windows-msvc-debug`, `windows-msvc-release`, `ci-osx-debug`, `ci-osx-release`
+Use a configuration preset to compile `maze`. Possible values are:
 
-On Windows, you can use
+| Preset | Description                          |
+| ------ |--------------------------------------|
+| `ci-linux-debug` | Linux debug build                    |
+| `ci-linux-release` | Linux release build                  |
+| `ci-osx-debug` | MacOS debug build                    |
+| `ci-osx-release` | MacOS release build                  |
+| `ci-windows-debug` | Windows debug build (uses sccache)   |
+| `ci-windows-release` | Windows release build (uses sccache) |
+| `windows-msvc-debug` | Windows MSVC debug build             |
+| `windows-msvc-release` | Windows MSVC release build           |
+
+For example, to use the preset to on Windows:
 
 ```
 cmake.exe -B build --preset windows-msvc-release
 cmake.exe --build build --target game --config Release
-```
-
-Or, for MacOS, you can use
-
-```
-cmake -B build --preset ci-osx-release
-cmake --build build --target game --config Release
 ```
 
 ## Running
