@@ -25,6 +25,6 @@ sponge/          # source files for sponge game engine
 tools/           # tools and utility scripts
 ```
 
-## Installing, Building and Running
+## Getting Started
 
 For instructions on how to build and run the application, please refer to the [full documentation](https://tomconder.github.io/maze/)
