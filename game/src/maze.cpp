@@ -24,7 +24,9 @@ bool Maze::onUserCreate() {
 
     exitLayer->setActive(false);
     mazeLayer->setActive(false);
+#ifdef ENABLE_IMGUI
     imguiLayer->setActive(false);
+#endif
 
     return true;
 }
