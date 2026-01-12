@@ -1,0 +1,113 @@
+#include "layer/splashscreenlayer.hpp"
+
+#include "resourcemanager.hpp"
+
+#include <glm/glm.hpp>
+#include <memory>
+#include <string>
+
+namespace {
+constexpr std::string_view cameraName  = "splash";
+constexpr std::string_view spriteName  = "blackcoffee-logo";
+constexpr std::string_view texturePath = "textures/blackcoffee.png";
+
+constexpr double TIMEOUT_SECONDS = 10.0;
+constexpr float  LOGO_SIZE       = 512.0F;
+
+inline std::string spriteShaderName;
+inline std::string quadShaderName;
+}  // namespace
+
+namespace game::layer {
+using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::Quad;
+using sponge::platform::opengl::scene::Sprite;
+
+SplashScreenLayer::SplashScreenLayer() : Layer("splash-screen") {
+    spriteShaderName = Sprite::getShaderName();
+    quadShaderName   = Quad::getShaderName();
+}
+
+void SplashScreenLayer::onAttach() {
+    const auto orthoCameraCreateInfo =
+        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
+    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+
+    logoSprite = std::make_unique<Sprite>(std::string(spriteName),
+                                          std::string(texturePath));
+
+    backgroundQuad = std::make_unique<Quad>();
+
+    for (const auto& shaderName : { spriteShaderName, quadShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+}
+
+void SplashScreenLayer::onDetach() {
+    // Minimal cleanup - unique_ptr handles resource deallocation
+}
+
+void SplashScreenLayer::onEvent(sponge::event::Event& event) {
+    sponge::event::EventDispatcher dispatcher(event);
+
+    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
+        [this](const sponge::event::KeyPressedEvent& event) {
+            return this->onKeyPressed(event);
+        });
+    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
+        [this](const sponge::event::WindowResizeEvent& event) {
+            return this->onWindowResize(event);
+        });
+}
+
+bool SplashScreenLayer::onUpdate(const double elapsedTime) {
+    // Accumulate elapsed time for timeout
+    elapsedTimeAccumulator += elapsedTime;
+    if (elapsedTimeAccumulator >= TIMEOUT_SECONDS) {
+        shouldDismissFlag = true;
+    }
+
+    const auto [width, height] =
+        std::pair{ static_cast<float>(orthoCamera->getWidth()),
+                   static_cast<float>(orthoCamera->getHeight()) };
+
+    backgroundQuad->render({ 0.F, 0.F }, { width, height },
+                           { 0.F, 0.F, 0.F, 1.F });
+
+    const auto logoPosition = calculateLogoPosition();
+    logoSprite->render(logoPosition, { LOGO_SIZE, LOGO_SIZE });
+
+    return true;
+}
+
+glm::vec2 SplashScreenLayer::calculateLogoPosition() const {
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
+
+    return { (width - LOGO_SIZE) / 2.0F, (height - LOGO_SIZE) / 2.0F };
+}
+
+bool SplashScreenLayer::onKeyPressed(
+    const sponge::event::KeyPressedEvent& event) {
+    UNUSED(event);
+    shouldDismissFlag = true;
+    return true;
+}
+
+bool SplashScreenLayer::onWindowResize(
+    const sponge::event::WindowResizeEvent& event) const {
+    orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
+
+    for (const auto& shaderName : { quadShaderName, spriteShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+
+    return false;
+}
+}  // namespace game::layer
