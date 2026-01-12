@@ -13,6 +13,8 @@ Maze::Maze(ApplicationSpecification specification) :
 }
 
 bool Maze::onUserCreate() {
+    pushLayer(splashScreenLayer);
+
 #ifdef ENABLE_IMGUI
     pushOverlay(imguiLayer);
 #endif
@@ -21,11 +23,23 @@ bool Maze::onUserCreate() {
     pushLayer(mazeLayer);
 
     exitLayer->setActive(false);
+    mazeLayer->setActive(false);
+    imguiLayer->setActive(false);
 
     return true;
 }
 
 bool Maze::onUserUpdate(const double elapsedTime) {
+    if (splashScreenLayer && splashScreenLayer->isActive() &&
+        splashScreenLayer->shouldDismiss()) {
+        popLayer(splashScreenLayer);
+        mazeLayer->setActive(true);
+#ifdef ENABLE_IMGUI
+        imguiLayer->setActive(true);
+#endif
+        splashScreenLayer.reset();  // Release reference
+    }
+
     if (!isRunning) {
         return false;
     }
