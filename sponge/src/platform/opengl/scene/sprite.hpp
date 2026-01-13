@@ -16,8 +16,8 @@ class Sprite final : public sponge::scene::Sprite {
 public:
     explicit Sprite(const std::string& name, const std::string& texturePath);
 
-    void render(const glm::vec2& position,
-                const glm::vec2& size) const override;
+    void render(const glm::vec2& position, const glm::vec2& size,
+                std::optional<float> alpha = std::nullopt) const override;
 
     static std::string_view getShaderName() {
         return shaderName;
