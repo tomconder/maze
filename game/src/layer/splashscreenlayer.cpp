@@ -11,7 +11,8 @@ constexpr std::string_view cameraName  = "splash";
 constexpr std::string_view spriteName  = "blackcoffee-logo";
 constexpr std::string_view texturePath = "textures/blackcoffee.png";
 
-constexpr double TIMEOUT_SECONDS = 10.0;
+constexpr double TIMEOUT_SECONDS = 5.0;
+constexpr double FADE_DURATION   = 0.7;
 constexpr float  LOGO_SIZE       = 512.0F;
 
 inline std::string spriteShaderName;
@@ -66,8 +67,18 @@ void SplashScreenLayer::onEvent(sponge::event::Event& event) {
 bool SplashScreenLayer::onUpdate(const double elapsedTime) {
     // Accumulate elapsed time for timeout
     elapsedTimeAccumulator += elapsedTime;
-    if (elapsedTimeAccumulator >= TIMEOUT_SECONDS) {
-        shouldDismissFlag = true;
+    if (elapsedTimeAccumulator >= TIMEOUT_SECONDS && !isFadingFlag) {
+        isFadingFlag = true;
+    }
+
+    if (isFadingFlag) {
+        fadeTimeAccumulator += elapsedTime;
+        currentAlpha =
+            1.0F - static_cast<float>(fadeTimeAccumulator / FADE_DURATION);
+        if (currentAlpha <= 0.0F) {
+            currentAlpha      = 0.0F;
+            shouldDismissFlag = true;
+        }
     }
 
     const auto [width, height] =
@@ -75,10 +86,10 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
                    static_cast<float>(orthoCamera->getHeight()) };
 
     backgroundQuad->render({ 0.F, 0.F }, { width, height },
-                           { 0.F, 0.F, 0.F, 1.F });
+                           { 0.F, 0.F, 0.F, currentAlpha });
 
     const auto logoPosition = calculateLogoPosition();
-    logoSprite->render(logoPosition, { LOGO_SIZE, LOGO_SIZE });
+    logoSprite->render(logoPosition, { LOGO_SIZE, LOGO_SIZE }, currentAlpha);
 
     return true;
 }

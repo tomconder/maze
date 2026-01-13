@@ -13,33 +13,39 @@ Maze::Maze(ApplicationSpecification specification) :
 }
 
 bool Maze::onUserCreate() {
-    pushLayer(splashScreenLayer);
-
 #ifdef ENABLE_IMGUI
     pushOverlay(imguiLayer);
+    imguiLayer->setActive(false);
 #endif
+
+    pushOverlay(splashScreenLayer);
     pushOverlay(exitLayer);
 
     pushLayer(mazeLayer);
 
     exitLayer->setActive(false);
     mazeLayer->setActive(false);
-#ifdef ENABLE_IMGUI
-    imguiLayer->setActive(false);
-#endif
 
     return true;
 }
 
 bool Maze::onUserUpdate(const double elapsedTime) {
-    if (splashScreenLayer && splashScreenLayer->isActive() &&
-        splashScreenLayer->shouldDismiss()) {
-        popLayer(splashScreenLayer);
-        mazeLayer->setActive(true);
+    if (splashScreenLayer && splashScreenLayer->isActive()) {
+        if (splashScreenLayer->isFading() && !mazeLayer->isActive()) {
+            mazeLayer->setActive(true);
 #ifdef ENABLE_IMGUI
-        imguiLayer->setActive(true);
+            imguiLayer->setActive(true);
 #endif
-        splashScreenLayer.reset();  // Release reference
+        }
+
+        if (splashScreenLayer->shouldDismiss()) {
+            popOverlay(splashScreenLayer);
+            mazeLayer->setActive(true);
+#ifdef ENABLE_IMGUI
+            imguiLayer->setActive(true);
+#endif
+            splashScreenLayer.reset();
+        }
     }
 
     if (!isRunning) {
