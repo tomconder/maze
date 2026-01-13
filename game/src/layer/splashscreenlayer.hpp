@@ -22,6 +22,10 @@ public:
         return shouldDismissFlag;
     }
 
+    [[nodiscard]] bool isFading() const {
+        return isFadingFlag;
+    }
+
 private:
     std::shared_ptr<scene::OrthoCamera> orthoCamera;
 
@@ -29,7 +33,10 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Quad>   backgroundQuad;
 
     double elapsedTimeAccumulator = 0.0;
+    double fadeTimeAccumulator    = 0.0;
+    float  currentAlpha           = 1.0F;
     bool   shouldDismissFlag      = false;
+    bool   isFadingFlag           = false;
 
     [[nodiscard]] glm::vec2 calculateLogoPosition() const;
 

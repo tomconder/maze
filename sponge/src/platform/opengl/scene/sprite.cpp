@@ -64,7 +64,8 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     shader->unbind();
 }
 
-void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
+void Sprite::render(const glm::vec2& position, const glm::vec2& size,
+                    const std::optional<float> alpha) const {
     const std::array<glm::vec2, vertexCount> vertices{
         { { position.x + size.x, position.y },
           { 1.F, 0.F },  //
@@ -79,6 +80,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size) const {
     vao->bind();
 
     shader->bind();
+    shader->setFloat("alpha", alpha.value_or(1.0F));
 
     tex->bind();
 
