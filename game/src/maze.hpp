@@ -34,6 +34,12 @@ public:
         return mazeLayer;
     }
 
+#ifdef ENABLE_IMGUI
+    std::shared_ptr<layer::imgui::ImGuiLayer> getImGuiLayer() const {
+        return imguiLayer;
+    }
+#endif
+
     void exit() {
         isRunning = false;
     }
@@ -53,8 +59,6 @@ private:
 #endif
     std::shared_ptr<layer::MazeLayer> mazeLayer =
         std::make_shared<layer::MazeLayer>();
-
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
 };
