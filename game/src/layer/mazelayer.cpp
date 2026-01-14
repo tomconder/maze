@@ -30,6 +30,14 @@ constexpr std::string_view cameraName = "maze";
 game::scene::DirectionalLight          directionalLight;
 std::array<game::scene::PointLight, 6> pointLights;
 
+struct LightUniforms {
+    std::string position;
+    std::string color;
+    std::string attenuationIndex;
+};
+
+std::array<LightUniforms, 6> lightUniformNames;
+
 using game::layer::GameObject;
 std::array gameObjects = {
     GameObject{ .name        = "floor",

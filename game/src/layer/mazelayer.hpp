@@ -3,9 +3,7 @@
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 
-#include <array>
 #include <memory>
-#include <string>
 #include <string_view>
 
 namespace game::layer {
@@ -106,13 +104,6 @@ private:
     float   roughness        = .5F;
     int32_t numLights        = 0;
     int32_t attenuationIndex = 4;
-
-    struct LightUniforms {
-        std::string position;
-        std::string color;
-        std::string attenuationIndex;
-    };
-    std::array<LightUniforms, 6> lightUniformNames;
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
