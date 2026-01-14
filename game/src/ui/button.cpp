@@ -2,10 +2,6 @@
 
 #include <memory>
 
-namespace {
-constexpr float MARGIN_LEFT_OFFSET = 20.F;
-}
-
 namespace game::ui {
 using sponge::platform::opengl::renderer::AssetManager;
 
@@ -17,6 +13,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textFontName(createInfo.fontName),
     color(createInfo.buttonColor),
     textColor(createInfo.textColor),
+    marginLeft(createInfo.marginLeft),
     cornerRadius(createInfo.cornerRadius),
     alignType(createInfo.alignType),
     textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
@@ -68,7 +65,7 @@ void Button::setPosition(const glm::vec2& topLeft,
                          top.y +
                              ((height - static_cast<float>(textSize)) / 2.F) };
     } else {
-        textPosition = { top.x + MARGIN_LEFT_OFFSET,
+        textPosition = { top.x + marginLeft,
                          top.y +
                              ((height - static_cast<float>(textSize)) / 2.F) };
     }
