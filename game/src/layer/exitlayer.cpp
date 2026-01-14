@@ -226,26 +226,23 @@ bool ExitLayer::onMouseButtonPressed(
 
     return true;
 }
-
 bool ExitLayer::onMouseMoved(
     const sponge::event::MouseMovedEvent& event) const {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    if (!cancelButton->hasHover() && cancelButton->isInside(pos)) {
-        cancelButton->setHover(true);
-        cancelButton->setButtonColor(cancelHoverColor);
-    } else if (cancelButton->hasHover() && !cancelButton->isInside(pos)) {
-        cancelButton->setHover(false);
-        cancelButton->setButtonColor(cancelColor);
-    }
+    auto updateHover = [&pos](ui::Button* button, const glm::vec4& hoverColor,
+                              const glm::vec4& color) {
+        if (!button->hasHover() && button->isInside(pos)) {
+            button->setHover(true);
+            button->setButtonColor(hoverColor);
+        } else if (button->hasHover() && !button->isInside(pos)) {
+            button->setHover(false);
+            button->setButtonColor(color);
+        }
+    };
 
-    if (!confirmButton->hasHover() && confirmButton->isInside(pos)) {
-        confirmButton->setHover(true);
-        confirmButton->setButtonColor(confirmHoverColor);
-    } else if (confirmButton->hasHover() && !confirmButton->isInside(pos)) {
-        confirmButton->setHover(false);
-        confirmButton->setButtonColor(confirmColor);
-    }
+    updateHover(cancelButton.get(), cancelHoverColor, cancelColor);
+    updateHover(confirmButton.get(), confirmHoverColor, confirmColor);
 
     return true;
 }
