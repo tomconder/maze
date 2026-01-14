@@ -420,10 +420,10 @@ void MazeLayer::renderLightCubes() const {
 
     for (auto i = 0; i < numLights; i++) {
         shader->bind();
-        shader->setFloat3("lightColor", pointLights[i].color);
-        shader->setMat4(
-            "mvp", scale(translate(camera->getMVP(), pointLights[i].position),
-                         cubeScale));
+        shader->setFloat3("lightColor", pointLights.at(i).color);
+        shader->setMat4("mvp", scale(translate(camera->getMVP(),
+                                               pointLights.at(i).position),
+                                     cubeScale));
         cube->render();
         shader->unbind();
     }
@@ -480,11 +480,12 @@ void MazeLayer::updateShaderLights() const {
     shader->setInteger("numLights", numLights);
 
     for (int32_t i = 0; i < numLights; i++) {
-        shader->setFloat3(lightUniformNames[i].position,
-                          pointLights[i].position);
-        shader->setFloat3(lightUniformNames[i].color, pointLights[i].color);
-        shader->setInteger(lightUniformNames[i].attenuationIndex,
-                           pointLights[i].attenuationIndex);
+        shader->setFloat3(lightUniformNames.at(i).position,
+                          pointLights.at(i).position);
+        shader->setFloat3(lightUniformNames.at(i).color,
+                          pointLights.at(i).color);
+        shader->setInteger(lightUniformNames.at(i).attenuationIndex,
+                           pointLights.at(i).attenuationIndex);
     }
 
     shader->unbind();
