@@ -1,6 +1,7 @@
 #pragma once
 
 #include "layer/exitlayer.hpp"
+#include "layer/introlayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "layer/splashscreenlayer.hpp"
 #include "sponge.hpp"
@@ -42,6 +43,8 @@ private:
 
     std::shared_ptr<layer::SplashScreenLayer> splashScreenLayer =
         std::make_shared<layer::SplashScreenLayer>();
+    std::shared_ptr<layer::IntroLayer> introLayer =
+        std::make_shared<layer::IntroLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
 #ifdef ENABLE_IMGUI

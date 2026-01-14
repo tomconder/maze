@@ -6,15 +6,19 @@
 #include <string>
 
 namespace game::ui {
+
+enum class ButtonAlignType : uint8_t { CenterAligned = 0, LeftAligned };
+
 struct ButtonCreateInfo {
-    glm::vec2   topLeft;
-    glm::vec2   bottomRight;
-    std::string message;
-    uint32_t    fontSize;
-    std::string fontName;
-    glm::vec4   buttonColor;
-    glm::vec3   textColor;
-    float       cornerRadius = 0.F;
+    glm::vec2       topLeft;
+    glm::vec2       bottomRight;
+    std::string     message;
+    uint32_t        fontSize;
+    std::string     fontName;
+    glm::vec4       buttonColor;
+    glm::vec3       textColor;
+    float           cornerRadius = 0.F;
+    ButtonAlignType alignType    = ButtonAlignType::CenterAligned;
 };
 
 class Button {
@@ -27,7 +31,11 @@ public:
 
     void setButtonColor(const glm::vec4& val);
 
+    void setTextColor(const glm::vec3& val);
+
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
+
+    void setAlignType(const ButtonAlignType& val);
 
     void setHover(const bool value) {
         hover = value;
@@ -37,16 +45,21 @@ public:
         return hover;
     }
 
+    ButtonAlignType getAlignType() const {
+        return alignType;
+    }
+
 private:
-    glm::vec2   top;
-    glm::vec2   bottom;
-    std::string text;
-    uint32_t    textSize;
-    std::string textFontName;
-    glm::vec4   color;
-    glm::vec3   textColor;
-    uint32_t    length;
-    float       cornerRadius;
+    glm::vec2       top;
+    glm::vec2       bottom;
+    std::string     text;
+    uint32_t        textSize;
+    std::string     textFontName;
+    glm::vec4       color;
+    glm::vec3       textColor;
+    uint32_t        length;
+    float           cornerRadius;
+    ButtonAlignType alignType;
 
     glm::vec2 textPosition;
     bool      hover = false;

@@ -22,7 +22,9 @@ bool Maze::onUserCreate() {
     pushOverlay(exitLayer);
 
     pushLayer(mazeLayer);
+    pushLayer(introLayer);
 
+    introLayer->setActive(false);
     exitLayer->setActive(false);
     mazeLayer->setActive(false);
 
@@ -31,20 +33,34 @@ bool Maze::onUserCreate() {
 
 bool Maze::onUserUpdate(const double elapsedTime) {
     if (splashScreenLayer && splashScreenLayer->isActive()) {
-        if (splashScreenLayer->isFading() && !mazeLayer->isActive()) {
+        if (splashScreenLayer->isFading() && !introLayer->isActive()) {
+            auto resizeEvent =
+                sponge::event::WindowResizeEvent{ getWidth(), getHeight() };
+            introLayer->onEvent(resizeEvent);
+            introLayer->setActive(true);
+        }
+
+        if (splashScreenLayer->shouldDismiss()) {
+            popOverlay(splashScreenLayer);
+            auto resizeEvent =
+                sponge::event::WindowResizeEvent{ getWidth(), getHeight() };
+            introLayer->onEvent(resizeEvent);
+            introLayer->setActive(true);
+            splashScreenLayer.reset();
+        }
+    }
+
+    if (introLayer && introLayer->isActive()) {
+        if (introLayer->shouldStartGame()) {
+            introLayer->setActive(false);
             mazeLayer->setActive(true);
 #ifdef ENABLE_IMGUI
             imguiLayer->setActive(true);
 #endif
         }
 
-        if (splashScreenLayer->shouldDismiss()) {
-            popOverlay(splashScreenLayer);
-            mazeLayer->setActive(true);
-#ifdef ENABLE_IMGUI
-            imguiLayer->setActive(true);
-#endif
-            splashScreenLayer.reset();
+        if (introLayer && introLayer->shouldQuit()) {
+            isRunning = false;
         }
     }
 
