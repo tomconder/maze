@@ -108,7 +108,7 @@ void MazeLayer::onAttach() {
 
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
-    camera = game::ResourceManager::createGameCamera(gameCameraCreateInfo);
+    camera = ResourceManager::createGameCamera(gameCameraCreateInfo);
     camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
     camera->setPosition(cameraPosition);
 
@@ -153,6 +153,10 @@ void MazeLayer::onDetach() {
 void MazeLayer::onEvent(sponge::event::Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
+    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
+        [this](const sponge::event::KeyPressedEvent& ev) {
+            return this->onKeyPressed(ev);
+        });
     dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
         [this](const sponge::event::MouseButtonPressedEvent& mbEvent) {
             return this->onMouseButtonPressed(mbEvent);
@@ -365,6 +369,28 @@ float MazeLayer::getShadowMapZNear() const {
 
 void MazeLayer::setShadowMapZNear(float val) const {
     shadowMap->setZNear(val);
+}
+
+bool MazeLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
+#ifdef ENABLE_IMGUI
+    if (event.getKeyCode() == KeyCode::SpongeKey_GraveAccent) {
+        auto imguiLayer = Maze::get().getImGuiLayer();
+        if (imguiLayer->isActive()) {
+            imguiLayer->setActive(false);
+        } else {
+            imguiLayer->setActive(true);
+        }
+
+        return true;
+    }
+#endif
+
+    if (event.getKeyCode() == KeyCode::SpongeKey_F) {
+        Application::get().toggleFullscreen();
+        return true;
+    }
+
+    return false;
 }
 
 bool MazeLayer::onMouseButtonPressed(

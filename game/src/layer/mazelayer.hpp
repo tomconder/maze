@@ -105,6 +105,8 @@ private:
     int32_t numLights        = 0;
     int32_t attenuationIndex = 4;
 
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 

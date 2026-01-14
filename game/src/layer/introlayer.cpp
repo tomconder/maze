@@ -88,7 +88,7 @@ void IntroLayer::onAttach() {
     rootNode = YGNodeNew();
 
     titleNode = YGNodeNew();
-    YGNodeStyleSetFlexGrow(titleNode, 1.F);
+    YGNodeStyleSetFlexGrow(titleNode, 0.9F);
     YGNodeInsertChild(rootNode, titleNode, 0);
 
     newGameNode = YGNodeNew();
@@ -195,11 +195,6 @@ void IntroLayer::recalculateLayout(float width, float height) const {
 bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Enter) {
         startGameFlag = true;
-        return true;
-    }
-
-    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Escape) {
-        quitFlag = true;
         return true;
     }
 

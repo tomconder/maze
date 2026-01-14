@@ -1,6 +1,7 @@
 #include "layer/exitlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "sponge.hpp"
 #include "yoga/Yoga.h"
 
 #include <memory>
