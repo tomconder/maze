@@ -10,6 +10,8 @@ out vec4 FragColor;
 uniform vec4  corners;
 uniform float cornerRadius;
 uniform vec4  color;
+uniform float borderWidth;
+uniform vec4  borderColor;
 
 void main() {
     // normalize position to [0,1] range within the quad
@@ -24,5 +26,17 @@ void main() {
 
     float alpha = smoothstep(1.0, 0.0, dist);
 
-    FragColor = vec4(color.rgb, color.a * alpha);
+    if (borderWidth > 0.0) {
+        // calculate distance from the edge for the inner border
+        vec2  innerD    = abs(pos - halfSize) - (halfSize - cornerRadius - borderWidth);
+        float innerDist = length(max(innerD, 0.0)) - cornerRadius;
+
+        float borderMask = smoothstep(1.0, 0.0, dist) - smoothstep(1.0, 0.0, innerDist);
+        float fillMask   = smoothstep(1.0, 0.0, innerDist);
+
+        vec4 finalColor = borderColor * borderMask + color * fillMask;
+        FragColor = vec4(finalColor.rgb, finalColor.a * alpha);
+    } else {
+        FragColor = vec4(color.rgb, color.a * alpha);
+    }
 }

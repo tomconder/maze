@@ -1,7 +1,7 @@
 #include "layer/exitlayer.hpp"
 
 #include "resourcemanager.hpp"
-#include "ui/yogaconfig.hpp"
+#include "sponge.hpp"
 #include "yoga/Yoga.h"
 
 #include <memory>
@@ -48,8 +48,7 @@ void ExitLayer::onAttach() {
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera =
-        game::ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
     quad = std::make_unique<Quad>();
 
@@ -80,23 +79,26 @@ void ExitLayer::onAttach() {
     }
 
     rootNode = YGNodeNew();
-    ui::YogaConfig::applyStyle(
-        rootNode,
-        "flexDirection:column;justifyContent:center;alignItems:stretch");
+    YGNodeStyleSetFlexDirection(rootNode, YGFlexDirectionColumn);
+    YGNodeStyleSetJustifyContent(rootNode, YGJustifyCenter);
+    YGNodeStyleSetAlignItems(rootNode, YGAlignStretch);
 
     messageNode = YGNodeNew();
-    ui::YogaConfig::applyStyle(messageNode,
-                               "marginBottom:60;alignSelf:center;padding:20");
+    YGNodeStyleSetMargin(messageNode, YGEdgeBottom, 60);
+    YGNodeStyleSetAlignSelf(messageNode, YGAlignCenter);
+    YGNodeStyleSetPadding(messageNode, YGEdgeAll, 20);
     YGNodeInsertChild(rootNode, messageNode, 0);
 
     confirmNode = YGNodeNew();
-    ui::YogaConfig::applyStyle(confirmNode,
-                               "height:100;width:100%;marginBottom:40");
+    YGNodeStyleSetHeight(confirmNode, 100);
+    YGNodeStyleSetWidthPercent(confirmNode, 100);
+    YGNodeStyleSetMargin(confirmNode, YGEdgeBottom, 40);
     YGNodeInsertChild(rootNode, confirmNode, 1);
 
     cancelNode = YGNodeNew();
-    ui::YogaConfig::applyStyle(cancelNode,
-                               "height:70;width:280;alignSelf:center");
+    YGNodeStyleSetHeight(cancelNode, 70);
+    YGNodeStyleSetWidth(cancelNode, 280);
+    YGNodeStyleSetAlignSelf(cancelNode, YGAlignCenter);
     YGNodeInsertChild(rootNode, cancelNode, 2);
 
     auto [width, height] =
@@ -226,26 +228,23 @@ bool ExitLayer::onMouseButtonPressed(
 
     return true;
 }
-
 bool ExitLayer::onMouseMoved(
     const sponge::event::MouseMovedEvent& event) const {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    if (!cancelButton->hasHover() && cancelButton->isInside(pos)) {
-        cancelButton->setHover(true);
-        cancelButton->setButtonColor(cancelHoverColor);
-    } else if (cancelButton->hasHover() && !cancelButton->isInside(pos)) {
-        cancelButton->setHover(false);
-        cancelButton->setButtonColor(cancelColor);
-    }
+    auto updateHover = [&pos](ui::Button* button, const glm::vec4& hoverColor,
+                              const glm::vec4& color) {
+        if (!button->hasHover() && button->isInside(pos)) {
+            button->setHover(true);
+            button->setButtonColor(hoverColor);
+        } else if (button->hasHover() && !button->isInside(pos)) {
+            button->setHover(false);
+            button->setButtonColor(color);
+        }
+    };
 
-    if (!confirmButton->hasHover() && confirmButton->isInside(pos)) {
-        confirmButton->setHover(true);
-        confirmButton->setButtonColor(confirmHoverColor);
-    } else if (confirmButton->hasHover() && !confirmButton->isInside(pos)) {
-        confirmButton->setHover(false);
-        confirmButton->setButtonColor(confirmColor);
-    }
+    updateHover(cancelButton.get(), cancelHoverColor, cancelColor);
+    updateHover(confirmButton.get(), confirmHoverColor, confirmColor);
 
     return true;
 }

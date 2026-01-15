@@ -13,7 +13,11 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textFontName(createInfo.fontName),
     color(createInfo.buttonColor),
     textColor(createInfo.textColor),
+    marginLeft(createInfo.marginLeft),
     cornerRadius(createInfo.cornerRadius),
+    borderWidth(createInfo.borderWidth),
+    borderColor(createInfo.borderColor),
+    alignType(createInfo.alignType),
     textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
     font   = AssetManager::getFont(textFontName);
     length = font->getLength(text, textSize);
@@ -24,7 +28,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
 bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
-    quad->render(top, bottom, color, cornerRadius);
+    quad->render(top, bottom, color, cornerRadius, borderWidth, borderColor);
     font->render(text, textPosition, textSize, textColor);
 
     return true;
@@ -39,6 +43,22 @@ void Button::setButtonColor(const glm::vec4& val) {
     color = glm::vec4(val);
 }
 
+void Button::setTextColor(const glm::vec3& val) {
+    textColor = glm::vec3(val);
+}
+
+void Button::setBorderWidth(const float val) {
+    borderWidth = val;
+}
+
+void Button::setBorderColor(const glm::vec4& val) {
+    borderColor = val;
+}
+
+void Button::setAlignType(const ButtonAlignType& val) {
+    alignType = val;
+}
+
 void Button::setPosition(const glm::vec2& topLeft,
                          const glm::vec2& bottomRight) {
     top.x = topLeft.x;
@@ -50,7 +70,14 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto width  = std::abs(topLeft.x - bottomRight.x);
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
-    textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
-                     top.y + ((height - static_cast<float>(textSize)) / 2.F) };
+    if (alignType == ButtonAlignType::CenterAligned) {
+        textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
+                         top.y +
+                             ((height - static_cast<float>(textSize)) / 2.F) };
+    } else {
+        textPosition = { top.x + marginLeft,
+                         top.y +
+                             ((height - static_cast<float>(textSize)) / 2.F) };
+    }
 }
 }  // namespace game::ui

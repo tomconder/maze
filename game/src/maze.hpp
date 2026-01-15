@@ -1,6 +1,7 @@
 #pragma once
 
 #include "layer/exitlayer.hpp"
+#include "layer/introlayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "layer/splashscreenlayer.hpp"
 #include "sponge.hpp"
@@ -33,6 +34,12 @@ public:
         return mazeLayer;
     }
 
+#ifdef ENABLE_IMGUI
+    std::shared_ptr<layer::imgui::ImGuiLayer> getImGuiLayer() const {
+        return imguiLayer;
+    }
+#endif
+
     void exit() {
         isRunning = false;
     }
@@ -42,6 +49,8 @@ private:
 
     std::shared_ptr<layer::SplashScreenLayer> splashScreenLayer =
         std::make_shared<layer::SplashScreenLayer>();
+    std::shared_ptr<layer::IntroLayer> introLayer =
+        std::make_shared<layer::IntroLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
 #ifdef ENABLE_IMGUI
@@ -50,8 +59,6 @@ private:
 #endif
     std::shared_ptr<layer::MazeLayer> mazeLayer =
         std::make_shared<layer::MazeLayer>();
-
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
 };
