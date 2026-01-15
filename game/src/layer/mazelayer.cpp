@@ -3,6 +3,7 @@
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
+#include "sponge.hpp"
 
 #include <glm/ext/matrix_transform.hpp>
 

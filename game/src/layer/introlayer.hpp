@@ -43,6 +43,7 @@ private:
 
     bool startGameFlag = false;
     bool quitFlag      = false;
+    std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
     void recalculateLayout(float width, float height) const;
 
