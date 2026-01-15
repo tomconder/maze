@@ -57,7 +57,8 @@ Quad::Quad() {
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
-                  const glm::vec4& color, float cornerRadius) const {
+                  const glm::vec4& color, float cornerRadius, float borderWidth,
+                  const glm::vec4& borderColor) const {
     const std::array<glm::vec2, vertexCount> vertices{ {
         { top.x, bottom.y },    //
         { top.x, top.y },       //
@@ -73,6 +74,8 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
     shader->setFloat4("color", color);
     shader->setFloat4("corners", corners);
     shader->setFloat("cornerRadius", cornerRadius);
+    shader->setFloat("borderWidth", borderWidth);
+    shader->setFloat4("borderColor", borderColor);
 
     vbo->update(vertices.data(), vertexCount * sizeof(glm::vec2));
 

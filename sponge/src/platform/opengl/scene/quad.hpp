@@ -16,7 +16,9 @@ class Quad {
 public:
     Quad();
     void render(const glm::vec2& top, const glm::vec2& bottom,
-                const glm::vec4& color, float cornerRadius = 0.0f) const;
+                const glm::vec4& color, float cornerRadius = 0.0f,
+                float            borderWidth = 0.0f,
+                const glm::vec4& borderColor = glm::vec4(0.0f)) const;
 
     static std::string_view getShaderName() {
         return shaderName;
