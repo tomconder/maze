@@ -34,7 +34,7 @@ repos:
           - id: check-merge-conflict
 
     - repo: https://github.com/crate-ci/typos
-      rev: v1.39.2
+      rev: v1.42.0
       hooks:
           - id: typos
             exclude: .clang-tidy|assets/models|sponge/deps
