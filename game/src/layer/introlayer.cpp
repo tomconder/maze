@@ -101,16 +101,19 @@ void IntroLayer::onAttach() {
     newGameNode = YGNodeNew();
     YGNodeStyleSetMinHeight(newGameNode, 80);
     YGNodeStyleSetMargin(newGameNode, YGEdgeBottom, 10.F);
+    YGNodeStyleSetWidthPercent(newGameNode, 35.F);
     YGNodeInsertChild(rootNode, newGameNode, 1);
 
     optionsNode = YGNodeNew();
     YGNodeStyleSetMinHeight(optionsNode, 80);
     YGNodeStyleSetMargin(optionsNode, YGEdgeBottom, 10.F);
+    YGNodeStyleSetWidthPercent(optionsNode, 35.F);
     YGNodeInsertChild(rootNode, optionsNode, 2);
 
     quitNode = YGNodeNew();
     YGNodeStyleSetMinHeight(quitNode, 80);
     YGNodeStyleSetMargin(quitNode, YGEdgeBottom, 50.F);
+    YGNodeStyleSetWidthPercent(quitNode, 35.F);
     YGNodeInsertChild(rootNode, quitNode, 3);
 
     auto [width, height] =
