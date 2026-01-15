@@ -7,6 +7,9 @@
 #include <memory>
 
 namespace game::layer {
+
+enum class MenuItem : int { NewGame = 0, Options, Quit, Count };
+
 class IntroLayer final : public sponge::layer::Layer {
 public:
     IntroLayer();
@@ -30,10 +33,9 @@ public:
 private:
     std::shared_ptr<scene::OrthoCamera> orthoCamera;
 
-    std::unique_ptr<sponge::platform::opengl::scene::Quad> backgroundQuad;
-    std::unique_ptr<ui::Button>                            newGameButton;
-    std::unique_ptr<ui::Button>                            optionsButton;
-    std::unique_ptr<ui::Button>                            quitButton;
+    std::unique_ptr<ui::Button> newGameButton;
+    std::unique_ptr<ui::Button> optionsButton;
+    std::unique_ptr<ui::Button> quitButton;
 
     YGNodeRef rootNode    = nullptr;
     YGNodeRef titleNode   = nullptr;
@@ -41,10 +43,10 @@ private:
     YGNodeRef optionsNode = nullptr;
     YGNodeRef quitNode    = nullptr;
 
-    bool optionsFlag   = false;
-    bool startGameFlag = false;
-    bool quitFlag      = false;
-    int  selectedIndex = 0;
+    bool     optionsFlag   = false;
+    bool     startGameFlag = false;
+    bool     quitFlag      = false;
+    MenuItem selectedItem  = MenuItem::NewGame;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
     void recalculateLayout(float width, float height) const;
