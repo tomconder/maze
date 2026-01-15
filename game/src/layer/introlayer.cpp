@@ -19,6 +19,7 @@ constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
 constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
 constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
 constexpr glm::vec4 hoverColor      = { 0.84F, 0.84F, 0.84F, 0.14F };
+constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.07F };
 constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 
 inline std::string fontShaderName;
@@ -176,6 +177,24 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                                { optionsX + optionsW, optionsY + optionsH });
     quitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
 
+    auto updateButtonVisuals = [this](ui::Button* button, int index) {
+        if (selectedIndex == index) {
+            button->setBorderWidth(3.F);
+            button->setBorderColor(glm::vec4{ 1.F });
+            button->setButtonColor(textHoverColor);
+        } else if (!button->hasHover()) {
+            button->setBorderWidth(0.F);
+            button->setButtonColor(glm::vec4{ 0.F });
+        } else {
+            button->setBorderWidth(0.F);
+            button->setButtonColor(hoverColor);
+        }
+    };
+
+    updateButtonVisuals(newGameButton.get(), 0);
+    updateButtonVisuals(optionsButton.get(), 1);
+    updateButtonVisuals(quitButton.get(), 2);
+
     UNUSED(newGameButton->onUpdate(elapsedTime));
     UNUSED(optionsButton->onUpdate(elapsedTime));
     UNUSED(quitButton->onUpdate(elapsedTime));
@@ -209,8 +228,32 @@ void IntroLayer::recalculateLayout(float width, float height) const {
 }
 
 bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    if (event.getKeyCode() == sponge::input::KeyCode::SpongeKey_Enter) {
-        startGameFlag = true;
+    const auto keyCode = event.getKeyCode();
+
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Enter) {
+        if (selectedIndex == 0) {
+            startGameFlag = true;
+            return true;
+        }
+
+        if (selectedIndex == 1) {
+            optionsFlag = true;
+            return true;
+        }
+
+        if (selectedIndex == 2) {
+            quitFlag = true;
+            return true;
+        }
+    }
+
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Down) {
+        selectedIndex = (selectedIndex + 1) % 3;
+        return true;
+    }
+
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Up) {
+        selectedIndex = (selectedIndex - 1 + 3) % 3;
         return true;
     }
 
@@ -227,6 +270,11 @@ bool IntroLayer::onMouseButtonPressed(
         return true;
     }
 
+    if (optionsButton->isInside({ x, y })) {
+        optionsFlag = true;
+        return true;
+    }
+
     if (quitButton->isInside({ x, y })) {
         quitFlag = true;
         return true;
@@ -235,20 +283,14 @@ bool IntroLayer::onMouseButtonPressed(
     return false;
 }
 
-bool IntroLayer::onMouseMoved(
-    const sponge::event::MouseMovedEvent& event) const {
+bool IntroLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {
         if (!button->hasHover() && button->isInside(pos)) {
             button->setHover(true);
-            button->setBorderWidth(3.F);
-            button->setBorderColor(glm::vec4{ 1.F });
-            button->setButtonColor(hoverColor);
         } else if (button->hasHover() && !button->isInside(pos)) {
             button->setHover(false);
-            button->setBorderWidth(0.F);
-            button->setButtonColor(glm::vec4{ 0.F });
         }
     };
 
