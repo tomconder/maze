@@ -4,9 +4,11 @@
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
+#include "sponge.hpp"
 #include "version.hpp"
 
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <numeric>
@@ -15,13 +17,13 @@
 #include <string>
 
 namespace {
-constexpr ImColor                       darkDebugColor{ .3F, .8F, .8F, 1.F };
-constexpr ImColor                       darkErrorColor{ .7F, .3F, 0.3F, 1.F };
-constexpr ImColor                       darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-inline const std::string                cameraName = "maze";
-inline const std::array<std::string, 4> categories = { "categories", "app",
-                                                       "sponge", "opengl" };
-inline const std::array<std::string, 7> logLevels  = {
+constexpr ImColor                         darkDebugColor{ .3F, .8F, .8F, 1.F };
+constexpr ImColor                         darkErrorColor{ .7F, .3F, 0.3F, 1.F };
+constexpr ImColor                         darkWarnColor{ .8F, .8F, 0.3F, 1.F };
+constexpr std::string_view                cameraName = "maze";
+constexpr std::array<std::string_view, 4> categories = { "categories", "app",
+                                                         "sponge", "opengl" };
+constexpr std::array<std::string_view, 7> logLevels  = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
@@ -61,7 +63,7 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 
     categoryNames.reserve(categories.size());
     for (const auto& s : categories) {
-        categoryNames.push_back(s.c_str());
+        categoryNames.push_back(s.data());
     }
 }
 
