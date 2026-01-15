@@ -1,6 +1,7 @@
 #include "layer/introlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "sponge.hpp"
 #include "yoga/Yoga.h"
 
 #include <memory>
@@ -15,20 +16,24 @@ constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "league-gothic";
 constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
 
-constexpr glm::vec4 buttonColor = { 0.F, 0.F, 0.F, 0.F };
-constexpr glm::vec3 textColor   = { 1.F, 1.F, 1.F };
-constexpr glm::vec4 hoverColor  = { 0.84F, 0.84F, 0.84F, 0.14F };
+constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
+constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
+constexpr glm::vec4 hoverColor      = { 0.84F, 0.84F, 0.84F, 0.14F };
+constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 
 inline std::string fontShaderName;
+inline std::string quadShaderName;
 }  // namespace
 
 namespace game::layer {
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
+using sponge::platform::opengl::scene::Quad;
 
 IntroLayer::IntroLayer() : Layer("intro") {
     fontShaderName = MSDFFont::getShaderName();
+    quadShaderName = Quad::getShaderName();
 }
 
 void IntroLayer::onAttach() {
@@ -41,6 +46,8 @@ void IntroLayer::onAttach() {
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
     orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+
+    quad = std::make_unique<Quad>();
 
     newGameButton = std::make_unique<ui::Button>(
         ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
@@ -78,7 +85,7 @@ void IntroLayer::onAttach() {
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
-    for (const auto& shaderName : { fontShaderName }) {
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
@@ -138,6 +145,12 @@ void IntroLayer::onEvent(sponge::event::Event& event) {
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {
+    const auto [width, height] =
+        std::pair{ static_cast<float>(orthoCamera->getWidth()),
+                   static_cast<float>(orthoCamera->getHeight()) };
+
+    quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
+
     const auto rootX = YGNodeLayoutGetLeft(rootNode);
     const auto rootY = YGNodeLayoutGetTop(rootNode);
 
@@ -171,7 +184,7 @@ bool IntroLayer::onWindowResize(
     const sponge::event::WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
-    for (const auto& shaderName : { fontShaderName }) {
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
