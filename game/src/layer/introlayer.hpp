@@ -54,7 +54,7 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
+    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };

@@ -283,7 +283,8 @@ bool IntroLayer::onMouseButtonPressed(
     return false;
 }
 
-bool IntroLayer::onMouseMoved(const sponge::event::MouseMovedEvent& event) {
+bool IntroLayer::onMouseMoved(
+    const sponge::event::MouseMovedEvent& event) const {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {
