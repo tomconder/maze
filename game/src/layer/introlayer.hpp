@@ -41,8 +41,10 @@ private:
     YGNodeRef optionsNode = nullptr;
     YGNodeRef quitNode    = nullptr;
 
+    bool optionsFlag   = false;
     bool startGameFlag = false;
     bool quitFlag      = false;
+    int  selectedIndex = 0;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
     void recalculateLayout(float width, float height) const;
@@ -52,7 +54,7 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };
