@@ -177,8 +177,8 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                                { optionsX + optionsW, optionsY + optionsH });
     quitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
 
-    auto updateButtonVisuals = [this](ui::Button* button, int index) {
-        if (selectedIndex == index) {
+    auto updateButtonVisuals = [this](ui::Button* button, MenuItem item) {
+        if (selectedItem == item) {
             button->setBorderWidth(3.F);
             button->setBorderColor(glm::vec4{ 1.F });
             button->setButtonColor(textHoverColor);
@@ -191,9 +191,9 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         }
     };
 
-    updateButtonVisuals(newGameButton.get(), 0);
-    updateButtonVisuals(optionsButton.get(), 1);
-    updateButtonVisuals(quitButton.get(), 2);
+    updateButtonVisuals(newGameButton.get(), MenuItem::NewGame);
+    updateButtonVisuals(optionsButton.get(), MenuItem::Options);
+    updateButtonVisuals(quitButton.get(), MenuItem::Quit);
 
     UNUSED(newGameButton->onUpdate(elapsedTime));
     UNUSED(optionsButton->onUpdate(elapsedTime));
@@ -228,32 +228,35 @@ void IntroLayer::recalculateLayout(float width, float height) const {
 }
 
 bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
-    const auto keyCode = event.getKeyCode();
+    const auto     keyCode   = event.getKeyCode();
+    constexpr auto itemCount = static_cast<int>(MenuItem::Count);
 
     if (keyCode == sponge::input::KeyCode::SpongeKey_Enter) {
-        if (selectedIndex == 0) {
+        if (selectedItem == MenuItem::NewGame) {
             startGameFlag = true;
             return true;
         }
 
-        if (selectedIndex == 1) {
+        if (selectedItem == MenuItem::Options) {
             optionsFlag = true;
             return true;
         }
 
-        if (selectedIndex == 2) {
+        if (selectedItem == MenuItem::Quit) {
             quitFlag = true;
             return true;
         }
     }
 
     if (keyCode == sponge::input::KeyCode::SpongeKey_Down) {
-        selectedIndex = (selectedIndex + 1) % 3;
+        selectedItem = static_cast<MenuItem>(
+            (static_cast<int>(selectedItem) + 1) % itemCount);
         return true;
     }
 
     if (keyCode == sponge::input::KeyCode::SpongeKey_Up) {
-        selectedIndex = (selectedIndex - 1 + 3) % 3;
+        selectedItem = static_cast<MenuItem>(
+            (static_cast<int>(selectedItem) - 1 + itemCount) % itemCount);
         return true;
     }
 

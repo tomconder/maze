@@ -52,7 +52,7 @@ public:
         return hover;
     }
 
-    ButtonAlignType getAlignType() const {
+    [[nodiscard]] ButtonAlignType getAlignType() const {
         return alignType;
     }
 
