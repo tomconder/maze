@@ -11,9 +11,9 @@ constexpr std::string_view cameraName  = "splash";
 constexpr std::string_view spriteName  = "blackcoffee-logo";
 constexpr std::string_view texturePath = "textures/blackcoffee.png";
 
-constexpr double TIMEOUT_SECONDS = 5.0;
-constexpr double FADE_DURATION   = 0.7;
-constexpr float  LOGO_SIZE       = 512.0F;
+constexpr double timeoutSeconds = 5.0;
+constexpr double fadeDuration   = 0.7;
+constexpr float  logoSize       = 512.0F;
 
 inline std::string spriteShaderName;
 inline std::string quadShaderName;
@@ -67,14 +67,14 @@ void SplashScreenLayer::onEvent(sponge::event::Event& event) {
 bool SplashScreenLayer::onUpdate(const double elapsedTime) {
     // Accumulate elapsed time for timeout
     elapsedTimeAccumulator += elapsedTime;
-    if (elapsedTimeAccumulator >= TIMEOUT_SECONDS && !isFadingFlag) {
+    if (elapsedTimeAccumulator >= timeoutSeconds && !isFadingFlag) {
         isFadingFlag = true;
     }
 
     if (isFadingFlag) {
         fadeTimeAccumulator += elapsedTime;
         currentAlpha =
-            1.0F - static_cast<float>(fadeTimeAccumulator / FADE_DURATION);
+            1.0F - static_cast<float>(fadeTimeAccumulator / fadeDuration);
         if (currentAlpha <= 0.0F) {
             currentAlpha      = 0.0F;
             shouldDismissFlag = true;
@@ -89,7 +89,7 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
                            { 0.F, 0.F, 0.F, currentAlpha });
 
     const auto logoPosition = calculateLogoPosition();
-    logoSprite->render(logoPosition, { LOGO_SIZE, LOGO_SIZE }, currentAlpha);
+    logoSprite->render(logoPosition, { logoSize, logoSize }, currentAlpha);
 
     return true;
 }
@@ -98,7 +98,7 @@ glm::vec2 SplashScreenLayer::calculateLogoPosition() const {
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
 
-    return { (width - LOGO_SIZE) / 2.0F, (height - LOGO_SIZE) / 2.0F };
+    return { (width - logoSize) / 2.0F, (height - logoSize) / 2.0F };
 }
 
 bool SplashScreenLayer::onKeyPressed(
