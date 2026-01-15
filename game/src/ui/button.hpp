@@ -19,6 +19,8 @@ struct ButtonCreateInfo {
     glm::vec3       textColor;
     uint32_t        marginLeft   = 0;
     float           cornerRadius = 0.F;
+    float           borderWidth  = 0.F;
+    glm::vec4       borderColor  = glm::vec4(0.F);
     ButtonAlignType alignType    = ButtonAlignType::CenterAligned;
 };
 
@@ -33,6 +35,10 @@ public:
     void setButtonColor(const glm::vec4& val);
 
     void setTextColor(const glm::vec3& val);
+
+    void setBorderWidth(float val);
+
+    void setBorderColor(const glm::vec4& val);
 
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
@@ -61,6 +67,8 @@ private:
     uint32_t        length;
     uint32_t        marginLeft;
     float           cornerRadius;
+    float           borderWidth;
+    glm::vec4       borderColor;
     ButtonAlignType alignType;
 
     glm::vec2 textPosition;

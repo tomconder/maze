@@ -15,6 +15,8 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textColor(createInfo.textColor),
     marginLeft(createInfo.marginLeft),
     cornerRadius(createInfo.cornerRadius),
+    borderWidth(createInfo.borderWidth),
+    borderColor(createInfo.borderColor),
     alignType(createInfo.alignType),
     textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
     font   = AssetManager::getFont(textFontName);
@@ -26,7 +28,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
 bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
-    quad->render(top, bottom, color, cornerRadius);
+    quad->render(top, bottom, color, cornerRadius, borderWidth, borderColor);
     font->render(text, textPosition, textSize, textColor);
 
     return true;
@@ -43,6 +45,14 @@ void Button::setButtonColor(const glm::vec4& val) {
 
 void Button::setTextColor(const glm::vec3& val) {
     textColor = glm::vec3(val);
+}
+
+void Button::setBorderWidth(const float val) {
+    borderWidth = val;
+}
+
+void Button::setBorderColor(const glm::vec4& val) {
+    borderColor = val;
 }
 
 void Button::setAlignType(const ButtonAlignType& val) {

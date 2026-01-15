@@ -242,9 +242,12 @@ bool IntroLayer::onMouseMoved(
     auto updateHover = [&pos](ui::Button* button) {
         if (!button->hasHover() && button->isInside(pos)) {
             button->setHover(true);
+            button->setBorderWidth(3.F);
+            button->setBorderColor(glm::vec4{ 1.F });
             button->setButtonColor(hoverColor);
         } else if (button->hasHover() && !button->isInside(pos)) {
             button->setHover(false);
+            button->setBorderWidth(0.F);
             button->setButtonColor(glm::vec4{ 0.F });
         }
     };
