@@ -1,8 +1,11 @@
 #include "layer/introlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "scene/orthocamera.hpp"
 #include "sponge.hpp"
-#include "yoga/Yoga.h"
+#include "ui/button.hpp"
+
+#include <yoga/Yoga.h>
 
 #include <memory>
 #include <string>
@@ -24,6 +27,22 @@ constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 
 inline std::string fontShaderName;
 inline std::string quadShaderName;
+
+std::unique_ptr<game::ui::Button> newGameButton;
+std::unique_ptr<game::ui::Button> optionsButton;
+std::unique_ptr<game::ui::Button> quitButton;
+
+YGNodeRef menuBackgroundNode = nullptr;
+YGNodeRef menuNode           = nullptr;
+YGNodeRef newGameNode        = nullptr;
+YGNodeRef optionsNode        = nullptr;
+YGNodeRef quitNode           = nullptr;
+YGNodeRef rootNode           = nullptr;
+YGNodeRef titleNode          = nullptr;
+
+std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
+
+std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 }  // namespace
 
 namespace game::layer {
@@ -99,23 +118,33 @@ void IntroLayer::onAttach() {
     YGNodeStyleSetFlexGrow(titleNode, 0.9F);
     YGNodeInsertChild(rootNode, titleNode, 0);
 
+    menuNode = YGNodeNew();
+    YGNodeStyleSetFlex(menuNode, 1.F);
+    YGNodeStyleSetFlexDirection(menuNode, YGFlexDirectionRow);
+    YGNodeInsertChild(rootNode, menuNode, 1);
+
+    menuBackgroundNode = YGNodeNew();
+    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 5.F);
+    YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
+    YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
+
     newGameNode = YGNodeNew();
-    YGNodeStyleSetMinHeight(newGameNode, 80);
-    YGNodeStyleSetMargin(newGameNode, YGEdgeBottom, 10.F);
-    YGNodeStyleSetWidthPercent(newGameNode, 35.F);
-    YGNodeInsertChild(rootNode, newGameNode, 1);
+    YGNodeStyleSetFlex(newGameNode, 1.0);
+    YGNodeStyleSetMargin(newGameNode, YGEdgeBottom, 5.F);
+    YGNodeStyleSetMaxHeight(newGameNode, 110);
+    YGNodeInsertChild(menuBackgroundNode, newGameNode, 0);
 
     optionsNode = YGNodeNew();
-    YGNodeStyleSetMinHeight(optionsNode, 80);
-    YGNodeStyleSetMargin(optionsNode, YGEdgeBottom, 10.F);
-    YGNodeStyleSetWidthPercent(optionsNode, 35.F);
-    YGNodeInsertChild(rootNode, optionsNode, 2);
+    YGNodeStyleSetFlex(optionsNode, 1.0);
+    YGNodeStyleSetMargin(optionsNode, YGEdgeBottom, 5.F);
+    YGNodeStyleSetMaxHeight(optionsNode, 110);
+    YGNodeInsertChild(menuBackgroundNode, optionsNode, 1);
 
     quitNode = YGNodeNew();
-    YGNodeStyleSetMinHeight(quitNode, 80);
-    YGNodeStyleSetMargin(quitNode, YGEdgeBottom, 50.F);
-    YGNodeStyleSetWidthPercent(quitNode, 35.F);
-    YGNodeInsertChild(rootNode, quitNode, 3);
+    YGNodeStyleSetFlex(quitNode, 1.0);
+    YGNodeStyleSetMargin(quitNode, YGEdgeBottom, 30.F);
+    YGNodeStyleSetMaxHeight(quitNode, 110);
+    YGNodeInsertChild(menuBackgroundNode, quitNode, 2);
 
     auto [width, height] =
         std::pair{ static_cast<float>(orthoCamera->getWidth()),
@@ -155,21 +184,28 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
 
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
-    const auto rootX = YGNodeLayoutGetLeft(rootNode);
-    const auto rootY = YGNodeLayoutGetTop(rootNode);
-
-    auto getNodeLayout = [rootX, rootY](const YGNodeRef node) {
-        return std::tuple{ rootX + YGNodeLayoutGetLeft(node),
-                           rootY + YGNodeLayoutGetTop(node),
+    auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
+                            const float offsetY) {
+        return std::tuple{ offsetX + YGNodeLayoutGetLeft(node),
+                           offsetY + YGNodeLayoutGetTop(node),
                            YGNodeLayoutGetWidth(node),
                            YGNodeLayoutGetHeight(node) };
     };
 
+    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
+        getNodeLayout(rootNode, 0.F, 0.F);
+    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
+        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
+          menuBackgroundNodeH] =
+        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+
     const auto [newGameX, newGameY, newGameW, newGameH] =
-        getNodeLayout(newGameNode);
+        getNodeLayout(newGameNode, menuBackgroundNodeX, menuBackgroundNodeY);
     const auto [optionsX, optionsY, optionsW, optionsH] =
-        getNodeLayout(optionsNode);
-    const auto [quitX, quitY, quitW, quitH] = getNodeLayout(quitNode);
+        getNodeLayout(optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [quitX, quitY, quitW, quitH] =
+        getNodeLayout(quitNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     newGameButton->setPosition({ newGameX, newGameY },
                                { newGameX + newGameW, newGameY + newGameH });
@@ -231,7 +267,8 @@ bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     const auto     keyCode   = event.getKeyCode();
     constexpr auto itemCount = static_cast<int>(MenuItem::Count);
 
-    if (keyCode == sponge::input::KeyCode::SpongeKey_Enter) {
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Enter ||
+        keyCode == sponge::input::KeyCode::SpongeKey_KPEnter) {
         if (selectedItem == MenuItem::NewGame) {
             startGameFlag = true;
             return true;
@@ -248,13 +285,15 @@ bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         }
     }
 
-    if (keyCode == sponge::input::KeyCode::SpongeKey_Down) {
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Down ||
+        keyCode == sponge::input::KeyCode::SpongeKey_KP2) {
         selectedItem = static_cast<MenuItem>(
             (static_cast<int>(selectedItem) + 1) % itemCount);
         return true;
     }
 
-    if (keyCode == sponge::input::KeyCode::SpongeKey_Up) {
+    if (keyCode == sponge::input::KeyCode::SpongeKey_Up ||
+        keyCode == sponge::input::KeyCode::SpongeKey_KP8) {
         selectedItem = static_cast<MenuItem>(
             (static_cast<int>(selectedItem) - 1 + itemCount) % itemCount);
         return true;

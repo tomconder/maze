@@ -1,8 +1,11 @@
 #include "layer/exitlayer.hpp"
 
 #include "resourcemanager.hpp"
+#include "scene/orthocamera.hpp"
 #include "sponge.hpp"
-#include "yoga/Yoga.h"
+#include "ui/button.hpp"
+
+#include <yoga/Yoga.h>
 
 #include <memory>
 #include <string>
@@ -24,6 +27,18 @@ constexpr glm::vec3 textColor         = { 0.03F, 0.03F, 0.03F };
 
 inline std::string fontShaderName;
 inline std::string quadShaderName;
+
+std::unique_ptr<game::ui::Button> cancelButton;
+std::unique_ptr<game::ui::Button> confirmButton;
+
+YGNodeRef rootNode    = nullptr;
+YGNodeRef messageNode = nullptr;
+YGNodeRef confirmNode = nullptr;
+YGNodeRef cancelNode  = nullptr;
+
+std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
+
+std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 }  // namespace
 
 namespace game::layer {
@@ -39,8 +54,7 @@ ExitLayer::ExitLayer() : Layer("exit") {
 }
 
 void ExitLayer::onAttach() {
-    fontNameStr    = std::string(fontName);
-    exitMessageStr = std::string(exitMessage);
+    const auto fontNameStr = std::string(fontName);
 
     const auto fontCreateInfo =
         FontCreateInfo{ .name = fontNameStr, .path = std::string(fontPath) };
@@ -161,10 +175,10 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     const auto [cancelX, cancelY, cancelW, cancelH] = getNodeLayout(cancelNode);
     const auto messageY = rootY + YGNodeLayoutGetTop(messageNode);
 
-    const auto font         = AssetManager::getFont(fontNameStr);
-    const auto length       = font->getLength(exitMessageStr, 48);
+    const auto font         = AssetManager::getFont(fontName);
+    const auto length       = font->getLength(exitMessage, 48);
     const auto panelCenterX = width * 0.5F;
-    font->render(exitMessageStr,
+    font->render(exitMessage.data(),
                  { panelCenterX - static_cast<float>(length) / 2.F, messageY },
                  48, { 1.F, 1.F, 1.F });
 
@@ -228,6 +242,7 @@ bool ExitLayer::onMouseButtonPressed(
 
     return true;
 }
+
 bool ExitLayer::onMouseMoved(
     const sponge::event::MouseMovedEvent& event) const {
     const auto pos = glm::vec2{ event.getX(), event.getY() };

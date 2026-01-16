@@ -391,6 +391,11 @@ bool MazeLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         return true;
     }
 
+    if (event.getKeyCode() == KeyCode::SpongeKey_Escape) {
+        Maze::get().getExitLayer()->setActive(true);
+        return true;
+    }
+
     return false;
 }
 

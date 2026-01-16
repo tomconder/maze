@@ -20,21 +20,7 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    std::shared_ptr<scene::OrthoCamera> orthoCamera;
-
     bool isRunning = true;
-
-    std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
-    std::unique_ptr<ui::Button>                            cancelButton;
-    std::unique_ptr<ui::Button>                            confirmButton;
-
-    YGNodeRef rootNode    = nullptr;
-    YGNodeRef messageNode = nullptr;
-    YGNodeRef confirmNode = nullptr;
-    YGNodeRef cancelNode  = nullptr;
-
-    std::string fontNameStr;
-    std::string exitMessageStr;
 
     void recalculateLayout(float width, float height) const;
 
