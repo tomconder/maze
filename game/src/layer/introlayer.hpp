@@ -4,7 +4,7 @@
 
 namespace game::layer {
 
-enum class MenuItem : int { NewGame = 0, Options, Quit, Count };
+enum class IntroMenuItem : uint8_t { NewGame = 0, Options, Quit, Count };
 
 class IntroLayer final : public sponge::layer::Layer {
 public:
@@ -27,10 +27,10 @@ public:
     }
 
 private:
-    bool     optionsFlag   = false;
-    bool     startGameFlag = false;
-    bool     quitFlag      = false;
-    MenuItem selectedItem  = MenuItem::NewGame;
+    bool          optionsFlag   = false;
+    bool          startGameFlag = false;
+    bool          quitFlag      = false;
+    IntroMenuItem selectedItem  = IntroMenuItem::NewGame;
 
     void recalculateLayout(float width, float height) const;
 
@@ -42,5 +42,7 @@ private:
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+
+    void clearHoveredItems() const;
 };
 }  // namespace game::layer

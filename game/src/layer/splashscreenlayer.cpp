@@ -56,7 +56,7 @@ void SplashScreenLayer::onEvent(sponge::event::Event& event) {
 
     dispatcher.dispatch<sponge::event::KeyPressedEvent>(
         [this](const sponge::event::KeyPressedEvent& event) {
-            return this->onKeyPressed(event);
+            return isActive() ? this->onKeyPressed(event) : false;
         });
     dispatcher.dispatch<sponge::event::WindowResizeEvent>(
         [this](const sponge::event::WindowResizeEvent& event) {

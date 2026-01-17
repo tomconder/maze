@@ -17,22 +17,13 @@ public:
     void popLayer(const std::shared_ptr<Layer>& layer);
     void popOverlay(const std::shared_ptr<Layer>& overlay);
 
-    std::vector<std::shared_ptr<Layer>>::const_iterator begin() {
-        return layers.begin();
-    }
-    std::vector<std::shared_ptr<Layer>>::const_iterator end() {
-        return layers.end();
-    }
-    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rbegin() {
-        return layers.rbegin();
-    }
-    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rend() {
-        return layers.rend();
-    }
+    std::vector<std::shared_ptr<Layer>>::const_iterator         begin();
+    std::vector<std::shared_ptr<Layer>>::const_iterator         end();
+    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rbegin();
+    std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rend();
 
 private:
-    std::vector<std::shared_ptr<Layer>> layers;
-    uint32_t                            layerInsertIndex = 0;
+    uint32_t layerInsertIndex = 0;
 };
 
 }  // namespace sponge::layer

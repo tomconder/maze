@@ -3,6 +3,7 @@
 #include <memory>
 
 namespace sponge::layer {
+std::vector<std::shared_ptr<Layer>> layers;
 
 LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
@@ -36,6 +37,23 @@ void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
         overlay->onDetach();
         layers.erase(it);
     }
+}
+
+std::vector<std::shared_ptr<Layer>>::const_iterator LayerStack::begin() {
+    return layers.begin();
+}
+
+std::vector<std::shared_ptr<Layer>>::const_iterator LayerStack::end() {
+    return layers.end();
+}
+
+std::vector<std::shared_ptr<Layer>>::const_reverse_iterator
+    LayerStack::rbegin() {
+    return layers.rbegin();
+}
+
+std::vector<std::shared_ptr<Layer>>::const_reverse_iterator LayerStack::rend() {
+    return layers.rend();
 }
 
 }  // namespace sponge::layer
