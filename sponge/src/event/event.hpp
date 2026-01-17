@@ -33,15 +33,15 @@ enum EventCategory : uint8_t {
     EventCategoryMouseButton = BIT(4)
 };
 
-#define EVENT_CLASS_TYPE(type)                \
-    static EventType getStaticType() {        \
-        return EventType::type;               \
-    }                                         \
-    EventType getEventType() const override { \
-        return getStaticType();               \
-    }                                         \
-    std::string getName() const override {    \
-        return #type;                         \
+#define EVENT_CLASS_TYPE(type)                  \
+    static EventType getStaticType() {          \
+        return EventType::type;                 \
+    }                                           \
+    EventType getEventType() const override {   \
+        return getStaticType();                 \
+    }                                           \
+    std::string_view getName() const override { \
+        return #type;                           \
     }
 
 #define EVENT_CLASS_CATEGORY(category)      \
@@ -54,17 +54,17 @@ public:
     virtual ~Event() = default;
 
     virtual std::string toString() const {
-        return getName();
+        return getName().data();
     }
 
     bool handled = false;
 
-    virtual EventType   getEventType() const     = 0;
-    virtual int         getCategoryFlags() const = 0;
-    virtual std::string getName() const          = 0;
+    virtual EventType        getEventType() const     = 0;
+    virtual int              getCategoryFlags() const = 0;
+    virtual std::string_view getName() const          = 0;
 
     bool isInCategory(const EventCategory category) const {
-        return (getCategoryFlags() & category) != 0;
+        return getCategoryFlags() & category;
     }
 };
 

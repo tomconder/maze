@@ -1,12 +1,17 @@
 #pragma once
 
-#include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 
-#include <yoga/Yoga.h>
-#include <memory>
-
 namespace game::layer {
+
+enum class ExitMenuItem : uint8_t {
+    Continue = 0,
+    Options,
+    ReturnToMenu,
+    Exit,
+    Count
+};
+
 class ExitLayer final : public sponge::layer::Layer {
 public:
     ExitLayer();
@@ -20,11 +25,12 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    bool isRunning = true;
+    bool         optionsFlag  = false;
+    ExitMenuItem selectedItem = ExitMenuItem::Continue;
 
     void recalculateLayout(float width, float height) const;
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event) const;
+    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
@@ -34,5 +40,7 @@ private:
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+
+    void clearHoveredItems() const;
 };
 }  // namespace game::layer
