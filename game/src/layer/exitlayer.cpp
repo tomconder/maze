@@ -43,6 +43,8 @@ YGNodeRef rootNode           = nullptr;
 YGNodeRef titleNode          = nullptr;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
+
+bool isRunning = true;
 }  // namespace
 
 namespace game::layer {
@@ -52,8 +54,6 @@ using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
-
-bool isRunning = true;
 
 ExitLayer::ExitLayer() : Layer("exit") {
     fontShaderName = MSDFFont::getShaderName();
@@ -292,7 +292,7 @@ void ExitLayer::recalculateLayout(float width, float height) const {
 
 bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     const auto     keyCode   = event.getKeyCode();
-    constexpr auto itemCount = static_cast<uint8_t>(ExitMenuItem::Count);
+    constexpr auto itemCount = +ExitMenuItem::Count;
 
     if (keyCode == KeyCode::SpongeKey_Escape) {
         clearHoveredItems();
@@ -309,12 +309,12 @@ bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         }
     } else if (keyCode == KeyCode::SpongeKey_Down ||
                keyCode == KeyCode::SpongeKey_KP2) {
-        selectedItem = static_cast<ExitMenuItem>(
-            (static_cast<uint8_t>(selectedItem) + 1) % itemCount);
+        selectedItem =
+            static_cast<ExitMenuItem>((+selectedItem + 1) % itemCount);
     } else if (keyCode == KeyCode::SpongeKey_Up ||
                keyCode == KeyCode::SpongeKey_KP8) {
         selectedItem = static_cast<ExitMenuItem>(
-            (static_cast<uint8_t>(selectedItem) - 1 + itemCount) % itemCount);
+            (+selectedItem - 1 + itemCount) % itemCount);
     }
 
     return true;
