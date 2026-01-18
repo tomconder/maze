@@ -266,7 +266,7 @@ void IntroLayer::recalculateLayout(float width, float height) const {
 
 bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     const auto     keyCode   = event.getKeyCode();
-    constexpr auto itemCount = static_cast<uint8_t>(IntroMenuItem::Count);
+    constexpr auto itemCount = +IntroMenuItem::Count;
 
     if (keyCode == KeyCode::SpongeKey_Enter ||
         keyCode == KeyCode::SpongeKey_KPEnter) {
@@ -290,14 +290,14 @@ bool IntroLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
 
     if (keyCode == KeyCode::SpongeKey_Down ||
         keyCode == KeyCode::SpongeKey_KP2) {
-        selectedItem = static_cast<IntroMenuItem>(
-            (static_cast<uint8_t>(selectedItem) + 1) % itemCount);
+        selectedItem =
+            static_cast<IntroMenuItem>((+selectedItem + 1) % itemCount);
         return true;
     }
 
     if (keyCode == KeyCode::SpongeKey_Up || keyCode == KeyCode::SpongeKey_KP8) {
         selectedItem = static_cast<IntroMenuItem>(
-            (static_cast<uint8_t>(selectedItem) - 1 + itemCount) % itemCount);
+            (+selectedItem - 1 + itemCount) % itemCount);
         return true;
     }
 
