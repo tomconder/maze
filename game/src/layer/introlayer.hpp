@@ -1,14 +1,10 @@
 #pragma once
 
-#include "scene/orthocamera.hpp"
-#include "ui/button.hpp"
-
-#include <yoga/Yoga.h>
-#include <memory>
+#include "sponge.hpp"
 
 namespace game::layer {
 
-enum class MenuItem : int { NewGame = 0, Options, Quit, Count };
+enum class IntroMenuItem : uint8_t { NewGame = 0, Options, Quit, Count };
 
 class IntroLayer final : public sponge::layer::Layer {
 public:
@@ -31,23 +27,10 @@ public:
     }
 
 private:
-    std::shared_ptr<scene::OrthoCamera> orthoCamera;
-
-    std::unique_ptr<ui::Button> newGameButton;
-    std::unique_ptr<ui::Button> optionsButton;
-    std::unique_ptr<ui::Button> quitButton;
-
-    YGNodeRef rootNode    = nullptr;
-    YGNodeRef titleNode   = nullptr;
-    YGNodeRef newGameNode = nullptr;
-    YGNodeRef optionsNode = nullptr;
-    YGNodeRef quitNode    = nullptr;
-
-    bool     optionsFlag   = false;
-    bool     startGameFlag = false;
-    bool     quitFlag      = false;
-    MenuItem selectedItem  = MenuItem::NewGame;
-    std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
+    bool          optionsFlag   = false;
+    bool          startGameFlag = false;
+    bool          quitFlag      = false;
+    IntroMenuItem selectedItem  = IntroMenuItem::NewGame;
 
     void recalculateLayout(float width, float height) const;
 
@@ -59,5 +42,7 @@ private:
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+
+    void clearHoveredItems() const;
 };
 }  // namespace game::layer

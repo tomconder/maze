@@ -179,12 +179,9 @@ void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
     for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
-        // allow application events such as window resize to be handled on
-        // inactive layers
-        if (!event.handled &&
-            (layer->isActive() ||
-             event.isInCategory(event::EventCategoryApplication))) {
-            layer->onEvent(event);
+        layer->onEvent(event);
+        if (event.handled) {
+            break;
         }
     }
 }
