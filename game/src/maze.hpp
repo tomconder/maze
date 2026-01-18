@@ -34,6 +34,10 @@ public:
         return mazeLayer;
     }
 
+    std::shared_ptr<layer::ExitLayer> getExitLayer() const {
+        return exitLayer;
+    }
+
 #ifdef ENABLE_IMGUI
     std::shared_ptr<layer::imgui::ImGuiLayer> getImGuiLayer() const {
         return imguiLayer;

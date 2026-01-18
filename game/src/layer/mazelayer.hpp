@@ -98,20 +98,25 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
-    bool    metallic         = false;
-    float   ambientStrength  = .25F;
-    float   ao               = .25F;
-    float   roughness        = .5F;
-    int32_t numLights        = 0;
-    int32_t attenuationIndex = 4;
+    float   ambientStrength    = .25F;
+    float   ao                 = .25F;
+    int32_t attenuationIndex   = 4;
+    bool    metallic           = false;
+    bool    mouseButtonPressed = false;
+    int32_t numLights          = 0;
+    float   roughness          = .5F;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+
+    bool onKeyReleased(const sponge::event::KeyReleasedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
     bool onMouseButtonReleased(
         const sponge::event::MouseButtonReleasedEvent& event);
+
+    bool onMouseMoveEvent(const sponge::event::MouseMovedEvent& event);
 
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
 
