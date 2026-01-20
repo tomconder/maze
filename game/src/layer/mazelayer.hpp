@@ -97,6 +97,7 @@ private:
     std::shared_ptr<scene::GameCamera>                          camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
+    std::unordered_map<sponge::input::KeyCode, bool>            keyPressed;
 
     float   ambientStrength    = .25F;
     float   ao                 = .25F;
@@ -131,5 +132,7 @@ private:
     void updateCamera(double elapsedTime) const;
 
     void updateShaderLights() const;
+
+    bool isKeyPressed(sponge::input::KeyCode key) const;
 };
 }  // namespace game::layer
