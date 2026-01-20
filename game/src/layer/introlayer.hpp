@@ -18,19 +18,8 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
-    [[nodiscard]] bool shouldStartGame() const {
-        return startGameFlag;
-    }
-
-    [[nodiscard]] bool shouldQuit() const {
-        return quitFlag;
-    }
-
 private:
-    bool          optionsFlag   = false;
-    bool          startGameFlag = false;
-    bool          quitFlag      = false;
-    IntroMenuItem selectedItem  = IntroMenuItem::NewGame;
+    IntroMenuItem selectedItem = IntroMenuItem::NewGame;
 
     void recalculateLayout(float width, float height) const;
 

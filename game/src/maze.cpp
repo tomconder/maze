@@ -20,44 +20,21 @@ bool Maze::onUserCreate() {
 
     pushOverlay(splashScreenLayer);
     pushOverlay(exitLayer);
+    pushOverlay(optionLayer);
 
     pushLayer(mazeLayer);
     pushLayer(introLayer);
 
-    introLayer->setActive(false);
     exitLayer->setActive(false);
+    introLayer->setActive(true);
     mazeLayer->setActive(false);
+    optionLayer->setActive(false);
+    splashScreenLayer->setActive(true);
 
     return true;
 }
 
 bool Maze::onUserUpdate(const double elapsedTime) {
-    if (splashScreenLayer && splashScreenLayer->isActive()) {
-        if (splashScreenLayer->isFading() && !introLayer->isActive()) {
-            introLayer->setActive(true);
-        }
-
-        if (splashScreenLayer->shouldDismiss()) {
-            popOverlay(splashScreenLayer);
-            introLayer->setActive(true);
-            splashScreenLayer.reset();
-        }
-    }
-
-    if (introLayer && introLayer->isActive()) {
-        if (introLayer->shouldStartGame()) {
-            introLayer->setActive(false);
-            mazeLayer->setActive(true);
-#ifdef ENABLE_IMGUI
-            imguiLayer->setActive(true);
-#endif
-        }
-
-        if (introLayer && introLayer->shouldQuit()) {
-            isRunning = false;
-        }
-    }
-
     if (!isRunning) {
         return false;
     }
@@ -92,9 +69,9 @@ std::unique_ptr<sponge::core::Application>
     UNUSED(argc);
     UNUSED(argv);
 
-    constexpr uint32_t width      = 1600;
-    constexpr uint32_t height     = 900;
-    constexpr bool     fullscreen = false;
+    constexpr uint32_t width      = 0;
+    constexpr uint32_t height     = 0;
+    constexpr bool     fullscreen = true;
 
     using platform::glfw::core::ApplicationSpecification;
 
