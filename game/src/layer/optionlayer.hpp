@@ -1,20 +1,14 @@
 #pragma once
 
-#include "ui/button.hpp"
+#include "sponge.hpp"
 
 namespace game::layer {
 
-enum class ExitMenuItem : uint8_t {
-    Continue = 0,
-    Options,
-    ReturnToMenu,
-    Exit,
-    Count
-};
+enum class OptionMenuItem : uint8_t { Return = 0, Count };
 
-class ExitLayer final : public sponge::layer::Layer {
+class OptionLayer final : public sponge::layer::Layer {
 public:
-    ExitLayer();
+    OptionLayer();
 
     void onAttach() override;
 
@@ -25,7 +19,7 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    ExitMenuItem selectedItem = ExitMenuItem::Continue;
+    OptionMenuItem selectedItem = OptionMenuItem::Return;
 
     void recalculateLayout(float width, float height) const;
 
@@ -36,10 +30,9 @@ private:
 
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
-
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
     void clearHoveredItems() const;
 };
+
 }  // namespace game::layer

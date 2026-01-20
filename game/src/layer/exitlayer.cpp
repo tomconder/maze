@@ -1,5 +1,6 @@
 #include "layer/exitlayer.hpp"
 
+#include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
@@ -48,8 +49,18 @@ bool isRunning = true;
 }  // namespace
 
 namespace game::layer {
+using sponge::event::Event;
+using sponge::event::EventDispatcher;
+using sponge::event::KeyPressedEvent;
+using sponge::event::KeyReleasedEvent;
+using sponge::event::MouseButtonPressedEvent;
+using sponge::event::MouseButtonReleasedEvent;
+using sponge::event::MouseMovedEvent;
+using sponge::event::MouseScrolledEvent;
+using sponge::event::WindowResizeEvent;
 using sponge::input::KeyCode;
 using sponge::platform::glfw::core::Application;
+using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
@@ -175,27 +186,25 @@ void ExitLayer::onDetach() {
     YGNodeFreeRecursive(rootNode);
 }
 
-void ExitLayer::onEvent(sponge::event::Event& event) {
-    sponge::event::EventDispatcher dispatcher(event);
+void ExitLayer::onEvent(Event& event) {
+    EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<sponge::event::KeyPressedEvent>(
-        [this](const sponge::event::KeyPressedEvent& event) {
-            return isActive() ? this->onKeyPressed(event) : false;
-        });
-    dispatcher.dispatch<sponge::event::MouseButtonPressedEvent>(
-        [this](const sponge::event::MouseButtonPressedEvent& event) {
+    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
+        return isActive() ? this->onKeyPressed(event) : false;
+    });
+    dispatcher.dispatch<MouseButtonPressedEvent>(
+        [this](const MouseButtonPressedEvent& event) {
             return isActive() ? this->onMouseButtonPressed(event) : false;
         });
-    dispatcher.dispatch<sponge::event::MouseMovedEvent>(
-        [this](const sponge::event::MouseMovedEvent& event) {
-            return isActive() ? this->onMouseMoved(event) : false;
-        });
-    dispatcher.dispatch<sponge::event::MouseScrolledEvent>(
-        [this](const sponge::event::MouseScrolledEvent& event) {
+    dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
+        return isActive() ? this->onMouseMoved(event) : false;
+    });
+    dispatcher.dispatch<MouseScrolledEvent>(
+        [this](const MouseScrolledEvent& event) {
             return isActive() ? this->onMouseScrolled(event) : false;
         });
-    dispatcher.dispatch<sponge::event::WindowResizeEvent>(
-        [this](const sponge::event::WindowResizeEvent& event) {
+    dispatcher.dispatch<WindowResizeEvent>(
+        [this](const WindowResizeEvent& event) {
             return this->onWindowResize(event);
         });
 }
@@ -264,8 +273,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-bool ExitLayer::onWindowResize(
-    const sponge::event::WindowResizeEvent& event) const {
+bool ExitLayer::onWindowResize(const WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
@@ -290,7 +298,7 @@ void ExitLayer::recalculateLayout(float width, float height) const {
     YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
 }
 
-bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
+bool ExitLayer::onKeyPressed(const KeyPressedEvent& event) {
     const auto     keyCode   = event.getKeyCode();
     constexpr auto itemCount = +ExitMenuItem::Count;
 
@@ -303,7 +311,13 @@ bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
         if (selectedItem == ExitMenuItem::Continue) {
             setActive(false);
         } else if (selectedItem == ExitMenuItem::Options) {
-            optionsFlag = true;
+            clearHoveredItems();
+            Maze::get().getOptionLayer()->setActive(true);
+        } else if (selectedItem == ExitMenuItem::ReturnToMenu) {
+            clearHoveredItems();
+            Maze::get().getIntroLayer()->setActive(true);
+            Maze::get().getMazeLayer()->setActive(false);
+            setActive(false);
         } else if (selectedItem == ExitMenuItem::Exit) {
             isRunning = false;
         }
@@ -320,13 +334,24 @@ bool ExitLayer::onKeyPressed(const sponge::event::KeyPressedEvent& event) {
     return true;
 }
 
-bool ExitLayer::onMouseButtonPressed(
-    const sponge::event::MouseButtonPressedEvent& event) {
+bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     UNUSED(event);
 
-    auto [x, y] = sponge::platform::glfw::core::Input::getMousePosition();
+    auto [x, y] = Input::getMousePosition();
     if (continueButton->isInside({ x, y })) {
         clearHoveredItems();
+        setActive(false);
+    }
+
+    if (optionsButton->isInside({ x, y })) {
+        clearHoveredItems();
+        Maze::get().getOptionLayer()->setActive(true);
+    }
+
+    if (returnToMenuButton->isInside({ x, y })) {
+        clearHoveredItems();
+        Maze::get().getIntroLayer()->setActive(true);
+        Maze::get().getMazeLayer()->setActive(false);
         setActive(false);
     }
 
@@ -337,8 +362,7 @@ bool ExitLayer::onMouseButtonPressed(
     return true;
 }
 
-bool ExitLayer::onMouseMoved(
-    const sponge::event::MouseMovedEvent& event) const {
+bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) const {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {
@@ -357,8 +381,7 @@ bool ExitLayer::onMouseMoved(
     return true;
 }
 
-bool ExitLayer::onMouseScrolled(
-    const sponge::event::MouseScrolledEvent& event) {
+bool ExitLayer::onMouseScrolled(const MouseScrolledEvent& event) {
     UNUSED(event);
     return true;
 }

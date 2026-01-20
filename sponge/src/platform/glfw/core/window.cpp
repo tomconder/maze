@@ -39,9 +39,16 @@ void Window::init(const sponge::core::WindowProps& props) {
         glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
         glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-        window = glfwCreateWindow(static_cast<int>(props.width),
-                                  static_cast<int>(props.height),
-                                  props.title.c_str(), primaryMonitor, nullptr);
+        int32_t width  = static_cast<int32_t>(props.width);
+        int32_t height = static_cast<int32_t>(props.height);
+
+        if (width == 0 && height == 0) {
+            width  = mode->width;
+            height = mode->height;
+        }
+
+        window = glfwCreateWindow(width, height, props.title.c_str(),
+                                  primaryMonitor, nullptr);
     } else {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
 
