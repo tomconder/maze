@@ -56,11 +56,6 @@ bool Application::start() {
 
     appName = appSpec.name;
 
-    if (!appSpec.fullscreen && (appSpec.width == 0 || appSpec.height == 0)) {
-        SPONGE_CORE_ERROR("Screen height or width cannot be zero");
-        return false;
-    }
-
     SPONGE_CORE_INFO("Initializing glfw");
 
     if (glfwInit() == GLFW_FALSE) {

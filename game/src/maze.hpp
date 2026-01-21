@@ -10,6 +10,8 @@
 #include "layer/imgui/imguilayer.hpp"
 #endif
 
+#include "layer/optionlayer.hpp"
+
 #include <memory>
 
 namespace game {
@@ -30,10 +32,6 @@ public:
         return static_cast<Maze&>(Application::get());
     }
 
-    std::shared_ptr<layer::MazeLayer> getMazeLayer() const {
-        return mazeLayer;
-    }
-
     std::shared_ptr<layer::ExitLayer> getExitLayer() const {
         return exitLayer;
     }
@@ -44,6 +42,18 @@ public:
     }
 #endif
 
+    std::shared_ptr<layer::IntroLayer> getIntroLayer() const {
+        return introLayer;
+    }
+
+    std::shared_ptr<layer::MazeLayer> getMazeLayer() const {
+        return mazeLayer;
+    }
+
+    std::shared_ptr<layer::OptionLayer> getOptionLayer() const {
+        return optionLayer;
+    }
+
     void exit() {
         isRunning = false;
     }
@@ -51,18 +61,20 @@ public:
 private:
     bool isRunning = true;
 
-    std::shared_ptr<layer::SplashScreenLayer> splashScreenLayer =
-        std::make_shared<layer::SplashScreenLayer>();
-    std::shared_ptr<layer::IntroLayer> introLayer =
-        std::make_shared<layer::IntroLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
 #ifdef ENABLE_IMGUI
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
 #endif
+    std::shared_ptr<layer::IntroLayer> introLayer =
+        std::make_shared<layer::IntroLayer>();
     std::shared_ptr<layer::MazeLayer> mazeLayer =
         std::make_shared<layer::MazeLayer>();
+    std::shared_ptr<layer::OptionLayer> optionLayer =
+        std::make_shared<layer::OptionLayer>();
+    std::shared_ptr<layer::SplashScreenLayer> splashScreenLayer =
+        std::make_shared<layer::SplashScreenLayer>();
 
     bool onWindowClose(const sponge::event::WindowCloseEvent& event);
 };
