@@ -5,73 +5,65 @@
 
 fail_fast: false
 repos:
-    - repo: https://github.com/gitleaks/gitleaks
-      rev: v8.30.0
-      hooks:
-          - id: gitleaks
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
 
-    - repo: https://github.com/sirosen/texthooks
-      rev: 0.7.1
-      hooks:
-          - id: fix-smartquotes
-            exclude: assets/models|sponge/deps
+  - repo: https://github.com/sirosen/texthooks
+    rev: 0.7.1
+    hooks:
+      - id: fix-smartquotes
+        exclude: assets/models|sponge/deps
 
-    - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v6.0.0
-      hooks:
-          - id: detect-private-key
-          - id: detect-aws-credentials
-            args: ['--allow-missing-credentials']
-          - id: mixed-line-ending
-            exclude: assets/models|sponge/deps
-            args: ['--fix=lf']
-          - id: trailing-whitespace
-            exclude: assets/models|sponge/deps
-          - id: end-of-file-fixer
-            exclude: assets/models|sponge/deps
-          - id: check-case-conflict
-          - id: check-executables-have-shebangs
-          - id: check-merge-conflict
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: ['--allow-missing-credentials']
+      - id: mixed-line-ending
+        exclude: assets/models|sponge/deps
+        args: ['--fix=lf']
+      - id: trailing-whitespace
+        exclude: assets/models|sponge/deps
+      - id: end-of-file-fixer
+        exclude: assets/models|sponge/deps
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
 
-    - repo: https://github.com/crate-ci/typos
-      rev: v1.42.0
-      hooks:
-          - id: typos
-            exclude: .clang-tidy|assets/models|sponge/deps
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.42.1
+    hooks:
+      - id: typos
+        exclude: .clang-tidy|assets/models|sponge/deps
 
-    - repo: https://github.com/pre-commit/mirrors-clang-format
-      rev: v21.1.8
-      hooks:
-          - id: clang-format
-            args: [--style=file, -i]
-            files: "\\.(c|cpp|h|hpp|glsl)$"
-            exclude: sponge/deps
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v21.1.8
+    hooks:
+      - id: clang-format
+        args: [--style=file, -i]
+        files: "\\.(c|cpp|h|hpp|glsl)$"
+        exclude: sponge/deps
 
-    - repo: https://github.com/cpplint/cpplint
-      rev: 2.0.2
-      hooks:
-          - id: cpplint
-            exclude: sponge/deps
-            args:
-                - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent,-whitespace/line_length
+  - repo: https://github.com/cpplint/cpplint
+    rev: 2.0.2
+    hooks:
+      - id: cpplint
+        exclude: sponge/deps
+        args:
+          - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent,-whitespace/line_length
 
-    - repo: https://github.com/pre-commit/mirrors-prettier
-      rev: 'v3.1.0'
-      hooks:
-          - id: prettier
-            args: ['--write']
-            files: "\\.(js|jsx|ts|tsx|css|scss|json|yaml|yml)$"
-            exclude: assets/models|sponge/deps
+  - repo: https://github.com/MaratFM/pre-commit-remark
+    rev: 1.0.0
+    hooks:
+      - id: remark
+        args: ['--output', '--frail']
+        files: "\\.md$"
+        exclude: assets/models|sponge/deps
 
-    - repo: https://github.com/MaratFM/pre-commit-remark
-      rev: 1.0.0
-      hooks:
-          - id: remark
-            args: ['--output', '--frail']
-            files: "\\.md$"
-            exclude: assets/models|sponge/deps
-
-    - repo: https://github.com/shellcheck-py/shellcheck-py
-      rev: v0.11.0.1
-      hooks:
-          - id: shellcheck
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
