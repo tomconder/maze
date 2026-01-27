@@ -13,10 +13,12 @@ namespace sponge::platform::glfw::core {
 using EventCallbackFn = std::function<void(event::Event&)>;
 
 struct WindowData {
-    std::string     title;
-    uint32_t        width;
-    uint32_t        height;
-    EventCallbackFn eventCallback;
+    std::string_view title;
+    uint32_t         width;
+    uint32_t         height;
+    uint32_t         offsetx;
+    uint32_t         offsety;
+    EventCallbackFn  eventCallback;
 };
 
 class Window final : public sponge::core::Window {
@@ -32,6 +34,14 @@ public:
         return data.height;
     }
 
+    uint32_t getOffsetX() const override {
+        return data.offsetx;
+    }
+
+    uint32_t getOffsetY() const override {
+        return data.offsety;
+    }
+
     void* getNativeWindow() const override {
         return window;
     }
@@ -39,6 +49,9 @@ public:
     void setEventCallback(const EventCallbackFn& callback) {
         data.eventCallback = callback;
     }
+
+    std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>
+        adjustAspectRatio(uint32_t width, uint32_t height);
 
 private:
     void init(const sponge::core::WindowProps& props);

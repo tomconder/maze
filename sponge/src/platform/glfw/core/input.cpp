@@ -22,7 +22,7 @@ bool Input::isKeyDown(const input::KeyCode keycode) {
         return false;
     }
 
-    const auto window = Application::get().window;
+    const auto window = Application::get().getWindow();
     const auto state =
         glfwGetKey(static_cast<GLFWwindow*>(window->getNativeWindow()),
                    static_cast<int32_t>(keycode));
@@ -56,7 +56,7 @@ bool Input::isMouseButtonDown(const input::MouseButton button) {
         return false;
     }
 
-    const auto window = Application::get().window;
+    const auto window = Application::get().getWindow();
     const auto state  = glfwGetMouseButton(
         static_cast<GLFWwindow*>(window->getNativeWindow()), button);
     return state == GLFW_PRESS;
@@ -78,7 +78,7 @@ float Input::getMouseY() {
 }
 
 std::pair<float, float> Input::getMousePosition() {
-    const auto window = Application::get().window;
+    const auto window = Application::get().getWindow();
 
     double x = 0.F;
     double y = 0.F;
@@ -88,7 +88,7 @@ std::pair<float, float> Input::getMousePosition() {
 }
 
 std::pair<float, float> Input::getRelativeMousePosition() {
-    const auto window = Application::get().window;
+    const auto window = Application::get().getWindow();
 
     double x = 0.F;
     double y = 0.F;

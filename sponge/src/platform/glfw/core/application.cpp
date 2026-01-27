@@ -23,11 +23,6 @@ sponge::core::Timer systemTimer;
 
 constexpr uint32_t defaultWidth{ 1600 };
 constexpr uint32_t defaultHeight{ 900 };
-
-constexpr auto ratios = std::to_array(
-    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
-      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
-      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
 }  // namespace
 
 namespace sponge::platform::glfw::core {
@@ -90,12 +85,10 @@ bool Application::start() {
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
-    w = window->getWidth();
-    h = window->getHeight();
-
     window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
-    adjustAspectRatio(w, h);
+    const auto [w, h] =
+        adjustAspectRatio(window->getWidth(), window->getHeight());
 
     if (!onUserCreate()) {
         return false;
@@ -191,47 +184,17 @@ void Application::onImGuiRender() const {
     }
 }
 
-void Application::adjustAspectRatio(const uint32_t eventW,
-                                    const uint32_t eventH) {
-    float proposedRatio =
-        static_cast<float>(eventW) / static_cast<float>(eventH);
-    auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
-        return proposedRatio >= i.z;
-    };
+std::tuple<uint32_t, uint32_t>
+    Application::adjustAspectRatio(const uint32_t eventW,
+                                   const uint32_t eventH) const {
+    const auto [width, height, offsetX, offsetY] =
+        window->adjustAspectRatio(eventW, eventH);
 
-    glm::vec3 ratio;
-    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
-        it != std::end(ratios)) {
-        ratio = *it;
-    } else {
-        ratio = *(ratios.end() - 1);
-    }
+    renderer->setViewport(
+        static_cast<int32_t>(offsetX), static_cast<int32_t>(offsetY),
+        static_cast<int32_t>(width), static_cast<int32_t>(height));
 
-    const float aspectRatioWidth  = ratio.x;
-    const float aspectRatioHeight = ratio.y;
-
-    const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
-
-    const auto width  = static_cast<float>(eventW);
-    const auto height = static_cast<float>(eventH);
-
-    if (const float newAspectRatio = width / height;
-        newAspectRatio > aspectRatio) {
-        w = static_cast<int>(aspectRatioWidth * height / aspectRatioHeight);
-        h = eventH;
-    } else {
-        w = eventW;
-        h = static_cast<int>(aspectRatioHeight * width / aspectRatioWidth);
-    }
-
-    SPONGE_CORE_DEBUG(fmt::format("Resizing viewport to {}x{}", w, h));
-
-    offsetx = (eventW - w) / 2;
-    offsety = (eventH - h) / 2;
-
-    renderer->setViewport(static_cast<int32_t>(offsetx),
-                          static_cast<int32_t>(offsety),
-                          static_cast<int32_t>(w), static_cast<int32_t>(h));
+    return { width, height };
 }
 
 void Application::pushOverlay(
@@ -309,8 +272,10 @@ void Application::setMouseVisible(const bool value) const {
 
 void Application::centerMouse() const {
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
-    glfwSetCursorPos(glfwWindow, w / 2.F, h / 2.F);
-    Input::setPrevCursorPos({ w / 2.F, h / 2.F });
+    glfwSetCursorPos(glfwWindow, window->getWidth() / 2.F,
+                     window->getHeight() / 2.F);
+    Input::setPrevCursorPos(
+        { window->getWidth() / 2.F, window->getHeight() / 2.F });
 }
 
 void Application::setVerticalSync(const bool val) {

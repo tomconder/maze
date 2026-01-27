@@ -119,7 +119,8 @@ void MazeLayer::onAttach() {
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
     camera = ResourceManager::createGameCamera(gameCameraCreateInfo);
-    camera->setViewportSize(Maze::get().getWidth(), Maze::get().getHeight());
+    camera->setViewportSize(Maze::get().getWindow()->getWidth(),
+                            Maze::get().getWindow()->getHeight());
     camera->setPosition(cameraPosition);
 
     const auto shaderName = Mesh::getShaderName();
@@ -459,8 +460,10 @@ bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
 }
 
 void MazeLayer::renderGameObjects() const {
-    glViewport(Maze::get().getOffsetX(), Maze::get().getOffsetY(),
-               Maze::get().getWidth(), Maze::get().getHeight());
+    glViewport(Maze::get().getWindow()->getOffsetX(),
+               Maze::get().getWindow()->getOffsetY(),
+               Maze::get().getWindow()->getWidth(),
+               Maze::get().getWindow()->getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
