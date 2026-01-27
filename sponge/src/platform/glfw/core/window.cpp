@@ -8,6 +8,7 @@
 #include "platform/glfw/core/input.hpp"
 
 #include <array>
+#include <ranges>
 
 namespace {
 constexpr auto ratios = std::to_array(
