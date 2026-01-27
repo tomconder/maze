@@ -68,19 +68,21 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 }
 
 void ImGuiLayer::onImGuiRender() {
-    const auto window = Maze::get().window;
-    const auto width  = static_cast<float>(window->getWidth());
-    const auto height = static_cast<float>(window->getHeight());
+    const auto window  = Maze::get().getWindow();
+    const auto width   = static_cast<float>(window->getWidth());
+    const auto height  = static_cast<float>(window->getHeight());
+    const auto offsetX = static_cast<float>(window->getOffsetX());
+    const auto offsetY = static_cast<float>(window->getOffsetY());
 
     updateState();
     showMenu();
 
     if (hasAppInfoMenu) {
-        showAppInfoWindow(width);
+        showAppInfoWindow(width, offsetX, offsetY);
     }
 
     if (hasLogMenu) {
-        showLogWindow(width, height);
+        showLogWindow(width, height, offsetX, offsetY);
     }
 }
 
@@ -89,10 +91,12 @@ void ImGuiLayer::updateState() {
     isFullscreen = Maze::get().isFullscreen();
 }
 
-void ImGuiLayer::showAppInfoWindow(const float width) {
+void ImGuiLayer::showAppInfoWindow(const float width, const float offsetX,
+                                   const float offsetY) {
     ImGui::SetNextWindowPos(
-        { width - appInfoWidth,
-          ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2 });
+        { width - appInfoWidth + offsetX,
+          std::max(offsetY, ImGui::GetFontSize() +
+                                ImGui::GetStyle().FramePadding.y * 2) });
     ImGui::SetNextWindowSize({ appInfoWidth, appInfoHeight });
 
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
@@ -112,7 +116,7 @@ void ImGuiLayer::showInfoSection() {
     }
 
     const auto&       io     = ImGui::GetIO();
-    const auto        window = Maze::get().window;
+    const auto        window = Maze::get().getWindow();
     const std::string appInfo =
         fmt::format("{} {} ({})", project_name.c_str(), project_version.c_str(),
                     git_sha.c_str());
@@ -385,8 +389,9 @@ void ImGuiLayer::showResourcesSection() {
     showResourceTree("Textures", [] { showTexturesTable(); });
 }
 
-void ImGuiLayer::showLogWindow(const float width, const float height) {
-    ImGui::SetNextWindowPos({ 0.F, height - logHeight });
+void ImGuiLayer::showLogWindow(const float width, const float height,
+                               const float offsetX, const float offsetY) {
+    ImGui::SetNextWindowPos({ offsetX, height - logHeight + offsetY });
     ImGui::SetNextWindowSize({ width, logHeight });
 
     if (ImGui::Begin("Logging", &hasLogMenu,

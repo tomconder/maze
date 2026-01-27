@@ -69,9 +69,9 @@ std::unique_ptr<sponge::core::Application>
     UNUSED(argc);
     UNUSED(argv);
 
-    constexpr uint32_t width      = 0;
-    constexpr uint32_t height     = 0;
-    constexpr bool     fullscreen = true;
+    constexpr uint32_t width      = 1280;
+    constexpr uint32_t height     = 720;
+    constexpr bool     fullscreen = false;
 
     using platform::glfw::core::ApplicationSpecification;
 

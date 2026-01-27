@@ -30,8 +30,9 @@ private:
     // Main sections
     static void updateState();
     static void showInfoSection();
-    static void showAppInfoWindow(float width);
-    static void showLogWindow(float width, float height);
+    static void showAppInfoWindow(float width, float offsetX, float offsetY);
+    static void showLogWindow(float width, float height, float offsetX,
+                              float offsetY);
     static void showMenu();  // App info window sections
     static void showSettingsSection();
     static void showAppSettingsTable();
