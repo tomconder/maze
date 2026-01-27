@@ -47,7 +47,8 @@ public:
 
     void onImGuiRender() const;
 
-    void adjustAspectRatio(uint32_t eventW, uint32_t eventH);
+    std::tuple<uint32_t, uint32_t> adjustAspectRatio(uint32_t eventW,
+                                                     uint32_t eventH) const;
 
     void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
@@ -65,22 +66,6 @@ public:
 
     layer::LayerStack* getLayerStack() const {
         return layerStack.get();
-    }
-
-    uint32_t getHeight() const {
-        return h;
-    }
-
-    uint32_t getWidth() const {
-        return w;
-    }
-
-    uint32_t getOffsetX() const {
-        return offsetx;
-    }
-
-    uint32_t getOffsetY() const {
-        return offsety;
     }
 
     bool hasVerticalSync() const {
@@ -109,9 +94,11 @@ public:
         return *instance;
     }
 
-    void run() override;
+    std::shared_ptr<Window> getWindow() const {
+        return window;
+    }
 
-    std::shared_ptr<Window> window;
+    void run() override;
 
     bool isEventHandledByImGui() const {
         return imguiManager->isEventHandled();
@@ -122,18 +109,16 @@ private:
     std::unique_ptr<opengl::renderer::Context>     graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
 
+    std::shared_ptr<Window> window;
+
     std::unique_ptr<std::vector<LogItem>> messages;
 
-    bool     fullscreen = false;
-    bool     vsync      = true;
-    int32_t  prevH      = 0;
-    int32_t  prevW      = 0;
-    int32_t  prevX      = 0;
-    int32_t  prevY      = 0;
-    uint32_t h          = 0;
-    uint32_t offsetx    = 0;
-    uint32_t offsety    = 0;
-    uint32_t w          = 0;
+    bool    fullscreen = false;
+    bool    vsync      = true;
+    int32_t prevH      = 0;
+    int32_t prevW      = 0;
+    int32_t prevX      = 0;
+    int32_t prevY      = 0;
 
     std::unique_ptr<layer::LayerStack> layerStack;
 
