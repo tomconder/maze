@@ -9,7 +9,7 @@ namespace sponge::event {
 
 class WindowResizeEvent final : public Event {
 public:
-    WindowResizeEvent(const uint32_t width, const uint32_t height) :
+    explicit WindowResizeEvent(const uint32_t width, const uint32_t height) :
         width(width), height(height) {}
 
     uint32_t getWidth() const {

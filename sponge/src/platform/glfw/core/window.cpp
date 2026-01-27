@@ -7,13 +7,69 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/input.hpp"
 
+#include <array>
+#include <ranges>
+
+namespace {
+constexpr auto ratios = std::to_array(
+    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
+      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
+      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
+}  // namespace
+
 namespace sponge::platform::glfw::core {
 Window::Window(const sponge::core::WindowProps& props) {
+    window = nullptr;
     init(props);
 }
 
 Window::~Window() noexcept {
     shutdown();
+}
+
+std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>
+    Window::adjustAspectRatio(uint32_t width, uint32_t height) {
+    float proposedRatio =
+        static_cast<float>(width) / static_cast<float>(height);
+    auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
+        return proposedRatio >= i.z;
+    };
+
+    glm::vec3 ratio;
+    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
+        it != std::end(ratios)) {
+        ratio = *it;
+    } else {
+        ratio = *(ratios.end() - 1);
+    }
+
+    const float aspectRatioWidth  = ratio.x;
+    const float aspectRatioHeight = ratio.y;
+
+    const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
+
+    const auto fw = static_cast<float>(width);
+    const auto fh = static_cast<float>(height);
+
+    uint32_t w = 0;
+    uint32_t h = 0;
+
+    if (const float newAspectRatio = fw / fh; newAspectRatio > aspectRatio) {
+        w = static_cast<int>(aspectRatioWidth * fh / aspectRatioHeight);
+        h = static_cast<int>(fh);
+    } else {
+        w = static_cast<int>(fw);
+        h = static_cast<int>(aspectRatioHeight * fw / aspectRatioWidth);
+    }
+
+    data.width   = w;
+    data.height  = h;
+    data.offsetx = static_cast<uint32_t>((width - w) / 2.F);
+    data.offsety = static_cast<uint32_t>((height - h) / 2.F);
+
+    SPONGE_CORE_DEBUG(fmt::format("Resizing viewport to {}x{}", w, h));
+
+    return { data.width, data.height, data.offsetx, data.offsety };
 }
 
 void Window::init(const sponge::core::WindowProps& props) {
@@ -39,22 +95,22 @@ void Window::init(const sponge::core::WindowProps& props) {
         glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
         glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-        int32_t width  = static_cast<int32_t>(props.width);
-        int32_t height = static_cast<int32_t>(props.height);
+        auto width  = static_cast<int32_t>(props.width);
+        auto height = static_cast<int32_t>(props.height);
 
         if (width == 0 && height == 0) {
             width  = mode->width;
             height = mode->height;
         }
 
-        window = glfwCreateWindow(width, height, props.title.c_str(),
+        window = glfwCreateWindow(width, height, props.title.data(),
                                   primaryMonitor, nullptr);
     } else {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
 
         window = glfwCreateWindow(static_cast<int>(props.width),
                                   static_cast<int>(props.height),
-                                  props.title.c_str(), nullptr, nullptr);
+                                  props.title.data(), nullptr, nullptr);
     }
 
     if (window == nullptr) {
@@ -78,21 +134,19 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwSetWindowSizeCallback(window, [](GLFWwindow* window, const int width,
                                          const int height) {
-        const auto w = static_cast<uint32_t>(width);
-        const auto h = static_cast<uint32_t>(height);
-
-        if (w == 0 && h == 0) {
+        if (width == 0 && height == 0) {
             return;
         }
 
-        Application::get().adjustAspectRatio(w, h);
+        const auto [adjustedW, adjustedH] =
+            Application::get().adjustAspectRatio(width, height);
 
         auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-        event::WindowResizeEvent event(w, h);
+        event::WindowResizeEvent event(adjustedW, adjustedH);
         data->eventCallback(event);
-        data->width  = w;
-        data->height = h;
+        data->width  = adjustedW;
+        data->height = adjustedH;
     });
 
     glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {

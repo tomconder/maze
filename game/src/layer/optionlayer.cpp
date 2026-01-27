@@ -203,7 +203,7 @@ bool OptionLayer::onUpdate(double elapsedTime) {
     const auto fontNameStr = std::string(fontName);
     const auto font        = AssetManager::getFont(fontNameStr);
 
-    const auto        window         = Maze::get().window;
+    const auto        window         = Maze::get().getWindow();
     const std::string exitMessageStr = fmt::format(
         "Resolution: {}x{}", window->getWidth(), window->getHeight());
     font->render(exitMessageStr, { resolutionX + 56.F, resolutionY }, 48,
