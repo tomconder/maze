@@ -2,6 +2,7 @@ site/
 /build/
 /venv/
 
+.ai/
 .claude/
 CLAUDE.md
 
