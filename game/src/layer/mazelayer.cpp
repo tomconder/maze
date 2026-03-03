@@ -335,12 +335,12 @@ void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
     for (int32_t i = 0; i < numLights; i++) {
-        auto& light            = pointLights.at(i);
-        light.color            = glm::vec3(1.F);
-        light.position         = glm::vec3(rotate(glm::mat4(1.F),
-                                                  glm::two_pi<float>() * i / numLights,
-                                                  glm::vec3(0.F, 1.F, 0.F)) *
-                                           glm::vec4(0.F, 2.75F, -3.F, 1.F));
+        auto& light    = pointLights.at(i);
+        light.color    = glm::vec3(1.F);
+        light.position = glm::vec3(rotate(glm::mat4(1.F),
+                                          glm::two_pi<float>() * i / numLights,
+                                          glm::vec3(0.F, 1.F, 0.F)) *
+                                   glm::vec4(0.F, 2.75F, -3.F, 1.F));
         light.attenuationIndex = attenuationIndex;
     }
 
