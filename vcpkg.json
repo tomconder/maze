@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "f14401ca0f2754347c3864da7488a9b955b4e47a",
+  "builtin-baseline": "c01dc6ea7353758f2ed70df0bc29c97dfc650b3a",
   "dependencies": [
     {
       "name": "fmt",
@@ -44,7 +44,7 @@
       "features": [
         "on-demand"
       ],
-      "version>=": "0.11.1"
+      "version>=": "0.13.1"
     },
     {
       "name": "yoga",
