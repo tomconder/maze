@@ -9,6 +9,7 @@
 
 #include <array>
 #include <ranges>
+#include <set>
 
 namespace {
 constexpr auto ratios = std::to_array(
@@ -27,51 +28,6 @@ Window::~Window() noexcept {
     shutdown();
 }
 
-std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>
-    Window::adjustAspectRatio(uint32_t width, uint32_t height) {
-    float proposedRatio =
-        static_cast<float>(width) / static_cast<float>(height);
-    auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
-        return proposedRatio >= i.z;
-    };
-
-    glm::vec3 ratio;
-    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
-        it != std::end(ratios)) {
-        ratio = *it;
-    } else {
-        ratio = *(ratios.end() - 1);
-    }
-
-    const float aspectRatioWidth  = ratio.x;
-    const float aspectRatioHeight = ratio.y;
-
-    const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
-
-    const auto fw = static_cast<float>(width);
-    const auto fh = static_cast<float>(height);
-
-    uint32_t w = 0;
-    uint32_t h = 0;
-
-    if (const float newAspectRatio = fw / fh; newAspectRatio > aspectRatio) {
-        w = static_cast<int>(aspectRatioWidth * fh / aspectRatioHeight);
-        h = static_cast<int>(fh);
-    } else {
-        w = static_cast<int>(fw);
-        h = static_cast<int>(aspectRatioHeight * fw / aspectRatioWidth);
-    }
-
-    data.width   = w;
-    data.height  = h;
-    data.offsetx = static_cast<uint32_t>((width - w) / 2.F);
-    data.offsety = static_cast<uint32_t>((height - h) / 2.F);
-
-    SPONGE_CORE_DEBUG(fmt::format("Resizing viewport to {}x{}", w, h));
-
-    return { data.width, data.height, data.offsetx, data.offsety };
-}
-
 void Window::init(const sponge::core::WindowProps& props) {
     data.title  = props.title;
     data.width  = props.width;
@@ -83,34 +39,32 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
+    GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+    auto width  = static_cast<int32_t>(props.width);
+    auto height = static_cast<int32_t>(props.height);
+
+    if (width == 0 && height == 0) {
+        width  = mode->width;
+        height = mode->height;
+    }
+
     if (props.fullscreen) {
         SPONGE_CORE_INFO("Creating fullscreen window");
-
-        GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
-
-        glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-        auto width  = static_cast<int32_t>(props.width);
-        auto height = static_cast<int32_t>(props.height);
-
-        if (width == 0 && height == 0) {
-            width  = mode->width;
-            height = mode->height;
-        }
-
         window = glfwCreateWindow(width, height, props.title.data(),
                                   primaryMonitor, nullptr);
     } else {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-
-        window = glfwCreateWindow(static_cast<int>(props.width),
-                                  static_cast<int>(props.height),
-                                  props.title.data(), nullptr, nullptr);
+        window = glfwCreateWindow(width, height, props.title.data(), nullptr,
+                                  nullptr);
     }
 
     if (window == nullptr) {
@@ -118,6 +72,7 @@ void Window::init(const sponge::core::WindowProps& props) {
         glfwGetError(&descCStr);
         const std::string description = descCStr ? descCStr : "Unknown error";
         SPONGE_CORE_CRITICAL("Could not create window: {}", description);
+        return;
     }
 
     int w = 0;
@@ -143,10 +98,11 @@ void Window::init(const sponge::core::WindowProps& props) {
 
         auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-        event::WindowResizeEvent event(adjustedW, adjustedH);
-        data->eventCallback(event);
         data->width  = adjustedW;
         data->height = adjustedH;
+
+        event::WindowResizeEvent event(adjustedW, adjustedH);
+        data->eventCallback(event);
     });
 
     glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
@@ -295,5 +251,42 @@ void Window::init(const sponge::core::WindowProps& props) {
 void Window::shutdown() const {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
+    std::vector<sponge::core::Resolution> resolutions;
+
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    if (primaryMonitor == nullptr) {
+        return resolutions;
+    }
+
+    // TODO filter by refresh rate?
+
+    int                count = 0;
+    const GLFWvidmode* modes = glfwGetVideoModes(primaryMonitor, &count);
+    if (modes == nullptr || count == 0) {
+        return resolutions;
+    }
+
+    // TODO do not need to dedupe if filtered by refresh rate
+
+    // Use set to deduplicate (GLFW returns same resolution with different
+    // refresh rates). Set stores in ascending order by default.
+    std::set<std::pair<uint32_t, uint32_t>> uniqueResolutions;
+    for (int i = 0; i < count; ++i) {
+        uniqueResolutions.emplace(static_cast<uint32_t>(modes[i].width),
+                                  static_cast<uint32_t>(modes[i].height));
+    }
+
+    // TODO sort by horizontal resolution then by vertical resolution
+
+    resolutions.reserve(uniqueResolutions.size());
+    for (auto it = uniqueResolutions.rbegin(); it != uniqueResolutions.rend();
+         ++it) {
+        resolutions.push_back({ it->first, it->second });
+    }
+
+    return resolutions;
 }
 }  // namespace sponge::platform::glfw::core

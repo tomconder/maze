@@ -72,6 +72,10 @@ bool Application::start() {
                                    .height     = appSpec.height,
                                    .fullscreen = appSpec.fullscreen });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
+    if (glfwWindow == nullptr) {
+        SPONGE_CORE_CRITICAL("Failed to create window");
+        return false;
+    }
 
     graphics->init(glfwWindow);
 
@@ -187,12 +191,13 @@ void Application::onImGuiRender() const {
 std::tuple<uint32_t, uint32_t>
     Application::adjustAspectRatio(const uint32_t eventW,
                                    const uint32_t eventH) const {
-    const auto [width, height, offsetX, offsetY] =
-        window->adjustAspectRatio(eventW, eventH);
+    constexpr int32_t offsetX = 0;
+    constexpr int32_t offsetY = 0;
+    const auto        width   = eventW;
+    const auto        height  = eventH;
 
-    renderer->setViewport(
-        static_cast<int32_t>(offsetX), static_cast<int32_t>(offsetY),
-        static_cast<int32_t>(width), static_cast<int32_t>(height));
+    renderer->setViewport(offsetX, offsetY, static_cast<int32_t>(width),
+                          static_cast<int32_t>(height));
 
     return { width, height };
 }
@@ -233,14 +238,14 @@ void Application::toggleFullscreen() {
 
         GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
-        glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, mode->width,
-                             mode->height, mode->refreshRate);
+        glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, prevW, prevH,
+                             mode->refreshRate);
     } else {
         if (prevW <= 0) {
-            prevW = defaultWidth;
+            prevW = static_cast<int>(window->getWidth());
         }
         if (prevH <= 0) {
-            prevH = defaultHeight;
+            prevH = static_cast<int>(window->getHeight());
         }
 
         GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
@@ -282,6 +287,44 @@ void Application::setVerticalSync(const bool val) {
     vsync = val;
     glfwSwapInterval(vsync ? 1 : 0);
     SPONGE_CORE_DEBUG(fmt::format("Set vsync to {}", vsync));
+}
+
+void Application::setResolution(const uint32_t width,
+                                const uint32_t height) const {
+    auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
+    if (glfwWindow == nullptr) {
+        SPONGE_CORE_WARN("Window handle is null");
+        return;
+    }
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    if (monitor == nullptr) {
+        SPONGE_CORE_WARN("Primary monitor is null");
+        return;
+    }
+
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    if (mode == nullptr) {
+        SPONGE_CORE_WARN("Video mode is null");
+        return;
+    }
+
+    if (fullscreen) {
+        glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, static_cast<int>(width),
+                             static_cast<int>(height), mode->refreshRate);
+    } else {
+        glfwSetWindowSize(glfwWindow, static_cast<int>(width),
+                          static_cast<int>(height));
+
+        const int posX = (mode->width - static_cast<int>(width)) / 2;
+        const int posY = (mode->height - static_cast<int>(height)) / 2;
+        glfwSetWindowPos(glfwWindow, posX, posY);
+    }
+}
+
+std::vector<sponge::core::Resolution>
+    Application::getAvailableResolutions() const {
+    return Window::getAvailableResolutions();
 }
 
 void Application::run() {

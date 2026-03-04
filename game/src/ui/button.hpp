@@ -44,6 +44,8 @@ public:
 
     void setAlignType(const ButtonAlignType& val);
 
+    void setMessage(const std::string& message);
+
     void setHover(const bool value) {
         hover = value;
     }

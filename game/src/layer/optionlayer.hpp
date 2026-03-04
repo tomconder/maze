@@ -2,9 +2,18 @@
 
 #include "sponge.hpp"
 
+#include <vector>
+
 namespace game::layer {
 
-enum class OptionMenuItem : uint8_t { Return = 0, Count };
+enum class OptionMenuItem : uint8_t {
+    AspectRatio = 0,
+    Resolution,
+    FullScreen,
+    VerticalSync,
+    Return,
+    Count
+};
 
 class OptionLayer final : public sponge::layer::Layer {
 public:
@@ -19,9 +28,19 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    OptionMenuItem selectedItem = OptionMenuItem::Return;
+    OptionMenuItem selectedItem = OptionMenuItem::AspectRatio;
+
+    std::vector<sponge::core::Resolution> availableResolutions;
+    std::vector<sponge::core::Resolution> filteredResolutions;
+    size_t                                selectedAspectRatioIndex = 0;
+    size_t                                selectedResolutionIndex  = 0;
+    bool                                  hasUnappliedChanges      = false;
+
+    void filterResolutions();
 
     void recalculateLayout(float width, float height) const;
+
+    void updateChangeStatus();
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
@@ -30,7 +49,7 @@ private:
 
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
 
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+    bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 
     void clearHoveredItems() const;
 };

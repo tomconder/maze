@@ -59,6 +59,17 @@ void Button::setAlignType(const ButtonAlignType& val) {
     alignType = val;
 }
 
+void Button::setMessage(const std::string& message) {
+    if (text == message) {
+        return;
+    }
+
+    text   = message;
+    length = font->getLength(text, textSize);
+
+    setPosition(top, bottom);
+}
+
 void Button::setPosition(const glm::vec2& topLeft,
                          const glm::vec2& bottomRight) {
     top.x = topLeft.x;

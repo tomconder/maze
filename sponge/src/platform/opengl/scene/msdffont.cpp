@@ -63,6 +63,11 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     log();
 }
 
+uint32_t MSDFFont::getHeight(const uint32_t targetSize) const {
+    const auto scale = static_cast<float>(targetSize) / size;
+    return static_cast<uint32_t>(lineHeight * scale);
+}
+
 uint32_t MSDFFont::getLength(const std::string_view text,
                              const uint32_t         targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
