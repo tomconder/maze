@@ -7,9 +7,10 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/input.hpp"
 
+#include <algorithm>
 #include <array>
 #include <ranges>
-#include <set>
+#include <span>
 
 namespace {
 constexpr auto ratios = std::to_array(
@@ -19,8 +20,7 @@ constexpr auto ratios = std::to_array(
 }  // namespace
 
 namespace sponge::platform::glfw::core {
-Window::Window(const sponge::core::WindowProps& props) {
-    window = nullptr;
+Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {
     init(props);
 }
 
@@ -153,12 +153,12 @@ void Window::init(const sponge::core::WindowProps& props) {
     });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, uint32_t codepoint) {
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
         if (Application::get().isEventHandledByImGui()) {
             return;
         }
+
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
         event::KeyTypedEvent event(static_cast<input::KeyCode>(codepoint));
         data->eventCallback(event);
@@ -172,26 +172,23 @@ void Window::init(const sponge::core::WindowProps& props) {
             return;
         }
 
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-        const auto buttonCode = static_cast<input::MouseButton>(button);
         if (button != GLFW_MOUSE_BUTTON_LEFT) {
             return;
         }
 
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+        const auto buttonCode = static_cast<input::MouseButton>(button);
+
         switch (action) {
             case GLFW_PRESS: {
-                Input::updateButtonState(
-                    static_cast<input::MouseButton>(button), KeyState::Pressed);
+                Input::updateButtonState(buttonCode, KeyState::Pressed);
                 event::MouseButtonPressedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
             }
             case GLFW_RELEASE: {
-                Input::updateButtonState(
-                    static_cast<input::MouseButton>(button),
-                    KeyState::Released);
+                Input::updateButtonState(buttonCode, KeyState::Released);
                 event::MouseButtonReleasedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
@@ -254,38 +251,39 @@ void Window::shutdown() const {
 }
 
 std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
-    std::vector<sponge::core::Resolution> resolutions;
-
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     if (primaryMonitor == nullptr) {
-        return resolutions;
+        return {};
     }
 
-    // TODO filter by refresh rate?
+    const GLFWvidmode* currentMode = glfwGetVideoMode(primaryMonitor);
+    if (currentMode == nullptr) {
+        return {};
+    }
+
+    const int targetRefreshRate = currentMode->refreshRate;
 
     int                count = 0;
     const GLFWvidmode* modes = glfwGetVideoModes(primaryMonitor, &count);
     if (modes == nullptr || count == 0) {
-        return resolutions;
+        return {};
     }
 
-    // TODO do not need to dedupe if filtered by refresh rate
+    auto resolutions =
+        std::span(modes, static_cast<size_t>(count)) |
+        std::views::filter([targetRefreshRate](const GLFWvidmode& m) {
+            return m.refreshRate == targetRefreshRate && m.width >= 1024;
+        }) |
+        std::views::transform(
+            [](const GLFWvidmode& m) -> sponge::core::Resolution {
+                return { static_cast<uint32_t>(m.width),
+                         static_cast<uint32_t>(m.height) };
+            }) |
+        std::ranges::to<std::vector>();
 
-    // Use set to deduplicate (GLFW returns same resolution with different
-    // refresh rates). Set stores in ascending order by default.
-    std::set<std::pair<uint32_t, uint32_t>> uniqueResolutions;
-    for (int i = 0; i < count; ++i) {
-        uniqueResolutions.emplace(static_cast<uint32_t>(modes[i].width),
-                                  static_cast<uint32_t>(modes[i].height));
-    }
-
-    // TODO sort by horizontal resolution then by vertical resolution
-
-    resolutions.reserve(uniqueResolutions.size());
-    for (auto it = uniqueResolutions.rbegin(); it != uniqueResolutions.rend();
-         ++it) {
-        resolutions.push_back({ it->first, it->second });
-    }
+    std::ranges::sort(resolutions, [](const auto& a, const auto& b) {
+        return a.width != b.width ? a.width < b.width : a.height < b.height;
+    });
 
     return resolutions;
 }

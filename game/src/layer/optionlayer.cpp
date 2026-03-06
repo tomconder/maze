@@ -13,6 +13,7 @@
 #include <array>
 #include <memory>
 #include <numeric>
+#include <ranges>
 #include <string>
 
 namespace {
@@ -145,35 +146,20 @@ void OptionLayer::onAttach() {
     YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
-    aspectRatioNode = YGNodeNew();
-    YGNodeStyleSetFlex(aspectRatioNode, 1.0);
-    YGNodeStyleSetMargin(aspectRatioNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(aspectRatioNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, aspectRatioNode, 0);
+    auto makeMenuNode = [](YGNodeRef parent, int index) {
+        auto* const node = YGNodeNew();
+        YGNodeStyleSetFlex(node, 1.F);
+        YGNodeStyleSetMargin(node, YGEdgeBottom, 30.F);
+        YGNodeStyleSetMaxHeight(node, 110);
+        YGNodeInsertChild(parent, node, index);
+        return node;
+    };
 
-    resolutionNode = YGNodeNew();
-    YGNodeStyleSetFlex(resolutionNode, 1.0);
-    YGNodeStyleSetMargin(resolutionNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(resolutionNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, resolutionNode, 1);
-
-    fullScreenNode = YGNodeNew();
-    YGNodeStyleSetFlex(fullScreenNode, 1.0);
-    YGNodeStyleSetMargin(fullScreenNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(fullScreenNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, fullScreenNode, 2);
-
-    verticalSyncNode = YGNodeNew();
-    YGNodeStyleSetFlex(verticalSyncNode, 1.0);
-    YGNodeStyleSetMargin(verticalSyncNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(verticalSyncNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, verticalSyncNode, 3);
-
-    returnNode = YGNodeNew();
-    YGNodeStyleSetFlex(returnNode, 1.0);
-    YGNodeStyleSetMargin(returnNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(returnNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, returnNode, 4);
+    aspectRatioNode  = makeMenuNode(menuBackgroundNode, 0);
+    resolutionNode   = makeMenuNode(menuBackgroundNode, 1);
+    fullScreenNode   = makeMenuNode(menuBackgroundNode, 2);
+    verticalSyncNode = makeMenuNode(menuBackgroundNode, 3);
+    returnNode       = makeMenuNode(menuBackgroundNode, 4);
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -182,25 +168,25 @@ void OptionLayer::onAttach() {
     const auto currentHeight = window->getHeight();
 
     // Auto-detect the initial aspect ratio from the current window size
-    const auto g             = std::gcd(currentWidth, currentHeight);
-    const auto rw            = currentWidth / g;
-    const auto rh            = currentHeight / g;
-    selectedAspectRatioIndex = 0;
-    for (size_t i = 0; i < aspectRatioFilters.size(); ++i) {
-        const auto& f  = aspectRatioFilters[i];
-        const auto  fg = std::gcd(f.numerator, f.denominator);
-        if (!f.approximate && rw == f.numerator / fg &&
-            rh == f.denominator / fg) {
-            selectedAspectRatioIndex = i;
-            break;
-        }
-    }
+    const auto g  = std::gcd(currentWidth, currentHeight);
+    const auto rw = currentWidth / g;
+    const auto rh = currentHeight / g;
+
+    const auto arIt =
+        std::ranges::find_if(aspectRatioFilters, [&](const auto& f) {
+            const auto fg = std::gcd(f.numerator, f.denominator);
+            return !f.approximate && rw == f.numerator / fg &&
+                   rh == f.denominator / fg;
+        });
+    selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
+                                   static_cast<size_t>(std::ranges::distance(
+                                       aspectRatioFilters.begin(), arIt)) :
+                                   0;
 
     filterResolutions();
 
-    auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
     recalculateLayout(width, height);
 }
 
@@ -212,27 +198,26 @@ void OptionLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? this->onKeyPressed(event) : false;
+        return isActive() ? onKeyPressed(event) : false;
     });
     dispatcher.dispatch<MouseButtonPressedEvent>(
         [this](const MouseButtonPressedEvent& event) {
-            return isActive() ? this->onMouseButtonPressed(event) : false;
+            return isActive() ? onMouseButtonPressed(event) : false;
         });
     dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? this->onMouseMoved(event) : false;
+        return isActive() ? onMouseMoved(event) : false;
     });
     dispatcher.dispatch<WindowResizeEvent>(
         [this](const WindowResizeEvent& event) {
-            return this->onWindowResize(event);
+            return onWindowResize(event);
         });
 }
 
 bool OptionLayer::onUpdate(double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
 
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
@@ -257,12 +242,13 @@ bool OptionLayer::onUpdate(double elapsedTime) {
     const auto [returnX, returnY, returnW, returnH] =
         getNodeLayout(returnNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
-    const auto fontNameStr = std::string(fontName);
-    const auto font        = AssetManager::getFont(fontNameStr);
+    const auto font = AssetManager::getFont(fontName);
 
-    const auto&       arFilter = aspectRatioFilters[selectedAspectRatioIndex];
+    const auto&  arFilter = aspectRatioFilters[selectedAspectRatioIndex];
+    const char*  arLeft   = selectedAspectRatioIndex > 0 ? "<" : " ";
+    const char*  arRight  = selectedAspectRatioIndex + 1 < aspectRatioFilters.size() ? ">" : " ";
     const std::string aspectRatioStr =
-        fmt::format("Aspect Ratio: < {} >", arFilter.label);
+        fmt::format("Aspect Ratio: {} {} {}", arLeft, arFilter.label, arRight);
     const bool isAspectRatioSelected =
         selectedItem == OptionMenuItem::AspectRatio;
     quad->render(
@@ -276,9 +262,11 @@ bool OptionLayer::onUpdate(double elapsedTime) {
 
     std::string resolutionStr;
     if (!filteredResolutions.empty()) {
-        const auto& res = filteredResolutions[selectedResolutionIndex];
+        const auto& res      = filteredResolutions[selectedResolutionIndex];
+        const char* resLeft  = selectedResolutionIndex > 0 ? "<" : " ";
+        const char* resRight = selectedResolutionIndex + 1 < filteredResolutions.size() ? ">" : " ";
         resolutionStr =
-            fmt::format("Resolution: < {}x{} >", res.width, res.height);
+            fmt::format("Resolution: {} {}x{} {}", resLeft, res.width, res.height, resRight);
     } else {
         const auto window = Maze::get().getWindow();
         resolutionStr     = fmt::format("Resolution: {}x{}", window->getWidth(),
@@ -397,16 +385,17 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
 
         if (keyCode == KeyCode::SpongeKey_Left ||
             keyCode == KeyCode::SpongeKey_KP4) {
-            selectedAspectRatioIndex =
-                (selectedAspectRatioIndex + aspectRatioCount - 1) %
-                aspectRatioCount;
+            if (selectedAspectRatioIndex > 0) {
+                selectedAspectRatioIndex--;
+            }
             filterResolutions();
         }
 
         if (keyCode == KeyCode::SpongeKey_Right ||
             keyCode == KeyCode::SpongeKey_KP6) {
-            selectedAspectRatioIndex =
-                (selectedAspectRatioIndex + 1) % aspectRatioCount;
+            if (selectedAspectRatioIndex + 1 < aspectRatioCount) {
+                selectedAspectRatioIndex++;
+            }
             filterResolutions();
         }
     }
@@ -417,16 +406,17 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
 
         if (keyCode == KeyCode::SpongeKey_Left ||
             keyCode == KeyCode::SpongeKey_KP4) {
-            selectedResolutionIndex =
-                (selectedResolutionIndex + resolutionCount + 1) %
-                resolutionCount;
+            if (selectedResolutionIndex > 0) {
+                selectedResolutionIndex--;
+            }
             updateChangeStatus();
         }
 
         if (keyCode == KeyCode::SpongeKey_Right ||
             keyCode == KeyCode::SpongeKey_KP6) {
-            selectedResolutionIndex =
-                (selectedResolutionIndex - 1) % resolutionCount;
+            if (selectedResolutionIndex + 1 < resolutionCount) {
+                selectedResolutionIndex++;
+            }
             updateChangeStatus();
         }
     }
@@ -437,8 +427,7 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     UNUSED(event);
 
-    auto [mouseX, mouseY] =
-        sponge::platform::glfw::core::Input::getMousePosition();
+    auto [mouseX, mouseY] = Input::getMousePosition();
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges && !filteredResolutions.empty()) {
@@ -469,12 +458,13 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         const auto midX             = arX + arW / 2.F;
 
         if (mouseX < midX) {
-            selectedAspectRatioIndex =
-                (selectedAspectRatioIndex + aspectRatioCount - 1) %
-                aspectRatioCount;
+            if (selectedAspectRatioIndex > 0) {
+                selectedAspectRatioIndex--;
+            }
         } else {
-            selectedAspectRatioIndex =
-                (selectedAspectRatioIndex + 1) % aspectRatioCount;
+            if (selectedAspectRatioIndex + 1 < aspectRatioCount) {
+                selectedAspectRatioIndex++;
+            }
         }
 
         selectedItem = OptionMenuItem::AspectRatio;
@@ -492,12 +482,13 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         const auto midX            = resX + resW / 2.F;
 
         if (mouseX < midX) {
-            selectedResolutionIndex =
-                (selectedResolutionIndex + resolutionCount - 1) %
-                resolutionCount;
+            if (selectedResolutionIndex > 0) {
+                selectedResolutionIndex--;
+            }
         } else {
-            selectedResolutionIndex =
-                (selectedResolutionIndex + 1) % resolutionCount;
+            if (selectedResolutionIndex + 1 < resolutionCount) {
+                selectedResolutionIndex++;
+            }
         }
 
         selectedItem = OptionMenuItem::Resolution;
@@ -555,9 +546,8 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         shader->unbind();
     }
 
-    const auto [width, height] =
-        std::pair{ static_cast<float>(event.getWidth()),
-                   static_cast<float>(event.getHeight()) };
+    const auto width  = static_cast<float>(event.getWidth());
+    const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
 
     filterResolutions();
@@ -567,46 +557,42 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
 
 void OptionLayer::filterResolutions() {
     const auto& filter = aspectRatioFilters[selectedAspectRatioIndex];
-    filteredResolutions.clear();
 
-    for (const auto& res : availableResolutions) {
-        bool matches = false;
+    auto isExactMatch = [&](const sponge::core::Resolution& res) {
+        const auto g  = std::gcd(res.width, res.height);
+        const auto fg = std::gcd(filter.numerator, filter.denominator);
+        return (res.width / g == filter.numerator / fg) &&
+               (res.height / g == filter.denominator / fg);
+    };
+
+    auto matchesFilter = [&](const sponge::core::Resolution& res) {
         if (filter.approximate) {
             const float ratio =
                 static_cast<float>(res.width) / static_cast<float>(res.height);
             const float target = static_cast<float>(filter.numerator) /
                                  static_cast<float>(filter.denominator);
-
-            const auto g  = std::gcd(res.width, res.height);
-            const auto fg = std::gcd(filter.numerator, filter.denominator);
-            const bool isExactMatch =
-                (res.width / g == filter.numerator / fg) &&
-                (res.height / g == filter.denominator / fg);
-
-            matches =
-                !isExactMatch && (std::abs(ratio - target) / target <= 0.01F);
-        } else {
-            const auto g  = std::gcd(res.width, res.height);
-            const auto fg = std::gcd(filter.numerator, filter.denominator);
-            matches       = (res.width / g == filter.numerator / fg) &&
-                            (res.height / g == filter.denominator / fg);
+            return !isExactMatch(res) &&
+                   (std::abs(ratio - target) / target <= 0.01F);
         }
-        if (matches) {
-            filteredResolutions.push_back(res);
-        }
-    }
+        return isExactMatch(res);
+    };
+
+    filteredResolutions = availableResolutions |
+                          std::views::filter(matchesFilter) |
+                          std::ranges::to<std::vector>();
 
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
-    selectedResolutionIndex  = 0;
-    for (size_t i = 0; i < filteredResolutions.size(); ++i) {
-        if (filteredResolutions[i].width == currentWidth &&
-            filteredResolutions[i].height == currentHeight) {
-            selectedResolutionIndex = i;
-            break;
-        }
-    }
+
+    const auto it =
+        std::ranges::find_if(filteredResolutions, [&](const auto& r) {
+            return r.width == currentWidth && r.height == currentHeight;
+        });
+    selectedResolutionIndex = it != filteredResolutions.end() ?
+                                  static_cast<size_t>(std::ranges::distance(
+                                      filteredResolutions.begin(), it)) :
+                                  0;
 
     updateChangeStatus();
 }
