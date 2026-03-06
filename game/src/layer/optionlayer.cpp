@@ -198,6 +198,25 @@ void OptionLayer::onAttach() {
 
     filterResolutions();
 
+    // compute max width across all aspect ratios and resolutions.
+    {
+        const auto font    = AssetManager::getFont(fontName);
+        maxCycleValueWidth = std::accumulate(
+            aspectRatioFilters.begin(), aspectRatioFilters.end(), 0.F,
+            [&](const float acc, const auto& f) {
+                return std::max(acc, static_cast<float>(
+                                         font->getLength(f.label, fontSize)));
+            });
+        maxCycleValueWidth = std::accumulate(
+            availableResolutions.begin(), availableResolutions.end(),
+            maxCycleValueWidth, [&](const float acc, const auto& res) {
+                return std::max(
+                    acc, static_cast<float>(font->getLength(
+                             fmt::format("{} x {}", res.width, res.height),
+                             fontSize)));
+            });
+    }
+
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
     recalculateLayout(width, height);
@@ -257,13 +276,14 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
     renderCycleRow(arX, arY, arW, arH, "Aspect Ratio", arFilter.label,
                    selectedAspectRatioIndex > 0,
-                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size());
+                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size(),
+                   maxCycleValueWidth);
 
     const auto [resCenter, resHasLeft, resHasRight] =
         getResolutionDisplayInfo();
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     renderCycleRow(resX, resY, resW, resH, "Resolution", resCenter, resHasLeft,
-                   resHasRight);
+                   resHasRight, maxCycleValueWidth);
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
     renderToggleRow(fsX, fsY, fsW, fsH, "Full Screen",
@@ -317,26 +337,28 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
 
 void OptionLayer::renderCycleRow(const float x, const float y, const float w,
                                  const float h, const std::string_view label,
-                                 std::string_view value, const bool hasLeft,
-                                 const bool hasRight) {
+                                 const std::string_view value,
+                                 const bool hasLeft, const bool hasRight,
+                                 const float maxValWidth) {
     const auto  font = AssetManager::getFont(fontName);
     const float textY =
         y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F;
     const std::string leftPart  = "< ";
     const std::string rightPart = " >";
-    const float       fullLen   = static_cast<float>(
-        font->getLength(fmt::format("< {} >", value), fontSize));
-    const auto leftLen =
+    const auto        leftLen =
         static_cast<float>(font->getLength(leftPart, fontSize));
+    const auto rightLen =
+        static_cast<float>(font->getLength(rightPart, fontSize));
     const auto  valLen = static_cast<float>(font->getLength(value, fontSize));
-    const float startX = x + w - textMarginLeft - fullLen;
+    const float startX =
+        x + w - textMarginLeft - leftLen - maxValWidth - rightLen;
+    const float valueX = startX + leftLen + (maxValWidth - valLen) / 2.F;
     font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
                  textColor);
     font->render(leftPart, { startX, textY }, fontSize,
                  hasLeft ? textColor : arrowDisabledColor);
-    font->render(std::string(value), { startX + leftLen, textY }, fontSize,
-                 textColor);
-    font->render(rightPart, { startX + leftLen + valLen, textY }, fontSize,
+    font->render(std::string(value), { valueX, textY }, fontSize, textColor);
+    font->render(rightPart, { startX + leftLen + maxValWidth, textY }, fontSize,
                  hasRight ? textColor : arrowDisabledColor);
 }
 
@@ -382,7 +404,7 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
 
     if (keyCode == KeyCode::SpongeKey_Escape) {
         clearHoveredItems();
-        hasUnappliedChanges = false;
+        resetSelectionToCurrentState();
         setActive(false);
         return true;
     }
@@ -395,8 +417,10 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
                 const auto& res = filteredResolutions[selectedResolutionIndex];
                 Maze::get().setResolution(res.width, res.height);
                 hasUnappliedChanges = false;
+                returnButton->setMessage(std::string(returnMessage));
             } else {
                 clearHoveredItems();
+                resetSelectionToCurrentState();
                 setActive(false);
             }
         } else if (selectedItem == OptionMenuItem::FullScreen) {
@@ -472,8 +496,10 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
             const auto& res = filteredResolutions[selectedResolutionIndex];
             Maze::get().setResolution(res.width, res.height);
             hasUnappliedChanges = false;
+            returnButton->setMessage(std::string(returnMessage));
         } else {
             clearHoveredItems();
+            resetSelectionToCurrentState();
             setActive(false);
         }
         return true;
@@ -492,21 +518,27 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (mouseX >= arX && mouseX <= arX + arW && mouseY >= arY &&
         mouseY <= arY + arH) {
-        constexpr auto aspectRatioCount = aspectRatioFilters.size();
-        const auto     midX             = arX + arW / 2.F;
-
-        if (mouseX < midX) {
-            if (selectedAspectRatioIndex > 0) {
-                selectedAspectRatioIndex--;
-            }
-        } else {
-            if (selectedAspectRatioIndex + 1 < aspectRatioCount) {
-                selectedAspectRatioIndex++;
-            }
-        }
-
         selectedItem = OptionMenuItem::AspectRatio;
-        filterResolutions();
+
+        // Compute arrow hit zones using the same layout math as renderCycleRow
+        const auto font = AssetManager::getFont(fontName);
+        const auto leftLen =
+            static_cast<float>(font->getLength("< ", fontSize));
+        const auto rightLen =
+            static_cast<float>(font->getLength(" >", fontSize));
+        const float startX = arX + arW - textMarginLeft - leftLen -
+                             maxCycleValueWidth - rightLen;
+
+        if (mouseX >= startX && mouseX <= startX + leftLen &&
+            selectedAspectRatioIndex > 0) {
+            selectedAspectRatioIndex--;
+            filterResolutions();
+        } else if (mouseX >= startX + leftLen + maxCycleValueWidth &&
+                   mouseX <= startX + leftLen + maxCycleValueWidth + rightLen &&
+                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size()) {
+            selectedAspectRatioIndex++;
+            filterResolutions();
+        }
 
         return true;
     }
@@ -515,22 +547,31 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         getNodeLayout(resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= resX && mouseX <= resX + resW && mouseY >= resY &&
-        mouseY <= resY + resH && !filteredResolutions.empty()) {
-        const auto resolutionCount = filteredResolutions.size();
-        const auto midX            = resX + resW / 2.F;
+        mouseY <= resY + resH) {
+        selectedItem = OptionMenuItem::Resolution;
 
-        if (mouseX < midX) {
-            if (selectedResolutionIndex > 0) {
+        if (!filteredResolutions.empty()) {
+            const auto font = AssetManager::getFont(fontName);
+            const auto leftLen =
+                static_cast<float>(font->getLength("< ", fontSize));
+            const auto rightLen =
+                static_cast<float>(font->getLength(" >", fontSize));
+            const float startX = resX + resW - textMarginLeft - leftLen -
+                                 maxCycleValueWidth - rightLen;
+
+            if (mouseX >= startX && mouseX <= startX + leftLen &&
+                selectedResolutionIndex > 0) {
                 selectedResolutionIndex--;
-            }
-        } else {
-            if (selectedResolutionIndex + 1 < resolutionCount) {
+                updateChangeStatus();
+            } else if (mouseX >= startX + leftLen + maxCycleValueWidth &&
+                       mouseX <=
+                           startX + leftLen + maxCycleValueWidth + rightLen &&
+                       selectedResolutionIndex + 1 <
+                           filteredResolutions.size()) {
                 selectedResolutionIndex++;
+                updateChangeStatus();
             }
         }
-
-        selectedItem = OptionMenuItem::Resolution;
-        updateChangeStatus();
 
         return true;
     }
@@ -614,6 +655,10 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
 
+    if (isActive()) {
+        updateChangeStatus();
+    }
+
     return false;
 }
 
@@ -622,8 +667,8 @@ void OptionLayer::filterResolutions() {
     auto        isExactMatch = [&](const auto& res) {
         const auto g  = std::gcd(res.width, res.height);
         const auto fg = std::gcd(filter.numerator, filter.denominator);
-        return (res.width / g == filter.numerator / fg) &&
-               (res.height / g == filter.denominator / fg);
+        return res.width / g == filter.numerator / fg &&
+               res.height / g == filter.denominator / fg;
     };
 
     auto matchesFilter = [&](const auto& res) {
@@ -633,7 +678,7 @@ void OptionLayer::filterResolutions() {
             const float target = static_cast<float>(filter.numerator) /
                                  static_cast<float>(filter.denominator);
             return !isExactMatch(res) &&
-                   (std::abs(ratio - target) / target <= 0.01F);
+                   std::abs(ratio - target) / target <= 0.01F;
         }
         return isExactMatch(res);
     };
@@ -668,7 +713,7 @@ void OptionLayer::updateChangeStatus() {
     const auto  window = Maze::get().getWindow();
     const auto& res    = filteredResolutions[selectedResolutionIndex];
     hasUnappliedChanges =
-        (res.width != window->getWidth() || res.height != window->getHeight());
+        res.width != window->getWidth() || res.height != window->getHeight();
 
     const auto expectedMessage =
         hasUnappliedChanges ? applyMessage : returnMessage;
@@ -678,5 +723,28 @@ void OptionLayer::updateChangeStatus() {
 void OptionLayer::clearHoveredItems() {
     returnButton->setHover(false);
     hoveredItem = std::nullopt;
+}
+
+void OptionLayer::resetSelectionToCurrentState() {
+    const auto window        = Maze::get().getWindow();
+    const auto currentWidth  = window->getWidth();
+    const auto currentHeight = window->getHeight();
+
+    const auto g  = std::gcd(currentWidth, currentHeight);
+    const auto rw = currentWidth / g;
+    const auto rh = currentHeight / g;
+
+    const auto arIt =
+        std::ranges::find_if(aspectRatioFilters, [&](const auto& f) {
+            const auto fg = std::gcd(f.numerator, f.denominator);
+            return !f.approximate && rw == f.numerator / fg &&
+                   rh == f.denominator / fg;
+        });
+    selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
+                                   static_cast<size_t>(std::ranges::distance(
+                                       aspectRatioFilters.begin(), arIt)) :
+                                   0;
+
+    filterResolutions();
 }
 }  // namespace game::layer

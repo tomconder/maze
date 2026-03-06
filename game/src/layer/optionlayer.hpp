@@ -46,10 +46,12 @@ private:
                               std::string_view value);
     static void renderCycleRow(float x, float y, float w, float h,
                                std::string_view label, std::string_view value,
-                               bool hasLeft, bool hasRight);
+                               bool hasLeft, bool hasRight, float maxValWidth);
     static void renderToggleRow(float x, float y, float w, float h,
                                 std::string_view label, bool value);
     std::tuple<std::string, bool, bool> getResolutionDisplayInfo() const;
+
+    float maxCycleValueWidth = 0.F;
 
     void filterResolutions();
 
@@ -67,6 +69,8 @@ private:
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 
     void clearHoveredItems();
+
+    void resetSelectionToCurrentState();
 };
 
 }  // namespace game::layer
