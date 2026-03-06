@@ -2,6 +2,7 @@
 
 #include "sponge.hpp"
 
+#include <optional>
 #include <vector>
 
 namespace game::layer {
@@ -28,7 +29,8 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    OptionMenuItem selectedItem = OptionMenuItem::AspectRatio;
+    OptionMenuItem                        selectedItem = OptionMenuItem::AspectRatio;
+    std::optional<OptionMenuItem>         hoveredItem;
 
     std::vector<sponge::core::Resolution> availableResolutions;
     std::vector<sponge::core::Resolution> filteredResolutions;
@@ -47,11 +49,11 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 
-    void clearHoveredItems() const;
+    void clearHoveredItems();
 };
 
 }  // namespace game::layer

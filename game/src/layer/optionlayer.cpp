@@ -11,6 +11,7 @@
 #include <yoga/Yoga.h>
 
 #include <array>
+#include <cassert>
 #include <memory>
 #include <numeric>
 #include <ranges>
@@ -25,13 +26,25 @@ struct AspectRatioFilter {
 };
 
 constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
-    { "4:3", 4, 3, false },
-    { "5:3", 5, 3, false },
-    { "5:4", 5, 4, false },
-    { "16:9", 16, 9, false },
-    { "~16:9", 16, 9, true },
-    { "16:10", 16, 10, false },
-    { "25:16", 25, 16, false },
+    { .label = "4:3", .numerator = 4, .denominator = 3, .approximate = false },
+    { .label = "5:3", .numerator = 5, .denominator = 3, .approximate = false },
+    { .label = "5:4", .numerator = 5, .denominator = 4, .approximate = false },
+    { .label       = "16:9",
+      .numerator   = 16,
+      .denominator = 9,
+      .approximate = false },
+    { .label       = "~16:9",
+      .numerator   = 16,
+      .denominator = 9,
+      .approximate = true },
+    { .label       = "16:10",
+      .numerator   = 16,
+      .denominator = 10,
+      .approximate = false },
+    { .label       = "25:16",
+      .numerator   = 25,
+      .denominator = 16,
+      .approximate = false },
 });
 
 constexpr std::string_view returnMessage = "Return";
@@ -52,7 +65,7 @@ constexpr float    textMarginLeft      = 56.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
 
-inline std::tuple<float, float, float, float>
+std::tuple<float, float, float, float>
     getNodeLayout(const YGNodeRef node, float offsetX, float offsetY) {
     return { offsetX + YGNodeLayoutGetLeft(node),
              offsetY + YGNodeLayoutGetTop(node), YGNodeLayoutGetWidth(node),
@@ -244,29 +257,39 @@ bool OptionLayer::onUpdate(double elapsedTime) {
 
     const auto font = AssetManager::getFont(fontName);
 
-    const auto&  arFilter = aspectRatioFilters[selectedAspectRatioIndex];
-    const char*  arLeft   = selectedAspectRatioIndex > 0 ? "<" : " ";
-    const char*  arRight  = selectedAspectRatioIndex + 1 < aspectRatioFilters.size() ? ">" : " ";
+    assert(selectedAspectRatioIndex < aspectRatioFilters.size());
+    const auto& arFilter = aspectRatioFilters[selectedAspectRatioIndex];
+    const char* arLeft   = selectedAspectRatioIndex > 0 ? "<" : " ";
+    const char* arRight =
+        selectedAspectRatioIndex + 1 < aspectRatioFilters.size() ? ">" : " ";
     const std::string aspectRatioStr =
         fmt::format("Aspect Ratio: {} {} {}", arLeft, arFilter.label, arRight);
     const bool isAspectRatioSelected =
         selectedItem == OptionMenuItem::AspectRatio;
+    const bool isAspectRatioHovered =
+        hoveredItem == OptionMenuItem::AspectRatio;
     quad->render(
         { aspectRatioX, aspectRatioY },
         { aspectRatioX + aspectRatioW, aspectRatioY + aspectRatioH },
-        isAspectRatioSelected ? textHoverColor : buttonColor, cornerRadius,
-        isAspectRatioSelected ? selectedBorderWidth : 0.F, glm::vec4{ 1.F });
+        isAspectRatioSelected ? textHoverColor
+        : isAspectRatioHovered ? hoverColor
+                               : buttonColor,
+        cornerRadius, isAspectRatioSelected ? selectedBorderWidth : 0.F,
+        glm::vec4{ 1.F });
     font->render(aspectRatioStr,
                  { aspectRatioX + textMarginLeft, aspectRatioY }, fontSize,
                  textColor);
 
     std::string resolutionStr;
     if (!filteredResolutions.empty()) {
-        const auto& res      = filteredResolutions[selectedResolutionIndex];
-        const char* resLeft  = selectedResolutionIndex > 0 ? "<" : " ";
-        const char* resRight = selectedResolutionIndex + 1 < filteredResolutions.size() ? ">" : " ";
-        resolutionStr =
-            fmt::format("Resolution: {} {}x{} {}", resLeft, res.width, res.height, resRight);
+        assert(selectedResolutionIndex < filteredResolutions.size());
+        const auto& res     = filteredResolutions[selectedResolutionIndex];
+        const char* resLeft = selectedResolutionIndex > 0 ? "<" : " ";
+        const char* resRight =
+            selectedResolutionIndex + 1 < filteredResolutions.size() ? ">" :
+                                                                       " ";
+        resolutionStr = fmt::format("Resolution: {} {}x{} {}", resLeft,
+                                    res.width, res.height, resRight);
     } else {
         const auto window = Maze::get().getWindow();
         resolutionStr     = fmt::format("Resolution: {}x{}", window->getWidth(),
@@ -275,9 +298,12 @@ bool OptionLayer::onUpdate(double elapsedTime) {
 
     const bool isResolutionSelected =
         selectedItem == OptionMenuItem::Resolution;
+    const bool isResolutionHovered = hoveredItem == OptionMenuItem::Resolution;
     quad->render({ resolutionX, resolutionY },
                  { resolutionX + resolutionW, resolutionY + resolutionH },
-                 isResolutionSelected ? textHoverColor : buttonColor,
+                 isResolutionSelected ? textHoverColor
+                 : isResolutionHovered ? hoverColor
+                                      : buttonColor,
                  cornerRadius, isResolutionSelected ? selectedBorderWidth : 0.F,
                  glm::vec4{ 1.F });
     font->render(resolutionStr, { resolutionX + textMarginLeft, resolutionY },
@@ -285,9 +311,12 @@ bool OptionLayer::onUpdate(double elapsedTime) {
 
     const bool isFullScreenSelected =
         selectedItem == OptionMenuItem::FullScreen;
+    const bool isFullScreenHovered = hoveredItem == OptionMenuItem::FullScreen;
     quad->render({ fullScreenX, fullScreenY },
                  { fullScreenX + fullScreenW, fullScreenY + fullScreenH },
-                 isFullScreenSelected ? textHoverColor : buttonColor,
+                 isFullScreenSelected ? textHoverColor
+                 : isFullScreenHovered ? hoverColor
+                                      : buttonColor,
                  cornerRadius, isFullScreenSelected ? selectedBorderWidth : 0.F,
                  glm::vec4{ 1.F });
     const std::string fullScreenMessageStr = fmt::format(
@@ -298,11 +327,16 @@ bool OptionLayer::onUpdate(double elapsedTime) {
 
     const bool isVerticalSyncSelected =
         selectedItem == OptionMenuItem::VerticalSync;
+    const bool isVerticalSyncHovered =
+        hoveredItem == OptionMenuItem::VerticalSync;
     quad->render(
         { verticalSyncX, verticalSyncY },
         { verticalSyncX + verticalSyncW, verticalSyncY + verticalSyncH },
-        isVerticalSyncSelected ? textHoverColor : buttonColor, cornerRadius,
-        isVerticalSyncSelected ? selectedBorderWidth : 0.F, glm::vec4{ 1.F });
+        isVerticalSyncSelected ? textHoverColor
+        : isVerticalSyncHovered ? hoverColor
+                                : buttonColor,
+        cornerRadius, isVerticalSyncSelected ? selectedBorderWidth : 0.F,
+        glm::vec4{ 1.F });
     const std::string verticalSyncMessageStr = fmt::format(
         "Vertical Sync: {}", Maze::get().hasVerticalSync() ? "True" : "False");
     font->render(verticalSyncMessageStr,
@@ -354,6 +388,7 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
         keyCode == KeyCode::SpongeKey_KPEnter) {
         if (selectedItem == OptionMenuItem::Return) {
             if (hasUnappliedChanges && !filteredResolutions.empty()) {
+                assert(selectedResolutionIndex < filteredResolutions.size());
                 const auto& res = filteredResolutions[selectedResolutionIndex];
                 Maze::get().setResolution(res.width, res.height);
                 hasUnappliedChanges = false;
@@ -381,7 +416,7 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
     }
 
     if (selectedItem == OptionMenuItem::AspectRatio) {
-        const auto aspectRatioCount = aspectRatioFilters.size();
+        constexpr auto aspectRatioCount = aspectRatioFilters.size();
 
         if (keyCode == KeyCode::SpongeKey_Left ||
             keyCode == KeyCode::SpongeKey_KP4) {
@@ -431,6 +466,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges && !filteredResolutions.empty()) {
+            assert(selectedResolutionIndex < filteredResolutions.size());
             const auto& res = filteredResolutions[selectedResolutionIndex];
             Maze::get().setResolution(res.width, res.height);
             hasUnappliedChanges = false;
@@ -454,8 +490,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (mouseX >= arX && mouseX <= arX + arW && mouseY >= arY &&
         mouseY <= arY + arH) {
-        const auto aspectRatioCount = aspectRatioFilters.size();
-        const auto midX             = arX + arW / 2.F;
+        constexpr auto aspectRatioCount = aspectRatioFilters.size();
+        const auto     midX             = arX + arW / 2.F;
 
         if (mouseX < midX) {
             if (selectedAspectRatioIndex > 0) {
@@ -520,7 +556,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     return true;
 }
 
-bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {
@@ -532,6 +568,32 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) const {
     };
 
     updateHover(returnButton.get());
+
+    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
+        getNodeLayout(rootNode, 0.F, 0.F);
+    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
+        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
+          menuBackgroundNodeH] =
+        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+
+    auto isOver = [&](YGNodeRef node) {
+        const auto [x, y, w, h] =
+            getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
+        return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
+    };
+
+    if (isOver(aspectRatioNode)) {
+        hoveredItem = OptionMenuItem::AspectRatio;
+    } else if (isOver(resolutionNode)) {
+        hoveredItem = OptionMenuItem::Resolution;
+    } else if (isOver(fullScreenNode)) {
+        hoveredItem = OptionMenuItem::FullScreen;
+    } else if (isOver(verticalSyncNode)) {
+        hoveredItem = OptionMenuItem::VerticalSync;
+    } else {
+        hoveredItem = std::nullopt;
+    }
 
     return true;
 }
@@ -556,9 +618,9 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void OptionLayer::filterResolutions() {
-    const auto& filter = aspectRatioFilters[selectedAspectRatioIndex];
-
-    auto isExactMatch = [&](const sponge::core::Resolution& res) {
+    assert(selectedAspectRatioIndex < aspectRatioFilters.size());
+    const auto& filter       = aspectRatioFilters[selectedAspectRatioIndex];
+    auto        isExactMatch = [&](const sponge::core::Resolution& res) {
         const auto g  = std::gcd(res.width, res.height);
         const auto fg = std::gcd(filter.numerator, filter.denominator);
         return (res.width / g == filter.numerator / fg) &&
@@ -604,9 +666,9 @@ void OptionLayer::updateChangeStatus() {
         return;
     }
 
+    assert(selectedResolutionIndex < filteredResolutions.size());
     const auto  window = Maze::get().getWindow();
     const auto& res    = filteredResolutions[selectedResolutionIndex];
-
     hasUnappliedChanges =
         (res.width != window->getWidth() || res.height != window->getHeight());
 
@@ -615,7 +677,8 @@ void OptionLayer::updateChangeStatus() {
     returnButton->setMessage(std::string(expectedMessage));
 }
 
-void OptionLayer::clearHoveredItems() const {
-    // empty
+void OptionLayer::clearHoveredItems() {
+    returnButton->setHover(false);
+    hoveredItem = std::nullopt;
 }
 }  // namespace game::layer
