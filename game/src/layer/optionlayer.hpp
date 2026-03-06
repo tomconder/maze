@@ -3,6 +3,8 @@
 #include "sponge.hpp"
 
 #include <optional>
+#include <string>
+#include <tuple>
 #include <vector>
 
 namespace game::layer {
@@ -29,14 +31,25 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    OptionMenuItem                        selectedItem = OptionMenuItem::AspectRatio;
-    std::optional<OptionMenuItem>         hoveredItem;
+    OptionMenuItem                selectedItem = OptionMenuItem::AspectRatio;
+    std::optional<OptionMenuItem> hoveredItem;
 
     std::vector<sponge::core::Resolution> availableResolutions;
     std::vector<sponge::core::Resolution> filteredResolutions;
     size_t                                selectedAspectRatioIndex = 0;
     size_t                                selectedResolutionIndex  = 0;
     bool                                  hasUnappliedChanges      = false;
+
+    void        renderRowBackground(float x, float y, float w, float h,
+                                    OptionMenuItem item) const;
+    static void renderRowText(float x, float y, float w, std::string_view label,
+                              std::string_view value);
+    static void renderCycleRow(float x, float y, float w, float h,
+                               std::string_view label, std::string_view value,
+                               bool hasLeft, bool hasRight);
+    static void renderToggleRow(float x, float y, float w, float h,
+                                std::string_view label, bool value);
+    std::tuple<std::string, bool, bool> getResolutionDisplayInfo() const;
 
     void filterResolutions();
 

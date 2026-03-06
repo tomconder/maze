@@ -11,11 +11,11 @@
 #include <yoga/Yoga.h>
 
 #include <array>
-#include <cassert>
 #include <memory>
 #include <numeric>
 #include <ranges>
 #include <string>
+#include <tuple>
 
 namespace {
 struct AspectRatioFilter {
@@ -26,25 +26,16 @@ struct AspectRatioFilter {
 };
 
 constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
-    { .label = "4:3", .numerator = 4, .denominator = 3, .approximate = false },
-    { .label = "5:3", .numerator = 5, .denominator = 3, .approximate = false },
-    { .label = "5:4", .numerator = 5, .denominator = 4, .approximate = false },
-    { .label       = "16:9",
-      .numerator   = 16,
-      .denominator = 9,
-      .approximate = false },
+    { .label = "4:3", .numerator = 4, .denominator = 3 },
+    { .label = "5:3", .numerator = 5, .denominator = 3 },
+    { .label = "5:4", .numerator = 5, .denominator = 4 },
+    { .label = "16:9", .numerator = 16, .denominator = 9 },
     { .label       = "~16:9",
       .numerator   = 16,
       .denominator = 9,
       .approximate = true },
-    { .label       = "16:10",
-      .numerator   = 16,
-      .denominator = 10,
-      .approximate = false },
-    { .label       = "25:16",
-      .numerator   = 25,
-      .denominator = 16,
-      .approximate = false },
+    { .label = "16:10", .numerator = 16, .denominator = 10 },
+    { .label = "25:16", .numerator = 25, .denominator = 16 },
 });
 
 constexpr std::string_view returnMessage = "Return";
@@ -54,19 +45,29 @@ constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "league-gothic";
 constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
 
-constexpr glm::vec4 backgroundColor = { 0.F, 0.F, 0.F, 1.F };
-constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
-constexpr glm::vec4 hoverColor      = { 0.84F, 0.84F, 0.84F, 0.14F };
-constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
-constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.14F };
+constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
+constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
+constexpr glm::vec4 hoverColor         = { 0.84F, 0.84F, 0.84F, 0.14F };
+constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
+constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
+constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
 
 constexpr uint32_t fontSize            = 48;
-constexpr float    textMarginLeft      = 36.F;
+constexpr float    textMarginLeft      = 26.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
 
-std::tuple<float, float, float, float>
-    getNodeLayout(const YGNodeRef node, float offsetX, float offsetY) {
+constexpr float     toggleBoxSize   = 32.F;
+constexpr float     toggleBoxRadius = 4.F;
+constexpr float     toggleBoxBorder = 2.F;
+constexpr glm::vec4 toggleOnFill    = { 0.0F, 0.85F, 0.4F, 1.0F };
+constexpr glm::vec4 toggleOnBorder  = { 0.85F, 0.85F, 0.85F, 1.0F };
+constexpr glm::vec4 toggleOffFill   = { 0.08F, 0.08F, 0.08F, 1.0F };
+constexpr glm::vec4 toggleOffBorder = { 0.5F, 0.5F, 0.5F, 1.0F };
+
+std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
+                                                     const float     offsetX,
+                                                     const float     offsetY) {
     return { offsetX + YGNodeLayoutGetLeft(node),
              offsetY + YGNodeLayoutGetTop(node), YGNodeLayoutGetWidth(node),
              YGNodeLayoutGetHeight(node) };
@@ -132,7 +133,7 @@ void OptionLayer::onAttach() {
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
-                              .marginLeft   = 56,
+                              .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
@@ -159,13 +160,13 @@ void OptionLayer::onAttach() {
     YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
-    auto makeMenuNode = [](YGNodeRef parent, int index) {
-        auto* const node = YGNodeNew();
-        YGNodeStyleSetFlex(node, 1.F);
-        YGNodeStyleSetMargin(node, YGEdgeBottom, 30.F);
-        YGNodeStyleSetMaxHeight(node, 110);
-        YGNodeInsertChild(parent, node, index);
-        return node;
+    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
+        auto* const child = YGNodeNew();
+        YGNodeStyleSetFlex(child, 1.F);
+        YGNodeStyleSetMargin(child, YGEdgeBottom, 30.F);
+        YGNodeStyleSetMaxHeight(child, 110);
+        YGNodeInsertChild(parent, child, index);
+        return child;
     };
 
     aspectRatioNode  = makeMenuNode(menuBackgroundNode, 0);
@@ -210,164 +211,168 @@ void OptionLayer::onDetach() {
 void OptionLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? onKeyPressed(event) : false;
-    });
-    dispatcher.dispatch<MouseButtonPressedEvent>(
-        [this](const MouseButtonPressedEvent& event) {
-            return isActive() ? onMouseButtonPressed(event) : false;
+    dispatcher.dispatch<KeyPressedEvent>(
+        [this](const KeyPressedEvent& keyEvent) {
+            return isActive() ? onKeyPressed(keyEvent) : false;
         });
-    dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? onMouseMoved(event) : false;
-    });
+    dispatcher.dispatch<MouseButtonPressedEvent>(
+        [this](const MouseButtonPressedEvent& mouseEvent) {
+            return isActive() ? onMouseButtonPressed(mouseEvent) : false;
+        });
+    dispatcher.dispatch<MouseMovedEvent>(
+        [this](const MouseMovedEvent& mouseMovedEvent) {
+            return isActive() ? onMouseMoved(mouseMovedEvent) : false;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
-        [this](const WindowResizeEvent& event) {
-            return onWindowResize(event);
+        [this](const WindowResizeEvent& windowResizeEvent) {
+            return onWindowResize(windowResizeEvent);
         });
 }
 
-bool OptionLayer::onUpdate(double elapsedTime) {
+bool OptionLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
-
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
         getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
         getNodeLayout(menuNode, rootNodeX, rootNodeY);
-    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
-          menuBackgroundNodeH] =
+    auto [menuBgX, menuBgY, menuBgW, menuBgH] =
         getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [aspectRatioX, aspectRatioY, aspectRatioW, aspectRatioH] =
-        getNodeLayout(aspectRatioNode, menuBackgroundNodeX,
-                      menuBackgroundNodeY);
-    const auto [resolutionX, resolutionY, resolutionW, resolutionH] =
-        getNodeLayout(resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [fullScreenX, fullScreenY, fullScreenW, fullScreenH] =
-        getNodeLayout(fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [verticalSyncX, verticalSyncY, verticalSyncW, verticalSyncH] =
-        getNodeLayout(verticalSyncNode, menuBackgroundNodeX,
-                      menuBackgroundNodeY);
-    const auto [returnX, returnY, returnW, returnH] =
-        getNodeLayout(returnNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [arX, arY, arW, arH] =
+        getNodeLayout(aspectRatioNode, menuBgX, menuBgY);
+    const auto [resX, resY, resW, resH] =
+        getNodeLayout(resolutionNode, menuBgX, menuBgY);
+    const auto [fsX, fsY, fsW, fsH] =
+        getNodeLayout(fullScreenNode, menuBgX, menuBgY);
+    const auto [vsX, vsY, vsW, vsH] =
+        getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
+    const auto [retX, retY, retW, retH] =
+        getNodeLayout(returnNode, menuBgX, menuBgY);
 
-    const auto font = AssetManager::getFont(fontName);
-
-    assert(selectedAspectRatioIndex < aspectRatioFilters.size());
     const auto& arFilter = aspectRatioFilters[selectedAspectRatioIndex];
-    const char* arLeft   = selectedAspectRatioIndex > 0 ? "<" : " ";
-    const char* arRight =
-        selectedAspectRatioIndex + 1 < aspectRatioFilters.size() ? ">" : " ";
-    const std::string aspectRatioStr =
-        fmt::format("Aspect Ratio: {} {} {}", arLeft, arFilter.label, arRight);
-    const bool isAspectRatioSelected =
-        selectedItem == OptionMenuItem::AspectRatio;
-    const bool isAspectRatioHovered =
-        hoveredItem == OptionMenuItem::AspectRatio;
-    quad->render({ aspectRatioX, aspectRatioY },
-                 { aspectRatioX + aspectRatioW, aspectRatioY + aspectRatioH },
-                 isAspectRatioSelected ? textHoverColor :
-                 isAspectRatioHovered  ? hoverColor :
-                                         buttonColor,
-                 cornerRadius,
-                 isAspectRatioSelected ? selectedBorderWidth : 0.F,
-                 glm::vec4{ 1.F });
-    font->render(aspectRatioStr,
-                 { aspectRatioX + textMarginLeft, aspectRatioY }, fontSize,
-                 textColor);
+    renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
+    renderCycleRow(arX, arY, arW, arH, "Aspect Ratio", arFilter.label,
+                   selectedAspectRatioIndex > 0,
+                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size());
 
-    std::string resolutionStr;
-    if (!filteredResolutions.empty()) {
-        assert(selectedResolutionIndex < filteredResolutions.size());
-        const auto& res     = filteredResolutions[selectedResolutionIndex];
-        const char* resLeft = selectedResolutionIndex > 0 ? "<" : " ";
-        const char* resRight =
-            selectedResolutionIndex + 1 < filteredResolutions.size() ? ">" :
-                                                                       " ";
-        resolutionStr = fmt::format("Resolution: {} {}x{} {}", resLeft,
-                                    res.width, res.height, resRight);
+    const auto [resCenter, resHasLeft, resHasRight] =
+        getResolutionDisplayInfo();
+    renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
+    renderCycleRow(resX, resY, resW, resH, "Resolution", resCenter, resHasLeft,
+                   resHasRight);
+
+    renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
+    renderToggleRow(fsX, fsY, fsW, fsH, "Full Screen",
+                    Maze::get().isFullscreen());
+
+    renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
+    renderToggleRow(vsX, vsY, vsW, vsH, "Vertical Sync",
+                    Maze::get().hasVerticalSync());
+
+    returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
+    if (selectedItem == OptionMenuItem::Return) {
+        returnButton->setBorderWidth(selectedBorderWidth);
+        returnButton->setBorderColor(glm::vec4{ 1.F });
+        returnButton->setButtonColor(textHoverColor);
+    } else if (!returnButton->hasHover()) {
+        returnButton->setBorderWidth(0.F);
+        returnButton->setButtonColor(glm::vec4{ 0.F });
     } else {
-        const auto window = Maze::get().getWindow();
-        resolutionStr     = fmt::format("Resolution: {}x{}", window->getWidth(),
-                                        window->getHeight());
+        returnButton->setBorderWidth(0.F);
+        returnButton->setButtonColor(hoverColor);
     }
-
-    const bool isResolutionSelected =
-        selectedItem == OptionMenuItem::Resolution;
-    const bool isResolutionHovered = hoveredItem == OptionMenuItem::Resolution;
-    quad->render({ resolutionX, resolutionY },
-                 { resolutionX + resolutionW, resolutionY + resolutionH },
-                 isResolutionSelected ? textHoverColor :
-                 isResolutionHovered  ? hoverColor :
-                                        buttonColor,
-                 cornerRadius, isResolutionSelected ? selectedBorderWidth : 0.F,
-                 glm::vec4{ 1.F });
-    font->render(resolutionStr, { resolutionX + textMarginLeft, resolutionY },
-                 fontSize, textColor);
-
-    const bool isFullScreenSelected =
-        selectedItem == OptionMenuItem::FullScreen;
-    const bool isFullScreenHovered = hoveredItem == OptionMenuItem::FullScreen;
-    quad->render({ fullScreenX, fullScreenY },
-                 { fullScreenX + fullScreenW, fullScreenY + fullScreenH },
-                 isFullScreenSelected ? textHoverColor :
-                 isFullScreenHovered  ? hoverColor :
-                                        buttonColor,
-                 cornerRadius, isFullScreenSelected ? selectedBorderWidth : 0.F,
-                 glm::vec4{ 1.F });
-    const std::string fullScreenMessageStr = fmt::format(
-        "Full Screen: {}", Maze::get().isFullscreen() ? "True" : "False");
-    font->render(fullScreenMessageStr,
-                 { fullScreenX + textMarginLeft, fullScreenY }, fontSize,
-                 textColor);
-
-    const bool isVerticalSyncSelected =
-        selectedItem == OptionMenuItem::VerticalSync;
-    const bool isVerticalSyncHovered =
-        hoveredItem == OptionMenuItem::VerticalSync;
-    quad->render(
-        { verticalSyncX, verticalSyncY },
-        { verticalSyncX + verticalSyncW, verticalSyncY + verticalSyncH },
-        isVerticalSyncSelected ? textHoverColor :
-        isVerticalSyncHovered  ? hoverColor :
-                                 buttonColor,
-        cornerRadius, isVerticalSyncSelected ? selectedBorderWidth : 0.F,
-        glm::vec4{ 1.F });
-    const std::string verticalSyncMessageStr = fmt::format(
-        "Vertical Sync: {}", Maze::get().hasVerticalSync() ? "True" : "False");
-    font->render(verticalSyncMessageStr,
-                 { verticalSyncX + textMarginLeft, verticalSyncY }, fontSize,
-                 textColor);
-
-    returnButton->setPosition({ returnX, returnY },
-                              { returnX + returnW, returnY + returnH });
-
-    auto updateButtonVisuals = [this](ui::Button* button, OptionMenuItem item) {
-        if (selectedItem == item) {
-            button->setBorderWidth(selectedBorderWidth);
-            button->setBorderColor(glm::vec4{ 1.F });
-            button->setButtonColor(textHoverColor);
-        } else if (!button->hasHover()) {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(glm::vec4{ 0.F });
-        } else {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(hoverColor);
-        }
-    };
-
-    updateButtonVisuals(returnButton.get(), OptionMenuItem::Return);
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
     return true;
 }
 
-void OptionLayer::recalculateLayout(float width, float height) const {
+void OptionLayer::renderRowBackground(float x, float y, const float w,
+                                      const float          h,
+                                      const OptionMenuItem item) const {
+    const bool isSelected = selectedItem == item;
+    const bool isHovered  = hoveredItem == item;
+    quad->render({ x, y }, { x + w, y + h },
+                 isSelected ? textHoverColor :
+                 isHovered  ? hoverColor :
+                              buttonColor,
+                 cornerRadius, isSelected ? selectedBorderWidth : 0.F,
+                 glm::vec4{ 1.F });
+}
+
+void OptionLayer::renderRowText(const float x, float y, const float w,
+                                const std::string_view label,
+                                const std::string_view value) {
+    const auto font     = AssetManager::getFont(fontName);
+    const auto valueLen = static_cast<float>(font->getLength(value, fontSize));
+    font->render(std::string(label), { x + textMarginLeft, y }, fontSize,
+                 textColor);
+    font->render(std::string(value), { x + w - textMarginLeft - valueLen, y },
+                 fontSize, textColor);
+}
+
+void OptionLayer::renderCycleRow(const float x, const float y, const float w,
+                                 const float h, const std::string_view label,
+                                 std::string_view value, const bool hasLeft,
+                                 const bool hasRight) {
+    const auto  font = AssetManager::getFont(fontName);
+    const float textY =
+        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F;
+    const std::string leftPart  = "< ";
+    const std::string rightPart = " >";
+    const float       fullLen   = static_cast<float>(
+        font->getLength(fmt::format("< {} >", value), fontSize));
+    const auto leftLen =
+        static_cast<float>(font->getLength(leftPart, fontSize));
+    const auto  valLen = static_cast<float>(font->getLength(value, fontSize));
+    const float startX = x + w - textMarginLeft - fullLen;
+    font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
+                 textColor);
+    font->render(leftPart, { startX, textY }, fontSize,
+                 hasLeft ? textColor : arrowDisabledColor);
+    font->render(std::string(value), { startX + leftLen, textY }, fontSize,
+                 textColor);
+    font->render(rightPart, { startX + leftLen + valLen, textY }, fontSize,
+                 hasRight ? textColor : arrowDisabledColor);
+}
+
+void OptionLayer::renderToggleRow(const float x, const float y, const float w,
+                                  const float h, const std::string_view label,
+                                  const bool value) {
+    const auto  font = AssetManager::getFont(fontName);
+    const float textY =
+        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F;
+    font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
+                 textColor);
+
+    // Colored box: filled = on, outlined = off
+    const float boxX = x + w - textMarginLeft - toggleBoxSize;
+    const float boxY = y + (h - toggleBoxSize) / 2.F;
+    quad->render({ boxX, boxY }, { boxX + toggleBoxSize, boxY + toggleBoxSize },
+                 value ? toggleOnFill : toggleOffFill, toggleBoxRadius,
+                 toggleBoxBorder, value ? toggleOnBorder : toggleOffBorder);
+}
+
+std::tuple<std::string, bool, bool>
+    OptionLayer::getResolutionDisplayInfo() const {
+    if (!filteredResolutions.empty()) {
+        const auto& res = filteredResolutions[selectedResolutionIndex];
+        return { fmt::format("{} x {}", res.width, res.height),
+                 selectedResolutionIndex > 0,
+                 selectedResolutionIndex + 1 < filteredResolutions.size() };
+    }
+    const auto window = Maze::get().getWindow();
+    return { fmt::format("{} x {}", window->getWidth(), window->getHeight()),
+             false, false };
+}
+
+void OptionLayer::recalculateLayout(const float width,
+                                    const float height) const {
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, height);
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
@@ -385,10 +390,10 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
     }
 
     if (keyCode == KeyCode::SpongeKey_Enter ||
-        keyCode == KeyCode::SpongeKey_KPEnter) {
+        keyCode == KeyCode::SpongeKey_KPEnter ||
+        keyCode == KeyCode::SpongeKey_Space) {
         if (selectedItem == OptionMenuItem::Return) {
             if (hasUnappliedChanges && !filteredResolutions.empty()) {
-                assert(selectedResolutionIndex < filteredResolutions.size());
                 const auto& res = filteredResolutions[selectedResolutionIndex];
                 Maze::get().setResolution(res.width, res.height);
                 hasUnappliedChanges = false;
@@ -466,7 +471,6 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges && !filteredResolutions.empty()) {
-            assert(selectedResolutionIndex < filteredResolutions.size());
             const auto& res = filteredResolutions[selectedResolutionIndex];
             Maze::get().setResolution(res.width, res.height);
             hasUnappliedChanges = false;
@@ -577,7 +581,7 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
           menuBackgroundNodeH] =
         getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    auto isOver = [&](YGNodeRef node) {
+    auto isOver = [&](auto* node) {
         const auto [x, y, w, h] =
             getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
         return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
@@ -612,22 +616,19 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
 
-    filterResolutions();
-
     return false;
 }
 
 void OptionLayer::filterResolutions() {
-    assert(selectedAspectRatioIndex < aspectRatioFilters.size());
     const auto& filter       = aspectRatioFilters[selectedAspectRatioIndex];
-    auto        isExactMatch = [&](const sponge::core::Resolution& res) {
+    auto        isExactMatch = [&](const auto& res) {
         const auto g  = std::gcd(res.width, res.height);
         const auto fg = std::gcd(filter.numerator, filter.denominator);
         return (res.width / g == filter.numerator / fg) &&
                (res.height / g == filter.denominator / fg);
     };
 
-    auto matchesFilter = [&](const sponge::core::Resolution& res) {
+    auto matchesFilter = [&](const auto& res) {
         if (filter.approximate) {
             const float ratio =
                 static_cast<float>(res.width) / static_cast<float>(res.height);
@@ -666,7 +667,6 @@ void OptionLayer::updateChangeStatus() {
         return;
     }
 
-    assert(selectedResolutionIndex < filteredResolutions.size());
     const auto  window = Maze::get().getWindow();
     const auto& res    = filteredResolutions[selectedResolutionIndex];
     hasUnappliedChanges =
