@@ -61,7 +61,7 @@ constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
 constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.14F };
 
 constexpr uint32_t fontSize            = 48;
-constexpr float    textMarginLeft      = 56.F;
+constexpr float    textMarginLeft      = 36.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
 
@@ -268,14 +268,14 @@ bool OptionLayer::onUpdate(double elapsedTime) {
         selectedItem == OptionMenuItem::AspectRatio;
     const bool isAspectRatioHovered =
         hoveredItem == OptionMenuItem::AspectRatio;
-    quad->render(
-        { aspectRatioX, aspectRatioY },
-        { aspectRatioX + aspectRatioW, aspectRatioY + aspectRatioH },
-        isAspectRatioSelected ? textHoverColor
-        : isAspectRatioHovered ? hoverColor
-                               : buttonColor,
-        cornerRadius, isAspectRatioSelected ? selectedBorderWidth : 0.F,
-        glm::vec4{ 1.F });
+    quad->render({ aspectRatioX, aspectRatioY },
+                 { aspectRatioX + aspectRatioW, aspectRatioY + aspectRatioH },
+                 isAspectRatioSelected ? textHoverColor :
+                 isAspectRatioHovered  ? hoverColor :
+                                         buttonColor,
+                 cornerRadius,
+                 isAspectRatioSelected ? selectedBorderWidth : 0.F,
+                 glm::vec4{ 1.F });
     font->render(aspectRatioStr,
                  { aspectRatioX + textMarginLeft, aspectRatioY }, fontSize,
                  textColor);
@@ -301,9 +301,9 @@ bool OptionLayer::onUpdate(double elapsedTime) {
     const bool isResolutionHovered = hoveredItem == OptionMenuItem::Resolution;
     quad->render({ resolutionX, resolutionY },
                  { resolutionX + resolutionW, resolutionY + resolutionH },
-                 isResolutionSelected ? textHoverColor
-                 : isResolutionHovered ? hoverColor
-                                      : buttonColor,
+                 isResolutionSelected ? textHoverColor :
+                 isResolutionHovered  ? hoverColor :
+                                        buttonColor,
                  cornerRadius, isResolutionSelected ? selectedBorderWidth : 0.F,
                  glm::vec4{ 1.F });
     font->render(resolutionStr, { resolutionX + textMarginLeft, resolutionY },
@@ -314,9 +314,9 @@ bool OptionLayer::onUpdate(double elapsedTime) {
     const bool isFullScreenHovered = hoveredItem == OptionMenuItem::FullScreen;
     quad->render({ fullScreenX, fullScreenY },
                  { fullScreenX + fullScreenW, fullScreenY + fullScreenH },
-                 isFullScreenSelected ? textHoverColor
-                 : isFullScreenHovered ? hoverColor
-                                      : buttonColor,
+                 isFullScreenSelected ? textHoverColor :
+                 isFullScreenHovered  ? hoverColor :
+                                        buttonColor,
                  cornerRadius, isFullScreenSelected ? selectedBorderWidth : 0.F,
                  glm::vec4{ 1.F });
     const std::string fullScreenMessageStr = fmt::format(
@@ -332,9 +332,9 @@ bool OptionLayer::onUpdate(double elapsedTime) {
     quad->render(
         { verticalSyncX, verticalSyncY },
         { verticalSyncX + verticalSyncW, verticalSyncY + verticalSyncH },
-        isVerticalSyncSelected ? textHoverColor
-        : isVerticalSyncHovered ? hoverColor
-                                : buttonColor,
+        isVerticalSyncSelected ? textHoverColor :
+        isVerticalSyncHovered  ? hoverColor :
+                                 buttonColor,
         cornerRadius, isVerticalSyncSelected ? selectedBorderWidth : 0.F,
         glm::vec4{ 1.F });
     const std::string verticalSyncMessageStr = fmt::format(
