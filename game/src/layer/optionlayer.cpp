@@ -181,7 +181,6 @@ void OptionLayer::onAttach() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    // Auto-detect the initial aspect ratio from the current window size
     const auto g  = std::gcd(currentWidth, currentHeight);
     const auto rw = currentWidth / g;
     const auto rh = currentHeight / g;
@@ -350,7 +349,6 @@ void OptionLayer::renderToggleRow(const float x, const float y, const float w,
     font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
                  textColor);
 
-    // Colored box: filled = on, outlined = off
     const float boxX = x + w - textMarginLeft - toggleBoxSize;
     const float boxY = y + (h - toggleBoxSize) / 2.F;
     quad->render({ boxX, boxY }, { boxX + toggleBoxSize, boxY + toggleBoxSize },
