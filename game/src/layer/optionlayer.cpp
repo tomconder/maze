@@ -60,7 +60,6 @@ constexpr float    textMarginLeft      = 26.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
 
-
 std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
                                                      const float     offsetX,
                                                      const float     offsetY) {
@@ -204,7 +203,8 @@ void OptionLayer::onAttach() {
     aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
     resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
-    const ui::CheckboxCreateInfo checkboxCreateInfo{ .margin = textMarginLeft };
+    constexpr ui::CheckboxCreateInfo checkboxCreateInfo{ .margin =
+                                                             textMarginLeft };
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
 
@@ -299,18 +299,19 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
-    const auto  rowFont  = AssetManager::getFont(fontName);
-    auto renderRowLabel = [&](const float x, const float y, const float h,
+    const auto rowFont        = AssetManager::getFont(fontName);
+    auto       renderRowLabel = [&](const float x, const float y, const float h,
                               const std::string_view label) {
         const float textY = std::floor(
             y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
         rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
-                        textColor);
+                              textColor);
     };
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
     renderRowLabel(fsX, fsY, fsH, "Full Screen");
-    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH, Maze::get().isFullscreen());
+    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH,
+                                 Maze::get().isFullscreen());
 
     renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
     renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
@@ -357,7 +358,6 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
     font->render(value, { x + w - textMarginLeft - valueLen, y }, fontSize,
                  textColor);
 }
-
 
 void OptionLayer::recalculateLayout(const float width,
                                     const float height) const {
