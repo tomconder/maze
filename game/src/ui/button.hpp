@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace game::ui {
 
@@ -43,6 +44,8 @@ public:
     void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
     void setAlignType(const ButtonAlignType& val);
+
+    void setMessage(std::string_view message);
 
     void setHover(const bool value) {
         hover = value;

@@ -63,6 +63,11 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     log();
 }
 
+uint32_t MSDFFont::getHeight(const uint32_t targetSize) const {
+    const auto scale = static_cast<float>(targetSize) / size;
+    return static_cast<uint32_t>(lineHeight * scale);
+}
+
 uint32_t MSDFFont::getLength(const std::string_view text,
                              const uint32_t         targetSize) {
     const auto scale = static_cast<float>(targetSize) / size;
@@ -101,7 +106,7 @@ void MSDFFont::load(const std::string& path) {
     UNUSED(texture);
 }
 
-void MSDFFont::render(const std::string& text, const glm::vec2& position,
+void MSDFFont::render(std::string_view text, const glm::vec2& position,
                       const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load
@@ -143,14 +148,16 @@ void MSDFFont::render(const std::string& text, const glm::vec2& position,
               { texx + texw, texy + texh } }
         };
 
-        std::ranges::move(vertices, batchVertices.begin() + (i * vertexCount));
+        std::move(vertices.begin(), vertices.end(),
+                  batchVertices.begin() + (i * vertexCount));
 
         const std::array indices = {
             i * 4, (i * 4) + 2, (i * 4) + 1,  //
             i * 4, (i * 4) + 3, (i * 4) + 2   //
         };
 
-        std::ranges::move(indices, batchIndices.begin() + (i * indexCount));
+        std::move(indices.begin(), indices.end(),
+                  batchIndices.begin() + (i * indexCount));
 
         x += xadvance * scale;
 

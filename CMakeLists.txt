@@ -19,10 +19,11 @@ execute_process(
         COMMAND git rev-parse --short HEAD
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-set(GIT_SHA ${GIT_HASH} CACHE STRING "Hash this build was generated from")
+set(GIT_SHA
+        ${GIT_HASH}
+        CACHE STRING "Hash this build was generated from")
 
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
@@ -55,7 +56,8 @@ if (ENABLE_PROFILING)
     option(TRACY_ON_DEMAND "" ON)
 endif (ENABLE_PROFILING)
 
-option(ENABLE_IMGUI "Enables compilation with the imgui user interface library" OFF)
+option(ENABLE_IMGUI "Enables compilation with the imgui user interface library"
+        OFF)
 if (ENABLE_IMGUI)
     message(STATUS "Enabling imgui")
     add_definitions(-DENABLE_IMGUI)
@@ -82,13 +84,16 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # This function finds and replaces values in the current flag
 function(replace_flag_value flag_var_name match_string replace_string)
-    STRING(REPLACE "${match_string}" "${replace_string}" ${flag_var_name} "${${flag_var_name}}")
-    STRING(STRIP "${${flag_var_name}}" ${${flag_var_name}})
-    SET(${flag_var_name} "${${flag_var_name}}" PARENT_SCOPE)
+    string(REPLACE "${match_string}" "${replace_string}" ${flag_var_name}
+            "${${flag_var_name}}")
+    string(STRIP "${${flag_var_name}}" ${${flag_var_name}})
+    set(${flag_var_name}
+            "${${flag_var_name}}"
+            PARENT_SCOPE)
 endfunction()
 
-# Use flag /Z7 to embed debug symbols into .obj files instead of creating an external .pdb. sccache needs this to
-# cache effectively
+# Use flag /Z7 to embed debug symbols into .obj files instead of creating an
+# external .pdb. sccache needs this to cache effectively
 if (MSVC)
     replace_flag_value(CMAKE_C_FLAGS_DEBUG "/Zi" "/Z7")
     replace_flag_value(CMAKE_CXX_FLAGS_DEBUG "/Zi" "/Z7")

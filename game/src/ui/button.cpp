@@ -1,6 +1,7 @@
 #include "ui/button.hpp"
 
 #include <memory>
+#include <string_view>
 
 namespace game::ui {
 using sponge::platform::opengl::renderer::AssetManager;
@@ -57,6 +58,17 @@ void Button::setBorderColor(const glm::vec4& val) {
 
 void Button::setAlignType(const ButtonAlignType& val) {
     alignType = val;
+}
+
+void Button::setMessage(std::string_view message) {
+    if (text == message) {
+        return;
+    }
+
+    text   = message;
+    length = font->getLength(text, textSize);
+
+    setPosition(top, bottom);
 }
 
 void Button::setPosition(const glm::vec2& topLeft,

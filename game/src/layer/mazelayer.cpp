@@ -460,9 +460,7 @@ bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
 }
 
 void MazeLayer::renderGameObjects() const {
-    glViewport(Maze::get().getWindow()->getOffsetX(),
-               Maze::get().getWindow()->getOffsetY(),
-               Maze::get().getWindow()->getWidth(),
+    glViewport(0, 0, Maze::get().getWindow()->getWidth(),
                Maze::get().getWindow()->getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

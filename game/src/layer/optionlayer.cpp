@@ -6,31 +6,74 @@
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
 #include "ui/button.hpp"
+#include "ui/checkbox.hpp"
+#include "ui/selectlist.hpp"
 
 #include <fmt/format.h>
 #include <yoga/Yoga.h>
 
+#include <array>
+#include <cmath>
 #include <memory>
+#include <numeric>
+#include <ranges>
 #include <string>
+#include <tuple>
 
 namespace {
+struct AspectRatioFilter {
+    std::string_view label;
+    uint32_t         numerator;
+    uint32_t         denominator;
+    bool             approximate = false;
+};
+
+constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
+    { .label = "4:3", .numerator = 4, .denominator = 3 },
+    { .label = "5:3", .numerator = 5, .denominator = 3 },
+    { .label = "5:4", .numerator = 5, .denominator = 4 },
+    { .label = "16:9", .numerator = 16, .denominator = 9 },
+    { .label       = "~16:9",
+      .numerator   = 16,
+      .denominator = 9,
+      .approximate = true },
+    { .label = "16:10", .numerator = 16, .denominator = 10 },
+    { .label = "25:16", .numerator = 25, .denominator = 16 },
+});
+
 constexpr std::string_view returnMessage = "Return";
+constexpr std::string_view applyMessage  = "Apply";
 
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "league-gothic";
 constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
 
-constexpr glm::vec4 backgroundColor = { 0.F, 0.F, 0.F, 1.F };
-constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
-constexpr glm::vec4 hoverColor      = { 0.84F, 0.84F, 0.84F, 0.14F };
-constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
-constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.14F };
+constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
+constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
+constexpr glm::vec4 hoverColor         = { 0.84F, 0.84F, 0.84F, 0.14F };
+constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
+constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
+constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
+
+constexpr uint32_t fontSize            = 48;
+constexpr float    textMarginLeft      = 26.F;
+constexpr float    cornerRadius        = 12.F;
+constexpr float    selectedBorderWidth = 3.F;
+
+std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
+                                                     const float     offsetX,
+                                                     const float     offsetY) {
+    return { offsetX + YGNodeLayoutGetLeft(node),
+             offsetY + YGNodeLayoutGetTop(node), YGNodeLayoutGetWidth(node),
+             YGNodeLayoutGetHeight(node) };
+}
 
 inline std::string quadShaderName;
 inline std::string fontShaderName;
 
 std::unique_ptr<game::ui::Button> returnButton;
 
+YGNodeRef aspectRatioNode    = nullptr;
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
 YGNodeRef resolutionNode     = nullptr;
@@ -85,7 +128,7 @@ void OptionLayer::onAttach() {
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
-                              .marginLeft   = 56,
+                              .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
@@ -112,33 +155,91 @@ void OptionLayer::onAttach() {
     YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
-    resolutionNode = YGNodeNew();
-    YGNodeStyleSetFlex(resolutionNode, 1.0);
-    YGNodeStyleSetMargin(resolutionNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(resolutionNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, resolutionNode, 0);
+    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
+        auto* const child = YGNodeNew();
+        YGNodeStyleSetFlex(child, 1.F);
+        YGNodeStyleSetMargin(child, YGEdgeBottom, 30.F);
+        YGNodeStyleSetMaxHeight(child, 110);
+        YGNodeInsertChild(parent, child, index);
+        return child;
+    };
 
-    fullScreenNode = YGNodeNew();
-    YGNodeStyleSetFlex(fullScreenNode, 1.0);
-    YGNodeStyleSetMargin(fullScreenNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(fullScreenNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, fullScreenNode, 1);
+    aspectRatioNode  = makeMenuNode(menuBackgroundNode, 0);
+    resolutionNode   = makeMenuNode(menuBackgroundNode, 1);
+    fullScreenNode   = makeMenuNode(menuBackgroundNode, 2);
+    verticalSyncNode = makeMenuNode(menuBackgroundNode, 3);
+    returnNode       = makeMenuNode(menuBackgroundNode, 4);
 
-    verticalSyncNode = YGNodeNew();
-    YGNodeStyleSetFlex(verticalSyncNode, 1.0);
-    YGNodeStyleSetMargin(verticalSyncNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(verticalSyncNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, verticalSyncNode, 2);
+    availableResolutions = Maze::get().getAvailableResolutions();
 
-    returnNode = YGNodeNew();
-    YGNodeStyleSetFlex(returnNode, 1.0);
-    YGNodeStyleSetMargin(returnNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(returnNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, returnNode, 3);
+    // compute max display width across all aspect ratios and resolutions
+    float maxCycleValueWidth;
+    {
+        const auto font    = AssetManager::getFont(fontName);
+        maxCycleValueWidth = std::accumulate(
+            aspectRatioFilters.begin(), aspectRatioFilters.end(), 0.F,
+            [&](const float acc, const auto& f) {
+                return std::max(acc, static_cast<float>(
+                                         font->getLength(f.label, fontSize)));
+            });
+        maxCycleValueWidth = std::accumulate(
+            availableResolutions.begin(), availableResolutions.end(),
+            maxCycleValueWidth, [&](const float acc, const auto& res) {
+                return std::max(
+                    acc, static_cast<float>(font->getLength(
+                             fmt::format("{} x {}", res.width, res.height),
+                             fontSize)));
+            });
+    }
 
-    auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
+    const ui::SelectListCreateInfo selectCreateInfo{
+        .fontName           = fontNameStr,
+        .fontSize           = fontSize,
+        .textColor          = textColor,
+        .arrowDisabledColor = arrowDisabledColor,
+        .textMarginLeft     = textMarginLeft,
+        .maxValueWidth      = maxCycleValueWidth,
+    };
+    aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
+    resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
+
+    constexpr ui::CheckboxCreateInfo checkboxCreateInfo{ .margin =
+                                                             textMarginLeft };
+    fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+
+    std::vector<std::string> arItems;
+    arItems.reserve(aspectRatioFilters.size());
+    for (const auto& f : aspectRatioFilters) {
+        arItems.emplace_back(f.label);
+    }
+    aspectRatioList->setItems(std::move(arItems));
+
+    const auto window        = Maze::get().getWindow();
+    const auto currentWidth  = window->getWidth();
+    const auto currentHeight = window->getHeight();
+
+    const auto g  = std::gcd(currentWidth, currentHeight);
+    const auto rw = currentWidth / g;
+    const auto rh = currentHeight / g;
+
+    const auto arIt =
+        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
+                     [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
+    aspectRatioList->setSelectedIndex(
+        arIt != aspectRatioFilters.end() ?
+            static_cast<size_t>(
+                std::distance(aspectRatioFilters.begin(), arIt)) :
+            0);
+
+    filterResolutions();
+
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
     recalculateLayout(width, height);
 }
 
@@ -149,102 +250,117 @@ void OptionLayer::onDetach() {
 void OptionLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? this->onKeyPressed(event) : false;
-    });
-    dispatcher.dispatch<MouseButtonPressedEvent>(
-        [this](const MouseButtonPressedEvent& event) {
-            return isActive() ? this->onMouseButtonPressed(event) : false;
+    dispatcher.dispatch<KeyPressedEvent>(
+        [this](const KeyPressedEvent& keyEvent) {
+            return isActive() ? onKeyPressed(keyEvent) : false;
         });
-    dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? this->onMouseMoved(event) : false;
-    });
+    dispatcher.dispatch<MouseButtonPressedEvent>(
+        [this](const MouseButtonPressedEvent& mouseEvent) {
+            return isActive() ? onMouseButtonPressed(mouseEvent) : false;
+        });
+    dispatcher.dispatch<MouseMovedEvent>(
+        [this](const MouseMovedEvent& mouseMovedEvent) {
+            return isActive() ? onMouseMoved(mouseMovedEvent) : false;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
-        [this](const WindowResizeEvent& event) {
-            return this->onWindowResize(event);
+        [this](const WindowResizeEvent& windowResizeEvent) {
+            return onWindowResize(windowResizeEvent);
         });
 }
 
-bool OptionLayer::onUpdate(double elapsedTime) {
+bool OptionLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
-    const auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
-
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
-
-    auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
-                            const float offsetY) {
-        return std::tuple{ offsetX + YGNodeLayoutGetLeft(node),
-                           offsetY + YGNodeLayoutGetTop(node),
-                           YGNodeLayoutGetWidth(node),
-                           YGNodeLayoutGetHeight(node) };
-    };
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
         getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
         getNodeLayout(menuNode, rootNodeX, rootNodeY);
-    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
-          menuBackgroundNodeH] =
+    auto [menuBgX, menuBgY, menuBgW, menuBgH] =
         getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [resolutionX, resolutionY, resolutionW, resolutionH] =
-        getNodeLayout(resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [fullScreenX, fullScreenY, fullScreenW, fullScreenH] =
-        getNodeLayout(fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [verticalSyncX, verticalSyncY, verticalSyncW, verticalSyncH] =
-        getNodeLayout(verticalSyncNode, menuBackgroundNodeX,
-                      menuBackgroundNodeY);
-    const auto [returnX, returnY, returnW, returnH] =
-        getNodeLayout(returnNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [arX, arY, arW, arH] =
+        getNodeLayout(aspectRatioNode, menuBgX, menuBgY);
+    const auto [resX, resY, resW, resH] =
+        getNodeLayout(resolutionNode, menuBgX, menuBgY);
+    const auto [fsX, fsY, fsW, fsH] =
+        getNodeLayout(fullScreenNode, menuBgX, menuBgY);
+    const auto [vsX, vsY, vsW, vsH] =
+        getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
+    const auto [retX, retY, retW, retH] =
+        getNodeLayout(returnNode, menuBgX, menuBgY);
 
-    const auto fontNameStr = std::string(fontName);
-    const auto font        = AssetManager::getFont(fontNameStr);
+    renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
+    aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
 
-    const auto        window         = Maze::get().getWindow();
-    const std::string exitMessageStr = fmt::format(
-        "Resolution: {}x{}", window->getWidth(), window->getHeight());
-    font->render(exitMessageStr, { resolutionX + 56.F, resolutionY }, 48,
-                 { 1.F, 1.F, 1.F });
+    renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
+    resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
-    const std::string fullScreenMessageStr = fmt::format(
-        "Full Screen: {}", Maze::get().isFullscreen() ? "True" : "False");
-    font->render(fullScreenMessageStr, { fullScreenX + 56.F, fullScreenY }, 48,
-                 { 1.F, 1.F, 1.F });
-
-    const std::string verticalSyncMessageStr = fmt::format(
-        "Vertical Sync: {}", Maze::get().hasVerticalSync() ? "True" : "False");
-    font->render(verticalSyncMessageStr,
-                 { verticalSyncX + 56.F, verticalSyncY }, 48,
-                 { 1.F, 1.F, 1.F });
-
-    returnButton->setPosition({ returnX, returnY },
-                              { returnX + returnW, returnY + returnH });
-
-    auto updateButtonVisuals = [this](ui::Button* button, OptionMenuItem item) {
-        if (selectedItem == item) {
-            button->setBorderWidth(3.F);
-            button->setBorderColor(glm::vec4{ 1.F });
-            button->setButtonColor(textHoverColor);
-        } else if (!button->hasHover()) {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(glm::vec4{ 0.F });
-        } else {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(hoverColor);
-        }
+    const auto rowFont        = AssetManager::getFont(fontName);
+    auto       renderRowLabel = [&](const float x, const float y, const float h,
+                              const std::string_view label) {
+        const float textY = std::floor(
+            y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
+        rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
+                              textColor);
     };
 
-    updateButtonVisuals(returnButton.get(), OptionMenuItem::Return);
+    renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
+    renderRowLabel(fsX, fsY, fsH, "Full Screen");
+    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH,
+                                 Maze::get().isFullscreen());
+
+    renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
+    renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
+    verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH,
+                                   Maze::get().hasVerticalSync());
+
+    returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
+    if (selectedItem == OptionMenuItem::Return) {
+        returnButton->setBorderWidth(selectedBorderWidth);
+        returnButton->setBorderColor(glm::vec4{ 1.F });
+        returnButton->setButtonColor(textHoverColor);
+    } else if (!returnButton->hasHover()) {
+        returnButton->setBorderWidth(0.F);
+        returnButton->setButtonColor(glm::vec4{ 0.F });
+    } else {
+        returnButton->setBorderWidth(0.F);
+        returnButton->setButtonColor(hoverColor);
+    }
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
     return true;
 }
 
-void OptionLayer::recalculateLayout(float width, float height) const {
+void OptionLayer::renderRowBackground(float x, float y, const float w,
+                                      const float          h,
+                                      const OptionMenuItem item) const {
+    const bool isSelected = selectedItem == item;
+    const bool isHovered  = hoveredItem == item;
+    quad->render({ x, y }, { x + w, y + h },
+                 isSelected ? textHoverColor :
+                 isHovered  ? hoverColor :
+                              buttonColor,
+                 cornerRadius, isSelected ? selectedBorderWidth : 0.F,
+                 glm::vec4{ 1.F });
+}
+
+void OptionLayer::renderRowText(const float x, float y, const float w,
+                                const std::string_view label,
+                                const std::string_view value) {
+    const auto font     = AssetManager::getFont(fontName);
+    const auto valueLen = static_cast<float>(font->getLength(value, fontSize));
+    font->render(label, { x + textMarginLeft, y }, fontSize, textColor);
+    font->render(value, { x + w - textMarginLeft - valueLen, y }, fontSize,
+                 textColor);
+}
+
+void OptionLayer::recalculateLayout(const float width,
+                                    const float height) const {
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, height);
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
@@ -254,17 +370,34 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
     const auto     keyCode   = event.getKeyCode();
     constexpr auto itemCount = +OptionMenuItem::Count;
 
-    if (event.getKeyCode() == KeyCode::SpongeKey_Escape) {
+    if (keyCode == KeyCode::SpongeKey_Escape) {
         clearHoveredItems();
+        resetSelectionToCurrentState();
         setActive(false);
+        return true;
     }
 
     if (keyCode == KeyCode::SpongeKey_Enter ||
-        keyCode == KeyCode::SpongeKey_KPEnter) {
+        keyCode == KeyCode::SpongeKey_KPEnter ||
+        keyCode == KeyCode::SpongeKey_Space) {
         if (selectedItem == OptionMenuItem::Return) {
-            clearHoveredItems();
-            setActive(false);
+            if (hasUnappliedChanges && !filteredResolutions.empty()) {
+                const auto& res =
+                    filteredResolutions[resolutionList->getSelectedIndex()];
+                Maze::get().setResolution(res.width, res.height);
+                hasUnappliedChanges = false;
+                returnButton->setMessage(returnMessage);
+            } else {
+                clearHoveredItems();
+                resetSelectionToCurrentState();
+                setActive(false);
+            }
+        } else if (selectedItem == OptionMenuItem::FullScreen) {
+            Maze::get().toggleFullscreen();
+        } else if (selectedItem == OptionMenuItem::VerticalSync) {
+            Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
         }
+        return true;
     }
 
     if (keyCode == KeyCode::SpongeKey_Down ||
@@ -278,23 +411,134 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
             (+selectedItem - 1 + itemCount) % itemCount);
     }
 
+    if (selectedItem == OptionMenuItem::AspectRatio) {
+        if (keyCode == KeyCode::SpongeKey_Left ||
+            keyCode == KeyCode::SpongeKey_KP4) {
+            aspectRatioList->selectPrev();
+            filterResolutions();
+        }
+
+        if (keyCode == KeyCode::SpongeKey_Right ||
+            keyCode == KeyCode::SpongeKey_KP6) {
+            aspectRatioList->selectNext();
+            filterResolutions();
+        }
+    }
+
+    if (selectedItem == OptionMenuItem::Resolution &&
+        !filteredResolutions.empty()) {
+        if (keyCode == KeyCode::SpongeKey_Left ||
+            keyCode == KeyCode::SpongeKey_KP4) {
+            resolutionList->selectPrev();
+            updateChangeStatus();
+        }
+
+        if (keyCode == KeyCode::SpongeKey_Right ||
+            keyCode == KeyCode::SpongeKey_KP6) {
+            resolutionList->selectNext();
+            updateChangeStatus();
+        }
+    }
+
     return true;
 }
 
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     UNUSED(event);
 
-    auto [x, y] = sponge::platform::glfw::core::Input::getMousePosition();
+    auto [mouseX, mouseY] = Input::getMousePosition();
 
-    if (returnButton->isInside({ x, y })) {
-        clearHoveredItems();
-        setActive(false);
+    if (returnButton->isInside({ mouseX, mouseY })) {
+        if (hasUnappliedChanges && !filteredResolutions.empty()) {
+            const auto& res =
+                filteredResolutions[resolutionList->getSelectedIndex()];
+            Maze::get().setResolution(res.width, res.height);
+            hasUnappliedChanges = false;
+            returnButton->setMessage(returnMessage);
+        } else {
+            clearHoveredItems();
+            resetSelectionToCurrentState();
+            setActive(false);
+        }
+        return true;
+    }
+
+    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
+        getNodeLayout(rootNode, 0.F, 0.F);
+    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
+        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
+          menuBackgroundNodeH] =
+        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+
+    const auto [arX, arY, arW, arH] = getNodeLayout(
+        aspectRatioNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= arX && mouseX <= arX + arW && mouseY >= arY &&
+        mouseY <= arY + arH) {
+        selectedItem = OptionMenuItem::AspectRatio;
+
+        if (aspectRatioList->isInsideLeft(mouseX, arX, arW)) {
+            aspectRatioList->selectPrev();
+            filterResolutions();
+        } else if (aspectRatioList->isInsideRight(mouseX, arX, arW)) {
+            aspectRatioList->selectNext();
+            filterResolutions();
+        }
+
+        return true;
+    }
+
+    const auto [resX, resY, resW, resH] =
+        getNodeLayout(resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= resX && mouseX <= resX + resW && mouseY >= resY &&
+        mouseY <= resY + resH) {
+        selectedItem = OptionMenuItem::Resolution;
+
+        if (!filteredResolutions.empty()) {
+            if (resolutionList->isInsideLeft(mouseX, resX, resW)) {
+                resolutionList->selectPrev();
+                updateChangeStatus();
+            } else if (resolutionList->isInsideRight(mouseX, resX, resW)) {
+                resolutionList->selectNext();
+                updateChangeStatus();
+            }
+        }
+
+        return true;
+    }
+
+    const auto [fullX, fullY, fullW, fullH] =
+        getNodeLayout(fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= fullX && mouseX <= fullX + fullW && mouseY >= fullY &&
+        mouseY <= fullY + fullH) {
+        selectedItem = OptionMenuItem::FullScreen;
+        if (fullScreenCheckbox->isInside(mouseX, mouseY, fullX, fullY, fullW,
+                                         fullH)) {
+            Maze::get().toggleFullscreen();
+        }
+        return true;
+    }
+
+    const auto [vsyncX, vsyncY, vsyncW, vsyncH] = getNodeLayout(
+        verticalSyncNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= vsyncX && mouseX <= vsyncX + vsyncW && mouseY >= vsyncY &&
+        mouseY <= vsyncY + vsyncH) {
+        selectedItem = OptionMenuItem::VerticalSync;
+        if (verticalSyncCheckbox->isInside(mouseX, mouseY, vsyncX, vsyncY,
+                                           vsyncW, vsyncH)) {
+            Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
+        }
+        return true;
     }
 
     return true;
 }
 
-bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {
@@ -307,10 +551,42 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) const {
 
     updateHover(returnButton.get());
 
+    const auto rootNodeLayout = getNodeLayout(rootNode, 0.F, 0.F);
+    const auto menuNodeLayout = getNodeLayout(
+        menuNode, std::get<0>(rootNodeLayout), std::get<1>(rootNodeLayout));
+    const auto menuBackgroundNodeLayout =
+        getNodeLayout(menuBackgroundNode, std::get<0>(menuNodeLayout),
+                      std::get<1>(menuNodeLayout));
+
+    const float menuBackgroundNodeX = std::get<0>(menuBackgroundNodeLayout);
+    const float menuBackgroundNodeY = std::get<1>(menuBackgroundNodeLayout);
+
+    auto isOver = [&](auto* node) {
+        const auto nodeLayout =
+            getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
+        const float x = std::get<0>(nodeLayout);
+        const float y = std::get<1>(nodeLayout);
+        const float w = std::get<2>(nodeLayout);
+        const float h = std::get<3>(nodeLayout);
+        return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
+    };
+
+    if (isOver(aspectRatioNode)) {
+        hoveredItem = OptionMenuItem::AspectRatio;
+    } else if (isOver(resolutionNode)) {
+        hoveredItem = OptionMenuItem::Resolution;
+    } else if (isOver(fullScreenNode)) {
+        hoveredItem = OptionMenuItem::FullScreen;
+    } else if (isOver(verticalSyncNode)) {
+        hoveredItem = OptionMenuItem::VerticalSync;
+    } else {
+        hoveredItem = std::nullopt;
+    }
+
     return true;
 }
 
-bool OptionLayer::onWindowResize(const WindowResizeEvent& event) const {
+bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
@@ -320,15 +596,118 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) const {
         shader->unbind();
     }
 
-    const auto [width, height] =
-        std::pair{ static_cast<float>(event.getWidth()),
-                   static_cast<float>(event.getHeight()) };
+    const auto width  = static_cast<float>(event.getWidth());
+    const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
+
+    if (isActive()) {
+        updateChangeStatus();
+    }
 
     return false;
 }
 
-void OptionLayer::clearHoveredItems() const {
-    // empty
+void OptionLayer::filterResolutions() {
+    const auto& filter =
+        aspectRatioFilters[aspectRatioList->getSelectedIndex()];
+    auto isExactMatch = [&](const auto& res) {
+        const auto g  = std::gcd(res.width, res.height);
+        const auto fg = std::gcd(filter.numerator, filter.denominator);
+        return res.width / g == filter.numerator / fg &&
+               res.height / g == filter.denominator / fg;
+    };
+
+    auto matchesFilter = [&](const auto& res) {
+        if (filter.approximate) {
+            const float ratio =
+                static_cast<float>(res.width) / static_cast<float>(res.height);
+            const float target = static_cast<float>(filter.numerator) /
+                                 static_cast<float>(filter.denominator);
+            return !isExactMatch(res) &&
+                   std::abs(ratio - target) / target <= 0.01F;
+        }
+        return isExactMatch(res);
+    };
+
+    auto filtered = availableResolutions | std::views::filter(matchesFilter);
+    filteredResolutions =
+        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
+
+    const auto window        = Maze::get().getWindow();
+    const auto currentWidth  = window->getWidth();
+    const auto currentHeight = window->getHeight();
+
+    if (filteredResolutions.empty()) {
+        resolutionList->setItems(
+            { fmt::format("{} x {}", currentWidth, currentHeight) });
+        resolutionList->setSelectedIndex(0);
+    } else {
+        std::vector<std::string> resItems;
+        resItems.reserve(filteredResolutions.size());
+        for (const auto& res : filteredResolutions) {
+            resItems.emplace_back(
+                fmt::format("{} x {}", res.width, res.height));
+        }
+        resolutionList->setItems(std::move(resItems));
+
+        const auto it = std::find_if(
+            filteredResolutions.begin(), filteredResolutions.end(),
+            [&](const auto& r) {
+                return r.width == currentWidth && r.height == currentHeight;
+            });
+        resolutionList->setSelectedIndex(
+            it != filteredResolutions.end() ?
+                static_cast<size_t>(
+                    std::distance(filteredResolutions.begin(), it)) :
+                0);
+    }
+
+    updateChangeStatus();
+}
+
+void OptionLayer::updateChangeStatus() {
+    if (filteredResolutions.empty()) {
+        hasUnappliedChanges = false;
+        returnButton->setMessage(returnMessage);
+        return;
+    }
+
+    const auto  window = Maze::get().getWindow();
+    const auto& res = filteredResolutions[resolutionList->getSelectedIndex()];
+    hasUnappliedChanges =
+        res.width != window->getWidth() || res.height != window->getHeight();
+
+    returnButton->setMessage(hasUnappliedChanges ? applyMessage :
+                                                   returnMessage);
+}
+
+void OptionLayer::clearHoveredItems() {
+    returnButton->setHover(false);
+    hoveredItem = std::nullopt;
+}
+
+void OptionLayer::resetSelectionToCurrentState() {
+    const auto window        = Maze::get().getWindow();
+    const auto currentWidth  = window->getWidth();
+    const auto currentHeight = window->getHeight();
+
+    const auto g  = std::gcd(currentWidth, currentHeight);
+    const auto rw = currentWidth / g;
+    const auto rh = currentHeight / g;
+
+    const auto arIt =
+        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
+                     [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
+    aspectRatioList->setSelectedIndex(
+        arIt != aspectRatioFilters.end() ?
+            static_cast<size_t>(
+                std::distance(aspectRatioFilters.begin(), arIt)) :
+            0);
+
+    filterResolutions();
 }
 }  // namespace game::layer

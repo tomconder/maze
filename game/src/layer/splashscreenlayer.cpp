@@ -12,7 +12,7 @@ constexpr std::string_view cameraName  = "splash";
 constexpr std::string_view spriteName  = "blackcoffee-logo";
 constexpr std::string_view texturePath = "textures/blackcoffee.png";
 
-constexpr double timeoutSeconds = 7.0;
+constexpr double timeoutSeconds = 5.0;
 constexpr double fadeDuration   = 0.7;
 constexpr float  logoSize       = 512.0F;
 
