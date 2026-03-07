@@ -185,7 +185,7 @@ void OptionLayer::onAttach() {
     const auto rw = currentWidth / g;
     const auto rh = currentHeight / g;
 
-    const auto arIt =
+    const auto* const arIt =
         std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
                      [&](const auto& f) {
                          const auto fg = std::gcd(f.numerator, f.denominator);
@@ -742,7 +742,7 @@ void OptionLayer::resetSelectionToCurrentState() {
     const auto rw = currentWidth / g;
     const auto rh = currentHeight / g;
 
-    const auto arIt =
+    const auto* const arIt =
         std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
                      [&](const auto& f) {
                          const auto fg = std::gcd(f.numerator, f.denominator);
