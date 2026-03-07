@@ -6,6 +6,7 @@
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
 #include "ui/button.hpp"
+#include "ui/selectlist.hpp"
 
 #include <fmt/format.h>
 #include <yoga/Yoga.h>
@@ -178,29 +179,8 @@ void OptionLayer::onAttach() {
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
-    const auto window        = Maze::get().getWindow();
-    const auto currentWidth  = window->getWidth();
-    const auto currentHeight = window->getHeight();
-
-    const auto g  = std::gcd(currentWidth, currentHeight);
-    const auto rw = currentWidth / g;
-    const auto rh = currentHeight / g;
-
-    const auto arIt =
-        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
-                     [&](const auto& f) {
-                         const auto fg = std::gcd(f.numerator, f.denominator);
-                         return !f.approximate && rw == f.numerator / fg &&
-                                rh == f.denominator / fg;
-                     });
-    selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
-                                   static_cast<size_t>(std::distance(
-                                       aspectRatioFilters.begin(), arIt)) :
-                                   0;
-
-    filterResolutions();
-
-    // compute max width across all aspect ratios and resolutions.
+    // compute max display width across all aspect ratios and resolutions
+    float maxCycleValueWidth;
     {
         const auto font    = AssetManager::getFont(fontName);
         maxCycleValueWidth = std::accumulate(
@@ -218,6 +198,47 @@ void OptionLayer::onAttach() {
                              fontSize)));
             });
     }
+
+    const ui::SelectListCreateInfo selectCreateInfo{
+        .fontName           = fontNameStr,
+        .fontSize           = fontSize,
+        .textColor          = textColor,
+        .arrowDisabledColor = arrowDisabledColor,
+        .textMarginLeft     = textMarginLeft,
+        .maxValueWidth      = maxCycleValueWidth,
+    };
+    aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
+    resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
+
+    std::vector<std::string> arItems;
+    arItems.reserve(aspectRatioFilters.size());
+    for (const auto& f : aspectRatioFilters) {
+        arItems.emplace_back(f.label);
+    }
+    aspectRatioList->setItems(std::move(arItems));
+
+    const auto window        = Maze::get().getWindow();
+    const auto currentWidth  = window->getWidth();
+    const auto currentHeight = window->getHeight();
+
+    const auto g  = std::gcd(currentWidth, currentHeight);
+    const auto rw = currentWidth / g;
+    const auto rh = currentHeight / g;
+
+    const auto arIt =
+        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
+                     [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
+    aspectRatioList->setSelectedIndex(
+        arIt != aspectRatioFilters.end() ?
+            static_cast<size_t>(
+                std::distance(aspectRatioFilters.begin(), arIt)) :
+            0);
+
+    filterResolutions();
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
@@ -274,18 +295,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     const auto [retX, retY, retW, retH] =
         getNodeLayout(returnNode, menuBgX, menuBgY);
 
-    const auto& arFilter = aspectRatioFilters[selectedAspectRatioIndex];
     renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
-    renderCycleRow(arX, arY, arW, arH, "Aspect Ratio", arFilter.label,
-                   selectedAspectRatioIndex > 0,
-                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size(),
-                   maxCycleValueWidth);
+    aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
 
-    const auto [resCenter, resHasLeft, resHasRight] =
-        getResolutionDisplayInfo();
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
-    renderCycleRow(resX, resY, resW, resH, "Resolution", resCenter, resHasLeft,
-                   resHasRight, maxCycleValueWidth);
+    resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
     renderToggleRow(fsX, fsY, fsW, fsH, "Full Screen",
@@ -336,32 +350,6 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
                  textColor);
 }
 
-void OptionLayer::renderCycleRow(const float x, const float y, const float w,
-                                 const float h, const std::string_view label,
-                                 const std::string_view value,
-                                 const bool hasLeft, const bool hasRight,
-                                 const float maxValWidth) {
-    const auto  font  = AssetManager::getFont(fontName);
-    const float textY = std::floor(
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    const std::string leftPart  = "< ";
-    const std::string rightPart = " >";
-    const auto        leftLen =
-        static_cast<float>(font->getLength(leftPart, fontSize));
-    const auto rightLen =
-        static_cast<float>(font->getLength(rightPart, fontSize));
-    const auto  valLen = static_cast<float>(font->getLength(value, fontSize));
-    const float startX =
-        x + w - textMarginLeft - leftLen - maxValWidth - rightLen;
-    const float valueX = startX + leftLen + (maxValWidth - valLen) / 2.F;
-    font->render(label, { x + textMarginLeft, textY }, fontSize, textColor);
-    font->render(leftPart, { startX, textY }, fontSize,
-                 hasLeft ? textColor : arrowDisabledColor);
-    font->render(value, { valueX, textY }, fontSize, textColor);
-    font->render(rightPart, { startX + leftLen + maxValWidth, textY }, fontSize,
-                 hasRight ? textColor : arrowDisabledColor);
-}
-
 void OptionLayer::renderToggleRow(const float x, const float y, const float w,
                                   const float h, const std::string_view label,
                                   const bool value) {
@@ -375,19 +363,6 @@ void OptionLayer::renderToggleRow(const float x, const float y, const float w,
     quad->render({ boxX, boxY }, { boxX + toggleBoxSize, boxY + toggleBoxSize },
                  value ? toggleOnFill : toggleOffFill, toggleBoxRadius,
                  toggleBoxBorder, value ? toggleOnBorder : toggleOffBorder);
-}
-
-std::tuple<std::string, bool, bool>
-    OptionLayer::getResolutionDisplayInfo() const {
-    if (!filteredResolutions.empty()) {
-        const auto& res = filteredResolutions[selectedResolutionIndex];
-        return { fmt::format("{} x {}", res.width, res.height),
-                 selectedResolutionIndex > 0,
-                 selectedResolutionIndex + 1 < filteredResolutions.size() };
-    }
-    const auto window = Maze::get().getWindow();
-    return { fmt::format("{} x {}", window->getWidth(), window->getHeight()),
-             false, false };
 }
 
 void OptionLayer::recalculateLayout(const float width,
@@ -413,7 +388,8 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
         keyCode == KeyCode::SpongeKey_Space) {
         if (selectedItem == OptionMenuItem::Return) {
             if (hasUnappliedChanges && !filteredResolutions.empty()) {
-                const auto& res = filteredResolutions[selectedResolutionIndex];
+                const auto& res =
+                    filteredResolutions[resolutionList->getSelectedIndex()];
                 Maze::get().setResolution(res.width, res.height);
                 hasUnappliedChanges = false;
                 returnButton->setMessage(returnMessage);
@@ -442,42 +418,30 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
     }
 
     if (selectedItem == OptionMenuItem::AspectRatio) {
-        constexpr auto aspectRatioCount = aspectRatioFilters.size();
-
         if (keyCode == KeyCode::SpongeKey_Left ||
             keyCode == KeyCode::SpongeKey_KP4) {
-            if (selectedAspectRatioIndex > 0) {
-                selectedAspectRatioIndex--;
-            }
+            aspectRatioList->selectPrev();
             filterResolutions();
         }
 
         if (keyCode == KeyCode::SpongeKey_Right ||
             keyCode == KeyCode::SpongeKey_KP6) {
-            if (selectedAspectRatioIndex + 1 < aspectRatioCount) {
-                selectedAspectRatioIndex++;
-            }
+            aspectRatioList->selectNext();
             filterResolutions();
         }
     }
 
     if (selectedItem == OptionMenuItem::Resolution &&
         !filteredResolutions.empty()) {
-        const auto resolutionCount = filteredResolutions.size();
-
         if (keyCode == KeyCode::SpongeKey_Left ||
             keyCode == KeyCode::SpongeKey_KP4) {
-            if (selectedResolutionIndex > 0) {
-                selectedResolutionIndex--;
-            }
+            resolutionList->selectPrev();
             updateChangeStatus();
         }
 
         if (keyCode == KeyCode::SpongeKey_Right ||
             keyCode == KeyCode::SpongeKey_KP6) {
-            if (selectedResolutionIndex + 1 < resolutionCount) {
-                selectedResolutionIndex++;
-            }
+            resolutionList->selectNext();
             updateChangeStatus();
         }
     }
@@ -492,7 +456,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges && !filteredResolutions.empty()) {
-            const auto& res = filteredResolutions[selectedResolutionIndex];
+            const auto& res =
+                filteredResolutions[resolutionList->getSelectedIndex()];
             Maze::get().setResolution(res.width, res.height);
             hasUnappliedChanges = false;
             returnButton->setMessage(returnMessage);
@@ -519,23 +484,11 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         mouseY <= arY + arH) {
         selectedItem = OptionMenuItem::AspectRatio;
 
-        // Compute arrow hit zones using the same layout math as renderCycleRow
-        const auto font = AssetManager::getFont(fontName);
-        const auto leftLen =
-            static_cast<float>(font->getLength("< ", fontSize));
-        const auto rightLen =
-            static_cast<float>(font->getLength(" >", fontSize));
-        const float startX = arX + arW - textMarginLeft - leftLen -
-                             maxCycleValueWidth - rightLen;
-
-        if (mouseX >= startX && mouseX <= startX + leftLen &&
-            selectedAspectRatioIndex > 0) {
-            selectedAspectRatioIndex--;
+        if (aspectRatioList->isInsideLeft(mouseX, arX, arW)) {
+            aspectRatioList->selectPrev();
             filterResolutions();
-        } else if (mouseX >= startX + leftLen + maxCycleValueWidth &&
-                   mouseX <= startX + leftLen + maxCycleValueWidth + rightLen &&
-                   selectedAspectRatioIndex + 1 < aspectRatioFilters.size()) {
-            selectedAspectRatioIndex++;
+        } else if (aspectRatioList->isInsideRight(mouseX, arX, arW)) {
+            aspectRatioList->selectNext();
             filterResolutions();
         }
 
@@ -550,24 +503,11 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         selectedItem = OptionMenuItem::Resolution;
 
         if (!filteredResolutions.empty()) {
-            const auto font = AssetManager::getFont(fontName);
-            const auto leftLen =
-                static_cast<float>(font->getLength("< ", fontSize));
-            const auto rightLen =
-                static_cast<float>(font->getLength(" >", fontSize));
-            const float startX = resX + resW - textMarginLeft - leftLen -
-                                 maxCycleValueWidth - rightLen;
-
-            if (mouseX >= startX && mouseX <= startX + leftLen &&
-                selectedResolutionIndex > 0) {
-                selectedResolutionIndex--;
+            if (resolutionList->isInsideLeft(mouseX, resX, resW)) {
+                resolutionList->selectPrev();
                 updateChangeStatus();
-            } else if (mouseX >= startX + leftLen + maxCycleValueWidth &&
-                       mouseX <=
-                           startX + leftLen + maxCycleValueWidth + rightLen &&
-                       selectedResolutionIndex + 1 <
-                           filteredResolutions.size()) {
-                selectedResolutionIndex++;
+            } else if (resolutionList->isInsideRight(mouseX, resX, resW)) {
+                resolutionList->selectNext();
                 updateChangeStatus();
             }
         }
@@ -668,8 +608,9 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void OptionLayer::filterResolutions() {
-    const auto& filter       = aspectRatioFilters[selectedAspectRatioIndex];
-    auto        isExactMatch = [&](const auto& res) {
+    const auto& filter =
+        aspectRatioFilters[aspectRatioList->getSelectedIndex()];
+    auto isExactMatch = [&](const auto& res) {
         const auto g  = std::gcd(res.width, res.height);
         const auto fg = std::gcd(filter.numerator, filter.denominator);
         return res.width / g == filter.numerator / fg &&
@@ -696,15 +637,30 @@ void OptionLayer::filterResolutions() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    const auto it           = std::find_if(filteredResolutions.begin(),
-                                           filteredResolutions.end(), [&](const auto& r) {
-                                     return r.width == currentWidth &&
-                                            r.height == currentHeight;
-                                 });
-    selectedResolutionIndex = it != filteredResolutions.end() ?
-                                  static_cast<size_t>(std::distance(
-                                      filteredResolutions.begin(), it)) :
-                                  0;
+    if (filteredResolutions.empty()) {
+        resolutionList->setItems(
+            { fmt::format("{} x {}", currentWidth, currentHeight) });
+        resolutionList->setSelectedIndex(0);
+    } else {
+        std::vector<std::string> resItems;
+        resItems.reserve(filteredResolutions.size());
+        for (const auto& res : filteredResolutions) {
+            resItems.emplace_back(
+                fmt::format("{} x {}", res.width, res.height));
+        }
+        resolutionList->setItems(std::move(resItems));
+
+        const auto it = std::find_if(
+            filteredResolutions.begin(), filteredResolutions.end(),
+            [&](const auto& r) {
+                return r.width == currentWidth && r.height == currentHeight;
+            });
+        resolutionList->setSelectedIndex(
+            it != filteredResolutions.end() ?
+                static_cast<size_t>(
+                    std::distance(filteredResolutions.begin(), it)) :
+                0);
+    }
 
     updateChangeStatus();
 }
@@ -717,13 +673,12 @@ void OptionLayer::updateChangeStatus() {
     }
 
     const auto  window = Maze::get().getWindow();
-    const auto& res    = filteredResolutions[selectedResolutionIndex];
+    const auto& res = filteredResolutions[resolutionList->getSelectedIndex()];
     hasUnappliedChanges =
         res.width != window->getWidth() || res.height != window->getHeight();
 
-    const auto expectedMessage =
-        hasUnappliedChanges ? applyMessage : returnMessage;
-    returnButton->setMessage(expectedMessage);
+    returnButton->setMessage(hasUnappliedChanges ? applyMessage :
+                                                   returnMessage);
 }
 
 void OptionLayer::clearHoveredItems() {
@@ -747,10 +702,11 @@ void OptionLayer::resetSelectionToCurrentState() {
                          return !f.approximate && rw == f.numerator / fg &&
                                 rh == f.denominator / fg;
                      });
-    selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
-                                   static_cast<size_t>(std::distance(
-                                       aspectRatioFilters.begin(), arIt)) :
-                                   0;
+    aspectRatioList->setSelectedIndex(
+        arIt != aspectRatioFilters.end() ?
+            static_cast<size_t>(
+                std::distance(aspectRatioFilters.begin(), arIt)) :
+            0);
 
     filterResolutions();
 }

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "sponge.hpp"
+#include "ui/selectlist.hpp"
 
+#include <memory>
 #include <optional>
-#include <string>
-#include <tuple>
 #include <vector>
 
 namespace game::layer {
@@ -36,22 +36,17 @@ private:
 
     std::vector<sponge::core::Resolution> availableResolutions;
     std::vector<sponge::core::Resolution> filteredResolutions;
-    size_t                                selectedAspectRatioIndex = 0;
-    size_t                                selectedResolutionIndex  = 0;
-    bool                                  hasUnappliedChanges      = false;
+    bool                                  hasUnappliedChanges = false;
+
+    std::unique_ptr<ui::SelectList> aspectRatioList;
+    std::unique_ptr<ui::SelectList> resolutionList;
 
     void        renderRowBackground(float x, float y, float w, float h,
                                     OptionMenuItem item) const;
     static void renderRowText(float x, float y, float w, std::string_view label,
                               std::string_view value);
-    static void renderCycleRow(float x, float y, float w, float h,
-                               std::string_view label, std::string_view value,
-                               bool hasLeft, bool hasRight, float maxValWidth);
     static void renderToggleRow(float x, float y, float w, float h,
                                 std::string_view label, bool value);
-    std::tuple<std::string, bool, bool> getResolutionDisplayInfo() const;
-
-    float maxCycleValueWidth = 0.F;
 
     void filterResolutions();
 
