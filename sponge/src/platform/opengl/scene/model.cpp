@@ -184,8 +184,8 @@ std::shared_ptr<renderer::Texture>
         std::filesystem::path(path) / baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
-    std::ranges::transform(name, name.begin(),
-                           [](const uint8_t c) { return std::tolower(c); });
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](const uint8_t c) { return std::tolower(c); });
 
     const renderer::TextureCreateInfo textureCreateInfo{
         .name     = name,

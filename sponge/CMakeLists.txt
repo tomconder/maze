@@ -1,4 +1,4 @@
-# Sponge Engine
+#Sponge Engine
 include(GNUInstallDirs)
 
 file(
@@ -16,29 +16,22 @@ file(
 file(
         GLOB SOURCE_FILES
         LIST_DIRECTORIES false
-        src/core/*.cpp
-        src/event/*.cpp
-        src/input/*.cpp
-        src/layer/*.cpp
-        src/logging/*.cpp
-        src/scene/*.cpp)
+        src/core/*.cpp src/event/*.cpp src/input/*.cpp src/layer/*.cpp
+        src/logging/*.cpp src/scene/*.cpp)
 
 # OpenGL
 message(STATUS "Including OpenGL platform files")
 file(
         GLOB OPENGL_HEADERS
         LIST_DIRECTORIES false
-        src/platform/opengl/debug/*.hpp
-        src/platform/opengl/renderer/*.hpp
+        src/platform/opengl/debug/*.hpp src/platform/opengl/renderer/*.hpp
         src/platform/opengl/scene/*.hpp)
 list(APPEND HEADER_FILES ${OPENGL_HEADERS})
 file(
         GLOB OPENGL_SOURCES
         LIST_DIRECTORIES false
-        deps/glad2/src/gl.c
-        src/platform/opengl/debug/*.cpp
-        src/platform/opengl/renderer/*.cpp
-        src/platform/opengl/scene/*.cpp)
+        deps/glad2/src/gl.c src/platform/opengl/debug/*.cpp
+        src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
 # glfw
@@ -46,17 +39,13 @@ message(STATUS "Including glfw platform files")
 file(
         GLOB GLFW_HEADERS
         LIST_DIRECTORIES false
-        src/platform/glfw/core/*.hpp
-        src/platform/glfw/logging/*.hpp
-)
+        src/platform/glfw/core/*.hpp src/platform/glfw/logging/*.hpp)
 list(APPEND HEADER_FILES ${GLFW_HEADERS})
 file(
         GLOB GLFW_SOURCES
         LIST_DIRECTORIES false
-        src/platform/glfw/core/*.cpp
-        src/platform/glfw/input/*.cpp
-        src/platform/glfw/logging/*.cpp
-)
+        src/platform/glfw/core/*.cpp src/platform/glfw/input/*.cpp
+        src/platform/glfw/logging/*.cpp)
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
 if (ENABLE_IMGUI)
@@ -64,16 +53,12 @@ if (ENABLE_IMGUI)
     file(
             GLOB IMGUI_HEADERS
             LIST_DIRECTORIES false
-            src/imgui/*.hpp
-            src/platform/glfw/imgui/*.hpp
-    )
+            src/imgui/*.hpp src/platform/glfw/imgui/*.hpp)
     list(APPEND HEADER_FILES ${IMGUI_HEADERS})
     file(
             GLOB IMGUI_SOURCES
             LIST_DIRECTORIES false
-            src/imgui/*.cpp
-            src/platform/glfw/imgui/*.cpp
-    )
+            src/imgui/*.cpp src/platform/glfw/imgui/*.cpp)
     list(APPEND SOURCE_FILES ${IMGUI_SOURCES})
 endif ()
 
@@ -123,7 +108,8 @@ add_library(sponge::sponge ALIAS sponge)
 
 if (MSVC)
     # hardening
-    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
+            /guard:cf>)
 
     # properly report what c++ version is being used
     target_compile_options(sponge INTERFACE /Zc:__cplusplus)
@@ -138,7 +124,7 @@ if (MSVC)
     # enable exception handling
     target_compile_options(sponge INTERFACE /EHsc)
 
-    # enable warnings and warnings as errors
+    # enable warnings as errors
     target_compile_options(sponge INTERFACE /W4 /WX)
 
     # disable RTTI
@@ -153,19 +139,24 @@ else ()
     # enable exception handling
     target_compile_options(sponge INTERFACE -fexceptions)
 
-    # enable warnings and warnings as errors
+    # enable warnings as errors
     target_compile_options(sponge INTERFACE -Wall -Werror)
 
     # disable RTTI
     target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(sponge
+            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
     target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
-    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
-    target_link_options(sponge PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
+    target_link_options(
+            sponge PUBLIC
+            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
+    target_link_options(
+            sponge PUBLIC
+            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)

@@ -11,16 +11,16 @@
 #include "platform/opengl/renderer/rendererapi.hpp"
 
 #include <memory>
-#include <string>
+#include <string_view>
 #include <vector>
 
 namespace sponge::platform::glfw::core {
 struct ApplicationSpecification {
-    std::string name       = "Sponge";
-    uint32_t    width      = 1600;
-    uint32_t    height     = 900;
-    bool        fullscreen = true;
-    bool        vsync      = true;
+    std::string_view name       = "Sponge";
+    uint32_t         width      = 1600;
+    uint32_t         height     = 900;
+    bool             fullscreen = true;
+    bool             vsync      = true;
 };
 
 using logging::LogItem;
@@ -59,6 +59,10 @@ public:
     void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
     void toggleFullscreen();
+
+    void setResolution(uint32_t width, uint32_t height) const;
+
+    std::vector<sponge::core::Resolution> getAvailableResolutions() const;
 
     bool isFullscreen() const {
         return fullscreen;
@@ -105,7 +109,7 @@ public:
     }
 
 private:
-    std::string                                    appName = "undefined";
+    std::string_view                               appName = "undefined";
     std::unique_ptr<opengl::renderer::Context>     graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
 

@@ -90,7 +90,7 @@ void IntroLayer::onAttach() {
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
-                              .marginLeft   = 56,
+                              .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
@@ -102,7 +102,7 @@ void IntroLayer::onAttach() {
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
-                              .marginLeft   = 56,
+                              .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
@@ -114,7 +114,7 @@ void IntroLayer::onAttach() {
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
-                              .marginLeft   = 56,
+                              .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 

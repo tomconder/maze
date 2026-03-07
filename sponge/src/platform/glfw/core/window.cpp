@@ -7,8 +7,10 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/input.hpp"
 
+#include <algorithm>
 #include <array>
 #include <ranges>
+#include <span>
 
 namespace {
 constexpr auto ratios = std::to_array(
@@ -18,58 +20,12 @@ constexpr auto ratios = std::to_array(
 }  // namespace
 
 namespace sponge::platform::glfw::core {
-Window::Window(const sponge::core::WindowProps& props) {
-    window = nullptr;
+Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {
     init(props);
 }
 
 Window::~Window() noexcept {
     shutdown();
-}
-
-std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>
-    Window::adjustAspectRatio(uint32_t width, uint32_t height) {
-    float proposedRatio =
-        static_cast<float>(width) / static_cast<float>(height);
-    auto exceedsRatio = [&proposedRatio](const glm::vec3 i) {
-        return proposedRatio >= i.z;
-    };
-
-    glm::vec3 ratio;
-    if (const auto it = std::ranges::find_if(ratios, exceedsRatio);
-        it != std::end(ratios)) {
-        ratio = *it;
-    } else {
-        ratio = *(ratios.end() - 1);
-    }
-
-    const float aspectRatioWidth  = ratio.x;
-    const float aspectRatioHeight = ratio.y;
-
-    const float aspectRatio = aspectRatioWidth / aspectRatioHeight;
-
-    const auto fw = static_cast<float>(width);
-    const auto fh = static_cast<float>(height);
-
-    uint32_t w = 0;
-    uint32_t h = 0;
-
-    if (const float newAspectRatio = fw / fh; newAspectRatio > aspectRatio) {
-        w = static_cast<int>(aspectRatioWidth * fh / aspectRatioHeight);
-        h = static_cast<int>(fh);
-    } else {
-        w = static_cast<int>(fw);
-        h = static_cast<int>(aspectRatioHeight * fw / aspectRatioWidth);
-    }
-
-    data.width   = w;
-    data.height  = h;
-    data.offsetx = static_cast<uint32_t>((width - w) / 2.F);
-    data.offsety = static_cast<uint32_t>((height - h) / 2.F);
-
-    SPONGE_CORE_DEBUG(fmt::format("Resizing viewport to {}x{}", w, h));
-
-    return { data.width, data.height, data.offsetx, data.offsety };
 }
 
 void Window::init(const sponge::core::WindowProps& props) {
@@ -83,34 +39,32 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
+    GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+    auto width  = static_cast<int32_t>(props.width);
+    auto height = static_cast<int32_t>(props.height);
+
+    if (width == 0 && height == 0) {
+        width  = mode->width;
+        height = mode->height;
+    }
+
     if (props.fullscreen) {
         SPONGE_CORE_INFO("Creating fullscreen window");
-
-        GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
-
-        glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-        auto width  = static_cast<int32_t>(props.width);
-        auto height = static_cast<int32_t>(props.height);
-
-        if (width == 0 && height == 0) {
-            width  = mode->width;
-            height = mode->height;
-        }
-
         window = glfwCreateWindow(width, height, props.title.data(),
                                   primaryMonitor, nullptr);
     } else {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-
-        window = glfwCreateWindow(static_cast<int>(props.width),
-                                  static_cast<int>(props.height),
-                                  props.title.data(), nullptr, nullptr);
+        window = glfwCreateWindow(width, height, props.title.data(), nullptr,
+                                  nullptr);
     }
 
     if (window == nullptr) {
@@ -118,6 +72,7 @@ void Window::init(const sponge::core::WindowProps& props) {
         glfwGetError(&descCStr);
         const std::string description = descCStr ? descCStr : "Unknown error";
         SPONGE_CORE_CRITICAL("Could not create window: {}", description);
+        return;
     }
 
     int w = 0;
@@ -143,10 +98,11 @@ void Window::init(const sponge::core::WindowProps& props) {
 
         auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-        event::WindowResizeEvent event(adjustedW, adjustedH);
-        data->eventCallback(event);
         data->width  = adjustedW;
         data->height = adjustedH;
+
+        event::WindowResizeEvent event(adjustedW, adjustedH);
+        data->eventCallback(event);
     });
 
     glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
@@ -197,12 +153,12 @@ void Window::init(const sponge::core::WindowProps& props) {
     });
 
     glfwSetCharCallback(window, [](GLFWwindow* window, uint32_t codepoint) {
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
         if (Application::get().isEventHandledByImGui()) {
             return;
         }
+
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
         event::KeyTypedEvent event(static_cast<input::KeyCode>(codepoint));
         data->eventCallback(event);
@@ -216,26 +172,23 @@ void Window::init(const sponge::core::WindowProps& props) {
             return;
         }
 
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-        const auto buttonCode = static_cast<input::MouseButton>(button);
         if (button != GLFW_MOUSE_BUTTON_LEFT) {
             return;
         }
 
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+        const auto buttonCode = static_cast<input::MouseButton>(button);
+
         switch (action) {
             case GLFW_PRESS: {
-                Input::updateButtonState(
-                    static_cast<input::MouseButton>(button), KeyState::Pressed);
+                Input::updateButtonState(buttonCode, KeyState::Pressed);
                 event::MouseButtonPressedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
             }
             case GLFW_RELEASE: {
-                Input::updateButtonState(
-                    static_cast<input::MouseButton>(button),
-                    KeyState::Released);
+                Input::updateButtonState(buttonCode, KeyState::Released);
                 event::MouseButtonReleasedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
@@ -295,5 +248,47 @@ void Window::init(const sponge::core::WindowProps& props) {
 void Window::shutdown() const {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    if (primaryMonitor == nullptr) {
+        return {};
+    }
+
+    const GLFWvidmode* currentMode = glfwGetVideoMode(primaryMonitor);
+    if (currentMode == nullptr) {
+        return {};
+    }
+
+    const int targetRefreshRate = currentMode->refreshRate;
+
+    int                count = 0;
+    const GLFWvidmode* modes = glfwGetVideoModes(primaryMonitor, &count);
+    if (modes == nullptr || count == 0) {
+        return {};
+    }
+
+    auto filtered =
+        std::span(modes, static_cast<size_t>(count)) |
+        std::views::filter([targetRefreshRate](const GLFWvidmode& m) {
+            return m.refreshRate == targetRefreshRate && m.width >= 1024;
+        }) |
+        std::views::transform(
+            [](const GLFWvidmode& m) -> sponge::core::Resolution {
+                return { static_cast<uint32_t>(m.width),
+                         static_cast<uint32_t>(m.height) };
+            });
+
+    auto resolutions =
+        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
+
+    std::sort(resolutions.begin(), resolutions.end(),
+              [](const auto& a, const auto& b) {
+                  return a.width != b.width ? a.width < b.width :
+                                              a.height < b.height;
+              });
+
+    return resolutions;
 }
 }  // namespace sponge::platform::glfw::core

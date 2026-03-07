@@ -5,24 +5,17 @@ configure_file(bundle/resources/version.hpp.in include/version.hpp)
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
-        src/*.hpp
-        src/layer/*.hpp
-        src/scene/*.hpp
-        src/ui/*.hpp)
+        src/*.hpp src/layer/*.hpp src/scene/*.hpp src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
         LIST_DIRECTORIES false
-        src/*.cpp
-        src/layer/*.cpp
-        src/scene/*.cpp
-        src/ui/*.cpp)
+        src/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
 
 file(
         GLOB ASSETS
         LIST_DIRECTORIES false
         ${CMAKE_SOURCE_DIR}/assets/*)
-
 
 if (ENABLE_IMGUI)
     file(
@@ -84,8 +77,8 @@ elseif (APPLE)
     set(MACOSX_DEPLOYMENT_TARGET "10.9")
 
     set(app_icon_macos "bundle/icons/maze.icns")
-    set_source_files_properties(
-            ${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    set_source_files_properties(${app_icon_macos}
+            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     add_executable(game MACOSX_BUNDLE ${SOURCE_FILES} ${HEADER_FILES}
             ${app_icon_macos})
 else ()
@@ -97,7 +90,8 @@ set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 if (MSVC)
     # hardening
     message(STATUS "Applying Windows hardening support")
-    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE /guard:cf>)
+    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
+            /guard:cf>)
 
     # properly report what c++ version is being used
     target_compile_options(game INTERFACE /Zc:__cplusplus)
@@ -113,7 +107,7 @@ if (MSVC)
     # enable exception handling
     target_compile_options(game INTERFACE /EHsc)
 
-    # enable warnings and warnings as errors
+    # enable warnings as errors
     target_compile_options(game INTERFACE /W4 /WX)
 
     # disable RTTI
@@ -130,7 +124,7 @@ else ()
     # enable exception handling
     target_compile_options(game INTERFACE -fexceptions)
 
-    # enable warnings and warnings as errors
+    # enable warnings as errors
     target_compile_options(game INTERFACE -Wall -Werror)
 
     # disable RTTI
@@ -138,13 +132,18 @@ else ()
     target_compile_options(game INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
-    target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(game
+            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
     target_compile_options(game INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
     message(STATUS "Discard unused sections")
-    target_link_options(game PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
-    target_link_options(game PUBLIC $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
+    target_link_options(
+            game PUBLIC
+            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
+    target_link_options(
+            game PUBLIC
+            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 
 target_include_directories(game PUBLIC src)
@@ -170,8 +169,8 @@ if (APPLE)
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/assets $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
+            $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
 
@@ -179,18 +178,18 @@ if (APPLE)
 
     set(APPS "$<TARGET_BUNDLE_DIR:game>")
 
-    install(CODE "
+    install(
+            CODE "
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
-            COMPONENT Runtime
-    )
+            COMPONENT Runtime)
 else ()
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:game>/assets
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:game>/assets
             COMMENT "Copying assets to target folder"
             VERBATIM)
 

@@ -68,21 +68,19 @@ ImGuiLayer::ImGuiLayer() : Layer("imgui") {
 }
 
 void ImGuiLayer::onImGuiRender() {
-    const auto window  = Maze::get().getWindow();
-    const auto width   = static_cast<float>(window->getWidth());
-    const auto height  = static_cast<float>(window->getHeight());
-    const auto offsetX = static_cast<float>(window->getOffsetX());
-    const auto offsetY = static_cast<float>(window->getOffsetY());
+    const auto window = Maze::get().getWindow();
+    const auto width  = static_cast<float>(window->getWidth());
+    const auto height = static_cast<float>(window->getHeight());
 
     updateState();
     showMenu();
 
     if (hasAppInfoMenu) {
-        showAppInfoWindow(width, offsetX, offsetY);
+        showAppInfoWindow(width);
     }
 
     if (hasLogMenu) {
-        showLogWindow(width, height, offsetX, offsetY);
+        showLogWindow(width, height);
     }
 }
 
@@ -91,12 +89,11 @@ void ImGuiLayer::updateState() {
     isFullscreen = Maze::get().isFullscreen();
 }
 
-void ImGuiLayer::showAppInfoWindow(const float width, const float offsetX,
-                                   const float offsetY) {
+void ImGuiLayer::showAppInfoWindow(const float width) {
     ImGui::SetNextWindowPos(
-        { width - appInfoWidth + offsetX,
-          std::max(offsetY, ImGui::GetFontSize() +
-                                ImGui::GetStyle().FramePadding.y * 2) });
+        { width - appInfoWidth,
+          std::max(0.F, ImGui::GetFontSize() +
+                            ImGui::GetStyle().FramePadding.y * 2) });
     ImGui::SetNextWindowSize({ appInfoWidth, appInfoHeight });
 
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
@@ -389,9 +386,8 @@ void ImGuiLayer::showResourcesSection() {
     showResourceTree("Textures", [] { showTexturesTable(); });
 }
 
-void ImGuiLayer::showLogWindow(const float width, const float height,
-                               const float offsetX, const float offsetY) {
-    ImGui::SetNextWindowPos({ offsetX, height - logHeight + offsetY });
+void ImGuiLayer::showLogWindow(const float width, const float height) {
+    ImGui::SetNextWindowPos({ 0.F, height - logHeight });
     ImGui::SetNextWindowSize({ width, logHeight });
 
     if (ImGui::Begin("Logging", &hasLogMenu,
@@ -459,7 +455,8 @@ void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     if (ImGui::BeginTable("layerTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
+        for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+            const auto& layer = *it;
             ImGui::TableNextRow();
 
             const ImU32 cellBgColor =
