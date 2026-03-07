@@ -94,13 +94,13 @@ void SelectList::onUpdate(const float x, const float y, const float w,
 }
 
 bool SelectList::isInsideLeft(const float mouseX, const float x,
-                             const float w) const {
+                              const float w) const {
     const float startX = getStartX(x, w);
     return hasLeft() && mouseX >= startX && mouseX <= startX + leftLen;
 }
 
 bool SelectList::isInsideRight(const float mouseX, const float x,
-                              const float w) const {
+                               const float w) const {
     const float startX = getStartX(x, w);
     return hasRight() && mouseX >= startX + leftLen + maxValueWidth &&
            mouseX <= startX + leftLen + maxValueWidth + rightLen;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sponge.hpp"
+#include "ui/checkbox.hpp"
 #include "ui/selectlist.hpp"
 
 #include <memory>
@@ -40,13 +41,13 @@ private:
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
+    std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
+    std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
 
     void        renderRowBackground(float x, float y, float w, float h,
                                     OptionMenuItem item) const;
     static void renderRowText(float x, float y, float w, std::string_view label,
                               std::string_view value);
-    static void renderToggleRow(float x, float y, float w, float h,
-                                std::string_view label, bool value);
 
     void filterResolutions();
 

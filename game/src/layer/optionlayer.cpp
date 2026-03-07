@@ -6,6 +6,7 @@
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
 #include "ui/button.hpp"
+#include "ui/checkbox.hpp"
 #include "ui/selectlist.hpp"
 
 #include <fmt/format.h>
@@ -59,13 +60,6 @@ constexpr float    textMarginLeft      = 26.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
 
-constexpr float     toggleBoxSize   = 32.F;
-constexpr float     toggleBoxRadius = 4.F;
-constexpr float     toggleBoxBorder = 2.F;
-constexpr glm::vec4 toggleOnFill    = { 0.0F, 0.85F, 0.4F, 1.0F };
-constexpr glm::vec4 toggleOnBorder  = { 0.85F, 0.85F, 0.85F, 1.0F };
-constexpr glm::vec4 toggleOffFill   = { 0.08F, 0.08F, 0.08F, 1.0F };
-constexpr glm::vec4 toggleOffBorder = { 0.5F, 0.5F, 0.5F, 1.0F };
 
 std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
                                                      const float     offsetX,
@@ -210,6 +204,10 @@ void OptionLayer::onAttach() {
     aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
     resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
+    const ui::CheckboxCreateInfo checkboxCreateInfo{ .margin = textMarginLeft };
+    fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+
     std::vector<std::string> arItems;
     arItems.reserve(aspectRatioFilters.size());
     for (const auto& f : aspectRatioFilters) {
@@ -301,13 +299,23 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
+    const auto  rowFont  = AssetManager::getFont(fontName);
+    auto renderRowLabel = [&](const float x, const float y, const float h,
+                              const std::string_view label) {
+        const float textY = std::floor(
+            y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
+        rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
+                        textColor);
+    };
+
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
-    renderToggleRow(fsX, fsY, fsW, fsH, "Full Screen",
-                    Maze::get().isFullscreen());
+    renderRowLabel(fsX, fsY, fsH, "Full Screen");
+    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH, Maze::get().isFullscreen());
 
     renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
-    renderToggleRow(vsX, vsY, vsW, vsH, "Vertical Sync",
-                    Maze::get().hasVerticalSync());
+    renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
+    verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH,
+                                   Maze::get().hasVerticalSync());
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     if (selectedItem == OptionMenuItem::Return) {
@@ -350,20 +358,6 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
                  textColor);
 }
 
-void OptionLayer::renderToggleRow(const float x, const float y, const float w,
-                                  const float h, const std::string_view label,
-                                  const bool value) {
-    const auto  font  = AssetManager::getFont(fontName);
-    const float textY = std::floor(
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    font->render(label, { x + textMarginLeft, textY }, fontSize, textColor);
-
-    const float boxX = x + w - textMarginLeft - toggleBoxSize;
-    const float boxY = y + (h - toggleBoxSize) / 2.F;
-    quad->render({ boxX, boxY }, { boxX + toggleBoxSize, boxY + toggleBoxSize },
-                 value ? toggleOnFill : toggleOffFill, toggleBoxRadius,
-                 toggleBoxBorder, value ? toggleOnBorder : toggleOffBorder);
-}
 
 void OptionLayer::recalculateLayout(const float width,
                                     const float height) const {
@@ -521,7 +515,10 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     if (mouseX >= fullX && mouseX <= fullX + fullW && mouseY >= fullY &&
         mouseY <= fullY + fullH) {
         selectedItem = OptionMenuItem::FullScreen;
-        Maze::get().toggleFullscreen();
+        if (fullScreenCheckbox->isInside(mouseX, mouseY, fullX, fullY, fullW,
+                                         fullH)) {
+            Maze::get().toggleFullscreen();
+        }
         return true;
     }
 
@@ -531,7 +528,10 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     if (mouseX >= vsyncX && mouseX <= vsyncX + vsyncW && mouseY >= vsyncY &&
         mouseY <= vsyncY + vsyncH) {
         selectedItem = OptionMenuItem::VerticalSync;
-        Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
+        if (verticalSyncCheckbox->isInside(mouseX, mouseY, vsyncX, vsyncY,
+                                           vsyncW, vsyncH)) {
+            Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
+        }
         return true;
     }
 
