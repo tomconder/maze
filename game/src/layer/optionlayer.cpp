@@ -11,6 +11,7 @@
 #include <yoga/Yoga.h>
 
 #include <array>
+#include <cmath>
 #include <memory>
 #include <numeric>
 #include <ranges>
@@ -341,9 +342,9 @@ void OptionLayer::renderCycleRow(const float x, const float y, const float w,
                                  const std::string_view value,
                                  const bool hasLeft, const bool hasRight,
                                  const float maxValWidth) {
-    const auto  font = AssetManager::getFont(fontName);
-    const float textY =
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F;
+    const auto  font  = AssetManager::getFont(fontName);
+    const float textY = std::floor(
+        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
     const std::string leftPart  = "< ";
     const std::string rightPart = " >";
     const auto        leftLen =
@@ -366,9 +367,9 @@ void OptionLayer::renderCycleRow(const float x, const float y, const float w,
 void OptionLayer::renderToggleRow(const float x, const float y, const float w,
                                   const float h, const std::string_view label,
                                   const bool value) {
-    const auto  font = AssetManager::getFont(fontName);
-    const float textY =
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F;
+    const auto  font  = AssetManager::getFont(fontName);
+    const float textY = std::floor(
+        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
     font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
                  textColor);
 
