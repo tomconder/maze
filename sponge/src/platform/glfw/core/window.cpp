@@ -269,7 +269,7 @@ std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
         return {};
     }
 
-    auto resolutions =
+    auto filtered =
         std::span(modes, static_cast<size_t>(count)) |
         std::views::filter([targetRefreshRate](const GLFWvidmode& m) {
             return m.refreshRate == targetRefreshRate && m.width >= 1024;
@@ -278,12 +278,16 @@ std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
             [](const GLFWvidmode& m) -> sponge::core::Resolution {
                 return { static_cast<uint32_t>(m.width),
                          static_cast<uint32_t>(m.height) };
-            }) |
-        std::ranges::to<std::vector>();
+            });
 
-    std::ranges::sort(resolutions, [](const auto& a, const auto& b) {
-        return a.width != b.width ? a.width < b.width : a.height < b.height;
-    });
+    auto resolutions =
+        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
+
+    std::sort(resolutions.begin(), resolutions.end(),
+              [](const auto& a, const auto& b) {
+                  return a.width != b.width ? a.width < b.width :
+                                              a.height < b.height;
+              });
 
     return resolutions;
 }

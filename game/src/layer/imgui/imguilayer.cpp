@@ -455,7 +455,8 @@ void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     if (ImGui::BeginTable("layerTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
+        for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+            const auto& layer = *it;
             ImGui::TableNextRow();
 
             const ImU32 cellBgColor =

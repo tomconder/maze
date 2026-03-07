@@ -186,13 +186,14 @@ void OptionLayer::onAttach() {
     const auto rh = currentHeight / g;
 
     const auto arIt =
-        std::ranges::find_if(aspectRatioFilters, [&](const auto& f) {
-            const auto fg = std::gcd(f.numerator, f.denominator);
-            return !f.approximate && rw == f.numerator / fg &&
-                   rh == f.denominator / fg;
-        });
+        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
+                     [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
     selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
-                                   static_cast<size_t>(std::ranges::distance(
+                                   static_cast<size_t>(std::distance(
                                        aspectRatioFilters.begin(), arIt)) :
                                    0;
 
@@ -612,17 +613,23 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
 
     updateHover(returnButton.get());
 
-    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        getNodeLayout(rootNode, 0.F, 0.F);
-    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        getNodeLayout(menuNode, rootNodeX, rootNodeY);
-    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
-          menuBackgroundNodeH] =
-        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+    const auto rootNodeLayout = getNodeLayout(rootNode, 0.F, 0.F);
+    const auto menuNodeLayout = getNodeLayout(
+        menuNode, std::get<0>(rootNodeLayout), std::get<1>(rootNodeLayout));
+    const auto menuBackgroundNodeLayout =
+        getNodeLayout(menuBackgroundNode, std::get<0>(menuNodeLayout),
+                      std::get<1>(menuNodeLayout));
+
+    const float menuBackgroundNodeX = std::get<0>(menuBackgroundNodeLayout);
+    const float menuBackgroundNodeY = std::get<1>(menuBackgroundNodeLayout);
 
     auto isOver = [&](auto* node) {
-        const auto [x, y, w, h] =
+        const auto nodeLayout =
             getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
+        const float x = std::get<0>(nodeLayout);
+        const float y = std::get<1>(nodeLayout);
+        const float w = std::get<2>(nodeLayout);
+        const float h = std::get<3>(nodeLayout);
         return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
     };
 
@@ -683,20 +690,21 @@ void OptionLayer::filterResolutions() {
         return isExactMatch(res);
     };
 
-    filteredResolutions = availableResolutions |
-                          std::views::filter(matchesFilter) |
-                          std::ranges::to<std::vector>();
+    auto filtered = availableResolutions | std::views::filter(matchesFilter);
+    filteredResolutions =
+        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
 
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    const auto it =
-        std::ranges::find_if(filteredResolutions, [&](const auto& r) {
-            return r.width == currentWidth && r.height == currentHeight;
-        });
+    const auto it = std::find_if(filteredResolutions.begin(),
+                                 filteredResolutions.end(), [&](const auto& r) {
+                                     return r.width == currentWidth &&
+                                            r.height == currentHeight;
+                                 });
     selectedResolutionIndex = it != filteredResolutions.end() ?
-                                  static_cast<size_t>(std::ranges::distance(
+                                  static_cast<size_t>(std::distance(
                                       filteredResolutions.begin(), it)) :
                                   0;
 
@@ -735,13 +743,14 @@ void OptionLayer::resetSelectionToCurrentState() {
     const auto rh = currentHeight / g;
 
     const auto arIt =
-        std::ranges::find_if(aspectRatioFilters, [&](const auto& f) {
-            const auto fg = std::gcd(f.numerator, f.denominator);
-            return !f.approximate && rw == f.numerator / fg &&
-                   rh == f.denominator / fg;
-        });
+        std::find_if(aspectRatioFilters.begin(), aspectRatioFilters.end(),
+                     [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
     selectedAspectRatioIndex = arIt != aspectRatioFilters.end() ?
-                                   static_cast<size_t>(std::ranges::distance(
+                                   static_cast<size_t>(std::distance(
                                        aspectRatioFilters.begin(), arIt)) :
                                    0;
 

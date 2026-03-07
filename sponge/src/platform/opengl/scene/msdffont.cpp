@@ -148,14 +148,16 @@ void MSDFFont::render(const std::string& text, const glm::vec2& position,
               { texx + texw, texy + texh } }
         };
 
-        std::ranges::move(vertices, batchVertices.begin() + (i * vertexCount));
+        std::move(vertices.begin(), vertices.end(),
+                  batchVertices.begin() + (i * vertexCount));
 
         const std::array indices = {
             i * 4, (i * 4) + 2, (i * 4) + 1,  //
             i * 4, (i * 4) + 3, (i * 4) + 2   //
         };
 
-        std::ranges::move(indices, batchIndices.begin() + (i * indexCount));
+        std::move(indices.begin(), indices.end(),
+                  batchIndices.begin() + (i * indexCount));
 
         x += xadvance * scale;
 

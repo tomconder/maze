@@ -170,7 +170,8 @@ bool Application::onUserDestroy() {
 void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
-    for (const auto& layer : std::ranges::reverse_view(*layerStack)) {
+    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+        const auto& layer = *it;
         layer->onEvent(event);
         if (event.handled) {
             break;
