@@ -24,7 +24,7 @@ public:
     explicit MSDFFont(const FontCreateInfo& createInfo);
     uint32_t getLength(std::string_view text, uint32_t targetSize);
     uint32_t getHeight(uint32_t targetSize) const;
-    void     render(const std::string& text, const glm::vec2& position,
+    void     render(std::string_view text, const glm::vec2& position,
                     uint32_t targetSize, const glm::vec3& color);
 
     static std::string_view getShaderName() {

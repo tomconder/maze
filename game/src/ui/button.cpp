@@ -1,6 +1,7 @@
 #include "ui/button.hpp"
 
 #include <memory>
+#include <string_view>
 
 namespace game::ui {
 using sponge::platform::opengl::renderer::AssetManager;
@@ -59,7 +60,7 @@ void Button::setAlignType(const ButtonAlignType& val) {
     alignType = val;
 }
 
-void Button::setMessage(const std::string& message) {
+void Button::setMessage(std::string_view message) {
     if (text == message) {
         return;
     }

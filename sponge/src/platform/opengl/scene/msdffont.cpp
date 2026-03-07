@@ -106,7 +106,7 @@ void MSDFFont::load(const std::string& path) {
     UNUSED(texture);
 }
 
-void MSDFFont::render(const std::string& text, const glm::vec2& position,
+void MSDFFont::render(std::string_view text, const glm::vec2& position,
                       const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load

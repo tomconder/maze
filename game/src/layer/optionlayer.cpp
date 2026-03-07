@@ -331,10 +331,9 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
                                 const std::string_view value) {
     const auto font     = AssetManager::getFont(fontName);
     const auto valueLen = static_cast<float>(font->getLength(value, fontSize));
-    font->render(std::string(label), { x + textMarginLeft, y }, fontSize,
+    font->render(label, { x + textMarginLeft, y }, fontSize, textColor);
+    font->render(value, { x + w - textMarginLeft - valueLen, y }, fontSize,
                  textColor);
-    font->render(std::string(value), { x + w - textMarginLeft - valueLen, y },
-                 fontSize, textColor);
 }
 
 void OptionLayer::renderCycleRow(const float x, const float y, const float w,
@@ -355,11 +354,10 @@ void OptionLayer::renderCycleRow(const float x, const float y, const float w,
     const float startX =
         x + w - textMarginLeft - leftLen - maxValWidth - rightLen;
     const float valueX = startX + leftLen + (maxValWidth - valLen) / 2.F;
-    font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
-                 textColor);
+    font->render(label, { x + textMarginLeft, textY }, fontSize, textColor);
     font->render(leftPart, { startX, textY }, fontSize,
                  hasLeft ? textColor : arrowDisabledColor);
-    font->render(std::string(value), { valueX, textY }, fontSize, textColor);
+    font->render(value, { valueX, textY }, fontSize, textColor);
     font->render(rightPart, { startX + leftLen + maxValWidth, textY }, fontSize,
                  hasRight ? textColor : arrowDisabledColor);
 }
@@ -370,8 +368,7 @@ void OptionLayer::renderToggleRow(const float x, const float y, const float w,
     const auto  font  = AssetManager::getFont(fontName);
     const float textY = std::floor(
         y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    font->render(std::string(label), { x + textMarginLeft, textY }, fontSize,
-                 textColor);
+    font->render(label, { x + textMarginLeft, textY }, fontSize, textColor);
 
     const float boxX = x + w - textMarginLeft - toggleBoxSize;
     const float boxY = y + (h - toggleBoxSize) / 2.F;
@@ -419,7 +416,7 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
                 const auto& res = filteredResolutions[selectedResolutionIndex];
                 Maze::get().setResolution(res.width, res.height);
                 hasUnappliedChanges = false;
-                returnButton->setMessage(std::string(returnMessage));
+                returnButton->setMessage(returnMessage);
             } else {
                 clearHoveredItems();
                 resetSelectionToCurrentState();
@@ -498,7 +495,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
             const auto& res = filteredResolutions[selectedResolutionIndex];
             Maze::get().setResolution(res.width, res.height);
             hasUnappliedChanges = false;
-            returnButton->setMessage(std::string(returnMessage));
+            returnButton->setMessage(returnMessage);
         } else {
             clearHoveredItems();
             resetSelectionToCurrentState();
@@ -699,8 +696,8 @@ void OptionLayer::filterResolutions() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    const auto it = std::find_if(filteredResolutions.begin(),
-                                 filteredResolutions.end(), [&](const auto& r) {
+    const auto it           = std::find_if(filteredResolutions.begin(),
+                                           filteredResolutions.end(), [&](const auto& r) {
                                      return r.width == currentWidth &&
                                             r.height == currentHeight;
                                  });
@@ -715,7 +712,7 @@ void OptionLayer::filterResolutions() {
 void OptionLayer::updateChangeStatus() {
     if (filteredResolutions.empty()) {
         hasUnappliedChanges = false;
-        returnButton->setMessage(std::string(returnMessage));
+        returnButton->setMessage(returnMessage);
         return;
     }
 
@@ -726,7 +723,7 @@ void OptionLayer::updateChangeStatus() {
 
     const auto expectedMessage =
         hasUnappliedChanges ? applyMessage : returnMessage;
-    returnButton->setMessage(std::string(expectedMessage));
+    returnButton->setMessage(expectedMessage);
 }
 
 void OptionLayer::clearHoveredItems() {
