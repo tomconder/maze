@@ -86,15 +86,15 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
     int32_t result = GL_FALSE;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
     if (result == GL_FALSE) {
-        int length;
+        int length = 0;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         if (length > 0) {
             std::vector<GLchar> message(length);
             glGetShaderInfoLog(id, length, &length, message.data());
             SPONGE_GL_ERROR("Shader compiling failed: {0}", message.data());
-            glDeleteShader(id);
-            return 0;
         }
+        glDeleteShader(id);
+        return 0;
     }
 
     return id;
@@ -120,9 +120,11 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
         glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
         if (length > 0) {
             std::vector<GLchar> message(length);
-            glGetShaderInfoLog(id, length, &length, message.data());
+            glGetProgramInfoLog(id, length, &length, message.data());
             SPONGE_GL_ERROR("Shader linking failed: {0}", message.data());
         }
+        glDeleteProgram(id);
+        return 0;
     }
 
     glValidateProgram(id);

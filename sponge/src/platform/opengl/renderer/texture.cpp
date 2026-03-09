@@ -102,6 +102,7 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     if (data == nullptr) {
         SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),
                         stbi_failure_reason());
+        return;
     }
 
     generate(width, height, bytesPerPixel, static_cast<const uint8_t*>(data),

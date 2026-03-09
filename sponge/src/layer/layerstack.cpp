@@ -3,7 +3,6 @@
 #include <memory>
 
 namespace sponge::layer {
-std::vector<std::shared_ptr<Layer>> layers;
 
 LayerStack::~LayerStack() {
     for (const auto& layer : layers) {
