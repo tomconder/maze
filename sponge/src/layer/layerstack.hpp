@@ -24,6 +24,7 @@ public:
 
 private:
     uint32_t layerInsertIndex = 0;
+    std::vector<std::shared_ptr<Layer>> layers;
 };
 
 }  // namespace sponge::layer
