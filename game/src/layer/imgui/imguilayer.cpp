@@ -98,7 +98,6 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
 
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
         showInfoSection();
-        showSettingsSection();
         showLightsSection();
         showShadowMapSection();
         showResourcesSection();
@@ -148,36 +147,6 @@ void ImGuiLayer::showInfoSection() {
                                ImGuiSliderFlags_AlwaysClamp)) {
             camera->setFov(fov);
         }
-        ImGui::EndTable();
-    }
-}
-
-void ImGuiLayer::showSettingsSection() {
-    if (!ImGui::CollapsingHeader("Settings##Header")) {
-        return;
-    }
-
-    showAppSettingsTable();
-}
-
-void ImGuiLayer::showAppSettingsTable() {
-    if (ImGui::BeginTable("##AppTable", 2, tableFlags)) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Vertical Sync");
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##verticalsync", &hasVsync)) {
-            Maze::get().setVerticalSync(hasVsync);
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Full Screen");
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##fullscreen", &isFullscreen)) {
-            Maze::get().toggleFullscreen();
-        }
-
         ImGui::EndTable();
     }
 }
