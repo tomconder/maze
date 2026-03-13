@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "c01dc6ea7353758f2ed70df0bc29c97dfc650b3a",
+  "builtin-baseline": "a44707152fabbedcf1c17fe80d7bfb7d9370d8d5",
   "dependencies": [
     {
       "name": "fmt",
@@ -21,7 +21,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.91.9"
+      "version>=": "1.92.6"
     },
     {
       "name": "meshoptimizer",
