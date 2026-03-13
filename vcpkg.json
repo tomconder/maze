@@ -18,6 +18,7 @@
     {
       "name": "imgui",
       "features": [
+        "freetype",
         "glfw-binding",
         "opengl3-binding"
       ],

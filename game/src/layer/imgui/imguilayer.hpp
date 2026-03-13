@@ -33,8 +33,6 @@ private:
     static void showAppInfoWindow(float width);
     static void showLogWindow(float width, float height);
     static void showMenu();  // App info window sections
-    static void showSettingsSection();
-    static void showAppSettingsTable();
     static void showLightsSection();
     static void showDirectionalLightControls();
     static void showPointLightControls();
