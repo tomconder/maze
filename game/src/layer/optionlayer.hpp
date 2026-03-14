@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <optional>
-#include <vector>
 
 namespace game::layer {
 
@@ -35,9 +34,7 @@ private:
     OptionMenuItem                selectedItem = OptionMenuItem::AspectRatio;
     std::optional<OptionMenuItem> hoveredItem;
 
-    std::vector<sponge::core::Resolution> availableResolutions;
-    std::vector<sponge::core::Resolution> filteredResolutions;
-    bool                                  hasUnappliedChanges = false;
+    bool hasUnappliedChanges = false;
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
@@ -51,7 +48,7 @@ private:
 
     void filterResolutions();
 
-    void recalculateLayout(float width, float height) const;
+    static void recalculateLayout(float width, float height);
 
     void updateChangeStatus();
 
