@@ -82,41 +82,23 @@ void IntroLayer::onAttach() {
 
     quad = std::make_unique<Quad>();
 
-    newGameButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(newGameMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
+    auto makeMenuButton = [fontNameStr](std::string_view message) {
+        return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
+            .topLeft      = glm::vec2{ 0.F },
+            .bottomRight  = glm::vec2{ 0.F },
+            .message      = std::string(message),
+            .fontSize     = 48,
+            .fontName     = fontNameStr,
+            .buttonColor  = buttonColor,
+            .textColor    = textColor,
+            .marginLeft   = 26,
+            .cornerRadius = 12.F,
+            .alignType    = ui::ButtonAlignType::LeftAligned });
+    };
 
-    optionsButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(optionsMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
-
-    quitButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(quitMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
+    newGameButton = makeMenuButton(newGameMessage);
+    optionsButton = makeMenuButton(optionsMessage);
+    quitButton    = makeMenuButton(quitMessage);
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
