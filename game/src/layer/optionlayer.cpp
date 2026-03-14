@@ -19,6 +19,7 @@
 #include <ranges>
 #include <string>
 #include <tuple>
+#include <vector>
 
 namespace {
 struct AspectRatioFilter {
@@ -59,6 +60,9 @@ constexpr uint32_t fontSize            = 48;
 constexpr float    textMarginLeft      = 26.F;
 constexpr float    cornerRadius        = 12.F;
 constexpr float    selectedBorderWidth = 3.F;
+
+std::vector<sponge::core::Resolution> availableResolutions;
+std::vector<sponge::core::Resolution> filteredResolutions;
 
 std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
                                                      const float     offsetX,
@@ -151,14 +155,13 @@ void OptionLayer::onAttach() {
     YGNodeInsertChild(rootNode, menuNode, 1);
 
     menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 5.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
+    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
+    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
     auto makeMenuNode = [](const YGNodeRef parent, const int index) {
         auto* const child = YGNodeNew();
         YGNodeStyleSetFlex(child, 1.F);
-        YGNodeStyleSetMargin(child, YGEdgeBottom, 30.F);
         YGNodeStyleSetMaxHeight(child, 110);
         YGNodeInsertChild(parent, child, index);
         return child;
@@ -173,7 +176,7 @@ void OptionLayer::onAttach() {
     availableResolutions = Maze::get().getAvailableResolutions();
 
     // compute max display width across all aspect ratios and resolutions
-    float maxCycleValueWidth;
+    float maxCycleValueWidth = 0.F;
     {
         const auto font    = AssetManager::getFont(fontName);
         maxCycleValueWidth = std::accumulate(
@@ -301,11 +304,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     const auto rowFont        = AssetManager::getFont(fontName);
     auto       renderRowLabel = [&](const float x, const float y, const float h,
-                                    const std::string_view label) {
+                              const std::string_view label) {
         const float textY = std::floor(
             y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
         rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
-                        textColor);
+                              textColor);
     };
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
@@ -359,8 +362,7 @@ void OptionLayer::renderRowText(const float x, float y, const float w,
                  textColor);
 }
 
-void OptionLayer::recalculateLayout(const float width,
-                                    const float height) const {
+void OptionLayer::recalculateLayout(const float width, const float height) {
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, height);
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);

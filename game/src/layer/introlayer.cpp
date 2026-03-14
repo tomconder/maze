@@ -137,31 +137,24 @@ void IntroLayer::onAttach() {
     YGNodeInsertChild(rootNode, menuNode, 1);
 
     menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 5.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
+    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
+    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
-    newGameNode = YGNodeNew();
-    YGNodeStyleSetFlex(newGameNode, 1.0);
-    YGNodeStyleSetMargin(newGameNode, YGEdgeBottom, 5.F);
-    YGNodeStyleSetMaxHeight(newGameNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, newGameNode, 0);
+    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
+        auto* const child = YGNodeNew();
+        YGNodeStyleSetFlex(child, 1.F);
+        YGNodeStyleSetMaxHeight(child, 110);
+        YGNodeInsertChild(parent, child, index);
+        return child;
+    };
 
-    optionsNode = YGNodeNew();
-    YGNodeStyleSetFlex(optionsNode, 1.0);
-    YGNodeStyleSetMargin(optionsNode, YGEdgeBottom, 5.F);
-    YGNodeStyleSetMaxHeight(optionsNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, optionsNode, 1);
+    newGameNode = makeMenuNode(menuBackgroundNode, 0);
+    optionsNode = makeMenuNode(menuBackgroundNode, 1);
+    quitNode    = makeMenuNode(menuBackgroundNode, 2);
 
-    quitNode = YGNodeNew();
-    YGNodeStyleSetFlex(quitNode, 1.0);
-    YGNodeStyleSetMargin(quitNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(quitNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, quitNode, 2);
-
-    auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
     recalculateLayout(width, height);
 }
 
@@ -267,7 +260,7 @@ bool IntroLayer::onWindowResize(const WindowResizeEvent& event) const {
     return false;
 }
 
-void IntroLayer::recalculateLayout(float width, float height) const {
+void IntroLayer::recalculateLayout(float width, float height) {
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, height);
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
@@ -364,7 +357,7 @@ bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) const {
     return false;
 }
 
-void IntroLayer::clearHoveredItems() const {
+void IntroLayer::clearHoveredItems() {
     newGameButton->setHover(false);
     optionsButton->setHover(false);
     quitButton->setHover(false);

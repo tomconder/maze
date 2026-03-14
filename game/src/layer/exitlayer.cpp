@@ -82,52 +82,24 @@ void ExitLayer::onAttach() {
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
     orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    continueButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(continueMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
+    auto makeMenuButton = [fontNameStr](std::string_view message) {
+        return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
+            .topLeft      = glm::vec2{ 0.F },
+            .bottomRight  = glm::vec2{ 0.F },
+            .message      = std::string(message),
+            .fontSize     = 48,
+            .fontName     = fontNameStr,
+            .buttonColor  = buttonColor,
+            .textColor    = textColor,
+            .marginLeft   = 26,
+            .cornerRadius = 12.F,
+            .alignType    = ui::ButtonAlignType::LeftAligned });
+    };
 
-    optionsButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(optionsMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
-
-    returnToMenuButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(returnToMenuMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
-    exitButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(exitMessage),
-                              .fontSize     = 48,
-                              .fontName     = fontNameStr,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
+    continueButton     = makeMenuButton(continueMessage);
+    optionsButton      = makeMenuButton(optionsMessage);
+    returnToMenuButton = makeMenuButton(returnToMenuMessage);
+    exitButton         = makeMenuButton(exitMessage);
 
     for (const auto& shaderName : { quadShaderName, fontShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
@@ -148,37 +120,25 @@ void ExitLayer::onAttach() {
     YGNodeInsertChild(rootNode, menuNode, 1);
 
     menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 5.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 35.F);
+    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
+    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
-    continueNode = YGNodeNew();
-    YGNodeStyleSetFlex(continueNode, 1.0);
-    YGNodeStyleSetMargin(continueNode, YGEdgeBottom, 5.F);
-    YGNodeStyleSetMaxHeight(continueNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, continueNode, 0);
+    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
+        auto* const child = YGNodeNew();
+        YGNodeStyleSetFlex(child, 1.F);
+        YGNodeStyleSetMaxHeight(child, 110);
+        YGNodeInsertChild(parent, child, index);
+        return child;
+    };
 
-    optionsNode = YGNodeNew();
-    YGNodeStyleSetFlex(optionsNode, 1.0);
-    YGNodeStyleSetMargin(optionsNode, YGEdgeBottom, 5.F);
-    YGNodeStyleSetMaxHeight(optionsNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, optionsNode, 1);
+    continueNode     = makeMenuNode(menuBackgroundNode, 0);
+    optionsNode      = makeMenuNode(menuBackgroundNode, 1);
+    returnToMenuNode = makeMenuNode(menuBackgroundNode, 2);
+    exitNode         = makeMenuNode(menuBackgroundNode, 3);
 
-    returnToMenuNode = YGNodeNew();
-    YGNodeStyleSetFlex(returnToMenuNode, 1.0);
-    YGNodeStyleSetMargin(returnToMenuNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(returnToMenuNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, returnToMenuNode, 2);
-
-    exitNode = YGNodeNew();
-    YGNodeStyleSetFlex(exitNode, 1.0);
-    YGNodeStyleSetMargin(exitNode, YGEdgeBottom, 30.F);
-    YGNodeStyleSetMaxHeight(exitNode, 110);
-    YGNodeInsertChild(menuBackgroundNode, exitNode, 3);
-
-    auto [width, height] =
-        std::pair{ static_cast<float>(orthoCamera->getWidth()),
-                   static_cast<float>(orthoCamera->getHeight()) };
+    const auto width  = static_cast<float>(orthoCamera->getWidth());
+    const auto height = static_cast<float>(orthoCamera->getHeight());
     recalculateLayout(width, height);
 }
 
@@ -291,7 +251,7 @@ bool ExitLayer::onWindowResize(const WindowResizeEvent& event) const {
     return false;
 }
 
-void ExitLayer::recalculateLayout(float width, float height) const {
+void ExitLayer::recalculateLayout(float width, float height) {
     const auto panelWidth = width * 0.54F;
     YGNodeStyleSetWidth(rootNode, panelWidth);
     YGNodeStyleSetHeight(rootNode, height);
@@ -386,7 +346,7 @@ bool ExitLayer::onMouseScrolled(const MouseScrolledEvent& event) {
     return true;
 }
 
-void ExitLayer::clearHoveredItems() const {
+void ExitLayer::clearHoveredItems() {
     continueButton->setHover(false);
     optionsButton->setHover(false);
     returnToMenuButton->setHover(false);

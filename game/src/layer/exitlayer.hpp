@@ -27,7 +27,7 @@ public:
 private:
     ExitMenuItem selectedItem = ExitMenuItem::Continue;
 
-    void recalculateLayout(float width, float height) const;
+    static void recalculateLayout(float width, float height);
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
@@ -40,6 +40,6 @@ private:
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
-    void clearHoveredItems() const;
+    static void clearHoveredItems();
 };
 }  // namespace game::layer
