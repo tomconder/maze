@@ -304,11 +304,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     const auto rowFont        = AssetManager::getFont(fontName);
     auto       renderRowLabel = [&](const float x, const float y, const float h,
-                              const std::string_view label) {
+                                    const std::string_view label) {
         const float textY = std::floor(
             y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
         rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
-                              textColor);
+                        textColor);
     };
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
