@@ -23,7 +23,7 @@ public:
     std::vector<std::shared_ptr<Layer>>::const_reverse_iterator rend();
 
 private:
-    uint32_t layerInsertIndex = 0;
+    uint32_t                            layerInsertIndex = 0;
     std::vector<std::shared_ptr<Layer>> layers;
 };
 

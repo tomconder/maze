@@ -120,7 +120,7 @@ void IntroLayer::onAttach() {
 
     menuBackgroundNode = YGNodeNew();
     YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
+    YGNodeStyleSetWidthPercent(menuBackgroundNode, 30.F);
     YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
 
     auto makeMenuNode = [](const YGNodeRef parent, const int index) {
