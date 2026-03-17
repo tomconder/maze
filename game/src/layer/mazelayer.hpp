@@ -93,15 +93,21 @@ public:
 
     void setShadowMapZNear(float val) const;
 
+    bool isFxaaEnabled() const;
+
+    void setFxaaEnabled(bool val);
+
 private:
     std::shared_ptr<scene::GameCamera>                          camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
+    std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
     std::unordered_map<sponge::input::KeyCode, bool>            keyPressed;
 
     float   ambientStrength    = .25F;
     float   ao                 = .25F;
     int32_t attenuationIndex   = 4;
+    bool    fxaaEnabled        = true;
     bool    metallic           = false;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;

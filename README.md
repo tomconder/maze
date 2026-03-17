@@ -12,6 +12,7 @@ A game engine featuring a nice walk through a maze.
 * Point lights and directional light
 * PCF shadows
 * Reinhard tone mapping
+* Fast approximate anti-aliasing (FXAA)
 * Multi-channel signed distance field (MSDF) text rendering
 * Performance profiling with Tracy
 
@@ -27,4 +28,5 @@ tools/           # tools and utility scripts
 
 ## Getting Started
 
-For instructions on how to build and run the application, please refer to the [full documentation](https://tomconder.github.io/maze/)
+For instructions on how to build and run the application, please refer to
+the [full documentation](https://tomconder.github.io/maze/)

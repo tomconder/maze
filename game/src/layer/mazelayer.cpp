@@ -88,6 +88,7 @@ using sponge::platform::glfw::core::Application;
 using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::Cube;
+using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::ShadowMap;
 
@@ -153,6 +154,10 @@ void MazeLayer::onAttach() {
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
 
+    fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
+                                  Maze::get().getWindow()->getHeight());
+    fxaa->setEnabled(fxaaEnabled);
+
     setNumLights(numLights);
     updateShaderLights();
 }
@@ -198,8 +203,18 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     if (directionalLight.enabled && directionalLight.castShadow) {
         renderSceneToDepthMap();
     }
+
+    if (fxaa && fxaa->isEnabled()) {
+        fxaa->begin();
+    }
+
     renderGameObjects();
     renderLightCubes();
+
+    if (fxaa && fxaa->isEnabled()) {
+        fxaa->end();
+        fxaa->apply();
+    }
 
     return true;
 }
@@ -456,6 +471,9 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
+    if (fxaa) {
+        fxaa->resize(event.getWidth(), event.getHeight());
+    }
     return false;
 }
 
@@ -563,5 +581,16 @@ void MazeLayer::updateShaderLights() const {
 bool MazeLayer::isKeyPressed(const KeyCode key) const {
     const auto it = keyPressed.find(key);
     return it != keyPressed.end() && it->second;
+}
+
+bool MazeLayer::isFxaaEnabled() const {
+    return fxaaEnabled;
+}
+
+void MazeLayer::setFxaaEnabled(const bool val) {
+    fxaaEnabled = val;
+    if (fxaa) {
+        fxaa->setEnabled(val);
+    }
 }
 }  // namespace game::layer
