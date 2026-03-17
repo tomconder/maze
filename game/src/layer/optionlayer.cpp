@@ -77,6 +77,7 @@ inline std::string fontShaderName;
 
 std::unique_ptr<game::ui::Button> returnButton;
 
+YGNodeRef antiAliasingNode   = nullptr;
 YGNodeRef aspectRatioNode    = nullptr;
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
@@ -171,7 +172,8 @@ void OptionLayer::onAttach() {
     resolutionNode   = makeMenuNode(menuBackgroundNode, 1);
     fullScreenNode   = makeMenuNode(menuBackgroundNode, 2);
     verticalSyncNode = makeMenuNode(menuBackgroundNode, 3);
-    returnNode       = makeMenuNode(menuBackgroundNode, 4);
+    antiAliasingNode = makeMenuNode(menuBackgroundNode, 4);
+    returnNode       = makeMenuNode(menuBackgroundNode, 5);
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -208,6 +210,7 @@ void OptionLayer::onAttach() {
 
     constexpr ui::CheckboxCreateInfo checkboxCreateInfo{ .margin =
                                                              textMarginLeft };
+    antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
 
@@ -293,6 +296,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         getNodeLayout(fullScreenNode, menuBgX, menuBgY);
     const auto [vsX, vsY, vsW, vsH] =
         getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
+    const auto [aaX, aaY, aaW, aaH] =
+        getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
     const auto [retX, retY, retW, retH] =
         getNodeLayout(returnNode, menuBgX, menuBgY);
 
@@ -320,6 +325,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
     verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH,
                                    Maze::get().hasVerticalSync());
+
+    renderRowBackground(aaX, aaY, aaW, aaH, OptionMenuItem::AntiAliasing);
+    renderRowLabel(aaX, aaY, aaH, "Anti-Aliasing");
+    antiAliasingCheckbox->onUpdate(aaX, aaY, aaW, aaH,
+                                   Maze::get().isFxaaEnabled());
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     if (selectedItem == OptionMenuItem::Return) {
@@ -398,6 +408,8 @@ bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
             Maze::get().toggleFullscreen();
         } else if (selectedItem == OptionMenuItem::VerticalSync) {
             Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
+        } else if (selectedItem == OptionMenuItem::AntiAliasing) {
+            Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
         }
         return true;
     }
@@ -537,6 +549,19 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    const auto [aaX, aaY, aaW, aaH] = getNodeLayout(
+        antiAliasingNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= aaX && mouseX <= aaX + aaW && mouseY >= aaY &&
+        mouseY <= aaY + aaH) {
+        selectedItem = OptionMenuItem::AntiAliasing;
+        if (antiAliasingCheckbox->isInside(mouseX, mouseY, aaX, aaY, aaW,
+                                           aaH)) {
+            Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
+        }
+        return true;
+    }
+
     return true;
 }
 
@@ -581,6 +606,8 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
         hoveredItem = OptionMenuItem::FullScreen;
     } else if (isOver(verticalSyncNode)) {
         hoveredItem = OptionMenuItem::VerticalSync;
+    } else if (isOver(antiAliasingNode)) {
+        hoveredItem = OptionMenuItem::AntiAliasing;
     } else {
         hoveredItem = std::nullopt;
     }

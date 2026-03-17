@@ -20,6 +20,7 @@ public:
 
 private:
     static bool hasAppInfoMenu;
+    static bool hasFxaa;
     static bool hasLogMenu;
     static bool hasVsync;
     static bool isFullscreen;
