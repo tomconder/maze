@@ -54,6 +54,14 @@ public:
         return optionLayer;
     }
 
+    bool isFxaaEnabled() const {
+        return mazeLayer->isFxaaEnabled();
+    }
+
+    void setFxaaEnabled(bool val) {
+        mazeLayer->setFxaaEnabled(val);
+    }
+
     void exit() {
         isRunning = false;
     }

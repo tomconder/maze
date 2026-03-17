@@ -45,6 +45,7 @@ constexpr float  logHeight     = 220.F;
 
 namespace game::layer::imgui {
 bool                     ImGuiLayer::hasAppInfoMenu = true;
+bool                     ImGuiLayer::hasFxaa        = true;
 bool                     ImGuiLayer::hasLogMenu     = true;
 bool                     ImGuiLayer::hasVsync       = true;
 bool                     ImGuiLayer::isFullscreen   = false;
@@ -85,6 +86,7 @@ void ImGuiLayer::onImGuiRender() {
 }
 
 void ImGuiLayer::updateState() {
+    hasFxaa      = Maze::get().isFxaaEnabled();
     hasVsync     = Maze::get().hasVerticalSync();
     isFullscreen = Maze::get().isFullscreen();
 }
@@ -388,14 +390,19 @@ void ImGuiLayer::showMenu() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
+            if (ImGui::MenuItem("Full Screen", nullptr, isFullscreen)) {
+                isFullscreen = !isFullscreen;
+                Maze::get().toggleFullscreen();
+            }
+
             if (ImGui::MenuItem("Vertical Sync", nullptr, hasVsync)) {
                 hasVsync = !hasVsync;
                 Maze::get().setVerticalSync(hasVsync);
             }
 
-            if (ImGui::MenuItem("Full Screen", nullptr, isFullscreen)) {
-                isFullscreen = !isFullscreen;
-                Maze::get().toggleFullscreen();
+            if (ImGui::MenuItem("Anti-Aliasing", nullptr, hasFxaa)) {
+                hasFxaa = !hasFxaa;
+                Maze::get().setFxaaEnabled(hasFxaa);
             }
 
             ImGui::Separator();

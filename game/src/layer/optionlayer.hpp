@@ -14,6 +14,7 @@ enum class OptionMenuItem : uint8_t {
     Resolution,
     FullScreen,
     VerticalSync,
+    AntiAliasing,
     Return,
     Count
 };
@@ -38,6 +39,7 @@ private:
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
+    std::unique_ptr<ui::Checkbox>   antiAliasingCheckbox;
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
 
