@@ -1,4 +1,4 @@
-# Maze
+#Maze
 
 A game engine featuring a nice walk through a maze.
 
@@ -12,6 +12,7 @@ A game engine featuring a nice walk through a maze.
 * Point lights and directional light
 * PCF shadows
 * Reinhard tone mapping
+* Fast approximate anti-aliasing (FXAA)
 * Multi-channel signed distance field (MSDF) text rendering
 * Performance profiling with Tracy
 
@@ -61,7 +62,8 @@ setx VCPKG_ROOT <path to vcpkg>
 
 Use a package manager to install [CMake](https://cmake.org/), a cross-platform build system, on your platform.
 
-For example, on Windows use [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/) to install CMake.
+For example, on Windows use [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/) to install
+CMake.
 
 ```
 winget install cmake
@@ -71,15 +73,15 @@ winget install cmake
 
 Use a configuration preset to compile `maze`. Possible values are:
 
-| Preset | Description                          |
-| ------ |--------------------------------------|
-| `ci-linux-debug` | Linux debug build                    |
-| `ci-linux-release` | Linux release build                  |
-| `ci-osx-debug` | MacOS debug build                    |
-| `ci-osx-release` | MacOS release build                  |
-| `ci-windows-debug` | Windows debug build (uses sccache)   |
-| `ci-windows-release` | Windows release build (uses sccache) |
-| `windows-msvc-debug` | Windows MSVC debug build             |
+| Preset                 | Description                          |
+|------------------------|--------------------------------------|
+| `ci-linux-debug`       | Linux debug build                    |
+| `ci-linux-release`     | Linux release build                  |
+| `ci-osx-debug`         | MacOS debug build                    |
+| `ci-osx-release`       | MacOS release build                  |
+| `ci-windows-debug`     | Windows debug build (uses sccache)   |
+| `ci-windows-release`   | Windows release build (uses sccache) |
+| `windows-msvc-debug`   | Windows MSVC debug build             |
 | `windows-msvc-release` | Windows MSVC release build           |
 
 To use the preset on Windows:
