@@ -31,6 +31,8 @@ bool Maze::onUserCreate() {
     optionLayer->setActive(false);
     splashScreenLayer->setActive(true);
 
+    setFxaaEnabled(sponge::core::Settings::getBool("video.fxaa", true));
+
     return true;
 }
 
@@ -69,16 +71,16 @@ std::unique_ptr<sponge::core::Application>
     UNUSED(argc);
     UNUSED(argv);
 
-    constexpr uint32_t width      = 0;
-    constexpr uint32_t height     = 0;
-    constexpr bool     fullscreen = true;
-
+    using core::Settings;
     using platform::glfw::core::ApplicationSpecification;
 
-    const auto spec = ApplicationSpecification{ .name   = game::project_name,
-                                                .width  = width,
-                                                .height = height,
-                                                .fullscreen = fullscreen };
+    const auto spec = ApplicationSpecification{
+        .name       = game::project_name,
+        .width      = Settings::getUInt32("video.width", 0),
+        .height     = Settings::getUInt32("video.height", 0),
+        .fullscreen = Settings::getBool("video.fullscreen", true),
+        .vsync      = Settings::getBool("video.vsync", true)
+    };
 
     return std::make_unique<game::Maze>(spec);
 }
