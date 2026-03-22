@@ -78,6 +78,15 @@ void Context::init(GLFWwindow* window) {
     }
 }
 
+void Context::release(void* window) {
+    UNUSED(window);
+    glfwMakeContextCurrent(nullptr);
+}
+
+void Context::makeCurrent(void* window) {
+    glfwMakeContextCurrent(static_cast<GLFWwindow*>(window));
+}
+
 void Context::flip(void* window) {
     if (window == nullptr) {
         return;

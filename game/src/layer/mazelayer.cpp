@@ -82,6 +82,7 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::MouseScrolledEvent;
+using sponge::event::WindowFocusEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::input::KeyCode;
 using sponge::platform::glfw::core::Application;
@@ -191,6 +192,11 @@ void MazeLayer::onEvent(Event& event) {
         [this](const MouseScrolledEvent& msEvent) {
             return isActive() ? this->onMouseScrolled(msEvent) : false;
         });
+    dispatcher.dispatch<WindowFocusEvent>(
+        [this](const WindowFocusEvent& wfEvent) {
+            this->onWindowFocus(wfEvent);
+            return false;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
         [this](const WindowResizeEvent& wsEvent) {
             return this->onWindowResize(wsEvent);
@@ -198,25 +204,87 @@ void MazeLayer::onEvent(Event& event) {
 }
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
-    updateCamera(elapsedTime);
-
-    if (directionalLight.enabled && directionalLight.castShadow) {
-        renderSceneToDepthMap();
+    // Update thread only — no GL calls.
+    if (Application::get().isEventHandledByImGui()) {
+        keyPressed.clear();
+        mouseButtonPressed = false;
     }
 
-    if (fxaa && fxaa->isEnabled()) {
+    updateCamera(elapsedTime);
+
+    // Write the snapshot to the slot not being read by the render thread.
+    const uint32_t readSlot  = renderReadIndex.load(std::memory_order_relaxed);
+    const uint32_t writeSlot = (readSlot + 1) % 2;
+    captureRenderFrame(writeSlot);
+
+    return true;
+}
+
+void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
+    auto& frame = renderFrames[slotIndex];
+
+    frame.cameraMVP = camera->getMVP();
+    frame.cameraPos = camera->getPosition();
+
+    frame.shadowEnabled    = directionalLight.enabled;
+    frame.shadowCastShadow = directionalLight.castShadow;
+    frame.lightDirection   = directionalLight.direction;
+    if (directionalLight.enabled && directionalLight.castShadow) {
+        // Update on update thread to avoid racing render thread
+        // bind()/unbind().
+        shadowMap->updateLightSpaceMatrix(
+            glm::normalize(directionalLight.direction));
+        frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+    }
+
+    frame.numLights = numLights;
+    for (int32_t i = 0; i < numLights; i++) {
+        frame.lightPositions[i]          = pointLights.at(i).position;
+        frame.lightColors[i]             = pointLights.at(i).color;
+        frame.lightAttenuationIndices[i] = pointLights.at(i).attenuationIndex;
+    }
+
+    frame.fxaaEnabled = fxaaEnabled;
+
+    // Static after onAttach(); safe to copy.
+    frame.objectModelMatrices.resize(gameObjects.size());
+    frame.objectNames.resize(gameObjects.size());
+    for (size_t i = 0; i < gameObjects.size(); i++) {
+        frame.objectModelMatrices[i] = gameObjects[i].modelMatrix;
+        frame.objectNames[i]         = std::string(gameObjects[i].name);
+    }
+
+    // Publish slot; release/acquire pair with onRender()'s load.
+    renderReadIndex.store(slotIndex, std::memory_order_release);
+}
+
+void MazeLayer::onRender() {
+    // Render thread only — all GL calls here.
+    if (fxaa && pendingResize.load(std::memory_order_acquire)) {
+        fxaa->resize(pendingResizeWidth.load(std::memory_order_relaxed),
+                     pendingResizeHeight.load(std::memory_order_relaxed));
+        pendingResize.store(false, std::memory_order_relaxed);
+    }
+
+    // Read the latest snapshot from the update thread.
+    const auto& frame =
+        renderFrames[renderReadIndex.load(std::memory_order_acquire)];
+
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        renderSceneToDepthMap(frame);
+    }
+
+    if (fxaa && frame.fxaaEnabled) {
         fxaa->begin();
     }
 
-    renderGameObjects();
-    renderLightCubes();
+    renderGameObjects(frame);
+    renderLightCubes(frame);
 
-    if (fxaa && fxaa->isEnabled()) {
+    if (fxaa && frame.fxaaEnabled) {
         fxaa->end();
         fxaa->apply();
     }
-
-    return true;
 }
 
 float MazeLayer::getAmbientOcclusion() const {
@@ -432,6 +500,14 @@ bool MazeLayer::onKeyReleased(const KeyReleasedEvent& event) {
     return false;
 }
 
+void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
+    if (!event.isFocused()) {
+        keyPressed.clear();
+        mouseButtonPressed = false;
+        Application::get().setMouseVisible(true);
+    }
+}
+
 bool MazeLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == 0) {
         Application::get().centerMouse();
@@ -472,65 +548,68 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
     if (fxaa) {
-        fxaa->resize(event.getWidth(), event.getHeight());
+        // Defer GL resize to onRender() on the render thread.
+        pendingResizeWidth.store(event.getWidth(), std::memory_order_relaxed);
+        pendingResizeHeight.store(event.getHeight(), std::memory_order_relaxed);
+        pendingResize.store(true, std::memory_order_release);
     }
     return false;
 }
 
-void MazeLayer::renderGameObjects() const {
+void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     glViewport(0, 0, Maze::get().getWindow()->getWidth(),
                Maze::get().getWindow()->getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
 
-    for (const auto& gameObject : gameObjects) {
-        shader->bind();
-        shader->setFloat3("viewPos", camera->getPosition());
-        shader->setMat4("mvp", camera->getMVP() * gameObject.modelMatrix);
-        shader->setMat4("model", gameObject.modelMatrix);
+    for (size_t i = 0; i < frame.objectNames.size(); i++) {
+        const auto& modelMatrix = frame.objectModelMatrices[i];
+        const auto& name        = frame.objectNames[i];
 
-        if (directionalLight.enabled && directionalLight.castShadow) {
-            shader->setMat4("lightSpaceMatrix",
-                            shadowMap->getLightSpaceMatrix());
+        shader->bind();
+        shader->setFloat3("viewPos", frame.cameraPos);
+        shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
+        shader->setMat4("model", modelMatrix);
+
+        if (frame.shadowEnabled && frame.shadowCastShadow) {
+            shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
             shader->setInteger("shadowMap", 1);
             shadowMap->activateAndBindDepthMap(1);
         }
 
-        AssetManager::getModel(gameObject.name)->render(shader);
+        AssetManager::getModel(name)->render(shader);
         shader->unbind();
     }
 }
 
-void MazeLayer::renderLightCubes() const {
+void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     const auto shader = AssetManager::getShader(Cube::getShaderName());
 
-    for (auto i = 0; i < numLights; i++) {
+    for (int32_t i = 0; i < frame.numLights; i++) {
         shader->bind();
-        shader->setFloat3("lightColor", pointLights.at(i).color);
-        shader->setMat4("mvp", scale(translate(camera->getMVP(),
-                                               pointLights.at(i).position),
-                                     cubeScale));
+        shader->setFloat3("lightColor", frame.lightColors[i]);
+        shader->setMat4(
+            "mvp", scale(translate(frame.cameraMVP, frame.lightPositions[i]),
+                         cubeScale));
         cube->render();
         shader->unbind();
     }
 }
 
-void MazeLayer::renderSceneToDepthMap() const {
+void MazeLayer::renderSceneToDepthMap(
+    const thread::MazeRenderFrame& frame) const {
     shadowMap->bind();
 
-    shadowMap->updateLightSpaceMatrix(
-        glm::normalize(directionalLight.direction));
-    const auto lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
-
+    // Use snapshot data only — render thread must not write to shadowMap.
     const auto shader = AssetManager::getShader(ShadowMap::getShaderName());
 
-    for (const auto& gameObject : gameObjects) {
+    for (size_t i = 0; i < frame.objectNames.size(); i++) {
         shader->bind();
-        shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        shader->setMat4("model", gameObject.modelMatrix);
+        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+        shader->setMat4("model", frame.objectModelMatrices[i]);
 
-        AssetManager::getModel(gameObject.name)->render(shader);
+        AssetManager::getModel(frame.objectNames[i])->render(shader);
         shader->unbind();
     }
 
