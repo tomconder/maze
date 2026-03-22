@@ -293,6 +293,13 @@ void OptionLayer::onEvent(Event& event) {
 bool OptionLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
 
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
@@ -641,13 +648,6 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
 
 bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
-
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
-        shader->bind();
-        shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
-    }
 
     const auto width  = static_cast<float>(event.getWidth());
     const auto height = static_cast<float>(event.getHeight());

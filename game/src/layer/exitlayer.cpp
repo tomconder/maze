@@ -170,6 +170,13 @@ void ExitLayer::onEvent(Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+
     auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
                             const float offsetY) {
         return std::tuple{ offsetX + YGNodeLayoutGetLeft(node),
@@ -235,13 +242,6 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
 
 bool ExitLayer::onWindowResize(const WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
-
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
-        shader->bind();
-        shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
-    }
 
     const auto [width, height] =
         std::pair{ static_cast<float>(event.getWidth()),

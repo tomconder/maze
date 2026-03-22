@@ -43,7 +43,7 @@ void SelectList::setSelectedIndex(const size_t index) {
 
 bool SelectList::selectPrev() {
     if (selectedIndex > 0) {
-        --selectedIndex;
+        selectedIndex--;
         return true;
     }
     return false;
@@ -51,7 +51,7 @@ bool SelectList::selectPrev() {
 
 bool SelectList::selectNext() {
     if (!items.empty() && selectedIndex + 1 < items.size()) {
-        ++selectedIndex;
+        selectedIndex++;
         return true;
     }
     return false;

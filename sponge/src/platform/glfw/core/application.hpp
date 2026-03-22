@@ -9,7 +9,11 @@
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
+#include "thread/renderthread.hpp"
+#include "thread/updatethread.hpp"
 
+#include <array>
+#include <atomic>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -33,8 +37,6 @@ public:
 
     bool start() override;
 
-    bool iterateLoop() override;
-
     void shutdown() override;
 
     bool onUserCreate() override;
@@ -46,9 +48,6 @@ public:
     void onEvent(event::Event& event) override;
 
     void onImGuiRender() const;
-
-    std::tuple<uint32_t, uint32_t> adjustAspectRatio(uint32_t eventW,
-                                                     uint32_t eventH) const;
 
     void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
@@ -94,6 +93,12 @@ public:
 
     void centerMouse() const;
 
+    void setPendingViewport(int32_t w, int32_t h) {
+        pendingViewportW.store(w, std::memory_order_relaxed);
+        pendingViewportH.store(h, std::memory_order_relaxed);
+        pendingViewport.store(true, std::memory_order_release);
+    }
+
     static Application& get() {
         return *instance;
     }
@@ -127,6 +132,23 @@ private:
     std::unique_ptr<layer::LayerStack> layerStack;
 
     ApplicationSpecification appSpec;
+
+    // 2 update threads (ping-pong, no GL) + 1 render thread (owns GL context).
+    sponge::thread::RenderThread                renderThread;
+    std::array<sponge::thread::UpdateThread, 2> updateThreads;
+
+    // Elapsed time for render-thread layers; written by main, read by render
+    // thread.
+    double renderElapsedTime{ 0.0 };
+
+    // Signals quit from a render-thread layer back to the main loop.
+    std::atomic<bool> renderThreadQuit{ false };
+
+    // Deferred viewport update; applied by render thread at start of each
+    // frame.
+    std::atomic<bool>    pendingViewport{ false };
+    std::atomic<int32_t> pendingViewportW{ 0 };
+    std::atomic<int32_t> pendingViewportH{ 0 };
 
     static Application* instance;
 

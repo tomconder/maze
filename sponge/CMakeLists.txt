@@ -11,7 +11,8 @@ file(
         src/input/*.hpp
         src/layer/*.hpp
         src/logging/*.hpp
-        src/scene/*.hpp)
+        src/scene/*.hpp
+        src/thread/*.hpp)
 
 file(
         GLOB SOURCE_FILES

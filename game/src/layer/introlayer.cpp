@@ -164,6 +164,13 @@ void IntroLayer::onEvent(Event& event) {
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {
+    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+
     const auto [width, height] =
         std::pair{ static_cast<float>(orthoCamera->getWidth()),
                    static_cast<float>(orthoCamera->getHeight()) };
@@ -226,13 +233,6 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
 
 bool IntroLayer::onWindowResize(const WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
-
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
-        shader->bind();
-        shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
-    }
 
     const auto [width, height] =
         std::pair{ static_cast<float>(event.getWidth()),
