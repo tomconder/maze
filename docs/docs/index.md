@@ -1,4 +1,4 @@
-#Maze
+# Maze
 
 A game engine featuring a nice walk through a maze.
 
