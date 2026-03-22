@@ -19,6 +19,7 @@ enum class EventType : uint8_t {
     MouseMoved,
     MouseScrolled,
     WindowClose,
+    WindowFocus,
     WindowFullscreen,
     WindowMinimize,
     WindowResize

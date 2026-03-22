@@ -93,15 +93,17 @@ void Window::init(const sponge::core::WindowProps& props) {
             return;
         }
 
-        const auto [adjustedW, adjustedH] =
-            Application::get().adjustAspectRatio(width, height);
-
         auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
 
-        data->width  = adjustedW;
-        data->height = adjustedH;
+        data->width  = static_cast<uint32_t>(width);
+        data->height = static_cast<uint32_t>(height);
 
-        event::WindowResizeEvent event(adjustedW, adjustedH);
+        // Defer viewport GL call to render thread; callback may fire on any
+        // thread.
+        Application::get().setPendingViewport(width, height);
+
+        event::WindowResizeEvent event(static_cast<uint32_t>(width),
+                                       static_cast<uint32_t>(height));
         data->eventCallback(event);
     });
 
@@ -232,6 +234,14 @@ void Window::init(const sponge::core::WindowProps& props) {
                 static_cast<float>(xrel), static_cast<float>(yrel),
                 static_cast<float>(x), static_cast<float>(y));
 
+            data->eventCallback(event);
+        });
+
+    glfwSetWindowFocusCallback(
+        window, [](GLFWwindow* window, const int focused) {
+            const auto* data =
+                static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+            event::WindowFocusEvent event(focused == GLFW_TRUE);
             data->eventCallback(event);
         });
 

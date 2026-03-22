@@ -5,7 +5,7 @@ configure_file(bundle/resources/version.hpp.in include/version.hpp)
 file(
         GLOB HEADER_FILES
         LIST_DIRECTORIES false
-        src/*.hpp src/layer/*.hpp src/scene/*.hpp src/ui/*.hpp)
+        src/*.hpp src/layer/*.hpp src/scene/*.hpp src/thread/*.hpp src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
