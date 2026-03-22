@@ -2,7 +2,10 @@
 
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
+#include "thread/mazeframe.hpp"
 
+#include <array>
+#include <atomic>
 #include <memory>
 #include <string_view>
 
@@ -23,13 +26,23 @@ class MazeLayer final : public sponge::layer::Layer {
 public:
     MazeLayer();
 
+    // onUpdate() runs on the update thread (no GL); onRender() issues all GPU
+    // commands.
+    bool runsOnUpdateThread() const override {
+        return true;
+    }
+
     void onAttach() override;
 
     void onDetach() override;
 
     void onEvent(sponge::event::Event& event) override;
 
+    // Update thread: camera logic + fill per-frame snapshot. No GL calls.
     bool onUpdate(double elapsedTime) override;
+
+    // Render thread: all GL commands, reads from latest update snapshot.
+    void onRender() override;
 
     float getAmbientOcclusion() const;
 
@@ -104,6 +117,17 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
     std::unordered_map<sponge::input::KeyCode, bool>            keyPressed;
 
+    // Double-buffered snapshots: update writes, render reads, no overlap.
+    std::array<thread::MazeRenderFrame, 2> renderFrames;
+    std::atomic<uint32_t>                  renderReadIndex{ 0 };
+
+    // Deferred FXAA resize: set by onWindowResize(), applied in onRender().
+    mutable std::atomic<bool>     pendingResize{ false };
+    mutable std::atomic<uint32_t> pendingResizeWidth{ 0 };
+    mutable std::atomic<uint32_t> pendingResizeHeight{ 0 };
+
+    void captureRenderFrame(uint32_t slotIndex);
+
     float   ambientStrength    = .25F;
     float   ao                 = .25F;
     int32_t attenuationIndex   = 4;
@@ -114,6 +138,8 @@ private:
     float   roughness          = .5F;
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
+
+    void onWindowFocus(const sponge::event::WindowFocusEvent& event);
 
     bool onKeyReleased(const sponge::event::KeyReleasedEvent& event);
 
@@ -129,11 +155,11 @@ private:
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
-    void renderGameObjects() const;
+    void renderGameObjects(const thread::MazeRenderFrame& frame) const;
 
-    void renderLightCubes() const;
+    void renderLightCubes(const thread::MazeRenderFrame& frame) const;
 
-    void renderSceneToDepthMap() const;
+    void renderSceneToDepthMap(const thread::MazeRenderFrame& frame) const;
 
     void updateCamera(double elapsedTime) const;
 

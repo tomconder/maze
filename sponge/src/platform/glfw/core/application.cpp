@@ -15,14 +15,10 @@
 
 #include <array>
 #include <memory>
-#include <ranges>
 #include <utility>
 
 namespace {
-sponge::core::Timer systemTimer;
-
-constexpr uint32_t defaultWidth{ 1600 };
-constexpr uint32_t defaultHeight{ 900 };
+sponge::core::Timer mainTimer;
 }  // namespace
 
 namespace sponge::platform::glfw::core {
@@ -91,8 +87,10 @@ bool Application::start() {
 
     window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
-    const auto [w, h] =
-        adjustAspectRatio(window->getWidth(), window->getHeight());
+    const auto w = window->getWidth();
+    const auto h = window->getHeight();
+    renderer->setViewport(0, 0, static_cast<int32_t>(w),
+                          static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -106,38 +104,6 @@ bool Application::start() {
     return true;
 }
 
-bool Application::iterateLoop() {
-    SPONGE_PROFILE_SECTION("Application:iterateLoop");
-
-    auto quit = false;
-
-    systemTimer.tick();
-
-    glfwPollEvents();
-
-    imguiManager->begin();
-
-#ifdef ENABLE_IMGUI
-    onImGuiRender();
-#endif
-
-    renderer->clear();
-
-    if (!onUserUpdate(systemTimer.getElapsedSeconds())) {
-        quit = true;
-    }
-
-    if (quit && onUserDestroy()) {
-        return true;
-    }
-
-    imguiManager->end();
-
-    graphics->flip(window->getNativeWindow());
-
-    return false;
-}
-
 void Application::shutdown() {
     imguiManager->onDetach();
 }
@@ -149,10 +115,12 @@ bool Application::onUserCreate() {
 bool Application::onUserUpdate(const double elapsedTime) {
     SPONGE_PROFILE_SECTION("Application::onUserUpdate");
 
+    // Only update-thread layers; render-thread layers run in the render thread
+    // lambda.
     bool result = true;
 
     for (const auto& layer : *layerStack) {
-        if (layer->isActive()) {
+        if (layer->isActive() && layer->runsOnUpdateThread()) {
             if (!layer->onUpdate(elapsedTime)) {
                 result = false;
                 break;
@@ -187,20 +155,6 @@ void Application::onImGuiRender() const {
             layer->onImGuiRender();
         }
     }
-}
-
-std::tuple<uint32_t, uint32_t>
-    Application::adjustAspectRatio(const uint32_t eventW,
-                                   const uint32_t eventH) const {
-    constexpr int32_t offsetX = 0;
-    constexpr int32_t offsetY = 0;
-    const auto        width   = eventW;
-    const auto        height  = eventH;
-
-    renderer->setViewport(offsetX, offsetY, static_cast<int32_t>(width),
-                          static_cast<int32_t>(height));
-
-    return { width, height };
 }
 
 void Application::pushOverlay(
@@ -338,11 +292,118 @@ void Application::run() {
         return;
     }
 
-    SPONGE_CORE_INFO("Iterating loop");
-    bool quit = false;
-    while (!quit) {
-        quit = iterateLoop();
+    // Transfer GL context to render thread.
+    auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
+    opengl::renderer::Context::release(glfwWin);
+
+    // Render thread acquires GL context on first wake.
+    bool renderContextAcquired = false;
+    renderThread.start([this, glfwWin, &renderContextAcquired] {
+        if (!renderContextAcquired) {
+            opengl::renderer::Context::makeCurrent(glfwWin);
+            renderContextAcquired = true;
+        }
+
+        // Visible via cond-var acquire fence; main thread stored before kick().
+        const double elapsed = renderElapsedTime;
+
+        SPONGE_PROFILE_SECTION("RenderThread:frame");
+
+        if (pendingViewport.load(std::memory_order_acquire)) {
+            renderer->setViewport(
+                0, 0, pendingViewportW.load(std::memory_order_relaxed),
+                pendingViewportH.load(std::memory_order_relaxed));
+            pendingViewport.store(false, std::memory_order_relaxed);
+        }
+
+        renderer->clear();
+        imguiManager->begin();
+#ifdef ENABLE_IMGUI
+        onImGuiRender();
+#endif
+        for (const auto& layer : *layerStack) {
+            if (!layer->isActive()) {
+                continue;
+            }
+            if (layer->runsOnUpdateThread()) {
+                layer->onRender();
+            } else {
+                if (!layer->onUpdate(elapsed)) {
+                    renderThreadQuit.store(true, std::memory_order_release);
+                }
+            }
+        }
+        imguiManager->end();
+        graphics->flip(window->getNativeWindow());
+    });
+
+    // Start the two update worker threads.
+    updateThreads[0].start();
+    updateThreads[1].start();
+
+    SPONGE_CORE_INFO("Iterating loop (threaded: 2 update + 1 render)");
+
+    uint32_t frame = 0;
+
+    // Prime: frame 0 runs synchronously to give render thread a valid snapshot.
+    mainTimer.tick();
+    glfwPollEvents();
+    {
+        const double primeElapsed = mainTimer.getElapsedSeconds();
+        onUserUpdate(primeElapsed);
+        renderElapsedTime = primeElapsed;
     }
+
+    // Warm up render thread (acquires GL context) before pipelined loop.
+    renderThread.kick();
+    renderThread.blockUntilRenderComplete();
+    ++frame;
+
+    // Pipelined loop: update[N] overlaps with render[N-1].
+    while (true) {
+        const uint32_t updateIdx = frame % 2;
+
+        mainTimer.tick();
+        glfwPollEvents();
+        const double elapsed = mainTimer.getElapsedSeconds();
+
+        // Game logic for this frame into renderFrames[updateIdx].
+        updateThreads[updateIdx].kick(
+            elapsed, [this](double dt) -> bool { return onUserUpdate(dt); });
+
+        // Wait for previous render before re-kicking render thread.
+        renderThread.blockUntilRenderComplete();
+
+        // Wait for update; snapshot is now ready.
+        const bool updateResult = updateThreads[updateIdx].waitForComplete();
+
+        // Check if a render-thread layer signalled quit.
+        const bool renderQuit =
+            renderThreadQuit.load(std::memory_order_acquire);
+
+        if (!updateResult || renderQuit) {
+            onUserDestroy();
+            break;
+        }
+
+        // Update elapsed time for render-thread layers.
+        renderElapsedTime = elapsed;
+
+        // GPU work for frame N; overlaps with update[N+1].
+        renderThread.kick();
+
+        frame++;
+    }
+
+    // Drain in-flight render before stopping threads.
+    renderThread.blockUntilRenderComplete();
+
+    renderThread.stop();
+    updateThreads[0].stop();
+    updateThreads[1].stop();
+
+    // Reclaim GL context for shutdown.
+    opengl::renderer::Context::makeCurrent(glfwWin);
 
     SPONGE_CORE_INFO("Shutting down");
     shutdown();

@@ -74,6 +74,13 @@ void SplashScreenLayer::onEvent(Event& event) {
 }
 
 bool SplashScreenLayer::onUpdate(const double elapsedTime) {
+    for (const auto& shaderName : { quadShaderName, spriteShaderName }) {
+        const auto shader = AssetManager::getShader(shaderName);
+        shader->bind();
+        shader->setMat4("projection", orthoCamera->getProjection());
+        shader->unbind();
+    }
+
     // Accumulate elapsed time for timeout
     elapsedTimeAccumulator += elapsedTime;
     if (elapsedTimeAccumulator >= timeoutSeconds && !isFadingFlag) {
@@ -118,14 +125,6 @@ bool SplashScreenLayer::onKeyPressed(const KeyPressedEvent& event) {
 
 bool SplashScreenLayer::onWindowResize(const WindowResizeEvent& event) const {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
-
-    for (const auto& shaderName : { quadShaderName, spriteShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
-        shader->bind();
-        shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
-    }
-
     return false;
 }
 }  // namespace game::layer

@@ -41,6 +41,21 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
+class WindowFocusEvent final : public Event {
+public:
+    explicit WindowFocusEvent(const bool focused) : focused(focused) {}
+
+    bool isFocused() const {
+        return focused;
+    }
+
+    EVENT_CLASS_TYPE(WindowFocus)
+    EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+private:
+    bool focused;
+};
+
 class WindowFullscreenEvent final : public Event {
 public:
     WindowFullscreenEvent() = default;
