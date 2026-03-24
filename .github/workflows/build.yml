@@ -132,7 +132,7 @@ jobs:
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
             - name: Setup CMake
-              uses: lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375 # v4.2.3
+              uses: lukka/get-cmake@b78306120111dc2522750771cfd09ee7ca723687 # v4.3.0
 
             - name: Configure sccache
               uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
