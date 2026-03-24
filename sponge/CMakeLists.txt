@@ -18,7 +18,7 @@ file(
         GLOB SOURCE_FILES
         LIST_DIRECTORIES false
         src/core/*.cpp src/event/*.cpp src/input/*.cpp src/layer/*.cpp
-        src/logging/*.cpp src/scene/*.cpp)
+        src/logging/*.cpp src/scene/*.cpp src/thread/*.cpp)
 
 # OpenGL
 message(STATUS "Including OpenGL platform files")
