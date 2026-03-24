@@ -20,75 +20,12 @@ namespace sponge::thread {
 // update thread writes to its own isolated snapshot slot.
 class UpdateThread {
 public:
-    ~UpdateThread() {
-        if (thread.joinable()) {
-            stop();
-        }
-    }
+    ~UpdateThread();
 
-    // Start the worker thread. Must be called before kick().
-    void start() {
-        thread = std::thread([this] {
-            while (true) {
-                std::function<bool(double)> task;
-                double                      elapsed = 0.0;
-
-                {
-                    std::unique_lock lock(mutex);
-                    cv.wait(lock, [this] { return hasWork || shouldStop; });
-
-                    if (shouldStop) {
-                        return;
-                    }
-
-                    task      = std::move(this->task);
-                    elapsed   = elapsedTime;
-                    hasWork   = false;
-                }
-
-                const bool result = task(elapsed);
-
-                {
-                    std::lock_guard lock(mutex);
-                    this->result = result;
-                    done         = true;
-                }
-                cv.notify_all();
-            }
-        });
-    }
-
-    // Assign work and wake the thread. Non-blocking — returns immediately.
-    // task(elapsedTime) returns false when the game loop should terminate.
-    void kick(double elapsed, std::function<bool(double)> newTask) {
-        {
-            std::lock_guard lock(mutex);
-            elapsedTime = elapsed;
-            task        = std::move(newTask);
-            done        = false;
-            hasWork     = true;
-        }
-        cv.notify_one();
-    }
-
-    // Block until the current task completes. Returns the task's return value.
-    bool waitForComplete() {
-        std::unique_lock lock(mutex);
-        cv.wait(lock, [this] { return done || shouldStop; });
-        return result;
-    }
-
-    // Signal the thread to exit and join it.
-    void stop() {
-        {
-            std::lock_guard lock(mutex);
-            shouldStop = true;
-        }
-        cv.notify_all();
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
+    void start();
+    void kick(double elapsed, std::function<bool(double)> newTask);
+    bool waitForComplete();
+    void stop();
 
 private:
     std::thread             thread;

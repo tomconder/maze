@@ -15,71 +15,13 @@ class RenderThread {
 public:
     enum class State { Idle, Kick, Busy };
 
-    ~RenderThread() {
-        if (thread.joinable()) {
-            stop();
-        }
-    }
+    ~RenderThread();
 
-    // Start the render thread. renderFunc is called every frame.
-    void start(std::function<void()> renderFunc) {
-        thread = std::thread([this, renderFunc = std::move(renderFunc)] {
-            while (true) {
-                {
-                    std::unique_lock lock(mutex);
-                    // Predicate form guards against spurious wakeups on Linux
-                    cv.wait(lock, [this] {
-                        return state == State::Kick || shouldStop;
-                    });
-                    if (shouldStop) {
-                        return;
-                    }
-                    state = State::Busy;
-                }
-
-                renderFunc();
-
-                {
-                    std::lock_guard lock(mutex);
-                    state = State::Idle;
-                }
-                cv.notify_all();
-            }
-        });
-    }
-
-    // Called by the main thread to wake the render thread for frame N.
-    void kick() {
-        {
-            std::lock_guard lock(mutex);
-            state = State::Kick;
-        }
-        cv.notify_one();
-    }
-
-    // Called by the main thread to wait for frame N to finish before
-    // swapping command queues and kicking the next frame.
-    void blockUntilRenderComplete() {
-        std::unique_lock lock(mutex);
-        cv.wait(lock, [this] { return state == State::Idle; });
-    }
-
-    // Signal the render thread to exit and wait for it to join.
-    void stop() {
-        {
-            std::lock_guard lock(mutex);
-            shouldStop = true;
-        }
-        cv.notify_all();
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-
-    bool isRunning() const {
-        std::lock_guard lock(mutex);
-        return state != State::Idle || !shouldStop;
-    }
+    void start(std::function<void()> renderFunc);
+    void kick();
+    void blockUntilRenderComplete();
+    void stop();
+    bool isRunning() const;
 
 private:
     std::thread             thread;
