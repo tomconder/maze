@@ -17,7 +17,7 @@ UpdateThread::~UpdateThread() {
 void UpdateThread::start() {
     thread = std::thread([this] {
         while (true) {
-            std::function<bool(double)> task;
+            std::function<bool(double)> startTask;
             double                      elapsed = 0.0;
 
             {
@@ -28,16 +28,15 @@ void UpdateThread::start() {
                     return;
                 }
 
-                task      = std::move(this->task);
+                startTask = std::move(this->task);
                 elapsed   = elapsedTime;
                 hasWork   = false;
             }
 
-            const bool result = task(elapsed);
-
             {
-                std::lock_guard lock(mutex);
-                this->result = result;
+                const bool       startResult = startTask(elapsed);
+                std::scoped_lock lock(mutex);
+                this->result = startResult;
                 done         = true;
             }
             cv.notify_all();
@@ -49,7 +48,7 @@ void UpdateThread::start() {
 // task(elapsedTime) returns false when the game loop should terminate.
 void UpdateThread::kick(double elapsed, std::function<bool(double)> newTask) {
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         elapsedTime = elapsed;
         task        = std::move(newTask);
         done        = false;
@@ -68,7 +67,7 @@ bool UpdateThread::waitForComplete() {
 // Signal the thread to exit and join it.
 void UpdateThread::stop() {
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         shouldStop = true;
     }
     cv.notify_all();
