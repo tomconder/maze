@@ -31,7 +31,7 @@ void RenderThread::start(std::function<void()> renderFunc) {
             renderFunc();
 
             {
-                std::lock_guard lock(mutex);
+                std::scoped_lock lock(mutex);
                 state = State::Idle;
             }
             cv.notify_all();
@@ -42,7 +42,7 @@ void RenderThread::start(std::function<void()> renderFunc) {
 // Called by the main thread to wake the render thread for frame N.
 void RenderThread::kick() {
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         state = State::Kick;
     }
     cv.notify_one();
@@ -58,7 +58,7 @@ void RenderThread::blockUntilRenderComplete() {
 // Signal the render thread to exit and wait for it to join.
 void RenderThread::stop() {
     {
-        std::lock_guard lock(mutex);
+        std::scoped_lock lock(mutex);
         shouldStop = true;
     }
     cv.notify_all();
@@ -68,7 +68,7 @@ void RenderThread::stop() {
 }
 
 bool RenderThread::isRunning() const {
-    std::lock_guard lock(mutex);
+    std::scoped_lock lock(mutex);
     return state != State::Idle || !shouldStop;
 }
 
