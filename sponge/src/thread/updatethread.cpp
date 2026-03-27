@@ -28,9 +28,9 @@ void UpdateThread::start() {
                     return;
                 }
 
-                task      = std::move(this->task);
-                elapsed   = elapsedTime;
-                hasWork   = false;
+                task    = std::move(this->task);
+                elapsed = elapsedTime;
+                hasWork = false;
             }
 
             const bool result = task(elapsed);
