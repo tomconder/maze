@@ -487,6 +487,9 @@ bool MazeLayer::onKeyPressed(const KeyPressedEvent& event) {
 
     if (event.getKeyCode() == KeyCode::SpongeKey_Escape) {
         Maze::get().getExitLayer()->setActive(true);
+#ifdef ENABLE_IMGUI
+        Maze::get().getImGuiLayer()->setActive(false);
+#endif
         return true;
     }
 
