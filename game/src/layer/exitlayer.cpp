@@ -266,10 +266,16 @@ bool ExitLayer::onKeyPressed(const KeyPressedEvent& event) {
         clearHoveredItems();
         selectedItem = ExitMenuItem::Continue;
         setActive(false);
+#ifdef ENABLE_IMGUI
+        Maze::get().getImGuiLayer()->setActive(true);
+#endif
     } else if (keyCode == KeyCode::SpongeKey_Enter ||
                keyCode == KeyCode::SpongeKey_KPEnter) {
         if (selectedItem == ExitMenuItem::Continue) {
             setActive(false);
+#ifdef ENABLE_IMGUI
+            Maze::get().getImGuiLayer()->setActive(true);
+#endif
         } else if (selectedItem == ExitMenuItem::Options) {
             clearHoveredItems();
             Maze::get().getOptionLayer()->setActive(true);
