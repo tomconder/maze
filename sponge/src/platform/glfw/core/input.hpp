@@ -10,13 +10,13 @@ namespace sponge::platform::glfw::core {
 enum class KeyState : int8_t { None = -1, Pressed, Held, Released };
 
 struct KeyData {
-    input::KeyCode key;
+    input::KeyCode key      = input::KeyCode::SpongeKey_None;
     KeyState       state    = KeyState::None;
     KeyState       oldState = KeyState::None;
 };
 
 struct ButtonData {
-    input::MouseButton button;
+    input::MouseButton button   = input::MouseButton::Button_None;
     KeyState           state    = KeyState::None;
     KeyState           oldState = KeyState::None;
 };

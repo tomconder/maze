@@ -29,7 +29,7 @@ public:
         return enabled;
     }
 
-    void setEnabled(bool val) {
+    void setEnabled(const bool val) {
         enabled = val;
     }
 

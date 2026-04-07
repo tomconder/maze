@@ -10,9 +10,9 @@ namespace {
 // Interleaved NDC position (vec2) + UV (vec2) for a full-screen triangle strip.
 // Triangle strip chosen over two separate triangles to halve the vertex count
 // and avoid a diagonal seam that can produce a one-pixel artifact on some GPUs.
-constexpr std::array<float, 16> quadVertices = {
-    -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, 0.0f,
-    -1.0f, 1.0f,  0.0f, 1.0f, 1.0f, 1.0f,  1.0f, 1.0f,
+constexpr std::array quadVertices = {
+    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
+    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
 };
 
 constexpr uint32_t quadVertexCount = 4;

@@ -57,8 +57,8 @@ Quad::Quad() {
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
-                  const glm::vec4& color, float cornerRadius, float borderWidth,
-                  const glm::vec4& borderColor) const {
+                  const glm::vec4& color, const float cornerRadius,
+                  const float borderWidth, const glm::vec4& borderColor) const {
     const std::array<glm::vec2, vertexCount> vertices{ {
         { top.x, bottom.y },    //
         { top.x, top.y },       //
@@ -66,7 +66,7 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
         { bottom.x, bottom.y }  //
     } };
 
-    const glm::vec4 corners = glm::vec4(top.x, top.y, bottom.x, bottom.y);
+    const auto corners = glm::vec4(top.x, top.y, bottom.x, bottom.y);
 
     vao->bind();
 
