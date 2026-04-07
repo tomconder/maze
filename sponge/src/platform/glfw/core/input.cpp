@@ -2,6 +2,8 @@
 
 #include "platform/glfw/core/application.hpp"
 
+#include <GLFW/glfw3.h>
+
 #include <tuple>
 #include <utility>
 
@@ -23,9 +25,8 @@ bool Input::isKeyDown(const input::KeyCode keycode) {
     }
 
     const auto window = Application::get().getWindow();
-    const auto state =
-        glfwGetKey(static_cast<GLFWwindow*>(window->getNativeWindow()),
-                   static_cast<int32_t>(keycode));
+    const auto state  = glfwGetKey(
+        static_cast<GLFWwindow*>(window->getNativeWindow()), +keycode);
     return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
 
@@ -58,7 +59,7 @@ bool Input::isMouseButtonDown(const input::MouseButton button) {
 
     const auto window = Application::get().getWindow();
     const auto state  = glfwGetMouseButton(
-        static_cast<GLFWwindow*>(window->getNativeWindow()), button);
+        static_cast<GLFWwindow*>(window->getNativeWindow()), +button);
     return state == GLFW_PRESS;
 }
 

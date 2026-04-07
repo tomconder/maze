@@ -142,8 +142,12 @@ enum class KeyCode : uint16_t {
     SpongeKey_Menu         = 348
 };
 
+constexpr int operator+(const KeyCode keyCode) noexcept {
+    return static_cast<int>(keyCode);
+}
+
 inline std::ostream& operator<<(std::ostream& os, const KeyCode keyCode) {
-    os << static_cast<int32_t>(keyCode);
+    os << +keyCode;
     return os;
 }
 

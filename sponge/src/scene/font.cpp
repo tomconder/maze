@@ -42,7 +42,7 @@ void Font::load(const std::string& path) {
         return std::string(v);
     };
 
-    auto parseInt = [&](std::string_view s, uint32_t& out) -> bool {
+    auto parseInt = [&](const std::string_view s, uint32_t& out) -> bool {
         const std::string tmp = unquote(s);
         int               val = 0;
         auto              res =
@@ -54,11 +54,11 @@ void Font::load(const std::string& path) {
         return false;
     };
 
-    auto parseFloat = [&](std::string_view s, float& out) -> bool {
+    auto parseFloat = [&](const std::string_view s, float& out) -> bool {
         const std::string tmp    = unquote(s);
         char*             endPtr = nullptr;
         errno                    = 0;
-        float val                = std::strtof(tmp.c_str(), &endPtr);
+        const auto val           = std::strtof(tmp.c_str(), &endPtr);
         if (errno == 0 && endPtr != tmp.c_str()) {
             out = val;
             return true;

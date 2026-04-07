@@ -89,8 +89,6 @@ void Texture::generate(const uint32_t textureWidth,
 void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     assert(!path.empty());
 
-    const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
-
     const std::filesystem::path name{ path };
 
     int bytesPerPixel = 0;
@@ -105,8 +103,7 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
         return;
     }
 
-    generate(width, height, bytesPerPixel, static_cast<const uint8_t*>(data),
-             flag);
+    generate(width, height, bytesPerPixel, data, flag);
 
     stbi_image_free(data);
 }

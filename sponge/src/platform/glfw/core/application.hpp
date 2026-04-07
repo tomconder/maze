@@ -93,7 +93,7 @@ public:
 
     void centerMouse() const;
 
-    void setPendingViewport(int32_t w, int32_t h) {
+    void setPendingViewport(const int32_t w, const int32_t h) {
         pendingViewportW.store(w, std::memory_order_relaxed);
         pendingViewportH.store(h, std::memory_order_relaxed);
         pendingViewport.store(true, std::memory_order_release);

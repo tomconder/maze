@@ -20,16 +20,16 @@ void Diagnostics::log() {
     SPONGE_GL_DEBUG("OpenGL GLEXT version: {}", GL_GLEXT_VERSION);
 #endif
 
-    const char* glslVersionPtr =
+    const auto* glslVersionPtr =
         reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     const std::string glslVersion = glslVersionPtr ? glslVersionPtr : "Unknown";
-    const char*       vendorPtr =
+    const auto*       vendorPtr =
         reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string vendor = vendorPtr ? vendorPtr : "Unknown";
-    const char*       rendererPtr =
+    const auto*       rendererPtr =
         reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::string renderer = rendererPtr ? rendererPtr : "Unknown";
-    const char*       versionPtr =
+    const auto*       versionPtr =
         reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::string version = versionPtr ? versionPtr : "Unknown";
 
@@ -48,7 +48,7 @@ void Diagnostics::log() {
         ss.str("");
         ss << "   ";
         for (int j = 0; j < 3; j++) {
-            const char* extPtr = reinterpret_cast<const char*>(
+            const auto* extPtr = reinterpret_cast<const char*>(
                 glGetStringi(GL_EXTENSIONS, (i * 3) + j));
             const std::string ext = extPtr ? extPtr : "";
             ss << fmt::format(" {:49}", ext);
