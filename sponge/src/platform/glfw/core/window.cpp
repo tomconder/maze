@@ -12,13 +12,6 @@
 #include <ranges>
 #include <span>
 
-namespace {
-constexpr auto ratios = std::to_array(
-    { glm::vec3{ 32.F, 9.F, 32.F / 9.F }, glm::vec3{ 21.F, 9.F, 21.F / 9.F },
-      glm::vec3{ 16.F, 9.F, 16.F / 9.F }, glm::vec3{ 16.F, 10.F, 16.F / 10.F },
-      glm::vec3{ 4.F, 3.F, 4.F / 3.F } });
-}  // namespace
-
 namespace sponge::platform::glfw::core {
 Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {
     init(props);
@@ -290,8 +283,7 @@ std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
                          static_cast<uint32_t>(m.height) };
             });
 
-    auto resolutions =
-        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
+    auto resolutions = std::vector(filtered.begin(), filtered.end());
 
     std::sort(resolutions.begin(), resolutions.end(),
               [](const auto& a, const auto& b) {

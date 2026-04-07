@@ -368,8 +368,9 @@ void Application::run() {
         const double elapsed = mainTimer.getElapsedSeconds();
 
         // Game logic for this frame into renderFrames[updateIdx].
-        updateThreads[updateIdx].kick(
-            elapsed, [this](double dt) -> bool { return onUserUpdate(dt); });
+        updateThreads[updateIdx].kick(elapsed, [this](const double dt) -> bool {
+            return onUserUpdate(dt);
+        });
 
         // Wait for previous render before re-kicking render thread.
         renderThread.blockUntilRenderComplete();
@@ -377,7 +378,7 @@ void Application::run() {
         // Wait for update; snapshot is now ready.
         const bool updateResult = updateThreads[updateIdx].waitForComplete();
 
-        // Check if a render-thread layer signalled quit.
+        // Check if a render-thread layer signaled quit.
         const bool renderQuit =
             renderThreadQuit.load(std::memory_order_acquire);
 

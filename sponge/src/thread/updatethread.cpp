@@ -44,9 +44,10 @@ void UpdateThread::start() {
     });
 }
 
-// Assign work and wake the thread. Non-blocking — returns immediately.
+// Assign work and wake the thread. Non-blocking returns immediately.
 // task(elapsedTime) returns false when the game loop should terminate.
-void UpdateThread::kick(double elapsed, std::function<bool(double)> newTask) {
+void UpdateThread::kick(const double                elapsed,
+                        std::function<bool(double)> newTask) {
     {
         std::scoped_lock lock(mutex);
         elapsedTime = elapsed;
