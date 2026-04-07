@@ -512,7 +512,7 @@ void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
 }
 
 bool MazeLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    if (event.getMouseButton() == 0) {
+    if (event.getMouseButton() == sponge::input::MouseButton::Button0) {
         Application::get().centerMouse();
         Application::get().setMouseVisible(false);
         mouseButtonPressed = true;
@@ -522,7 +522,7 @@ bool MazeLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 }
 
 bool MazeLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
-    if (event.getMouseButton() == 0) {
+    if (event.getMouseButton() == sponge::input::MouseButton::Button0) {
         Application::get().setMouseVisible(true);
         mouseButtonPressed = false;
         return true;

@@ -16,7 +16,7 @@ struct TransparentStringHash {
         return std::hash<std::string_view>{}(str);
     }
 
-    [[nodiscard]] size_t operator()(std::string_view str) const noexcept {
+    [[nodiscard]] size_t operator()(const std::string_view str) const noexcept {
         return std::hash<std::string_view>{}(str);
     }
 
@@ -29,8 +29,8 @@ struct TransparentStringHash {
 struct TransparentStringEqual {
     using is_transparent = void;
 
-    [[nodiscard]] bool operator()(std::string_view lhs,
-                                  std::string_view rhs) const noexcept {
+    [[nodiscard]] bool operator()(const std::string_view lhs,
+                                  const std::string_view rhs) const noexcept {
         return lhs == rhs;
     }
 };

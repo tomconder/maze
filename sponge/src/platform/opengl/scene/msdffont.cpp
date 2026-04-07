@@ -92,7 +92,7 @@ uint32_t MSDFFont::getLength(const std::string_view text,
 }
 
 void MSDFFont::load(const std::string& path) {
-    sponge::scene::Font::load(path);
+    Font::load(path);
 
     const auto pos        = path.find_last_of('/');
     const auto fontFolder = path.substr(0, pos + 1);
@@ -106,7 +106,7 @@ void MSDFFont::load(const std::string& path) {
     UNUSED(texture);
 }
 
-void MSDFFont::render(std::string_view text, const glm::vec2& position,
+void MSDFFont::render(const std::string_view text, const glm::vec2& position,
                       const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
         // texture name is empty when the font fails to load

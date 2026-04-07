@@ -6,7 +6,9 @@
 namespace sponge::input {
 
 // inspired by glfw3.h
-using Button = enum MouseButton : uint8_t {
+enum class MouseButton : uint8_t {
+    Button_None = 0xFF,
+
     Button0 = 0,
     Button1 = 1,
     Button2 = 2,
@@ -19,8 +21,12 @@ using Button = enum MouseButton : uint8_t {
     ButtonMiddle = Button2
 };
 
+constexpr int operator+(const MouseButton button) noexcept {
+    return static_cast<int>(button);
+}
+
 inline std::ostream& operator<<(std::ostream& os, const MouseButton button) {
-    os << static_cast<int32_t>(button);
+    os << +button;
     return os;
 }
 
