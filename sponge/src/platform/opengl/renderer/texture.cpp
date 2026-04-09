@@ -3,7 +3,6 @@
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <filesystem>
