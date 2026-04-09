@@ -31,7 +31,7 @@ list(APPEND HEADER_FILES ${OPENGL_HEADERS})
 file(
         GLOB OPENGL_SOURCES
         LIST_DIRECTORIES false
-        deps/glad2/src/gl.c src/platform/opengl/debug/*.cpp
+        deps/glad2/src/gl.c deps/stb/stb_image.cpp src/platform/opengl/debug/*.cpp
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
@@ -95,7 +95,6 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
-find_package(Stb REQUIRED)
 
 if (ENABLE_IMGUI)
     find_package(imgui CONFIG REQUIRED)
@@ -165,7 +164,7 @@ set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/glad2/include)
-target_include_directories(sponge SYSTEM PRIVATE ${Stb_INCLUDE_DIR})
+target_include_directories(sponge PUBLIC deps/stb)
 
 target_link_libraries(sponge PRIVATE glfw)
 target_link_libraries(sponge PRIVATE glm::glm-header-only)
