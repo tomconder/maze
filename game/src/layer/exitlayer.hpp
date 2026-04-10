@@ -41,5 +41,7 @@ private:
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
     static void clearHoveredItems();
+
+    void resumeGame();
 };
 }  // namespace game::layer

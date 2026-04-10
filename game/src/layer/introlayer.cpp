@@ -259,7 +259,9 @@ bool IntroLayer::onKeyPressed(const KeyPressedEvent& event) {
             setActive(false);
             Maze::get().getMazeLayer()->setActive(true);
 #ifdef ENABLE_IMGUI
-            Maze::get().getImGuiLayer()->setActive(true);
+            if (Maze::get().getMazeLayer()->isImguiActive()) {
+                Maze::get().getImGuiLayer()->setActive(true);
+            }
 #endif
             return true;
         }
@@ -302,7 +304,9 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         setActive(false);
         Maze::get().getMazeLayer()->setActive(true);
 #ifdef ENABLE_IMGUI
-        Maze::get().getImGuiLayer()->setActive(true);
+        if (Maze::get().getMazeLayer()->isImguiActive()) {
+            Maze::get().getImGuiLayer()->setActive(true);
+        }
 #endif
         return true;
     }
