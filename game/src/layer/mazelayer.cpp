@@ -475,7 +475,8 @@ bool MazeLayer::onKeyPressed(const KeyPressedEvent& event) {
 #ifdef ENABLE_IMGUI
     if (event.getKeyCode() == KeyCode::SpongeKey_GraveAccent) {
         const auto imguiLayer = Maze::get().getImGuiLayer();
-        imguiLayer->setActive(!imguiLayer->isActive());
+        isImguiOpen           = !isImguiOpen;
+        imguiLayer->setActive(isImguiOpen);
         return true;
     }
 #endif
@@ -488,7 +489,9 @@ bool MazeLayer::onKeyPressed(const KeyPressedEvent& event) {
     if (event.getKeyCode() == KeyCode::SpongeKey_Escape) {
         Maze::get().getExitLayer()->setActive(true);
 #ifdef ENABLE_IMGUI
-        Maze::get().getImGuiLayer()->setActive(false);
+        if (isImguiOpen) {
+            Maze::get().getImGuiLayer()->setActive(false);
+        }
 #endif
         return true;
     }
@@ -675,4 +678,10 @@ void MazeLayer::setFxaaEnabled(const bool val) {
         fxaa->setEnabled(val);
     }
 }
+
+#ifdef ENABLE_IMGUI
+bool MazeLayer::isImguiActive() const {
+    return isImguiOpen;
+}
+#endif
 }  // namespace game::layer

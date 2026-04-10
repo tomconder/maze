@@ -110,6 +110,10 @@ public:
 
     void setFxaaEnabled(bool val);
 
+#ifdef ENABLE_IMGUI
+    bool isImguiActive() const;
+#endif
+
 private:
     std::shared_ptr<scene::GameCamera>                          camera;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
@@ -136,6 +140,9 @@ private:
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     float   roughness          = .5F;
+#ifdef ENABLE_IMGUI
+    bool isImguiOpen = true;
+#endif
 
     bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
