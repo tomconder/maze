@@ -265,17 +265,11 @@ bool ExitLayer::onKeyPressed(const KeyPressedEvent& event) {
     if (keyCode == KeyCode::SpongeKey_Escape) {
         clearHoveredItems();
         selectedItem = ExitMenuItem::Continue;
-        setActive(false);
-#ifdef ENABLE_IMGUI
-        Maze::get().getImGuiLayer()->setActive(true);
-#endif
+        resumeGame();
     } else if (keyCode == KeyCode::SpongeKey_Enter ||
                keyCode == KeyCode::SpongeKey_KPEnter) {
         if (selectedItem == ExitMenuItem::Continue) {
-            setActive(false);
-#ifdef ENABLE_IMGUI
-            Maze::get().getImGuiLayer()->setActive(true);
-#endif
+            resumeGame();
         } else if (selectedItem == ExitMenuItem::Options) {
             clearHoveredItems();
             Maze::get().getOptionLayer()->setActive(true);
@@ -306,7 +300,7 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     auto [x, y] = Input::getMousePosition();
     if (continueButton->isInside({ x, y })) {
         clearHoveredItems();
-        setActive(false);
+        resumeGame();
     }
 
     if (optionsButton->isInside({ x, y })) {
@@ -350,6 +344,15 @@ bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) const {
 bool ExitLayer::onMouseScrolled(const MouseScrolledEvent& event) {
     UNUSED(event);
     return true;
+}
+
+void ExitLayer::resumeGame() {
+    setActive(false);
+#ifdef ENABLE_IMGUI
+    if (Maze::get().getMazeLayer()->isImguiActive()) {
+        Maze::get().getImGuiLayer()->setActive(true);
+    }
+#endif
 }
 
 void ExitLayer::clearHoveredItems() {
