@@ -85,6 +85,11 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
+# strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)
+if (NOT MSVC)
+    add_custom_command(TARGET game POST_BUILD COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}> $<$<CONFIG:Release>:$<TARGET_FILE:game>>)
+endif ()
+
 set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
 if (MSVC)
