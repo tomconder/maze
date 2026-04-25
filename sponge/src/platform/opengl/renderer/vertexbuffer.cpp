@@ -20,7 +20,8 @@ VertexBuffer& VertexBuffer::operator=(VertexBuffer&& other) noexcept {
         if (id != 0) {
             glDeleteBuffers(1, &id);
         }
-        id = other.id;
+        id       = other.id;
+        other.id = 0;
     }
     return *this;
 }
