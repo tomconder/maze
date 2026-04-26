@@ -82,22 +82,11 @@ endif ()
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-# This function finds and replaces values in the current flag
-function(replace_flag_value flag_var_name match_string replace_string)
-    string(REPLACE "${match_string}" "${replace_string}" ${flag_var_name}
-            "${${flag_var_name}}")
-    string(STRIP "${${flag_var_name}}" ${${flag_var_name}})
-    set(${flag_var_name}
-            "${${flag_var_name}}"
-            PARENT_SCOPE)
-endfunction()
-
-# Use flag /Z7 to embed debug symbols into .obj files instead of creating an
-# external .pdb. sccache needs this to cache effectively
 if (MSVC)
-    replace_flag_value(CMAKE_C_FLAGS_DEBUG "/Zi" "/Z7")
-    replace_flag_value(CMAKE_CXX_FLAGS_DEBUG "/Zi" "/Z7")
-    replace_flag_value(CMAKE_EXE_LINKER_FLAGS "/Zi" "/Z7")
+    # This enables Edit & Continue support. See
+    # https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#edit-and-continue-for-cmake-projects
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
+    add_link_options("$<$<CONFIG:Debug>:/INCREMENTAL>")
 endif ()
 
 add_subdirectory(sponge)
