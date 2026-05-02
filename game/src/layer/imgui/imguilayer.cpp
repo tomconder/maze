@@ -103,8 +103,8 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
         showLightsSection();
         showShadowMapSection();
         showResourcesSection();
-        ImGui::End();
     }
+    ImGui::End();
 }
 
 void ImGuiLayer::showInfoSection() {
@@ -364,10 +364,10 @@ void ImGuiLayer::showLogWindow(const float width, const float height) {
     if (ImGui::Begin("Logging", &hasLogMenu,
                      windowFlags | ImGuiWindowFlags_NoScrollbar)) {
         showLogging();
-        ImGui::End();
     } else {
         hasLogMenu = false;
     }
+    ImGui::End();
 }
 
 float ImGuiLayer::getLogSelectionMaxWidth(const std::span<const char*> list) {
