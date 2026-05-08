@@ -1,166 +1,185 @@
 name: build
 
 on:
-    push:
-        branches: [main, feature/*]
-    pull_request:
-        branches: [main]
-    workflow_dispatch:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
-    group: ci-${{github.event.pull_request.number || github.ref}}
-    cancel-in-progress: true
+  group: ci-${{github.event.pull_request.number || github.ref}}
+  cancel-in-progress: true
 
 env:
-    BUILD_DIR: build
-    BUILD_TYPE: Release
-    SCCACHE_GHA_ENABLED: true
+  BUILD_DIR: build
+  BUILD_TYPE: Release
+  FEED_URL: https://nuget.pkg.github.com/tomconder/index.json
+  SCCACHE_GHA_ENABLED: true
+  USERNAME: tomconder
+  VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/tomconder/index.json,readwrite"
+  VCPKG_EXE: ${{ github.workspace }}/vcpkg/vcpkg
 
 permissions:
-    contents: read
+  contents: read
+  packages: write
 
 jobs:
-    changed:
-        name: check-changed
-        runs-on: ubuntu-latest
-        outputs:
-            should_skip: ${{steps.changed-files.outputs.only_changed == 'true'}}
+  changed:
+    name: check-changed
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{steps.changed-files.outputs.only_changed == 'true'}}
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-              with:
-                  fetch-depth: 2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 2
 
-            - name: Get changed files
-              id: changed-files
-              run: |
-                  CURRENT_COMMIT=$(git rev-parse HEAD)
-                  PREVIOUS_COMMIT=$(git rev-parse HEAD^)
-                  CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
+      - name: Get changed files
+        id: changed-files
+        run: |
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          PREVIOUS_COMMIT=$(git rev-parse HEAD^)
+          CHANGED_FILES=$(git diff --name-only "$PREVIOUS_COMMIT" "$CURRENT_COMMIT")
 
-                  only_changed=false
+          only_changed=false
 
-                  if [ -n "$CHANGED_FILES" ]; then
-                    echo "Changed files:"
-                    echo "$CHANGED_FILES"
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
 
-                    FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
-                    if [ ! -n "$FILTERED_FILES" ]; then
-                      echo "Found only documentation changes"
-                      only_changed=true
-                    fi
-                  else
-                    echo "No changes found"
-                    only_changed=true
-                  fi
+            FILTERED_FILES=$(echo "$CHANGED_FILES" | grep "^\.github/workflows/build\.yml$" || echo "$CHANGED_FILES" | grep -vE "^(docs|\.github|.*\.md)" || true)
+            if [ ! -n "$FILTERED_FILES" ]; then
+              echo "Found only documentation changes"
+              only_changed=true
+            fi
+          else
+            echo "No changes found"
+            only_changed=true
+          fi
 
-                  echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
+          echo "only_changed=$only_changed" >> $GITHUB_OUTPUT
 
-    lint:
-        needs: changed
-        if: needs.changed.outputs.should_skip != 'true'
-        runs-on: ubuntu-latest
+  lint:
+    needs: changed
+    if: needs.changed.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
 
-        timeout-minutes: 30
+    timeout-minutes: 30
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-            - name: Set up python
-              uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-              with:
-                  python-version: '3.13'
+      - name: Set up python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
 
-            - name: Run pre-commit
-              uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-              with:
-                  extra_args: cpplint --all-files
+      - name: Run pre-commit
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        with:
+          extra_args: cpplint --all-files
 
-    build:
-        needs: changed
-        if: needs.changed.outputs.should_skip != 'true'
-        name: ${{matrix.name}}
-        runs-on: ${{matrix.os}}
+  build:
+    needs: changed
+    if: needs.changed.outputs.should_skip != 'true'
+    name: ${{matrix.name}}
+    runs-on: ${{matrix.os}}
 
-        timeout-minutes: 30
+    timeout-minutes: 30
 
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                    - name: mac
-                      os: macos-latest
-                      preset: ci-osx-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: mac
+            os: macos-latest
+            preset: ci-osx-release
 
-                    - name: windows
-                      os: windows-latest
-                      preset: ci-windows-release
+          - name: windows
+            os: windows-latest
+            preset: ci-windows-release
 
-                    - name: linux
-                      os: ubuntu-latest
-                      preset: ci-linux-release
+          - name: linux
+            os: ubuntu-latest
+            preset: ci-linux-release
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-            - name: Extract git commit id from vcpkg configuration
-              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-              id: vcpkg-commit-id
-              with:
-                  script: |
-                      const fs = require('fs');
-                      const path = require('path');
-                      const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg.json');
-                      const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-                      const id = config['builtin-baseline'];
-                      core.setOutput('id', id);
-                      core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
-                      console.log(`Extracted vcpkg git commit id: ${id}`);
+      - name: Extract git commit id from vcpkg configuration
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        id: vcpkg-commit-id
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg.json');
+            const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+            const id = config['builtin-baseline'];
+            core.setOutput('id', id);
+            core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
+            console.log(`Extracted vcpkg git commit id: ${id}`);
 
-            - name: Install linux packages
-              if: runner.os == 'Linux'
-              run: >
-                  sudo apt-get update -qq &&
-                  sudo apt-get install -qq -y --no-install-recommends libtool libasound2-dev libgl1-mesa-dev libltdl-dev
-                  libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
+      - name: Install linux packages
+        if: runner.os == 'Linux'
+        run: >
+          sudo apt-get update -qq &&
+          sudo apt-get install -qq -y --no-install-recommends libtool libasound2-dev libgl1-mesa-dev libltdl-dev
+          libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
 
-            - name: Setup MSVC toolchain
-              if: runner.os == 'Windows'
-              uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      - name: Setup MSVC toolchain
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
-            - name: Setup CMake
-              uses: lukka/get-cmake@7bfc9baacbbdcb5e37957ad05c3546b3e222be3c # v4.3.2
+      - name: Setup CMake
+        uses: lukka/get-cmake@7bfc9baacbbdcb5e37957ad05c3546b3e222be3c # v4.3.2
 
-            - name: Configure sccache
-              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-              with:
-                  script: |
-                      core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
-                      core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      - name: Configure sccache
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-            - name: Cache the build
-              uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
+      - name: Cache the build
+        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
 
-            - name: Setup vcpkg
-              uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
-              with:
-                  vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+      - name: Add NuGet sources
+        shell: pwsh
+        run: |
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+            sources add `
+            -Source "${{ env.FEED_URL }}" `
+            -StorePasswordInClearText `
+            -Name GitHubPackages `
+            -UserName "${{ env.USERNAME }}" `
+            -Password "${{ secrets.GITHUB_TOKEN }}"
+          .$(${{ env.VCPKG_EXE }} fetch nuget) `
+            setapikey "${{ secrets.GITHUB_TOKEN }}" `
+            -Source "${{ env.FEED_URL }}"
 
-            - name: Create build tree
-              run: >
-                  cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
+        with:
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-            - name: Build
-              run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
+      - name: Create build tree
+        run: >
+          cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
 
-            - name: Upload artifact
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-              with:
-                  name: maze-${{matrix.name}}
-                  path: ${{github.workspace}}/out/install/${{matrix.preset}}/
-                  overwrite: true
-                  retention-days: 1
-                  if-no-files-found: error
+      - name: Build
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --target install game --parallel 4
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: maze-${{matrix.name}}
+          path: ${{github.workspace}}/out/install/${{matrix.preset}}/
+          overwrite: true
+          retention-days: 1
+          if-no-files-found: error
