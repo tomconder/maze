@@ -34,8 +34,8 @@ FXAA::~FXAA() {
 void FXAA::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/fxaa.vert.glsl",
-        .fragmentShaderPath = "/shaders/fxaa.frag.glsl",
+        .vertexShaderPath   = "/shaders/glsl/fxaa.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/fxaa.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

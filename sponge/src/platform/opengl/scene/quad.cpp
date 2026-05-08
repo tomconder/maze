@@ -22,8 +22,8 @@ using renderer::AssetManager;
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/quad.vert.glsl",
-        .fragmentShaderPath = "/shaders/quad.frag.glsl",
+        .vertexShaderPath   = "/shaders/glsl/quad.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/quad.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

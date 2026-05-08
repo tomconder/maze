@@ -27,8 +27,8 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/text.vert.glsl",
-        .fragmentShaderPath = "/shaders/text.frag.glsl"
+        .vertexShaderPath   = "/shaders/glsl/text.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/text.frag.glsl"
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

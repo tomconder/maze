@@ -32,8 +32,8 @@ ShadowMap::ShadowMap(const uint32_t res) :
 void ShadowMap::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName,
-        .vertexShaderPath   = "/shaders/shadowmap.vert.glsl",
-        .fragmentShaderPath = "/shaders/shadowmap.frag.glsl",
+        .vertexShaderPath   = "/shaders/glsl/shadowmap.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/shadowmap.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
