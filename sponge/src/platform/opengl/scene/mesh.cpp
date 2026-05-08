@@ -30,8 +30,8 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/pbr.vert.glsl",
-        .fragmentShaderPath = "/shaders/pbr.frag.glsl",
+        .vertexShaderPath   = "/shaders/glsl/pbr.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/pbr.frag.glsl",
     };
     const auto shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
