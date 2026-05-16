@@ -17,12 +17,12 @@ constexpr auto mouseSpeed    = 0.125F;
 
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
-constexpr auto sunCastsShadow  = true;
-constexpr auto sunColor        = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto sunDirection    = glm::vec3(0.F, -2.F, 1.333F);
-constexpr auto sunEnabled      = true;
-constexpr auto sunShadowBias   = 0.004F;
-constexpr auto sunShadowMapRes = 2048;
+constexpr auto dirLightCastsShadow  = true;
+constexpr auto dirLightColor        = glm::vec3(1.F, 1.F, 1.F);
+constexpr auto dirLightDirection    = glm::vec3(0.F, -2.F, 1.333F);
+constexpr auto dirLightEnabled      = true;
+constexpr auto dirLightShadowBias   = 0.004F;
+constexpr auto dirLightShadowMapRes = 1024;
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
@@ -135,12 +135,12 @@ void MazeLayer::onAttach() {
 
     shader->setFloat("ambientStrength", ambientStrength);
 
-    directionalLight = { .enabled      = sunEnabled,
-                         .castShadow   = sunCastsShadow,
-                         .color        = sunColor,
-                         .direction    = sunDirection,
-                         .shadowBias   = sunShadowBias,
-                         .shadowMapRes = sunShadowMapRes };
+    directionalLight = { .enabled      = dirLightEnabled,
+                         .castShadow   = dirLightCastsShadow,
+                         .color        = dirLightColor,
+                         .direction    = dirLightDirection,
+                         .shadowBias   = dirLightShadowBias,
+                         .shadowMapRes = dirLightShadowMapRes };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
     shader->setBoolean("directionalLight.castShadow",
