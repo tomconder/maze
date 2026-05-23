@@ -10,6 +10,8 @@
 #define SPONGE_PROFILE_TAG(y, x)          ZoneText(x, strlen(x))
 #define SPONGE_PROFILE_LOG(text, size)    TracyMessage(text, size)
 #define SPONGE_PROFILE_VALUE(text, value) TracyPlot(text, value)
+#define SPONGE_PROFILE_ALLOC(ptr, size)   TracyAlloc(ptr, size)
+#define SPONGE_PROFILE_FREE(ptr)          TracyFree(ptr)
 
 #else
 
@@ -19,5 +21,7 @@
 #define SPONGE_PROFILE_TAG(y, x)
 #define SPONGE_PROFILE_LOG(text, size)
 #define SPONGE_PROFILE_VALUE(text, value)
+#define SPONGE_PROFILE_ALLOC(ptr, size)
+#define SPONGE_PROFILE_FREE(ptr)
 
 #endif
