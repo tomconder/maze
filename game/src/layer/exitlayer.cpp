@@ -51,16 +51,11 @@ bool isRunning = true;
 namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
-using sponge::event::KeyPressedEvent;
-using sponge::event::KeyReleasedEvent;
 using sponge::event::MouseButtonPressedEvent;
-using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
-using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
-using sponge::input::KeyCode;
+using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
-using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
@@ -149,9 +144,6 @@ void ExitLayer::onDetach() {
 void ExitLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? this->onKeyPressed(event) : false;
-    });
     dispatcher.dispatch<MouseButtonPressedEvent>(
         [this](const MouseButtonPressedEvent& event) {
             return isActive() ? this->onMouseButtonPressed(event) : false;
@@ -159,10 +151,6 @@ void ExitLayer::onEvent(Event& event) {
     dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
         return isActive() ? this->onMouseMoved(event) : false;
     });
-    dispatcher.dispatch<MouseScrolledEvent>(
-        [this](const MouseScrolledEvent& event) {
-            return isActive() ? this->onMouseScrolled(event) : false;
-        });
     dispatcher.dispatch<WindowResizeEvent>(
         [this](const WindowResizeEvent& event) {
             return this->onWindowResize(event);
@@ -170,6 +158,47 @@ void ExitLayer::onEvent(Event& event) {
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
+    {
+        auto& mgr = Application::get().getInputManager();
+        mgr.setActiveContext(sponge::input::InputContext::Menu);
+
+        if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
+            const auto&    input     = mgr.getSnapshot();
+            constexpr auto itemCount = static_cast<int>(ExitMenuItem::Count);
+
+            if (input.isActive(GameAction::MenuDown)) {
+                selectedItem = static_cast<ExitMenuItem>(
+                    (static_cast<int>(selectedItem) + 1) % itemCount);
+            }
+            if (input.isActive(GameAction::MenuUp)) {
+                selectedItem = static_cast<ExitMenuItem>(
+                    (static_cast<int>(selectedItem) - 1 + itemCount) %
+                    itemCount);
+            }
+            if (input.isActive(GameAction::MenuBack)) {
+                clearHoveredItems();
+                selectedItem = ExitMenuItem::Continue;
+                resumeGame();
+            }
+            if (input.isActive(GameAction::MenuConfirm)) {
+                if (selectedItem == ExitMenuItem::Continue) {
+                    resumeGame();
+                } else if (selectedItem == ExitMenuItem::Options) {
+                    clearHoveredItems();
+                    Maze::get().getOptionLayer()->setActive(true);
+                } else if (selectedItem == ExitMenuItem::ReturnToMenu) {
+                    clearHoveredItems();
+                    Maze::get().getIntroLayer()->setActive(true);
+                    Maze::get().getMazeLayer()->setActive(false);
+                    setActive(false);
+                } else if (selectedItem == ExitMenuItem::Exit) {
+                    isRunning = false;
+                }
+            }
+        }
+        wasActiveLastFrame = true;
+    }
+
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
@@ -237,6 +266,11 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     UNUSED(returnToMenuButton->onUpdate(elapsedTime));
     UNUSED(exitButton->onUpdate(elapsedTime));
 
+    if (!isActive()) {
+        wasActiveLastFrame = false;
+        selectedItem       = ExitMenuItem::Continue;
+    }
+
     return isRunning;
 }
 
@@ -258,46 +292,10 @@ void ExitLayer::recalculateLayout(float width, float height) {
     YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
 }
 
-bool ExitLayer::onKeyPressed(const KeyPressedEvent& event) {
-    const auto     keyCode   = event.getKeyCode();
-    constexpr auto itemCount = +ExitMenuItem::Count;
-
-    if (keyCode == KeyCode::SpongeKey_Escape) {
-        clearHoveredItems();
-        selectedItem = ExitMenuItem::Continue;
-        resumeGame();
-    } else if (keyCode == KeyCode::SpongeKey_Enter ||
-               keyCode == KeyCode::SpongeKey_KPEnter) {
-        if (selectedItem == ExitMenuItem::Continue) {
-            resumeGame();
-        } else if (selectedItem == ExitMenuItem::Options) {
-            clearHoveredItems();
-            Maze::get().getOptionLayer()->setActive(true);
-        } else if (selectedItem == ExitMenuItem::ReturnToMenu) {
-            clearHoveredItems();
-            Maze::get().getIntroLayer()->setActive(true);
-            Maze::get().getMazeLayer()->setActive(false);
-            setActive(false);
-        } else if (selectedItem == ExitMenuItem::Exit) {
-            isRunning = false;
-        }
-    } else if (keyCode == KeyCode::SpongeKey_Down ||
-               keyCode == KeyCode::SpongeKey_KP2) {
-        selectedItem =
-            static_cast<ExitMenuItem>((+selectedItem + 1) % itemCount);
-    } else if (keyCode == KeyCode::SpongeKey_Up ||
-               keyCode == KeyCode::SpongeKey_KP8) {
-        selectedItem = static_cast<ExitMenuItem>(
-            (+selectedItem - 1 + itemCount) % itemCount);
-    }
-
-    return true;
-}
-
 bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     UNUSED(event);
 
-    auto [x, y] = Input::getMousePosition();
+    auto [x, y] = Application::get().getMousePosition();
     if (continueButton->isInside({ x, y })) {
         clearHoveredItems();
         resumeGame();
@@ -338,11 +336,6 @@ bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) const {
     updateHover(returnToMenuButton.get());
     updateHover(exitButton.get());
 
-    return true;
-}
-
-bool ExitLayer::onMouseScrolled(const MouseScrolledEvent& event) {
-    UNUSED(event);
     return true;
 }
 

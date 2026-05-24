@@ -25,18 +25,15 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    ExitMenuItem selectedItem = ExitMenuItem::Continue;
+    ExitMenuItem selectedItem       = ExitMenuItem::Continue;
+    bool         wasActiveLastFrame = false;
 
     static void recalculateLayout(float width, float height);
-
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
-
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 

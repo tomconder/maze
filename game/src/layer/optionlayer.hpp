@@ -36,6 +36,7 @@ private:
     std::optional<OptionMenuItem> hoveredItem;
 
     bool hasUnappliedChanges = false;
+    bool wasActiveLastFrame  = false;
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
@@ -53,8 +54,6 @@ private:
     static void recalculateLayout(float width, float height);
 
     void updateChangeStatus();
-
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
