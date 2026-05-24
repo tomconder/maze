@@ -28,8 +28,17 @@ public:
     void                setActiveContext(input::InputContext ctx);
     input::InputContext activeContext() const;
 
+    // Enable continuous cursor recentering while mouse-look is active.
+    // Prevents the cursor from drifting outside the window and sending
+    // negative coordinates to ImGui.
+    void setMouseLookActive(bool active) {
+        mouseLookActive = active;
+    }
+
 private:
     GLFWwindow* window = nullptr;
+
+    bool mouseLookActive = false;
 
     input::InputSnapshot snapshot;
 
