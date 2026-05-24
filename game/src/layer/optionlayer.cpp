@@ -112,12 +112,9 @@ std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
-using sponge::event::KeyPressedEvent;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::WindowResizeEvent;
-using sponge::input::KeyCode;
-using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
@@ -272,10 +269,6 @@ void OptionLayer::onDetach() {
 void OptionLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>(
-        [this](const KeyPressedEvent& keyEvent) {
-            return isActive() ? onKeyPressed(keyEvent) : false;
-        });
     dispatcher.dispatch<MouseButtonPressedEvent>(
         [this](const MouseButtonPressedEvent& mouseEvent) {
             return isActive() ? onMouseButtonPressed(mouseEvent) : false;
@@ -292,6 +285,82 @@ void OptionLayer::onEvent(Event& event) {
 
 bool OptionLayer::onUpdate(const double elapsedTime) {
     UNUSED(elapsedTime);
+
+    {
+        using sponge::input::GameAction;
+        auto& mgr =
+            sponge::platform::glfw::core::Application::get().getInputManager();
+        mgr.setActiveContext(sponge::input::InputContext::Menu);
+
+        if (wasActiveLastFrame) {
+            const auto&    input     = mgr.getSnapshot();
+            constexpr auto itemCount = static_cast<int>(OptionMenuItem::Count);
+
+            if (input.isActive(GameAction::MenuDown)) {
+                selectedItem = static_cast<OptionMenuItem>(
+                    (static_cast<int>(selectedItem) + 1) % itemCount);
+            }
+            if (input.isActive(GameAction::MenuUp)) {
+                selectedItem = static_cast<OptionMenuItem>(
+                    (static_cast<int>(selectedItem) - 1 + itemCount) %
+                    itemCount);
+            }
+            if (input.isActive(GameAction::MenuLeft)) {
+                if (selectedItem == OptionMenuItem::AspectRatio) {
+                    aspectRatioList->selectPrev();
+                    filterResolutions();
+                } else if (selectedItem == OptionMenuItem::Resolution &&
+                           !filteredResolutions.empty()) {
+                    resolutionList->selectPrev();
+                    updateChangeStatus();
+                }
+            }
+            if (input.isActive(GameAction::MenuRight)) {
+                if (selectedItem == OptionMenuItem::AspectRatio) {
+                    aspectRatioList->selectNext();
+                    filterResolutions();
+                } else if (selectedItem == OptionMenuItem::Resolution &&
+                           !filteredResolutions.empty()) {
+                    resolutionList->selectNext();
+                    updateChangeStatus();
+                }
+            }
+            if (input.isActive(GameAction::MenuBack)) {
+                clearHoveredItems();
+                selectedItem = OptionMenuItem::AspectRatio;
+                resetSelectionToCurrentState();
+                setActive(false);
+            }
+            if (input.isActive(GameAction::MenuConfirm)) {
+                if (selectedItem == OptionMenuItem::Return) {
+                    if (hasUnappliedChanges && !filteredResolutions.empty()) {
+                        const auto& res =
+                            filteredResolutions[resolutionList
+                                                    ->getSelectedIndex()];
+                        Maze::get().setResolution(res.width, res.height);
+                        saveVideoSettings(res.width, res.height);
+                        hasUnappliedChanges = false;
+                        returnButton->setMessage(returnMessage);
+                    } else {
+                        clearHoveredItems();
+                        selectedItem = OptionMenuItem::AspectRatio;
+                        resetSelectionToCurrentState();
+                        setActive(false);
+                    }
+                } else if (selectedItem == OptionMenuItem::FullScreen) {
+                    Maze::get().toggleFullscreen();
+                    saveVideoSettings();
+                } else if (selectedItem == OptionMenuItem::VerticalSync) {
+                    Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
+                    saveVideoSettings();
+                } else if (selectedItem == OptionMenuItem::AntiAliasing) {
+                    Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
+                    saveVideoSettings();
+                }
+            }
+        }
+        wasActiveLastFrame = true;
+    }
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
@@ -369,6 +438,10 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
+    if (!isActive()) {
+        wasActiveLastFrame = false;
+    }
+
     return true;
 }
 
@@ -401,93 +474,11 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
 }
 
-bool OptionLayer::onKeyPressed(const KeyPressedEvent& event) {
-    const auto     keyCode   = event.getKeyCode();
-    constexpr auto itemCount = +OptionMenuItem::Count;
-
-    if (keyCode == KeyCode::SpongeKey_Escape) {
-        clearHoveredItems();
-        resetSelectionToCurrentState();
-        setActive(false);
-        return true;
-    }
-
-    if (keyCode == KeyCode::SpongeKey_Enter ||
-        keyCode == KeyCode::SpongeKey_KPEnter ||
-        keyCode == KeyCode::SpongeKey_Space) {
-        if (selectedItem == OptionMenuItem::Return) {
-            if (hasUnappliedChanges && !filteredResolutions.empty()) {
-                const auto& res =
-                    filteredResolutions[resolutionList->getSelectedIndex()];
-                Maze::get().setResolution(res.width, res.height);
-                saveVideoSettings(res.width, res.height);
-                hasUnappliedChanges = false;
-                returnButton->setMessage(returnMessage);
-            } else {
-                clearHoveredItems();
-                resetSelectionToCurrentState();
-                setActive(false);
-            }
-        } else if (selectedItem == OptionMenuItem::FullScreen) {
-            Maze::get().toggleFullscreen();
-            saveVideoSettings();
-        } else if (selectedItem == OptionMenuItem::VerticalSync) {
-            Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
-            saveVideoSettings();
-        } else if (selectedItem == OptionMenuItem::AntiAliasing) {
-            Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
-            saveVideoSettings();
-        }
-        return true;
-    }
-
-    if (keyCode == KeyCode::SpongeKey_Down ||
-        keyCode == KeyCode::SpongeKey_KP2) {
-        selectedItem =
-            static_cast<OptionMenuItem>((+selectedItem + 1) % itemCount);
-    }
-
-    if (keyCode == KeyCode::SpongeKey_Up || keyCode == KeyCode::SpongeKey_KP8) {
-        selectedItem = static_cast<OptionMenuItem>(
-            (+selectedItem - 1 + itemCount) % itemCount);
-    }
-
-    if (selectedItem == OptionMenuItem::AspectRatio) {
-        if (keyCode == KeyCode::SpongeKey_Left ||
-            keyCode == KeyCode::SpongeKey_KP4) {
-            aspectRatioList->selectPrev();
-            filterResolutions();
-        }
-
-        if (keyCode == KeyCode::SpongeKey_Right ||
-            keyCode == KeyCode::SpongeKey_KP6) {
-            aspectRatioList->selectNext();
-            filterResolutions();
-        }
-    }
-
-    if (selectedItem == OptionMenuItem::Resolution &&
-        !filteredResolutions.empty()) {
-        if (keyCode == KeyCode::SpongeKey_Left ||
-            keyCode == KeyCode::SpongeKey_KP4) {
-            resolutionList->selectPrev();
-            updateChangeStatus();
-        }
-
-        if (keyCode == KeyCode::SpongeKey_Right ||
-            keyCode == KeyCode::SpongeKey_KP6) {
-            resolutionList->selectNext();
-            updateChangeStatus();
-        }
-    }
-
-    return true;
-}
-
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     UNUSED(event);
 
-    auto [mouseX, mouseY] = Input::getMousePosition();
+    auto [mouseX, mouseY] =
+        sponge::platform::glfw::core::Application::get().getMousePosition();
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges && !filteredResolutions.empty()) {

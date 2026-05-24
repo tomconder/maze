@@ -23,8 +23,6 @@ private:
 
     static void recalculateLayout(float width, float height);
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
