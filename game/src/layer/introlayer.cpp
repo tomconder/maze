@@ -158,42 +158,44 @@ void IntroLayer::onEvent(Event& event) {
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {
-    sponge::platform::glfw::core::Application::get()
-        .getInputManager()
-        .setActiveContext(sponge::input::InputContext::Menu);
+    {
+        auto& mgr =
+            sponge::platform::glfw::core::Application::get().getInputManager();
+        mgr.setActiveContext(sponge::input::InputContext::Menu);
 
-    if (!Maze::get().getOptionLayer()->isActive()) {
-        using sponge::input::GameAction;
-        const auto&    input = sponge::platform::glfw::core::Application::get()
-                                   .getInputManager()
-                                   .getSnapshot();
-        constexpr auto itemCount = static_cast<int>(IntroMenuItem::Count);
+        if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
+            using sponge::input::GameAction;
+            const auto&    input     = mgr.getSnapshot();
+            constexpr auto itemCount = static_cast<int>(IntroMenuItem::Count);
 
-        if (input.isActive(GameAction::MenuDown)) {
-            selectedItem = static_cast<IntroMenuItem>(
-                (static_cast<int>(selectedItem) + 1) % itemCount);
-        }
-        if (input.isActive(GameAction::MenuUp)) {
-            selectedItem = static_cast<IntroMenuItem>(
-                (static_cast<int>(selectedItem) - 1 + itemCount) % itemCount);
-        }
-        if (input.isActive(GameAction::MenuConfirm)) {
-            if (selectedItem == IntroMenuItem::NewGame) {
-                clearHoveredItems();
-                setActive(false);
-                Maze::get().getMazeLayer()->setActive(true);
+            if (input.isActive(GameAction::MenuDown)) {
+                selectedItem = static_cast<IntroMenuItem>(
+                    (static_cast<int>(selectedItem) + 1) % itemCount);
+            }
+            if (input.isActive(GameAction::MenuUp)) {
+                selectedItem = static_cast<IntroMenuItem>(
+                    (static_cast<int>(selectedItem) - 1 + itemCount) %
+                    itemCount);
+            }
+            if (input.isActive(GameAction::MenuConfirm)) {
+                if (selectedItem == IntroMenuItem::NewGame) {
+                    clearHoveredItems();
+                    setActive(false);
+                    Maze::get().getMazeLayer()->setActive(true);
 #ifdef ENABLE_IMGUI
-                if (Maze::get().getMazeLayer()->isImguiActive()) {
-                    Maze::get().getImGuiLayer()->setActive(true);
-                }
+                    if (Maze::get().getMazeLayer()->isImguiActive()) {
+                        Maze::get().getImGuiLayer()->setActive(true);
+                    }
 #endif
-            } else if (selectedItem == IntroMenuItem::Options) {
-                clearHoveredItems();
-                Maze::get().getOptionLayer()->setActive(true);
-            } else if (selectedItem == IntroMenuItem::Quit) {
-                isRunning = false;
+                } else if (selectedItem == IntroMenuItem::Options) {
+                    clearHoveredItems();
+                    Maze::get().getOptionLayer()->setActive(true);
+                } else if (selectedItem == IntroMenuItem::Quit) {
+                    isRunning = false;
+                }
             }
         }
+        wasActiveLastFrame = true;
     }
 
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
@@ -260,6 +262,11 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     UNUSED(optionsButton->onUpdate(elapsedTime));
     UNUSED(quitButton->onUpdate(elapsedTime));
 
+    if (!isActive()) {
+        wasActiveLastFrame = false;
+        selectedItem       = IntroMenuItem::NewGame;
+    }
+
     // Render gamepad connection status
     {
         const bool gamepadConnected =
@@ -306,7 +313,9 @@ void IntroLayer::recalculateLayout(float width, float height) {
 }
 
 bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    UNUSED(event);
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
 
     auto [x, y] =
         sponge::platform::glfw::core::Application::get().getMousePosition();

@@ -475,7 +475,9 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
 }
 
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    UNUSED(event);
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
 
     auto [mouseX, mouseY] =
         sponge::platform::glfw::core::Application::get().getMousePosition();

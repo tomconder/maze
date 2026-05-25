@@ -202,6 +202,9 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     } else {
         if (!overlayActive && snap.isActive(GameAction::Pause)) {
             Maze::get().getExitLayer()->setActive(true);
+            Application::get().setMouseVisible(true);
+            inputManager.setMouseLookActive(false);
+            mouseButtonPressed = false;
             inputManager.setActiveContext(sponge::input::InputContext::Menu);
 #ifdef ENABLE_IMGUI
             if (isImguiOpen) {
