@@ -192,6 +192,10 @@ std::string Shader::loadSourceFromFile(const std::string& path) {
         file.good()) {
         file.seekg(0, std::ios::end);
         const auto size = file.tellg();
+        if (size <= 0) {
+            SPONGE_GL_ERROR("Unable to determine size of file: {}", path);
+            return code;
+        }
         file.seekg(0, std::ios::beg);
         code.resize(size);
         file.read(code.data(), size);
