@@ -1,11 +1,9 @@
 #include "platform/glfw/core/window.hpp"
 
 #include "event/applicationevent.hpp"
-#include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
 #include "logging/log.hpp"
 #include "platform/glfw/core/application.hpp"
-#include "platform/glfw/core/input.hpp"
 
 #include <algorithm>
 #include <array>
@@ -108,66 +106,11 @@ void Window::init(const sponge::core::WindowProps& props) {
         data->eventCallback(event);
     });
 
-    glfwSetKeyCallback(window, [](GLFWwindow* window, const int key,
-                                  const int scancode, const int action,
-                                  const int mods) {
-        UNUSED(scancode);
-        UNUSED(mods);
-
-        if (Application::get().isEventHandledByImGui()) {
-            return;
-        }
-
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-        const auto keycode = static_cast<input::KeyCode>(key);
-
-        switch (action) {
-            case GLFW_PRESS: {
-                Input::updateKeyState(keycode, KeyState::Pressed);
-                event::KeyPressedEvent event(keycode);
-                data->eventCallback(event);
-                break;
-            }
-            case GLFW_RELEASE: {
-                Input::updateKeyState(keycode, KeyState::Released);
-                event::KeyReleasedEvent event(keycode);
-                data->eventCallback(event);
-                break;
-            }
-            case GLFW_REPEAT: {
-                Input::updateKeyState(keycode, KeyState::Held);
-                event::KeyPressedEvent event(keycode, true);
-                data->eventCallback(event);
-                break;
-            }
-            default:
-                break;
-        }
-    });
-
-    glfwSetCharCallback(window, [](GLFWwindow* window, uint32_t codepoint) {
-        if (Application::get().isEventHandledByImGui()) {
-            return;
-        }
-
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-        event::KeyTypedEvent event(static_cast<input::KeyCode>(codepoint));
-        data->eventCallback(event);
-    });
-
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, const int button,
                                           const int action, const int mods) {
         UNUSED(mods);
 
         if (Application::get().isEventHandledByImGui()) {
-            return;
-        }
-
-        if (button != GLFW_MOUSE_BUTTON_LEFT) {
             return;
         }
 
@@ -177,13 +120,11 @@ void Window::init(const sponge::core::WindowProps& props) {
 
         switch (action) {
             case GLFW_PRESS: {
-                Input::updateButtonState(buttonCode, KeyState::Pressed);
                 event::MouseButtonPressedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
             }
             case GLFW_RELEASE: {
-                Input::updateButtonState(buttonCode, KeyState::Released);
                 event::MouseButtonReleasedEvent event(buttonCode);
                 data->eventCallback(event);
                 break;
@@ -193,42 +134,30 @@ void Window::init(const sponge::core::WindowProps& props) {
         }
     });
 
-    glfwSetScrollCallback(window, [](GLFWwindow* window, const double xOffset,
-                                     const double yOffset) {
-        if (Application::get().isEventHandledByImGui()) {
-            return;
-        }
-
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
-        event::MouseScrolledEvent event(static_cast<float>(xOffset),
-                                        static_cast<float>(yOffset));
-        data->eventCallback(event);
-    });
-
     glfwSetCursorPosCallback(
         window, [](GLFWwindow* window, const double x, const double y) {
             if (Application::get().isEventHandledByImGui()) {
                 return;
             }
 
-            auto [prevX, prevY] = Input::getPrevCursorPos();
-
-            auto xrel = x - prevX;
-            auto yrel = y - prevY;
-
-            Input::setPrevCursorPos({ x, y });
-            Input::setRelativeCursorPos({ xrel, yrel });
-
             const auto* data =
                 static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-            event::MouseMovedEvent event(
-                static_cast<float>(xrel), static_cast<float>(yrel),
-                static_cast<float>(x), static_cast<float>(y));
-
+            event::MouseMovedEvent event(0.F, 0.F, static_cast<float>(x),
+                                         static_cast<float>(y));
             data->eventCallback(event);
         });
+
+    glfwSetScrollCallback(window, [](GLFWwindow* window, const double xoffset,
+                                     const double yoffset) {
+        if (Application::get().isEventHandledByImGui()) {
+            return;
+        }
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+        event::MouseScrolledEvent event(static_cast<float>(xoffset),
+                                        static_cast<float>(yoffset));
+        data->eventCallback(event);
+    });
 
     glfwSetWindowFocusCallback(
         window, [](GLFWwindow* window, const int focused) {
@@ -237,15 +166,6 @@ void Window::init(const sponge::core::WindowProps& props) {
             event::WindowFocusEvent event(focused == GLFW_TRUE);
             data->eventCallback(event);
         });
-
-    glfwSetCursorEnterCallback(window,
-                               [](GLFWwindow* window, const int entered) {
-                                   double x = 0;
-                                   double y = 0;
-                                   glfwGetCursorPos(window, &x, &y);
-                                   Input::setPrevCursorPos({ x, y });
-                                   Input::setCursorEnteredWindow(entered);
-                               });
 }
 
 void Window::shutdown() const {

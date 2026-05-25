@@ -12,9 +12,6 @@
 #include <string>
 
 namespace {
-constexpr auto keyboardSpeed = 0.075F;
-constexpr auto mouseSpeed    = 0.125F;
-
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
 constexpr auto dirLightCastsShadow  = true;
@@ -76,17 +73,14 @@ std::array gameObjects = {
 
 namespace game::layer {
 using sponge::event::Event;
-using sponge::event::KeyPressedEvent;
-using sponge::event::KeyReleasedEvent;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
-using sponge::event::MouseMovedEvent;
 using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowFocusEvent;
 using sponge::event::WindowResizeEvent;
-using sponge::input::KeyCode;
+using sponge::input::GameAction;
+using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
-using sponge::platform::glfw::core::Input;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
@@ -170,12 +164,6 @@ void MazeLayer::onDetach() {
 void MazeLayer::onEvent(Event& event) {
     sponge::event::EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& ev) {
-        return isActive() ? this->onKeyPressed(ev) : false;
-    });
-    dispatcher.dispatch<KeyReleasedEvent>([this](const KeyReleasedEvent& ev) {
-        return isActive() ? this->onKeyReleased(ev) : false;
-    });
     dispatcher.dispatch<MouseButtonPressedEvent>(
         [this](const MouseButtonPressedEvent& mbEvent) {
             return isActive() ? this->onMouseButtonPressed(mbEvent) : false;
@@ -183,10 +171,6 @@ void MazeLayer::onEvent(Event& event) {
     dispatcher.dispatch<MouseButtonReleasedEvent>(
         [this](const MouseButtonReleasedEvent& mrEvent) {
             return isActive() ? this->onMouseButtonReleased(mrEvent) : false;
-        });
-    dispatcher.dispatch<MouseMovedEvent>(
-        [this](const MouseMovedEvent& mmEvent) {
-            return isActive() ? this->onMouseMoveEvent(mmEvent) : false;
         });
     dispatcher.dispatch<MouseScrolledEvent>(
         [this](const MouseScrolledEvent& msEvent) {
@@ -205,12 +189,44 @@ void MazeLayer::onEvent(Event& event) {
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
     // Update thread only — no GL calls.
-    if (Application::get().isEventHandledByImGui()) {
-        keyPressed.clear();
-        mouseButtonPressed = false;
+    auto&      inputManager  = Application::get().getInputManager();
+    const bool overlayActive = Maze::get().getExitLayer()->isActive() ||
+                               Maze::get().getOptionLayer()->isActive();
+    if (!overlayActive) {
+        inputManager.setActiveContext(sponge::input::InputContext::Gameplay);
     }
+    const InputSnapshot& snap = inputManager.getSnapshot();
 
-    updateCamera(elapsedTime);
+    if (Application::get().isEventHandledByImGui()) {
+        mouseButtonPressed = false;
+    } else {
+        if (!overlayActive && snap.isActive(GameAction::Pause)) {
+            Maze::get().getExitLayer()->setActive(true);
+            Application::get().setMouseVisible(true);
+            inputManager.setMouseLookActive(false);
+            mouseButtonPressed = false;
+            inputManager.setActiveContext(sponge::input::InputContext::Menu);
+#ifdef ENABLE_IMGUI
+            if (isImguiOpen) {
+                Maze::get().getImGuiLayer()->setActive(false);
+            }
+#endif
+        }
+
+#ifdef ENABLE_IMGUI
+        if (!overlayActive && snap.isActive(GameAction::ToggleDebugUI)) {
+            isImguiOpen = !isImguiOpen;
+            Maze::get().getImGuiLayer()->setActive(isImguiOpen);
+        }
+#endif
+        if (!overlayActive && snap.isActive(GameAction::ToggleFullscreen)) {
+            Application::get().toggleFullscreen();
+        }
+
+        if (!overlayActive) {
+            updateCamera(snap, elapsedTime);
+        }
+    }
 
     // Write the snapshot to the slot not being read by the render thread.
     const uint32_t readSlot  = renderReadIndex.load(std::memory_order_relaxed);
@@ -471,46 +487,11 @@ void MazeLayer::setShadowMapZNear(float val) const {
     shadowMap->setZNear(val);
 }
 
-bool MazeLayer::onKeyPressed(const KeyPressedEvent& event) {
-#ifdef ENABLE_IMGUI
-    if (event.getKeyCode() == KeyCode::SpongeKey_GraveAccent) {
-        const auto imguiLayer = Maze::get().getImGuiLayer();
-        isImguiOpen           = !isImguiOpen;
-        imguiLayer->setActive(isImguiOpen);
-        return true;
-    }
-#endif
-
-    if (event.getKeyCode() == KeyCode::SpongeKey_F) {
-        Application::get().toggleFullscreen();
-        return true;
-    }
-
-    if (event.getKeyCode() == KeyCode::SpongeKey_Escape) {
-        Maze::get().getExitLayer()->setActive(true);
-#ifdef ENABLE_IMGUI
-        if (isImguiOpen) {
-            Maze::get().getImGuiLayer()->setActive(false);
-        }
-#endif
-        return true;
-    }
-
-    keyPressed[event.getKeyCode()] = true;
-
-    return false;
-}
-
-bool MazeLayer::onKeyReleased(const KeyReleasedEvent& event) {
-    keyPressed.erase(event.getKeyCode());
-    return false;
-}
-
 void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
     if (!event.isFocused()) {
-        keyPressed.clear();
         mouseButtonPressed = false;
         Application::get().setMouseVisible(true);
+        Application::get().getInputManager().setMouseLookActive(false);
     }
 }
 
@@ -518,6 +499,7 @@ bool MazeLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     if (event.getMouseButton() == sponge::input::MouseButton::Button0) {
         Application::get().centerMouse();
         Application::get().setMouseVisible(false);
+        Application::get().getInputManager().setMouseLookActive(true);
         mouseButtonPressed = true;
         return true;
     }
@@ -527,22 +509,10 @@ bool MazeLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool MazeLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
     if (event.getMouseButton() == sponge::input::MouseButton::Button0) {
         Application::get().setMouseVisible(true);
+        Application::get().getInputManager().setMouseLookActive(false);
         mouseButtonPressed = false;
         return true;
     }
-    return false;
-}
-
-bool MazeLayer::onMouseMoveEvent(const MouseMovedEvent& event) {
-    if (mouseButtonPressed) {
-        const auto xrel = event.getXRelative();
-        const auto yrel = event.getYRelative();
-
-        Input::setRelativeCursorPos({ 0.F, 0.F });
-        camera->mouseMove({ xrel * mouseSpeed, yrel * mouseSpeed });
-        return true;
-    }
-
     return false;
 }
 
@@ -622,25 +592,31 @@ void MazeLayer::renderSceneToDepthMap(
     shadowMap->unbind();
 }
 
-void MazeLayer::updateCamera(const double elapsedTime) const {
-    if (isKeyPressed(KeyCode::SpongeKey_W) ||
-        isKeyPressed(KeyCode::SpongeKey_Up)) {
-        camera->moveForward(elapsedTime * keyboardSpeed);
-    }
+void MazeLayer::updateCamera(const InputSnapshot& snap,
+                             const double         elapsedTime) const {
+    camera->moveForward(elapsedTime * static_cast<double>(snap.getAxis(
+                                          GameAction::MoveForward)));
+    camera->moveBackward(
+        elapsedTime * static_cast<double>(snap.getAxis(GameAction::MoveBack)));
+    camera->strafeLeft(elapsedTime *
+                       static_cast<double>(snap.getAxis(GameAction::MoveLeft)));
+    camera->strafeRight(
+        elapsedTime * static_cast<double>(snap.getAxis(GameAction::MoveRight)));
 
-    if (isKeyPressed(KeyCode::SpongeKey_S) ||
-        isKeyPressed(KeyCode::SpongeKey_Down)) {
-        camera->moveBackward(elapsedTime * keyboardSpeed);
-    }
+    // Apply mouse look only when the mouse is captured (left button held),
+    // or always for gamepad look (right stick).
+    const bool useMouse =
+        mouseButtonPressed &&
+        snap.activeDevice == sponge::input::ActiveDevice::KeyboardMouse;
+    const bool useGamepad =
+        snap.activeDevice == sponge::input::ActiveDevice::Gamepad;
 
-    if (isKeyPressed(KeyCode::SpongeKey_A) ||
-        isKeyPressed(KeyCode::SpongeKey_Left)) {
-        camera->strafeLeft(elapsedTime * keyboardSpeed);
-    }
-
-    if (isKeyPressed(KeyCode::SpongeKey_D) ||
-        isKeyPressed(KeyCode::SpongeKey_Right)) {
-        camera->strafeRight(elapsedTime * keyboardSpeed);
+    if (useMouse || useGamepad) {
+        const float lookH = snap.getAxis(GameAction::LookHorizontal);
+        const float lookV = snap.getAxis(GameAction::LookVertical);
+        if (lookH != 0.F || lookV != 0.F) {
+            camera->mouseMove({ lookH, lookV });
+        }
     }
 }
 
@@ -661,11 +637,6 @@ void MazeLayer::updateShaderLights() const {
     }
 
     shader->unbind();
-}
-
-bool MazeLayer::isKeyPressed(const KeyCode key) const {
-    const auto it = keyPressed.find(key);
-    return it != keyPressed.end() && it->second;
 }
 
 bool MazeLayer::isFxaaEnabled() const {

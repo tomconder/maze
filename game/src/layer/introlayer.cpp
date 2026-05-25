@@ -51,14 +51,11 @@ bool isRunning = true;
 namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
-using sponge::event::KeyPressedEvent;
-using sponge::event::KeyReleasedEvent;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
-using sponge::input::KeyCode;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
@@ -147,9 +144,6 @@ void IntroLayer::onDetach() {
 void IntroLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? this->onKeyPressed(event) : false;
-    });
     dispatcher.dispatch<MouseButtonPressedEvent>(
         [this](const MouseButtonPressedEvent& event) {
             return isActive() ? this->onMouseButtonPressed(event) : false;
@@ -164,6 +158,46 @@ void IntroLayer::onEvent(Event& event) {
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {
+    {
+        auto& mgr =
+            sponge::platform::glfw::core::Application::get().getInputManager();
+        mgr.setActiveContext(sponge::input::InputContext::Menu);
+
+        if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
+            using sponge::input::GameAction;
+            const auto&    input     = mgr.getSnapshot();
+            constexpr auto itemCount = static_cast<int>(IntroMenuItem::Count);
+
+            if (input.isActive(GameAction::MenuDown)) {
+                selectedItem = static_cast<IntroMenuItem>(
+                    (static_cast<int>(selectedItem) + 1) % itemCount);
+            }
+            if (input.isActive(GameAction::MenuUp)) {
+                selectedItem = static_cast<IntroMenuItem>(
+                    (static_cast<int>(selectedItem) - 1 + itemCount) %
+                    itemCount);
+            }
+            if (input.isActive(GameAction::MenuConfirm)) {
+                if (selectedItem == IntroMenuItem::NewGame) {
+                    clearHoveredItems();
+                    setActive(false);
+                    Maze::get().getMazeLayer()->setActive(true);
+#ifdef ENABLE_IMGUI
+                    if (Maze::get().getMazeLayer()->isImguiActive()) {
+                        Maze::get().getImGuiLayer()->setActive(true);
+                    }
+#endif
+                } else if (selectedItem == IntroMenuItem::Options) {
+                    clearHoveredItems();
+                    Maze::get().getOptionLayer()->setActive(true);
+                } else if (selectedItem == IntroMenuItem::Quit) {
+                    isRunning = false;
+                }
+            }
+        }
+        wasActiveLastFrame = true;
+    }
+
     for (const auto& shaderName : { fontShaderName, quadShaderName }) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
@@ -228,6 +262,36 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     UNUSED(optionsButton->onUpdate(elapsedTime));
     UNUSED(quitButton->onUpdate(elapsedTime));
 
+    if (!isActive()) {
+        wasActiveLastFrame = false;
+        selectedItem       = IntroMenuItem::NewGame;
+    }
+
+    // Render gamepad connection status
+    {
+        const bool gamepadConnected =
+            sponge::platform::glfw::core::Application::get()
+                .getInputManager()
+                .getSnapshot()
+                .gamepadConnected;
+        const auto gamepadStatus =
+            gamepadConnected ? "Gamepad connected" : "No gamepad";
+        constexpr auto statusFontSize = 16;
+        constexpr auto margin         = 10.F;
+        constexpr auto statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
+
+        const auto statusFont = AssetManager::getFont(fontName);
+        if (statusFont) {
+            const auto statusWidth = static_cast<float>(
+                statusFont->getLength(gamepadStatus, statusFontSize));
+            statusFont->render(
+                gamepadStatus,
+                { width - statusWidth - margin,
+                  height - statusFont->getHeight(statusFontSize) - margin },
+                statusFontSize, statusColor);
+        }
+    }
+
     return isRunning;
 }
 
@@ -248,58 +312,16 @@ void IntroLayer::recalculateLayout(float width, float height) {
     YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
 }
 
-bool IntroLayer::onKeyPressed(const KeyPressedEvent& event) {
-    const auto     keyCode   = event.getKeyCode();
-    constexpr auto itemCount = +IntroMenuItem::Count;
-
-    if (keyCode == KeyCode::SpongeKey_Enter ||
-        keyCode == KeyCode::SpongeKey_KPEnter) {
-        if (selectedItem == IntroMenuItem::NewGame) {
-            clearHoveredItems();
-            setActive(false);
-            Maze::get().getMazeLayer()->setActive(true);
-#ifdef ENABLE_IMGUI
-            if (Maze::get().getMazeLayer()->isImguiActive()) {
-                Maze::get().getImGuiLayer()->setActive(true);
-            }
-#endif
-            return true;
-        }
-
-        if (selectedItem == IntroMenuItem::Options) {
-            clearHoveredItems();
-            Maze::get().getOptionLayer()->setActive(true);
-            return true;
-        }
-
-        if (selectedItem == IntroMenuItem::Quit) {
-            isRunning = false;
-            return true;
-        }
-    }
-
-    if (keyCode == KeyCode::SpongeKey_Down ||
-        keyCode == KeyCode::SpongeKey_KP2) {
-        selectedItem =
-            static_cast<IntroMenuItem>((+selectedItem + 1) % itemCount);
-        return true;
-    }
-
-    if (keyCode == KeyCode::SpongeKey_Up || keyCode == KeyCode::SpongeKey_KP8) {
-        selectedItem = static_cast<IntroMenuItem>(
-            (+selectedItem - 1 + itemCount) % itemCount);
-        return true;
-    }
-
-    return false;
-}
-
 bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    UNUSED(event);
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
 
-    auto [x, y] = sponge::platform::glfw::core::Input::getMousePosition();
+    auto [x, y] =
+        sponge::platform::glfw::core::Application::get().getMousePosition();
 
     if (newGameButton->isInside({ x, y })) {
+        selectedItem = IntroMenuItem::NewGame;
         clearHoveredItems();
         setActive(false);
         Maze::get().getMazeLayer()->setActive(true);
@@ -312,13 +334,15 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     }
 
     if (optionsButton->isInside({ x, y })) {
+        selectedItem = IntroMenuItem::Options;
         clearHoveredItems();
         Maze::get().getOptionLayer()->setActive(true);
         return true;
     }
 
     if (quitButton->isInside({ x, y })) {
-        isRunning = false;
+        selectedItem = IntroMenuItem::Quit;
+        isRunning    = false;
         return true;
     }
 

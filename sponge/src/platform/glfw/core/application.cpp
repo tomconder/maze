@@ -4,7 +4,6 @@
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "logging/log.hpp"
-#include "platform/glfw/core/input.hpp"
 #include "platform/glfw/logging/sink.hpp"
 #include "platform/opengl/debug/diagnostics.hpp"
 #include "platform/opengl/renderer/context.hpp"
@@ -77,6 +76,7 @@ bool Application::start() {
 
     Diagnostics::log();
 
+    inputManager.onAttach(glfwWindow);
     imguiManager->onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
 
     setVerticalSync(appSpec.vsync);
@@ -105,6 +105,7 @@ bool Application::start() {
 }
 
 void Application::shutdown() {
+    inputManager.onDetach();
     imguiManager->onDetach();
 }
 
@@ -230,12 +231,20 @@ void Application::setMouseVisible(const bool value) const {
     }
 }
 
-void Application::centerMouse() const {
-    auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
-    glfwSetCursorPos(glfwWindow, window->getWidth() / 2.F,
-                     window->getHeight() / 2.F);
-    Input::setPrevCursorPos(
-        { window->getWidth() / 2.F, window->getHeight() / 2.F });
+void Application::centerMouse() {
+    const auto cx = static_cast<double>(window->getWidth()) / 2.0;
+    const auto cy = static_cast<double>(window->getHeight()) / 2.0;
+    glfwSetCursorPos(static_cast<GLFWwindow*>(window->getNativeWindow()), cx,
+                     cy);
+    inputManager.onMouseWarped();
+}
+
+std::pair<float, float> Application::getMousePosition() const {
+    double x = 0.0;
+    double y = 0.0;
+    glfwGetCursorPos(static_cast<GLFWwindow*>(window->getNativeWindow()), &x,
+                     &y);
+    return { static_cast<float>(x), static_cast<float>(y) };
 }
 
 void Application::setVerticalSync(const bool val) {
@@ -244,37 +253,12 @@ void Application::setVerticalSync(const bool val) {
     SPONGE_CORE_DEBUG(fmt::format("Set vsync to {}", vsync));
 }
 
-void Application::setResolution(const uint32_t width,
-                                const uint32_t height) const {
-    auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
-    if (glfwWindow == nullptr) {
-        SPONGE_CORE_WARN("Window handle is null");
-        return;
-    }
-
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    if (monitor == nullptr) {
-        SPONGE_CORE_WARN("Primary monitor is null");
-        return;
-    }
-
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    if (mode == nullptr) {
-        SPONGE_CORE_WARN("Video mode is null");
-        return;
-    }
-
-    if (fullscreen) {
-        glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, static_cast<int>(width),
-                             static_cast<int>(height), mode->refreshRate);
-    } else {
-        glfwSetWindowSize(glfwWindow, static_cast<int>(width),
-                          static_cast<int>(height));
-
-        const int posX = (mode->width - static_cast<int>(width)) / 2;
-        const int posY = (mode->height - static_cast<int>(height)) / 2;
-        glfwSetWindowPos(glfwWindow, posX, posY);
-    }
+void Application::setResolution(const uint32_t width, const uint32_t height) {
+    // Queue for application on main thread (GLFW window calls must originate
+    // from the thread that created/owns the window).
+    pendingResolutionW.store(width, std::memory_order_relaxed);
+    pendingResolutionH.store(height, std::memory_order_relaxed);
+    pendingResolution.store(true, std::memory_order_release);
 }
 
 std::vector<sponge::core::Resolution>
@@ -348,6 +332,7 @@ void Application::run() {
     // Prime: frame 0 runs synchronously to give render thread a valid snapshot.
     mainTimer.tick();
     glfwPollEvents();
+    inputManager.update();
     {
         const double primeElapsed = mainTimer.getElapsedSeconds();
         onUserUpdate(primeElapsed);
@@ -365,18 +350,52 @@ void Application::run() {
 
         mainTimer.tick();
         glfwPollEvents();
-        const double elapsed = mainTimer.getElapsedSeconds();
 
-        // Game logic for this frame into renderFrames[updateIdx].
-        updateThreads[updateIdx].kick(elapsed, [this](const double dt) -> bool {
-            return onUserUpdate(dt);
-        });
+        // Apply any deferred resolution change requested by a render-thread
+        // layer. Must be done on main thread.
+        if (pendingResolution.load(std::memory_order_acquire)) {
+            const uint32_t w =
+                pendingResolutionW.load(std::memory_order_relaxed);
+            const uint32_t h =
+                pendingResolutionH.load(std::memory_order_relaxed);
+            // Re-implement original logic here on main thread
+            auto* glfwWindow =
+                static_cast<GLFWwindow*>(window->getNativeWindow());
+            if (glfwWindow != nullptr) {
+                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+                if (monitor != nullptr) {
+                    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+                    if (mode != nullptr) {
+                        if (fullscreen) {
+                            glfwSetWindowMonitor(
+                                glfwWindow, monitor, 0, 0, static_cast<int>(w),
+                                static_cast<int>(h), mode->refreshRate);
+                        } else {
+                            glfwSetWindowSize(glfwWindow, static_cast<int>(w),
+                                              static_cast<int>(h));
+                            const int posX =
+                                (mode->width - static_cast<int>(w)) / 2;
+                            const int posY =
+                                (mode->height - static_cast<int>(h)) / 2;
+                            glfwSetWindowPos(glfwWindow, posX, posY);
+                        }
+                    }
+                }
+            }
+            pendingResolution.store(false, std::memory_order_relaxed);
+        }
 
-        // Wait for previous render before re-kicking render thread.
+        // Wait for both previous threads before writing new snapshot data.
+        // Render-thread layers read inputManager.getSnapshot() in onUpdate();
+        // updating the snapshot while the render thread is still running is an
+        // unsynchronized read/write. Serializing here fixes the race at the
+        // cost of the update/render overlap, which is acceptable.
         renderThread.blockUntilRenderComplete();
-
-        // Wait for update; snapshot is now ready.
         const bool updateResult = updateThreads[updateIdx].waitForComplete();
+
+        // Now safe: all previous-frame reads of the snapshot are complete.
+        inputManager.update();
+        const double elapsed = mainTimer.getElapsedSeconds();
 
         // Check if a render-thread layer signaled quit.
         const bool renderQuit =
@@ -389,6 +408,11 @@ void Application::run() {
 
         // Update elapsed time for render-thread layers.
         renderElapsedTime = elapsed;
+
+        // Game logic for this frame into renderFrames[updateIdx].
+        updateThreads[updateIdx].kick(elapsed, [this](const double dt) -> bool {
+            return onUserUpdate(dt);
+        });
 
         // GPU work for frame N; overlaps with update[N+1].
         renderThread.kick();

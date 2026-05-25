@@ -19,11 +19,10 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    IntroMenuItem selectedItem = IntroMenuItem::NewGame;
+    IntroMenuItem selectedItem       = IntroMenuItem::NewGame;
+    bool          wasActiveLastFrame = false;
 
     static void recalculateLayout(float width, float height);
-
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
