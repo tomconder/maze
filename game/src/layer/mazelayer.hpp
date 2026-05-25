@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input/inputsnapshot.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 #include "thread/mazeframe.hpp"
@@ -119,7 +120,6 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
-    std::unordered_map<sponge::input::KeyCode, bool>            keyPressed;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
@@ -144,19 +144,13 @@ private:
     bool isImguiOpen = true;
 #endif
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-
     void onWindowFocus(const sponge::event::WindowFocusEvent& event);
-
-    bool onKeyReleased(const sponge::event::KeyReleasedEvent& event);
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
     bool onMouseButtonReleased(
         const sponge::event::MouseButtonReleasedEvent& event);
-
-    bool onMouseMoveEvent(const sponge::event::MouseMovedEvent& event);
 
     bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event) const;
 
@@ -168,10 +162,9 @@ private:
 
     void renderSceneToDepthMap(const thread::MazeRenderFrame& frame) const;
 
-    void updateCamera(double elapsedTime) const;
+    void updateCamera(const sponge::input::InputSnapshot& snap,
+                      double                              elapsedTime) const;
 
     void updateShaderLights() const;
-
-    bool isKeyPressed(sponge::input::KeyCode key) const;
 };
 }  // namespace game::layer

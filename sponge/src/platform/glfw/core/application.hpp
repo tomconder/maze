@@ -4,6 +4,7 @@
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
+#include "platform/glfw/core/inputmanager.hpp"
 #include "platform/glfw/core/window.hpp"
 #include "platform/glfw/imgui/glfwmanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"
@@ -59,7 +60,7 @@ public:
 
     void toggleFullscreen();
 
-    void setResolution(uint32_t width, uint32_t height) const;
+    void setResolution(uint32_t width, uint32_t height);
 
     std::vector<sponge::core::Resolution> getAvailableResolutions() const;
 
@@ -91,7 +92,7 @@ public:
 
     void setMouseVisible(bool value) const;
 
-    void centerMouse() const;
+    void centerMouse();
 
     void setPendingViewport(const int32_t w, const int32_t h) {
         pendingViewportW.store(w, std::memory_order_relaxed);
@@ -106,6 +107,14 @@ public:
     std::shared_ptr<Window> getWindow() const {
         return window;
     }
+
+    InputManager& getInputManager() {
+        return inputManager;
+    }
+    const InputManager& getInputManager() const {
+        return inputManager;
+    }
+    std::pair<float, float> getMousePosition() const;
 
     void run() override;
 
@@ -137,6 +146,8 @@ private:
     sponge::thread::RenderThread                renderThread;
     std::array<sponge::thread::UpdateThread, 2> updateThreads;
 
+    InputManager inputManager;
+
     // Elapsed time for render-thread layers; written by main, read by render
     // thread.
     double renderElapsedTime{ 0.0 };
@@ -149,6 +160,13 @@ private:
     std::atomic<bool>    pendingViewport{ false };
     std::atomic<int32_t> pendingViewportW{ 0 };
     std::atomic<int32_t> pendingViewportH{ 0 };
+
+    // Deferred resolution change requested from render-thread layers (e.g.
+    // OptionLayer). Applied on main thread to keep all GLFW window ops on the
+    // thread that owns the window.
+    std::atomic<bool>     pendingResolution{ false };
+    std::atomic<uint32_t> pendingResolutionW{ 0 };
+    std::atomic<uint32_t> pendingResolutionH{ 0 };
 
     static Application* instance;
 
