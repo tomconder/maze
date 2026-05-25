@@ -293,7 +293,9 @@ void ExitLayer::recalculateLayout(float width, float height) {
 }
 
 bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    UNUSED(event);
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
 
     auto [x, y] = Application::get().getMousePosition();
     if (continueButton->isInside({ x, y })) {

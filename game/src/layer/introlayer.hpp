@@ -19,7 +19,8 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    IntroMenuItem selectedItem = IntroMenuItem::NewGame;
+    IntroMenuItem selectedItem       = IntroMenuItem::NewGame;
+    bool          wasActiveLastFrame = false;
 
     static void recalculateLayout(float width, float height);
 

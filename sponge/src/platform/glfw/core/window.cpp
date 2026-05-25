@@ -147,6 +147,18 @@ void Window::init(const sponge::core::WindowProps& props) {
             data->eventCallback(event);
         });
 
+    glfwSetScrollCallback(window, [](GLFWwindow* window, const double xoffset,
+                                     const double yoffset) {
+        if (Application::get().isEventHandledByImGui()) {
+            return;
+        }
+        const auto* data =
+            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+        event::MouseScrolledEvent event(static_cast<float>(xoffset),
+                                        static_cast<float>(yoffset));
+        data->eventCallback(event);
+    });
+
     glfwSetWindowFocusCallback(
         window, [](GLFWwindow* window, const int focused) {
             const auto* data =
