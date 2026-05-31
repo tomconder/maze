@@ -82,11 +82,11 @@ void InputManager::recenterCursor() {
     int w = 0;
     int h = 0;
     glfwGetWindowSize(window, &w, &h);
-    const double cx2 = w / 2.0;
-    const double cy2 = h / 2.0;
-    glfwSetCursorPos(window, cx2, cy2);
-    prevCursorX = cx2;
-    prevCursorY = cy2;
+    const double cx = w / 2.0;
+    const double cy = h / 2.0;
+    glfwSetCursorPos(window, cx, cy);
+    prevCursorX = cx;
+    prevCursorY = cy;
 }
 
 void InputManager::joystickCallback(const int jid, const int event) {
@@ -128,19 +128,8 @@ void InputManager::update() {
     cursorDeltaX = cx - prevCursorX;
     cursorDeltaY = cy - prevCursorY;
 
-    if (mouseLookActive) {
-        // Recenter cursor every frame to prevent it from leaving the window.
-        // Without this, the cursor can reach negative coordinates and pass
-        // invalid positions to ImGui's cursor callback.
-        int w = 0;
-        int h = 0;
-        glfwGetWindowSize(window, &w, &h);
-        const double cx2 = w / 2.0;
-        const double cy2 = h / 2.0;
-        glfwSetCursorPos(window, cx2, cy2);
-        prevCursorX = cx2;
-        prevCursorY = cy2;
-    } else {
+    recenterCursor();
+    if (!mouseLookActive) {
         prevCursorX = cx;
         prevCursorY = cy;
     }

@@ -349,8 +349,8 @@ void Application::run() {
         const uint32_t updateIdx = frame % 2;
 
         mainTimer.tick();
-        // Must complete before glfwPollEvents: GLFW callbacks write to
-        // ImGui's InputEventsQueue; ImGui::NewFrame (render thread) reads it.
+        // Must finish before poll: GLFW callbacks write ImGui's
+        // InputEventsQueue; render thread reads it.
         renderThread.blockUntilRenderComplete();
         inputManager.recenterCursor();
         glfwPollEvents();
