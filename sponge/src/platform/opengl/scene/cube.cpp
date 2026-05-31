@@ -66,13 +66,7 @@ Cube::Cube() {
 
 void Cube::render() const {
     vao->bind();
-
-    shader->bind();
-
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-
-    shader->unbind();
-
     vao->unbind();
 }
 
