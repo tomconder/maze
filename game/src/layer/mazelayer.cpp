@@ -283,11 +283,12 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 void MazeLayer::onRender() {
     // Render thread only — all GL calls here.
     if (pendingResize.load(std::memory_order_acquire)) {
-        const auto w = pendingResizeWidth.load(std::memory_order_relaxed);
-        const auto h = pendingResizeHeight.load(std::memory_order_relaxed);
-        glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
+        viewportWidth  = pendingResizeWidth.load(std::memory_order_relaxed);
+        viewportHeight = pendingResizeHeight.load(std::memory_order_relaxed);
+        glViewport(0, 0, static_cast<GLsizei>(viewportWidth),
+                   static_cast<GLsizei>(viewportHeight));
         if (fxaa) {
-            fxaa->resize(w, h);
+            fxaa->resize(viewportWidth, viewportHeight);
         }
         pendingResize.store(false, std::memory_order_relaxed);
     }
@@ -298,6 +299,10 @@ void MazeLayer::onRender() {
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         renderSceneToDepthMap(frame);
+        // shadowMap->bind() sets the viewport to the shadow map resolution;
+        // restore it for the main scene pass.
+        glViewport(0, 0, static_cast<GLsizei>(viewportWidth),
+                   static_cast<GLsizei>(viewportHeight));
     }
 
     if (fxaa && frame.fxaaEnabled) {
