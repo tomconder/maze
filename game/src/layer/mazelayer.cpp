@@ -287,12 +287,11 @@ void MazeLayer::onRender() {
     if (pendingResize.load(std::memory_order_acquire)) {
         const auto dims =
             pendingResizeDimensions.load(std::memory_order_relaxed);
-        viewportWidth  = static_cast<uint32_t>(dims >> 32U);
-        viewportHeight = static_cast<uint32_t>(dims & 0xFFFFFFFFU);
-        glViewport(0, 0, static_cast<GLsizei>(viewportWidth),
-                   static_cast<GLsizei>(viewportHeight));
+        const auto w = static_cast<uint32_t>(dims >> 32U);
+        const auto h = static_cast<uint32_t>(dims & 0xFFFFFFFFU);
+        glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
         if (fxaa) {
-            fxaa->resize(viewportWidth, viewportHeight);
+            fxaa->resize(w, h);
         }
         pendingResize.store(false, std::memory_order_relaxed);
     }

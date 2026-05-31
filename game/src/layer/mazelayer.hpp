@@ -134,9 +134,6 @@ private:
 
     void captureRenderFrame(uint32_t slotIndex);
 
-    uint32_t viewportWidth{ 0 };
-    uint32_t viewportHeight{ 0 };
-
     float   ambientStrength    = .25F;
     float   ao                 = .25F;
     int32_t attenuationIndex   = 4;
