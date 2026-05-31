@@ -153,10 +153,12 @@ void MazeLayer::onAttach() {
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
 
-    pendingResizeWidth.store(Maze::get().getWindow()->getWidth(),
-                             std::memory_order_relaxed);
-    pendingResizeHeight.store(Maze::get().getWindow()->getHeight(),
-                              std::memory_order_relaxed);
+    const auto initW =
+        static_cast<uint64_t>(Maze::get().getWindow()->getWidth());
+    const auto initH =
+        static_cast<uint64_t>(Maze::get().getWindow()->getHeight());
+    pendingResizeDimensions.store((initW << 32U) | initH,
+                                  std::memory_order_relaxed);
     pendingResize.store(true, std::memory_order_release);
 
     setNumLights(numLights);
@@ -283,8 +285,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 void MazeLayer::onRender() {
     // Render thread only — all GL calls here.
     if (pendingResize.load(std::memory_order_acquire)) {
-        viewportWidth  = pendingResizeWidth.load(std::memory_order_relaxed);
-        viewportHeight = pendingResizeHeight.load(std::memory_order_relaxed);
+        const auto dims =
+            pendingResizeDimensions.load(std::memory_order_relaxed);
+        viewportWidth  = static_cast<uint32_t>(dims >> 32U);
+        viewportHeight = static_cast<uint32_t>(dims & 0xFFFFFFFFU);
         glViewport(0, 0, static_cast<GLsizei>(viewportWidth),
                    static_cast<GLsizei>(viewportHeight));
         if (fxaa) {
@@ -539,8 +543,9 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
     // Defer GL resize to onRender() on the render thread.
-    pendingResizeWidth.store(event.getWidth(), std::memory_order_relaxed);
-    pendingResizeHeight.store(event.getHeight(), std::memory_order_relaxed);
+    const auto w = static_cast<uint64_t>(event.getWidth());
+    const auto h = static_cast<uint64_t>(event.getHeight());
+    pendingResizeDimensions.store((w << 32U) | h, std::memory_order_relaxed);
     pendingResize.store(true, std::memory_order_release);
     return false;
 }

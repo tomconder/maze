@@ -125,10 +125,12 @@ private:
     std::array<thread::MazeRenderFrame, 2> renderFrames;
     std::atomic<uint32_t>                  renderReadIndex{ 0 };
 
-    // Deferred FXAA resize: set by onWindowResize(), applied in onRender().
+    // Deferred viewport/FXAA resize: set by onWindowResize(), applied in
+    // onRender(). Dimensions are packed into one uint64_t (width << 32 |
+    // height) so the pair is always read and written atomically — no torn
+    // width/height.
     mutable std::atomic<bool>     pendingResize{ false };
-    mutable std::atomic<uint32_t> pendingResizeWidth{ 0 };
-    mutable std::atomic<uint32_t> pendingResizeHeight{ 0 };
+    mutable std::atomic<uint64_t> pendingResizeDimensions{ 0 };
 
     void captureRenderFrame(uint32_t slotIndex);
 
