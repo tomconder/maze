@@ -153,6 +153,12 @@ void MazeLayer::onAttach() {
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
 
+    pendingResizeWidth.store(Maze::get().getWindow()->getWidth(),
+                             std::memory_order_relaxed);
+    pendingResizeHeight.store(Maze::get().getWindow()->getHeight(),
+                              std::memory_order_relaxed);
+    pendingResize.store(true, std::memory_order_release);
+
     setNumLights(numLights);
     updateShaderLights();
 }
@@ -276,9 +282,13 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
 void MazeLayer::onRender() {
     // Render thread only — all GL calls here.
-    if (fxaa && pendingResize.load(std::memory_order_acquire)) {
-        fxaa->resize(pendingResizeWidth.load(std::memory_order_relaxed),
-                     pendingResizeHeight.load(std::memory_order_relaxed));
+    if (pendingResize.load(std::memory_order_acquire)) {
+        const auto w = pendingResizeWidth.load(std::memory_order_relaxed);
+        const auto h = pendingResizeHeight.load(std::memory_order_relaxed);
+        glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
+        if (fxaa) {
+            fxaa->resize(w, h);
+        }
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -523,18 +533,14 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
-    if (fxaa) {
-        // Defer GL resize to onRender() on the render thread.
-        pendingResizeWidth.store(event.getWidth(), std::memory_order_relaxed);
-        pendingResizeHeight.store(event.getHeight(), std::memory_order_relaxed);
-        pendingResize.store(true, std::memory_order_release);
-    }
+    // Defer GL resize to onRender() on the render thread.
+    pendingResizeWidth.store(event.getWidth(), std::memory_order_relaxed);
+    pendingResizeHeight.store(event.getHeight(), std::memory_order_relaxed);
+    pendingResize.store(true, std::memory_order_release);
     return false;
 }
 
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
-    glViewport(0, 0, Maze::get().getWindow()->getWidth(),
-               Maze::get().getWindow()->getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
