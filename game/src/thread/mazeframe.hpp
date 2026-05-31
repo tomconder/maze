@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include <array>
-#include <string_view>
+#include <string>
 #include <vector>
 
 namespace game::thread {
@@ -34,8 +34,8 @@ struct MazeRenderFrame {
     std::array<int32_t, 6>   lightAttenuationIndices{};
 
     // Game objects (model matrices and names for AssetManager lookup)
-    std::vector<glm::mat4>        objectModelMatrices;
-    std::vector<std::string_view> objectNames;
+    std::vector<glm::mat4>   objectModelMatrices;
+    std::vector<std::string> objectNames;
 
     // Post-processing
     bool fxaaEnabled{ false };
