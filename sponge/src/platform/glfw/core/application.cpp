@@ -349,6 +349,9 @@ void Application::run() {
         const uint32_t updateIdx = frame % 2;
 
         mainTimer.tick();
+        // Must complete before glfwPollEvents: GLFW callbacks write to
+        // ImGui's InputEventsQueue; ImGui::NewFrame (render thread) reads it.
+        renderThread.blockUntilRenderComplete();
         inputManager.recenterCursor();
         glfwPollEvents();
 
@@ -386,12 +389,7 @@ void Application::run() {
             pendingResolution.store(false, std::memory_order_relaxed);
         }
 
-        // Wait for both previous threads before writing new snapshot data.
-        // Render-thread layers read inputManager.getSnapshot() in onUpdate();
-        // updating the snapshot while the render thread is still running is an
-        // unsynchronized read/write. Serializing here fixes the race at the
-        // cost of the update/render overlap, which is acceptable.
-        renderThread.blockUntilRenderComplete();
+        // Wait for update thread before writing new snapshot data.
         const bool updateResult = updateThreads[updateIdx].waitForComplete();
 
         // Now safe: all previous-frame reads of the snapshot are complete.
