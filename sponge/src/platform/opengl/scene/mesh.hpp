@@ -26,6 +26,7 @@ public:
 
 private:
     static constexpr std::string_view shaderName = "mesh";
+    static uint32_t                   meshProgramId;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;
