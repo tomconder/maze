@@ -303,10 +303,6 @@ void MazeLayer::onRender() {
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         renderSceneToDepthMap(frame);
-        // shadowMap->bind() sets the viewport to the shadow map resolution;
-        // restore it for the main scene pass.
-        glViewport(0, 0, static_cast<GLsizei>(viewportWidth),
-                   static_cast<GLsizei>(viewportHeight));
     }
 
     if (fxaa && frame.fxaaEnabled) {

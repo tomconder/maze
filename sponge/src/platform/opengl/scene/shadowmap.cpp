@@ -64,6 +64,7 @@ void ShadowMap::initialize() {
 }
 
 void ShadowMap::bind() const {
+    glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     glViewport(0, 0, shadowWidth, shadowHeight);
     framebuffer->bind();
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -72,6 +73,9 @@ void ShadowMap::bind() const {
 
 void ShadowMap::unbind() const {
     framebuffer->unbind();
+    glViewport(savedViewport[0], savedViewport[1],
+               static_cast<GLsizei>(savedViewport[2]),
+               static_cast<GLsizei>(savedViewport[3]));
 }
 
 void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
