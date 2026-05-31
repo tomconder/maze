@@ -106,10 +106,6 @@ void MSDFFont::load(const std::string& path) {
     UNUSED(texture);
 }
 
-// TODO(tomconder): add beginPass()/endPass() to hoist shader->bind(),
-// tex->bind(), and constant uniforms outside multi-call sites (selectlist,
-// optionlayer, etc.) so each render() only sets per-string uniforms and
-// issues the draw call.
 void MSDFFont::render(const std::string_view text, const glm::vec2& position,
                       const uint32_t targetSize, const glm::vec3& color) {
     if (textureName.empty()) {
