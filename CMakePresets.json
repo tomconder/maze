@@ -125,7 +125,8 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
+                "VCPKG_APPLOCAL_DEPS": "OFF"
             }
         },
         {
