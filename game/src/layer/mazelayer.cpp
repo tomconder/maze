@@ -153,13 +153,8 @@ void MazeLayer::onAttach() {
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
 
-    const auto initW =
-        static_cast<uint64_t>(Maze::get().getWindow()->getWidth());
-    const auto initH =
-        static_cast<uint64_t>(Maze::get().getWindow()->getHeight());
-    pendingResizeDimensions.store((initW << 32U) | initH,
-                                  std::memory_order_relaxed);
-    pendingResize.store(true, std::memory_order_release);
+    queueResize(Maze::get().getWindow()->getWidth(),
+                Maze::get().getWindow()->getHeight());
 
     setNumLights(numLights);
     updateShaderLights();
@@ -537,12 +532,18 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
-    // Defer GL resize to onRender() on the render thread.
-    const auto w = static_cast<uint64_t>(event.getWidth());
-    const auto h = static_cast<uint64_t>(event.getHeight());
-    pendingResizeDimensions.store((w << 32U) | h, std::memory_order_relaxed);
-    pendingResize.store(true, std::memory_order_release);
+    queueResize(event.getWidth(), event.getHeight());
     return false;
+}
+
+void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
+    // Defer GL viewport/FXAA resize to onRender() on the render thread.
+    // Store dimensions before setting the flag so the release fence on
+    // pendingResize makes the relaxed store visible to the acquire reader.
+    pendingResizeDimensions.store((static_cast<uint64_t>(w) << 32U) |
+                                      static_cast<uint64_t>(h),
+                                  std::memory_order_relaxed);
+    pendingResize.store(true, std::memory_order_release);
 }
 
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {

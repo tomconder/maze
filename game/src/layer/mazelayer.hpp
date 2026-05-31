@@ -133,6 +133,7 @@ private:
     mutable std::atomic<uint64_t> pendingResizeDimensions{ 0 };
 
     void captureRenderFrame(uint32_t slotIndex);
+    void queueResize(uint32_t w, uint32_t h) const;
 
     float   ambientStrength    = .25F;
     float   ao                 = .25F;
