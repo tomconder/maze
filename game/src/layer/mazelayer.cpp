@@ -573,6 +573,10 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
+    if (frame.numLights == 0) {
+        return;
+    }
+
     const auto shader = AssetManager::getShader(Cube::getShaderName());
     shader->bind();
 
