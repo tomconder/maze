@@ -75,6 +75,20 @@ void InputManager::onMouseWarped() {
     cursorDeltaY = 0.0;
 }
 
+void InputManager::recenterCursor() {
+    if (!mouseLookActive) {
+        return;
+    }
+    int w = 0;
+    int h = 0;
+    glfwGetWindowSize(window, &w, &h);
+    const double cx2 = w / 2.0;
+    const double cy2 = h / 2.0;
+    glfwSetCursorPos(window, cx2, cy2);
+    prevCursorX = cx2;
+    prevCursorY = cy2;
+}
+
 void InputManager::joystickCallback(const int jid, const int event) {
     if (!instance) {
         return;

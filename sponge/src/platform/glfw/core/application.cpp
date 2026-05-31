@@ -349,6 +349,7 @@ void Application::run() {
         const uint32_t updateIdx = frame % 2;
 
         mainTimer.tick();
+        inputManager.recenterCursor();
         glfwPollEvents();
 
         // Apply any deferred resolution change requested by a render-thread

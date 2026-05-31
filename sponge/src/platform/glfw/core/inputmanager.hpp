@@ -16,6 +16,7 @@ class InputManager {
 public:
     void onAttach(GLFWwindow* window);
     void onDetach();
+    void recenterCursor();
     void update();
     void onMouseWarped();
 
