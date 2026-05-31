@@ -122,6 +122,7 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
     if (!texture) {
         return;
     }
+    assert(passTargetSize != 0);
 
     const float scale = static_cast<float>(passTargetSize) / size;
     const auto  str =
