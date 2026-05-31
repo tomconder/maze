@@ -273,7 +273,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.objectNames.resize(gameObjects.size());
     for (size_t i = 0; i < gameObjects.size(); i++) {
         frame.objectModelMatrices[i] = gameObjects[i].modelMatrix;
-        frame.objectNames[i]         = std::string(gameObjects[i].name);
+        frame.objectNames[i]         = gameObjects[i].name;
     }
 
     // Publish slot; release/acquire pair with onRender()'s load.
