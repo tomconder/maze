@@ -19,6 +19,8 @@ namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 using sponge::scene::Vertex;
 
+uint32_t Mesh::meshProgramId = 0;
+
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
            std::vector<std::shared_ptr<renderer::Texture>>&& textures) :
@@ -34,6 +36,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .fragmentShaderPath = "/shaders/glsl/pbr.frag.glsl",
     };
     const auto shader = AssetManager::createShader(shaderCreateInfo);
+    meshProgramId     = shader->getId();
     shader->bind();
 
     vao = renderer::VertexArray::create();
@@ -85,7 +88,7 @@ void Mesh::render(const std::shared_ptr<renderer::Shader>& shader) const {
 
     vao->bind();
 
-    if (shader->getName() == "mesh") {
+    if (shader->getId() == meshProgramId) {
         if (!textures.empty()) {
             shader->setInteger("texture_diffuse1", 0);
             shader->setBoolean("hasNoTexture", false);

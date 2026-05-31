@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 
+#include <array>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -53,6 +54,8 @@ private:
     std::shared_ptr<renderer::Shader>      shader;
     std::shared_ptr<renderer::Texture>     depthMap;
     std::unique_ptr<renderer::FrameBuffer> framebuffer;
+
+    mutable std::array<int, 4> savedViewport{};
 
     float    orthoSize;
     uint32_t shadowHeight;

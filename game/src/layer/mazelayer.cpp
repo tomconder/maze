@@ -153,6 +153,9 @@ void MazeLayer::onAttach() {
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
 
+    queueResize(Maze::get().getWindow()->getWidth(),
+                Maze::get().getWindow()->getHeight());
+
     setNumLights(numLights);
     updateShaderLights();
 }
@@ -267,7 +270,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.objectNames.resize(gameObjects.size());
     for (size_t i = 0; i < gameObjects.size(); i++) {
         frame.objectModelMatrices[i] = gameObjects[i].modelMatrix;
-        frame.objectNames[i]         = std::string(gameObjects[i].name);
+        frame.objectNames[i]         = gameObjects[i].name;
     }
 
     // Publish slot; release/acquire pair with onRender()'s load.
@@ -276,9 +279,15 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
 void MazeLayer::onRender() {
     // Render thread only — all GL calls here.
-    if (fxaa && pendingResize.load(std::memory_order_acquire)) {
-        fxaa->resize(pendingResizeWidth.load(std::memory_order_relaxed),
-                     pendingResizeHeight.load(std::memory_order_relaxed));
+    if (pendingResize.load(std::memory_order_acquire)) {
+        const auto dims =
+            pendingResizeDimensions.load(std::memory_order_relaxed);
+        const auto w = static_cast<uint32_t>(dims >> 32U);
+        const auto h = static_cast<uint32_t>(dims & 0xFFFFFFFFU);
+        glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
+        if (fxaa) {
+            fxaa->resize(w, h);
+        }
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -523,54 +532,63 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
     camera->setViewportSize(event.getWidth(), event.getHeight());
-    if (fxaa) {
-        // Defer GL resize to onRender() on the render thread.
-        pendingResizeWidth.store(event.getWidth(), std::memory_order_relaxed);
-        pendingResizeHeight.store(event.getHeight(), std::memory_order_relaxed);
-        pendingResize.store(true, std::memory_order_release);
-    }
+    queueResize(event.getWidth(), event.getHeight());
     return false;
 }
 
+void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
+    // Defer GL viewport/FXAA resize to onRender() on the render thread.
+    // Store dimensions before setting the flag so the release fence on
+    // pendingResize makes the relaxed store visible to the acquire reader.
+    pendingResizeDimensions.store((static_cast<uint64_t>(w) << 32U) |
+                                      static_cast<uint64_t>(h),
+                                  std::memory_order_relaxed);
+    pendingResize.store(true, std::memory_order_release);
+}
+
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
-    glViewport(0, 0, Maze::get().getWindow()->getWidth(),
-               Maze::get().getWindow()->getHeight());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    shader->bind();
+    shader->setFloat3("viewPos", frame.cameraPos);
+
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+        shader->setInteger("shadowMap", 1);
+        shadowMap->activateAndBindDepthMap(1);
+    }
 
     for (size_t i = 0; i < frame.objectNames.size(); i++) {
         const auto& modelMatrix = frame.objectModelMatrices[i];
         const auto& name        = frame.objectNames[i];
 
-        shader->bind();
-        shader->setFloat3("viewPos", frame.cameraPos);
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
         shader->setMat4("model", modelMatrix);
 
-        if (frame.shadowEnabled && frame.shadowCastShadow) {
-            shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-            shader->setInteger("shadowMap", 1);
-            shadowMap->activateAndBindDepthMap(1);
-        }
-
         AssetManager::getModel(name)->render(shader);
-        shader->unbind();
     }
+
+    shader->unbind();
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
+    if (frame.numLights == 0) {
+        return;
+    }
+
     const auto shader = AssetManager::getShader(Cube::getShaderName());
+    shader->bind();
 
     for (int32_t i = 0; i < frame.numLights; i++) {
-        shader->bind();
         shader->setFloat3("lightColor", frame.lightColors[i]);
         shader->setMat4(
             "mvp", scale(translate(frame.cameraMVP, frame.lightPositions[i]),
                          cubeScale));
         cube->render();
-        shader->unbind();
     }
+
+    shader->unbind();
 }
 
 void MazeLayer::renderSceneToDepthMap(
@@ -579,15 +597,15 @@ void MazeLayer::renderSceneToDepthMap(
 
     // Use snapshot data only — render thread must not write to shadowMap.
     const auto shader = AssetManager::getShader(ShadowMap::getShaderName());
+    shader->bind();
+    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     for (size_t i = 0; i < frame.objectNames.size(); i++) {
-        shader->bind();
-        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
         shader->setMat4("model", frame.objectModelMatrices[i]);
-
         AssetManager::getModel(frame.objectNames[i])->render(shader);
-        shader->unbind();
     }
+
+    shader->unbind();
 
     shadowMap->unbind();
 }
