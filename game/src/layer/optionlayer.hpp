@@ -44,10 +44,8 @@ private:
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
 
-    void        renderRowBackground(float x, float y, float w, float h,
-                                    OptionMenuItem item) const;
-    static void renderRowText(float x, float y, float w, std::string_view label,
-                              std::string_view value);
+    void renderRowBackground(float x, float y, float w, float h,
+                             OptionMenuItem item) const;
 
     void filterResolutions();
 

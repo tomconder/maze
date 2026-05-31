@@ -30,7 +30,9 @@ bool Button::onUpdate(const double elapsedTime) const {
     UNUSED(elapsedTime);
 
     quad->render(top, bottom, color, cornerRadius, borderWidth, borderColor);
-    font->render(text, textPosition, textSize, textColor);
+    font->beginPass(textSize);
+    font->render(text, textPosition, textColor);
+    font->endPass();
 
     return true;
 }

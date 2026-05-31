@@ -102,25 +102,33 @@ void MSDFFont::load(const std::string& path) {
         .path     = std::string(fontFolder + textureName),
         .loadFlag = renderer::ExcludeAssetsFolder
     };
-    const auto texture = AssetManager::createTexture(textureCreateInfo);
-    UNUSED(texture);
+    texture = AssetManager::createTexture(textureCreateInfo);
+}
+
+void MSDFFont::beginPass(const uint32_t targetSize) {
+    if (!texture) {
+        return;
+    }
+    passTargetSize = targetSize;
+    vao->bind();
+    shader->bind();
+    shader->setFloat("screenPxRange",
+                     static_cast<float>(targetSize) / size * 4.0F);
+    texture->bind();
 }
 
 void MSDFFont::render(const std::string_view text, const glm::vec2& position,
-                      const uint32_t targetSize, const glm::vec3& color) {
-    if (textureName.empty()) {
-        // texture name is empty when the font fails to load
+                      const glm::vec3& color) {
+    if (!texture) {
         return;
     }
 
-    const auto  fontSize = static_cast<float>(targetSize);
-    const float scale    = fontSize / size;
+    const float scale = static_cast<float>(passTargetSize) / size;
     const auto  str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     std::string prev;
-
-    float x = position.x;
+    float       x = position.x;
 
     for (uint32_t i = 0; i < str.size(); i++) {
         auto index = std::to_string(str[i]);
@@ -168,14 +176,7 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
         prev = index;
     }
 
-    vao->bind();
-
-    shader->bind();
     shader->setFloat3("textColor", color);
-    shader->setFloat("screenPxRange", fontSize / size * 4.0F);
-
-    const auto tex = AssetManager::getTexture(textureName);
-    tex->bind();
 
     const size_t numChars = str.size();
 
@@ -186,9 +187,10 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numChars * indexCount),
                    GL_UNSIGNED_INT, nullptr);
+}
 
+void MSDFFont::endPass() {
     shader->unbind();
-
     vao->unbind();
 }
 }  // namespace sponge::platform::opengl::scene

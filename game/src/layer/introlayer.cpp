@@ -284,11 +284,13 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         if (statusFont) {
             const auto statusWidth = static_cast<float>(
                 statusFont->getLength(gamepadStatus, statusFontSize));
+            statusFont->beginPass(statusFontSize);
             statusFont->render(
                 gamepadStatus,
                 { width - statusWidth - margin,
                   height - statusFont->getHeight(statusFontSize) - margin },
-                statusFontSize, statusColor);
+                statusColor);
+            statusFont->endPass();
         }
     }
 

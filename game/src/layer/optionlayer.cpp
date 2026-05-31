@@ -404,8 +404,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                                     const std::string_view label) {
         const float textY = std::floor(
             y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
-        rowFont->render(label, { x + textMarginLeft, textY }, fontSize,
-                        textColor);
+        rowFont->beginPass(fontSize);
+        rowFont->render(label, { x + textMarginLeft, textY }, textColor);
+        rowFont->endPass();
     };
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
@@ -456,16 +457,6 @@ void OptionLayer::renderRowBackground(float x, float y, const float w,
                               buttonColor,
                  cornerRadius, isSelected ? selectedBorderWidth : 0.F,
                  glm::vec4{ 1.F });
-}
-
-void OptionLayer::renderRowText(const float x, float y, const float w,
-                                const std::string_view label,
-                                const std::string_view value) {
-    const auto font     = AssetManager::getFont(fontName);
-    const auto valueLen = static_cast<float>(font->getLength(value, fontSize));
-    font->render(label, { x + textMarginLeft, y }, fontSize, textColor);
-    font->render(value, { x + w - textMarginLeft - valueLen, y }, fontSize,
-                 textColor);
 }
 
 void OptionLayer::recalculateLayout(const float width, const float height) {
