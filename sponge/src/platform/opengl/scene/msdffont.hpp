@@ -2,6 +2,7 @@
 
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
+#include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/font.hpp"
@@ -24,8 +25,10 @@ public:
     explicit MSDFFont(const FontCreateInfo& createInfo);
     uint32_t getLength(std::string_view text, uint32_t targetSize);
     uint32_t getHeight(uint32_t targetSize) const;
+    void     beginPass(uint32_t targetSize);
     void     render(std::string_view text, const glm::vec2& position,
-                    uint32_t targetSize, const glm::vec3& color);
+                    const glm::vec3& color);
+    void     endPass();
 
     static std::string_view getShaderName() {
         return shaderName;
@@ -34,7 +37,10 @@ public:
 private:
     static constexpr std::string_view shaderName = "text";
 
-    std::shared_ptr<renderer::Shader> shader;
+    uint32_t passTargetSize = 0;
+
+    std::shared_ptr<renderer::Texture> texture;
+    std::shared_ptr<renderer::Shader>  shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::VertexArray>  vao;

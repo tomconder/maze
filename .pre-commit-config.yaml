@@ -21,10 +21,10 @@ repos:
     hooks:
       - id: detect-private-key
       - id: detect-aws-credentials
-        args: ['--allow-missing-credentials']
+        args: [ '--allow-missing-credentials' ]
       - id: mixed-line-ending
         exclude: assets/models|sponge/deps
-        args: ['--fix=lf']
+        args: [ '--fix=lf' ]
       - id: trailing-whitespace
         exclude: assets/models|sponge/deps
       - id: end-of-file-fixer
@@ -43,7 +43,7 @@ repos:
     rev: v22.1.0
     hooks:
       - id: clang-format
-        args: [--style=file, -i]
+        args: [ --style=file, -i ]
         files: "\\.(c|cpp|h|hpp|glsl)$"
         exclude: sponge/deps
 
@@ -59,9 +59,9 @@ repos:
     rev: 1.0.0
     hooks:
       - id: remark
-        args: ['--output', '--frail']
+        args: [ '--output', '--frail' ]
         files: "\\.md$"
-        exclude: assets/models|sponge/deps
+        exclude: assets/models|sponge/deps|.github/ISSUE_TEMPLATE|.github/PULL_REQUEST_TEMPLATE.md
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1

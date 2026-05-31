@@ -85,12 +85,14 @@ void SelectList::onUpdate(const float x, const float y, const float w,
     const float startX = getStartX(x, w);
     const float valueX = startX + leftLen + (maxValueWidth - valLen) / 2.F;
 
-    font->render(label, { x + textMarginLeft, textY }, fontSize, textColor);
-    font->render(leftArrow, { startX, textY }, fontSize,
+    font->beginPass(fontSize);
+    font->render(label, { x + textMarginLeft, textY }, textColor);
+    font->render(leftArrow, { startX, textY },
                  hasLeft() ? textColor : arrowDisabledColor);
-    font->render(value, { valueX, textY }, fontSize, textColor);
+    font->render(value, { valueX, textY }, textColor);
     font->render(rightArrow, { startX + leftLen + maxValueWidth, textY },
-                 fontSize, hasRight() ? textColor : arrowDisabledColor);
+                 hasRight() ? textColor : arrowDisabledColor);
+    font->endPass();
 }
 
 bool SelectList::isInsideLeft(const float mouseX, const float x,
