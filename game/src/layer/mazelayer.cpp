@@ -181,7 +181,9 @@ void MazeLayer::onEvent(Event& event) {
         });
     dispatcher.dispatch<WindowFocusEvent>(
         [this](const WindowFocusEvent& wfEvent) {
-            this->onWindowFocus(wfEvent);
+            if (isActive()) {
+                this->onWindowFocus(wfEvent);
+            }
             return false;
         });
     dispatcher.dispatch<WindowResizeEvent>(

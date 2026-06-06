@@ -91,7 +91,9 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
 
     auto& mgr = Application::get().getInputManager();
     mgr.setActiveContext(sponge::input::InputContext::Menu);
-    if (mgr.getSnapshot().isActive(GameAction::MenuConfirm)) {
+    const auto& snap = mgr.getSnapshot();
+    if (snap.isActive(GameAction::MenuConfirm) ||
+        snap.isActive(GameAction::MenuBack)) {
         setActive(false);
         Maze::get().getIntroLayer()->setActive(true);
         return true;
