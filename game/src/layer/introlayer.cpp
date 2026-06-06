@@ -66,6 +66,13 @@ IntroLayer::IntroLayer() : Layer("intro") {
     quadShaderName = Quad::getShaderName();
 }
 
+void IntroLayer::beginFadeIn(const double duration) {
+    isFadingIn        = true;
+    fadeInDuration    = duration;
+    fadeInAccumulator = 0.0;
+    setActive(true);
+}
+
 void IntroLayer::onAttach() {
     const auto fontNameStr = std::string(fontName);
 
@@ -163,7 +170,8 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             sponge::platform::glfw::core::Application::get().getInputManager();
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
-        if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
+        if (wasActiveLastFrame && !isFadingIn &&
+            !Maze::get().getOptionLayer()->isActive()) {
             using sponge::input::GameAction;
             const auto&    input     = mgr.getSnapshot();
             constexpr auto itemCount = static_cast<int>(IntroMenuItem::Count);
@@ -294,6 +302,13 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         }
     }
 
+    if (isFadingIn) {
+        fadeInAccumulator += elapsedTime;
+        if (fadeInAccumulator >= fadeInDuration) {
+            isFadingIn = false;
+        }
+    }
+
     return isRunning;
 }
 
@@ -315,7 +330,8 @@ void IntroLayer::recalculateLayout(float width, float height) {
 }
 
 bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+    if (isFadingIn ||
+        event.getMouseButton() != sponge::input::MouseButton::Button0) {
         return false;
     }
 

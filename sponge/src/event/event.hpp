@@ -10,9 +10,6 @@
 namespace sponge::event {
 enum class EventType : uint8_t {
     None = 0,
-    KeyPressed,
-    KeyReleased,
-    KeyTyped,
     MouseButtonDown,
     MouseButtonPressed,
     MouseButtonReleased,
@@ -29,9 +26,8 @@ enum EventCategory : uint8_t {
     None                     = 0,
     EventCategoryApplication = BIT(0),
     EventCategoryInput       = BIT(1),
-    EventCategoryKeyboard    = BIT(2),
-    EventCategoryMouse       = BIT(3),
-    EventCategoryMouseButton = BIT(4)
+    EventCategoryMouse       = BIT(2),
+    EventCategoryMouseButton = BIT(3)
 };
 
 #define EVENT_CLASS_TYPE(type)                  \

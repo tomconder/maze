@@ -26,8 +26,6 @@ private:
 
     [[nodiscard]] glm::vec2 calculateLogoPosition() const;
 
-    bool onKeyPressed(const sponge::event::KeyPressedEvent& event);
-
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 };
 }  // namespace game::layer

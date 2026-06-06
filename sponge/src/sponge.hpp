@@ -13,7 +13,6 @@
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
-#include "event/keyevent.hpp"
 #include "event/mouseevent.hpp"
 #include "input/keycode.hpp"
 #include "input/mousecode.hpp"
