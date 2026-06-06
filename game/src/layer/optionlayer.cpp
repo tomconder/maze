@@ -76,19 +76,16 @@ std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
 inline std::string quadShaderName;
 inline std::string fontShaderName;
 
-void saveVideoSettings(const uint32_t width, const uint32_t height) {
+void saveVideoSettings(const uint32_t width, const uint32_t height,
+                       const bool fullscreen, const bool vsync,
+                       const bool fxaa) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
-    Settings::set("video.fullscreen", game::Maze::get().isFullscreen());
-    Settings::set("video.vsync", game::Maze::get().hasVerticalSync());
-    Settings::set("video.fxaa", game::Maze::get().isFxaaEnabled());
+    Settings::set("video.fullscreen", fullscreen);
+    Settings::set("video.vsync", vsync);
+    Settings::set("video.fxaa", fxaa);
     Settings::save();
-}
-
-void saveVideoSettings() {
-    const auto window = game::Maze::get().getWindow();
-    saveVideoSettings(window->getWidth(), window->getHeight());
 }
 
 std::unique_ptr<game::ui::Button> returnButton;
@@ -238,6 +235,8 @@ void OptionLayer::onAttach() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
+    syncPendingCheckboxState();
+
     const auto g  = std::gcd(currentWidth, currentHeight);
     const auto rw = currentWidth / g;
     const auto rh = currentHeight / g;
@@ -296,6 +295,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
+                syncPendingCheckboxState();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -347,14 +347,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
                 if (selectedItem == OptionMenuItem::Return) {
-                    if (hasUnappliedChanges && !filteredResolutions.empty()) {
-                        const auto& res =
-                            filteredResolutions[resolutionList
-                                                    ->getSelectedIndex()];
-                        Maze::get().setResolution(res.width, res.height);
-                        saveVideoSettings(res.width, res.height);
-                        hasUnappliedChanges = false;
-                        returnButton->setMessage(returnMessage);
+                    if (hasUnappliedChanges) {
+                        applyChanges();
                     } else {
                         clearHoveredItems();
                         selectedItem = OptionMenuItem::AspectRatio;
@@ -362,14 +356,14 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                         setActive(false);
                     }
                 } else if (selectedItem == OptionMenuItem::FullScreen) {
-                    Maze::get().toggleFullscreen();
-                    saveVideoSettings();
+                    pendingFullscreen = !pendingFullscreen;
+                    updateChangeStatus();
                 } else if (selectedItem == OptionMenuItem::VerticalSync) {
-                    Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
-                    saveVideoSettings();
+                    pendingVsync = !pendingVsync;
+                    updateChangeStatus();
                 } else if (selectedItem == OptionMenuItem::AntiAliasing) {
-                    Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
-                    saveVideoSettings();
+                    pendingFxaa = !pendingFxaa;
+                    updateChangeStatus();
                 }
             }
         }
@@ -425,18 +419,15 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
     renderRowLabel(fsX, fsY, fsH, "Full Screen");
-    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH,
-                                 Maze::get().isFullscreen());
+    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH, pendingFullscreen);
 
     renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
     renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
-    verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH,
-                                   Maze::get().hasVerticalSync());
+    verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH, pendingVsync);
 
     renderRowBackground(aaX, aaY, aaW, aaH, OptionMenuItem::AntiAliasing);
     renderRowLabel(aaX, aaY, aaH, "Anti-Aliasing");
-    antiAliasingCheckbox->onUpdate(aaX, aaY, aaW, aaH,
-                                   Maze::get().isFxaaEnabled());
+    antiAliasingCheckbox->onUpdate(aaX, aaY, aaW, aaH, pendingFxaa);
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     if (selectedItem == OptionMenuItem::Return) {
@@ -489,13 +480,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         sponge::platform::glfw::core::Application::get().getMousePosition();
 
     if (returnButton->isInside({ mouseX, mouseY })) {
-        if (hasUnappliedChanges && !filteredResolutions.empty()) {
-            const auto& res =
-                filteredResolutions[resolutionList->getSelectedIndex()];
-            Maze::get().setResolution(res.width, res.height);
-            saveVideoSettings(res.width, res.height);
-            hasUnappliedChanges = false;
-            returnButton->setMessage(returnMessage);
+        if (hasUnappliedChanges) {
+            applyChanges();
         } else {
             clearHoveredItems();
             resetSelectionToCurrentState();
@@ -558,8 +544,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         selectedItem = OptionMenuItem::FullScreen;
         if (fullScreenCheckbox->isInside(mouseX, mouseY, fullX, fullY, fullW,
                                          fullH)) {
-            Maze::get().toggleFullscreen();
-            saveVideoSettings();
+            pendingFullscreen = !pendingFullscreen;
+            updateChangeStatus();
         }
         return true;
     }
@@ -572,8 +558,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         selectedItem = OptionMenuItem::VerticalSync;
         if (verticalSyncCheckbox->isInside(mouseX, mouseY, vsyncX, vsyncY,
                                            vsyncW, vsyncH)) {
-            Maze::get().setVerticalSync(!Maze::get().hasVerticalSync());
-            saveVideoSettings();
+            pendingVsync = !pendingVsync;
+            updateChangeStatus();
         }
         return true;
     }
@@ -586,8 +572,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         selectedItem = OptionMenuItem::AntiAliasing;
         if (antiAliasingCheckbox->isInside(mouseX, mouseY, aaX, aaY, aaW,
                                            aaH)) {
-            Maze::get().setFxaaEnabled(!Maze::get().isFxaaEnabled());
-            saveVideoSettings();
+            pendingFxaa = !pendingFxaa;
+            updateChangeStatus();
         }
         return true;
     }
@@ -717,18 +703,53 @@ void OptionLayer::filterResolutions() {
     updateChangeStatus();
 }
 
+void OptionLayer::applyChanges() {
+    const auto currentWindow = Maze::get().getWindow();
+    auto       saveWidth     = currentWindow->getWidth();
+    auto       saveHeight    = currentWindow->getHeight();
+
+    if (!filteredResolutions.empty()) {
+        const auto& res =
+            filteredResolutions[resolutionList->getSelectedIndex()];
+        saveWidth  = res.width;
+        saveHeight = res.height;
+        Maze::get().setResolution(res.width, res.height);
+    }
+    if (pendingFullscreen != Maze::get().isFullscreen()) {
+        Maze::get().toggleFullscreen();
+    }
+    Maze::get().setVerticalSync(pendingVsync);
+    Maze::get().setFxaaEnabled(pendingFxaa);
+    saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
+                      pendingFxaa);
+
+    syncPendingCheckboxState();
+    hasUnappliedChanges = false;
+    returnButton->setMessage(returnMessage);
+}
+
+void OptionLayer::syncPendingCheckboxState() {
+    pendingFullscreen = Maze::get().isFullscreen();
+    pendingVsync      = Maze::get().hasVerticalSync();
+    pendingFxaa       = Maze::get().isFxaaEnabled();
+}
+
 void OptionLayer::updateChangeStatus() {
-    if (filteredResolutions.empty()) {
-        hasUnappliedChanges = false;
-        returnButton->setMessage(returnMessage);
-        return;
+    const bool checkboxChanged =
+        pendingFullscreen != Maze::get().isFullscreen() ||
+        pendingVsync != Maze::get().hasVerticalSync() ||
+        pendingFxaa != Maze::get().isFxaaEnabled();
+
+    bool resolutionChanged = false;
+    if (!filteredResolutions.empty()) {
+        const auto  window = Maze::get().getWindow();
+        const auto& res =
+            filteredResolutions[resolutionList->getSelectedIndex()];
+        resolutionChanged = res.width != window->getWidth() ||
+                            res.height != window->getHeight();
     }
 
-    const auto  window = Maze::get().getWindow();
-    const auto& res = filteredResolutions[resolutionList->getSelectedIndex()];
-    hasUnappliedChanges =
-        res.width != window->getWidth() || res.height != window->getHeight();
-
+    hasUnappliedChanges = checkboxChanged || resolutionChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
                                                    returnMessage);
 }
@@ -739,6 +760,8 @@ void OptionLayer::clearHoveredItems() {
 }
 
 void OptionLayer::resetSelectionToCurrentState() {
+    syncPendingCheckboxState();
+
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
