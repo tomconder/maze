@@ -723,6 +723,7 @@ void OptionLayer::applyChanges() {
     saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
                       pendingFxaa);
 
+    syncPendingCheckboxState();
     hasUnappliedChanges = false;
     returnButton->setMessage(returnMessage);
 }
