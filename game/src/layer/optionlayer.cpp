@@ -76,19 +76,16 @@ std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
 inline std::string quadShaderName;
 inline std::string fontShaderName;
 
-void saveVideoSettings(const uint32_t width, const uint32_t height) {
+void saveVideoSettings(const uint32_t width, const uint32_t height,
+                       const bool fullscreen, const bool vsync,
+                       const bool fxaa) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
-    Settings::set("video.fullscreen", game::Maze::get().isFullscreen());
-    Settings::set("video.vsync", game::Maze::get().hasVerticalSync());
-    Settings::set("video.fxaa", game::Maze::get().isFxaaEnabled());
+    Settings::set("video.fullscreen", fullscreen);
+    Settings::set("video.vsync", vsync);
+    Settings::set("video.fxaa", fxaa);
     Settings::save();
-}
-
-void saveVideoSettings() {
-    const auto window = game::Maze::get().getWindow();
-    saveVideoSettings(window->getWidth(), window->getHeight());
 }
 
 std::unique_ptr<game::ui::Button> returnButton;
@@ -300,6 +297,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
+                pendingFullscreen     = Maze::get().isFullscreen();
+                pendingVsync          = Maze::get().hasVerticalSync();
+                pendingFxaa           = Maze::get().isFxaaEnabled();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -352,10 +352,15 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                 mgr.consumeActive(GameAction::MenuConfirm);
                 if (selectedItem == OptionMenuItem::Return) {
                     if (hasUnappliedChanges) {
+                        const auto currentWindow = Maze::get().getWindow();
+                        auto       saveWidth     = currentWindow->getWidth();
+                        auto       saveHeight    = currentWindow->getHeight();
                         if (!filteredResolutions.empty()) {
                             const auto& res =
                                 filteredResolutions[resolutionList
                                                         ->getSelectedIndex()];
+                            saveWidth  = res.width;
+                            saveHeight = res.height;
                             Maze::get().setResolution(res.width, res.height);
                         }
                         if (pendingFullscreen != Maze::get().isFullscreen()) {
@@ -363,7 +368,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                         }
                         Maze::get().setVerticalSync(pendingVsync);
                         Maze::get().setFxaaEnabled(pendingFxaa);
-                        saveVideoSettings();
+                        saveVideoSettings(saveWidth, saveHeight,
+                                          pendingFullscreen, pendingVsync,
+                                          pendingFxaa);
                         hasUnappliedChanges = false;
                         returnButton->setMessage(returnMessage);
                     } else {
@@ -498,9 +505,14 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges) {
+            const auto currentWindow = Maze::get().getWindow();
+            auto       saveWidth     = currentWindow->getWidth();
+            auto       saveHeight    = currentWindow->getHeight();
             if (!filteredResolutions.empty()) {
                 const auto& res =
                     filteredResolutions[resolutionList->getSelectedIndex()];
+                saveWidth  = res.width;
+                saveHeight = res.height;
                 Maze::get().setResolution(res.width, res.height);
             }
             if (pendingFullscreen != Maze::get().isFullscreen()) {
@@ -508,7 +520,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
             }
             Maze::get().setVerticalSync(pendingVsync);
             Maze::get().setFxaaEnabled(pendingFxaa);
-            saveVideoSettings();
+            saveVideoSettings(saveWidth, saveHeight, pendingFullscreen,
+                              pendingVsync, pendingFxaa);
             hasUnappliedChanges = false;
             returnButton->setMessage(returnMessage);
         } else {
