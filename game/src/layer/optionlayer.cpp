@@ -292,6 +292,17 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             sponge::platform::glfw::core::Application::get().getInputManager();
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
+        {
+            using sponge::input::GameAction;
+            const auto& input = mgr.getSnapshot();
+            if (!wasActiveLastFrame) {
+                waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
+            } else if (waitForConfirmRelease &&
+                       !input.isHeld(GameAction::MenuConfirm)) {
+                waitForConfirmRelease = false;
+            }
+        }
+
         if (wasActiveLastFrame) {
             const auto&    input     = mgr.getSnapshot();
             constexpr auto itemCount = static_cast<int>(OptionMenuItem::Count);
@@ -326,12 +337,15 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                 }
             }
             if (input.isActive(GameAction::MenuBack)) {
+                mgr.consumeActive(GameAction::MenuBack);
                 clearHoveredItems();
                 selectedItem = OptionMenuItem::AspectRatio;
                 resetSelectionToCurrentState();
                 setActive(false);
             }
-            if (input.isActive(GameAction::MenuConfirm)) {
+            if (!waitForConfirmRelease &&
+                input.isActive(GameAction::MenuConfirm)) {
+                mgr.consumeActive(GameAction::MenuConfirm);
                 if (selectedItem == OptionMenuItem::Return) {
                     if (hasUnappliedChanges && !filteredResolutions.empty()) {
                         const auto& res =
@@ -440,7 +454,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     UNUSED(returnButton->onUpdate(elapsedTime));
 
     if (!isActive()) {
-        wasActiveLastFrame = false;
+        wasActiveLastFrame    = false;
+        waitForConfirmRelease = false;
     }
 
     return true;

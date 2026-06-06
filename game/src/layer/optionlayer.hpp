@@ -35,8 +35,9 @@ private:
     OptionMenuItem                selectedItem = OptionMenuItem::AspectRatio;
     std::optional<OptionMenuItem> hoveredItem;
 
-    bool hasUnappliedChanges = false;
-    bool wasActiveLastFrame  = false;
+    bool hasUnappliedChanges   = false;
+    bool wasActiveLastFrame    = false;
+    bool waitForConfirmRelease = false;
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;

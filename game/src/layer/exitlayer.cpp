@@ -162,6 +162,17 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         auto& mgr = Application::get().getInputManager();
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
+        {
+            using sponge::input::GameAction;
+            const auto& input = mgr.getSnapshot();
+            if (!wasActiveLastFrame) {
+                waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
+            } else if (waitForConfirmRelease &&
+                       !input.isHeld(GameAction::MenuConfirm)) {
+                waitForConfirmRelease = false;
+            }
+        }
+
         if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
             const auto&    input     = mgr.getSnapshot();
             constexpr auto itemCount = static_cast<int>(ExitMenuItem::Count);
@@ -176,11 +187,14 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
                     itemCount);
             }
             if (input.isActive(GameAction::MenuBack)) {
+                mgr.consumeActive(GameAction::MenuBack);
                 clearHoveredItems();
                 selectedItem = ExitMenuItem::Continue;
                 resumeGame();
             }
-            if (input.isActive(GameAction::MenuConfirm)) {
+            if (!waitForConfirmRelease &&
+                input.isActive(GameAction::MenuConfirm)) {
+                mgr.consumeActive(GameAction::MenuConfirm);
                 if (selectedItem == ExitMenuItem::Continue) {
                     resumeGame();
                 } else if (selectedItem == ExitMenuItem::Options) {
@@ -267,8 +281,9 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     UNUSED(exitButton->onUpdate(elapsedTime));
 
     if (!isActive()) {
-        wasActiveLastFrame = false;
-        selectedItem       = ExitMenuItem::Continue;
+        wasActiveLastFrame    = false;
+        waitForConfirmRelease = false;
+        selectedItem          = ExitMenuItem::Continue;
     }
 
     return isRunning;
