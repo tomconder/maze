@@ -12,7 +12,7 @@ constexpr std::string_view cameraName  = "splash";
 constexpr std::string_view spriteName  = "blackcoffee-logo";
 constexpr std::string_view texturePath = "textures/blackcoffee.png";
 
-constexpr double timeoutSeconds = 5.0;
+constexpr double timeoutSeconds = 7.0;
 constexpr double fadeDuration   = 0.7;
 constexpr float  logoSize       = 512.0F;
 
@@ -28,6 +28,7 @@ bool   isFadingFlag           = false;
 namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
+using sponge::event::MouseButtonPressedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
@@ -65,6 +66,15 @@ void SplashScreenLayer::onDetach() {
 void SplashScreenLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
+    dispatcher.dispatch<MouseButtonPressedEvent>(
+        [this](const MouseButtonPressedEvent&) {
+            if (!isActive()) {
+                return false;
+            }
+            setActive(false);
+            Maze::get().getIntroLayer()->setActive(true);
+            return true;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
         [this](const WindowResizeEvent& event) {
             return this->onWindowResize(event);
