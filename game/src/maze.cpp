@@ -26,7 +26,7 @@ bool Maze::onUserCreate() {
     pushLayer(introLayer);
 
     exitLayer->setActive(false);
-    introLayer->setActive(true);
+    introLayer->setActive(false);
     mazeLayer->setActive(false);
     optionLayer->setActive(false);
     splashScreenLayer->setActive(true);

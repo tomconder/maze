@@ -18,9 +18,14 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
+    void beginFadeIn(double duration);
+
 private:
     IntroMenuItem selectedItem       = IntroMenuItem::NewGame;
     bool          wasActiveLastFrame = false;
+    bool          isFadingIn         = false;
+    double        fadeInDuration     = 0.0;
+    double        fadeInAccumulator  = 0.0;
 
     static void recalculateLayout(float width, float height);
 

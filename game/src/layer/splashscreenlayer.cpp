@@ -18,21 +18,22 @@ constexpr float  logoSize       = 512.0F;
 
 inline std::string spriteShaderName;
 inline std::string quadShaderName;
-}  // namespace
-
-namespace game::layer {
-using sponge::event::Event;
-using sponge::event::EventDispatcher;
-using sponge::event::KeyPressedEvent;
-using sponge::event::WindowResizeEvent;
-using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::scene::Quad;
-using sponge::platform::opengl::scene::Sprite;
 
 double elapsedTimeAccumulator = 0.0;
 double fadeTimeAccumulator    = 0.0;
 float  currentAlpha           = 1.0F;
 bool   isFadingFlag           = false;
+}  // namespace
+
+namespace game::layer {
+using sponge::event::Event;
+using sponge::event::EventDispatcher;
+using sponge::event::WindowResizeEvent;
+using sponge::input::GameAction;
+using sponge::platform::glfw::core::Application;
+using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::Quad;
+using sponge::platform::opengl::scene::Sprite;
 
 SplashScreenLayer::SplashScreenLayer() : Layer("splash-screen") {
     spriteShaderName = Sprite::getShaderName();
@@ -64,9 +65,6 @@ void SplashScreenLayer::onDetach() {
 void SplashScreenLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
-    dispatcher.dispatch<KeyPressedEvent>([this](const KeyPressedEvent& event) {
-        return isActive() ? this->onKeyPressed(event) : false;
-    });
     dispatcher.dispatch<WindowResizeEvent>(
         [this](const WindowResizeEvent& event) {
             return this->onWindowResize(event);
@@ -81,10 +79,19 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
         shader->unbind();
     }
 
+    auto& mgr = Application::get().getInputManager();
+    mgr.setActiveContext(sponge::input::InputContext::Menu);
+    if (mgr.getSnapshot().isActive(GameAction::MenuConfirm)) {
+        setActive(false);
+        Maze::get().getIntroLayer()->setActive(true);
+        return true;
+    }
+
     // Accumulate elapsed time for timeout
     elapsedTimeAccumulator += elapsedTime;
     if (elapsedTimeAccumulator >= timeoutSeconds && !isFadingFlag) {
         isFadingFlag = true;
+        Maze::get().getIntroLayer()->beginFadeIn(fadeDuration);
     }
 
     if (isFadingFlag) {
@@ -115,12 +122,6 @@ glm::vec2 SplashScreenLayer::calculateLogoPosition() const {
     const auto height = static_cast<float>(orthoCamera->getHeight());
 
     return { (width - logoSize) / 2.0F, (height - logoSize) / 2.0F };
-}
-
-bool SplashScreenLayer::onKeyPressed(const KeyPressedEvent& event) {
-    UNUSED(event);
-    setActive(false);
-    return true;
 }
 
 bool SplashScreenLayer::onWindowResize(const WindowResizeEvent& event) const {
