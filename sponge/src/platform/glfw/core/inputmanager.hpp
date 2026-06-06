@@ -24,6 +24,10 @@ public:
         return snapshot;
     }
 
+    void consumeActive(input::GameAction a) {
+        snapshot.active[+a] = false;
+    }
+
     void                pushContext(input::InputContext ctx);
     void                popContext();
     void                setActiveContext(input::InputContext ctx);

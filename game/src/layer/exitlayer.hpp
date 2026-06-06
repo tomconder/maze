@@ -25,8 +25,9 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    ExitMenuItem selectedItem       = ExitMenuItem::Continue;
-    bool         wasActiveLastFrame = false;
+    ExitMenuItem selectedItem          = ExitMenuItem::Continue;
+    bool         wasActiveLastFrame    = false;
+    bool         waitForConfirmRelease = false;
 
     static void recalculateLayout(float width, float height);
 

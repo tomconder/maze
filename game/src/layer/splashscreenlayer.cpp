@@ -94,6 +94,8 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
     const auto& snap = mgr.getSnapshot();
     if (snap.isActive(GameAction::MenuConfirm) ||
         snap.isActive(GameAction::MenuBack)) {
+        mgr.consumeActive(GameAction::MenuConfirm);
+        mgr.consumeActive(GameAction::MenuBack);
         setActive(false);
         Maze::get().getIntroLayer()->setActive(true);
         return true;

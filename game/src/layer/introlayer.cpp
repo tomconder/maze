@@ -170,6 +170,17 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             sponge::platform::glfw::core::Application::get().getInputManager();
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
+        {
+            using sponge::input::GameAction;
+            const auto& input = mgr.getSnapshot();
+            if (!wasActiveLastFrame) {
+                waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
+            } else if (waitForConfirmRelease &&
+                       !input.isHeld(GameAction::MenuConfirm)) {
+                waitForConfirmRelease = false;
+            }
+        }
+
         if (wasActiveLastFrame && !isFadingIn &&
             !Maze::get().getOptionLayer()->isActive()) {
             using sponge::input::GameAction;
@@ -185,7 +196,9 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                     (static_cast<int>(selectedItem) - 1 + itemCount) %
                     itemCount);
             }
-            if (input.isActive(GameAction::MenuConfirm)) {
+            if (!waitForConfirmRelease &&
+                input.isActive(GameAction::MenuConfirm)) {
+                mgr.consumeActive(GameAction::MenuConfirm);
                 if (selectedItem == IntroMenuItem::NewGame) {
                     clearHoveredItems();
                     setActive(false);
@@ -271,8 +284,9 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     UNUSED(quitButton->onUpdate(elapsedTime));
 
     if (!isActive()) {
-        wasActiveLastFrame = false;
-        selectedItem       = IntroMenuItem::NewGame;
+        wasActiveLastFrame    = false;
+        waitForConfirmRelease = false;
+        selectedItem          = IntroMenuItem::NewGame;
     }
 
     // Render gamepad connection status
