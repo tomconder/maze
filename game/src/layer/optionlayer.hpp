@@ -39,6 +39,10 @@ private:
     bool wasActiveLastFrame    = false;
     bool waitForConfirmRelease = false;
 
+    bool pendingFullscreen = false;
+    bool pendingVsync      = false;
+    bool pendingFxaa       = false;
+
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
     std::unique_ptr<ui::Checkbox>   antiAliasingCheckbox;
