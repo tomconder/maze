@@ -56,6 +56,10 @@ private:
 
     static void recalculateLayout(float width, float height);
 
+    void applyChanges();
+
+    void syncPendingCheckboxState();
+
     void updateChangeStatus();
 
     bool onMouseButtonPressed(
