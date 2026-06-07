@@ -54,7 +54,7 @@ Quad::Quad() {
     vbo->unbind();
     vao->unbind();
 
-    Shader::unbind();
+    shader->unbind();
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
@@ -82,7 +82,7 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
-    Shader::unbind();
+    shader->unbind();
 
     vao->unbind();
 }

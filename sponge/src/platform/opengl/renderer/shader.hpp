@@ -24,8 +24,8 @@ public:
     explicit Shader(const ShaderCreateInfo& createInfo);
     ~Shader();
 
-    void        bind() const;
-    static void unbind();
+    void bind() const;
+    void unbind() const;
 
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;

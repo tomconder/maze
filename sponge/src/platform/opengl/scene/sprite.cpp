@@ -62,7 +62,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     tex = AssetManager::createTexture(textureCreateInfo);
     tex->bind();
 
-    Shader::unbind();
+    shader->unbind();
 }
 
 void Sprite::render(const glm::vec2& position, const glm::vec2& size,
@@ -89,7 +89,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size,
 
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
-    Shader::unbind();
+    shader->unbind();
 
     vao->unbind();
 }

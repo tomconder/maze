@@ -152,7 +152,7 @@ void OptionLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     rootNode = YGNodeNew();
@@ -375,7 +375,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());

@@ -66,7 +66,7 @@ void FXAA::initialize() {
 
     shader->setInteger("screenTexture", 0);
 
-    Shader::unbind();
+    shader->unbind();
     vao->unbind();
 
     createFramebuffer();
@@ -150,7 +150,7 @@ void FXAA::apply() const {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
     vao->unbind();
 
-    Shader::unbind();
+    shader->unbind();
 
     glEnable(GL_DEPTH_TEST);
 }

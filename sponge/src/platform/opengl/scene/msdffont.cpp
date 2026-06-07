@@ -58,7 +58,7 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     vbo->unbind();
     vao->unbind();
 
-    Shader::unbind();
+    shader->unbind();
 
     load(createInfo.assetsFolder + createInfo.path);
     log();
@@ -192,7 +192,7 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
 }
 
 void MSDFFont::endPass() const {
-    Shader::unbind();
+    shader->unbind();
     vao->unbind();
 }
 }  // namespace sponge::platform::opengl::scene

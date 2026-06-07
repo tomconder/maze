@@ -61,7 +61,7 @@ void ShadowMap::initialize() {
 
     framebuffer->unbind();
 
-    Shader::unbind();
+    shader->unbind();
 }
 
 void ShadowMap::bind() const {

@@ -61,7 +61,7 @@ Cube::Cube() {
                               reinterpret_cast<const void*>(0));
     }
 
-    Shader::unbind();
+    shader->unbind();
     vao->unbind();
 }
 

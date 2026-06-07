@@ -56,7 +56,7 @@ void SplashScreenLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 }
 
@@ -87,7 +87,7 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     auto& mgr = Application::get().getInputManager();

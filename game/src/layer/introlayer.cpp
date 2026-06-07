@@ -109,7 +109,7 @@ void IntroLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     rootNode = YGNodeNew();
@@ -224,7 +224,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     const auto [width, height] =

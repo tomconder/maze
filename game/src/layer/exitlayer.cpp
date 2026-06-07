@@ -101,7 +101,7 @@ void ExitLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     rootNode = YGNodeNew();
@@ -218,7 +218,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        Shader::unbind();
+        shader->unbind();
     }
 
     auto getNodeLayout = [](const YGNodeRef node, const float offsetX,

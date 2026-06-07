@@ -79,7 +79,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         this->indices.data(), numIndices * sizeof(uint32_t));
     ebo->bind();
 
-    Shader::unbind();
+    shader->unbind();
     vao->unbind();
 }
 

@@ -71,7 +71,7 @@ void Shader::bind() const {
     glUseProgram(program);
 }
 
-void Shader::unbind() {
+void Shader::unbind() const {
     glUseProgram(0);
 }
 
