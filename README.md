@@ -15,6 +15,7 @@ A game engine featuring a nice walk through a maze.
 * Fast approximate anti-aliasing (FXAA)
 * Multi-channel signed distance field (MSDF) text rendering
 * Performance profiling with Tracy
+* Gamepad support
 
 ## Project Organization
 
