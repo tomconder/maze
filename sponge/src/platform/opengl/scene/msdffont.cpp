@@ -21,7 +21,6 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
-using renderer::Shader;
 
 MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());

@@ -20,7 +20,6 @@ constexpr uint32_t vertexCount = 8;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
-using renderer::Shader;
 
 inline const std::string Sprite::shaderName = "sprite";
 

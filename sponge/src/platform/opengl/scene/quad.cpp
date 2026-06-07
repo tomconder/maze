@@ -18,7 +18,6 @@ constexpr uint32_t vertexCount = 4;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
-using renderer::Shader;
 
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{

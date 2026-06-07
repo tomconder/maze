@@ -21,7 +21,6 @@ constexpr uint32_t quadStride      = 4 * sizeof(float);
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
-using renderer::Shader;
 
 FXAA::FXAA(const uint32_t width, const uint32_t height) :
     width(width), height(height) {

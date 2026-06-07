@@ -17,7 +17,6 @@ constexpr float orthoBoxSize = 5.F;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
-using renderer::Shader;
 
 inline const std::string ShadowMap::shaderName = "shadowmap";
 
