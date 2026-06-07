@@ -20,6 +20,7 @@ constexpr uint32_t vertexCount = 8;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 
 inline const std::string Sprite::shaderName = "sprite";
 
@@ -61,7 +62,7 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     tex = AssetManager::createTexture(textureCreateInfo);
     tex->bind();
 
-    shader->unbind();
+    Shader::unbind();
 }
 
 void Sprite::render(const glm::vec2& position, const glm::vec2& size,
@@ -88,7 +89,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size,
 
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
-    shader->unbind();
+    Shader::unbind();
 
     vao->unbind();
 }

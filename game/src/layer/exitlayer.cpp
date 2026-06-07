@@ -57,6 +57,7 @@ using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
@@ -100,7 +101,7 @@ void ExitLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     rootNode = YGNodeNew();
@@ -217,7 +218,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
@@ -289,7 +290,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-bool ExitLayer::onWindowResize(const WindowResizeEvent& event) const {
+bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto [width, height] =
@@ -337,7 +338,7 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     return true;
 }
 
-bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {

@@ -34,6 +34,7 @@ constexpr uint32_t vertexCount = 36;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -60,7 +61,7 @@ Cube::Cube() {
                               reinterpret_cast<const void*>(0));
     }
 
-    shader->unbind();
+    Shader::unbind();
     vao->unbind();
 }
 

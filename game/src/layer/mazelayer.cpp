@@ -82,6 +82,7 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
@@ -144,7 +145,7 @@ void MazeLayer::onAttach() {
     shader->setFloat("directionalLight.shadowBias",
                      directionalLight.shadowBias);
 
-    shader->unbind();
+    Shader::unbind();
 
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
@@ -324,7 +325,7 @@ void MazeLayer::setAmbientOcclusion(const float val) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ao", ao);
-    shader->unbind();
+    Shader::unbind();
 }
 
 float MazeLayer::getAmbientStrength() const {
@@ -337,7 +338,7 @@ void MazeLayer::setAmbientStrength(const float val) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->unbind();
+    Shader::unbind();
 }
 
 int32_t MazeLayer::getAttenuationIndex() const {
@@ -353,7 +354,7 @@ std::shared_ptr<scene::GameCamera> MazeLayer::getCamera() const {
     return camera;
 }
 
-bool MazeLayer::getDirectionalLightCastsShadow() const {
+bool MazeLayer::getDirectionalLightCastsShadow() {
     return directionalLight.castShadow;
 }
 
@@ -364,10 +365,10 @@ void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
     shader->bind();
     shader->setBoolean("directionalLight.castShadow",
                        directionalLight.castShadow);
-    shader->unbind();
+    Shader::unbind();
 }
 
-glm::vec3 MazeLayer::getDirectionalLightColor() const {
+glm::vec3 MazeLayer::getDirectionalLightColor() {
     return directionalLight.color;
 }
 
@@ -377,10 +378,10 @@ void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat3("directionalLight.color", directionalLight.color);
-    shader->unbind();
+    Shader::unbind();
 }
 
-glm::vec3 MazeLayer::getDirectionalLightDirection() const {
+glm::vec3 MazeLayer::getDirectionalLightDirection() {
     return directionalLight.direction;
 }
 
@@ -390,10 +391,10 @@ void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
-    shader->unbind();
+    Shader::unbind();
 }
 
-bool MazeLayer::getDirectionalLightEnabled() const {
+bool MazeLayer::getDirectionalLightEnabled() {
     return directionalLight.enabled;
 }
 
@@ -403,10 +404,10 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
-    shader->unbind();
+    Shader::unbind();
 }
 
-float MazeLayer::getDirectionalLightShadowBias() const {
+float MazeLayer::getDirectionalLightShadowBias() {
     return directionalLight.shadowBias;
 }
 
@@ -417,10 +418,10 @@ void MazeLayer::setDirectionalLightShadowBias(const float value) {
     shader->bind();
     shader->setFloat("directionalLight.shadowBias",
                      directionalLight.shadowBias);
-    shader->unbind();
+    Shader::unbind();
 }
 
-uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
+uint32_t MazeLayer::getDirectionalLightShadowMapRes() {
     return directionalLight.shadowMapRes;
 }
 
@@ -434,7 +435,7 @@ void MazeLayer::setMetallic(const bool val) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->unbind();
+    Shader::unbind();
 }
 
 int32_t MazeLayer::getNumLights() const {
@@ -467,7 +468,7 @@ void MazeLayer::setRoughness(const float val) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setFloat("roughness", roughness);
-    shader->unbind();
+    Shader::unbind();
 }
 
 float MazeLayer::getShadowMapOrthoSize() const {
@@ -571,7 +572,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         AssetManager::getModel(name)->render(shader);
     }
 
-    shader->unbind();
+    Shader::unbind();
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
@@ -590,7 +591,7 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
         cube->render();
     }
 
-    shader->unbind();
+    Shader::unbind();
 }
 
 void MazeLayer::renderSceneToDepthMap(
@@ -607,7 +608,7 @@ void MazeLayer::renderSceneToDepthMap(
         AssetManager::getModel(frame.objectNames[i])->render(shader);
     }
 
-    shader->unbind();
+    Shader::unbind();
 
     shadowMap->unbind();
 }
@@ -656,7 +657,7 @@ void MazeLayer::updateShaderLights() const {
                            pointLights.at(i).attenuationIndex);
     }
 
-    shader->unbind();
+    Shader::unbind();
 }
 
 bool MazeLayer::isFxaaEnabled() const {

@@ -21,6 +21,7 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 
 MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
@@ -57,7 +58,7 @@ MSDFFont::MSDFFont(const FontCreateInfo& createInfo) {
     vbo->unbind();
     vao->unbind();
 
-    shader->unbind();
+    Shader::unbind();
 
     load(createInfo.assetsFolder + createInfo.path);
     log();
@@ -190,8 +191,8 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-void MSDFFont::endPass() {
-    shader->unbind();
+void MSDFFont::endPass() const {
+    Shader::unbind();
     vao->unbind();
 }
 }  // namespace sponge::platform::opengl::scene

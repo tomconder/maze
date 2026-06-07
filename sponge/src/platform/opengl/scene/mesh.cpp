@@ -17,6 +17,7 @@ inline constexpr std::string_view texCoord = "texCoord";
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 using sponge::scene::Vertex;
 
 uint32_t Mesh::meshProgramId = 0;
@@ -79,7 +80,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         this->indices.data(), numIndices * sizeof(uint32_t));
     ebo->bind();
 
-    shader->unbind();
+    Shader::unbind();
     vao->unbind();
 }
 

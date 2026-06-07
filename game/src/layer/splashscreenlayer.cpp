@@ -33,6 +33,7 @@ using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::Quad;
 using sponge::platform::opengl::scene::Sprite;
 
@@ -55,7 +56,7 @@ void SplashScreenLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 }
 
@@ -86,7 +87,7 @@ bool SplashScreenLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     auto& mgr = Application::get().getInputManager();

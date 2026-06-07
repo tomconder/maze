@@ -113,6 +113,7 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
@@ -151,7 +152,7 @@ void OptionLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     rootNode = YGNodeNew();
@@ -374,7 +375,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());

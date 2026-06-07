@@ -18,6 +18,7 @@ constexpr uint32_t vertexCount = 4;
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -53,7 +54,7 @@ Quad::Quad() {
     vbo->unbind();
     vao->unbind();
 
-    shader->unbind();
+    Shader::unbind();
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
@@ -81,7 +82,7 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
 
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 
-    shader->unbind();
+    Shader::unbind();
 
     vao->unbind();
 }

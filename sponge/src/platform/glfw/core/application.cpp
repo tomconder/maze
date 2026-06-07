@@ -72,7 +72,7 @@ bool Application::start() {
         return false;
     }
 
-    graphics->init(glfwWindow);
+    opengl::renderer::Context::init(glfwWindow);
 
     Diagnostics::log();
 
@@ -82,15 +82,16 @@ bool Application::start() {
     setVerticalSync(appSpec.vsync);
 
     renderer = std::make_unique<opengl::renderer::RendererAPI>();
-    renderer->init();
-    renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
+    opengl::renderer::RendererAPI::init();
+    opengl::renderer::RendererAPI::setClearColor(
+        glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
     window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
     const auto w = window->getWidth();
     const auto h = window->getHeight();
-    renderer->setViewport(0, 0, static_cast<int32_t>(w),
-                          static_cast<int32_t>(h));
+    opengl::renderer::RendererAPI::setViewport(0, 0, static_cast<int32_t>(w),
+                                               static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -261,8 +262,7 @@ void Application::setResolution(const uint32_t width, const uint32_t height) {
     pendingResolution.store(true, std::memory_order_release);
 }
 
-std::vector<sponge::core::Resolution>
-    Application::getAvailableResolutions() const {
+std::vector<sponge::core::Resolution> Application::getAvailableResolutions() {
     return Window::getAvailableResolutions();
 }
 
@@ -294,13 +294,13 @@ void Application::run() {
         SPONGE_PROFILE_SECTION("RenderThread:frame");
 
         if (pendingViewport.load(std::memory_order_acquire)) {
-            renderer->setViewport(
+            opengl::renderer::RendererAPI::setViewport(
                 0, 0, pendingViewportW.load(std::memory_order_relaxed),
                 pendingViewportH.load(std::memory_order_relaxed));
             pendingViewport.store(false, std::memory_order_relaxed);
         }
 
-        renderer->clear();
+        opengl::renderer::RendererAPI::clear();
         imguiManager->begin();
 #ifdef ENABLE_IMGUI
         onImGuiRender();
@@ -318,7 +318,7 @@ void Application::run() {
             }
         }
         imguiManager->end();
-        graphics->flip(window->getNativeWindow());
+        opengl::renderer::Context::flip(window->getNativeWindow());
     });
 
     // Start the two update worker threads.
@@ -356,7 +356,7 @@ void Application::run() {
         glfwPollEvents();
 
         // Apply any deferred resolution change requested by a render-thread
-        // layer. Must be done on main thread.
+        // layer. Must be done on the main thread.
         if (pendingResolution.load(std::memory_order_acquire)) {
             const uint32_t w =
                 pendingResolutionW.load(std::memory_order_relaxed);

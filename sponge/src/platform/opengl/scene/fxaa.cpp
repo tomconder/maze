@@ -21,6 +21,7 @@ constexpr uint32_t quadStride      = 4 * sizeof(float);
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 
 FXAA::FXAA(const uint32_t width, const uint32_t height) :
     width(width), height(height) {
@@ -65,7 +66,7 @@ void FXAA::initialize() {
 
     shader->setInteger("screenTexture", 0);
 
-    shader->unbind();
+    Shader::unbind();
     vao->unbind();
 
     createFramebuffer();
@@ -129,7 +130,7 @@ void FXAA::begin() const {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
 
-void FXAA::end() const {
+void FXAA::end() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -149,7 +150,7 @@ void FXAA::apply() const {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
     vao->unbind();
 
-    shader->unbind();
+    Shader::unbind();
 
     glEnable(GL_DEPTH_TEST);
 }

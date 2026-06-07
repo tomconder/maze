@@ -24,8 +24,8 @@ public:
     explicit Shader(const ShaderCreateInfo& createInfo);
     ~Shader();
 
-    void bind() const;
-    void unbind() const;
+    void        bind() const;
+    static void unbind();
 
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
@@ -48,10 +48,10 @@ private:
                                core::TransparentStringEqual>
         uniformLocations;
 
-    uint32_t    compileShader(GLenum type, const std::string& source);
-    uint32_t    linkProgram(uint32_t vs, uint32_t fs,
-                            std::optional<uint32_t> gs = std::nullopt);
-    std::string loadSourceFromFile(const std::string& path);
+    static uint32_t    compileShader(GLenum type, const std::string& source);
+    static uint32_t    linkProgram(uint32_t vs, uint32_t fs,
+                                   std::optional<uint32_t> gs = std::nullopt);
+    static std::string loadSourceFromFile(const std::string& path);
 
     uint32_t    program = 0;
     std::string shaderName;

@@ -17,13 +17,13 @@ struct InputSnapshot {
     bool         gamepadConnected = false;
     int          gamepadSlot      = -1;
 
-    [[nodiscard]] bool isActive(GameAction a) const noexcept {
+    [[nodiscard]] bool isActive(const GameAction a) const noexcept {
         return active[+a];
     }
-    [[nodiscard]] bool isHeld(GameAction a) const noexcept {
+    [[nodiscard]] bool isHeld(const GameAction a) const noexcept {
         return held[+a];
     }
-    [[nodiscard]] float getAxis(GameAction a) const noexcept {
+    [[nodiscard]] float getAxis(const GameAction a) const noexcept {
         return axis[+a];
     }
     [[nodiscard]] std::string_view getPromptText(GameAction a) const noexcept;

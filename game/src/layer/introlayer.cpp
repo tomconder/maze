@@ -57,6 +57,7 @@ using sponge::event::MouseMovedEvent;
 using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
@@ -108,7 +109,7 @@ void IntroLayer::onAttach() {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     rootNode = YGNodeNew();
@@ -223,7 +224,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         const auto shader = AssetManager::getShader(shaderName);
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
+        Shader::unbind();
     }
 
     const auto [width, height] =
@@ -326,7 +327,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-bool IntroLayer::onWindowResize(const WindowResizeEvent& event) const {
+bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto [width, height] =
@@ -381,7 +382,7 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     return false;
 }
 
-bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {

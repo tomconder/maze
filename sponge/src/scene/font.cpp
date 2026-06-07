@@ -45,9 +45,9 @@ void Font::load(const std::string& path) {
     auto parseInt = [&](const std::string_view s, uint32_t& out) -> bool {
         const std::string tmp = unquote(s);
         int               val = 0;
-        auto              res =
+        auto [ptr, ec] =
             std::from_chars(tmp.data(), tmp.data() + tmp.size(), val, 10);
-        if (res.ec == std::errc{}) {
+        if (ec == std::errc{}) {
             out = static_cast<uint32_t>(val);
             return true;
         }

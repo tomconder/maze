@@ -3,7 +3,8 @@
 
 namespace sponge::input {
 
-std::string_view InputSnapshot::getPromptText(GameAction a) const noexcept {
+std::string_view
+    InputSnapshot::getPromptText(const GameAction a) const noexcept {
     if (activeDevice == ActiveDevice::Gamepad) {
         switch (a) {
             case GameAction::MenuUp:
