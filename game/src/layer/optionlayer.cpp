@@ -113,7 +113,6 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;

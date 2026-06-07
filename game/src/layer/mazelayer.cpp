@@ -82,7 +82,6 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
