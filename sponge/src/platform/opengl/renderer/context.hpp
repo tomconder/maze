@@ -7,7 +7,7 @@ namespace sponge::platform::opengl::renderer {
 class Context final {
 public:
     Context();
-    static void init(GLFWwindow* window);
+    void init(GLFWwindow* window) const;
 
     // Release GL context from the calling thread; call before starting the
     // render thread.

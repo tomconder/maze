@@ -74,7 +74,7 @@ bool Application::start() {
         return false;
     }
 
-    Context::init(glfwWindow);
+    graphics->init(glfwWindow);
 
     Diagnostics::log();
 

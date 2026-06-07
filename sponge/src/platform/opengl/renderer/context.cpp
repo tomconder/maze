@@ -46,7 +46,7 @@ Context::Context() {
 #endif
 }
 
-void Context::init(GLFWwindow* window) {
+void Context::init(GLFWwindow* window) const {
     SPONGE_GL_INFO("Initializing context");
 
     glfwMakeContextCurrent(window);
