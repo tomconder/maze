@@ -75,7 +75,8 @@ void Shader::unbind() const {
     glUseProgram(0);
 }
 
-uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
+uint32_t Shader::compileShader(const GLenum       type,
+                               const std::string& source) const {
     const uint32_t id = glCreateShader(type);
     assert(id != 0);
 
@@ -101,7 +102,7 @@ uint32_t Shader::compileShader(const GLenum type, const std::string& source) {
 }
 
 uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
-                             const std::optional<uint32_t> gs) {
+                             const std::optional<uint32_t> gs) const {
     const uint32_t id = glCreateProgram();
 
     glAttachShader(id, vs);
@@ -184,7 +185,7 @@ GLint Shader::getUniformLocation(const std::string_view name) const {
     return location;
 }
 
-std::string Shader::loadSourceFromFile(const std::string& path) {
+std::string Shader::loadSourceFromFile(const std::string& path) const {
     assert(!path.empty());
 
     std::string code;
