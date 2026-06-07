@@ -5,7 +5,7 @@
 
 namespace sponge::platform::opengl::renderer {
 
-void RendererAPI::init() {
+void RendererAPI::init() const {
     if (glDebugMessageCallback != nullptr) {
         glDebugMessageCallback(glLogMessage, nullptr);
         glEnable(GL_DEBUG_OUTPUT);
@@ -33,15 +33,15 @@ void RendererAPI::init() {
 }
 
 void RendererAPI::setViewport(const int32_t x, const int32_t y,
-                              const int32_t width, const int32_t height) {
+                              const int32_t width, const int32_t height) const {
     glViewport(x, y, width, height);
 }
 
-void RendererAPI::setClearColor(const glm::vec4& color) {
+void RendererAPI::setClearColor(const glm::vec4& color) const {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
-void RendererAPI::clear() {
+void RendererAPI::clear() const {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

@@ -84,15 +84,15 @@ bool Application::start() {
     setVerticalSync(appSpec.vsync);
 
     renderer = std::make_unique<RendererAPI>();
-    RendererAPI::init();
-    RendererAPI::setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
+    renderer->init();
+    renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
     window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
     const auto w = window->getWidth();
     const auto h = window->getHeight();
-    RendererAPI::setViewport(0, 0, static_cast<int32_t>(w),
-                             static_cast<int32_t>(h));
+    renderer->setViewport(0, 0, static_cast<int32_t>(w),
+                          static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -295,13 +295,13 @@ void Application::run() {
         SPONGE_PROFILE_SECTION("RenderThread:frame");
 
         if (pendingViewport.load(std::memory_order_acquire)) {
-            RendererAPI::setViewport(
+            renderer->setViewport(
                 0, 0, pendingViewportW.load(std::memory_order_relaxed),
                 pendingViewportH.load(std::memory_order_relaxed));
             pendingViewport.store(false, std::memory_order_relaxed);
         }
 
-        RendererAPI::clear();
+        renderer->clear();
         imguiManager->begin();
 #ifdef ENABLE_IMGUI
         onImGuiRender();

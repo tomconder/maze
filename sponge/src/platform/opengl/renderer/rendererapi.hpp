@@ -6,12 +6,11 @@ namespace sponge::platform::opengl::renderer {
 
 class RendererAPI final {
 public:
-    static void init();
-    static void setViewport(int32_t x, int32_t y, int32_t width,
-                            int32_t height);
+    void init() const;
+    void setViewport(int32_t x, int32_t y, int32_t width, int32_t height) const;
 
-    static void setClearColor(const glm::vec4& color);
-    static void clear();
+    void setClearColor(const glm::vec4& color) const;
+    void clear() const;
 };
 
 }  // namespace sponge::platform::opengl::renderer
