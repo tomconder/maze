@@ -29,7 +29,7 @@ public:
     }
 
     void                pushContext(input::InputContext ctx);
-    static void         popContext();
+    void                popContext();
     void                setActiveContext(input::InputContext ctx);
     input::InputContext activeContext() const;
 
