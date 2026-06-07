@@ -129,7 +129,7 @@ void FXAA::begin() const {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
 
-void FXAA::end() {
+void FXAA::end() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

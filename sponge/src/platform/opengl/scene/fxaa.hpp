@@ -19,9 +19,9 @@ public:
     FXAA(const FXAA&)            = delete;
     FXAA& operator=(const FXAA&) = delete;
 
-    void        begin() const;
-    static void end();
-    void        apply() const;
+    void begin() const;
+    void end() const;
+    void apply() const;
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
