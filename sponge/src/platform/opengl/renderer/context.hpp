@@ -11,12 +11,12 @@ public:
 
     // Release GL context from the calling thread; call before starting the
     // render thread.
-    static void release(void* window);
+    void release(void* window) const;
 
     // Make GL context current on the calling thread.
-    static void makeCurrent(void* window);
+    void makeCurrent(void* window) const;
 
-    static void flip(void* window);
+    void flip(void* window) const;
 };
 
 }  // namespace sponge::platform::opengl::renderer

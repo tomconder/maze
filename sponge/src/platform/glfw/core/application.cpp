@@ -279,13 +279,13 @@ void Application::run() {
 
     // Transfer GL context to render thread.
     auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
-    Context::release(glfwWin);
+    graphics->release(glfwWin);
 
     // Render thread acquires GL context on first wake.
     bool renderContextAcquired = false;
     renderThread.start([this, glfwWin, &renderContextAcquired] {
         if (!renderContextAcquired) {
-            Context::makeCurrent(glfwWin);
+            graphics->makeCurrent(glfwWin);
             renderContextAcquired = true;
         }
 
@@ -319,7 +319,7 @@ void Application::run() {
             }
         }
         imguiManager->end();
-        Context::flip(window->getNativeWindow());
+        graphics->flip(window->getNativeWindow());
     });
 
     // Start the two update worker threads.
@@ -428,7 +428,7 @@ void Application::run() {
     updateThreads[1].stop();
 
     // Reclaim GL context for shutdown.
-    Context::makeCurrent(glfwWin);
+    graphics->makeCurrent(glfwWin);
 
     SPONGE_CORE_INFO("Shutting down");
     shutdown();
