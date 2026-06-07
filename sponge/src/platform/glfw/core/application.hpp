@@ -62,7 +62,7 @@ public:
 
     void setResolution(uint32_t width, uint32_t height);
 
-    std::vector<sponge::core::Resolution> getAvailableResolutions() const;
+    static std::vector<sponge::core::Resolution> getAvailableResolutions();
 
     bool isFullscreen() const {
         return fullscreen;

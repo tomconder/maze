@@ -78,23 +78,23 @@ void Window::init(const sponge::core::WindowProps& props) {
 
     glfwSetWindowUserPointer(window, &data);
 
-    glfwSetWindowSizeCallback(window, [](GLFWwindow* window, const int width,
-                                         const int height) {
-        if (width == 0 && height == 0) {
+    glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int newWidth,
+                                         const int newHeight) {
+        if (newWidth == 0 && newHeight == 0) {
             return;
         }
 
-        auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+        auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(win));
 
-        data->width  = static_cast<uint32_t>(width);
-        data->height = static_cast<uint32_t>(height);
+        data->width  = static_cast<uint32_t>(newWidth);
+        data->height = static_cast<uint32_t>(newHeight);
 
         // Defer viewport GL call to render thread; callback may fire on any
         // thread.
-        Application::get().setPendingViewport(width, height);
+        Application::get().setPendingViewport(newWidth, newHeight);
 
-        event::WindowResizeEvent event(static_cast<uint32_t>(width),
-                                       static_cast<uint32_t>(height));
+        event::WindowResizeEvent event(static_cast<uint32_t>(newWidth),
+                                       static_cast<uint32_t>(newHeight));
         data->eventCallback(event);
     });
 

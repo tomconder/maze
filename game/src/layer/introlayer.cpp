@@ -326,7 +326,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-bool IntroLayer::onWindowResize(const WindowResizeEvent& event) const {
+bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto [width, height] =
@@ -381,7 +381,7 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     return false;
 }
 
-bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {

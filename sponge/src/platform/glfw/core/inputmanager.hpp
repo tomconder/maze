@@ -24,7 +24,7 @@ public:
         return snapshot;
     }
 
-    void consumeActive(input::GameAction a) {
+    void consumeActive(const input::GameAction a) {
         snapshot.active[+a] = false;
     }
 
@@ -36,7 +36,7 @@ public:
     // Enable continuous cursor recentering while mouse-look is active.
     // Prevents the cursor from drifting outside the window and sending
     // negative coordinates to ImGui.
-    void setMouseLookActive(bool active) {
+    void setMouseLookActive(const bool active) {
         mouseLookActive = active;
     }
 

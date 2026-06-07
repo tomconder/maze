@@ -33,9 +33,9 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event) const;
+    static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
+    static bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 
     static void clearHoveredItems();
 };

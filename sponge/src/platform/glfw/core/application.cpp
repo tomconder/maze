@@ -22,6 +22,8 @@ sponge::core::Timer mainTimer;
 
 namespace sponge::platform::glfw::core {
 using opengl::debug::Diagnostics;
+using opengl::renderer::Context;
+using opengl::renderer::RendererAPI;
 
 Application* Application::instance = nullptr;
 
@@ -59,7 +61,7 @@ bool Application::start() {
 
     fullscreen = appSpec.fullscreen;
 
-    graphics = std::make_unique<opengl::renderer::Context>();
+    graphics = std::make_unique<Context>();
 
     window = std::make_unique<Window>(
         sponge::core::WindowProps{ .title      = appName,
@@ -81,7 +83,7 @@ bool Application::start() {
 
     setVerticalSync(appSpec.vsync);
 
-    renderer = std::make_unique<opengl::renderer::RendererAPI>();
+    renderer = std::make_unique<RendererAPI>();
     renderer->init();
     renderer->setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
@@ -261,8 +263,7 @@ void Application::setResolution(const uint32_t width, const uint32_t height) {
     pendingResolution.store(true, std::memory_order_release);
 }
 
-std::vector<sponge::core::Resolution>
-    Application::getAvailableResolutions() const {
+std::vector<sponge::core::Resolution> Application::getAvailableResolutions() {
     return Window::getAvailableResolutions();
 }
 
@@ -278,13 +279,13 @@ void Application::run() {
 
     // Transfer GL context to render thread.
     auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
-    opengl::renderer::Context::release(glfwWin);
+    graphics->release(glfwWin);
 
     // Render thread acquires GL context on first wake.
     bool renderContextAcquired = false;
     renderThread.start([this, glfwWin, &renderContextAcquired] {
         if (!renderContextAcquired) {
-            opengl::renderer::Context::makeCurrent(glfwWin);
+            graphics->makeCurrent(glfwWin);
             renderContextAcquired = true;
         }
 
@@ -356,7 +357,7 @@ void Application::run() {
         glfwPollEvents();
 
         // Apply any deferred resolution change requested by a render-thread
-        // layer. Must be done on main thread.
+        // layer. Must be done on the main thread.
         if (pendingResolution.load(std::memory_order_acquire)) {
             const uint32_t w =
                 pendingResolutionW.load(std::memory_order_relaxed);
@@ -427,7 +428,7 @@ void Application::run() {
     updateThreads[1].stop();
 
     // Reclaim GL context for shutdown.
-    opengl::renderer::Context::makeCurrent(glfwWin);
+    graphics->makeCurrent(glfwWin);
 
     SPONGE_CORE_INFO("Shutting down");
     shutdown();

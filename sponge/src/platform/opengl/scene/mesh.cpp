@@ -1,7 +1,6 @@
 #include "platform/opengl/scene/mesh.hpp"
 
 #include "debug/profiler.hpp"
-#include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <cstddef>
@@ -17,6 +16,7 @@ inline constexpr std::string_view texCoord = "texCoord";
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
+using renderer::Shader;
 using sponge::scene::Vertex;
 
 uint32_t Mesh::meshProgramId = 0;
@@ -83,7 +83,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     vao->unbind();
 }
 
-void Mesh::render(const std::shared_ptr<renderer::Shader>& shader) const {
+void Mesh::render(const std::shared_ptr<Shader>& shader) const {
     SPONGE_PROFILE;
 
     vao->bind();

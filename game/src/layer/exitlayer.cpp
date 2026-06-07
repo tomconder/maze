@@ -289,7 +289,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     return isRunning;
 }
 
-bool ExitLayer::onWindowResize(const WindowResizeEvent& event) const {
+bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
     orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
 
     const auto [width, height] =
@@ -337,7 +337,7 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     return true;
 }
 
-bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) const {
+bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     auto updateHover = [&pos](ui::Button* button) {

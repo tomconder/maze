@@ -190,7 +190,7 @@ void MSDFFont::render(const std::string_view text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-void MSDFFont::endPass() {
+void MSDFFont::endPass() const {
     shader->unbind();
     vao->unbind();
 }

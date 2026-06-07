@@ -7,7 +7,6 @@
 #include "input/mousecode.hpp"
 #include "logging/log.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -18,8 +17,8 @@ InputManager* InputManager::instance = nullptr;
 static_assert(+input::InputContext::Menu + 1 == 2,
               "Update bindingMaps array size to match InputContext values");
 
-void InputManager::onAttach(GLFWwindow* win) {
-    window = win;
+void InputManager::onAttach(GLFWwindow* window) {
+    this->window = window;
 
     // Scan for already-connected gamepad
     for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; ++jid) {
@@ -79,14 +78,14 @@ void InputManager::recenterCursor() {
     if (!mouseLookActive) {
         return;
     }
-    int w = 0;
-    int h = 0;
-    glfwGetWindowSize(window, &w, &h);
-    const double cx = w / 2.0;
-    const double cy = h / 2.0;
-    glfwSetCursorPos(window, cx, cy);
-    prevCursorX = cx;
-    prevCursorY = cy;
+    int width  = 0;
+    int height = 0;
+    glfwGetWindowSize(window, &width, &height);
+    const double centerX = width / 2.0;
+    const double centerY = height / 2.0;
+    glfwSetCursorPos(window, centerX, centerY);
+    prevCursorX = centerX;
+    prevCursorY = centerY;
 }
 
 void InputManager::joystickCallback(const int jid, const int event) {
@@ -114,24 +113,24 @@ void InputManager::update() {
     mousePrev = mouseDown;
 
     // 2. Poll keyboard and mouse button state
-    for (int k = 0; k <= GLFW_KEY_LAST; ++k) {
-        keyDown[k] = glfwGetKey(window, k) == GLFW_PRESS;
+    for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
+        keyDown[key] = glfwGetKey(window, key) == GLFW_PRESS;
     }
-    for (int b = 0; b <= GLFW_MOUSE_BUTTON_LAST; ++b) {
-        mouseDown[b] = glfwGetMouseButton(window, b) == GLFW_PRESS;
+    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button) {
+        mouseDown[button] = glfwGetMouseButton(window, button) == GLFW_PRESS;
     }
 
     // 3. Poll cursor delta (main thread only)
-    double cx = 0.0;
-    double cy = 0.0;
-    glfwGetCursorPos(window, &cx, &cy);
-    cursorDeltaX = cx - prevCursorX;
-    cursorDeltaY = cy - prevCursorY;
+    double cursorX = 0.0;
+    double cursorY = 0.0;
+    glfwGetCursorPos(window, &cursorX, &cursorY);
+    cursorDeltaX = cursorX - prevCursorX;
+    cursorDeltaY = cursorY - prevCursorY;
 
     recenterCursor();
     if (!mouseLookActive) {
-        prevCursorX = cx;
-        prevCursorY = cy;
+        prevCursorX = cursorX;
+        prevCursorY = cursorY;
     }
 
     // 4. Poll gamepad
@@ -168,22 +167,22 @@ void InputManager::updateActiveDevice() {
     // Start → Escape, D-pad → arrow keys) cannot force-switch the active device
     // while a physical gamepad button or axis is held.
     if (snapshot.gamepadConnected) {
-        for (int i = 0; i <= GLFW_GAMEPAD_AXIS_LAST; ++i) {
-            const float val = gamepadStateCurrent.axes[i];
+        for (int axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; ++axis) {
+            const float axisValue = gamepadStateCurrent.axes[axis];
             // Trigger axes rest at -1.0 (released) and travel to +1.0
             // (pressed). Use a midpoint threshold rather than abs() so the
             // resting position does not falsely register as active input.
-            const bool isTrigger = (i == GLFW_GAMEPAD_AXIS_LEFT_TRIGGER ||
-                                    i == GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
+            const bool isTrigger = (axis == GLFW_GAMEPAD_AXIS_LEFT_TRIGGER ||
+                                    axis == GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER);
             const bool axisActive =
-                isTrigger ? (val > -0.5f) : (std::abs(val) > 0.1f);
+                isTrigger ? (axisValue > -0.5f) : (std::abs(axisValue) > 0.1f);
             if (axisActive) {
                 snapshot.activeDevice = input::ActiveDevice::Gamepad;
                 return;
             }
         }
-        for (int i = 0; i <= GLFW_GAMEPAD_BUTTON_LAST; ++i) {
-            if (gamepadStateCurrent.buttons[i] == GLFW_PRESS) {
+        for (int button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; ++button) {
+            if (gamepadStateCurrent.buttons[button] == GLFW_PRESS) {
                 snapshot.activeDevice = input::ActiveDevice::Gamepad;
                 return;
             }
@@ -207,14 +206,14 @@ void InputManager::updateActiveDevice() {
         snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
     }
 
-    for (int k = 0; k <= GLFW_KEY_LAST; ++k) {
-        if (keyDown[k]) {
+    for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
+        if (keyDown[key]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
         }
     }
-    for (int b = 0; b <= GLFW_MOUSE_BUTTON_LAST; ++b) {
-        if (mouseDown[b]) {
+    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button) {
+        if (mouseDown[button]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
         }
@@ -228,13 +227,14 @@ void InputManager::resolveActions() {
     using input::BindingType;
     using input::GameAction;
 
-    const auto& bm = bindingMaps[static_cast<uint8_t>(activeContext())];
+    const auto& bindingMap = bindingMaps[static_cast<uint8_t>(activeContext())];
     snapshot.active.fill(false);
     snapshot.held.fill(false);
     snapshot.axis.fill(0.f);
 
-    for (int i = 0; i < +GameAction::Count; ++i) {
-        for (const auto& b : bm[i]) {
+    for (int action = 0; action < +GameAction::Count; ++action) {
+        for (const auto& [type, rawCode, axisScale, deadzone] :
+             bindingMap[action]) {
             bool  newHeld   = false;
             bool  newActive = false;
             float newAxis   = 0.f;
@@ -242,74 +242,80 @@ void InputManager::resolveActions() {
             const bool gamepadActive =
                 snapshot.activeDevice == input::ActiveDevice::Gamepad;
 
-            switch (b.type) {
+            switch (type) {
                 case BindingType::Key: {
                     // Suppress keyboard bindings when gamepad is active to
                     // prevent D-pad ghost-firing arrow key events (driver-level
                     // aliasing).
                     if (gamepadActive)
                         break;
-                    const int k = b.rawCode;
-                    if (k > 0 && k <= GLFW_KEY_LAST) {
-                        newHeld   = keyDown[k];
-                        newActive = keyDown[k] && !keyPrev[k];
-                        newAxis   = newHeld ? b.axisScale : 0.f;
+                    const int key = rawCode;
+                    if (key > 0 && key <= GLFW_KEY_LAST) {
+                        newHeld   = keyDown[key];
+                        newActive = keyDown[key] && !keyPrev[key];
+                        newAxis   = newHeld ? axisScale : 0.f;
                     }
                     break;
                 }
                 case BindingType::MouseButton: {
                     if (gamepadActive)
                         break;
-                    const int mb = b.rawCode;
-                    if (mb >= 0 && mb <= GLFW_MOUSE_BUTTON_LAST) {
-                        newHeld   = mouseDown[mb];
-                        newActive = mouseDown[mb] && !mousePrev[mb];
-                        newAxis   = newHeld ? b.axisScale : 0.f;
+                    const int mouseButton = rawCode;
+                    if (mouseButton >= 0 &&
+                        mouseButton <= GLFW_MOUSE_BUTTON_LAST) {
+                        newHeld = mouseDown[mouseButton];
+                        newActive =
+                            mouseDown[mouseButton] && !mousePrev[mouseButton];
+                        newAxis = newHeld ? axisScale : 0.f;
                     }
                     break;
                 }
                 case BindingType::MouseAxisX: {
                     if (gamepadActive)
                         break;
-                    newAxis   = static_cast<float>(cursorDeltaX) * b.axisScale;
-                    newHeld   = std::abs(newAxis) > b.deadzone;
+                    newAxis   = static_cast<float>(cursorDeltaX) * axisScale;
+                    newHeld   = std::abs(newAxis) > deadzone;
                     newActive = newHeld;
                     break;
                 }
                 case BindingType::MouseAxisY: {
                     if (gamepadActive)
                         break;
-                    newAxis   = static_cast<float>(cursorDeltaY) * b.axisScale;
-                    newHeld   = std::abs(newAxis) > b.deadzone;
+                    newAxis   = static_cast<float>(cursorDeltaY) * axisScale;
+                    newHeld   = std::abs(newAxis) > deadzone;
                     newActive = newHeld;
                     break;
                 }
                 case BindingType::GamepadButton: {
                     if (snapshot.gamepadConnected) {
-                        const int gb = b.rawCode;
-                        if (gb >= 0 && gb <= GLFW_GAMEPAD_BUTTON_LAST) {
+                        const int gamepadButton = rawCode;
+                        if (gamepadButton >= 0 &&
+                            gamepadButton <= GLFW_GAMEPAD_BUTTON_LAST) {
                             newHeld =
-                                gamepadStateCurrent.buttons[gb] == GLFW_PRESS;
+                                gamepadStateCurrent.buttons[gamepadButton] ==
+                                GLFW_PRESS;
                             newActive =
                                 newHeld &&
-                                gamepadStatePrev.buttons[gb] != GLFW_PRESS;
-                            newAxis = newHeld ? b.axisScale : 0.f;
+                                gamepadStatePrev.buttons[gamepadButton] !=
+                                    GLFW_PRESS;
+                            newAxis = newHeld ? axisScale : 0.f;
                         }
                     }
                     break;
                 }
                 case BindingType::GamepadAxis: {
                     if (snapshot.gamepadConnected) {
-                        const int ga = b.rawCode;
-                        if (ga >= 0 && ga <= GLFW_GAMEPAD_AXIS_LAST) {
-                            float raw =
-                                gamepadStateCurrent.axes[ga] * b.axisScale;
-                            if (std::abs(raw) < b.deadzone) {
+                        const int gamepadAxis = rawCode;
+                        if (gamepadAxis >= 0 &&
+                            gamepadAxis <= GLFW_GAMEPAD_AXIS_LAST) {
+                            float raw = gamepadStateCurrent.axes[gamepadAxis] *
+                                        axisScale;
+                            if (std::abs(raw) < deadzone) {
                                 raw = 0.f;
                             }
                             float rawPrev =
-                                gamepadStatePrev.axes[ga] * b.axisScale;
-                            if (std::abs(rawPrev) < b.deadzone) {
+                                gamepadStatePrev.axes[gamepadAxis] * axisScale;
+                            if (std::abs(rawPrev) < deadzone) {
                                 rawPrev = 0.f;
                             }
                             newAxis   = raw;
@@ -321,11 +327,11 @@ void InputManager::resolveActions() {
                 }
             }
 
-            snapshot.held[i]   = snapshot.held[i] || newHeld;
-            snapshot.active[i] = snapshot.active[i] || newActive;
+            snapshot.held[action]   = snapshot.held[action] || newHeld;
+            snapshot.active[action] = snapshot.active[action] || newActive;
             // Highest-magnitude binding wins
-            if (std::abs(newAxis) > std::abs(snapshot.axis[i])) {
-                snapshot.axis[i] = newAxis;
+            if (std::abs(newAxis) > std::abs(snapshot.axis[action])) {
+                snapshot.axis[action] = newAxis;
             }
         }
     }
