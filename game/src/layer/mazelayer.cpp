@@ -353,7 +353,7 @@ std::shared_ptr<scene::GameCamera> MazeLayer::getCamera() const {
     return camera;
 }
 
-bool MazeLayer::getDirectionalLightCastsShadow() {
+bool MazeLayer::getDirectionalLightCastsShadow() const {
     return directionalLight.castShadow;
 }
 
@@ -367,7 +367,7 @@ void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
     shader->unbind();
 }
 
-glm::vec3 MazeLayer::getDirectionalLightColor() {
+glm::vec3 MazeLayer::getDirectionalLightColor() const {
     return directionalLight.color;
 }
 
@@ -380,7 +380,7 @@ void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     shader->unbind();
 }
 
-glm::vec3 MazeLayer::getDirectionalLightDirection() {
+glm::vec3 MazeLayer::getDirectionalLightDirection() const {
     return directionalLight.direction;
 }
 
@@ -393,7 +393,7 @@ void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     shader->unbind();
 }
 
-bool MazeLayer::getDirectionalLightEnabled() {
+bool MazeLayer::getDirectionalLightEnabled() const {
     return directionalLight.enabled;
 }
 
@@ -406,7 +406,7 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
     shader->unbind();
 }
 
-float MazeLayer::getDirectionalLightShadowBias() {
+float MazeLayer::getDirectionalLightShadowBias() const {
     return directionalLight.shadowBias;
 }
 
@@ -420,7 +420,7 @@ void MazeLayer::setDirectionalLightShadowBias(const float value) {
     shader->unbind();
 }
 
-uint32_t MazeLayer::getDirectionalLightShadowMapRes() {
+uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
     return directionalLight.shadowMapRes;
 }
 

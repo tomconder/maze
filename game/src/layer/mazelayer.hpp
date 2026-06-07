@@ -59,27 +59,27 @@ public:
 
     std::shared_ptr<scene::GameCamera> getCamera() const;
 
-    static bool getDirectionalLightCastsShadow();
+    bool getDirectionalLightCastsShadow() const;
 
-    static void setDirectionalLightCastsShadow(bool value);
+    void setDirectionalLightCastsShadow(bool value);
 
-    static glm::vec3 getDirectionalLightColor();
+    glm::vec3 getDirectionalLightColor() const;
 
-    static void setDirectionalLightColor(const glm::vec3& color);
+    void setDirectionalLightColor(const glm::vec3& color);
 
-    static glm::vec3 getDirectionalLightDirection();
+    glm::vec3 getDirectionalLightDirection() const;
 
-    static void setDirectionalLightDirection(const glm::vec3& direction);
+    void setDirectionalLightDirection(const glm::vec3& direction);
 
-    static bool getDirectionalLightEnabled();
+    bool getDirectionalLightEnabled() const;
 
-    static void setDirectionalLightEnabled(bool value);
+    void setDirectionalLightEnabled(bool value);
 
-    static float getDirectionalLightShadowBias();
+    float getDirectionalLightShadowBias() const;
 
-    static void setDirectionalLightShadowBias(float value);
+    void setDirectionalLightShadowBias(float value);
 
-    static uint32_t getDirectionalLightShadowMapRes();
+    uint32_t getDirectionalLightShadowMapRes() const;
 
     bool isMetallic() const;
 
