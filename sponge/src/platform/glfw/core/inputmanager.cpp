@@ -18,8 +18,8 @@ InputManager* InputManager::instance = nullptr;
 static_assert(+input::InputContext::Menu + 1 == 2,
               "Update bindingMaps array size to match InputContext values");
 
-void InputManager::onAttach(GLFWwindow* win) {
-    window = win;
+void InputManager::onAttach(GLFWwindow* window) {
+    this->window = window;
 
     // Scan for already-connected gamepad
     for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; ++jid) {
