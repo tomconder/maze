@@ -22,6 +22,8 @@ sponge::core::Timer mainTimer;
 
 namespace sponge::platform::glfw::core {
 using opengl::debug::Diagnostics;
+using opengl::renderer::Context;
+using opengl::renderer::RendererAPI;
 
 Application* Application::instance = nullptr;
 
@@ -59,7 +61,7 @@ bool Application::start() {
 
     fullscreen = appSpec.fullscreen;
 
-    graphics = std::make_unique<opengl::renderer::Context>();
+    graphics = std::make_unique<Context>();
 
     window = std::make_unique<Window>(
         sponge::core::WindowProps{ .title      = appName,
@@ -72,7 +74,7 @@ bool Application::start() {
         return false;
     }
 
-    opengl::renderer::Context::init(glfwWindow);
+    Context::init(glfwWindow);
 
     Diagnostics::log();
 
@@ -81,17 +83,16 @@ bool Application::start() {
 
     setVerticalSync(appSpec.vsync);
 
-    renderer = std::make_unique<opengl::renderer::RendererAPI>();
-    opengl::renderer::RendererAPI::init();
-    opengl::renderer::RendererAPI::setClearColor(
-        glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
+    renderer = std::make_unique<RendererAPI>();
+    RendererAPI::init();
+    RendererAPI::setClearColor(glm::vec4{ 0.36F, 0.36F, 0.36F, 1.0F });
 
     window->setEventCallback([this](event::Event& e) { onEvent(e); });
 
     const auto w = window->getWidth();
     const auto h = window->getHeight();
-    opengl::renderer::RendererAPI::setViewport(0, 0, static_cast<int32_t>(w),
-                                               static_cast<int32_t>(h));
+    RendererAPI::setViewport(0, 0, static_cast<int32_t>(w),
+                             static_cast<int32_t>(h));
 
     if (!onUserCreate()) {
         return false;
@@ -278,13 +279,13 @@ void Application::run() {
 
     // Transfer GL context to render thread.
     auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
-    opengl::renderer::Context::release(glfwWin);
+    Context::release(glfwWin);
 
     // Render thread acquires GL context on first wake.
     bool renderContextAcquired = false;
     renderThread.start([this, glfwWin, &renderContextAcquired] {
         if (!renderContextAcquired) {
-            opengl::renderer::Context::makeCurrent(glfwWin);
+            Context::makeCurrent(glfwWin);
             renderContextAcquired = true;
         }
 
@@ -294,13 +295,13 @@ void Application::run() {
         SPONGE_PROFILE_SECTION("RenderThread:frame");
 
         if (pendingViewport.load(std::memory_order_acquire)) {
-            opengl::renderer::RendererAPI::setViewport(
+            RendererAPI::setViewport(
                 0, 0, pendingViewportW.load(std::memory_order_relaxed),
                 pendingViewportH.load(std::memory_order_relaxed));
             pendingViewport.store(false, std::memory_order_relaxed);
         }
 
-        opengl::renderer::RendererAPI::clear();
+        RendererAPI::clear();
         imguiManager->begin();
 #ifdef ENABLE_IMGUI
         onImGuiRender();
@@ -318,7 +319,7 @@ void Application::run() {
             }
         }
         imguiManager->end();
-        opengl::renderer::Context::flip(window->getNativeWindow());
+        Context::flip(window->getNativeWindow());
     });
 
     // Start the two update worker threads.
@@ -427,7 +428,7 @@ void Application::run() {
     updateThreads[1].stop();
 
     // Reclaim GL context for shutdown.
-    opengl::renderer::Context::makeCurrent(glfwWin);
+    Context::makeCurrent(glfwWin);
 
     SPONGE_CORE_INFO("Shutting down");
     shutdown();
