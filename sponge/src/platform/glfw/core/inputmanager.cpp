@@ -7,7 +7,6 @@
 #include "input/mousecode.hpp"
 #include "logging/log.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 
