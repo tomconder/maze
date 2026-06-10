@@ -45,7 +45,6 @@
 #include "platform/opengl/scene/quad.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/sprite.hpp"
-#include "scene/font.hpp"
 #include "scene/mesh.hpp"
 #include "scene/sprite.hpp"
 
