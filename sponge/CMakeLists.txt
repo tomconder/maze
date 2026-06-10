@@ -31,9 +31,17 @@ list(APPEND HEADER_FILES ${OPENGL_HEADERS})
 file(
         GLOB OPENGL_SOURCES
         LIST_DIRECTORIES false
-        deps/glad2/src/gl.c deps/stb/stb_image.cpp src/platform/opengl/debug/*.cpp
+        deps/glad2/src/gl.c src/platform/opengl/debug/*.cpp
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
+
+# stb
+message(STATUS "Including stb files")
+file(
+        GLOB STB_SOURCES
+        LIST_DIRECTORIES false
+        deps/stb/stb_image.cpp deps/stb/stb_rect_pack.cpp)
+list(APPEND SOURCE_FILES ${STB_SOURCES})
 
 # glfw
 message(STATUS "Including glfw platform files")
