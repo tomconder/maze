@@ -20,6 +20,10 @@
       "version>=": "1.0.3"
     },
     {
+      "name": "harfbuzz",
+      "version>=": "10.4.0"
+    },
+    {
       "name": "imgui",
       "features": [
         "glfw-binding",

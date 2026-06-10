@@ -27,7 +27,7 @@ public:
     explicit BitmapFont(const FontCreateInfo& createInfo);
     ~BitmapFont();
 
-    uint32_t getLength(std::string_view text, uint32_t size) const;
+    uint32_t getLength(std::string_view text, uint32_t size);
     uint32_t getHeight(uint32_t size) const;
     void     beginPass(uint32_t size);
     void     render(std::string_view text, const glm::vec2& position,

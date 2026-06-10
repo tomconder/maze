@@ -83,24 +83,13 @@ uint32_t BitmapFont::getHeight(const uint32_t size) const {
 }
 
 uint32_t BitmapFont::getLength(const std::string_view text,
-                               const uint32_t         size) const {
+                               const uint32_t         size) {
     const auto str =
         text.length() > kMaxLength ? text.substr(0, kMaxLength) : text;
 
-    float    penX = 0.0F;
-    char32_t prev = 0;
-
-    for (const char character : str) {
-        const auto  codepoint = static_cast<char32_t>(character);
-        const auto* glyphInfo = atlas.getGlyph(codepoint, size);
-        if (!glyphInfo) {
-            continue;
-        }
-        if (prev != 0) {
-            penX += atlas.getKerning(prev, codepoint, size);
-        }
-        penX += glyphInfo->advanceX;
-        prev = codepoint;
+    float penX = 0.0F;
+    for (const auto& shapedGlyph : atlas.shape(str, size)) {
+        penX += shapedGlyph.xAdvance;
     }
 
     return static_cast<uint32_t>(penX);
@@ -124,24 +113,16 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
 
     const float ascender   = atlas.getAscender(passTargetSize);
     float       penX       = position.x;
-    char32_t    prev       = 0;
     uint32_t    glyphCount = 0;
+    const auto  shaped     = atlas.shape(str, passTargetSize);
 
-    for (const char character : str) {
-        const auto  codepoint = static_cast<char32_t>(character);
-        const auto* glyphInfo = atlas.getGlyph(codepoint, passTargetSize);
-        if (!glyphInfo) {
-            continue;
-        }
-
-        if (prev != 0) {
-            penX += atlas.getKerning(prev, codepoint, passTargetSize);
-        }
-
-        if (glyphInfo->width > 0 && glyphInfo->height > 0) {
-            const float xpos = penX + static_cast<float>(glyphInfo->bearingX);
-            const float ypos =
-                position.y + ascender - static_cast<float>(glyphInfo->bearingY);
+    for (const auto& shapedGlyph : shaped) {
+        const sponge::scene::GlyphInfo* glyphInfo = shapedGlyph.glyphInfo;
+        if (glyphInfo && glyphInfo->width > 0 && glyphInfo->height > 0) {
+            const float xpos = penX + shapedGlyph.xOffset +
+                               static_cast<float>(glyphInfo->bearingX);
+            const float ypos = position.y - shapedGlyph.yOffset + ascender -
+                               static_cast<float>(glyphInfo->bearingY);
             const float glyphWidth  = static_cast<float>(glyphInfo->width);
             const float glyphHeight = static_cast<float>(glyphInfo->height);
 
@@ -176,8 +157,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             glyphCount++;
         }
 
-        penX += glyphInfo->advanceX;
-        prev = codepoint;
+        penX += shapedGlyph.xAdvance;
     }
 
     if (glyphCount == 0) {

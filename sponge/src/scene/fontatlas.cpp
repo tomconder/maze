@@ -2,9 +2,6 @@
 
 #include "logging/log.hpp"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <stb_rect_pack.h>
 
 #include <algorithm>
@@ -19,20 +16,35 @@ constexpr char32_t kFirstGlyph = 32;
 constexpr char32_t kLastGlyph  = 126;
 }  // namespace
 
+FontAtlas::~FontAtlas() {
+    for (auto& [size, hbFont] : hbFonts) {
+        hb_font_destroy(hbFont);
+    }
+    if (ftFace != nullptr) {
+        FT_Done_Face(ftFace);
+    }
+    if (ftLibrary != nullptr) {
+        FT_Done_FreeType(ftLibrary);
+    }
+}
+
 void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
                       const std::vector<uint32_t>&     sizes) {
     assert(textureWidth == 0 && "FontAtlas::build() called more than once");
-    FT_Library library = nullptr;
-    if (FT_Init_FreeType(&library) != 0) {
+
+    if (FT_Init_FreeType(&ftLibrary) != 0) {
         SPONGE_CORE_ERROR("FreeType init failed");
         return;
     }
-    struct LibraryGuard {
-        FT_Library& lib;
-        ~LibraryGuard() {
-            FT_Done_FreeType(lib);
-        }
-    } libraryGuard{ library };
+
+    if (faces.empty()) {
+        return;
+    }
+
+    if (FT_New_Face(ftLibrary, faces[0].path.c_str(), 0, &ftFace) != 0) {
+        SPONGE_CORE_ERROR("Failed to load font: {}", faces[0].path);
+        return;
+    }
 
     struct PendingGlyph {
         char32_t             codepoint;
@@ -47,85 +59,57 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
     std::vector<PendingGlyph> pending;
     std::vector<stbrp_rect>   rects;
 
-    for (const auto& faceSpec : faces) {
-        FT_Face face = nullptr;
-        if (FT_New_Face(library, faceSpec.path.c_str(), 0, &face) != 0) {
-            SPONGE_CORE_ERROR("Failed to load font: {}", faceSpec.path);
-            continue;
-        }
+    for (const uint32_t size : sizes) {
+        FT_Set_Pixel_Sizes(ftFace, 0, size);
 
-        for (const uint32_t size : sizes) {
-            FT_Set_Pixel_Sizes(face, 0, size);
+        lineHeights[size] =
+            static_cast<float>(ftFace->size->metrics.height >> 6);
+        ascenders[size] =
+            static_cast<float>(ftFace->size->metrics.ascender >> 6);
 
-            lineHeights[size] =
-                static_cast<float>(face->size->metrics.height >> 6);
-            ascenders[size] =
-                static_cast<float>(face->size->metrics.ascender >> 6);
-
-            for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
-                 codepoint++) {
-                if (FT_Load_Char(face, codepoint, FT_LOAD_RENDER) != 0) {
-                    continue;
-                }
-
-                const FT_GlyphSlot glyphSlot = face->glyph;
-                const int          bitmapWidth =
-                    static_cast<int>(glyphSlot->bitmap.width);
-                const int bitmapHeight =
-                    static_cast<int>(glyphSlot->bitmap.rows);
-
-                GlyphInfo glyphInfo{};
-                glyphInfo.bearingX = glyphSlot->bitmap_left;
-                glyphInfo.bearingY = glyphSlot->bitmap_top;
-                glyphInfo.width    = bitmapWidth;
-                glyphInfo.height   = bitmapHeight;
-                glyphInfo.advanceX =
-                    static_cast<float>(glyphSlot->advance.x >> 6);
-
-                if (bitmapWidth == 0 || bitmapHeight == 0) {
-                    glyphs[glyphKey(codepoint, size)] = glyphInfo;
-                    continue;
-                }
-
-                PendingGlyph pendingGlyph;
-                pendingGlyph.codepoint    = codepoint;
-                pendingGlyph.size         = size;
-                pendingGlyph.glyphInfo    = glyphInfo;
-                pendingGlyph.bitmapWidth  = bitmapWidth;
-                pendingGlyph.bitmapHeight = bitmapHeight;
-                pendingGlyph.bitmap.assign(glyphSlot->bitmap.buffer,
-                                           glyphSlot->bitmap.buffer +
-                                               bitmapWidth * bitmapHeight);
-                pendingGlyph.rectIdx = static_cast<int>(rects.size());
-                pending.push_back(std::move(pendingGlyph));
-
-                stbrp_rect rect{};
-                rect.id = pending.back().rectIdx;
-                rect.w  = static_cast<stbrp_coord>(bitmapWidth + 1);
-                rect.h  = static_cast<stbrp_coord>(bitmapHeight + 1);
-                rects.push_back(rect);
+        for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
+             codepoint++) {
+            if (FT_Load_Char(ftFace, codepoint, FT_LOAD_RENDER) != 0) {
+                continue;
             }
 
-            // Pre-cache kerning for all ASCII pairs at this size
-            for (char32_t leftChar = kFirstGlyph; leftChar <= kLastGlyph;
-                 leftChar++) {
-                const FT_UInt leftIndex = FT_Get_Char_Index(face, leftChar);
-                for (char32_t rightChar = kFirstGlyph; rightChar <= kLastGlyph;
-                     rightChar++) {
-                    const FT_UInt rightIndex =
-                        FT_Get_Char_Index(face, rightChar);
-                    FT_Vector kern{};
-                    if (FT_Get_Kerning(face, leftIndex, rightIndex,
-                                       FT_KERNING_DEFAULT, &kern) == 0 &&
-                        kern.x != 0) {
-                        kerningMap[kerningKey(leftChar, rightChar, size)] =
-                            static_cast<float>(kern.x >> 6);
-                    }
-                }
+            const FT_GlyphSlot glyphSlot = ftFace->glyph;
+            const int bitmapWidth  = static_cast<int>(glyphSlot->bitmap.width);
+            const int bitmapHeight = static_cast<int>(glyphSlot->bitmap.rows);
+
+            GlyphInfo glyphInfo{};
+            glyphInfo.bearingX = glyphSlot->bitmap_left;
+            glyphInfo.bearingY = glyphSlot->bitmap_top;
+            glyphInfo.width    = bitmapWidth;
+            glyphInfo.height   = bitmapHeight;
+            glyphInfo.advanceX = static_cast<float>(glyphSlot->advance.x >> 6);
+
+            if (bitmapWidth == 0 || bitmapHeight == 0) {
+                glyphs[glyphKey(codepoint, size)] = glyphInfo;
+                continue;
             }
+
+            PendingGlyph pendingGlyph;
+            pendingGlyph.codepoint    = codepoint;
+            pendingGlyph.size         = size;
+            pendingGlyph.glyphInfo    = glyphInfo;
+            pendingGlyph.bitmapWidth  = bitmapWidth;
+            pendingGlyph.bitmapHeight = bitmapHeight;
+            pendingGlyph.bitmap.assign(glyphSlot->bitmap.buffer,
+                                       glyphSlot->bitmap.buffer +
+                                           bitmapWidth * bitmapHeight);
+            pendingGlyph.rectIdx = static_cast<int>(rects.size());
+            pending.push_back(std::move(pendingGlyph));
+
+            stbrp_rect rect{};
+            rect.id = pending.back().rectIdx;
+            rect.w  = static_cast<stbrp_coord>(bitmapWidth + 1);
+            rect.h  = static_cast<stbrp_coord>(bitmapHeight + 1);
+            rects.push_back(rect);
         }
 
-        FT_Done_Face(face);
+        hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
+        hbFonts[size]     = hbFont;
     }
 
     textureWidth  = kAtlasSize;
@@ -174,16 +158,62 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
     }
 }
 
+std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
+                                          const uint32_t         size) {
+    std::vector<ShapedGlyph> result;
+
+    const auto fontIter = hbFonts.find(size);
+    if (fontIter == hbFonts.end()) {
+        return result;
+    }
+
+    hb_font_t* hbFont = fontIter->second;
+    FT_Set_Pixel_Sizes(ftFace, 0, size);
+    hb_ft_font_changed(hbFont);
+
+    hb_buffer_t* buffer = hb_buffer_create();
+    hb_buffer_add_utf8(buffer, text.data(), static_cast<int>(text.size()), 0,
+                       static_cast<int>(text.size()));
+    hb_buffer_guess_segment_properties(buffer);
+
+    const hb_feature_t features[] = {
+        { HB_TAG('t', 'n', 'u', 'm'), 1, 0, UINT_MAX },
+        { HB_TAG('k', 'e', 'r', 'n'), 1, 0, UINT_MAX },
+        { HB_TAG('l', 'i', 'g', 'a'), 0, 0, UINT_MAX },
+        { HB_TAG('c', 'l', 'i', 'g'), 0, 0, UINT_MAX },
+    };
+    hb_shape(hbFont, buffer, features, 4);
+
+    unsigned int     glyphCount = 0;
+    hb_glyph_info_t* glyphInfos =
+        hb_buffer_get_glyph_infos(buffer, &glyphCount);
+    hb_glyph_position_t* positions =
+        hb_buffer_get_glyph_positions(buffer, &glyphCount);
+
+    result.reserve(glyphCount);
+    for (unsigned int index = 0; index < glyphCount; index++) {
+        const uint32_t cluster   = glyphInfos[index].cluster;
+        const char32_t codepoint = static_cast<unsigned char>(text[cluster]);
+
+        ShapedGlyph shapedGlyph{};
+        shapedGlyph.glyphInfo = getGlyph(codepoint, size);
+        shapedGlyph.xAdvance =
+            static_cast<float>(positions[index].x_advance) / 64.0F;
+        shapedGlyph.xOffset =
+            static_cast<float>(positions[index].x_offset) / 64.0F;
+        shapedGlyph.yOffset =
+            static_cast<float>(positions[index].y_offset) / 64.0F;
+        result.push_back(shapedGlyph);
+    }
+
+    hb_buffer_destroy(buffer);
+    return result;
+}
+
 const GlyphInfo* FontAtlas::getGlyph(const char32_t codepoint,
                                      const uint32_t size) const {
     const auto iter = glyphs.find(glyphKey(codepoint, size));
     return iter != glyphs.end() ? &iter->second : nullptr;
-}
-
-float FontAtlas::getKerning(const char32_t left, const char32_t right,
-                            const uint32_t size) const {
-    const auto iter = kerningMap.find(kerningKey(left, right, size));
-    return iter != kerningMap.end() ? iter->second : 0.0F;
 }
 
 float FontAtlas::getLineHeight(const uint32_t size) const {
