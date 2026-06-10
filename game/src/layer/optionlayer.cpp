@@ -202,7 +202,7 @@ void OptionLayer::onAttach() {
             maxCycleValueWidth, [&](const float acc, const auto& res) {
                 return std::max(
                     acc, static_cast<float>(font->getLength(
-                             fmt::format("{} x {}", res.width, res.height),
+                             fmt::format("{} × {}", res.width, res.height),
                              fontSize)));
             });
     }
@@ -676,14 +676,14 @@ void OptionLayer::filterResolutions() {
 
     if (filteredResolutions.empty()) {
         resolutionList->setItems(
-            { fmt::format("{} x {}", currentWidth, currentHeight) });
+            { fmt::format("{} × {}", currentWidth, currentHeight) });
         resolutionList->setSelectedIndex(0);
     } else {
         std::vector<std::string> resItems;
         resItems.reserve(filteredResolutions.size());
         for (const auto& res : filteredResolutions) {
             resItems.emplace_back(
-                fmt::format("{} x {}", res.width, res.height));
+                fmt::format("{} × {}", res.width, res.height));
         }
         resolutionList->setItems(std::move(resItems));
 

@@ -5,6 +5,7 @@
 #include <stb_rect_pack.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <vector>
 
@@ -14,6 +15,10 @@ namespace {
 constexpr uint32_t kAtlasSize  = 512;
 constexpr char32_t kFirstGlyph = 32;
 constexpr char32_t kLastGlyph  = 126;
+
+constexpr std::array<char32_t, 1> kSupplementalGlyphs = {
+    0xD7,  // × MULTIPLICATION SIGN
+};
 }  // namespace
 
 FontAtlas::~FontAtlas() {
@@ -67,10 +72,9 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         ascenders[size] =
             static_cast<float>(ftFace->size->metrics.ascender >> 6);
 
-        for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
-             codepoint++) {
+        auto rasterizeGlyph = [&](const char32_t codepoint) {
             if (FT_Load_Char(ftFace, codepoint, FT_LOAD_RENDER) != 0) {
-                continue;
+                return;
             }
 
             const FT_GlyphSlot glyphSlot = ftFace->glyph;
@@ -86,7 +90,7 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
 
             if (bitmapWidth == 0 || bitmapHeight == 0) {
                 glyphs[glyphKey(codepoint, size)] = glyphInfo;
-                continue;
+                return;
             }
 
             PendingGlyph pendingGlyph;
@@ -106,6 +110,14 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             rect.w  = static_cast<stbrp_coord>(bitmapWidth + 1);
             rect.h  = static_cast<stbrp_coord>(bitmapHeight + 1);
             rects.push_back(rect);
+        };
+
+        for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
+             codepoint++) {
+            rasterizeGlyph(codepoint);
+        }
+        for (const char32_t codepoint : kSupplementalGlyphs) {
+            rasterizeGlyph(codepoint);
         }
 
         hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
@@ -192,8 +204,17 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
 
     result.reserve(glyphCount);
     for (unsigned int index = 0; index < glyphCount; index++) {
-        const uint32_t cluster   = glyphInfos[index].cluster;
-        const char32_t codepoint = static_cast<unsigned char>(text[cluster]);
+        const uint32_t      cluster = glyphInfos[index].cluster;
+        const unsigned char byte0   = static_cast<unsigned char>(text[cluster]);
+        char32_t            codepoint;
+        if (byte0 < 0x80) {
+            codepoint = byte0;
+        } else if (byte0 < 0xE0) {
+            codepoint = static_cast<char32_t>((byte0 & 0x1Fu) << 6u) |
+                        (static_cast<unsigned char>(text[cluster + 1]) & 0x3Fu);
+        } else {
+            codepoint = byte0;
+        }
 
         ShapedGlyph shapedGlyph{};
         shapedGlyph.glyphInfo = getGlyph(codepoint, size);
