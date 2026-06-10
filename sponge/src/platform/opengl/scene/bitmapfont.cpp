@@ -87,23 +87,23 @@ uint32_t BitmapFont::getLength(const std::string_view text,
     const auto str =
         text.length() > kMaxLength ? text.substr(0, kMaxLength) : text;
 
-    float    x    = 0.0F;
+    float    penX = 0.0F;
     char32_t prev = 0;
 
-    for (const char ch : str) {
-        const auto  c  = static_cast<char32_t>(ch);
-        const auto* gi = atlas.getGlyph(c, size);
-        if (!gi) {
+    for (const char character : str) {
+        const auto  codepoint = static_cast<char32_t>(character);
+        const auto* glyphInfo = atlas.getGlyph(codepoint, size);
+        if (!glyphInfo) {
             continue;
         }
         if (prev != 0) {
-            x += atlas.getKerning(prev, c, size);
+            penX += atlas.getKerning(prev, codepoint, size);
         }
-        x += gi->advanceX;
-        prev = c;
+        penX += glyphInfo->advanceX;
+        prev = codepoint;
     }
 
-    return static_cast<uint32_t>(x);
+    return static_cast<uint32_t>(penX);
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
@@ -122,73 +122,75 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const auto str =
         text.length() > kMaxLength ? text.substr(0, kMaxLength) : text;
 
-    const float ascender = atlas.getAscender(passTargetSize);
-    float       x        = position.x;
-    char32_t    prev     = 0;
-    uint32_t    i        = 0;
+    const float ascender   = atlas.getAscender(passTargetSize);
+    float       penX       = position.x;
+    char32_t    prev       = 0;
+    uint32_t    glyphCount = 0;
 
-    for (const char ch : str) {
-        const auto  c  = static_cast<char32_t>(ch);
-        const auto* gi = atlas.getGlyph(c, passTargetSize);
-        if (!gi) {
+    for (const char character : str) {
+        const auto  codepoint = static_cast<char32_t>(character);
+        const auto* glyphInfo = atlas.getGlyph(codepoint, passTargetSize);
+        if (!glyphInfo) {
             continue;
         }
 
         if (prev != 0) {
-            x += atlas.getKerning(prev, c, passTargetSize);
+            penX += atlas.getKerning(prev, codepoint, passTargetSize);
         }
 
-        if (gi->width > 0 && gi->height > 0) {
-            const float xpos = x + static_cast<float>(gi->bearingX);
+        if (glyphInfo->width > 0 && glyphInfo->height > 0) {
+            const float xpos = penX + static_cast<float>(glyphInfo->bearingX);
             const float ypos =
-                position.y + ascender - static_cast<float>(gi->bearingY);
-            const float w = static_cast<float>(gi->width);
-            const float h = static_cast<float>(gi->height);
+                position.y + ascender - static_cast<float>(glyphInfo->bearingY);
+            const float glyphWidth  = static_cast<float>(glyphInfo->width);
+            const float glyphHeight = static_cast<float>(glyphInfo->height);
 
-            const float u0 = gi->u;
-            const float v0 = gi->v;
-            const float u1 = gi->u + gi->uvW;
-            const float v1 = gi->v + gi->uvH;
+            const float uLeft   = glyphInfo->uvLeft;
+            const float vTop    = glyphInfo->uvTop;
+            const float uRight  = glyphInfo->uvLeft + glyphInfo->uvWidth;
+            const float vBottom = glyphInfo->uvTop + glyphInfo->uvHeight;
 
             const std::array<glm::vec2, kVertexCount> vertices{
-                { { xpos, ypos + h },
-                  { u0, v1 },
+                { { xpos, ypos + glyphHeight },
+                  { uLeft, vBottom },
                   { xpos, ypos },
-                  { u0, v0 },
-                  { xpos + w, ypos },
-                  { u1, v0 },
-                  { xpos + w, ypos + h },
-                  { u1, v1 } }
+                  { uLeft, vTop },
+                  { xpos + glyphWidth, ypos },
+                  { uRight, vTop },
+                  { xpos + glyphWidth, ypos + glyphHeight },
+                  { uRight, vBottom } }
             };
 
             std::copy(vertices.begin(), vertices.end(),
                       batchVertices.begin() +
-                          static_cast<ptrdiff_t>(i * kVertexCount));
+                          static_cast<ptrdiff_t>(glyphCount * kVertexCount));
 
             const std::array<uint32_t, kIndexCount> indices = {
-                i * 4, (i * 4) + 2, (i * 4) + 1, i * 4, (i * 4) + 3, (i * 4) + 2
+                glyphCount * 4, (glyphCount * 4) + 2, (glyphCount * 4) + 1,
+                glyphCount * 4, (glyphCount * 4) + 3, (glyphCount * 4) + 2
             };
 
             std::copy(indices.begin(), indices.end(),
                       batchIndices.begin() +
-                          static_cast<ptrdiff_t>(i * kIndexCount));
-            ++i;
+                          static_cast<ptrdiff_t>(glyphCount * kIndexCount));
+            ++glyphCount;
         }
 
-        x += gi->advanceX;
-        prev = c;
+        penX += glyphInfo->advanceX;
+        prev = codepoint;
     }
 
-    if (i == 0) {
+    if (glyphCount == 0) {
         return;
     }
 
     shader->setFloat3("textColor", color);
 
-    vbo->update(batchVertices.data(), i * kVertexCount * sizeof(glm::vec2));
-    ebo->update(batchIndices.data(), i * kIndexCount);
+    vbo->update(batchVertices.data(),
+                glyphCount * kVertexCount * sizeof(glm::vec2));
+    ebo->update(batchIndices.data(), glyphCount * kIndexCount);
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(i * kIndexCount),
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(glyphCount * kIndexCount),
                    GL_UNSIGNED_INT, nullptr);
 }
 
