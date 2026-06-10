@@ -41,9 +41,9 @@ public:
     bool isInsideRight(float mouseX, float x, float w) const;
 
 private:
-    std::shared_ptr<sponge::platform::opengl::scene::MSDFFont> font;
-    uint32_t                                                   fontSize;
-    glm::vec3                                                  textColor;
+    std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
+    uint32_t                                                     fontSize;
+    glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
     float     textMarginLeft;
     float     maxValueWidth;

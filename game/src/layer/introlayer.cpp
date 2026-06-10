@@ -17,8 +17,8 @@ constexpr std::string_view optionsMessage = "Options";
 constexpr std::string_view quitMessage    = "Quit";
 
 constexpr std::string_view cameraName = "intro";
-constexpr std::string_view fontName   = "league-gothic";
-constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
+constexpr std::string_view fontName   = "inter";
+constexpr std::string_view fontPath   = "/fonts/inter.ttf";
 
 constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
@@ -57,12 +57,12 @@ using sponge::event::MouseMovedEvent;
 using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::BitmapFont;
 using sponge::platform::opengl::scene::FontCreateInfo;
-using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
 
 IntroLayer::IntroLayer() : Layer("intro") {
-    fontShaderName = MSDFFont::getShaderName();
+    fontShaderName = BitmapFont::getShaderName();
     quadShaderName = Quad::getShaderName();
 }
 

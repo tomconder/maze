@@ -47,8 +47,8 @@ constexpr std::string_view returnMessage = "Return";
 constexpr std::string_view applyMessage  = "Apply";
 
 constexpr std::string_view cameraName = "intro";
-constexpr std::string_view fontName   = "league-gothic";
-constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
+constexpr std::string_view fontName   = "inter";
+constexpr std::string_view fontPath   = "/fonts/inter.ttf";
 
 constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
 constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
@@ -113,12 +113,12 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::BitmapFont;
 using sponge::platform::opengl::scene::FontCreateInfo;
-using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
 
 OptionLayer::OptionLayer() : Layer("options") {
-    fontShaderName = MSDFFont::getShaderName();
+    fontShaderName = BitmapFont::getShaderName();
     quadShaderName = Quad::getShaderName();
 }
 
@@ -292,7 +292,6 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
         {
-            using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
                 syncPendingCheckboxState();
