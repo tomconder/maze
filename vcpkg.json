@@ -9,7 +9,7 @@
     },
     {
       "name": "freetype",
-      "version>=": "2.13.3"
+      "version>=": "2.14.3"
     },
     {
       "name": "glfw3",
@@ -21,7 +21,7 @@
     },
     {
       "name": "harfbuzz",
-      "version>=": "10.4.0"
+      "version>=": "14.2.1"
     },
     {
       "name": "imgui",
