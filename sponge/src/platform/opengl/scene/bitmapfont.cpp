@@ -173,7 +173,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             std::copy(indices.begin(), indices.end(),
                       batchIndices.begin() +
                           static_cast<ptrdiff_t>(glyphCount * kIndexCount));
-            ++glyphCount;
+            glyphCount++;
         }
 
         penX += glyphInfo->advanceX;

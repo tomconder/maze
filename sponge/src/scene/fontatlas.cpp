@@ -63,7 +63,7 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
                 static_cast<float>(face->size->metrics.ascender >> 6);
 
             for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
-                 ++codepoint) {
+                 codepoint++) {
                 if (FT_Load_Char(face, codepoint, FT_LOAD_RENDER) != 0) {
                     continue;
                 }
@@ -108,10 +108,10 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
 
             // Pre-cache kerning for all ASCII pairs at this size
             for (char32_t leftChar = kFirstGlyph; leftChar <= kLastGlyph;
-                 ++leftChar) {
+                 leftChar++) {
                 const FT_UInt leftIndex = FT_Get_Char_Index(face, leftChar);
                 for (char32_t rightChar = kFirstGlyph; rightChar <= kLastGlyph;
-                     ++rightChar) {
+                     rightChar++) {
                     const FT_UInt rightIndex =
                         FT_Get_Char_Index(face, rightChar);
                     FT_Vector kern{};
@@ -150,7 +150,7 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             continue;
         }
 
-        for (int row = 0; row < pendingGlyph.bitmapHeight; ++row) {
+        for (int row = 0; row < pendingGlyph.bitmapHeight; row++) {
             std::copy(pendingGlyph.bitmap.begin() +
                           row * pendingGlyph.bitmapWidth,
                       pendingGlyph.bitmap.begin() +
