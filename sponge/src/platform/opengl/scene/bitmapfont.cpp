@@ -61,9 +61,9 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8,
                  static_cast<GLsizei>(atlas.atlasWidth()),
-                 static_cast<GLsizei>(atlas.atlasHeight()), 0, GL_RED,
+                 static_cast<GLsizei>(atlas.atlasHeight()), 0, GL_RGB,
                  GL_UNSIGNED_BYTE, atlas.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -102,6 +102,7 @@ void BitmapFont::beginPass(const uint32_t size) {
     shader->bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId);
+    glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
 }
 
 void BitmapFont::render(const std::string_view text, const glm::vec2& position,
@@ -176,6 +177,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
 
 void BitmapFont::endPass() {
     passTargetSize = 0;
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     shader->unbind();
     vao->unbind();
 }

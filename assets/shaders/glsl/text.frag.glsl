@@ -1,6 +1,7 @@
 #version 330 core
 
-out vec4 FragColor;
+layout(location = 0, index = 0) out vec4 fragColor;
+layout(location = 0, index = 1) out vec4 fragCoverage;
 
 in vec2 vTexCoord;
 
@@ -8,6 +9,7 @@ uniform sampler2D text;
 uniform vec3      textColor;
 
 void main() {
-    float coverage = texture(text, vTexCoord).r;
-    FragColor = vec4(textColor, coverage);
+    vec3 coverage  = texture(text, vTexCoord).rgb;
+    fragColor      = vec4(textColor, 1.0);
+    fragCoverage   = vec4(coverage, 1.0);
 }

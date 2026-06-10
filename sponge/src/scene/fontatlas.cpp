@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <vector>
 
 namespace sponge::scene {
@@ -42,6 +43,8 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         return;
     }
 
+    FT_Library_SetLcdFilter(ftLibrary, FT_LCD_FILTER_DEFAULT);
+
     if (faces.empty()) {
         return;
     }
@@ -73,12 +76,15 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             static_cast<float>(ftFace->size->metrics.ascender >> 6);
 
         auto rasterizeGlyph = [&](const char32_t codepoint) {
-            if (FT_Load_Char(ftFace, codepoint, FT_LOAD_RENDER) != 0) {
+            if (FT_Load_Char(ftFace, codepoint,
+                             FT_LOAD_RENDER | FT_LOAD_TARGET_LCD) != 0) {
                 return;
             }
 
             const FT_GlyphSlot glyphSlot = ftFace->glyph;
-            const int bitmapWidth  = static_cast<int>(glyphSlot->bitmap.width);
+            const int lcdWidth     = static_cast<int>(glyphSlot->bitmap.width);
+            const int bitmapPitch  = std::abs(glyphSlot->bitmap.pitch);
+            const int bitmapWidth  = lcdWidth / 3;
             const int bitmapHeight = static_cast<int>(glyphSlot->bitmap.rows);
 
             GlyphInfo glyphInfo{};
@@ -99,9 +105,14 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             pendingGlyph.glyphInfo    = glyphInfo;
             pendingGlyph.bitmapWidth  = bitmapWidth;
             pendingGlyph.bitmapHeight = bitmapHeight;
-            pendingGlyph.bitmap.assign(glyphSlot->bitmap.buffer,
-                                       glyphSlot->bitmap.buffer +
-                                           bitmapWidth * bitmapHeight);
+            pendingGlyph.bitmap.resize(
+                static_cast<size_t>(bitmapWidth * 3 * bitmapHeight));
+            for (int row = 0; row < bitmapHeight; row++) {
+                std::copy(glyphSlot->bitmap.buffer + row * bitmapPitch,
+                          glyphSlot->bitmap.buffer + row * bitmapPitch +
+                              bitmapWidth * 3,
+                          pendingGlyph.bitmap.begin() + row * bitmapWidth * 3);
+            }
             pendingGlyph.rectIdx = static_cast<int>(rects.size());
             pending.push_back(std::move(pendingGlyph));
 
@@ -126,7 +137,7 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
 
     textureWidth  = kAtlasSize;
     textureHeight = kAtlasSize;
-    atlasBuffer.assign(textureWidth * textureHeight, 0);
+    atlasBuffer.assign(textureWidth * textureHeight * 3, 0);
 
     std::vector<stbrp_node> nodes(textureWidth);
     stbrp_context           ctx{};
@@ -148,13 +159,14 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
 
         for (int row = 0; row < pendingGlyph.bitmapHeight; row++) {
             std::copy(pendingGlyph.bitmap.begin() +
-                          row * pendingGlyph.bitmapWidth,
+                          row * pendingGlyph.bitmapWidth * 3,
                       pendingGlyph.bitmap.begin() +
-                          (row + 1) * pendingGlyph.bitmapWidth,
+                          (row + 1) * pendingGlyph.bitmapWidth * 3,
                       atlasBuffer.begin() +
-                          static_cast<ptrdiff_t>(rect.y + row) *
-                              static_cast<ptrdiff_t>(textureWidth) +
-                          rect.x);
+                          (static_cast<ptrdiff_t>(rect.y + row) *
+                               static_cast<ptrdiff_t>(textureWidth) +
+                           rect.x) *
+                              3);
         }
 
         glyphInfo.uvLeft =
