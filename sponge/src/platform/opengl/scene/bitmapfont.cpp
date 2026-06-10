@@ -107,6 +107,7 @@ uint32_t BitmapFont::getLength(const std::string_view text,
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
+    assert(textureId != 0);
     passTargetSize = size;
     vao->bind();
     shader->bind();
@@ -191,7 +192,8 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
                    GL_UNSIGNED_INT, nullptr);
 }
 
-void BitmapFont::endPass() const {
+void BitmapFont::endPass() {
+    passTargetSize = 0;
     shader->unbind();
     vao->unbind();
 }

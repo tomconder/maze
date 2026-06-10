@@ -25,7 +25,7 @@ public:
     void     beginPass(uint32_t size);
     void     render(std::string_view text, const glm::vec2& position,
                     const glm::vec3& color);
-    void     endPass() const;
+    void     endPass();
 
     static std::string_view getShaderName() {
         return shaderName;
