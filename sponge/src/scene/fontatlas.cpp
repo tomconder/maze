@@ -21,11 +21,18 @@ constexpr char32_t kLastGlyph  = 126;
 
 void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
                       const std::vector<uint32_t>&     sizes) {
+    assert(atlasW == 0 && "FontAtlas::build() called more than once");
     FT_Library library = nullptr;
     if (FT_Init_FreeType(&library) != 0) {
         SPONGE_CORE_ERROR("FreeType init failed");
         return;
     }
+    struct LibraryGuard {
+        FT_Library& lib;
+        ~LibraryGuard() {
+            FT_Done_FreeType(lib);
+        }
+    } libraryGuard{ library };
 
     struct PendingGlyph {
         char32_t             c;
@@ -112,8 +119,6 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         FT_Done_Face(face);
     }
 
-    FT_Done_FreeType(library);
-
     atlasW = kAtlasSize;
     atlasH = kAtlasSize;
     atlasBuffer.assign(atlasW * atlasH, 0);
@@ -131,7 +136,6 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         if (!rect.was_packed) {
             SPONGE_CORE_WARN("Glyph 0x{:x} size {} did not fit in atlas",
                              static_cast<uint32_t>(pg.c), pg.size);
-            glyphs[glyphKey(pg.c, pg.size)] = gi;
             continue;
         }
 
@@ -139,7 +143,9 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             std::copy(pg.bitmap.begin() + row * pg.bitmapW,
                       pg.bitmap.begin() + (row + 1) * pg.bitmapW,
                       atlasBuffer.begin() +
-                          (rect.y + row) * static_cast<int>(atlasW) + rect.x);
+                          static_cast<ptrdiff_t>(rect.y + row) *
+                              static_cast<ptrdiff_t>(atlasW) +
+                          rect.x);
         }
 
         gi.u   = static_cast<float>(rect.x) / static_cast<float>(atlasW);

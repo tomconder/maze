@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -8,7 +9,8 @@
 namespace sponge::scene {
 
 struct GlyphInfo {
-    float u, v;  // top-left UV in atlas (0..1), row-0-at-bottom GL convention
+    float u, v;  // top-left UV in atlas (0..1), texture-space origin (row 0 =
+                 // top of buffer)
     float uvW, uvH;  // UV extent
     int bearingX;  // horizontal bearing in pixels (pen to left edge of bitmap)
     int bearingY;  // vertical bearing in pixels (baseline to top of bitmap)
@@ -47,6 +49,8 @@ private:
     }
     static uint64_t kerningKey(const char32_t left, const char32_t right,
                                const uint32_t size) {
+        assert(left <= 0xFFFF && right <= 0xFFFF &&
+               "kerningKey: codepoints must fit in 16 bits");
         return (static_cast<uint64_t>(size) << 32) |
                (static_cast<uint64_t>(left) << 16) |
                static_cast<uint64_t>(right);
