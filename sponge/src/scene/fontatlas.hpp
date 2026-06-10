@@ -10,8 +10,8 @@
 // clang-format off
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <hb.h>
-#include <hb-ft.h>
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-ft.h>
 // clang-format on
 
 namespace sponge::scene {
