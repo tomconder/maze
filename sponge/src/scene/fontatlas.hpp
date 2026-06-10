@@ -7,11 +7,12 @@
 #include <unordered_map>
 #include <vector>
 
+// clang-format off
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-#include <hb-ft.h>
 #include <hb.h>
+#include <hb-ft.h>
+// clang-format on
 
 namespace sponge::scene {
 
