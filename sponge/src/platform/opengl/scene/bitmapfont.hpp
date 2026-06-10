@@ -1,19 +1,26 @@
 #pragma once
 
+#include "core/file.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
-#include "platform/opengl/scene/msdffont.hpp"
 #include "scene/fontatlas.hpp"
 
 #include <glm/glm.hpp>
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 
 namespace sponge::platform::opengl::scene {
+
+struct FontCreateInfo {
+    std::string name;
+    std::string path;
+    std::string assetsFolder = core::File::getResourceDir();
+};
 
 class BitmapFont {
 public:

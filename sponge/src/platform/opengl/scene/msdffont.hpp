@@ -5,6 +5,7 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "platform/opengl/scene/bitmapfont.hpp"
 #include "scene/font.hpp"
 
 #include <glm/glm.hpp>
@@ -14,11 +15,6 @@
 #include <string_view>
 
 namespace sponge::platform::opengl::scene {
-struct FontCreateInfo {
-    std::string name;
-    std::string path;
-    std::string assetsFolder = core::File::getResourceDir();
-};
 
 class MSDFFont : public sponge::scene::Font {
 public:
