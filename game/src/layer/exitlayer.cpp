@@ -18,8 +18,8 @@ constexpr std::string_view returnToMenuMessage = "Return to Menu";
 constexpr std::string_view exitMessage         = "Exit the Game";
 
 constexpr std::string_view cameraName = "exit";
-constexpr std::string_view fontName   = "league-gothic";
-constexpr std::string_view fontPath   = "/fonts/league-gothic.fnt";
+constexpr std::string_view fontName   = "inter";
+constexpr std::string_view fontPath   = "/fonts/inter.ttf";
 
 constexpr glm::vec4 buttonColor    = { 0.05F, 0.05F, 0.05F, 1.F };
 constexpr glm::vec4 hoverColor     = { 0.84F, 0.84F, 0.84F, 0.14F };
@@ -57,12 +57,12 @@ using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::BitmapFont;
 using sponge::platform::opengl::scene::FontCreateInfo;
-using sponge::platform::opengl::scene::MSDFFont;
 using sponge::platform::opengl::scene::Quad;
 
 ExitLayer::ExitLayer() : Layer("exit") {
-    fontShaderName = MSDFFont::getShaderName();
+    fontShaderName = BitmapFont::getShaderName();
     quadShaderName = Quad::getShaderName();
 }
 

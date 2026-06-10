@@ -1,21 +1,15 @@
 #version 330 core
 
-out vec4 FragColor;
+layout(location = 0, index = 0) out vec4 fragColor;
+layout(location = 0, index = 1) out vec4 fragCoverage;
 
 in vec2 vTexCoord;
 
 uniform sampler2D text;
 uniform vec3      textColor;
-uniform float     screenPxRange;
-
-float median(float r, float g, float b) {
-    return max(min(r, g), min(max(r, g), b));
-}
 
 void main() {
-    vec3  msd              = texture(text, vTexCoord).rgb;
-    float sd               = median(msd.r, msd.g, msd.b);
-    float screenPxDistance = screenPxRange * (sd - 0.5);
-    float opacity          = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-    FragColor = vec4(textColor, 1.0) * vec4(1.0, 1.0, 1.0, opacity);
+    vec3 coverage  = texture(text, vTexCoord).rgb;
+    fragColor      = vec4(textColor, 1.0);
+    fragCoverage   = vec4(coverage, 1.0);
 }

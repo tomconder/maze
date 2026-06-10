@@ -8,12 +8,20 @@
       "version>=": "12.1.0"
     },
     {
+      "name": "freetype",
+      "version>=": "2.14.3"
+    },
+    {
       "name": "glfw3",
       "version>=": "3.4"
     },
     {
       "name": "glm",
       "version>=": "1.0.3"
+    },
+    {
+      "name": "harfbuzz",
+      "version>=": "14.2.1"
     },
     {
       "name": "imgui",

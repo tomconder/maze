@@ -3,8 +3,8 @@
 #include "core/stringutils.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/model.hpp"
-#include "platform/opengl/scene/msdffont.hpp"
 
 #include <cassert>
 #include <memory>
@@ -65,7 +65,7 @@ private:
 
 class AssetManager {
 public:
-    ASSET_MANAGER_FUNCS(Font, scene::MSDFFont, scene::FontCreateInfo,
+    ASSET_MANAGER_FUNCS(Font, scene::BitmapFont, scene::FontCreateInfo,
                         fontHandler);
 
     ASSET_MANAGER_FUNCS(Model, scene::Model, scene::ModelCreateInfo,
@@ -78,9 +78,9 @@ public:
 private:
     AssetManager() = default;
 
-    static AssetHandler<Shader, ShaderCreateInfo>               shaderHandler;
-    static AssetHandler<Texture, TextureCreateInfo>             textureHandler;
-    static AssetHandler<scene::MSDFFont, scene::FontCreateInfo> fontHandler;
-    static AssetHandler<scene::Model, scene::ModelCreateInfo>   modelHandler;
+    static AssetHandler<Shader, ShaderCreateInfo>   shaderHandler;
+    static AssetHandler<Texture, TextureCreateInfo> textureHandler;
+    static AssetHandler<scene::BitmapFont, scene::FontCreateInfo> fontHandler;
+    static AssetHandler<scene::Model, scene::ModelCreateInfo>     modelHandler;
 };
 }  // namespace sponge::platform::opengl::renderer
