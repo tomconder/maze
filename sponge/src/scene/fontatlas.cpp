@@ -188,16 +188,12 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
                        static_cast<int>(text.size()));
     hb_buffer_guess_segment_properties(buffer);
 
-    const bool hasDigit =
-        std::any_of(text.begin(), text.end(),
-                    [](const char c) { return c >= '0' && c <= '9'; });
     const hb_feature_t features[] = {
-        { HB_TAG('t', 'n', 'u', 'm'), hasDigit ? 1u : 0u, 0, UINT_MAX },
         { HB_TAG('k', 'e', 'r', 'n'), 1, 0, UINT_MAX },
         { HB_TAG('l', 'i', 'g', 'a'), 0, 0, UINT_MAX },
         { HB_TAG('c', 'l', 'i', 'g'), 0, 0, UINT_MAX },
     };
-    hb_shape(hbFont, buffer, features, 4);
+    hb_shape(hbFont, buffer, features, 3);
 
     unsigned int     glyphCount = 0;
     hb_glyph_info_t* glyphInfos =
