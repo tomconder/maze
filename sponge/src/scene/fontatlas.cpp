@@ -13,7 +13,7 @@
 namespace sponge::scene {
 
 namespace {
-constexpr uint32_t kAtlasSize  = 512;
+constexpr uint32_t kAtlasSize  = 1024;
 constexpr char32_t kFirstGlyph = 32;
 constexpr char32_t kLastGlyph  = 126;
 
