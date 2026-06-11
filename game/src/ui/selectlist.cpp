@@ -33,6 +33,15 @@ void SelectList::setMaxValueWidth(const float width) {
     maxValueWidth = width;
 }
 
+void SelectList::setFontSize(const uint32_t size) {
+    if (fontSize == size) {
+        return;
+    }
+    fontSize = size;
+    leftLen  = static_cast<float>(font->getLength(leftArrow, fontSize));
+    rightLen = static_cast<float>(font->getLength(rightArrow, fontSize));
+}
+
 size_t SelectList::getSelectedIndex() const {
     return selectedIndex;
 }
