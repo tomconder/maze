@@ -222,8 +222,9 @@ void OptionLayer::onAttach() {
     aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
     resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
-    constexpr ui::CheckboxCreateInfo checkboxCreateInfo{ .margin =
-                                                             textMarginLeft };
+    const ui::CheckboxCreateInfo checkboxCreateInfo{
+        .margin = textMarginLeft, .size = static_cast<float>(fontSize)
+    };
     antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
@@ -648,6 +649,11 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         returnButton->setFontSize(fontSize);
         aspectRatioList->setFontSize(fontSize);
         resolutionList->setFontSize(fontSize);
+
+        const auto checkboxSize = static_cast<float>(fontSize);
+        antiAliasingCheckbox->setSize(checkboxSize);
+        fullScreenCheckbox->setSize(checkboxSize);
+        verticalSyncCheckbox->setSize(checkboxSize);
 
         const auto font               = AssetManager::getFont(fontName);
         float      maxCycleValueWidth = std::accumulate(
