@@ -89,11 +89,10 @@ void IntroLayer::onAttach() {
 
     auto makeMenuButton = [fontNameStr](std::string_view message) {
         return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
-            .topLeft     = glm::vec2{ 0.F },
-            .bottomRight = glm::vec2{ 0.F },
-            .message     = std::string(message),
-            .fontSize    = ui::menuFontSizeForWidth(
-                static_cast<uint32_t>(orthoCamera->getWidth())),
+            .topLeft      = glm::vec2{ 0.F },
+            .bottomRight  = glm::vec2{ 0.F },
+            .message      = std::string(message),
+            .fontSize     = ui::menuFontSizeForWidth(orthoCamera->getWidth()),
             .fontName     = fontNameStr,
             .buttonColor  = buttonColor,
             .textColor    = textColor,
