@@ -73,6 +73,15 @@ void Button::setMessage(std::string_view message) {
     setPosition(top, bottom);
 }
 
+void Button::setFontSize(const uint32_t size) {
+    if (textSize == size) {
+        return;
+    }
+    textSize = size;
+    length   = font->getLength(text, textSize);
+    setPosition(top, bottom);
+}
+
 void Button::setPosition(const glm::vec2& topLeft,
                          const glm::vec2& bottomRight) {
     top.x = topLeft.x;

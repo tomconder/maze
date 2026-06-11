@@ -5,6 +5,7 @@
 #include "scene/orthocamera.hpp"
 #include "sponge.hpp"
 #include "ui/button.hpp"
+#include "ui/menufontsize.hpp"
 
 #include <yoga/Yoga.h>
 
@@ -82,7 +83,7 @@ void ExitLayer::onAttach() {
             .topLeft      = glm::vec2{ 0.F },
             .bottomRight  = glm::vec2{ 0.F },
             .message      = std::string(message),
-            .fontSize     = 48,
+            .fontSize     = ui::menuFontSizeForWidth(orthoCamera->getWidth()),
             .fontName     = fontNameStr,
             .buttonColor  = buttonColor,
             .textColor    = textColor,
@@ -296,6 +297,12 @@ bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
         std::pair{ static_cast<float>(event.getWidth()),
                    static_cast<float>(event.getHeight()) };
     recalculateLayout(width, height);
+
+    const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
+    continueButton->setFontSize(newFontSize);
+    optionsButton->setFontSize(newFontSize);
+    returnToMenuButton->setFontSize(newFontSize);
+    exitButton->setFontSize(newFontSize);
 
     return false;
 }

@@ -24,6 +24,7 @@ public:
 
     void setItems(std::vector<std::string> items);
     void setMaxValueWidth(float width);
+    void setFontSize(uint32_t size);
 
     size_t getSelectedIndex() const;
     void   setSelectedIndex(size_t index);

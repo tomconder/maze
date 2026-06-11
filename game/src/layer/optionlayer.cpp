@@ -8,6 +8,7 @@
 #include "sponge.hpp"
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
+#include "ui/menufontsize.hpp"
 #include "ui/selectlist.hpp"
 
 #include <fmt/format.h>
@@ -57,10 +58,10 @@ constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
 
-constexpr uint32_t fontSize            = 48;
-constexpr float    textMarginLeft      = 26.F;
-constexpr float    cornerRadius        = 12.F;
-constexpr float    selectedBorderWidth = 3.F;
+uint32_t        fontSize            = 48;
+constexpr float textMarginLeft      = 26.F;
+constexpr float cornerRadius        = 12.F;
+constexpr float selectedBorderWidth = 3.F;
 
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
@@ -135,11 +136,14 @@ void OptionLayer::onAttach() {
 
     quad = std::make_unique<Quad>();
 
+    fontSize = ui::menuFontSizeForWidth(
+        static_cast<uint32_t>(orthoCamera->getWidth()));
+
     returnButton = std::make_unique<ui::Button>(
         ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
                               .bottomRight  = glm::vec2{ 0.F },
                               .message      = std::string(returnMessage),
-                              .fontSize     = 48,
+                              .fontSize     = fontSize,
                               .fontName     = fontNameStr,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
@@ -218,8 +222,9 @@ void OptionLayer::onAttach() {
     aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
     resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
-    constexpr ui::CheckboxCreateInfo checkboxCreateInfo{ .margin =
-                                                             textMarginLeft };
+    const ui::CheckboxCreateInfo checkboxCreateInfo{
+        .margin = textMarginLeft, .size = static_cast<float>(fontSize)
+    };
     antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
@@ -636,6 +641,39 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto width  = static_cast<float>(event.getWidth());
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
+
+    const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
+    if (newFontSize != fontSize) {
+        fontSize = newFontSize;
+
+        returnButton->setFontSize(fontSize);
+        aspectRatioList->setFontSize(fontSize);
+        resolutionList->setFontSize(fontSize);
+
+        const auto checkboxSize = static_cast<float>(fontSize);
+        antiAliasingCheckbox->setSize(checkboxSize);
+        fullScreenCheckbox->setSize(checkboxSize);
+        verticalSyncCheckbox->setSize(checkboxSize);
+
+        const auto font               = AssetManager::getFont(fontName);
+        float      maxCycleValueWidth = std::accumulate(
+            aspectRatioFilters.begin(), aspectRatioFilters.end(), 0.F,
+            [&](const float acc, const auto& f) {
+                return std::max(acc, static_cast<float>(
+                                         font->getLength(f.label, fontSize)));
+            });
+        maxCycleValueWidth = std::accumulate(
+            availableResolutions.begin(), availableResolutions.end(),
+            maxCycleValueWidth, [&](const float acc, const auto& res) {
+                return std::max(
+                    acc, static_cast<float>(font->getLength(
+                             fmt::format("{} × {}", res.width, res.height),
+                             fontSize)));
+            });
+
+        aspectRatioList->setMaxValueWidth(maxCycleValueWidth);
+        resolutionList->setMaxValueWidth(maxCycleValueWidth);
+    }
 
     if (isActive()) {
         updateChangeStatus();

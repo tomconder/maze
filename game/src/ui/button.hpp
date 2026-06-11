@@ -47,6 +47,8 @@ public:
 
     void setMessage(std::string_view message);
 
+    void setFontSize(uint32_t size);
+
     void setHover(const bool value) {
         hover = value;
     }

@@ -56,7 +56,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     shader->unbind();
 
     const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
-    atlas.build({ { ttfPath } }, { 16, 48 });
+    atlas.build({ { ttfPath } }, { 16, 24, 32, 48 });
 
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);

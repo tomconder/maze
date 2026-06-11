@@ -26,6 +26,10 @@ public:
     bool isInside(float mouseX, float mouseY, float x, float y, float w,
                   float h) const;
 
+    void setSize(float newSize) {
+        size = newSize;
+    }
+
 private:
     float     margin;
     float     size;
