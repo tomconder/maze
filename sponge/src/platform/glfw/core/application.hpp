@@ -168,6 +168,10 @@ private:
     std::atomic<uint32_t> pendingResolutionW{ 0 };
     std::atomic<uint32_t> pendingResolutionH{ 0 };
 
+    // fullscreen flips immediately in toggleFullscreen(); the GLFW window call
+    // runs here to avoid deadlocking the Win32 message pump.
+    std::atomic<bool> pendingFullscreenToggle{ false };
+
     static Application* instance;
 
     std::shared_ptr<imgui::GLFWManager> glfwManager =

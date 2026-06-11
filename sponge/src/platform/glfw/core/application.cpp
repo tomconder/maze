@@ -182,45 +182,8 @@ void Application::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
 }
 
 void Application::toggleFullscreen() {
-    auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
-    if (!glfwWindow) {
-        SPONGE_CORE_WARN("Window handle is null");
-        return;
-    }
-
     fullscreen = !fullscreen;
-
-    if (fullscreen) {
-        glfwGetWindowPos(glfwWindow, &prevX, &prevY);
-        glfwGetWindowSize(glfwWindow, &prevW, &prevH);
-
-        GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
-        glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, prevW, prevH,
-                             mode->refreshRate);
-    } else {
-        if (prevW <= 0) {
-            prevW = static_cast<int>(window->getWidth());
-        }
-        if (prevH <= 0) {
-            prevH = static_cast<int>(window->getHeight());
-        }
-
-        GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
-
-        if (prevX <= 0) {
-            prevX = prevW - mode->width / 2;
-        }
-        if (prevY <= 0) {
-            prevY = prevH - mode->height / 2;
-        }
-
-        glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED, GLFW_TRUE);
-        glfwSetWindowMonitor(glfwWindow, nullptr, prevX, prevY, prevW, prevH,
-                             GLFW_DONT_CARE);
-        glfwFocusWindow(glfwWindow);
-    }
+    pendingFullscreenToggle.store(true, std::memory_order_release);
 }
 
 void Application::setMouseVisible(const bool value) const {
@@ -356,14 +319,52 @@ void Application::run() {
         inputManager.recenterCursor();
         glfwPollEvents();
 
-        // Apply any deferred resolution change requested by a render-thread
-        // layer. Must be done on the main thread.
+        // glfwSetWindowMonitor from render/update threads deadlocks on Windows
+        // (Win32 message pump runs only here). Runs before pendingResolution
+        // so fullscreen matches the actual OS state when the resize branch
+        // fires.
+        if (pendingFullscreenToggle.load(std::memory_order_acquire)) {
+            auto* glfwWindow =
+                static_cast<GLFWwindow*>(window->getNativeWindow());
+            if (glfwWindow != nullptr) {
+                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+                if (monitor != nullptr) {
+                    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+                    if (mode != nullptr) {
+                        if (fullscreen) {
+                            glfwGetWindowPos(glfwWindow, &prevX, &prevY);
+                            glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                            glfwSetWindowMonitor(glfwWindow, monitor, 0, 0,
+                                                 prevW, prevH,
+                                                 mode->refreshRate);
+                        } else {
+                            if (prevW <= 0) {
+                                prevW = static_cast<int>(appSpec.width);
+                            }
+                            if (prevH <= 0) {
+                                prevH = static_cast<int>(appSpec.height);
+                            }
+                            const int posX = (mode->width - prevW) / 2;
+                            const int posY = (mode->height - prevH) / 2;
+                            glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
+                                                GLFW_TRUE);
+                            glfwSetWindowMonitor(glfwWindow, nullptr, posX,
+                                                 posY, prevW, prevH,
+                                                 GLFW_DONT_CARE);
+                            glfwFocusWindow(glfwWindow);
+                        }
+                    }
+                }
+            }
+            pendingFullscreenToggle.store(false, std::memory_order_relaxed);
+        }
+
+        // Runs after pendingFullscreenToggle so fullscreen matches OS state.
         if (pendingResolution.load(std::memory_order_acquire)) {
             const uint32_t w =
                 pendingResolutionW.load(std::memory_order_relaxed);
             const uint32_t h =
                 pendingResolutionH.load(std::memory_order_relaxed);
-            // Re-implement original logic here on main thread
             auto* glfwWindow =
                 static_cast<GLFWwindow*>(window->getNativeWindow());
             if (glfwWindow != nullptr) {
