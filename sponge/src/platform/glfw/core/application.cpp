@@ -141,7 +141,7 @@ bool Application::onUserDestroy() {
 void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
-    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+    for (auto it = layerStack->rbegin(); it != layerStack->rend(); it++) {
         const auto& layer = *it;
         layer->onEvent(event);
         if (event.handled) {
@@ -306,7 +306,7 @@ void Application::run() {
     // Warm up render thread (acquires GL context) before pipelined loop.
     renderThread.kick();
     renderThread.blockUntilRenderComplete();
-    ++frame;
+    frame++;
 
     // Pipelined loop: update[N] overlaps with render[N-1].
     while (true) {
