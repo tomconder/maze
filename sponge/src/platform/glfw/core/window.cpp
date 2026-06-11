@@ -73,6 +73,10 @@ void Window::init(const sponge::core::WindowProps& props) {
     data.width  = static_cast<uint32_t>(w);
     data.height = static_cast<uint32_t>(h);
 
+    if (!props.fullscreen) {
+        glfwSetWindowPos(window, (mode->width - w) / 2, (mode->height - h) / 2);
+    }
+
     glfwSetWindowAttrib(window, GLFW_DECORATED,
                         props.fullscreen ? GLFW_FALSE : GLFW_TRUE);
 
