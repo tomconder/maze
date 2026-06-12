@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "c16c1bd46c7f6de21efc6dcf19c1069d6825df23",
+  "builtin-baseline": "b216ddff25a1f432870e6c340ce79357049ef86e",
   "dependencies": [
     {
       "name": "fmt",
