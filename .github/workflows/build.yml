@@ -169,7 +169,7 @@ jobs:
               run: |
                   [[ "$RUNNER_OS" != "Windows" ]] && unset VCPKG_FORCE_SYSTEM_BINARIES
                   NUGET=$(vcpkg fetch nuget | tail -n 1)
-                  [[ "$RUNNER_OS" == "macOS" ]] && NUGET="mono $NUGET"
+                  [[ "$NUGET" == *.exe && "$RUNNER_OS" != "Windows" ]] && NUGET="mono $NUGET"
                   $NUGET sources add \
                     -Name "GitHub" \
                     -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" \
