@@ -109,18 +109,12 @@ jobs:
               uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
             - name: Extract git commit id from vcpkg configuration
-              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
               id: vcpkg-commit-id
-              with:
-                  script: |
-                      const fs = require('fs');
-                      const path = require('path');
-                      const fullPath = path.join(process.env.GITHUB_WORKSPACE, 'vcpkg.json');
-                      const config = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-                      const id = config['builtin-baseline'];
-                      core.setOutput('id', id);
-                      core.exportVariable('VCPKG_GIT_COMMIT_ID', id);
-                      console.log(`Extracted vcpkg git commit id: ${id}`);
+              shell: bash
+              run: |
+                  id=$(jq -r '."builtin-baseline"' vcpkg.json)
+                  echo "id=$id" >> $GITHUB_OUTPUT
+                  echo "VCPKG_GIT_COMMIT_ID=$id" >> $GITHUB_ENV
 
             - name: Install linux packages
               if: runner.os == 'Linux'
@@ -130,6 +124,10 @@ jobs:
                   libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
                   mono-complete
 
+            - name: Install mono
+              if: runner.os == 'macOS'
+              run: brew install mono
+
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
@@ -138,11 +136,10 @@ jobs:
               uses: lukka/get-cmake@591817e96fcad43505fb4eae36172462abb3a42e # v4.3.3
 
             - name: Configure sccache
-              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-              with:
-                  script: |
-                      core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
-                      core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+              shell: bash
+              run: |
+                  echo "ACTIONS_RESULTS_URL=${ACTIONS_RESULTS_URL}" >> $GITHUB_ENV
+                  echo "ACTIONS_RUNTIME_TOKEN=${ACTIONS_RUNTIME_TOKEN}" >> $GITHUB_ENV
 
             - name: Cache the build
               uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
@@ -159,10 +156,6 @@ jobs:
               uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
-
-            - name: Install mono
-              if: runner.os == 'macOS'
-              run: brew install mono
 
             - name: Setup vcpkg NuGet credentials
               shell: bash
