@@ -15,9 +15,11 @@ env:
     BUILD_DIR: build
     BUILD_TYPE: Release
     SCCACHE_GHA_ENABLED: true
+    VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
 
 permissions:
     contents: read
+    packages: write
 
 jobs:
     changed:
@@ -156,6 +158,19 @@ jobs:
               uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+            - name: Setup vcpkg NuGet credentials
+              shell: bash
+              run: |
+                  NUGET=$(vcpkg fetch nuget | tail -n 1)
+                  $NUGET sources add \
+                    -Name "GitHub" \
+                    -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" \
+                    -UserName "${{github.actor}}" \
+                    -Password "${{secrets.GITHUB_TOKEN}}" \
+                    -StorePasswordInClearText
+                  $NUGET setapikey "${{secrets.GITHUB_TOKEN}}" \
+                    -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
 
             - name: Create build tree
               run: >
