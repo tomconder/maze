@@ -130,10 +130,6 @@ jobs:
                   libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev libxrandr-dev
                   mono-complete
 
-            - name: Install nuget
-              if: runner.os == 'macOS'
-              run: brew install nuget
-
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
@@ -163,6 +159,10 @@ jobs:
               uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
+
+            - name: Allow vcpkg to fetch nuget
+              if: runner.os == 'macOS'
+              run: echo "VCPKG_FORCE_SYSTEM_BINARIES=" >> $GITHUB_ENV
 
             - name: Setup vcpkg NuGet credentials
               shell: bash
