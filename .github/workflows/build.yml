@@ -160,9 +160,9 @@ jobs:
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
-            - name: Allow vcpkg to fetch nuget
+            - name: Install mono
               if: runner.os == 'macOS'
-              run: echo "VCPKG_FORCE_SYSTEM_BINARIES=" >> $GITHUB_ENV
+              run: brew install mono
 
             - name: Setup vcpkg NuGet credentials
               shell: bash
@@ -175,7 +175,9 @@ jobs:
                     --store-password-in-clear-text
 
             - name: Create build tree
-              run: >
+              shell: bash
+              run: |
+                  [[ "$RUNNER_OS" == "macOS" ]] && unset VCPKG_FORCE_SYSTEM_BINARIES
                   cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} --preset ${{matrix.preset}}
 
             - name: Build
