@@ -162,15 +162,12 @@ jobs:
             - name: Setup vcpkg NuGet credentials
               shell: bash
               run: |
-                  NUGET=$(vcpkg fetch nuget | tail -n 1)
-                  $NUGET sources add \
-                    -Name "GitHub" \
-                    -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" \
-                    -UserName "${{github.actor}}" \
-                    -Password "${{secrets.GITHUB_TOKEN}}" \
-                    -StorePasswordInClearText
-                  $NUGET setapikey "${{secrets.GITHUB_TOKEN}}" \
-                    -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
+                  dotnet nuget add source \
+                    "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" \
+                    --name "GitHub" \
+                    --username "${{github.actor}}" \
+                    --password "${{secrets.GITHUB_TOKEN}}" \
+                    --store-password-in-clear-text
 
             - name: Create build tree
               run: >
