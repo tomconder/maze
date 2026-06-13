@@ -36,6 +36,10 @@ uniform PointLight       pointLights[6];
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D shadowMap;
+uniform int   shadowMode;         // 0=PCF 1=PCSS 2=DPCF 3=EVSM
+uniform float pcssLightSize;      // light size for PCSS blocker search
+uniform float pcfRadius;          // disk radius for DPCF
+uniform float evsmBleedThreshold; // light bleed clamp for EVSM
 uniform vec3      viewPos;
 uniform float     ambientStrength;
 uniform bool      hasNoTexture;
@@ -53,6 +57,13 @@ vec3 lightAttenuationData[11] =
 // function prototypes
 float attenuationFromLight(PointLight light);
 vec3  calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
+float shadowPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                float shadowBias);
+float shadowPCSS(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                 float shadowBias);
+float shadowDPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                 float shadowBias);
+float shadowEVSM(vec4 fragPosLightSpace);
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
                       float shadowBias);
 
@@ -150,43 +161,137 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     return result;
 }
 
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                      float shadowBias) {
-    // perform perspective divide
+// Poisson disk for DPCF (16 samples)
+const vec2 poissonDisk[16] = vec2[16](
+    vec2(-0.94201624, -0.39906216), vec2(0.94558609, -0.76890725),
+    vec2(-0.094184101, -0.92938870), vec2(0.34495938, 0.29387760),
+    vec2(-0.91588581, 0.45771432), vec2(-0.81544232, -0.87912464),
+    vec2(-0.38277543, 0.27676845), vec2(0.97484398, 0.75648379),
+    vec2(0.44323325, -0.97511554), vec2(0.53742981, -0.47373420),
+    vec2(-0.26496911, -0.41893023), vec2(0.79197514, 0.19090188),
+    vec2(-0.24188840, 0.99706507), vec2(-0.81409955, 0.91437590),
+    vec2(0.19984126, 0.78641367), vec2(0.14383161, -0.14100790));
+
+float shadowPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                float shadowBias) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-
-    // get closest depth value from light's perspective
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-    // get current depth value
-    float currentDepth = projCoords.z;
-
-    // calculate bias based on light direction and normal (helps with peter
-    // panning and shadow acne)
-    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
-
-    // PCF
-    float shadow    = 0.0;
-    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
+    projCoords      = projCoords * 0.5 + 0.5;
+    if (projCoords.z > 1.0 || projCoords.z < 0.0) {
+        return 0.0;
+    }
+    float bias         = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
+    float currentDepth = projCoords.z - bias;
+    float shadow       = 0.0;
+    vec2  texelSize    = 1.0 / textureSize(shadowMap, 0);
     for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; y++) {
-            float pcfDepth =
+        for (int y = -1; y <= 1; ++y) {
+            float d =
                 texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+            shadow += currentDepth > d ? 1.0 : 0.0;
         }
     }
-    shadow /= 9.0;
+    return shadow / 9.0;
+}
 
-    // keep shadow at 0.0 when outside the far plane region of the light's
-    // frustum
+float findBlockerDistance(vec2 uv, float currentDepth, float searchWidth) {
+    float blockerSum   = 0.0;
+    int   blockerCount = 0;
+    vec2  texelSize    = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -2; x <= 1; ++x) {
+        for (int y = -2; y <= 1; ++y) {
+            float d =
+                texture(shadowMap, uv + vec2(x, y) * texelSize * searchWidth).r;
+            if (d < currentDepth) {
+                blockerSum += d;
+                ++blockerCount;
+            }
+        }
+    }
+    return blockerCount == 0 ? -1.0 : blockerSum / float(blockerCount);
+}
+
+float shadowPCSS(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                 float shadowBias) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords      = projCoords * 0.5 + 0.5;
     if (projCoords.z > 1.0 || projCoords.z < 0.0) {
-        shadow = 0.0;
+        return 0.0;
+    }
+    float bias         = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
+    float currentDepth = projCoords.z - bias;
+
+    float avgBlocker =
+        findBlockerDistance(projCoords.xy, currentDepth, pcssLightSize * 10.0);
+    if (avgBlocker < 0.0) {
+        return 0.0;
     }
 
-    return shadow;
+    float penumbra  = (currentDepth - avgBlocker) / avgBlocker * pcssLightSize;
+    float shadow    = 0.0;
+    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
+    for (int x = -2; x <= 2; ++x) {
+        for (int y = -2; y <= 2; ++y) {
+            float d = texture(shadowMap,
+                              projCoords.xy +
+                                  vec2(x, y) * texelSize * penumbra * 10.0)
+                          .r;
+            shadow += currentDepth > d ? 1.0 : 0.0;
+        }
+    }
+    return shadow / 25.0;
+}
+
+float shadowDPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                 float shadowBias) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords      = projCoords * 0.5 + 0.5;
+    if (projCoords.z > 1.0 || projCoords.z < 0.0) {
+        return 0.0;
+    }
+    float bias         = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
+    float currentDepth = projCoords.z - bias;
+    float shadow       = 0.0;
+    vec2  texelSize    = 1.0 / textureSize(shadowMap, 0);
+    for (int i = 0; i < 16; ++i) {
+        float d = texture(shadowMap,
+                          projCoords.xy + poissonDisk[i] * texelSize * pcfRadius)
+                      .r;
+        shadow += currentDepth > d ? 1.0 : 0.0;
+    }
+    return shadow / 16.0;
+}
+
+float shadowEVSM(vec4 fragPosLightSpace) {
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords      = projCoords * 0.5 + 0.5;
+    if (projCoords.z > 1.0 || projCoords.z < 0.0) {
+        return 0.0;
+    }
+    float currentDepth = projCoords.z;
+    vec2  moments      = texture(shadowMap, projCoords.xy).rg;
+
+    float p        = float(currentDepth <= moments.x);
+    float variance = moments.y - moments.x * moments.x;
+    variance       = max(variance, 0.00002);
+    float d        = currentDepth - moments.x;
+    float pMax     = variance / (variance + d * d);
+    pMax = clamp((pMax - evsmBleedThreshold) / (1.0 - evsmBleedThreshold), 0.0,
+                 1.0);
+    return 1.0 - max(p, pMax);
+}
+
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
+                      float shadowBias) {
+    if (shadowMode == 1) {
+        return shadowPCSS(fragPosLightSpace, normal, lightDir, shadowBias);
+    }
+    if (shadowMode == 2) {
+        return shadowDPCF(fragPosLightSpace, normal, lightDir, shadowBias);
+    }
+    if (shadowMode == 3) {
+        return shadowEVSM(fragPosLightSpace);
+    }
+    return shadowPCF(fragPosLightSpace, normal, lightDir, shadowBias);
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
