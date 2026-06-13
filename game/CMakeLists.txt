@@ -155,13 +155,9 @@ endif ()
 target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
-target_link_libraries(game PRIVATE glm::glm-header-only)
 target_link_libraries(game PRIVATE mimalloc-static)
 target_link_libraries(game PRIVATE sponge::sponge)
 target_link_libraries(game PRIVATE yoga::yogacore)
-if (ENABLE_PROFILING)
-    target_link_libraries(game PRIVATE Tracy::TracyClient)
-endif ()
 
 if (CMAKE_SKIP_INSTALL_RULES)
     return()
