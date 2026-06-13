@@ -31,17 +31,7 @@ public:
 
     uint32_t getDepthMapTextureId() const;
     uint32_t getHeight() const;
-
-    float getOrthoSize() const;
-    void  setOrthoSize(float val);
-
     uint32_t getWidth() const;
-
-    float getZFar() const;
-    void  setZFar(float val);
-
-    float getZNear() const;
-    void  setZNear(float val);
 
     const glm::mat4& getLightSpaceMatrix() const;
     void             updateLightSpaceMatrix(const glm::vec3& lightDirection);
@@ -63,11 +53,8 @@ private:
 
     mutable std::array<int, 4> savedViewport{};
 
-    float    orthoSize;
     uint32_t shadowHeight;
     uint32_t shadowWidth;
-    float    zFar;
-    float    zNear;
 
     glm::mat4 lightSpaceMatrix{ 1.0f };
 

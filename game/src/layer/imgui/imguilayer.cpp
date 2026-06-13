@@ -182,9 +182,6 @@ void ImGuiLayer::showDirectionalLightControls() {
         auto       castShadow = mazeLayer->getDirectionalLightCastsShadow();
         auto       direction  = mazeLayer->getDirectionalLightDirection();
         auto       enabled    = mazeLayer->getDirectionalLightEnabled();
-        auto       orthoSize  = mazeLayer->getShadowMapOrthoSize();
-        auto       zFar       = mazeLayer->getShadowMapZFar();
-        auto       zNear      = mazeLayer->getShadowMapZNear();
 
         showTableRow([&] {
             ImGui::Text("Enable");
@@ -229,30 +226,6 @@ void ImGuiLayer::showDirectionalLightControls() {
 
             if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
                 mazeLayer->setDirectionalLightCastsShadow(castShadow);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Near");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##znear", &zNear, 0.01F, 1.F, "%1.2f")) {
-                mazeLayer->setShadowMapZNear(zNear);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Far");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##zfar", &zFar, 5.F, 500.F, "%3.1f")) {
-                mazeLayer->setShadowMapZFar(zFar);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Ortho Size");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##orthosize", &orthoSize, 1.F, 50.F)) {
-                mazeLayer->setShadowMapOrthoSize(orthoSize);
             }
         });
 

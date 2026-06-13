@@ -91,19 +91,7 @@ public:
 
     void setRoughness(float val);
 
-    float getShadowMapOrthoSize() const;
-
-    void setShadowMapOrthoSize(float val) const;
-
     uint32_t getShadowMapTextureId() const;
-
-    float getShadowMapZFar() const;
-
-    void setShadowMapZFar(float val) const;
-
-    float getShadowMapZNear() const;
-
-    void setShadowMapZNear(float val) const;
 
     bool isFxaaEnabled() const;
 

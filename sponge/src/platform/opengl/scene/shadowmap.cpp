@@ -21,12 +21,7 @@ using renderer::AssetManager;
 
 inline const std::string ShadowMap::shaderName = "shadowmap_evsm";
 
-ShadowMap::ShadowMap(const uint32_t res) :
-    orthoSize(orthoBoxSize),
-    shadowHeight(res),
-    shadowWidth(res),
-    zFar(farPlane),
-    zNear(nearPlane) {
+ShadowMap::ShadowMap(const uint32_t res) : shadowHeight(res), shadowWidth(res) {
     initialize();
 }
 
@@ -197,32 +192,8 @@ uint32_t ShadowMap::getHeight() const {
     return shadowHeight;
 }
 
-float ShadowMap::getOrthoSize() const {
-    return orthoSize;
-}
-
-void ShadowMap::setOrthoSize(const float val) {
-    orthoSize = val;
-}
-
 uint32_t ShadowMap::getWidth() const {
     return shadowWidth;
-}
-
-float ShadowMap::getZFar() const {
-    return zFar;
-}
-
-void ShadowMap::setZFar(const float val) {
-    zFar = val;
-}
-
-float ShadowMap::getZNear() const {
-    return zNear;
-}
-
-void ShadowMap::setZNear(const float val) {
-    zNear = val;
 }
 
 const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
@@ -230,13 +201,13 @@ const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
 }
 
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
-    const float left   = -orthoSize;
-    const float right  = orthoSize;
-    const float bottom = -orthoSize;
-    const float top    = orthoSize;
+    const float left   = -orthoBoxSize;
+    const float right  = orthoBoxSize;
+    const float bottom = -orthoBoxSize;
+    const float top    = orthoBoxSize;
 
     const auto lightProjection =
-        glm::ortho(left, right, bottom, top, zNear, zFar);
+        glm::ortho(left, right, bottom, top, nearPlane, farPlane);
 
     const auto lightView = glm::lookAt(10.F * -lightDirection, glm::vec3(0.0f),
                                        glm::vec3(0.0f, 1.0f, 0.0f));

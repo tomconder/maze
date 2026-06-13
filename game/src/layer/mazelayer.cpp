@@ -470,32 +470,8 @@ void MazeLayer::setRoughness(const float val) {
     shader->unbind();
 }
 
-float MazeLayer::getShadowMapOrthoSize() const {
-    return shadowMap->getOrthoSize();
-}
-
-void MazeLayer::setShadowMapOrthoSize(float val) const {
-    shadowMap->setOrthoSize(val);
-}
-
 uint32_t MazeLayer::getShadowMapTextureId() const {
     return shadowMap->getDepthMapTextureId();
-}
-
-float MazeLayer::getShadowMapZFar() const {
-    return shadowMap->getZFar();
-}
-
-void MazeLayer::setShadowMapZFar(float val) const {
-    shadowMap->setZFar(val);
-}
-
-float MazeLayer::getShadowMapZNear() const {
-    return shadowMap->getZNear();
-}
-
-void MazeLayer::setShadowMapZNear(float val) const {
-    shadowMap->setZNear(val);
 }
 
 void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
