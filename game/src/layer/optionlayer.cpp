@@ -859,10 +859,15 @@ void OptionLayer::updateChangeStatus() {
     const auto curW   = window->getWidth();
     const auto curH   = window->getHeight();
 
-    currentAspectRatioIndex =
-        !validAspectRatioFilters.empty() ?
-            std::optional<size_t>{ findAspectRatioIndex(curW, curH) } :
-            std::nullopt;
+    if (!validAspectRatioFilters.empty()) {
+        const auto idx = findAspectRatioIndex(curW, curH);
+        currentAspectRatioIndex =
+            matchesAspectRatio(validAspectRatioFilters[idx], curW, curH) ?
+                std::optional<size_t>{ idx } :
+                std::nullopt;
+    } else {
+        currentAspectRatioIndex = std::nullopt;
+    }
 
     bool resolutionChanged = false;
     if (!filteredResolutions.empty()) {
