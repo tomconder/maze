@@ -264,7 +264,7 @@ void ImGuiLayer::showDirectionalLightControls() {
                 512, 1024, 2048, 4096
             };
             static constexpr std::array<const char*, 4> shadowResLabels = {
-                "512", "1024", "2048", "4096"
+                "Low", "Normal", "High", "Ultra"
             };
 
             const auto currentRes =

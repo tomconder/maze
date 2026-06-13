@@ -311,12 +311,7 @@ void OptionLayer::onAttach() {
     aspectRatioList->setItems(std::move(arItems));
 
     {
-        std::vector<std::string> sqItems;
-        sqItems.reserve(shadowResolutions.size());
-        for (const auto res : shadowResolutions) {
-            sqItems.emplace_back(std::to_string(res));
-        }
-        shadowQualityList->setItems(std::move(sqItems));
+        shadowQualityList->setItems({ "Low", "Normal", "High", "Ultra" });
     }
 
     {
