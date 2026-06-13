@@ -139,17 +139,14 @@ private:
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;
 
-    float                                       ambientStrength    = .25F;
-    float                                       ao                 = .25F;
-    int32_t                                     attenuationIndex   = 4;
-    bool                                        fxaaEnabled        = true;
-    bool                                        metallic           = false;
-    bool                                        mouseButtonPressed = false;
-    sponge::platform::opengl::scene::ShadowMode shadowMode{
-        sponge::platform::opengl::scene::ShadowMode::PCF
-    };
-    int32_t numLights = 0;
-    float   roughness = .5F;
+    float   ambientStrength    = .25F;
+    float   ao                 = .25F;
+    int32_t attenuationIndex   = 4;
+    bool    fxaaEnabled        = true;
+    bool    metallic           = false;
+    bool    mouseButtonPressed = false;
+    int32_t numLights          = 0;
+    float   roughness          = .5F;
 #ifdef ENABLE_IMGUI
     bool isImguiOpen = true;
 #endif

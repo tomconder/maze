@@ -253,7 +253,6 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
     frame.shadowEnabled    = directionalLight.enabled;
     frame.shadowCastShadow = directionalLight.castShadow;
-    frame.shadowMode       = shadowMode;
     frame.lightDirection   = directionalLight.direction;
     if (directionalLight.enabled && directionalLight.castShadow) {
         // Update on update thread to avoid racing render thread
@@ -426,12 +425,11 @@ void MazeLayer::setDirectionalLightShadowBias(const float value) {
 }
 
 sponge::platform::opengl::scene::ShadowMode MazeLayer::getShadowMode() const {
-    return shadowMode;
+    return shadowMap->getMode();
 }
 
 void MazeLayer::setShadowMode(
     const sponge::platform::opengl::scene::ShadowMode mode) {
-    shadowMode = mode;
     shadowMap->setMode(mode);
 }
 
@@ -573,7 +571,8 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
         shader->setInteger("shadowMap", 1);
-        shader->setInteger("shadowMode", static_cast<int>(frame.shadowMode));
+        shader->setInteger("shadowMode",
+                           static_cast<int>(shadowMap->getMode()));
         shadowMap->activateAndBindShadowTexture(1);
     }
 
@@ -613,9 +612,9 @@ void MazeLayer::renderSceneToDepthMap(
     const thread::MazeRenderFrame& frame) const {
     shadowMap->bind();
 
-    // Use snapshot data only — render thread must not write to shadowMap.
     const auto& activeShaderName =
-        frame.shadowMode == sponge::platform::opengl::scene::ShadowMode::EVSM ?
+        shadowMap->getMode() ==
+                sponge::platform::opengl::scene::ShadowMode::EVSM ?
             ShadowMap::getEvsmShaderName() :
             ShadowMap::getShaderName();
     const auto shader = AssetManager::getShader(activeShaderName);
