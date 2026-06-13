@@ -1,7 +1,6 @@
 #pragma once
 
 #include "input/inputsnapshot.hpp"
-#include "platform/opengl/scene/shadowmode.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 #include "thread/mazeframe.hpp"
@@ -79,9 +78,6 @@ public:
     float getDirectionalLightShadowBias() const;
 
     void setDirectionalLightShadowBias(float value);
-
-    sponge::platform::opengl::scene::ShadowMode getShadowMode() const;
-    void setShadowMode(sponge::platform::opengl::scene::ShadowMode mode);
 
     uint32_t getDirectionalLightShadowMapRes() const;
 

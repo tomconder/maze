@@ -19,8 +19,7 @@ constexpr float orthoBoxSize = 5.F;
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
-inline const std::string ShadowMap::shaderName     = "shadowmap";
-inline const std::string ShadowMap::evsmShaderName = "shadowmap_evsm";
+inline const std::string ShadowMap::shaderName = "shadowmap_evsm";
 
 ShadowMap::ShadowMap(const uint32_t res) :
     orthoSize(orthoBoxSize),
@@ -32,45 +31,30 @@ ShadowMap::ShadowMap(const uint32_t res) :
 }
 
 ShadowMap::~ShadowMap() {
-    if (shadowMode == ShadowMode::EVSM) {
-        destroyEvsm();
+    if (blurVao != 0) {
+        glDeleteVertexArrays(1, &blurVao);
+    }
+    if (blurVbo != 0) {
+        glDeleteBuffers(1, &blurVbo);
+    }
+    if (blurFbo != 0) {
+        glDeleteFramebuffers(1, &blurFbo);
+    }
+    if (momentFbo != 0) {
+        glDeleteFramebuffers(1, &momentFbo);
+    }
+    if (blurTexture != 0) {
+        glDeleteTextures(1, &blurTexture);
+    }
+    if (momentTexture != 0) {
+        glDeleteTextures(1, &momentTexture);
+    }
+    if (depthRbo != 0) {
+        glDeleteRenderbuffers(1, &depthRbo);
     }
 }
 
 void ShadowMap::initialize() {
-    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
-        .vertexShaderPath   = "/shaders/glsl/shadowmap.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/shadowmap.frag.glsl",
-    };
-    shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    const renderer::TextureCreateInfo textureCreateInfo{
-        .name     = "depth_map",
-        .width    = shadowWidth,
-        .height   = shadowHeight,
-        .loadFlag = renderer::DepthMap
-    };
-    depthMap = AssetManager::createTexture(textureCreateInfo);
-
-    framebuffer = std::make_unique<renderer::FrameBuffer>();
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                           depthMap->getId(), 0);
-    if (!renderer::FrameBuffer::checkStatus()) {
-        SPONGE_GL_CRITICAL("Framebuffer is not complete!");
-        return;
-    }
-
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-
-    framebuffer->unbind();
-    shader->unbind();
-}
-
-void ShadowMap::initializeEvsm() {
     // Moment texture (RG32F): R = depth, G = depth²
     glGenTextures(1, &momentTexture);
     glBindTexture(GL_TEXTURE_2D, momentTexture);
@@ -143,12 +127,12 @@ void ShadowMap::initializeEvsm() {
     glBindVertexArray(0);
 
     // EVSM moment-writing shader (reuses shadowmap.vert.glsl)
-    const auto evsmShaderInfo = renderer::ShaderCreateInfo{
-        .name               = evsmShaderName,
+    const auto shaderCreateInfo = renderer::ShaderCreateInfo{
+        .name               = shaderName,
         .vertexShaderPath   = "/shaders/glsl/shadowmap.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/shadowmap_evsm.frag.glsl",
     };
-    evsmShader = AssetManager::createShader(evsmShaderInfo);
+    shader = AssetManager::createShader(shaderCreateInfo);
 
     // Gaussian blur shader
     const auto blurShaderInfo = renderer::ShaderCreateInfo{
@@ -157,39 +141,6 @@ void ShadowMap::initializeEvsm() {
         .fragmentShaderPath = "/shaders/glsl/blur.frag.glsl",
     };
     blurShader = AssetManager::createShader(blurShaderInfo);
-}
-
-void ShadowMap::destroyEvsm() {
-    if (blurVao != 0) {
-        glDeleteVertexArrays(1, &blurVao);
-        blurVao = 0;
-    }
-    if (blurVbo != 0) {
-        glDeleteBuffers(1, &blurVbo);
-        blurVbo = 0;
-    }
-    if (blurFbo != 0) {
-        glDeleteFramebuffers(1, &blurFbo);
-        blurFbo = 0;
-    }
-    if (momentFbo != 0) {
-        glDeleteFramebuffers(1, &momentFbo);
-        momentFbo = 0;
-    }
-    if (blurTexture != 0) {
-        glDeleteTextures(1, &blurTexture);
-        blurTexture = 0;
-    }
-    if (momentTexture != 0) {
-        glDeleteTextures(1, &momentTexture);
-        momentTexture = 0;
-    }
-    if (depthRbo != 0) {
-        glDeleteRenderbuffers(1, &depthRbo);
-        depthRbo = 0;
-    }
-    evsmShader = nullptr;
-    blurShader = nullptr;
 }
 
 void ShadowMap::applyBlur() const {
@@ -221,70 +172,29 @@ void ShadowMap::bind() const {
     glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     glViewport(0, 0, static_cast<GLsizei>(shadowWidth),
                static_cast<GLsizei>(shadowHeight));
-    if (shadowMode == ShadowMode::EVSM) {
-        glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    } else {
-        framebuffer->bind();
-        glClear(GL_DEPTH_BUFFER_BIT);
-        depthMap->activateAndBind(0);
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void ShadowMap::unbind() const {
-    if (shadowMode == ShadowMode::EVSM) {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        applyBlur();
-    } else {
-        framebuffer->unbind();
-    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    applyBlur();
     glViewport(savedViewport[0], savedViewport[1],
                static_cast<GLsizei>(savedViewport[2]),
                static_cast<GLsizei>(savedViewport[3]));
 }
 
-void ShadowMap::activateAndBindDepthMap(const uint8_t unit) const {
-    depthMap->activateAndBind(unit);
-}
-
 void ShadowMap::activateAndBindShadowTexture(const uint8_t unit) const {
-    if (shadowMode == ShadowMode::EVSM) {
-        glActiveTexture(GL_TEXTURE0 + unit);
-        glBindTexture(GL_TEXTURE_2D, momentTexture);
-    } else {
-        depthMap->activateAndBind(unit);
-    }
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, momentTexture);
 }
 
 uint32_t ShadowMap::getDepthMapTextureId() const {
-    if (shadowMode == ShadowMode::EVSM) {
-        return momentTexture;
-    }
-    if (depthMap != nullptr) {
-        return depthMap->getId();
-    }
-    return 0;
+    return momentTexture;
 }
 
 uint32_t ShadowMap::getHeight() const {
     return shadowHeight;
-}
-
-ShadowMode ShadowMap::getMode() const {
-    return shadowMode;
-}
-
-void ShadowMap::setMode(const ShadowMode mode) {
-    if (shadowMode == mode) {
-        return;
-    }
-    if (shadowMode == ShadowMode::EVSM) {
-        destroyEvsm();
-    }
-    shadowMode = mode;
-    if (shadowMode == ShadowMode::EVSM) {
-        initializeEvsm();
-    }
 }
 
 float ShadowMap::getOrthoSize() const {

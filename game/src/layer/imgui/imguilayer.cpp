@@ -2,7 +2,6 @@
 #include "layer/imgui/imguilayer.hpp"
 
 #include "maze.hpp"
-#include "platform/opengl/scene/shadowmode.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
 #include "sponge.hpp"
@@ -222,21 +221,6 @@ void ImGuiLayer::showDirectionalLightControls() {
                                     ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setDirectionalLightDirection(
                     glm::vec3(vec[0], vec[1], vec[2]));
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Mode");
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            constexpr std::array<const char*, 2> shadowModeNames = { "PCF",
-                                                                     "EVSM" };
-            auto currentMode = static_cast<int>(mazeLayer->getShadowMode());
-            if (ImGui::Combo("##shadowmode", &currentMode,
-                             shadowModeNames.data(), 2)) {
-                mazeLayer->setShadowMode(
-                    static_cast<sponge::platform::opengl::scene::ShadowMode>(
-                        currentMode));
             }
         });
 

@@ -36,8 +36,7 @@ uniform PointLight       pointLights[6];
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D shadowMap;
-uniform int   shadowMode;         // 0=PCF 1=EVSM
-uniform float evsmBleedThreshold; // light bleed clamp for EVSM
+uniform float evsmBleedThreshold;
 uniform vec3      viewPos;
 uniform float     ambientStrength;
 uniform bool      hasNoTexture;
@@ -55,11 +54,7 @@ vec3 lightAttenuationData[11] =
 // function prototypes
 float attenuationFromLight(PointLight light);
 vec3  calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
-float shadowPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                float shadowBias);
 float shadowEVSM(vec4 fragPosLightSpace);
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                      float shadowBias);
 
 // PBR function prototypes
 vec3  fresnelSchlick(float cosTheta, vec3 F0);
@@ -84,8 +79,7 @@ void main() {
 
     float shadow = 0.0;
     if (directionalLight.castShadow) {
-        shadow = calculateShadow(fs_in.fragPosLightSpace, N, dirLightDir,
-                                 directionalLight.shadowBias);
+        shadow = shadowEVSM(fs_in.fragPosLightSpace);
     }
 
     // zeroes out directional light if not enabled
@@ -155,27 +149,6 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     return result;
 }
 
-float shadowPCF(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                float shadowBias) {
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords      = projCoords * 0.5 + 0.5;
-    if (projCoords.z > 1.0 || projCoords.z < 0.0) {
-        return 0.0;
-    }
-    float bias         = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
-    float currentDepth = projCoords.z - bias;
-    float shadow       = 0.0;
-    vec2  texelSize    = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float d =
-                texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth > d ? 1.0 : 0.0;
-        }
-    }
-    return shadow / 9.0;
-}
-
 float shadowEVSM(vec4 fragPosLightSpace) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords      = projCoords * 0.5 + 0.5;
@@ -193,14 +166,6 @@ float shadowEVSM(vec4 fragPosLightSpace) {
     pMax = clamp((pMax - evsmBleedThreshold) / (1.0 - evsmBleedThreshold), 0.0,
                  1.0);
     return 1.0 - max(p, pMax);
-}
-
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                      float shadowBias) {
-    if (shadowMode == 1) {
-        return shadowEVSM(fragPosLightSpace);
-    }
-    return shadowPCF(fragPosLightSpace, normal, lightDir, shadowBias);
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {

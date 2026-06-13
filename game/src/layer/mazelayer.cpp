@@ -143,7 +143,6 @@ void MazeLayer::onAttach() {
     shader->setFloat3("directionalLight.color", directionalLight.color);
     shader->setFloat("directionalLight.shadowBias",
                      directionalLight.shadowBias);
-    shader->setInteger("shadowMode", 0);
     shader->setFloat("evsmBleedThreshold", 0.2F);
 
     shader->unbind();
@@ -422,15 +421,6 @@ void MazeLayer::setDirectionalLightShadowBias(const float value) {
     shader->unbind();
 }
 
-sponge::platform::opengl::scene::ShadowMode MazeLayer::getShadowMode() const {
-    return shadowMap->getMode();
-}
-
-void MazeLayer::setShadowMode(
-    const sponge::platform::opengl::scene::ShadowMode mode) {
-    shadowMap->setMode(mode);
-}
-
 uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
     return directionalLight.shadowMapRes;
 }
@@ -569,8 +559,6 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
         shader->setInteger("shadowMap", 1);
-        shader->setInteger("shadowMode",
-                           static_cast<int>(shadowMap->getMode()));
         shadowMap->activateAndBindShadowTexture(1);
     }
 
@@ -610,12 +598,7 @@ void MazeLayer::renderSceneToDepthMap(
     const thread::MazeRenderFrame& frame) const {
     shadowMap->bind();
 
-    const auto& activeShaderName =
-        shadowMap->getMode() ==
-                sponge::platform::opengl::scene::ShadowMode::EVSM ?
-            ShadowMap::getEvsmShaderName() :
-            ShadowMap::getShaderName();
-    const auto shader = AssetManager::getShader(activeShaderName);
+    const auto shader = AssetManager::getShader(ShadowMap::getShaderName());
     shader->bind();
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
