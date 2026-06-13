@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/opengl/scene/shadowmode.hpp"
+
 #include <glm/glm.hpp>
 
 #include <array>
@@ -22,8 +24,11 @@ struct MazeRenderFrame {
     glm::vec3 cameraPos{ 0.F };
 
     // Directional light / shadow
-    bool      shadowEnabled{ false };
-    bool      shadowCastShadow{ false };
+    bool                                        shadowEnabled{ false };
+    bool                                        shadowCastShadow{ false };
+    sponge::platform::opengl::scene::ShadowMode shadowMode{
+        sponge::platform::opengl::scene::ShadowMode::PCF
+    };
     glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
     glm::mat4 lightSpaceMatrix{ 1.F };
 

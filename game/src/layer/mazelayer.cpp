@@ -143,6 +143,10 @@ void MazeLayer::onAttach() {
     shader->setFloat3("directionalLight.color", directionalLight.color);
     shader->setFloat("directionalLight.shadowBias",
                      directionalLight.shadowBias);
+    shader->setInteger("shadowMode", 0);
+    shader->setFloat("pcssLightSize", 5.F);
+    shader->setFloat("pcfRadius", 3.F);
+    shader->setFloat("evsmBleedThreshold", 0.2F);
 
     shader->unbind();
 
@@ -249,6 +253,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
     frame.shadowEnabled    = directionalLight.enabled;
     frame.shadowCastShadow = directionalLight.castShadow;
+    frame.shadowMode       = shadowMode;
     frame.lightDirection   = directionalLight.direction;
     if (directionalLight.enabled && directionalLight.castShadow) {
         // Update on update thread to avoid racing render thread
@@ -420,6 +425,16 @@ void MazeLayer::setDirectionalLightShadowBias(const float value) {
     shader->unbind();
 }
 
+sponge::platform::opengl::scene::ShadowMode MazeLayer::getShadowMode() const {
+    return shadowMode;
+}
+
+void MazeLayer::setShadowMode(
+    const sponge::platform::opengl::scene::ShadowMode mode) {
+    shadowMode = mode;
+    shadowMap->setMode(mode);
+}
+
 uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
     return directionalLight.shadowMapRes;
 }
@@ -558,7 +573,8 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
         shader->setInteger("shadowMap", 1);
-        shadowMap->activateAndBindDepthMap(1);
+        shader->setInteger("shadowMode", static_cast<int>(frame.shadowMode));
+        shadowMap->activateAndBindShadowTexture(1);
     }
 
     for (size_t i = 0; i < frame.objectNames.size(); i++) {
@@ -598,7 +614,11 @@ void MazeLayer::renderSceneToDepthMap(
     shadowMap->bind();
 
     // Use snapshot data only — render thread must not write to shadowMap.
-    const auto shader = AssetManager::getShader(ShadowMap::getShaderName());
+    const auto& activeShaderName =
+        frame.shadowMode == sponge::platform::opengl::scene::ShadowMode::EVSM ?
+            ShadowMap::getEvsmShaderName() :
+            ShadowMap::getShaderName();
+    const auto shader = AssetManager::getShader(activeShaderName);
     shader->bind();
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 

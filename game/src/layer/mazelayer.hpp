@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input/inputsnapshot.hpp"
+#include "platform/opengl/scene/shadowmode.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 #include "thread/mazeframe.hpp"
@@ -79,6 +80,9 @@ public:
 
     void setDirectionalLightShadowBias(float value);
 
+    sponge::platform::opengl::scene::ShadowMode getShadowMode() const;
+    void setShadowMode(sponge::platform::opengl::scene::ShadowMode mode);
+
     uint32_t getDirectionalLightShadowMapRes() const;
 
     bool isMetallic() const;
@@ -135,14 +139,17 @@ private:
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;
 
-    float   ambientStrength    = .25F;
-    float   ao                 = .25F;
-    int32_t attenuationIndex   = 4;
-    bool    fxaaEnabled        = true;
-    bool    metallic           = false;
-    bool    mouseButtonPressed = false;
-    int32_t numLights          = 0;
-    float   roughness          = .5F;
+    float                                       ambientStrength    = .25F;
+    float                                       ao                 = .25F;
+    int32_t                                     attenuationIndex   = 4;
+    bool                                        fxaaEnabled        = true;
+    bool                                        metallic           = false;
+    bool                                        mouseButtonPressed = false;
+    sponge::platform::opengl::scene::ShadowMode shadowMode{
+        sponge::platform::opengl::scene::ShadowMode::PCF
+    };
+    int32_t numLights = 0;
+    float   roughness = .5F;
 #ifdef ENABLE_IMGUI
     bool isImguiOpen = true;
 #endif
