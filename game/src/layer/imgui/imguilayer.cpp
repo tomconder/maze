@@ -12,6 +12,7 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <array>
 #include <numeric>
 #include <optional>
 #include <ranges>
@@ -228,10 +229,12 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("Shadow Mode");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            const char* shadowModeNames[] = { "PCF", "PCSS", "DPCF", "EVSM" };
+            constexpr std::array<const char*, 4> shadowModeNames = {
+                "PCF", "PCSS", "DPCF", "EVSM"
+            };
             auto currentMode = static_cast<int>(mazeLayer->getShadowMode());
-            if (ImGui::Combo("##shadowmode", &currentMode, shadowModeNames,
-                             4)) {
+            if (ImGui::Combo("##shadowmode", &currentMode,
+                             shadowModeNames.data(), 4)) {
                 mazeLayer->setShadowMode(
                     static_cast<sponge::platform::opengl::scene::ShadowMode>(
                         currentMode));
