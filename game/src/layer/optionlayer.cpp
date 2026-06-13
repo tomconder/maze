@@ -18,6 +18,7 @@
 #include <cmath>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <tuple>
@@ -58,6 +59,10 @@ constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
 
+constexpr glm::vec4 dotColorDefault = { 0.25F, 0.25F, 0.25F, 1.F };
+constexpr glm::vec4 dotColorCurrent = { 1.F, 1.F, 1.F, 1.F };
+constexpr glm::vec4 dotColorDisplay = { 0.65F, 0.65F, 0.65F, 1.F };
+
 uint32_t        fontSize            = 48;
 constexpr float textMarginLeft      = 26.F;
 constexpr float cornerRadius        = 12.F;
@@ -66,6 +71,7 @@ constexpr float selectedBorderWidth = 3.F;
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
 std::vector<AspectRatioFilter>        validAspectRatioFilters;
+std::optional<size_t>                 currentResolutionIndex;
 
 bool hasMatchingResolution(
     const AspectRatioFilter&                     filter,
@@ -442,6 +448,29 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
+    if (!filteredResolutions.empty()) {
+        const float dotRadius =
+            std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
+        const float dotSpacing = dotRadius * 3.5F;
+        const auto  dotCount   = static_cast<float>(filteredResolutions.size());
+        const float totalW = (dotCount - 1.F) * dotSpacing + dotRadius * 2.F;
+        float       dotX   = resX + (resW - totalW) / 2.F;
+        const float dotY   = resY + resH - dotRadius * 2.F - 6.F;
+        const auto  displayIdx = resolutionList->getSelectedIndex();
+        for (size_t i = 0; i < filteredResolutions.size(); ++i) {
+            const bool isCurrent = currentResolutionIndex.has_value() &&
+                                   i == *currentResolutionIndex;
+            const bool isDisplay = i == displayIdx;
+            const auto color     = isCurrent ? dotColorCurrent :
+                                   isDisplay ? dotColorDisplay :
+                                               dotColorDefault;
+            quad->render({ dotX, dotY },
+                         { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
+                         color, dotRadius);
+            dotX += dotSpacing;
+        }
+    }
+
     const auto rowFont        = AssetManager::getFont(fontName);
     auto       renderRowLabel = [&](const float x, const float y, const float h,
                                     const std::string_view label) {
@@ -756,11 +785,15 @@ void OptionLayer::filterResolutions() {
             [&](const auto& r) {
                 return r.width == currentWidth && r.height == currentHeight;
             });
-        resolutionList->setSelectedIndex(
+        const auto idx =
             it != filteredResolutions.end() ?
-                static_cast<size_t>(
-                    std::distance(filteredResolutions.begin(), it)) :
-                0);
+                std::optional<size_t>{ static_cast<size_t>(
+                    std::distance(filteredResolutions.begin(), it)) } :
+                std::nullopt;
+        resolutionList->setSelectedIndex(idx.value_or(0));
+        currentResolutionIndex = idx;
+    } else {
+        currentResolutionIndex = std::nullopt;
     }
 
     updateChangeStatus();
@@ -805,11 +838,22 @@ void OptionLayer::updateChangeStatus() {
 
     bool resolutionChanged = false;
     if (!filteredResolutions.empty()) {
-        const auto  window = Maze::get().getWindow();
+        const auto window = Maze::get().getWindow();
+        const auto curW   = window->getWidth();
+        const auto curH   = window->getHeight();
+
         const auto& res =
             filteredResolutions[resolutionList->getSelectedIndex()];
-        resolutionChanged = res.width != window->getWidth() ||
-                            res.height != window->getHeight();
+        resolutionChanged = res.width != curW || res.height != curH;
+
+        const auto it = std::find_if(
+            filteredResolutions.begin(), filteredResolutions.end(),
+            [&](const auto& r) { return r.width == curW && r.height == curH; });
+        currentResolutionIndex =
+            it != filteredResolutions.end() ?
+                std::optional<size_t>{ static_cast<size_t>(
+                    std::distance(filteredResolutions.begin(), it)) } :
+                std::nullopt;
     }
 
     hasUnappliedChanges = checkboxChanged || resolutionChanged;
