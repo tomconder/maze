@@ -17,11 +17,10 @@ uniform float ao;
 
 // lights
 struct DirectionalLight {
-    bool  enabled;
-    bool  castShadow;
-    vec3  color;
-    vec3  direction;
-    float shadowBias;
+    bool enabled;
+    bool castShadow;
+    vec3 color;
+    vec3 direction;
 };
 
 struct PointLight {

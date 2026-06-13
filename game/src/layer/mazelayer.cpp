@@ -18,7 +18,6 @@ constexpr auto dirLightCastsShadow  = true;
 constexpr auto dirLightColor        = glm::vec3(1.F, 1.F, 1.F);
 constexpr auto dirLightDirection    = glm::vec3(0.F, -2.F, 1.333F);
 constexpr auto dirLightEnabled      = true;
-constexpr auto dirLightShadowBias   = 0.004F;
 constexpr auto dirLightShadowMapRes = 1024;
 
 constexpr auto cubeScale = glm::vec3(.1F);
@@ -133,7 +132,6 @@ void MazeLayer::onAttach() {
                          .castShadow   = dirLightCastsShadow,
                          .color        = dirLightColor,
                          .direction    = dirLightDirection,
-                         .shadowBias   = dirLightShadowBias,
                          .shadowMapRes = dirLightShadowMapRes };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
@@ -141,8 +139,6 @@ void MazeLayer::onAttach() {
                        directionalLight.castShadow);
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
     shader->setFloat3("directionalLight.color", directionalLight.color);
-    shader->setFloat("directionalLight.shadowBias",
-                     directionalLight.shadowBias);
     shader->setFloat("evsmBleedThreshold", 0.2F);
 
     shader->unbind();
@@ -404,20 +400,6 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
     const auto shader = AssetManager::getShader(Mesh::getShaderName());
     shader->bind();
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
-    shader->unbind();
-}
-
-float MazeLayer::getDirectionalLightShadowBias() const {
-    return directionalLight.shadowBias;
-}
-
-void MazeLayer::setDirectionalLightShadowBias(const float value) {
-    directionalLight.shadowBias = value;
-
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
-    shader->bind();
-    shader->setFloat("directionalLight.shadowBias",
-                     directionalLight.shadowBias);
     shader->unbind();
 }
 

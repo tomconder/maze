@@ -75,10 +75,6 @@ public:
 
     void setDirectionalLightEnabled(bool value);
 
-    float getDirectionalLightShadowBias() const;
-
-    void setDirectionalLightShadowBias(float value);
-
     uint32_t getDirectionalLightShadowMapRes() const;
 
     bool isMetallic() const;
