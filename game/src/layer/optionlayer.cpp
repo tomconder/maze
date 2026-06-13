@@ -73,27 +73,55 @@ std::vector<sponge::core::Resolution> filteredResolutions;
 std::vector<AspectRatioFilter>        validAspectRatioFilters;
 std::optional<size_t>                 currentResolutionIndex;
 
+bool matchesAspectRatio(const AspectRatioFilter& filter, const uint32_t width,
+                        const uint32_t height) {
+    const auto fg    = std::gcd(filter.numerator, filter.denominator);
+    const auto g     = std::gcd(width, height);
+    const bool exact = width / g == filter.numerator / fg &&
+                       height / g == filter.denominator / fg;
+    if (filter.approximate) {
+        const float ratio =
+            static_cast<float>(width) / static_cast<float>(height);
+        const float target = static_cast<float>(filter.numerator) /
+                             static_cast<float>(filter.denominator);
+        return !exact && std::abs(ratio - target) / target <= 0.01F;
+    }
+    return exact;
+}
+
 bool hasMatchingResolution(
     const AspectRatioFilter&                     filter,
     const std::vector<sponge::core::Resolution>& resolutions) {
-    const auto fg = std::gcd(filter.numerator, filter.denominator);
     for (const auto& res : resolutions) {
-        const auto g     = std::gcd(res.width, res.height);
-        const bool exact = res.width / g == filter.numerator / fg &&
-                           res.height / g == filter.denominator / fg;
-        if (filter.approximate) {
-            const float ratio =
-                static_cast<float>(res.width) / static_cast<float>(res.height);
-            const float target = static_cast<float>(filter.numerator) /
-                                 static_cast<float>(filter.denominator);
-            if (!exact && std::abs(ratio - target) / target <= 0.01F) {
-                return true;
-            }
-        } else if (exact) {
+        if (matchesAspectRatio(filter, res.width, res.height)) {
             return true;
         }
     }
     return false;
+}
+
+size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
+    const auto g  = std::gcd(width, height);
+    const auto rw = width / g;
+    const auto rh = height / g;
+    auto       it =
+        std::find_if(validAspectRatioFilters.begin(),
+                     validAspectRatioFilters.end(), [&](const auto& f) {
+                         const auto fg = std::gcd(f.numerator, f.denominator);
+                         return !f.approximate && rw == f.numerator / fg &&
+                                rh == f.denominator / fg;
+                     });
+    if (it != validAspectRatioFilters.end()) {
+        return static_cast<size_t>(
+            std::distance(validAspectRatioFilters.begin(), it));
+    }
+    it = std::find_if(
+        validAspectRatioFilters.begin(), validAspectRatioFilters.end(),
+        [&](const auto& f) { return matchesAspectRatio(f, width, height); });
+    return it != validAspectRatioFilters.end() ?
+               static_cast<size_t>(
+                   std::distance(validAspectRatioFilters.begin(), it)) :
+               0;
 }
 
 std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
@@ -279,22 +307,8 @@ void OptionLayer::onAttach() {
 
     syncPendingCheckboxState();
 
-    const auto g  = std::gcd(currentWidth, currentHeight);
-    const auto rw = currentWidth / g;
-    const auto rh = currentHeight / g;
-
-    const auto arIt =
-        std::find_if(validAspectRatioFilters.begin(),
-                     validAspectRatioFilters.end(), [&](const auto& f) {
-                         const auto fg = std::gcd(f.numerator, f.denominator);
-                         return !f.approximate && rw == f.numerator / fg &&
-                                rh == f.denominator / fg;
-                     });
     aspectRatioList->setSelectedIndex(
-        arIt != validAspectRatioFilters.end() ?
-            static_cast<size_t>(
-                std::distance(validAspectRatioFilters.begin(), arIt)) :
-            0);
+        findAspectRatioIndex(currentWidth, currentHeight));
 
     filterResolutions();
 
@@ -744,25 +758,19 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void OptionLayer::filterResolutions() {
+    if (validAspectRatioFilters.empty()) {
+        filteredResolutions.clear();
+        resolutionList->setItems({});
+        currentResolutionIndex = std::nullopt;
+        updateChangeStatus();
+        return;
+    }
+
     const auto& filter =
         validAspectRatioFilters[aspectRatioList->getSelectedIndex()];
-    auto isExactMatch = [&](const auto& res) {
-        const auto g  = std::gcd(res.width, res.height);
-        const auto fg = std::gcd(filter.numerator, filter.denominator);
-        return res.width / g == filter.numerator / fg &&
-               res.height / g == filter.denominator / fg;
-    };
 
     auto matchesFilter = [&](const auto& res) {
-        if (filter.approximate) {
-            const float ratio =
-                static_cast<float>(res.width) / static_cast<float>(res.height);
-            const float target = static_cast<float>(filter.numerator) /
-                                 static_cast<float>(filter.denominator);
-            return !isExactMatch(res) &&
-                   std::abs(ratio - target) / target <= 0.01F;
-        }
-        return isExactMatch(res);
+        return matchesAspectRatio(filter, res.width, res.height);
     };
 
     auto filtered = availableResolutions | std::views::filter(matchesFilter);
@@ -874,22 +882,8 @@ void OptionLayer::resetSelectionToCurrentState() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    const auto g  = std::gcd(currentWidth, currentHeight);
-    const auto rw = currentWidth / g;
-    const auto rh = currentHeight / g;
-
-    const auto arIt =
-        std::find_if(validAspectRatioFilters.begin(),
-                     validAspectRatioFilters.end(), [&](const auto& f) {
-                         const auto fg = std::gcd(f.numerator, f.denominator);
-                         return !f.approximate && rw == f.numerator / fg &&
-                                rh == f.denominator / fg;
-                     });
     aspectRatioList->setSelectedIndex(
-        arIt != validAspectRatioFilters.end() ?
-            static_cast<size_t>(
-                std::distance(validAspectRatioFilters.begin(), arIt)) :
-            0);
+        findAspectRatioIndex(currentWidth, currentHeight));
 
     filterResolutions();
 }
