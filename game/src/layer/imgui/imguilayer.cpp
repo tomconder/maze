@@ -229,12 +229,11 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("Shadow Mode");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            constexpr std::array<const char*, 4> shadowModeNames = {
-                "PCF", "PCSS", "DPCF", "EVSM"
-            };
+            constexpr std::array<const char*, 2> shadowModeNames = { "PCF",
+                                                                     "EVSM" };
             auto currentMode = static_cast<int>(mazeLayer->getShadowMode());
             if (ImGui::Combo("##shadowmode", &currentMode,
-                             shadowModeNames.data(), 4)) {
+                             shadowModeNames.data(), 2)) {
                 mazeLayer->setShadowMode(
                     static_cast<sponge::platform::opengl::scene::ShadowMode>(
                         currentMode));

@@ -144,8 +144,6 @@ void MazeLayer::onAttach() {
     shader->setFloat("directionalLight.shadowBias",
                      directionalLight.shadowBias);
     shader->setInteger("shadowMode", 0);
-    shader->setFloat("pcssLightSize", 5.F);
-    shader->setFloat("pcfRadius", 3.F);
     shader->setFloat("evsmBleedThreshold", 0.2F);
 
     shader->unbind();
