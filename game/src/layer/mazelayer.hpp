@@ -75,11 +75,9 @@ public:
 
     void setDirectionalLightEnabled(bool value);
 
-    float getDirectionalLightShadowBias() const;
-
-    void setDirectionalLightShadowBias(float value);
-
     uint32_t getDirectionalLightShadowMapRes() const;
+
+    void setShadowMapRes(uint32_t res);
 
     bool isMetallic() const;
 
@@ -93,19 +91,7 @@ public:
 
     void setRoughness(float val);
 
-    float getShadowMapOrthoSize() const;
-
-    void setShadowMapOrthoSize(float val) const;
-
     uint32_t getShadowMapTextureId() const;
-
-    float getShadowMapZFar() const;
-
-    void setShadowMapZFar(float val) const;
-
-    float getShadowMapZNear() const;
-
-    void setShadowMapZNear(float val) const;
 
     bool isFxaaEnabled() const;
 
@@ -131,6 +117,11 @@ private:
     // width/height.
     mutable std::atomic<bool>     pendingResize{ false };
     mutable std::atomic<uint64_t> pendingResizeDimensions{ 0 };
+
+    // Deferred shadow map FBO rebuild: set from any thread, applied in
+    // onRender() on the GL thread.
+    mutable std::atomic<bool>     pendingShadowRebuild{ false };
+    mutable std::atomic<uint32_t> pendingShadowRebuildRes{ 0 };
 
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;

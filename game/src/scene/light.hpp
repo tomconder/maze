@@ -8,7 +8,6 @@ struct DirectionalLight {
     bool      castShadow;
     glm::vec3 color;
     glm::vec3 direction;
-    float     shadowBias;
     uint32_t  shadowMapRes;
 };
 
