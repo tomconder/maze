@@ -1,5 +1,6 @@
 #include "layer/mazelayer.hpp"
 
+#include "core/settings.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
@@ -14,11 +15,11 @@
 namespace {
 constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
 
-constexpr auto dirLightCastsShadow  = true;
-constexpr auto dirLightColor        = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto dirLightDirection    = glm::vec3(0.F, -2.F, 1.333F);
-constexpr auto dirLightEnabled      = true;
-constexpr auto dirLightShadowMapRes = 1024;
+constexpr auto dirLightCastsShadow = true;
+constexpr auto dirLightColor       = glm::vec3(1.F, 1.F, 1.F);
+constexpr auto dirLightDirection   = glm::vec3(0.F, -2.F, 1.333F);
+constexpr auto dirLightEnabled     = true;
+constexpr auto defaultShadowMapRes = 1024U;
 
 constexpr auto cubeScale = glm::vec3(.1F);
 
@@ -128,11 +129,14 @@ void MazeLayer::onAttach() {
 
     shader->setFloat("ambientStrength", ambientStrength);
 
+    const auto savedShadowRes = sponge::core::Settings::getUInt32(
+        "video.shadowRes", defaultShadowMapRes);
+
     directionalLight = { .enabled      = dirLightEnabled,
                          .castShadow   = dirLightCastsShadow,
                          .color        = dirLightColor,
                          .direction    = dirLightDirection,
-                         .shadowMapRes = dirLightShadowMapRes };
+                         .shadowMapRes = savedShadowRes };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
     shader->setBoolean("directionalLight.castShadow",
@@ -278,6 +282,13 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
 void MazeLayer::onRender() {
     // Render thread only — all GL calls here.
+    if (pendingShadowRebuild.load(std::memory_order_acquire)) {
+        const auto res =
+            pendingShadowRebuildRes.load(std::memory_order_relaxed);
+        shadowMap = std::make_unique<ShadowMap>(res);
+        pendingShadowRebuild.store(false, std::memory_order_relaxed);
+    }
+
     if (pendingResize.load(std::memory_order_acquire)) {
         const auto dims =
             pendingResizeDimensions.load(std::memory_order_relaxed);
@@ -405,6 +416,12 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
 
 uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
     return directionalLight.shadowMapRes;
+}
+
+void MazeLayer::setShadowMapRes(const uint32_t res) {
+    directionalLight.shadowMapRes = res;
+    pendingShadowRebuildRes.store(res, std::memory_order_relaxed);
+    pendingShadowRebuild.store(true, std::memory_order_release);
 }
 
 bool MazeLayer::isMetallic() const {

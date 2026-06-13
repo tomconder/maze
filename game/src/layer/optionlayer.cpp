@@ -48,6 +48,8 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
 constexpr std::string_view returnMessage = "Return";
 constexpr std::string_view applyMessage  = "Apply";
 
+constexpr std::array<uint32_t, 4> shadowResolutions = { 512, 1024, 2048, 4096 };
+
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
 constexpr std::string_view fontPath   = "/fonts/inter.ttf";
@@ -137,14 +139,15 @@ inline std::string quadShaderName;
 inline std::string fontShaderName;
 
 void saveVideoSettings(const uint32_t width, const uint32_t height,
-                       const bool fullscreen, const bool vsync,
-                       const bool fxaa) {
+                       const bool fullscreen, const bool vsync, const bool fxaa,
+                       const uint32_t shadowRes) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
     Settings::set("video.fullscreen", fullscreen);
     Settings::set("video.vsync", vsync);
     Settings::set("video.fxaa", fxaa);
+    Settings::set("video.shadowRes", shadowRes);
     Settings::save();
 }
 
@@ -155,11 +158,14 @@ YGNodeRef aspectRatioNode    = nullptr;
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
 YGNodeRef resolutionNode     = nullptr;
+YGNodeRef shadowQualityNode  = nullptr;
 YGNodeRef verticalSyncNode   = nullptr;
 YGNodeRef fullScreenNode     = nullptr;
 YGNodeRef returnNode         = nullptr;
 YGNodeRef rootNode           = nullptr;
 YGNodeRef titleNode          = nullptr;
+
+std::optional<size_t> currentShadowResIndex;
 
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
@@ -241,12 +247,13 @@ void OptionLayer::onAttach() {
         return child;
     };
 
-    aspectRatioNode  = makeMenuNode(menuBackgroundNode, 0);
-    resolutionNode   = makeMenuNode(menuBackgroundNode, 1);
-    fullScreenNode   = makeMenuNode(menuBackgroundNode, 2);
-    verticalSyncNode = makeMenuNode(menuBackgroundNode, 3);
-    antiAliasingNode = makeMenuNode(menuBackgroundNode, 4);
-    returnNode       = makeMenuNode(menuBackgroundNode, 5);
+    aspectRatioNode   = makeMenuNode(menuBackgroundNode, 0);
+    resolutionNode    = makeMenuNode(menuBackgroundNode, 1);
+    fullScreenNode    = makeMenuNode(menuBackgroundNode, 2);
+    verticalSyncNode  = makeMenuNode(menuBackgroundNode, 3);
+    antiAliasingNode  = makeMenuNode(menuBackgroundNode, 4);
+    shadowQualityNode = makeMenuNode(menuBackgroundNode, 5);
+    returnNode        = makeMenuNode(menuBackgroundNode, 6);
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -285,8 +292,9 @@ void OptionLayer::onAttach() {
         .textMarginLeft     = textMarginLeft,
         .maxValueWidth      = maxCycleValueWidth,
     };
-    aspectRatioList = std::make_unique<ui::SelectList>(selectCreateInfo);
-    resolutionList  = std::make_unique<ui::SelectList>(selectCreateInfo);
+    aspectRatioList   = std::make_unique<ui::SelectList>(selectCreateInfo);
+    resolutionList    = std::make_unique<ui::SelectList>(selectCreateInfo);
+    shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
 
     const ui::CheckboxCreateInfo checkboxCreateInfo{
         .margin = textMarginLeft, .size = static_cast<float>(fontSize)
@@ -301,6 +309,28 @@ void OptionLayer::onAttach() {
         arItems.emplace_back(f.label);
     }
     aspectRatioList->setItems(std::move(arItems));
+
+    {
+        std::vector<std::string> sqItems;
+        sqItems.reserve(shadowResolutions.size());
+        for (const auto res : shadowResolutions) {
+            sqItems.emplace_back(std::to_string(res));
+        }
+        shadowQualityList->setItems(std::move(sqItems));
+    }
+
+    {
+        const auto currentShadowRes =
+            Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
+        const auto it = std::ranges::find(shadowResolutions, currentShadowRes);
+        pendingShadowResIndex =
+            it != shadowResolutions.end() ?
+                static_cast<int>(it - shadowResolutions.begin()) :
+                1;
+        shadowQualityList->setSelectedIndex(
+            static_cast<size_t>(pendingShadowResIndex));
+        currentShadowResIndex = static_cast<size_t>(pendingShadowResIndex);
+    }
 
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
@@ -380,6 +410,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                            !filteredResolutions.empty()) {
                     resolutionList->selectPrev();
                     updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::ShadowQuality) {
+                    shadowQualityList->selectPrev();
+                    pendingShadowResIndex =
+                        static_cast<int>(shadowQualityList->getSelectedIndex());
+                    updateChangeStatus();
                 }
             }
             if (input.isActive(GameAction::MenuRight)) {
@@ -389,6 +424,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                 } else if (selectedItem == OptionMenuItem::Resolution &&
                            !filteredResolutions.empty()) {
                     resolutionList->selectNext();
+                    updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::ShadowQuality) {
+                    shadowQualityList->selectNext();
+                    pendingShadowResIndex =
+                        static_cast<int>(shadowQualityList->getSelectedIndex());
                     updateChangeStatus();
                 }
             }
@@ -454,6 +494,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
     const auto [aaX, aaY, aaW, aaH] =
         getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
+    const auto [sqX, sqY, sqW, sqH] =
+        getNodeLayout(shadowQualityNode, menuBgX, menuBgY);
     const auto [retX, retY, retW, retH] =
         getNodeLayout(returnNode, menuBgX, menuBgY);
 
@@ -517,6 +559,12 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(aaX, aaY, aaW, aaH, OptionMenuItem::AntiAliasing);
     renderRowLabel(aaX, aaY, aaH, "Anti-Aliasing");
     antiAliasingCheckbox->onUpdate(aaX, aaY, aaW, aaH, pendingFxaa);
+
+    renderRowBackground(sqX, sqY, sqW, sqH, OptionMenuItem::ShadowQuality);
+    shadowQualityList->onUpdate(sqX, sqY, sqW, sqH, "Shadow Map");
+    renderDots(shadowResolutions.size(),
+               shadowQualityList->getValueCenterX(sqX, sqW), sqY, sqH,
+               shadowQualityList->getSelectedIndex(), currentShadowResIndex);
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     if (selectedItem == OptionMenuItem::Return) {
@@ -667,6 +715,26 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    const auto [sqX, sqY, sqW, sqH] = getNodeLayout(
+        shadowQualityNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= sqX && mouseX <= sqX + sqW && mouseY >= sqY &&
+        mouseY <= sqY + sqH) {
+        selectedItem = OptionMenuItem::ShadowQuality;
+        if (shadowQualityList->isInsideLeft(mouseX, sqX, sqW)) {
+            shadowQualityList->selectPrev();
+            pendingShadowResIndex =
+                static_cast<int>(shadowQualityList->getSelectedIndex());
+            updateChangeStatus();
+        } else if (shadowQualityList->isInsideRight(mouseX, sqX, sqW)) {
+            shadowQualityList->selectNext();
+            pendingShadowResIndex =
+                static_cast<int>(shadowQualityList->getSelectedIndex());
+            updateChangeStatus();
+        }
+        return true;
+    }
+
     return true;
 }
 
@@ -713,6 +781,8 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
         hoveredItem = OptionMenuItem::VerticalSync;
     } else if (isOver(antiAliasingNode)) {
         hoveredItem = OptionMenuItem::AntiAliasing;
+    } else if (isOver(shadowQualityNode)) {
+        hoveredItem = OptionMenuItem::ShadowQuality;
     } else {
         hoveredItem = std::nullopt;
     }
@@ -734,6 +804,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         returnButton->setFontSize(fontSize);
         aspectRatioList->setFontSize(fontSize);
         resolutionList->setFontSize(fontSize);
+        shadowQualityList->setFontSize(fontSize);
 
         const auto checkboxSize = static_cast<float>(fontSize);
         antiAliasingCheckbox->setSize(checkboxSize);
@@ -758,6 +829,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
 
         aspectRatioList->setMaxValueWidth(maxCycleValueWidth);
         resolutionList->setMaxValueWidth(maxCycleValueWidth);
+        shadowQualityList->setMaxValueWidth(maxCycleValueWidth);
     }
 
     if (isActive()) {
@@ -835,8 +907,11 @@ void OptionLayer::applyChanges() {
     }
     Maze::get().setVerticalSync(pendingVsync);
     Maze::get().setFxaaEnabled(pendingFxaa);
+    const auto shadowRes =
+        shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
+    Maze::get().getMazeLayer()->setShadowMapRes(shadowRes);
     saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
-                      pendingFxaa);
+                      pendingFxaa, shadowRes);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
@@ -847,6 +922,18 @@ void OptionLayer::syncPendingCheckboxState() {
     pendingFullscreen = Maze::get().isFullscreen();
     pendingVsync      = Maze::get().hasVerticalSync();
     pendingFxaa       = Maze::get().isFxaaEnabled();
+
+    const auto currentShadowRes =
+        Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
+    const auto it = std::ranges::find(shadowResolutions, currentShadowRes);
+    pendingShadowResIndex =
+        it != shadowResolutions.end() ?
+            static_cast<int>(it - shadowResolutions.begin()) :
+            1;
+    if (shadowQualityList) {
+        shadowQualityList->setSelectedIndex(
+            static_cast<size_t>(pendingShadowResIndex));
+    }
 }
 
 void OptionLayer::updateChangeStatus() {
@@ -885,7 +972,18 @@ void OptionLayer::updateChangeStatus() {
                 std::nullopt;
     }
 
-    hasUnappliedChanges = checkboxChanged || resolutionChanged;
+    const auto currentShadowRes =
+        Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
+    const auto sqIt = std::ranges::find(shadowResolutions, currentShadowRes);
+    currentShadowResIndex = sqIt != shadowResolutions.end() ?
+                                std::optional<size_t>{ static_cast<size_t>(
+                                    sqIt - shadowResolutions.begin()) } :
+                                std::nullopt;
+    const bool shadowChanged =
+        shadowResolutions[static_cast<size_t>(pendingShadowResIndex)] !=
+        currentShadowRes;
+
+    hasUnappliedChanges = checkboxChanged || resolutionChanged || shadowChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
                                                    returnMessage);
 }
