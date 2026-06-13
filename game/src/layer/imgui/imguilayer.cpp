@@ -1,6 +1,7 @@
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
 #include "layer/imgui/imguilayer.hpp"
 
+#include "core/settings.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
@@ -252,8 +253,11 @@ void ImGuiLayer::showDirectionalLightControls() {
             if (ImGui::Combo("##shadowmapsize", &shadowResIndex,
                              shadowResLabels.data(),
                              static_cast<int>(shadowResLabels.size()))) {
-                mazeLayer->setShadowMapRes(
-                    shadowResolutions[static_cast<size_t>(shadowResIndex)]);
+                const auto res =
+                    shadowResolutions[static_cast<size_t>(shadowResIndex)];
+                mazeLayer->setShadowMapRes(res);
+                sponge::core::Settings::set("video.shadowRes", res);
+                sponge::core::Settings::save();
             }
         });
 
