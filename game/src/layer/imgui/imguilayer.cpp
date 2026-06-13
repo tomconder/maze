@@ -259,8 +259,29 @@ void ImGuiLayer::showDirectionalLightControls() {
         showTableRow([&] {
             ImGui::Text("Shadow Map Size");
             ImGui::TableNextColumn();
-            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
-            ImGui::Text("%ux%u", res, res);
+
+            static constexpr std::array<uint32_t, 4> shadowResolutions = {
+                512, 1024, 2048, 4096
+            };
+            static constexpr std::array<const char*, 4> shadowResLabels = {
+                "512", "1024", "2048", "4096"
+            };
+
+            const auto currentRes =
+                mazeLayer->getDirectionalLightShadowMapRes();
+            const auto it = std::ranges::find(shadowResolutions, currentRes);
+            int        shadowResIndex =
+                it != shadowResolutions.end() ?
+                    static_cast<int>(it - shadowResolutions.begin()) :
+                    1;
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::Combo("##shadowmapsize", &shadowResIndex,
+                             shadowResLabels.data(),
+                             static_cast<int>(shadowResLabels.size()))) {
+                mazeLayer->setShadowMapRes(
+                    shadowResolutions[static_cast<size_t>(shadowResIndex)]);
+            }
         });
 
         ImGui::EndTable();
