@@ -377,6 +377,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
                 syncPendingCheckboxState();
+                updateChangeStatus();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
