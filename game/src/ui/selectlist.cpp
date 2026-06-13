@@ -85,6 +85,10 @@ float SelectList::getStartX(const float x, const float w) const {
     return x + w - textMarginLeft - leftLen - maxValueWidth - rightLen;
 }
 
+float SelectList::getValueCenterX(const float x, const float w) const {
+    return getStartX(x, w) + leftLen + maxValueWidth / 2.F;
+}
+
 void SelectList::onUpdate(const float x, const float y, const float w,
                           const float h, const std::string_view label) {
     const float textY = std::floor(
