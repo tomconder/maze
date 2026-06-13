@@ -457,23 +457,22 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     const auto [retX, retY, retW, retH] =
         getNodeLayout(returnNode, menuBgX, menuBgY);
 
-    renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
-    aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
-
-    if (!validAspectRatioFilters.empty()) {
+    auto renderDots = [&](const size_t count, const float valueCenterX,
+                          const float rowY, const float rowH,
+                          const size_t                 displayIdx,
+                          const std::optional<size_t>& currentIdx) {
+        if (count == 0) {
+            return;
+        }
         const float dotRadius =
             std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
         const float dotSpacing = dotRadius * 3.5F;
-        const auto  dotCount =
-            static_cast<float>(validAspectRatioFilters.size());
-        const float totalW = (dotCount - 1.F) * dotSpacing + dotRadius * 2.F;
-        const float valueCenterX = aspectRatioList->getValueCenterX(arX, arW);
-        float       dotX         = valueCenterX - totalW / 2.F;
-        const float dotY         = arY + arH - dotRadius * 2.F - 9.F;
-        const auto  displayIdx   = aspectRatioList->getSelectedIndex();
-        for (size_t i = 0; i < validAspectRatioFilters.size(); ++i) {
-            const bool isCurrent = currentAspectRatioIndex.has_value() &&
-                                   i == *currentAspectRatioIndex;
+        const float totalW =
+            (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
+        float       dotX = valueCenterX - totalW / 2.F;
+        const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
+        for (size_t i = 0; i < count; ++i) {
+            const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
             const bool isDisplay = i == displayIdx;
             const auto color     = isCurrent ? dotColorCurrent :
                                    isDisplay ? dotColorDisplay :
@@ -483,34 +482,19 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                          color, dotRadius);
             dotX += dotSpacing;
         }
-    }
+    };
+
+    renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
+    aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
+    renderDots(validAspectRatioFilters.size(),
+               aspectRatioList->getValueCenterX(arX, arW), arY, arH,
+               aspectRatioList->getSelectedIndex(), currentAspectRatioIndex);
 
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
-
-    if (!filteredResolutions.empty()) {
-        const float dotRadius =
-            std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
-        const float dotSpacing = dotRadius * 3.5F;
-        const auto  dotCount   = static_cast<float>(filteredResolutions.size());
-        const float totalW = (dotCount - 1.F) * dotSpacing + dotRadius * 2.F;
-        const float valueCenterX = resolutionList->getValueCenterX(resX, resW);
-        float       dotX         = valueCenterX - totalW / 2.F;
-        const float dotY         = resY + resH - dotRadius * 2.F - 9.F;
-        const auto  displayIdx   = resolutionList->getSelectedIndex();
-        for (size_t i = 0; i < filteredResolutions.size(); ++i) {
-            const bool isCurrent = currentResolutionIndex.has_value() &&
-                                   i == *currentResolutionIndex;
-            const bool isDisplay = i == displayIdx;
-            const auto color     = isCurrent ? dotColorCurrent :
-                                   isDisplay ? dotColorDisplay :
-                                               dotColorDefault;
-            quad->render({ dotX, dotY },
-                         { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
-                         color, dotRadius);
-            dotX += dotSpacing;
-        }
-    }
+    renderDots(filteredResolutions.size(),
+               resolutionList->getValueCenterX(resX, resW), resY, resH,
+               resolutionList->getSelectedIndex(), currentResolutionIndex);
 
     const auto rowFont        = AssetManager::getFont(fontName);
     auto       renderRowLabel = [&](const float x, const float y, const float h,
