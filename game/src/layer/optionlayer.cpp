@@ -71,6 +71,7 @@ constexpr float selectedBorderWidth = 3.F;
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
 std::vector<AspectRatioFilter>        validAspectRatioFilters;
+std::optional<size_t>                 currentAspectRatioIndex;
 std::optional<size_t>                 currentResolutionIndex;
 
 bool matchesAspectRatio(const AspectRatioFilter& filter, const uint32_t width,
@@ -459,6 +460,31 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
     aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
 
+    if (!validAspectRatioFilters.empty()) {
+        const float dotRadius =
+            std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
+        const float dotSpacing = dotRadius * 3.5F;
+        const auto  dotCount =
+            static_cast<float>(validAspectRatioFilters.size());
+        const float totalW = (dotCount - 1.F) * dotSpacing + dotRadius * 2.F;
+        const float valueCenterX = aspectRatioList->getValueCenterX(arX, arW);
+        float       dotX         = valueCenterX - totalW / 2.F;
+        const float dotY         = arY + arH - dotRadius * 2.F - 9.F;
+        const auto  displayIdx   = aspectRatioList->getSelectedIndex();
+        for (size_t i = 0; i < validAspectRatioFilters.size(); ++i) {
+            const bool isCurrent = currentAspectRatioIndex.has_value() &&
+                                   i == *currentAspectRatioIndex;
+            const bool isDisplay = i == displayIdx;
+            const auto color     = isCurrent ? dotColorCurrent :
+                                   isDisplay ? dotColorDisplay :
+                                               dotColorDefault;
+            quad->render({ dotX, dotY },
+                         { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
+                         color, dotRadius);
+            dotX += dotSpacing;
+        }
+    }
+
     renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
     resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
 
@@ -845,12 +871,17 @@ void OptionLayer::updateChangeStatus() {
         pendingVsync != Maze::get().hasVerticalSync() ||
         pendingFxaa != Maze::get().isFxaaEnabled();
 
+    const auto window = Maze::get().getWindow();
+    const auto curW   = window->getWidth();
+    const auto curH   = window->getHeight();
+
+    currentAspectRatioIndex =
+        !validAspectRatioFilters.empty() ?
+            std::optional<size_t>{ findAspectRatioIndex(curW, curH) } :
+            std::nullopt;
+
     bool resolutionChanged = false;
     if (!filteredResolutions.empty()) {
-        const auto window = Maze::get().getWindow();
-        const auto curW   = window->getWidth();
-        const auto curH   = window->getHeight();
-
         const auto& res =
             filteredResolutions[resolutionList->getSelectedIndex()];
         resolutionChanged = res.width != curW || res.height != curH;
