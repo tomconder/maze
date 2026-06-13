@@ -456,7 +456,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         const float totalW = (dotCount - 1.F) * dotSpacing + dotRadius * 2.F;
         const float valueCenterX = resolutionList->getValueCenterX(resX, resW);
         float       dotX         = valueCenterX - totalW / 2.F;
-        const float dotY         = resY + resH - dotRadius * 2.F - 6.F;
+        const float dotY         = resY + resH - dotRadius * 2.F - 9.F;
         const auto  displayIdx   = resolutionList->getSelectedIndex();
         for (size_t i = 0; i < filteredResolutions.size(); ++i) {
             const bool isCurrent = currentResolutionIndex.has_value() &&
