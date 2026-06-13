@@ -38,6 +38,8 @@ public:
 
     void onUpdate(float x, float y, float w, float h, std::string_view label);
 
+    float getValueCenterX(float x, float w) const;
+
     bool isInsideLeft(float mouseX, float x, float w) const;
     bool isInsideRight(float mouseX, float x, float w) const;
 
