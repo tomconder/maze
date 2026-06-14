@@ -99,11 +99,11 @@ MazeLayer::MazeLayer() : Layer("maze") {
 
 void MazeLayer::onAttach() {
     for (auto& gameObject : gameObjects) {
-        // compute the model matrix to avoid recalculating it on every frame
-        gameObject.modelMatrix = glm::scale(
+        // compute the model matrix once; it never changes after onAttach
+        objectModelMatrices.push_back(glm::scale(
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
+            gameObject.scale));
 
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
             .name = std::string(gameObject.name),
@@ -268,11 +268,8 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.fxaaEnabled = fxaaEnabled;
 
     // Static after onAttach(); safe to copy.
-    frame.objectModelMatrices.resize(gameObjects.size());
-    frame.objectModels = objectModels;
-    for (size_t i = 0; i < gameObjects.size(); i++) {
-        frame.objectModelMatrices[i] = gameObjects[i].modelMatrix;
-    }
+    frame.objectModelMatrices = objectModelMatrices;
+    frame.objectModels        = objectModels;
 
     // Publish slot; release/acquire pair with onRender()'s load.
     renderReadIndex.store(slotIndex, std::memory_order_release);

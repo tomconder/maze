@@ -259,24 +259,20 @@ void OptionLayer::onAttach() {
     }
 
     // compute max display width across all aspect ratios and resolutions
-    float maxCycleValueWidth = 0.F;
-    {
-        const auto& font   = menuFont;
-        maxCycleValueWidth = std::accumulate(
-            validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-            [&](const float acc, const auto& f) {
-                return std::max(acc, static_cast<float>(
-                                         font->getLength(f.label, fontSize)));
-            });
-        maxCycleValueWidth = std::accumulate(
-            availableResolutions.begin(), availableResolutions.end(),
-            maxCycleValueWidth, [&](const float acc, const auto& res) {
-                return std::max(
-                    acc, static_cast<float>(font->getLength(
-                             fmt::format("{} × {}", res.width, res.height),
-                             fontSize)));
-            });
-    }
+    float maxCycleValueWidth = std::accumulate(
+        validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
+        [&](const float acc, const auto& f) {
+            return std::max(acc, static_cast<float>(
+                                     menuFont->getLength(f.label, fontSize)));
+        });
+    maxCycleValueWidth = std::accumulate(
+        availableResolutions.begin(), availableResolutions.end(),
+        maxCycleValueWidth, [&](const float acc, const auto& res) {
+            return std::max(
+                acc,
+                static_cast<float>(menuFont->getLength(
+                    fmt::format("{} × {}", res.width, res.height), fontSize)));
+        });
 
     const ui::SelectListCreateInfo selectCreateInfo{
         .font               = menuFont,
@@ -527,14 +523,13 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                resolutionList->getValueCenterX(resX, resW), resY, resH,
                resolutionList->getSelectedIndex(), currentResolutionIndex);
 
-    const auto& rowFont = menuFont;
     auto renderRowLabel = [&](const float x, const float y, const float h,
                               const std::string_view label) {
         const float textY = std::floor(
-            y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
-        rowFont->beginPass(fontSize);
-        rowFont->render(label, { x + textMarginLeft, textY }, textColor);
-        rowFont->endPass();
+            y + (h - static_cast<float>(menuFont->getHeight(fontSize))) / 2.F);
+        menuFont->beginPass(fontSize);
+        menuFont->render(label, { x + textMarginLeft, textY }, textColor);
+        menuFont->endPass();
     };
 
     renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
@@ -800,18 +795,17 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         fullScreenCheckbox->setSize(checkboxSize);
         verticalSyncCheckbox->setSize(checkboxSize);
 
-        const auto& font               = menuFont;
-        float       maxCycleValueWidth = std::accumulate(
+        float maxCycleValueWidth = std::accumulate(
             validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
             [&](const float acc, const auto& f) {
-                return std::max(acc, static_cast<float>(
-                                         font->getLength(f.label, fontSize)));
+                return std::max(acc, static_cast<float>(menuFont->getLength(
+                                         f.label, fontSize)));
             });
         maxCycleValueWidth = std::accumulate(
             availableResolutions.begin(), availableResolutions.end(),
             maxCycleValueWidth, [&](const float acc, const auto& res) {
                 return std::max(
-                    acc, static_cast<float>(font->getLength(
+                    acc, static_cast<float>(menuFont->getLength(
                              fmt::format("{} × {}", res.width, res.height),
                              fontSize)));
             });

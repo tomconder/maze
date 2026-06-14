@@ -294,18 +294,15 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         constexpr auto margin         = 10.F;
         constexpr auto statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
 
-        const auto& statusFont = menuFont;
-        if (statusFont) {
-            const auto statusWidth = static_cast<float>(
-                statusFont->getLength(gamepadStatus, statusFontSize));
-            statusFont->beginPass(statusFontSize);
-            statusFont->render(
-                gamepadStatus,
-                { width - statusWidth - margin,
-                  height - statusFont->getHeight(statusFontSize) - margin },
-                statusColor);
-            statusFont->endPass();
-        }
+        const auto statusWidth = static_cast<float>(
+            menuFont->getLength(gamepadStatus, statusFontSize));
+        menuFont->beginPass(statusFontSize);
+        menuFont->render(
+            gamepadStatus,
+            { width - statusWidth - margin,
+              height - menuFont->getHeight(statusFontSize) - margin },
+            statusColor);
+        menuFont->endPass();
     }
 
     if (isFadingIn) {

@@ -21,7 +21,6 @@ struct GameObject {
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation;
     glm::vec3 translation{ 0.F };
-    glm::mat4 modelMatrix{ 1.F };
 };
 
 class MazeLayer final : public sponge::layer::Layer {
@@ -104,6 +103,7 @@ public:
 
 private:
     std::shared_ptr<scene::GameCamera> camera;
+    std::vector<glm::mat4>             objectModelMatrices;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
                                                                 objectModels;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
