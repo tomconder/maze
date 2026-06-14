@@ -1,19 +1,7 @@
-#include "optionlayer.hpp"
+// Copyright 2024 Tom Conder
+#include "game/layer/optionlayer.hpp"  // NOLINT: header included
 
-#include "core/settings.hpp"
-#include "event/event.hpp"
-#include "maze.hpp"
-#include "resourcemanager.hpp"
-#include "scene/orthocamera.hpp"
-#include "sponge.hpp"
-#include "ui/button.hpp"
-#include "ui/checkbox.hpp"
-#include "ui/menufontsize.hpp"
-#include "ui/selectlist.hpp"
-
-#include <fmt/format.h>
-#include <yoga/Yoga.h>
-
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <memory>
@@ -22,7 +10,22 @@
 #include <ranges>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
+
+#include <fmt/format.h>  // NOLINT: external library
+#include <yoga/Yoga.h>   // NOLINT: external library
+
+#include "game/core/settings.hpp"
+#include "game/event/event.hpp"
+#include "game/maze.hpp"
+#include "game/resourcemanager.hpp"
+#include "game/scene/orthocamera.hpp"
+#include "game/ui/button.hpp"
+#include "game/ui/checkbox.hpp"
+#include "game/ui/menufontsize.hpp"
+#include "game/ui/selectlist.hpp"
+#include "sponge/sponge.hpp"
 
 namespace {
 struct AspectRatioFilter {
