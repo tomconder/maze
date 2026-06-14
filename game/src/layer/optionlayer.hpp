@@ -15,6 +15,7 @@ enum class OptionMenuItem : uint8_t {
     FullScreen,
     VerticalSync,
     AntiAliasing,
+    ShadowQuality,
     Return,
     Count
 };
@@ -39,12 +40,14 @@ private:
     bool wasActiveLastFrame    = false;
     bool waitForConfirmRelease = false;
 
-    bool pendingFullscreen = false;
-    bool pendingVsync      = false;
-    bool pendingFxaa       = false;
+    bool pendingFullscreen     = false;
+    bool pendingVsync          = false;
+    bool pendingFxaa           = false;
+    int  pendingShadowResIndex = 1;
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
+    std::unique_ptr<ui::SelectList> shadowQualityList;
     std::unique_ptr<ui::Checkbox>   antiAliasingCheckbox;
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;

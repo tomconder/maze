@@ -1,6 +1,7 @@
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
 #include "layer/imgui/imguilayer.hpp"
 
+#include "core/settings.hpp"
 #include "maze.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
@@ -11,6 +12,7 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <array>
 #include <numeric>
 #include <optional>
 #include <ranges>
@@ -178,13 +180,9 @@ void ImGuiLayer::showLightsSection() {
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
         const auto mazeLayer  = Maze::get().getMazeLayer();
-        auto       bias       = mazeLayer->getDirectionalLightShadowBias();
         auto       castShadow = mazeLayer->getDirectionalLightCastsShadow();
         auto       direction  = mazeLayer->getDirectionalLightDirection();
         auto       enabled    = mazeLayer->getDirectionalLightEnabled();
-        auto       orthoSize  = mazeLayer->getShadowMapOrthoSize();
-        auto       zFar       = mazeLayer->getShadowMapZFar();
-        auto       zNear      = mazeLayer->getShadowMapZNear();
 
         showTableRow([&] {
             ImGui::Text("Enable");
@@ -233,44 +231,34 @@ void ImGuiLayer::showDirectionalLightControls() {
         });
 
         showTableRow([&] {
-            ImGui::Text("Shadow Bias");
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat("##directionalbias", &bias, 0.001F, 0.03F,
-                                   "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setDirectionalLightShadowBias(bias);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Near");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##znear", &zNear, 0.01F, 1.F, "%1.2f")) {
-                mazeLayer->setShadowMapZNear(zNear);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Far");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##zfar", &zFar, 5.F, 500.F, "%3.1f")) {
-                mazeLayer->setShadowMapZFar(zFar);
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Ortho Size");
-            ImGui::TableNextColumn();
-            if (ImGui::SliderFloat("##orthosize", &orthoSize, 1.F, 50.F)) {
-                mazeLayer->setShadowMapOrthoSize(orthoSize);
-            }
-        });
-
-        showTableRow([&] {
             ImGui::Text("Shadow Map Size");
             ImGui::TableNextColumn();
-            const auto res = mazeLayer->getDirectionalLightShadowMapRes();
-            ImGui::Text("%ux%u", res, res);
+
+            static constexpr std::array<uint32_t, 4> shadowResolutions = {
+                512, 1024, 2048, 4096
+            };
+            static constexpr std::array<const char*, 4> shadowResLabels = {
+                "Low", "Normal", "High", "Ultra"
+            };
+
+            const auto currentRes =
+                mazeLayer->getDirectionalLightShadowMapRes();
+            const auto it = std::ranges::find(shadowResolutions, currentRes);
+            int        shadowResIndex =
+                it != shadowResolutions.end() ?
+                    static_cast<int>(it - shadowResolutions.begin()) :
+                    1;
+
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::Combo("##shadowmapsize", &shadowResIndex,
+                             shadowResLabels.data(),
+                             static_cast<int>(shadowResLabels.size()))) {
+                const auto res =
+                    shadowResolutions[static_cast<size_t>(shadowResIndex)];
+                mazeLayer->setShadowMapRes(res);
+                sponge::core::Settings::set("video.shadowRes", res);
+                sponge::core::Settings::save();
+            }
         });
 
         ImGui::EndTable();

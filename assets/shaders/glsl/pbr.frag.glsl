@@ -17,11 +17,10 @@ uniform float ao;
 
 // lights
 struct DirectionalLight {
-    bool  enabled;
-    bool  castShadow;
-    vec3  color;
-    vec3  direction;
-    float shadowBias;
+    bool enabled;
+    bool castShadow;
+    vec3 color;
+    vec3 direction;
 };
 
 struct PointLight {
@@ -36,6 +35,7 @@ uniform PointLight       pointLights[6];
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D shadowMap;
+uniform float evsmBleedThreshold;
 uniform vec3      viewPos;
 uniform float     ambientStrength;
 uniform bool      hasNoTexture;
@@ -53,8 +53,7 @@ vec3 lightAttenuationData[11] =
 // function prototypes
 float attenuationFromLight(PointLight light);
 vec3  calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance);
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                      float shadowBias);
+float shadowEVSM(vec4 fragPosLightSpace);
 
 // PBR function prototypes
 vec3  fresnelSchlick(float cosTheta, vec3 F0);
@@ -79,8 +78,7 @@ void main() {
 
     float shadow = 0.0;
     if (directionalLight.castShadow) {
-        shadow = calculateShadow(fs_in.fragPosLightSpace, N, dirLightDir,
-                                 directionalLight.shadowBias);
+        shadow = shadowEVSM(fs_in.fragPosLightSpace);
     }
 
     // zeroes out directional light if not enabled
@@ -150,43 +148,23 @@ vec3 calculatePBR(vec3 albedo, vec3 N, vec3 V, vec3 L, vec3 radiance) {
     return result;
 }
 
-float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir,
-                      float shadowBias) {
-    // perform perspective divide
+float shadowEVSM(vec4 fragPosLightSpace) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-
-    // get closest depth value from light's perspective
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-
-    // get current depth value
-    float currentDepth = projCoords.z;
-
-    // calculate bias based on light direction and normal (helps with peter
-    // panning and shadow acne)
-    float bias = max(shadowBias * (1.0 - dot(normal, lightDir)), 0.005);
-
-    // PCF
-    float shadow    = 0.0;
-    vec2  texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; y++) {
-            float pcfDepth =
-                texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-        }
-    }
-    shadow /= 9.0;
-
-    // keep shadow at 0.0 when outside the far plane region of the light's
-    // frustum
+    projCoords      = projCoords * 0.5 + 0.5;
     if (projCoords.z > 1.0 || projCoords.z < 0.0) {
-        shadow = 0.0;
+        return 0.0;
     }
+    float currentDepth = projCoords.z;
+    vec2  moments      = texture(shadowMap, projCoords.xy).rg;
 
-    return shadow;
+    float p        = float(currentDepth <= moments.x);
+    float variance = moments.y - moments.x * moments.x;
+    variance       = max(variance, 0.00002);
+    float d        = currentDepth - moments.x;
+    float pMax     = variance / (variance + d * d);
+    pMax = clamp((pMax - evsmBleedThreshold) / (1.0 - evsmBleedThreshold), 0.0,
+                 1.0);
+    return 1.0 - max(p, pMax);
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
