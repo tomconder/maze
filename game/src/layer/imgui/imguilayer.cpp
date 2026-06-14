@@ -14,7 +14,6 @@
 
 #include "core/settings.hpp"
 #include "maze.hpp"
-#include "resourcemanager.hpp"
 #include "scene/light.hpp"
 #include "sponge.hpp"
 #include "version.hpp"
@@ -23,7 +22,6 @@ namespace {
 constexpr ImColor                         darkDebugColor{ .3F, .8F, .8F, 1.F };
 constexpr ImColor                         darkErrorColor{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor                         darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-constexpr std::string_view                cameraName = "maze";
 constexpr std::array<std::string_view, 4> categories = { "categories", "app",
                                                          "sponge", "opengl" };
 constexpr std::array<std::string_view, 7> logLevels  = {
@@ -140,7 +138,7 @@ void ImGuiLayer::showInfoSection() {
     }
 
     if (ImGui::BeginTable("##CameraTable", 2, tableFlags)) {
-        const auto camera = ResourceManager::getGameCamera(cameraName);
+        const auto camera = Maze::get().getMazeLayer()->getCamera();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

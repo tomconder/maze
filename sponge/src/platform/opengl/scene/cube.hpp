@@ -13,8 +13,8 @@ public:
     Cube();
     void render() const;
 
-    static std::string_view getShaderName() {
-        return shaderName;
+    std::shared_ptr<renderer::Shader> getShader() const {
+        return shader;
     }
 
 private:

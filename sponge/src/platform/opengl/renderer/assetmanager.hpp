@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/stringutils.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
@@ -13,7 +12,8 @@
 
 namespace sponge::platform::opengl::renderer {
 
-// Asset cache with heterogeneous string_view lookup support
+// Asset cache. create*() returns a shared_ptr handle; callers retain it and
+// reuse it directly — there is no by-name lookup at runtime.
 template <typename T, typename C>
 class AssetHandler final {
 public:
@@ -30,37 +30,22 @@ public:
         return asset;
     }
 
-    std::shared_ptr<T> get(std::string_view name) const {
-        assert(!name.empty());
-        if (const auto it = assets.find(name); it != assets.end()) {
-            return it->second;
-        }
-        return nullptr;
-    }
-
     const auto& getAssets() const {
         return assets;
     }
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<T>,
-                       core::TransparentStringHash,
-                       core::TransparentStringEqual>
-        assets;
+    std::unordered_map<std::string, std::shared_ptr<T>> assets;
 };
 
-#define ASSET_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler)    \
-    static std::shared_ptr<Type> create##Name(                      \
-        const CreateInfoType& createInfo) {                         \
-        return (Handler).load(createInfo);                          \
-    }                                                               \
-                                                                    \
-    static std::shared_ptr<Type> get##Name(std::string_view name) { \
-        return (Handler).get(name);                                 \
-    }                                                               \
-                                                                    \
-    static auto& get##Name##s() {                                   \
-        return (Handler).getAssets();                               \
+#define ASSET_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler) \
+    static std::shared_ptr<Type> create##Name(                   \
+        const CreateInfoType& createInfo) {                      \
+        return (Handler).load(createInfo);                       \
+    }                                                            \
+                                                                 \
+    static auto& get##Name##s() {                                \
+        return (Handler).getAssets();                            \
     }
 
 class AssetManager {

@@ -10,12 +10,12 @@
 namespace game::ui {
 
 struct SelectListCreateInfo {
-    std::string fontName;
-    uint32_t    fontSize;
-    glm::vec3   textColor;
-    glm::vec3   arrowDisabledColor;
-    float       textMarginLeft;
-    float       maxValueWidth = 0.F;
+    std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
+    uint32_t                                                     fontSize;
+    glm::vec3                                                    textColor;
+    glm::vec3 arrowDisabledColor;
+    float     textMarginLeft;
+    float     maxValueWidth = 0.F;
 };
 
 class SelectList {

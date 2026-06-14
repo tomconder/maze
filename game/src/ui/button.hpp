@@ -11,14 +11,14 @@ namespace game::ui {
 enum class ButtonAlignType : uint8_t { CenterAligned = 0, LeftAligned };
 
 struct ButtonCreateInfo {
-    glm::vec2       topLeft;
-    glm::vec2       bottomRight;
-    std::string     message;
-    uint32_t        fontSize;
-    std::string     fontName;
-    glm::vec4       buttonColor;
-    glm::vec3       textColor;
-    uint32_t        marginLeft   = 0;
+    glm::vec2                                                    topLeft;
+    glm::vec2                                                    bottomRight;
+    std::string                                                  message;
+    uint32_t                                                     fontSize;
+    std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
+    glm::vec4                                                    buttonColor;
+    glm::vec3                                                    textColor;
+    uint32_t                                                     marginLeft = 0;
     float           cornerRadius = 0.F;
     float           borderWidth  = 0.F;
     glm::vec4       borderColor  = glm::vec4(0.F);
@@ -66,7 +66,6 @@ private:
     glm::vec2       bottom;
     std::string     text;
     uint32_t        textSize;
-    std::string     textFontName;
     glm::vec4       color;
     glm::vec3       textColor;
     uint32_t        length;

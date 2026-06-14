@@ -9,6 +9,7 @@
 #include <atomic>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 namespace game::layer {
 struct GameObject {
@@ -102,7 +103,9 @@ public:
 #endif
 
 private:
-    std::shared_ptr<scene::GameCamera>                          camera;
+    std::shared_ptr<scene::GameCamera> camera;
+    std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
+                                                                objectModels;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;

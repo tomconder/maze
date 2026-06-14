@@ -137,8 +137,7 @@ std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
              YGNodeLayoutGetHeight(node) };
 }
 
-inline std::string quadShaderName;
-inline std::string fontShaderName;
+std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
 void saveVideoSettings(const uint32_t width, const uint32_t height,
                        const bool fullscreen, const bool vsync, const bool fxaa,
@@ -181,21 +180,15 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseMovedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::scene::BitmapFont;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::Quad;
 
-OptionLayer::OptionLayer() : Layer("options") {
-    fontShaderName = BitmapFont::getShaderName();
-    quadShaderName = Quad::getShaderName();
-}
+OptionLayer::OptionLayer() : Layer("options") {}
 
 void OptionLayer::onAttach() {
-    const auto fontNameStr = std::string(fontName);
-
-    const auto fontCreateInfo =
-        FontCreateInfo{ .name = fontNameStr, .path = std::string(fontPath) };
-    AssetManager::createFont(fontCreateInfo);
+    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
+                                                .path = std::string(fontPath) };
+    menuFont                  = AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
@@ -211,15 +204,14 @@ void OptionLayer::onAttach() {
                               .bottomRight  = glm::vec2{ 0.F },
                               .message      = std::string(returnMessage),
                               .fontSize     = fontSize,
-                              .fontName     = fontNameStr,
+                              .font         = menuFont,
                               .buttonColor  = buttonColor,
                               .textColor    = textColor,
                               .marginLeft   = 26,
                               .cornerRadius = 12.F,
                               .alignType = ui::ButtonAlignType::LeftAligned });
 
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
@@ -269,7 +261,7 @@ void OptionLayer::onAttach() {
     // compute max display width across all aspect ratios and resolutions
     float maxCycleValueWidth = 0.F;
     {
-        const auto font    = AssetManager::getFont(fontName);
+        const auto& font   = menuFont;
         maxCycleValueWidth = std::accumulate(
             validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
             [&](const float acc, const auto& f) {
@@ -287,7 +279,7 @@ void OptionLayer::onAttach() {
     }
 
     const ui::SelectListCreateInfo selectCreateInfo{
-        .fontName           = fontNameStr,
+        .font               = menuFont,
         .fontSize           = fontSize,
         .textColor          = textColor,
         .arrowDisabledColor = arrowDisabledColor,
@@ -464,8 +456,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         wasActiveLastFrame = true;
     }
 
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
@@ -536,9 +527,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                resolutionList->getValueCenterX(resX, resW), resY, resH,
                resolutionList->getSelectedIndex(), currentResolutionIndex);
 
-    const auto rowFont        = AssetManager::getFont(fontName);
-    auto       renderRowLabel = [&](const float x, const float y, const float h,
-                                    const std::string_view label) {
+    const auto& rowFont = menuFont;
+    auto renderRowLabel = [&](const float x, const float y, const float h,
+                              const std::string_view label) {
         const float textY = std::floor(
             y + (h - static_cast<float>(rowFont->getHeight(fontSize))) / 2.F);
         rowFont->beginPass(fontSize);
@@ -809,8 +800,8 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         fullScreenCheckbox->setSize(checkboxSize);
         verticalSyncCheckbox->setSize(checkboxSize);
 
-        const auto font               = AssetManager::getFont(fontName);
-        float      maxCycleValueWidth = std::accumulate(
+        const auto& font               = menuFont;
+        float       maxCycleValueWidth = std::accumulate(
             validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
             [&](const float acc, const auto& f) {
                 return std::max(acc, static_cast<float>(

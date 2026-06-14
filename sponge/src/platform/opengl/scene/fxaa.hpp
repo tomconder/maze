@@ -33,10 +33,6 @@ public:
         enabled = val;
     }
 
-    static std::string_view getShaderName() {
-        return shaderName;
-    }
-
 private:
     static constexpr std::string_view shaderName = "fxaa";
 
