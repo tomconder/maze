@@ -26,7 +26,6 @@ struct InputSnapshot {
     [[nodiscard]] float getAxis(const GameAction a) const noexcept {
         return axis[+a];
     }
-    [[nodiscard]] std::string_view getPromptText(GameAction a) const noexcept;
 };
 
 }  // namespace sponge::input
