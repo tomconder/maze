@@ -3,26 +3,14 @@
 #include "platform/glfw/core/window.hpp"
 
 namespace sponge::platform::glfw::imgui {
-template <class T>
-struct ImGuiManager {
-    void onAttach(GLFWwindow* window) {
-        static_cast<T*>(this)->onAttachImpl(window);
-    }
+class ImGuiManager {
+public:
+    virtual ~ImGuiManager() = default;
 
-    void onDetach() {
-        static_cast<T*>(this)->onDetachImpl();
-    }
-
-    bool isEventHandled() {
-        return static_cast<T*>(this)->isEventHandledImpl();
-    }
-
-    void begin() {
-        static_cast<T*>(this)->beginImpl();
-    }
-
-    void end() {
-        static_cast<T*>(this)->endImpl();
-    }
+    virtual void onAttach(GLFWwindow* window) = 0;
+    virtual void onDetach()                   = 0;
+    virtual bool isEventHandled()             = 0;
+    virtual void begin()                      = 0;
+    virtual void end()                        = 0;
 };
 }  // namespace sponge::platform::glfw::imgui

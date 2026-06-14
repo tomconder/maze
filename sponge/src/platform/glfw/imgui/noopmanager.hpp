@@ -5,20 +5,20 @@
 
 namespace sponge::platform::glfw::imgui {
 
-class NoopManager : public ImGuiManager<NoopManager> {
+class NoopManager final : public ImGuiManager {
 public:
-    static void onAttachImpl(const GLFWwindow* window) {
+    void onAttach(GLFWwindow* window) override {
         UNUSED(window);
     }
 
-    static void onDetachImpl() { /* nothing */ }
+    void onDetach() override { /* nothing */ }
 
-    static bool isEventHandledImpl() {
+    bool isEventHandled() override {
         return false;
     }
 
-    static void beginImpl() { /* nothing */ }
+    void begin() override { /* nothing */ }
 
-    static void endImpl() { /* nothing */ }
+    void end() override { /* nothing */ }
 };
 }  // namespace sponge::platform::glfw::imgui

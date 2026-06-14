@@ -8,7 +8,7 @@
 
 namespace sponge::platform::glfw::imgui {
 
-void GLFWManager::onAttachImpl(GLFWwindow* window) {
+void GLFWManager::onAttach(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -21,24 +21,24 @@ void GLFWManager::onAttachImpl(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init();
 }
 
-void GLFWManager::onDetachImpl() {
+void GLFWManager::onDetach() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-bool GLFWManager::isEventHandledImpl() {
+bool GLFWManager::isEventHandled() {
     const auto& io = ImGui::GetIO();
     return io.WantCaptureMouse || io.WantCaptureKeyboard;
 }
 
-void GLFWManager::beginImpl() {
+void GLFWManager::begin() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
 
-void GLFWManager::endImpl() {
+void GLFWManager::end() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

@@ -174,15 +174,12 @@ private:
 
     static Application* instance;
 
-    std::shared_ptr<imgui::GLFWManager> glfwManager =
-        std::make_shared<imgui::GLFWManager>();
-    std::shared_ptr<imgui::NoopManager> noopManager =
-        std::make_shared<imgui::NoopManager>();
-
 #ifdef ENABLE_IMGUI
-    std::shared_ptr<imgui::GLFWManager> imguiManager = glfwManager;
+    std::shared_ptr<imgui::ImGuiManager> imguiManager =
+        std::make_shared<imgui::GLFWManager>();
 #else
-    std::shared_ptr<imgui::NoopManager> imguiManager = noopManager;
+    std::shared_ptr<imgui::ImGuiManager> imguiManager =
+        std::make_shared<imgui::NoopManager>();
 #endif
 };
 }  // namespace sponge::platform::glfw::core

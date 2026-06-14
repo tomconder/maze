@@ -5,16 +5,12 @@
 
 namespace sponge::platform::glfw::imgui {
 
-class GLFWManager : public ImGuiManager<GLFWManager> {
+class GLFWManager final : public ImGuiManager {
 public:
-    static void onAttachImpl(GLFWwindow* window);
-
-    static void onDetachImpl();
-
-    static bool isEventHandledImpl();
-
-    static void beginImpl();
-
-    static void endImpl();
+    void onAttach(GLFWwindow* window) override;
+    void onDetach() override;
+    bool isEventHandled() override;
+    void begin() override;
+    void end() override;
 };
 }  // namespace sponge::platform::glfw::imgui
