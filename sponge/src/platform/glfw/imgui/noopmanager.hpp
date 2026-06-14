@@ -1,24 +1,24 @@
 #pragma once
 
 #include "core/base.hpp"
-#include "platform/glfw/imgui/imguimanager.hpp"
+#include "platform/glfw/core/window.hpp"
 
 namespace sponge::platform::glfw::imgui {
 
-class NoopManager final : public ImGuiManager {
+class NoopManager final {
 public:
-    void onAttach(GLFWwindow* window) override {
+    void onAttach(GLFWwindow* window) {
         UNUSED(window);
     }
 
-    void onDetach() override { /* nothing */ }
+    void onDetach() { /* nothing */ }
 
-    bool isEventHandled() override {
+    bool isEventHandled() const {
         return false;
     }
 
-    void begin() override { /* nothing */ }
+    void begin() { /* nothing */ }
 
-    void end() override { /* nothing */ }
+    void end() { /* nothing */ }
 };
 }  // namespace sponge::platform::glfw::imgui

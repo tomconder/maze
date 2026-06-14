@@ -1,16 +1,15 @@
 #pragma once
 
 #include "platform/glfw/core/window.hpp"
-#include "platform/glfw/imgui/imguimanager.hpp"
 
 namespace sponge::platform::glfw::imgui {
 
-class GLFWManager final : public ImGuiManager {
+class GLFWManager final {
 public:
-    void onAttach(GLFWwindow* window) override;
-    void onDetach() override;
-    bool isEventHandled() override;
-    void begin() override;
-    void end() override;
+    void onAttach(GLFWwindow* window);
+    void onDetach();
+    bool isEventHandled() const;
+    void begin();
+    void end();
 };
 }  // namespace sponge::platform::glfw::imgui

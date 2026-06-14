@@ -119,7 +119,7 @@ public:
     void run() override;
 
     bool isEventHandledByImGui() const {
-        return imguiManager->isEventHandled();
+        return imguiManager.isEventHandled();
     }
 
 private:
@@ -175,11 +175,9 @@ private:
     static Application* instance;
 
 #ifdef ENABLE_IMGUI
-    std::shared_ptr<imgui::ImGuiManager> imguiManager =
-        std::make_shared<imgui::GLFWManager>();
+    imgui::GLFWManager imguiManager;
 #else
-    std::shared_ptr<imgui::ImGuiManager> imguiManager =
-        std::make_shared<imgui::NoopManager>();
+    imgui::NoopManager imguiManager;
 #endif
 };
 }  // namespace sponge::platform::glfw::core

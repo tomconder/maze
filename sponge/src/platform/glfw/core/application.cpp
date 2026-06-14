@@ -79,7 +79,7 @@ bool Application::start() {
     Diagnostics::log();
 
     inputManager.onAttach(glfwWindow);
-    imguiManager->onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
+    imguiManager.onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
 
     setVerticalSync(appSpec.vsync);
 
@@ -108,7 +108,7 @@ bool Application::start() {
 
 void Application::shutdown() {
     inputManager.onDetach();
-    imguiManager->onDetach();
+    imguiManager.onDetach();
 }
 
 bool Application::onUserCreate() {
@@ -265,7 +265,7 @@ void Application::run() {
         }
 
         renderer->clear();
-        imguiManager->begin();
+        imguiManager.begin();
 #ifdef ENABLE_IMGUI
         onImGuiRender();
 #endif
@@ -281,7 +281,7 @@ void Application::run() {
                 }
             }
         }
-        imguiManager->end();
+        imguiManager.end();
         graphics->flip(window->getNativeWindow());
     });
 
