@@ -419,7 +419,7 @@ void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     if (ImGui::BeginTable("layerTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+        for (auto it = layerStack->rbegin(); it != layerStack->rend(); it++) {
             const auto& layer = *it;
             ImGui::TableNextRow();
 

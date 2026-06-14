@@ -509,7 +509,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
         float       dotX = valueCenterX - totalW / 2.F;
         const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
-        for (size_t i = 0; i < count; ++i) {
+        for (size_t i = 0; i < count; i++) {
             const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
             const bool isDisplay = i == displayIdx;
             const auto color     = isCurrent ? dotColorCurrent :

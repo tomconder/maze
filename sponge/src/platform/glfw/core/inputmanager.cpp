@@ -21,7 +21,7 @@ void InputManager::onAttach(GLFWwindow* window) {
     this->window = window;
 
     // Scan for already-connected gamepad
-    for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; ++jid) {
+    for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; jid++) {
         if (glfwJoystickIsGamepad(jid)) {
             snapshot.gamepadSlot      = jid;
             snapshot.gamepadConnected = true;
@@ -113,10 +113,10 @@ void InputManager::update() {
     mousePrev = mouseDown;
 
     // 2. Poll keyboard and mouse button state
-    for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
+    for (int key = 0; key <= GLFW_KEY_LAST; key++) {
         keyDown[key] = glfwGetKey(window, key) == GLFW_PRESS;
     }
-    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button) {
+    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; button++) {
         mouseDown[button] = glfwGetMouseButton(window, button) == GLFW_PRESS;
     }
 
@@ -167,7 +167,7 @@ void InputManager::updateActiveDevice() {
     // Start → Escape, D-pad → arrow keys) cannot force-switch the active device
     // while a physical gamepad button or axis is held.
     if (snapshot.gamepadConnected) {
-        for (int axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; ++axis) {
+        for (int axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++) {
             const float axisValue = gamepadStateCurrent.axes[axis];
             // Trigger axes rest at -1.0 (released) and travel to +1.0
             // (pressed). Use a midpoint threshold rather than abs() so the
@@ -181,7 +181,7 @@ void InputManager::updateActiveDevice() {
                 return;
             }
         }
-        for (int button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; ++button) {
+        for (int button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; button++) {
             if (gamepadStateCurrent.buttons[button] == GLFW_PRESS) {
                 snapshot.activeDevice = input::ActiveDevice::Gamepad;
                 return;
@@ -206,13 +206,13 @@ void InputManager::updateActiveDevice() {
         snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
     }
 
-    for (int key = 0; key <= GLFW_KEY_LAST; ++key) {
+    for (int key = 0; key <= GLFW_KEY_LAST; key++) {
         if (keyDown[key]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
         }
     }
-    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button) {
+    for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; button++) {
         if (mouseDown[button]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
@@ -232,7 +232,7 @@ void InputManager::resolveActions() {
     snapshot.held.fill(false);
     snapshot.axis.fill(0.f);
 
-    for (int action = 0; action < +GameAction::Count; ++action) {
+    for (int action = 0; action < +GameAction::Count; action++) {
         for (const auto& [type, rawCode, axisScale, deadzone] :
              bindingMap[action]) {
             bool  newHeld   = false;
