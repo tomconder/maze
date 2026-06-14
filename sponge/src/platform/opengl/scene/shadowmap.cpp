@@ -129,37 +129,48 @@ void ShadowMap::initialize() {
     };
     shader = AssetManager::createShader(shaderCreateInfo);
 
-    // Gaussian blur shader
-    const auto blurShaderInfo = renderer::ShaderCreateInfo{
-        .name               = std::string(blurShaderName),
+    // Dual Kawase downsample shader
+    const auto blurDownShaderInfo = renderer::ShaderCreateInfo{
+        .name               = std::string(blurDownShaderName),
         .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/blur.frag.glsl",
     };
-    blurShader = AssetManager::createShader(blurShaderInfo);
+    blurDownShader = AssetManager::createShader(blurDownShaderInfo);
+
+    // Dual Kawase upsample shader
+    const auto blurUpShaderInfo = renderer::ShaderCreateInfo{
+        .name               = std::string(blurUpShaderName),
+        .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/blur_up.frag.glsl",
+    };
+    blurUpShader = AssetManager::createShader(blurUpShaderInfo);
 }
 
 void ShadowMap::applyBlur() const {
     glDisable(GL_DEPTH_TEST);
-    blurShader->bind();
-    blurShader->setInteger("image", 0);
     glBindVertexArray(blurVao);
     glActiveTexture(GL_TEXTURE0);
 
-    // Horizontal pass: read momentTexture → write blurTexture
+    // Downsample pass: read momentTexture → write blurTexture
+    blurDownShader->bind();
+    blurDownShader->setInteger("image", 0);
+    blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
-    blurShader->setBoolean("horizontal", true);
     glBindTexture(GL_TEXTURE_2D, momentTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    blurDownShader->unbind();
 
-    // Vertical pass: read blurTexture → write momentTexture
+    // Upsample pass: read blurTexture → write momentTexture
+    blurUpShader->bind();
+    blurUpShader->setInteger("image", 0);
+    blurUpShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
-    blurShader->setBoolean("horizontal", false);
     glBindTexture(GL_TEXTURE_2D, blurTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    blurUpShader->unbind();
 
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    blurShader->unbind();
     glEnable(GL_DEPTH_TEST);
 }
 

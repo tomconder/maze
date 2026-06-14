@@ -38,10 +38,12 @@ public:
 
 private:
     static const std::string          shaderName;
-    static constexpr std::string_view blurShaderName = "blur";
+    static constexpr std::string_view blurDownShaderName = "blur_down";
+    static constexpr std::string_view blurUpShaderName   = "blur_up";
 
     std::shared_ptr<renderer::Shader> shader;
-    std::shared_ptr<renderer::Shader> blurShader;
+    std::shared_ptr<renderer::Shader> blurDownShader;
+    std::shared_ptr<renderer::Shader> blurUpShader;
 
     uint32_t momentTexture = 0;
     uint32_t blurTexture   = 0;

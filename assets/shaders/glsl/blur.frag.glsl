@@ -5,34 +5,17 @@ layout(location = 0) out vec4 FragColor;
 in vec2 texCoords;
 
 uniform sampler2D image;
-uniform bool      horizontal;
-
-const float weight[5] =
-    float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+uniform float     offset;
 
 void main() {
-    vec2 offset = 1.0 / vec2(textureSize(image, 0));
-    vec2 result = texture(image, texCoords).rg * weight[0];
+    vec2 halfpixel = 0.5 / vec2(textureSize(image, 0));
+    vec2 o         = halfpixel * offset;
 
-    if (horizontal) {
-        for (int i = 1; i < 5; ++i) {
-            result +=
-                texture(image, texCoords + vec2(offset.x * float(i), 0.0)).rg *
-                weight[i];
-            result +=
-                texture(image, texCoords - vec2(offset.x * float(i), 0.0)).rg *
-                weight[i];
-        }
-    } else {
-        for (int i = 1; i < 5; ++i) {
-            result +=
-                texture(image, texCoords + vec2(0.0, offset.y * float(i))).rg *
-                weight[i];
-            result +=
-                texture(image, texCoords - vec2(0.0, offset.y * float(i))).rg *
-                weight[i];
-        }
-    }
+    vec2 color = texture(image, texCoords).rg * 4.0;
+    color += texture(image, texCoords + vec2(-o.x, -o.y)).rg;
+    color += texture(image, texCoords + vec2(o.x, -o.y)).rg;
+    color += texture(image, texCoords + vec2(-o.x, o.y)).rg;
+    color += texture(image, texCoords + vec2(o.x, o.y)).rg;
 
-    FragColor = vec4(result, 0.0, 1.0);
+    FragColor = vec4(color / 8.0, 0.0, 1.0);
 }
