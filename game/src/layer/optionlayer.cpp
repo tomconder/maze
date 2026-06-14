@@ -1,4 +1,19 @@
-#include "optionlayer.hpp"
+#include "layer/optionlayer.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <ranges>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include <fmt/format.h>
+#include <yoga/Yoga.h>
 
 #include "core/settings.hpp"
 #include "event/event.hpp"
@@ -10,19 +25,6 @@
 #include "ui/checkbox.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/selectlist.hpp"
-
-#include <fmt/format.h>
-#include <yoga/Yoga.h>
-
-#include <array>
-#include <cmath>
-#include <memory>
-#include <numeric>
-#include <optional>
-#include <ranges>
-#include <string>
-#include <tuple>
-#include <vector>
 
 namespace {
 struct AspectRatioFilter {
@@ -509,7 +511,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
         float       dotX = valueCenterX - totalW / 2.F;
         const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
-        for (size_t i = 0; i < count; ++i) {
+        for (size_t i = 0; i < count; i++) {
             const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
             const bool isDisplay = i == displayIdx;
             const auto color     = isCurrent ? dotColorCurrent :

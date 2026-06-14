@@ -1,22 +1,23 @@
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
 #include "layer/imgui/imguilayer.hpp"
 
-#include "core/settings.hpp"
-#include "maze.hpp"
-#include "resourcemanager.hpp"
-#include "scene/light.hpp"
-#include "sponge.hpp"
-#include "version.hpp"
-
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-
 #include <algorithm>
 #include <array>
 #include <numeric>
 #include <optional>
 #include <ranges>
 #include <string>
+#include <vector>
+
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+
+#include "core/settings.hpp"
+#include "maze.hpp"
+#include "resourcemanager.hpp"
+#include "scene/light.hpp"
+#include "sponge.hpp"
+#include "version.hpp"
 
 namespace {
 constexpr ImColor                         darkDebugColor{ .3F, .8F, .8F, 1.F };
@@ -419,7 +420,7 @@ void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     if (ImGui::BeginTable("layerTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
+        for (auto it = layerStack->rbegin(); it != layerStack->rend(); it++) {
             const auto& layer = *it;
             ImGui::TableNextRow();
 
