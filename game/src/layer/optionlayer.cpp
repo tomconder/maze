@@ -1,4 +1,3 @@
-// Copyright 2024 Tom Conder
 #include "game/layer/optionlayer.hpp"  // NOLINT: header included
 
 #include <algorithm>

@@ -1,4 +1,3 @@
-// Copyright 2024 Tom Conder
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
 #include "game/layer/imgui/imguilayer.hpp"  // NOLINT: header included
 

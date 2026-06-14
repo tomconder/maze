@@ -1,4 +1,3 @@
-// Copyright 2024 Tom Conder
 #include "sponge/platform/glfw/core/inputmanager.hpp"  // NOLINT: header included
 
 #include <cmath>
