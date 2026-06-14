@@ -139,6 +139,24 @@ std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
+// max display width across all aspect-ratio labels and resolution strings
+float computeMaxCycleValueWidth() {
+    float width = std::accumulate(
+        validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
+        [&](const float acc, const auto& f) {
+            return std::max(acc, static_cast<float>(
+                                     menuFont->getLength(f.label, fontSize)));
+        });
+    return std::accumulate(
+        availableResolutions.begin(), availableResolutions.end(), width,
+        [&](const float acc, const auto& res) {
+            return std::max(
+                acc,
+                static_cast<float>(menuFont->getLength(
+                    fmt::format("{} × {}", res.width, res.height), fontSize)));
+        });
+}
+
 void saveVideoSettings(const uint32_t width, const uint32_t height,
                        const bool fullscreen, const bool vsync, const bool fxaa,
                        const uint32_t shadowRes) {
@@ -258,21 +276,7 @@ void OptionLayer::onAttach() {
         }
     }
 
-    // compute max display width across all aspect ratios and resolutions
-    float maxCycleValueWidth = std::accumulate(
-        validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-        [&](const float acc, const auto& f) {
-            return std::max(acc, static_cast<float>(
-                                     menuFont->getLength(f.label, fontSize)));
-        });
-    maxCycleValueWidth = std::accumulate(
-        availableResolutions.begin(), availableResolutions.end(),
-        maxCycleValueWidth, [&](const float acc, const auto& res) {
-            return std::max(
-                acc,
-                static_cast<float>(menuFont->getLength(
-                    fmt::format("{} × {}", res.width, res.height), fontSize)));
-        });
+    const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
     const ui::SelectListCreateInfo selectCreateInfo{
         .font               = menuFont,
@@ -795,20 +799,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         fullScreenCheckbox->setSize(checkboxSize);
         verticalSyncCheckbox->setSize(checkboxSize);
 
-        float maxCycleValueWidth = std::accumulate(
-            validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-            [&](const float acc, const auto& f) {
-                return std::max(acc, static_cast<float>(menuFont->getLength(
-                                         f.label, fontSize)));
-            });
-        maxCycleValueWidth = std::accumulate(
-            availableResolutions.begin(), availableResolutions.end(),
-            maxCycleValueWidth, [&](const float acc, const auto& res) {
-                return std::max(
-                    acc, static_cast<float>(menuFont->getLength(
-                             fmt::format("{} × {}", res.width, res.height),
-                             fontSize)));
-            });
+        const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
         aspectRatioList->setMaxValueWidth(maxCycleValueWidth);
         resolutionList->setMaxValueWidth(maxCycleValueWidth);
