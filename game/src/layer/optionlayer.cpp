@@ -143,13 +143,13 @@ std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 float computeMaxCycleValueWidth() {
     float width = std::accumulate(
         validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-        [&](const float acc, const auto& f) {
+        [](const float acc, const auto& f) {
             return std::max(acc, static_cast<float>(
                                      menuFont->getLength(f.label, fontSize)));
         });
     return std::accumulate(
         availableResolutions.begin(), availableResolutions.end(), width,
-        [&](const float acc, const auto& res) {
+        [](const float acc, const auto& res) {
             return std::max(
                 acc,
                 static_cast<float>(menuFont->getLength(
