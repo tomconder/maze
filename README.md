@@ -10,7 +10,7 @@ A game engine featuring a nice walk through a maze.
 * Physically based rendering (PBR)
 * Cook-Torrance microfacet specular BRDF
 * Point lights and directional light
-* Exponential variance shadow maps (EVSM)
+* Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Reinhard tone mapping
 * Fast approximate anti-aliasing (FXAA)
 * Multi-channel signed distance field (MSDF) text rendering
