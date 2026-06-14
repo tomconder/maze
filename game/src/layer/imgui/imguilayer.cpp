@@ -1,5 +1,5 @@
 // ReSharper disable CppRedundantCastExpression,CppRedundantParentheses
-#include "game/layer/imgui/imguilayer.hpp"  // NOLINT: header included
+#include "layer/imgui/imguilayer.hpp"
 
 #include <algorithm>
 #include <array>
@@ -9,15 +9,15 @@
 #include <string>
 #include <vector>
 
-#include <fmt/format.h>     // NOLINT: external library
-#include <spdlog/spdlog.h>  // NOLINT: external library
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
-#include "game/core/settings.hpp"
-#include "game/maze.hpp"
-#include "game/resourcemanager.hpp"
-#include "game/scene/light.hpp"
-#include "game/version.hpp"
-#include "sponge/sponge.hpp"  // NOLINT: project-specific header order
+#include "core/settings.hpp"
+#include "maze.hpp"
+#include "resourcemanager.hpp"
+#include "scene/light.hpp"
+#include "sponge.hpp"
+#include "version.hpp"
 
 namespace {
 constexpr ImColor                         darkDebugColor{ .3F, .8F, .8F, 1.F };

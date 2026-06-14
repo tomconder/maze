@@ -1,13 +1,13 @@
-#include "sponge/platform/glfw/core/inputmanager.hpp"  // NOLINT: header included
+#include "platform/glfw/core/inputmanager.hpp"
 
 #include <cmath>
 #include <cstring>
 
-#include "sponge/input/gameaction.hpp"
-#include "sponge/input/inputcontext.hpp"
-#include "sponge/input/keycode.hpp"
-#include "sponge/input/mousecode.hpp"
-#include "sponge/logging/log.hpp"
+#include "input/gameaction.hpp"
+#include "input/inputcontext.hpp"
+#include "input/keycode.hpp"
+#include "input/mousecode.hpp"
+#include "logging/log.hpp"
 
 namespace sponge::platform::glfw::core {
 
