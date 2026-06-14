@@ -27,7 +27,7 @@ void GLFWManager::onDetach() {
     ImGui::DestroyContext();
 }
 
-bool GLFWManager::isEventHandled() {
+bool GLFWManager::isEventHandled() const {
     const auto& io = ImGui::GetIO();
     return io.WantCaptureMouse || io.WantCaptureKeyboard;
 }

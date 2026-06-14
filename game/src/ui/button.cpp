@@ -4,14 +4,12 @@
 #include <string_view>
 
 namespace game::ui {
-using sponge::platform::opengl::renderer::AssetManager;
 
 Button::Button(const ButtonCreateInfo& createInfo) :
     top(createInfo.topLeft),
     bottom(createInfo.bottomRight),
     text(createInfo.message),
     textSize(createInfo.fontSize),
-    textFontName(createInfo.fontName),
     color(createInfo.buttonColor),
     textColor(createInfo.textColor),
     marginLeft(createInfo.marginLeft),
@@ -20,7 +18,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     borderColor(createInfo.borderColor),
     alignType(createInfo.alignType),
     textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
-    font   = AssetManager::getFont(textFontName);
+    font   = createInfo.font;
     length = font->getLength(text, textSize);
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();

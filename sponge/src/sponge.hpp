@@ -50,6 +50,5 @@
 
 #ifdef ENABLE_IMGUI
 #include "platform/glfw/imgui/glfwmanager.hpp"
-#include "platform/glfw/imgui/imguimanager.hpp"
 #include "platform/glfw/imgui/noopmanager.hpp"
 #endif

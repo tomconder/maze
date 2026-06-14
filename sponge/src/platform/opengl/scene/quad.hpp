@@ -20,14 +20,14 @@ public:
                 float            borderWidth = 0.0f,
                 const glm::vec4& borderColor = glm::vec4(0.0f)) const;
 
-    static std::string_view getShaderName() {
-        return shaderName;
+    static std::shared_ptr<renderer::Shader> getShader() {
+        return shader;
     }
 
 private:
     static constexpr std::string_view shaderName = "quad";
 
-    std::shared_ptr<renderer::Shader> shader;
+    static std::shared_ptr<renderer::Shader> shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;

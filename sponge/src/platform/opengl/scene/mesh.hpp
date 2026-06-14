@@ -20,13 +20,14 @@ public:
          std::vector<std::shared_ptr<renderer::Texture>>&& textures);
     void render(const std::shared_ptr<renderer::Shader>& shader) const;
 
-    static std::string_view getShaderName() {
-        return shaderName;
+    static std::shared_ptr<renderer::Shader> getShader() {
+        return shader;
     }
 
 private:
-    static constexpr std::string_view shaderName = "mesh";
-    static uint32_t                   meshProgramId;
+    static constexpr std::string_view        shaderName = "mesh";
+    static uint32_t                          meshProgramId;
+    static std::shared_ptr<renderer::Shader> shader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;

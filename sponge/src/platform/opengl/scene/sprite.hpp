@@ -19,8 +19,8 @@ public:
     void render(const glm::vec2& position, const glm::vec2& size,
                 std::optional<float> alpha = std::nullopt) const override;
 
-    static std::string_view getShaderName() {
-        return shaderName;
+    std::shared_ptr<renderer::Shader> getShader() const {
+        return shader;
     }
 
 private:

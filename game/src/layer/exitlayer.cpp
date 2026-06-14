@@ -27,8 +27,7 @@ constexpr glm::vec4 hoverColor     = { 0.84F, 0.84F, 0.84F, 0.14F };
 constexpr glm::vec3 textColor      = { 1.F, 1.F, 1.F };
 constexpr glm::vec4 textHoverColor = { 0.84F, 0.04F, 0.04F, 0.07F };
 
-inline std::string fontShaderName;
-inline std::string quadShaderName;
+std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
 std::unique_ptr<game::ui::Button> continueButton;
 std::unique_ptr<game::ui::Button> optionsButton;
@@ -58,33 +57,27 @@ using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::scene::BitmapFont;
 using sponge::platform::opengl::scene::FontCreateInfo;
 using sponge::platform::opengl::scene::Quad;
 
-ExitLayer::ExitLayer() : Layer("exit") {
-    fontShaderName = BitmapFont::getShaderName();
-    quadShaderName = Quad::getShaderName();
-}
+ExitLayer::ExitLayer() : Layer("exit") {}
 
 void ExitLayer::onAttach() {
-    const auto fontNameStr = std::string(fontName);
-
-    const auto fontCreateInfo =
-        FontCreateInfo{ .name = fontNameStr, .path = std::string(fontPath) };
-    AssetManager::createFont(fontCreateInfo);
+    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
+                                                .path = std::string(fontPath) };
+    menuFont                  = AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
     orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    auto makeMenuButton = [fontNameStr](std::string_view message) {
+    auto makeMenuButton = [](std::string_view message) {
         return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
             .topLeft      = glm::vec2{ 0.F },
             .bottomRight  = glm::vec2{ 0.F },
             .message      = std::string(message),
             .fontSize     = ui::menuFontSizeForWidth(orthoCamera->getWidth()),
-            .fontName     = fontNameStr,
+            .font         = menuFont,
             .buttonColor  = buttonColor,
             .textColor    = textColor,
             .marginLeft   = 26,
@@ -97,8 +90,7 @@ void ExitLayer::onAttach() {
     returnToMenuButton = makeMenuButton(returnToMenuMessage);
     exitButton         = makeMenuButton(exitMessage);
 
-    for (const auto& shaderName : { quadShaderName, fontShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { Quad::getShader(), menuFont->getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
@@ -214,8 +206,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         wasActiveLastFrame = true;
     }
 
-    for (const auto& shaderName : { fontShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();

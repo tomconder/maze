@@ -16,9 +16,6 @@ constexpr double timeoutSeconds = 7.0;
 constexpr double fadeDuration   = 0.7;
 constexpr float  logoSize       = 512.0F;
 
-inline std::string spriteShaderName;
-inline std::string quadShaderName;
-
 double elapsedTimeAccumulator = 0.0;
 double fadeTimeAccumulator    = 0.0;
 float  currentAlpha           = 1.0F;
@@ -32,14 +29,10 @@ using sponge::event::MouseButtonPressedEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::platform::glfw::core::Application;
-using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::Quad;
 using sponge::platform::opengl::scene::Sprite;
 
-SplashScreenLayer::SplashScreenLayer() : Layer("splash-screen") {
-    spriteShaderName = Sprite::getShaderName();
-    quadShaderName   = Quad::getShaderName();
-}
+SplashScreenLayer::SplashScreenLayer() : Layer("splash-screen") {}
 
 void SplashScreenLayer::onAttach() {
     const auto orthoCameraCreateInfo =
@@ -51,8 +44,7 @@ void SplashScreenLayer::onAttach() {
 
     backgroundQuad = std::make_unique<Quad>();
 
-    for (const auto& shaderName : { spriteShaderName, quadShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { logoSprite->getShader(), Quad::getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();
@@ -82,8 +74,7 @@ void SplashScreenLayer::onEvent(Event& event) {
 }
 
 bool SplashScreenLayer::onUpdate(const double elapsedTime) {
-    for (const auto& shaderName : { quadShaderName, spriteShaderName }) {
-        const auto shader = AssetManager::getShader(shaderName);
+    for (const auto& shader : { Quad::getShader(), logoSprite->getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
         shader->unbind();

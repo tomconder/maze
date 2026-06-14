@@ -99,17 +99,17 @@ MazeLayer::MazeLayer() : Layer("maze") {
 
 void MazeLayer::onAttach() {
     for (auto& gameObject : gameObjects) {
-        // compute the model matrix to avoid recalculating it on every frame
-        gameObject.modelMatrix = glm::scale(
+        // compute the model matrix once; it never changes after onAttach
+        objectModelMatrices.push_back(glm::scale(
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale);
+            gameObject.scale));
 
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
             .name = std::string(gameObject.name),
             .path = std::string(gameObject.path)
         };
-        AssetManager::createModel(modelCreateInfo);
+        objectModels.push_back(AssetManager::createModel(modelCreateInfo));
     }
 
     const auto gameCameraCreateInfo =
@@ -119,8 +119,7 @@ void MazeLayer::onAttach() {
                             Maze::get().getWindow()->getHeight());
     camera->setPosition(cameraPosition);
 
-    const auto shaderName = Mesh::getShaderName();
-    const auto shader     = AssetManager::getShader(shaderName);
+    const auto shader = Mesh::getShader();
     shader->bind();
 
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
@@ -269,12 +268,8 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.fxaaEnabled = fxaaEnabled;
 
     // Static after onAttach(); safe to copy.
-    frame.objectModelMatrices.resize(gameObjects.size());
-    frame.objectNames.resize(gameObjects.size());
-    for (size_t i = 0; i < gameObjects.size(); i++) {
-        frame.objectModelMatrices[i] = gameObjects[i].modelMatrix;
-        frame.objectNames[i]         = gameObjects[i].name;
-    }
+    frame.objectModelMatrices = objectModelMatrices;
+    frame.objectModels        = objectModels;
 
     // Publish slot; release/acquire pair with onRender()'s load.
     renderReadIndex.store(slotIndex, std::memory_order_release);
@@ -329,7 +324,7 @@ float MazeLayer::getAmbientOcclusion() const {
 void MazeLayer::setAmbientOcclusion(const float val) {
     ao = val;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat("ao", ao);
     shader->unbind();
@@ -342,7 +337,7 @@ float MazeLayer::getAmbientStrength() const {
 void MazeLayer::setAmbientStrength(const float val) {
     ambientStrength = val;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat("ambientStrength", ambientStrength);
     shader->unbind();
@@ -368,7 +363,7 @@ bool MazeLayer::getDirectionalLightCastsShadow() const {
 void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
     directionalLight.castShadow = value;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setBoolean("directionalLight.castShadow",
                        directionalLight.castShadow);
@@ -382,7 +377,7 @@ glm::vec3 MazeLayer::getDirectionalLightColor() const {
 void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     directionalLight.color = color;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat3("directionalLight.color", directionalLight.color);
     shader->unbind();
@@ -395,7 +390,7 @@ glm::vec3 MazeLayer::getDirectionalLightDirection() const {
 void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     directionalLight.direction = direction;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
     shader->unbind();
@@ -408,7 +403,7 @@ bool MazeLayer::getDirectionalLightEnabled() const {
 void MazeLayer::setDirectionalLightEnabled(const bool value) {
     directionalLight.enabled = value;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
     shader->unbind();
@@ -431,7 +426,7 @@ bool MazeLayer::isMetallic() const {
 void MazeLayer::setMetallic(const bool val) {
     metallic = val;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat("metallic", metallic ? 1.F : 0.F);
     shader->unbind();
@@ -464,7 +459,7 @@ float MazeLayer::getRoughness() const {
 void MazeLayer::setRoughness(const float val) {
     roughness = val;
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat("roughness", roughness);
     shader->unbind();
@@ -527,7 +522,7 @@ void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
     shader->bind();
     shader->setFloat3("viewPos", frame.cameraPos);
 
@@ -537,14 +532,13 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shadowMap->activateAndBindShadowTexture(1);
     }
 
-    for (size_t i = 0; i < frame.objectNames.size(); i++) {
+    for (size_t i = 0; i < frame.objectModels.size(); i++) {
         const auto& modelMatrix = frame.objectModelMatrices[i];
-        const auto& name        = frame.objectNames[i];
 
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
         shader->setMat4("model", modelMatrix);
 
-        AssetManager::getModel(name)->render(shader);
+        frame.objectModels[i]->render(shader);
     }
 
     shader->unbind();
@@ -555,7 +549,7 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
         return;
     }
 
-    const auto shader = AssetManager::getShader(Cube::getShaderName());
+    const auto shader = cube->getShader();
     shader->bind();
 
     for (int32_t i = 0; i < frame.numLights; i++) {
@@ -573,13 +567,13 @@ void MazeLayer::renderSceneToDepthMap(
     const thread::MazeRenderFrame& frame) const {
     shadowMap->bind();
 
-    const auto shader = AssetManager::getShader(ShadowMap::getShaderName());
+    const auto shader = shadowMap->getShader();
     shader->bind();
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
-    for (size_t i = 0; i < frame.objectNames.size(); i++) {
+    for (size_t i = 0; i < frame.objectModels.size(); i++) {
         shader->setMat4("model", frame.objectModelMatrices[i]);
-        AssetManager::getModel(frame.objectNames[i])->render(shader);
+        frame.objectModels[i]->render(shader);
     }
 
     shader->unbind();
@@ -616,7 +610,7 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
 }
 
 void MazeLayer::updateShaderLights() const {
-    const auto shader = AssetManager::getShader(Mesh::getShaderName());
+    const auto shader = Mesh::getShader();
 
     shader->bind();
 

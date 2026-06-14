@@ -1,9 +1,11 @@
 #pragma once
 
+#include "platform/opengl/scene/model.hpp"
+
 #include <glm/glm.hpp>
 
 #include <array>
-#include <string>
+#include <memory>
 #include <vector>
 
 namespace game::thread {
@@ -33,9 +35,11 @@ struct MazeRenderFrame {
     std::array<glm::vec3, 6> lightColors{};
     std::array<int32_t, 6>   lightAttenuationIndices{};
 
-    // Game objects (model matrices and names for AssetManager lookup)
-    std::vector<glm::mat4>   objectModelMatrices;
-    std::vector<std::string> objectNames;
+    // Game objects: model matrices and resolved model handles. Handles are
+    // resolved once at load; no per-frame name lookup.
+    std::vector<glm::mat4> objectModelMatrices;
+    std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
+        objectModels;
 
     // Post-processing
     bool fxaaEnabled{ false };

@@ -25,8 +25,8 @@ public:
 
     void activateAndBindShadowTexture(uint8_t unit) const;
 
-    static std::string_view getShaderName() {
-        return shaderName;
+    std::shared_ptr<renderer::Shader> getShader() const {
+        return shader;
     }
 
     uint32_t getDepthMapTextureId() const;

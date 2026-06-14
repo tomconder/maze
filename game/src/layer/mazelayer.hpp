@@ -9,6 +9,7 @@
 #include <atomic>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 namespace game::layer {
 struct GameObject {
@@ -20,7 +21,6 @@ struct GameObject {
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation;
     glm::vec3 translation{ 0.F };
-    glm::mat4 modelMatrix{ 1.F };
 };
 
 class MazeLayer final : public sponge::layer::Layer {
@@ -102,7 +102,10 @@ public:
 #endif
 
 private:
-    std::shared_ptr<scene::GameCamera>                          camera;
+    std::shared_ptr<scene::GameCamera> camera;
+    std::vector<glm::mat4>             objectModelMatrices;
+    std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
+                                                                objectModels;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;

@@ -4,7 +4,6 @@
 #include <string_view>
 
 namespace game::ui {
-using sponge::platform::opengl::renderer::AssetManager;
 
 namespace {
 constexpr std::string_view leftArrow  = "< ";
@@ -12,7 +11,7 @@ constexpr std::string_view rightArrow = " >";
 }  // namespace
 
 SelectList::SelectList(const SelectListCreateInfo& createInfo) :
-    font(AssetManager::getFont(createInfo.fontName)),
+    font(createInfo.font),
     fontSize(createInfo.fontSize),
     textColor(createInfo.textColor),
     arrowDisabledColor(createInfo.arrowDisabledColor),

@@ -21,6 +21,8 @@ using sponge::scene::Vertex;
 
 uint32_t Mesh::meshProgramId = 0;
 
+std::shared_ptr<renderer::Shader> Mesh::shader;
+
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
            std::vector<std::shared_ptr<renderer::Texture>>&& textures) :
@@ -35,8 +37,8 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .vertexShaderPath   = "/shaders/glsl/pbr.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/pbr.frag.glsl",
     };
-    const auto shader = AssetManager::createShader(shaderCreateInfo);
-    meshProgramId     = shader->getId();
+    shader        = AssetManager::createShader(shaderCreateInfo);
+    meshProgramId = shader->getId();
     shader->bind();
 
     vao = renderer::VertexArray::create();
