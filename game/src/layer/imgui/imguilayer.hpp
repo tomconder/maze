@@ -35,6 +35,7 @@ private:
     static void showLogWindow(float width, float height);
     static void showMenu();  // App info window sections
     static void showLightsSection();
+    static void showBloomControls();
     static void showDirectionalLightControls();
     static void showPointLightControls();
     static void showAttenuationSlider(int32_t& attenuationIndex);
