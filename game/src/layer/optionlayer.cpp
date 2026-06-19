@@ -924,9 +924,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         antiAliasingCheckbox->setSize(checkboxSize);
         fullScreenCheckbox->setSize(checkboxSize);
         verticalSyncCheckbox->setSize(checkboxSize);
-
-        const auto checkboxSize2 = static_cast<float>(fontSize);
-        bloomEnabledCheckbox->setSize(checkboxSize2);
+        bloomEnabledCheckbox->setSize(checkboxSize);
 
         const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
