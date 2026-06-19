@@ -142,6 +142,7 @@ void FXAA::apply() const {
     shader->bind();
     shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
                                             1.0f / static_cast<float>(height)));
+    shader->setFloat("bloomIntensity", 0.0f);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
