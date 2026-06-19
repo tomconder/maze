@@ -134,6 +134,12 @@ vec4 fxaaPass(vec2 uv) {
     return texture(screenTexture, finalUV);
 }
 
+uniform sampler2D bloomTex;
+uniform float     bloomIntensity;
+
 void main() {
     fragColor = fxaaPass(fragTexCoords);
+    if (bloomIntensity > 0.0) {
+        fragColor.rgb += texture(bloomTex, fragTexCoords).rgb * bloomIntensity;
+    }
 }

@@ -22,6 +22,8 @@ public:
     void begin() const;
     void end() const;
     void apply() const;
+    void applyWithBloom(uint32_t sceneTexId, uint32_t bloomTexId,
+                        float intensity) const;
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
