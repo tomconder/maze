@@ -64,7 +64,7 @@ void FXAA::initialize() {
     }
 
     shader->setInteger("screenTexture", 0);
-    shader->setFloat("bloomIntensity", 0.0f);
+    shader->setInteger("bloomTex", 1);
 
     shader->unbind();
     vao->unbind();
@@ -162,8 +162,6 @@ void FXAA::applyWithBloom(const uint32_t sceneTexId, const uint32_t bloomTexId,
     shader->bind();
     shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
                                             1.0f / static_cast<float>(height)));
-    shader->setInteger("screenTexture", 0);
-    shader->setInteger("bloomTex", 1);
     shader->setFloat("bloomIntensity", intensity);
 
     glActiveTexture(GL_TEXTURE0);

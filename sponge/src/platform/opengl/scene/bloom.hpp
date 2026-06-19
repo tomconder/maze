@@ -35,30 +35,6 @@ public:
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
-    bool isEnabled() const {
-        return enabled;
-    }
-
-    void setEnabled(bool val) {
-        enabled = val;
-    }
-
-    float getThreshold() const {
-        return threshold;
-    }
-
-    void setThreshold(float val) {
-        threshold = val;
-    }
-
-    float getIntensity() const {
-        return intensity;
-    }
-
-    void setIntensity(float val) {
-        intensity = val;
-    }
-
 private:
     static constexpr std::string_view extractShaderName   = "bloom_extract";
     static constexpr std::string_view downShaderName      = "bloom_down";
@@ -82,11 +58,8 @@ private:
     std::array<uint32_t, numLevels> upFbos{};
     std::array<uint32_t, numLevels> upTextures{};
 
-    uint32_t width     = 0;
-    uint32_t height    = 0;
-    bool     enabled   = true;
-    float    threshold = 0.8F;
-    float    intensity = 1.0F;
+    uint32_t width  = 0;
+    uint32_t height = 0;
 
     void initialize();
     void createFramebuffers();

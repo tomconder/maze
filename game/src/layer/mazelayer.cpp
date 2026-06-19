@@ -158,9 +158,6 @@ void MazeLayer::onAttach() {
 
     bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
                                     Maze::get().getWindow()->getHeight());
-    bloom->setEnabled(bloomEnabled);
-    bloom->setThreshold(bloomThreshold);
-    bloom->setIntensity(bloomIntensity);
 
     queueResize(Maze::get().getWindow()->getWidth(),
                 Maze::get().getWindow()->getHeight());
@@ -672,9 +669,6 @@ bool MazeLayer::isBloomEnabled() const {
 
 void MazeLayer::setBloomEnabled(const bool val) {
     bloomEnabled = val;
-    if (bloom) {
-        bloom->setEnabled(val);
-    }
 }
 
 float MazeLayer::getBloomThreshold() const {
