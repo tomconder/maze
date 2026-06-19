@@ -38,11 +38,15 @@ struct MazeRenderFrame {
     // Game objects: model matrices and resolved model handles. Handles are
     // resolved once at load; no per-frame name lookup.
     std::vector<glm::mat4> objectModelMatrices;
+    std::vector<glm::vec3> objectEmissives;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 
     // Post-processing
-    bool fxaaEnabled{ false };
+    bool  fxaaEnabled{ false };
+    bool  bloomEnabled{ false };
+    float bloomThreshold{ 0.8F };
+    float bloomIntensity{ 1.0F };
 };
 
 }  // namespace game::thread

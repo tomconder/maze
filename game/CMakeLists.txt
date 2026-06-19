@@ -4,11 +4,13 @@ configure_file(bundle/resources/version.hpp.in include/version.hpp)
 
 file(
         GLOB HEADER_FILES
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/*.hpp src/layer/*.hpp src/scene/*.hpp src/thread/*.hpp src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
 

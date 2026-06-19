@@ -64,6 +64,7 @@ void FXAA::initialize() {
     }
 
     shader->setInteger("screenTexture", 0);
+    shader->setInteger("bloomTex", 1);
 
     shader->unbind();
     vao->unbind();
@@ -141,6 +142,7 @@ void FXAA::apply() const {
     shader->bind();
     shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
                                             1.0f / static_cast<float>(height)));
+    shader->setFloat("bloomIntensity", 0.0f);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
@@ -149,6 +151,30 @@ void FXAA::apply() const {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
     vao->unbind();
 
+    shader->unbind();
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void FXAA::applyWithBloom(const uint32_t sceneTexId, const uint32_t bloomTexId,
+                          const float intensity) const {
+    glDisable(GL_DEPTH_TEST);
+
+    shader->bind();
+    shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
+                                            1.0f / static_cast<float>(height)));
+    shader->setFloat("bloomIntensity", intensity);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, sceneTexId);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, bloomTexId);
+
+    vao->bind();
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
+    vao->unbind();
+
+    glActiveTexture(GL_TEXTURE0);
     shader->unbind();
 
     glEnable(GL_DEPTH_TEST);

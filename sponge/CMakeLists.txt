@@ -3,6 +3,7 @@ include(GNUInstallDirs)
 
 file(
         GLOB HEADER_FILES
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/*.hpp
         src/core/*.hpp
@@ -16,6 +17,7 @@ file(
 
 file(
         GLOB SOURCE_FILES
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/core/*.cpp src/event/*.cpp src/input/*.cpp src/layer/*.cpp
         src/logging/*.cpp src/scene/*.cpp src/thread/*.cpp)
@@ -24,12 +26,14 @@ file(
 message(STATUS "Including OpenGL platform files")
 file(
         GLOB OPENGL_HEADERS
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/platform/opengl/debug/*.hpp src/platform/opengl/renderer/*.hpp
         src/platform/opengl/scene/*.hpp)
 list(APPEND HEADER_FILES ${OPENGL_HEADERS})
 file(
         GLOB OPENGL_SOURCES
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         deps/glad2/src/gl.c src/platform/opengl/debug/*.cpp
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)

@@ -39,6 +39,7 @@ uniform float evsmBleedThreshold;
 uniform vec3      viewPos;
 uniform float     ambientStrength;
 uniform bool      hasNoTexture;
+uniform vec3      emissive;
 
 const float M_PI = 3.14159265359;
 
@@ -105,7 +106,7 @@ void main() {
     float gamma = 2.2;
     color       = pow(color, vec3(1.0 / gamma));
 
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color + emissive, 1.0);
 }
 
 float attenuationFromLight(PointLight light) {

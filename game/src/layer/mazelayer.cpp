@@ -48,19 +48,22 @@ std::array gameObjects = {
     // GameObject{ .name = "cube1",
     //             .path = "/models/cube/cube-tex.obj",
     //             .scale = glm::vec3(1.F),
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(-1.5F, .85F, -.5F) },
     //
     // GameObject{ .name = "cube2",
     //             .path = "/models/cube/cube-tex.obj",
     //             .scale = glm::vec3(.5F),
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(0.F, 0.F, .5F) },
-    //
-    // GameObject{ .name = "cube3",
-    //             .path = "/models/cube/cube-tex.obj",
-    //             .scale = glm::vec3(.25F),
-    //             .rotation = { .angle = glm::radians(60.F),
-    //                           .axis = glm::vec3(1.F, 0.F, 1.F) },
-    //             .translation = glm::vec3(-1.F, 0.25F, 1.F) }
+
+    GameObject{ .name        = "cube3",
+                .path        = "/models/cube/cube-tex.obj",
+                .scale       = glm::vec3(.25F),
+                .rotation    = { .angle = glm::radians(60.F),
+                                 .axis  = glm::vec3(1.F, 0.F, 1.F) },
+                .translation = glm::vec3(-1.F, 0.25F, 1.F),
+                .emissive    = glm::vec3(1.5F, 1.2F, 0.5F) },
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/helmet/damaged_helmet.obj",
@@ -82,6 +85,7 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
@@ -104,6 +108,7 @@ void MazeLayer::onAttach() {
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
             gameObject.scale));
+        objectEmissives.push_back(gameObject.emissive);
 
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
             .name = std::string(gameObject.name),
@@ -152,6 +157,9 @@ void MazeLayer::onAttach() {
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
+
+    bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
+                                    Maze::get().getWindow()->getHeight());
 
     queueResize(Maze::get().getWindow()->getWidth(),
                 Maze::get().getWindow()->getHeight());
@@ -265,10 +273,14 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.lightAttenuationIndices[i] = pointLights.at(i).attenuationIndex;
     }
 
-    frame.fxaaEnabled = fxaaEnabled;
+    frame.fxaaEnabled    = fxaaEnabled;
+    frame.bloomEnabled   = bloomEnabled;
+    frame.bloomThreshold = bloomThreshold;
+    frame.bloomIntensity = bloomIntensity;
 
     // Static after onAttach(); safe to copy.
     frame.objectModelMatrices = objectModelMatrices;
+    frame.objectEmissives     = objectEmissives;
     frame.objectModels        = objectModels;
 
     // Publish slot; release/acquire pair with onRender()'s load.
@@ -293,6 +305,9 @@ void MazeLayer::onRender() {
         if (fxaa) {
             fxaa->resize(w, h);
         }
+        if (bloom) {
+            bloom->resize(w, h);
+        }
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -304,14 +319,26 @@ void MazeLayer::onRender() {
         renderSceneToDepthMap(frame);
     }
 
-    if (fxaa && frame.fxaaEnabled) {
+    if (frame.bloomEnabled && bloom) {
+        bloom->begin();
+    } else if (frame.fxaaEnabled && fxaa) {
         fxaa->begin();
     }
 
     renderGameObjects(frame);
     renderLightCubes(frame);
 
-    if (fxaa && frame.fxaaEnabled) {
+    if (frame.bloomEnabled && bloom) {
+        bloom->end();
+        bloom->process(frame.bloomThreshold);
+        if (frame.fxaaEnabled && fxaa) {
+            fxaa->applyWithBloom(bloom->getSceneTexture(),
+                                 bloom->getBloomTexture(),
+                                 frame.bloomIntensity);
+        } else {
+            bloom->apply(frame.bloomIntensity);
+        }
+    } else if (frame.fxaaEnabled && fxaa) {
         fxaa->end();
         fxaa->apply();
     }
@@ -537,6 +564,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
         shader->setMat4("model", modelMatrix);
+        shader->setFloat3("emissive", frame.objectEmissives[i]);
 
         frame.objectModels[i]->render(shader);
     }
@@ -637,6 +665,30 @@ void MazeLayer::setFxaaEnabled(const bool val) {
     if (fxaa) {
         fxaa->setEnabled(val);
     }
+}
+
+bool MazeLayer::isBloomEnabled() const {
+    return bloomEnabled;
+}
+
+void MazeLayer::setBloomEnabled(const bool val) {
+    bloomEnabled = val;
+}
+
+float MazeLayer::getBloomThreshold() const {
+    return bloomThreshold;
+}
+
+void MazeLayer::setBloomThreshold(const float val) {
+    bloomThreshold = val;
+}
+
+float MazeLayer::getBloomIntensity() const {
+    return bloomIntensity;
+}
+
+void MazeLayer::setBloomIntensity(const float val) {
+    bloomIntensity = val;
 }
 
 #ifdef ENABLE_IMGUI

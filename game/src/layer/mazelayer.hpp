@@ -21,6 +21,7 @@ struct GameObject {
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation;
     glm::vec3 translation{ 0.F };
+    glm::vec3 emissive{ 0.F };
 };
 
 class MazeLayer final : public sponge::layer::Layer {
@@ -97,6 +98,13 @@ public:
 
     void setFxaaEnabled(bool val);
 
+    bool  isBloomEnabled() const;
+    void  setBloomEnabled(bool val);
+    float getBloomThreshold() const;
+    void  setBloomThreshold(float val);
+    float getBloomIntensity() const;
+    void  setBloomIntensity(float val);
+
 #ifdef ENABLE_IMGUI
     bool isImguiActive() const;
 #endif
@@ -104,10 +112,12 @@ public:
 private:
     std::shared_ptr<scene::GameCamera> camera;
     std::vector<glm::mat4>             objectModelMatrices;
+    std::vector<glm::vec3>             objectEmissives;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
                                                                 objectModels;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
+    std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
@@ -133,6 +143,9 @@ private:
     float   ao                 = .25F;
     int32_t attenuationIndex   = 4;
     bool    fxaaEnabled        = true;
+    bool    bloomEnabled       = true;
+    float   bloomThreshold     = 0.8F;
+    float   bloomIntensity     = 1.0F;
     bool    metallic           = false;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;

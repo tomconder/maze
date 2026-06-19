@@ -172,7 +172,50 @@ void ImGuiLayer::showLightsSection() {
             showDirectionalLightControls();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Bloom##Tab")) {
+            showBloomControls();
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
+    }
+}
+
+void ImGuiLayer::showBloomControls() {
+    if (ImGui::BeginTable("Bloom##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
+        auto bloomEnabled = mazeLayer->isBloomEnabled();
+        showTableRow([&] {
+            ImGui::Text("Enabled");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##bloomenabled", &bloomEnabled)) {
+                mazeLayer->setBloomEnabled(bloomEnabled);
+            }
+        });
+
+        auto threshold = mazeLayer->getBloomThreshold();
+        showTableRow([&] {
+            ImGui::Text("Threshold");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderFloat("##bloomthreshold", &threshold, 0.F, 1.F,
+                                   "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setBloomThreshold(threshold);
+            }
+        });
+
+        auto intensity = mazeLayer->getBloomIntensity();
+        showTableRow([&] {
+            ImGui::Text("Intensity");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 5.F,
+                                   "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setBloomIntensity(intensity);
+            }
+        });
+
+        ImGui::EndTable();
     }
 }
 
