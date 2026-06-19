@@ -38,6 +38,7 @@
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
+#include "platform/opengl/scene/bloom.hpp"
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/mesh.hpp"
