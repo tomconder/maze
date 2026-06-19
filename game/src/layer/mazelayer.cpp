@@ -62,7 +62,8 @@ std::array gameObjects = {
                 .scale       = glm::vec3(.25F),
                 .rotation    = { .angle = glm::radians(60.F),
                                  .axis  = glm::vec3(1.F, 0.F, 1.F) },
-                .translation = glm::vec3(-1.F, 0.25F, 1.F) },
+                .translation = glm::vec3(-1.F, 0.25F, 1.F),
+                .emissive    = glm::vec3(1.5F, 1.2F, 0.5F) },
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/helmet/damaged_helmet.obj",
@@ -107,6 +108,7 @@ void MazeLayer::onAttach() {
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
             gameObject.scale));
+        objectEmissives.push_back(gameObject.emissive);
 
         sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
             .name = std::string(gameObject.name),
@@ -278,6 +280,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
     // Static after onAttach(); safe to copy.
     frame.objectModelMatrices = objectModelMatrices;
+    frame.objectEmissives     = objectEmissives;
     frame.objectModels        = objectModels;
 
     // Publish slot; release/acquire pair with onRender()'s load.
@@ -561,6 +564,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
         shader->setMat4("model", modelMatrix);
+        shader->setFloat3("emissive", frame.objectEmissives[i]);
 
         frame.objectModels[i]->render(shader);
     }
