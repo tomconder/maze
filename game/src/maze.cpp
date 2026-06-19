@@ -32,6 +32,12 @@ bool Maze::onUserCreate() {
     splashScreenLayer->setActive(true);
 
     setFxaaEnabled(sponge::core::Settings::getBool("video.fxaa", true));
+    setBloomEnabled(
+        sponge::core::Settings::getBool("video.bloomEnabled", true));
+    setBloomThreshold(std::stof(
+        sponge::core::Settings::getString("video.bloomThreshold", "0.8")));
+    setBloomIntensity(std::stof(
+        sponge::core::Settings::getString("video.bloomIntensity", "1.0")));
 
     return true;
 }

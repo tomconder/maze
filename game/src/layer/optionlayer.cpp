@@ -52,6 +52,9 @@ constexpr std::string_view applyMessage  = "Apply";
 
 constexpr std::array<uint32_t, 4> shadowResolutions = { 512, 1024, 2048, 4096 };
 
+constexpr std::array<float, 3> bloomThresholds  = { 0.6F, 0.8F, 0.95F };
+constexpr std::array<float, 4> bloomIntensities = { 0.5F, 1.0F, 2.0F, 3.0F };
+
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
 constexpr std::string_view fontPath   = "/fonts/inter.ttf";
@@ -159,7 +162,8 @@ float computeMaxCycleValueWidth() {
 
 void saveVideoSettings(const uint32_t width, const uint32_t height,
                        const bool fullscreen, const bool vsync, const bool fxaa,
-                       const uint32_t shadowRes) {
+                       const uint32_t shadowRes, const bool bloomEnabled,
+                       const float bloomThreshold, const float bloomIntensity) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
@@ -167,6 +171,9 @@ void saveVideoSettings(const uint32_t width, const uint32_t height,
     Settings::set("video.vsync", vsync);
     Settings::set("video.fxaa", fxaa);
     Settings::set("video.shadowRes", shadowRes);
+    Settings::set("video.bloomEnabled", bloomEnabled);
+    Settings::set("video.bloomThreshold", std::to_string(bloomThreshold));
+    Settings::set("video.bloomIntensity", std::to_string(bloomIntensity));
     Settings::save();
 }
 
@@ -180,6 +187,9 @@ YGNodeRef resolutionNode     = nullptr;
 YGNodeRef shadowQualityNode  = nullptr;
 YGNodeRef verticalSyncNode   = nullptr;
 YGNodeRef fullScreenNode     = nullptr;
+YGNodeRef bloomEnabledNode   = nullptr;
+YGNodeRef bloomThresholdNode = nullptr;
+YGNodeRef bloomIntensityNode = nullptr;
 YGNodeRef returnNode         = nullptr;
 YGNodeRef rootNode           = nullptr;
 YGNodeRef titleNode          = nullptr;
@@ -259,13 +269,16 @@ void OptionLayer::onAttach() {
         return child;
     };
 
-    aspectRatioNode   = makeMenuNode(menuBackgroundNode, 0);
-    resolutionNode    = makeMenuNode(menuBackgroundNode, 1);
-    fullScreenNode    = makeMenuNode(menuBackgroundNode, 2);
-    verticalSyncNode  = makeMenuNode(menuBackgroundNode, 3);
-    antiAliasingNode  = makeMenuNode(menuBackgroundNode, 4);
-    shadowQualityNode = makeMenuNode(menuBackgroundNode, 5);
-    returnNode        = makeMenuNode(menuBackgroundNode, 6);
+    aspectRatioNode    = makeMenuNode(menuBackgroundNode, 0);
+    resolutionNode     = makeMenuNode(menuBackgroundNode, 1);
+    fullScreenNode     = makeMenuNode(menuBackgroundNode, 2);
+    verticalSyncNode   = makeMenuNode(menuBackgroundNode, 3);
+    antiAliasingNode   = makeMenuNode(menuBackgroundNode, 4);
+    shadowQualityNode  = makeMenuNode(menuBackgroundNode, 5);
+    bloomEnabledNode   = makeMenuNode(menuBackgroundNode, 6);
+    bloomThresholdNode = makeMenuNode(menuBackgroundNode, 7);
+    bloomIntensityNode = makeMenuNode(menuBackgroundNode, 8);
+    returnNode         = makeMenuNode(menuBackgroundNode, 9);
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -296,6 +309,12 @@ void OptionLayer::onAttach() {
     antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    bloomEnabledCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    bloomThresholdList   = std::make_unique<ui::SelectList>(selectCreateInfo);
+    bloomIntensityList   = std::make_unique<ui::SelectList>(selectCreateInfo);
+
+    bloomThresholdList->setItems({ "Low", "Medium", "High" });
+    bloomIntensityList->setItems({ "Low", "Normal", "High", "Extra" });
 
     std::vector<std::string> arItems;
     arItems.reserve(validAspectRatioFilters.size());
@@ -405,6 +424,16 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                     pendingShadowResIndex =
                         static_cast<int>(shadowQualityList->getSelectedIndex());
                     updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::BloomThreshold) {
+                    bloomThresholdList->selectPrev();
+                    pendingBloomThreshold = static_cast<int>(
+                        bloomThresholdList->getSelectedIndex());
+                    updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::BloomIntensity) {
+                    bloomIntensityList->selectPrev();
+                    pendingBloomIntensity = static_cast<int>(
+                        bloomIntensityList->getSelectedIndex());
+                    updateChangeStatus();
                 }
             }
             if (input.isActive(GameAction::MenuRight)) {
@@ -419,6 +448,16 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                     shadowQualityList->selectNext();
                     pendingShadowResIndex =
                         static_cast<int>(shadowQualityList->getSelectedIndex());
+                    updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::BloomThreshold) {
+                    bloomThresholdList->selectNext();
+                    pendingBloomThreshold = static_cast<int>(
+                        bloomThresholdList->getSelectedIndex());
+                    updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::BloomIntensity) {
+                    bloomIntensityList->selectNext();
+                    pendingBloomIntensity = static_cast<int>(
+                        bloomIntensityList->getSelectedIndex());
                     updateChangeStatus();
                 }
             }
@@ -449,6 +488,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                     updateChangeStatus();
                 } else if (selectedItem == OptionMenuItem::AntiAliasing) {
                     pendingFxaa = !pendingFxaa;
+                    updateChangeStatus();
+                } else if (selectedItem == OptionMenuItem::BloomEnabled) {
+                    pendingBloomEnabled = !pendingBloomEnabled;
                     updateChangeStatus();
                 }
             }
@@ -485,6 +527,12 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
     const auto [sqX, sqY, sqW, sqH] =
         getNodeLayout(shadowQualityNode, menuBgX, menuBgY);
+    const auto [beX, beY, beW, beH] =
+        getNodeLayout(bloomEnabledNode, menuBgX, menuBgY);
+    const auto [btX, btY, btW, btH] =
+        getNodeLayout(bloomThresholdNode, menuBgX, menuBgY);
+    const auto [biX, biY, biW, biH] =
+        getNodeLayout(bloomIntensityNode, menuBgX, menuBgY);
     const auto [retX, retY, retW, retH] =
         getNodeLayout(returnNode, menuBgX, menuBgY);
 
@@ -553,6 +601,22 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     renderDots(shadowResolutions.size(),
                shadowQualityList->getValueCenterX(sqX, sqW), sqY, sqH,
                shadowQualityList->getSelectedIndex(), currentShadowResIndex);
+
+    renderRowBackground(beX, beY, beW, beH, OptionMenuItem::BloomEnabled);
+    renderRowLabel(beX, beY, beH, "Bloom");
+    bloomEnabledCheckbox->onUpdate(beX, beY, beW, beH, pendingBloomEnabled);
+
+    renderRowBackground(btX, btY, btW, btH, OptionMenuItem::BloomThreshold);
+    bloomThresholdList->onUpdate(btX, btY, btW, btH, "Bloom Threshold");
+    renderDots(bloomThresholds.size(),
+               bloomThresholdList->getValueCenterX(btX, btW), btY, btH,
+               static_cast<size_t>(pendingBloomThreshold), std::nullopt);
+
+    renderRowBackground(biX, biY, biW, biH, OptionMenuItem::BloomIntensity);
+    bloomIntensityList->onUpdate(biX, biY, biW, biH, "Bloom Intensity");
+    renderDots(bloomIntensities.size(),
+               bloomIntensityList->getValueCenterX(biX, biW), biY, biH,
+               static_cast<size_t>(pendingBloomIntensity), std::nullopt);
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     if (selectedItem == OptionMenuItem::Return) {
@@ -723,6 +787,60 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    const auto [beX2, beY2, beW2, beH2] = getNodeLayout(
+        bloomEnabledNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= beX2 && mouseX <= beX2 + beW2 && mouseY >= beY2 &&
+        mouseY <= beY2 + beH2) {
+        selectedItem = OptionMenuItem::BloomEnabled;
+        if (bloomEnabledCheckbox->isInside(mouseX, mouseY, beX2, beY2, beW2,
+                                           beH2)) {
+            pendingBloomEnabled = !pendingBloomEnabled;
+            updateChangeStatus();
+        }
+        return true;
+    }
+
+    const auto [btX2, btY2, btW2, btH2] = getNodeLayout(
+        bloomThresholdNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= btX2 && mouseX <= btX2 + btW2 && mouseY >= btY2 &&
+        mouseY <= btY2 + btH2) {
+        selectedItem = OptionMenuItem::BloomThreshold;
+        if (bloomThresholdList->isInsideLeft(mouseX, btX2, btW2)) {
+            bloomThresholdList->selectPrev();
+            pendingBloomThreshold =
+                static_cast<int>(bloomThresholdList->getSelectedIndex());
+            updateChangeStatus();
+        } else if (bloomThresholdList->isInsideRight(mouseX, btX2, btW2)) {
+            bloomThresholdList->selectNext();
+            pendingBloomThreshold =
+                static_cast<int>(bloomThresholdList->getSelectedIndex());
+            updateChangeStatus();
+        }
+        return true;
+    }
+
+    const auto [biX2, biY2, biW2, biH2] = getNodeLayout(
+        bloomIntensityNode, menuBackgroundNodeX, menuBackgroundNodeY);
+
+    if (mouseX >= biX2 && mouseX <= biX2 + biW2 && mouseY >= biY2 &&
+        mouseY <= biY2 + biH2) {
+        selectedItem = OptionMenuItem::BloomIntensity;
+        if (bloomIntensityList->isInsideLeft(mouseX, biX2, biW2)) {
+            bloomIntensityList->selectPrev();
+            pendingBloomIntensity =
+                static_cast<int>(bloomIntensityList->getSelectedIndex());
+            updateChangeStatus();
+        } else if (bloomIntensityList->isInsideRight(mouseX, biX2, biW2)) {
+            bloomIntensityList->selectNext();
+            pendingBloomIntensity =
+                static_cast<int>(bloomIntensityList->getSelectedIndex());
+            updateChangeStatus();
+        }
+        return true;
+    }
+
     return true;
 }
 
@@ -771,6 +889,12 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
         hoveredItem = OptionMenuItem::AntiAliasing;
     } else if (isOver(shadowQualityNode)) {
         hoveredItem = OptionMenuItem::ShadowQuality;
+    } else if (isOver(bloomEnabledNode)) {
+        hoveredItem = OptionMenuItem::BloomEnabled;
+    } else if (isOver(bloomThresholdNode)) {
+        hoveredItem = OptionMenuItem::BloomThreshold;
+    } else if (isOver(bloomIntensityNode)) {
+        hoveredItem = OptionMenuItem::BloomIntensity;
     } else {
         hoveredItem = std::nullopt;
     }
@@ -793,17 +917,24 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         aspectRatioList->setFontSize(fontSize);
         resolutionList->setFontSize(fontSize);
         shadowQualityList->setFontSize(fontSize);
+        bloomThresholdList->setFontSize(fontSize);
+        bloomIntensityList->setFontSize(fontSize);
 
         const auto checkboxSize = static_cast<float>(fontSize);
         antiAliasingCheckbox->setSize(checkboxSize);
         fullScreenCheckbox->setSize(checkboxSize);
         verticalSyncCheckbox->setSize(checkboxSize);
 
+        const auto checkboxSize2 = static_cast<float>(fontSize);
+        bloomEnabledCheckbox->setSize(checkboxSize2);
+
         const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
         aspectRatioList->setMaxValueWidth(maxCycleValueWidth);
         resolutionList->setMaxValueWidth(maxCycleValueWidth);
         shadowQualityList->setMaxValueWidth(maxCycleValueWidth);
+        bloomThresholdList->setMaxValueWidth(maxCycleValueWidth);
+        bloomIntensityList->setMaxValueWidth(maxCycleValueWidth);
     }
 
     if (isActive()) {
@@ -881,11 +1012,19 @@ void OptionLayer::applyChanges() {
     }
     Maze::get().setVerticalSync(pendingVsync);
     Maze::get().setFxaaEnabled(pendingFxaa);
+    Maze::get().setBloomEnabled(pendingBloomEnabled);
+    Maze::get().setBloomThreshold(
+        bloomThresholds[static_cast<size_t>(pendingBloomThreshold)]);
+    Maze::get().setBloomIntensity(
+        bloomIntensities[static_cast<size_t>(pendingBloomIntensity)]);
     const auto shadowRes =
         shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
     Maze::get().getMazeLayer()->setShadowMapRes(shadowRes);
-    saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
-                      pendingFxaa, shadowRes);
+    saveVideoSettings(
+        saveWidth, saveHeight, pendingFullscreen, pendingVsync, pendingFxaa,
+        shadowRes, pendingBloomEnabled,
+        bloomThresholds[static_cast<size_t>(pendingBloomThreshold)],
+        bloomIntensities[static_cast<size_t>(pendingBloomIntensity)]);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
@@ -893,9 +1032,32 @@ void OptionLayer::applyChanges() {
 }
 
 void OptionLayer::syncPendingCheckboxState() {
-    pendingFullscreen = Maze::get().isFullscreen();
-    pendingVsync      = Maze::get().hasVerticalSync();
-    pendingFxaa       = Maze::get().isFxaaEnabled();
+    pendingFullscreen   = Maze::get().isFullscreen();
+    pendingVsync        = Maze::get().hasVerticalSync();
+    pendingFxaa         = Maze::get().isFxaaEnabled();
+    pendingBloomEnabled = Maze::get().isBloomEnabled();
+
+    const float curThreshold = Maze::get().getBloomThreshold();
+    const auto  tIt          = std::ranges::find(bloomThresholds, curThreshold);
+    pendingBloomThreshold =
+        tIt != bloomThresholds.end() ?
+            static_cast<int>(tIt - bloomThresholds.begin()) :
+            1;
+    if (bloomThresholdList) {
+        bloomThresholdList->setSelectedIndex(
+            static_cast<size_t>(pendingBloomThreshold));
+    }
+
+    const float curIntensity = Maze::get().getBloomIntensity();
+    const auto  iIt = std::ranges::find(bloomIntensities, curIntensity);
+    pendingBloomIntensity =
+        iIt != bloomIntensities.end() ?
+            static_cast<int>(iIt - bloomIntensities.begin()) :
+            1;
+    if (bloomIntensityList) {
+        bloomIntensityList->setSelectedIndex(
+            static_cast<size_t>(pendingBloomIntensity));
+    }
 
     const auto currentShadowRes =
         Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
@@ -914,7 +1076,8 @@ void OptionLayer::updateChangeStatus() {
     const bool checkboxChanged =
         pendingFullscreen != Maze::get().isFullscreen() ||
         pendingVsync != Maze::get().hasVerticalSync() ||
-        pendingFxaa != Maze::get().isFxaaEnabled();
+        pendingFxaa != Maze::get().isFxaaEnabled() ||
+        pendingBloomEnabled != Maze::get().isBloomEnabled();
 
     const auto window = Maze::get().getWindow();
     const auto curW   = window->getWidth();
@@ -957,7 +1120,15 @@ void OptionLayer::updateChangeStatus() {
         shadowResolutions[static_cast<size_t>(pendingShadowResIndex)] !=
         currentShadowRes;
 
-    hasUnappliedChanges = checkboxChanged || resolutionChanged || shadowChanged;
+    const bool bloomThresholdChanged =
+        bloomThresholds[static_cast<size_t>(pendingBloomThreshold)] !=
+        Maze::get().getBloomThreshold();
+    const bool bloomIntensityChanged =
+        bloomIntensities[static_cast<size_t>(pendingBloomIntensity)] !=
+        Maze::get().getBloomIntensity();
+    hasUnappliedChanges = checkboxChanged || resolutionChanged ||
+                          shadowChanged || bloomThresholdChanged ||
+                          bloomIntensityChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
                                                    returnMessage);
 }
