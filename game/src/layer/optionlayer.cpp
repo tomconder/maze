@@ -1036,7 +1036,10 @@ void OptionLayer::syncPendingCheckboxState() {
     pendingBloomEnabled = Maze::get().isBloomEnabled();
 
     const float curThreshold = Maze::get().getBloomThreshold();
-    const auto  tIt          = std::ranges::find(bloomThresholds, curThreshold);
+    const auto  tIt =
+        std::ranges::find_if(bloomThresholds, [curThreshold](float v) {
+            return std::abs(v - curThreshold) < 0.01F;
+        });
     pendingBloomThreshold =
         tIt != bloomThresholds.end() ?
             static_cast<int>(tIt - bloomThresholds.begin()) :
@@ -1047,7 +1050,10 @@ void OptionLayer::syncPendingCheckboxState() {
     }
 
     const float curIntensity = Maze::get().getBloomIntensity();
-    const auto  iIt = std::ranges::find(bloomIntensities, curIntensity);
+    const auto  iIt =
+        std::ranges::find_if(bloomIntensities, [curIntensity](float v) {
+            return std::abs(v - curIntensity) < 0.01F;
+        });
     pendingBloomIntensity =
         iIt != bloomIntensities.end() ?
             static_cast<int>(iIt - bloomIntensities.begin()) :

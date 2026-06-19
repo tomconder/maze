@@ -22,8 +22,8 @@ public:
 
     void begin() const;
     void end() const;
-    void process() const;
-    void apply() const;
+    void process(float threshold) const;
+    void apply(float intensity) const;
 
     uint32_t getSceneTexture() const {
         return sceneColorTexture;

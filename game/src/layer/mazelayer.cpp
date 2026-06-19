@@ -330,13 +330,13 @@ void MazeLayer::onRender() {
 
     if (frame.bloomEnabled && bloom) {
         bloom->end();
-        bloom->process();
+        bloom->process(frame.bloomThreshold);
         if (frame.fxaaEnabled && fxaa) {
             fxaa->applyWithBloom(bloom->getSceneTexture(),
                                  bloom->getBloomTexture(),
                                  frame.bloomIntensity);
         } else {
-            bloom->apply();
+            bloom->apply(frame.bloomIntensity);
         }
     } else if (frame.fxaaEnabled && fxaa) {
         fxaa->end();
@@ -683,9 +683,6 @@ float MazeLayer::getBloomThreshold() const {
 
 void MazeLayer::setBloomThreshold(const float val) {
     bloomThreshold = val;
-    if (bloom) {
-        bloom->setThreshold(val);
-    }
 }
 
 float MazeLayer::getBloomIntensity() const {
@@ -694,9 +691,6 @@ float MazeLayer::getBloomIntensity() const {
 
 void MazeLayer::setBloomIntensity(const float val) {
     bloomIntensity = val;
-    if (bloom) {
-        bloom->setIntensity(val);
-    }
 }
 
 #ifdef ENABLE_IMGUI

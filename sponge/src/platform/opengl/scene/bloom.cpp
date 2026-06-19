@@ -173,7 +173,7 @@ void Bloom::renderQuad() const {
     vao->unbind();
 }
 
-void Bloom::process() const {
+void Bloom::process(const float threshold) const {
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
 
@@ -216,11 +216,12 @@ void Bloom::process() const {
     }
     upShader->unbind();
 
+    glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
 }
 
-void Bloom::apply() const {
+void Bloom::apply(const float intensity) const {
     glDisable(GL_DEPTH_TEST);
 
     compositeShader->bind();
