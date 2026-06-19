@@ -97,6 +97,13 @@ public:
 
     void setFxaaEnabled(bool val);
 
+    bool  isBloomEnabled() const;
+    void  setBloomEnabled(bool val);
+    float getBloomThreshold() const;
+    void  setBloomThreshold(float val);
+    float getBloomIntensity() const;
+    void  setBloomIntensity(float val);
+
 #ifdef ENABLE_IMGUI
     bool isImguiActive() const;
 #endif
@@ -108,6 +115,7 @@ private:
                                                                 objectModels;
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
+    std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
@@ -133,6 +141,9 @@ private:
     float   ao                 = .25F;
     int32_t attenuationIndex   = 4;
     bool    fxaaEnabled        = true;
+    bool    bloomEnabled       = true;
+    float   bloomThreshold     = 0.8F;
+    float   bloomIntensity     = 1.0F;
     bool    metallic           = false;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;

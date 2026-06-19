@@ -48,19 +48,21 @@ std::array gameObjects = {
     // GameObject{ .name = "cube1",
     //             .path = "/models/cube/cube-tex.obj",
     //             .scale = glm::vec3(1.F),
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(-1.5F, .85F, -.5F) },
     //
     // GameObject{ .name = "cube2",
     //             .path = "/models/cube/cube-tex.obj",
     //             .scale = glm::vec3(.5F),
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(0.F, 0.F, .5F) },
-    //
-    // GameObject{ .name = "cube3",
-    //             .path = "/models/cube/cube-tex.obj",
-    //             .scale = glm::vec3(.25F),
-    //             .rotation = { .angle = glm::radians(60.F),
-    //                           .axis = glm::vec3(1.F, 0.F, 1.F) },
-    //             .translation = glm::vec3(-1.F, 0.25F, 1.F) }
+
+    GameObject{ .name        = "cube3",
+                .path        = "/models/cube/cube-tex.obj",
+                .scale       = glm::vec3(.25F),
+                .rotation    = { .angle = glm::radians(60.F),
+                                 .axis  = glm::vec3(1.F, 0.F, 1.F) },
+                .translation = glm::vec3(-1.F, 0.25F, 1.F) },
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/helmet/damaged_helmet.obj",
@@ -82,6 +84,7 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
@@ -152,6 +155,12 @@ void MazeLayer::onAttach() {
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
     fxaa->setEnabled(fxaaEnabled);
+
+    bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
+                                    Maze::get().getWindow()->getHeight());
+    bloom->setEnabled(bloomEnabled);
+    bloom->setThreshold(bloomThreshold);
+    bloom->setIntensity(bloomIntensity);
 
     queueResize(Maze::get().getWindow()->getWidth(),
                 Maze::get().getWindow()->getHeight());
@@ -265,7 +274,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.lightAttenuationIndices[i] = pointLights.at(i).attenuationIndex;
     }
 
-    frame.fxaaEnabled = fxaaEnabled;
+    frame.fxaaEnabled    = fxaaEnabled;
+    frame.bloomEnabled   = bloomEnabled;
+    frame.bloomThreshold = bloomThreshold;
+    frame.bloomIntensity = bloomIntensity;
 
     // Static after onAttach(); safe to copy.
     frame.objectModelMatrices = objectModelMatrices;
@@ -293,6 +305,9 @@ void MazeLayer::onRender() {
         if (fxaa) {
             fxaa->resize(w, h);
         }
+        if (bloom) {
+            bloom->resize(w, h);
+        }
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -304,14 +319,26 @@ void MazeLayer::onRender() {
         renderSceneToDepthMap(frame);
     }
 
-    if (fxaa && frame.fxaaEnabled) {
+    if (frame.bloomEnabled && bloom) {
+        bloom->begin();
+    } else if (frame.fxaaEnabled && fxaa) {
         fxaa->begin();
     }
 
     renderGameObjects(frame);
     renderLightCubes(frame);
 
-    if (fxaa && frame.fxaaEnabled) {
+    if (frame.bloomEnabled && bloom) {
+        bloom->end();
+        bloom->process();
+        if (frame.fxaaEnabled && fxaa) {
+            fxaa->applyWithBloom(bloom->getSceneTexture(),
+                                 bloom->getBloomTexture(),
+                                 frame.bloomIntensity);
+        } else {
+            bloom->apply();
+        }
+    } else if (frame.fxaaEnabled && fxaa) {
         fxaa->end();
         fxaa->apply();
     }
@@ -636,6 +663,39 @@ void MazeLayer::setFxaaEnabled(const bool val) {
     fxaaEnabled = val;
     if (fxaa) {
         fxaa->setEnabled(val);
+    }
+}
+
+bool MazeLayer::isBloomEnabled() const {
+    return bloomEnabled;
+}
+
+void MazeLayer::setBloomEnabled(const bool val) {
+    bloomEnabled = val;
+    if (bloom) {
+        bloom->setEnabled(val);
+    }
+}
+
+float MazeLayer::getBloomThreshold() const {
+    return bloomThreshold;
+}
+
+void MazeLayer::setBloomThreshold(const float val) {
+    bloomThreshold = val;
+    if (bloom) {
+        bloom->setThreshold(val);
+    }
+}
+
+float MazeLayer::getBloomIntensity() const {
+    return bloomIntensity;
+}
+
+void MazeLayer::setBloomIntensity(const float val) {
+    bloomIntensity = val;
+    if (bloom) {
+        bloom->setIntensity(val);
     }
 }
 
