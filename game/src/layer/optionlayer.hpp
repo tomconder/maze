@@ -16,9 +16,6 @@ enum class OptionMenuItem : uint8_t {
     VerticalSync,
     AntiAliasing,
     ShadowQuality,
-    BloomEnabled,
-    BloomThreshold,
-    BloomIntensity,
     Return,
     Count
 };
@@ -47,9 +44,6 @@ private:
     bool pendingVsync          = false;
     bool pendingFxaa           = false;
     int  pendingShadowResIndex = 1;
-    bool pendingBloomEnabled   = true;
-    int  pendingBloomThreshold = 1;
-    int  pendingBloomIntensity = 1;
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
@@ -57,9 +51,6 @@ private:
     std::unique_ptr<ui::Checkbox>   antiAliasingCheckbox;
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
-    std::unique_ptr<ui::Checkbox>   bloomEnabledCheckbox;
-    std::unique_ptr<ui::SelectList> bloomThresholdList;
-    std::unique_ptr<ui::SelectList> bloomIntensityList;
 
     void renderRowBackground(float x, float y, float w, float h,
                              OptionMenuItem item) const;
