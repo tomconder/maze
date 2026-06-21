@@ -25,7 +25,7 @@ Varyings vertMain(VSInput input)
     float4 worldPos4        = mul(params.model, float4(input.position, 1.0));
     output.pos              = mul(params.mvp,   float4(input.position, 1.0));
     output.worldPosition    = worldPos4.xyz;
-    output.worldNormal      = mul(params.normalMatrix, input.normal);
+    output.worldNormal      = mul((float3x3)params.normalMatrix, input.normal);
     output.texCoords        = input.texCoord;
     output.fragPosLightSpace= mul(params.lightSpaceMatrix, worldPos4);
     return output;
