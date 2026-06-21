@@ -244,9 +244,15 @@ void Shader::initUBO() {
 
         std::string name(rawName.data(), static_cast<size_t>(nameLen));
         // Strip Slang's _0 suffix from mangled names
+        // e.g. "directionalLight_0.color_0"  -> "directionalLight.color"
+        //      "pointLights_0[0].color_0"    -> "pointLights[0].color"
         for (size_t pos = 0;
              (pos = name.find("_0.", pos)) != std::string::npos;) {
             name.replace(pos, 3, ".");
+        }
+        for (size_t pos = 0;
+             (pos = name.find("_0[", pos)) != std::string::npos;) {
+            name.replace(pos, 3, "[");
         }
         if (name.size() > 2 && name.substr(name.size() - 2) == "_0") {
             name.erase(name.size() - 2);
