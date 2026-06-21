@@ -225,8 +225,8 @@ void Shader::initUBO() {
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
 
     for (int32_t i = 0; i < numUniforms; ++i) {
-        const GLuint ui         = static_cast<GLuint>(i);
-        int32_t      blockIndex = -1;
+        const auto ui         = static_cast<GLuint>(i);
+        int32_t    blockIndex = -1;
         glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_BLOCK_INDEX,
                               &blockIndex);
         if (blockIndex != 0) {
