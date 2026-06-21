@@ -74,15 +74,16 @@ Shader::~Shader() {
 }
 
 void Shader::bind() const {
-    uploadUBO();
     glUseProgram(program);
     if (uboBlock) {
         glBindBufferBase(GL_UNIFORM_BUFFER, uboBlock->binding,
                          uboBlock->buffer);
     }
+    isBound = true;
 }
 
 void Shader::unbind() const {
+    isBound = false;
     glUseProgram(0);
 }
 
@@ -289,6 +290,9 @@ bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
     assert(static_cast<size_t>(it->second) + bytes <= uboStaging.size());
     std::memcpy(uboStaging.data() + it->second, data, bytes);
     uboDirty = true;
+    if (isBound) {
+        uploadUBO();
+    }
     return true;
 }
 

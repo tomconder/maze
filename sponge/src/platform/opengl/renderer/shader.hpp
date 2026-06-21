@@ -69,6 +69,7 @@ private:
     std::optional<UBOBlock>      uboBlock;
     mutable std::vector<uint8_t> uboStaging;
     mutable bool                 uboDirty = false;
+    mutable bool                 isBound  = false;
 
     void initUBO();
     void uploadUBO() const;
