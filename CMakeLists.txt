@@ -118,6 +118,7 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 -entry "${ENTRY_POINT}"
                 -target glsl
                 -profile glsl_330
+                -matrix-layout-column-major
                 -o "${OUTPUT}"
         DEPENDS "${INPUT}"
         COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"

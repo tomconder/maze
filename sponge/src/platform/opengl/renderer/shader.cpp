@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <cassert>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -50,6 +51,8 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
         program = linkProgram(vs, fs);
     }
 
+    initUBO();
+
     glDetachShader(program, vs);
     glDetachShader(program, fs);
     if (!createInfo.geometryShaderPath.empty()) {
@@ -64,11 +67,19 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 }
 
 Shader::~Shader() {
+    if (uboBlock) {
+        glDeleteBuffers(1, &uboBlock->buffer);
+    }
     glDeleteProgram(program);
 }
 
 void Shader::bind() const {
+    uploadUBO();
     glUseProgram(program);
+    if (uboBlock) {
+        glBindBufferBase(GL_UNIFORM_BUFFER, uboBlock->binding,
+                         uboBlock->buffer);
+    }
 }
 
 void Shader::unbind() const {
@@ -134,35 +145,145 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
 }
 
 void Shader::setBoolean(const std::string_view name, const bool value) const {
-    glUniform1ui(getUniformLocation(name), value ? 1 : 0);
+    uint32_t v = value ? 1u : 0u;
+    if (!trySetInUBO(name, &v, sizeof(v), sizeof(v))) {
+        glUniform1ui(getUniformLocation(name), v);
+    }
 }
 
 void Shader::setFloat(const std::string_view name, const float value) const {
-    glUniform1f(getUniformLocation(name), value);
+    if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
+        glUniform1f(getUniformLocation(name), value);
+    }
 }
 
 void Shader::setFloat2(const std::string_view name,
                        const glm::vec2&       value) const {
-    glUniform2f(getUniformLocation(name), value.x, value.y);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniform2f(getUniformLocation(name), value.x, value.y);
+    }
 }
 
 void Shader::setFloat3(const std::string_view name,
                        const glm::vec3&       value) const {
-    glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(float) * 3,
+                     sizeof(float) * 3)) {
+        glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+    }
 }
 
 void Shader::setFloat4(const std::string_view name,
                        const glm::vec4&       value) const {
-    glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniform4f(getUniformLocation(name), value.x, value.y, value.z,
+                    value.a);
+    }
 }
 
 void Shader::setInteger(const std::string_view name, const int value) const {
-    glUniform1i(getUniformLocation(name), value);
+    if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
+        glUniform1i(getUniformLocation(name), value);
+    }
 }
 
 void Shader::setMat4(const std::string_view name,
                      const glm::mat4&       value) const {
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
+                           value_ptr(value));
+    }
+}
+
+void Shader::initUBO() {
+    int32_t numBlocks = 0;
+    glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+    if (numBlocks == 0) {
+        return;
+    }
+
+    constexpr uint32_t kBindingPoint = 0;
+    glUniformBlockBinding(program, 0, kBindingPoint);
+
+    int32_t blockSize = 0;
+    glGetActiveUniformBlockiv(program, 0, GL_UNIFORM_BLOCK_DATA_SIZE,
+                              &blockSize);
+
+    UBOBlock block;
+    block.binding = kBindingPoint;
+    block.size    = static_cast<GLsizei>(blockSize);
+
+    glGenBuffers(1, &block.buffer);
+    glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
+    glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, kBindingPoint, block.buffer);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    int32_t numUniforms = 0;
+    glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+    for (int32_t i = 0; i < numUniforms; ++i) {
+        int32_t blockIndex = -1;
+        glGetActiveUniformsiv(program, 1, reinterpret_cast<const GLuint*>(&i),
+                              GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+        if (blockIndex != 0) {
+            continue;
+        }
+
+        int32_t offset = 0;
+        glGetActiveUniformsiv(program, 1, reinterpret_cast<const GLuint*>(&i),
+                              GL_UNIFORM_OFFSET, &offset);
+
+        char    rawName[256] = {};
+        GLsizei nameLen      = 0;
+        glGetActiveUniformName(program, static_cast<GLuint>(i), sizeof(rawName),
+                               &nameLen, rawName);
+
+        std::string name(rawName, nameLen);
+        // Strip Slang's _0 suffix from mangled names
+        for (size_t pos = 0;
+             (pos = name.find("_0.", pos)) != std::string::npos;) {
+            name.replace(pos, 3, ".");
+        }
+        if (name.size() > 2 && name.substr(name.size() - 2) == "_0") {
+            name.erase(name.size() - 2);
+        }
+
+        block.offsets[name] = static_cast<GLint>(offset);
+        SPONGE_GL_INFO("UBO member: [{}] offset={}", name, offset);
+    }
+
+    uboStaging.assign(static_cast<size_t>(blockSize), 0);
+    uboDirty = false;
+    uboBlock = std::move(block);
+}
+
+void Shader::uploadUBO() const {
+    if (!uboBlock || !uboDirty) {
+        return;
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, uboBlock->buffer);
+    glBufferData(GL_UNIFORM_BUFFER, uboBlock->size, uboStaging.data(),
+                 GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    uboDirty = false;
+}
+
+bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
+                         size_t /*typeSize*/) const {
+    if (!uboBlock) {
+        return false;
+    }
+    auto it = uboBlock->offsets.find(std::string(name));
+    if (it == uboBlock->offsets.end()) {
+        return false;
+    }
+    assert(static_cast<size_t>(it->second) + bytes <= uboStaging.size());
+    std::memcpy(uboStaging.data() + it->second, data, bytes);
+    uboDirty = true;
+    return true;
 }
 
 GLint Shader::getUniformLocation(const std::string_view name) const {
