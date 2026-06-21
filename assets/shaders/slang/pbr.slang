@@ -38,9 +38,8 @@ Varyings vertMain(VSInput input)
 [shader("fragment")]
 float4 fragMain(Varyings input) : SV_Target
 {
-    float3 texColor   = pow(texture_diffuse1.Sample(input.texCoords).rgb, float3(2.2));
-    float3 constColor = pow(float3(1.0), float3(2.2));
-    float3 albedo     = lerp(texColor, constColor, float(params.hasNoTexture));
+    float3 texColor = pow(texture_diffuse1.Sample(input.texCoords).rgb, float3(2.2));
+    float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
 
     float3 N  = normalize(input.worldNormal);
     float3 V  = normalize(params.viewPos - input.worldPosition);
