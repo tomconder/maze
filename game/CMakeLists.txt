@@ -178,7 +178,7 @@ if (APPLE)
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
-                -P "${CMAKE_SOURCE_DIR}/cmake/copy_assets.cmake"
+                -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
 
@@ -201,7 +201,7 @@ else ()
                 -D EXCLUDE_SUBDIR=shaders
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
-                -P "${CMAKE_SOURCE_DIR}/cmake/copy_assets.cmake"
+                -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
 
