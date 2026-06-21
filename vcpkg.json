@@ -44,6 +44,10 @@
       "version>=": "3.12.0"
     },
     {
+      "name": "shader-slang",
+      "version>=": "2025.22.1"
+    },
+    {
       "name": "spdlog",
       "version>=": "1.17.0"
     },
