@@ -214,7 +214,7 @@ void Shader::initUBO() {
 
     UBOBlock block;
     block.binding = kBindingPoint;
-    block.size    = static_cast<GLsizei>(blockSize);
+    block.size    = blockSize;
 
     glGenBuffers(1, &block.buffer);
     glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
@@ -244,23 +244,30 @@ void Shader::initUBO() {
                                rawName.data());
 
         std::string name(rawName.data(), static_cast<size_t>(nameLen));
-        // Strip Slang's _0 suffix from mangled names
+        // Strip Slang's _N disambiguation suffixes from mangled names
         // e.g. "directionalLight_0.color_0"  -> "directionalLight.color"
-        //      "pointLights_0[0].color_0"    -> "pointLights[0].color"
-        for (size_t pos = 0;
-             (pos = name.find("_0.", pos)) != std::string::npos;) {
-            name.replace(pos, 3, ".");
+        //      "pointLights_0[0].color_1"    -> "pointLights[0].color"
+        for (size_t pos = 0; pos + 2 < name.size();) {
+            if (name[pos] == '_' && std::isdigit(name[pos + 1]) &&
+                (name[pos + 2] == '.' || name[pos + 2] == '[')) {
+                name.erase(pos, 2);
+            } else {
+                ++pos;
+            }
         }
-        for (size_t pos = 0;
-             (pos = name.find("_0[", pos)) != std::string::npos;) {
-            name.replace(pos, 3, "[");
-        }
-        if (name.size() > 2 && name.substr(name.size() - 2) == "_0") {
+        if (name.size() > 2 && name[name.size() - 2] == '_' &&
+            std::isdigit(name[name.size() - 1])) {
             name.erase(name.size() - 2);
         }
+        // Strip Slang's synthesized block-name prefix (e.g.
+        // "block_GlobalParams.") so members are keyed by the name the engine
+        // sets them with ("mvp").
+        if (const auto dot = name.find('.'); dot != std::string::npos) {
+            name.erase(0, dot + 1);
+        }
 
-        block.offsets[name] = static_cast<GLint>(offset);
-        SPONGE_GL_INFO("UBO member: [{}] offset={}", name, offset);
+        block.offsets[name] = offset;
+        SPONGE_GL_DEBUG("UBO member: [{}] offset={}", name, offset);
     }
 
     uboStaging.assign(static_cast<size_t>(blockSize), 0);

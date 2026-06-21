@@ -5,11 +5,9 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 
 namespace {
-inline constexpr std::string_view position = "position";
-constexpr std::array              vertices = {
+constexpr std::array vertices = {
     glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
     glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ -0.5, 0.5, -0.5 },
     glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, 0.5, -0.5 },
@@ -51,14 +49,10 @@ Cube::Cube() {
                                                    sizeof(vertices));
     vbo->bind();
 
-    const auto program = shader->getId();
-    if (const auto location = glGetAttribLocation(program, position.data());
-        location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
-                              reinterpret_cast<const void*>(0));
-    }
+    constexpr uint32_t kPositionLoc = 0;
+    glEnableVertexAttribArray(kPositionLoc);
+    glVertexAttribPointer(kPositionLoc, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(glm::vec3), reinterpret_cast<const void*>(0));
 
     shader->unbind();
     vao->unbind();

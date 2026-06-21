@@ -182,7 +182,6 @@ void Bloom::process(const float threshold) const {
     glViewport(0, 0, static_cast<GLsizei>(width >> 1),
                static_cast<GLsizei>(height >> 1));
     extractShader->bind();
-    extractShader->setInteger("scene", 0);
     extractShader->setFloat("threshold", threshold);
     glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
     renderQuad();
@@ -190,7 +189,6 @@ void Bloom::process(const float threshold) const {
 
     // Downsample: down[i-1] → down[i]
     downShader->bind();
-    downShader->setInteger("image", 0);
     downShader->setFloat("offset", 1.0F);
     for (int i = 1; i < numLevels; i++) {
         glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
@@ -203,7 +201,6 @@ void Bloom::process(const float threshold) const {
 
     // Upsample: from deepest down level back up to up[0]
     upShader->bind();
-    upShader->setInteger("image", 0);
     upShader->setFloat("offset", 1.0F);
     for (int i = numLevels - 1; i >= 0; i--) {
         glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
@@ -225,8 +222,6 @@ void Bloom::apply(const float intensity) const {
     glDisable(GL_DEPTH_TEST);
 
     compositeShader->bind();
-    compositeShader->setInteger("scene", 0);
-    compositeShader->setInteger("bloomTex", 1);
     compositeShader->setFloat("intensity", intensity);
 
     glActiveTexture(GL_TEXTURE0);

@@ -117,7 +117,7 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 "${INPUT}"
                 -entry "${ENTRY_POINT}"
                 -target glsl
-                -profile glsl_330
+                -profile glsl_450
                 -matrix-layout-column-major
                 -o "${OUTPUT}"
         DEPENDS "${INPUT}"
@@ -130,17 +130,17 @@ endfunction()
 set(SLANG_COMPILED_OUTPUTS "")
 
 # screenquad (shared vertex for blur and fxaa passes)
-compile_slang_shader(screenquad.vert.slang     vertMain   blur.vert.glsl)
-compile_slang_shader(screenquad.vert.slang     vertMain   fxaa.vert.glsl)
+compile_slang_shader(screenquad.slang          vertMain   blur.vert.glsl)
+compile_slang_shader(screenquad.slang          vertMain   fxaa.vert.glsl)
 
 # PBR
-compile_slang_shader(pbr.vert.slang            vertMain   pbr.vert.glsl)
-compile_slang_shader(pbr.frag.slang            fragMain   pbr.frag.glsl)
+compile_slang_shader(pbr.slang                 vertMain   pbr.vert.glsl)
+compile_slang_shader(pbr.slang                 fragMain   pbr.frag.glsl)
 
 # Shadow map passes
-compile_slang_shader(shadowmap.vert.slang      vertMain   shadowmap.vert.glsl)
-compile_slang_shader(shadowmap_evsm.frag.slang fragMain   shadowmap_evsm.frag.glsl)
-compile_slang_shader(shadowmap.frag.slang      fragMain   shadowmap.frag.glsl)
+compile_slang_shader(shadowmap.slang           vertMain     shadowmap.vert.glsl)
+compile_slang_shader(shadowmap.slang           fragMainEVSM shadowmap_evsm.frag.glsl)
+compile_slang_shader(shadowmap.slang           fragMain     shadowmap.frag.glsl)
 
 # Shadow blur (Dual Kawase, EVSM RG channels)
 compile_slang_shader(blur.frag.slang           fragMain   blur.frag.glsl)
@@ -153,21 +153,21 @@ compile_slang_shader(bloom_up.frag.slang       fragMain   bloom_up.frag.glsl)
 compile_slang_shader(bloom_composite.frag.slang fragMain  bloom_composite.frag.glsl)
 
 # FXAA
-compile_slang_shader(fxaa.frag.slang           fragMain   fxaa.frag.glsl)
+compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
 
 # 2D / UI
-compile_slang_shader(quad.vert.slang           vertMain   quad.vert.glsl)
-compile_slang_shader(quad.frag.slang           fragMain   quad.frag.glsl)
-compile_slang_shader(sprite.vert.slang         vertMain   sprite.vert.glsl)
-compile_slang_shader(sprite.vert.slang         vertMain   text.vert.glsl)
-compile_slang_shader(sprite.frag.slang         fragMain   sprite.frag.glsl)
+compile_slang_shader(quad.slang                vertMain   quad.vert.glsl)
+compile_slang_shader(quad.slang                fragMain   quad.frag.glsl)
+compile_slang_shader(sprite.slang              vertMain   sprite.vert.glsl)
+compile_slang_shader(sprite.slang              vertMain   text.vert.glsl)
+compile_slang_shader(sprite.slang              fragMain   sprite.frag.glsl)
 # text.frag.glsl is hand-written: Slang emits layout(location=1) for SV_Target1 instead of
 # layout(location=0, index=1), breaking dual-source blending (GL_ARB_blend_func_extended).
 # See assets/shaders/slang/text.frag.slang for the reference Slang source.
 
 # Debug light cube
-compile_slang_shader(cube.vert.slang           vertMain   cube.vert.glsl)
-compile_slang_shader(cube.frag.slang           fragMain   cube.frag.glsl)
+compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)
+compile_slang_shader(cube.slang                fragMain   cube.frag.glsl)
 
 add_custom_target(compile_shaders ALL
     DEPENDS ${SLANG_COMPILED_OUTPUTS}

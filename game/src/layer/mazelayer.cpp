@@ -555,7 +555,6 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shader->setInteger("shadowMap", 1);
         shadowMap->activateAndBindShadowTexture(1);
     }
 

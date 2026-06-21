@@ -8,10 +8,9 @@
 #include <string_view>
 
 namespace {
-inline constexpr std::string_view vertex       = "vertex";
-constexpr size_t                  kMaxLength   = 256;
-constexpr size_t                  kIndexCount  = 6;
-constexpr size_t                  kVertexCount = 8;
+constexpr size_t kMaxLength   = 256;
+constexpr size_t kIndexCount  = 6;
+constexpr size_t kVertexCount = 8;
 
 std::array<uint32_t, kMaxLength * kIndexCount>   batchIndices;
 std::array<glm::vec2, kMaxLength * kVertexCount> batchVertices;
@@ -42,14 +41,10 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
         nullptr, kMaxLength * kIndexCount * sizeof(uint32_t));
     ebo->bind();
 
-    const auto program = shader->getId();
-    if (const auto location = glGetAttribLocation(program, vertex.data());
-        location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
-                              nullptr);
-    }
+    constexpr uint32_t pos = 0;
+    glEnableVertexAttribArray(pos);
+    glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
+                          nullptr);
 
     vbo->unbind();
     vao->unbind();

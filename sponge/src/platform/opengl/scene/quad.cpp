@@ -4,10 +4,8 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 
 namespace {
-inline constexpr std::string_view vertex  = "position";
 constexpr std::array<uint32_t, 6> indices = {
     0, 2, 1,  //
     0, 3, 2   //
@@ -41,16 +39,11 @@ Quad::Quad() {
                                                   sizeof(indices));
     ebo->bind();
 
-    const auto program = shader->getId();
-
-    if (const auto location = glGetAttribLocation(program, vertex.data());
-        location != -1) {
-        const auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 2, GL_FLOAT, GL_FALSE,
-                              2 * sizeof(GLfloat),
-                              reinterpret_cast<const void*>(0));
-    }
+    constexpr uint32_t kPositionLoc = 0;
+    glEnableVertexAttribArray(kPositionLoc);
+    glVertexAttribPointer(kPositionLoc, 2, GL_FLOAT, GL_FALSE,
+                          2 * sizeof(GLfloat),
+                          reinterpret_cast<const void*>(0));
 
     vbo->unbind();
     vao->unbind();

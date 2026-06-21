@@ -1,9 +1,9 @@
-#version 330 core
+#version 450 core
 
 layout(location = 0, index = 0) out vec4 fragColor;
 layout(location = 0, index = 1) out vec4 fragCoverage;
 
-in vec2 vTexCoord;
+layout(location = 0) in vec2 vTexCoord;
 
 uniform sampler2D text;
 uniform vec3      textColor;

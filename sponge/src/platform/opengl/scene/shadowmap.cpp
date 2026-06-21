@@ -153,7 +153,6 @@ void ShadowMap::applyBlur() const {
 
     // Downsample pass: read momentTexture → write blurTexture
     blurDownShader->bind();
-    blurDownShader->setInteger("image", 0);
     blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
     glBindTexture(GL_TEXTURE_2D, momentTexture);
@@ -162,7 +161,6 @@ void ShadowMap::applyBlur() const {
 
     // Upsample pass: read blurTexture → write momentTexture
     blurUpShader->bind();
-    blurUpShader->setInteger("image", 0);
     blurUpShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
     glBindTexture(GL_TEXTURE_2D, blurTexture);
