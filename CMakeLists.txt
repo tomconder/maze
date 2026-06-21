@@ -161,7 +161,9 @@ compile_slang_shader(quad.frag.slang           fragMain   quad.frag.glsl)
 compile_slang_shader(sprite.vert.slang         vertMain   sprite.vert.glsl)
 compile_slang_shader(sprite.vert.slang         vertMain   text.vert.glsl)
 compile_slang_shader(sprite.frag.slang         fragMain   sprite.frag.glsl)
-compile_slang_shader(text.frag.slang           fragMain   text.frag.glsl)
+# text.frag.glsl is hand-written: Slang emits layout(location=1) for SV_Target1 instead of
+# layout(location=0, index=1), breaking dual-source blending (GL_ARB_blend_func_extended).
+# See assets/shaders/slang/text.frag.slang for the reference Slang source.
 
 # Debug light cube
 compile_slang_shader(cube.vert.slang           vertMain   cube.vert.glsl)
