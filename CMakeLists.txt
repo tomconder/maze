@@ -91,4 +91,83 @@ endif ()
 
 add_subdirectory(sponge)
 
+# --- Shader-Slang compilation ---
+
+find_program(SLANGC_EXECUTABLE slangc
+    REQUIRED
+    HINTS
+        "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/tools/shader-slang"
+        "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-linux/tools/shader-slang"
+        "${CMAKE_SOURCE_DIR}/vcpkg_installed/arm64-osx/tools/shader-slang"
+)
+message(STATUS "Found slangc: ${SLANGC_EXECUTABLE}")
+
+set(SLANG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets/shaders/slang")
+set(SLANG_OUTPUT_DIR "${CMAKE_BINARY_DIR}/shaders/glsl")
+file(MAKE_DIRECTORY "${SLANG_OUTPUT_DIR}")
+
+# Usage: compile_slang_shader(<slang-file> <entry-point> <output-glsl-name>)
+# Appends the output path to SLANG_COMPILED_OUTPUTS (parent scope).
+function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
+    set(INPUT  "${SLANG_SOURCE_DIR}/${SLANG_FILE}")
+    set(OUTPUT "${SLANG_OUTPUT_DIR}/${OUTPUT_NAME}")
+    add_custom_command(
+        OUTPUT  "${OUTPUT}"
+        COMMAND "${SLANGC_EXECUTABLE}"
+                "${INPUT}"
+                -entry "${ENTRY_POINT}"
+                -target glsl
+                -profile glsl_330
+                -o "${OUTPUT}"
+        DEPENDS "${INPUT}"
+        COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"
+        VERBATIM
+    )
+    set(SLANG_COMPILED_OUTPUTS "${SLANG_COMPILED_OUTPUTS};${OUTPUT}" PARENT_SCOPE)
+endfunction()
+
+set(SLANG_COMPILED_OUTPUTS "")
+
+# screenquad (shared vertex for blur and fxaa passes)
+compile_slang_shader(screenquad.vert.slang     vertMain   blur.vert.glsl)
+compile_slang_shader(screenquad.vert.slang     vertMain   fxaa.vert.glsl)
+
+# PBR
+compile_slang_shader(pbr.vert.slang            vertMain   pbr.vert.glsl)
+compile_slang_shader(pbr.frag.slang            fragMain   pbr.frag.glsl)
+
+# Shadow map passes
+compile_slang_shader(shadowmap.vert.slang      vertMain   shadowmap.vert.glsl)
+compile_slang_shader(shadowmap_evsm.frag.slang fragMain   shadowmap_evsm.frag.glsl)
+compile_slang_shader(shadowmap.frag.slang      fragMain   shadowmap.frag.glsl)
+
+# Shadow blur (Dual Kawase, EVSM RG channels)
+compile_slang_shader(blur.frag.slang           fragMain   blur.frag.glsl)
+compile_slang_shader(blur_up.frag.slang        fragMain   blur_up.frag.glsl)
+
+# Bloom pipeline
+compile_slang_shader(bloom_extract.frag.slang  fragMain   bloom_extract.frag.glsl)
+compile_slang_shader(bloom_down.frag.slang     fragMain   bloom_down.frag.glsl)
+compile_slang_shader(bloom_up.frag.slang       fragMain   bloom_up.frag.glsl)
+compile_slang_shader(bloom_composite.frag.slang fragMain  bloom_composite.frag.glsl)
+
+# FXAA
+compile_slang_shader(fxaa.frag.slang           fragMain   fxaa.frag.glsl)
+
+# 2D / UI
+compile_slang_shader(quad.vert.slang           vertMain   quad.vert.glsl)
+compile_slang_shader(quad.frag.slang           fragMain   quad.frag.glsl)
+compile_slang_shader(sprite.vert.slang         vertMain   sprite.vert.glsl)
+compile_slang_shader(sprite.vert.slang         vertMain   text.vert.glsl)
+compile_slang_shader(sprite.frag.slang         fragMain   sprite.frag.glsl)
+compile_slang_shader(text.frag.slang           fragMain   text.frag.glsl)
+
+# Debug light cube
+compile_slang_shader(cube.vert.slang           vertMain   cube.vert.glsl)
+compile_slang_shader(cube.frag.slang           fragMain   cube.frag.glsl)
+
+add_custom_target(compile_shaders ALL
+    DEPENDS ${SLANG_COMPILED_OUTPUTS}
+)
+
 add_subdirectory(game)

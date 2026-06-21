@@ -88,6 +88,8 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
+add_dependencies(game compile_shaders)
+
 # strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)
 if (NOT MSVC)
     add_custom_command(TARGET game POST_BUILD COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}> $<$<CONFIG:Release>:$<TARGET_FILE:game>>)
@@ -174,6 +176,15 @@ if (APPLE)
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
 
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_BINARY_DIR}/shaders/glsl"
+                "$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources/shaders/glsl"
+            COMMENT "Copying compiled GLSL shaders to bundle content folder"
+            VERBATIM)
+
     install(TARGETS game BUNDLE DESTINATION .)
 
     set(APPS "$<TARGET_BUNDLE_DIR:game>")
@@ -191,6 +202,15 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
             $<TARGET_FILE_DIR:game>/assets
             COMMENT "Copying assets to target folder"
+            VERBATIM)
+
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_BINARY_DIR}/shaders/glsl"
+                "$<TARGET_FILE_DIR:game>/assets/shaders/glsl"
+            COMMENT "Copying compiled GLSL shaders to target folder"
             VERBATIM)
 
     install(TARGETS game RUNTIME DESTINATION .)
