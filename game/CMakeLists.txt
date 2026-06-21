@@ -88,7 +88,7 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
-include(cmake/CompileSlang.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/CompileSlang.cmake)
 
 add_dependencies(game compile_shaders)
 
