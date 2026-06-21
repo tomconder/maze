@@ -185,6 +185,14 @@ if (APPLE)
             COMMENT "Copying compiled GLSL shaders to bundle content folder"
             VERBATIM)
 
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rm -rf
+                "$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources/shaders/slang"
+            COMMENT "Removing Slang sources from bundle content folder"
+            VERBATIM)
+
     install(TARGETS game BUNDLE DESTINATION .)
 
     set(APPS "$<TARGET_BUNDLE_DIR:game>")
@@ -213,7 +221,16 @@ else ()
             COMMENT "Copying compiled GLSL shaders to target folder"
             VERBATIM)
 
+    add_custom_command(
+            TARGET game
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rm -rf
+                "$<TARGET_FILE_DIR:game>/assets/shaders/slang"
+            COMMENT "Removing Slang sources from target folder"
+            VERBATIM)
+
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
 endif ()
