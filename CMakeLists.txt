@@ -111,6 +111,7 @@ file(MAKE_DIRECTORY "${SLANG_OUTPUT_DIR}")
 function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
     set(INPUT  "${SLANG_SOURCE_DIR}/${SLANG_FILE}")
     set(OUTPUT "${SLANG_OUTPUT_DIR}/${OUTPUT_NAME}")
+    file(GLOB SLANG_INCLUDES "${SLANG_SOURCE_DIR}/include/*.slang")
     add_custom_command(
         OUTPUT  "${OUTPUT}"
         COMMAND "${SLANGC_EXECUTABLE}"
@@ -120,7 +121,7 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 -profile glsl_450
                 -matrix-layout-column-major
                 -o "${OUTPUT}"
-        DEPENDS "${INPUT}"
+        DEPENDS "${INPUT}" ${SLANG_INCLUDES}
         COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"
         VERBATIM
     )

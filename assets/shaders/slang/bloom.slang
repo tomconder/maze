@@ -1,4 +1,5 @@
 // bloom.slang — brightness extraction, Dual Kawase bloom pipeline, composite
+#include "include/kawase.slang"
 
 [[vk::binding(0)]] Sampler2D<float4> image;
 [[vk::binding(1)]] Sampler2D<float4> bloomTex;
@@ -19,37 +20,13 @@ float4 extractFragMain(FSInput input) : SV_Target
 [shader("fragment")]
 float4 downFragMain(FSInput input) : SV_Target
 {
-    float2 uv = input.texCoords;
-    uint   w, h, levels;
-    image.GetDimensions(0, w, h, levels);
-    float2 o = float2(0.5 / float(w), 0.5 / float(h)) * offset;
-
-    float3 color = image.Sample(uv).rgb * 4.0;
-    color += image.Sample(uv + float2(-o.x, -o.y)).rgb;
-    color += image.Sample(uv + float2( o.x, -o.y)).rgb;
-    color += image.Sample(uv + float2(-o.x,  o.y)).rgb;
-    color += image.Sample(uv + float2( o.x,  o.y)).rgb;
-    return float4(color / 8.0, 1.0);
+    return float4(kawaseDown(image, input.texCoords, offset).rgb, 1.0);
 }
 
 [shader("fragment")]
 float4 upFragMain(FSInput input) : SV_Target
 {
-    float2 uv = input.texCoords;
-    uint   w, h, levels;
-    image.GetDimensions(0, w, h, levels);
-    float2 o = float2(0.5 / float(w), 0.5 / float(h)) * offset;
-
-    float3 color = float3(0.0);
-    color += image.Sample(uv + float2(-o.x * 2.0,       0.0)).rgb;
-    color += image.Sample(uv + float2( o.x * 2.0,       0.0)).rgb;
-    color += image.Sample(uv + float2(0.0,        -o.y * 2.0)).rgb;
-    color += image.Sample(uv + float2(0.0,         o.y * 2.0)).rgb;
-    color += image.Sample(uv + float2(-o.x,  o.y)).rgb * 2.0;
-    color += image.Sample(uv + float2( o.x,  o.y)).rgb * 2.0;
-    color += image.Sample(uv + float2(-o.x, -o.y)).rgb * 2.0;
-    color += image.Sample(uv + float2( o.x, -o.y)).rgb * 2.0;
-    return float4(color / 12.0, 1.0);
+    return float4(kawaseUp(image, input.texCoords, offset).rgb, 1.0);
 }
 
 [shader("fragment")]
