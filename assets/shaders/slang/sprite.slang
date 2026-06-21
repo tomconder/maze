@@ -6,16 +6,16 @@ struct VSInput
     float4 vertex : POSITION; // xy=pos, zw=texcoord
 }
 
-struct Varyings
+struct VSOutput
 {
     float4 pos      : SV_Position;
     float2 texCoord : TEXCOORD0;
 }
 
 [shader("vertex")]
-Varyings vertMain(VSInput input)
+VSOutput vertMain(VSInput input)
 {
-    Varyings output;
+    VSOutput output;
     output.texCoord = input.vertex.zw;
     output.pos      = mul(spriteParams.projection, float4(input.vertex.xy, 0.0, 1.0));
     return output;
@@ -24,7 +24,7 @@ Varyings vertMain(VSInput input)
 [[vk::binding(0)]] Sampler2D<float4> image;
 
 [shader("fragment")]
-float4 fragMain(Varyings input) : SV_Target
+float4 fragMain(VSOutput input) : SV_Target
 {
     float4 color = image.Sample(input.texCoord);
     if (color.a == 0.0)
@@ -42,7 +42,7 @@ struct TextFSOutput
 }
 
 [shader("fragment")]
-TextFSOutput textFragMain(Varyings input)
+TextFSOutput textFragMain(VSOutput input)
 {
     TextFSOutput output;
     output.fragColor    = float4(spriteParams.textColor, 1.0);

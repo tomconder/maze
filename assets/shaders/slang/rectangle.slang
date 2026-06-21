@@ -6,23 +6,23 @@ struct VSInput
     float2 position : POSITION;
 }
 
-struct Varyings
+struct VSOutput
 {
     float4 pos          : SV_Position;
     float2 localPosition: TEXCOORD0;
 }
 
 [shader("vertex")]
-Varyings vertMain(VSInput input)
+VSOutput vertMain(VSInput input)
 {
-    Varyings output;
+    VSOutput output;
     output.pos           = mul(quadParams.projection, float4(input.position, 0.0, 1.0));
     output.localPosition = input.position;
     return output;
 }
 
 [shader("fragment")]
-float4 fragMain(Varyings input) : SV_Target
+float4 fragMain(VSOutput input) : SV_Target
 {
     float2 localPos  = (input.localPosition - quadParams.corners.xy) / (quadParams.corners.zw - quadParams.corners.xy);
     float2 quadSize  = quadParams.corners.zw - quadParams.corners.xy;

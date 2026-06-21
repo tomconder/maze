@@ -9,7 +9,7 @@ struct VSInput
     float3 normal   : NORMAL;
 }
 
-struct Varyings
+struct VSOutput
 {
     float4 pos              : SV_Position;
     float3 worldPosition    : TEXCOORD0;
@@ -19,9 +19,9 @@ struct Varyings
 }
 
 [shader("vertex")]
-Varyings vertMain(VSInput input)
+VSOutput vertMain(VSInput input)
 {
-    Varyings output;
+    VSOutput output;
     float4 worldPos4        = mul(params.model, float4(input.position, 1.0));
     output.pos              = mul(params.mvp,   float4(input.position, 1.0));
     output.worldPosition    = worldPos4.xyz;
@@ -36,7 +36,7 @@ Varyings vertMain(VSInput input)
 [[vk::binding(1)]] Sampler2D<float2> shadowMap;
 
 [shader("fragment")]
-float4 fragMain(Varyings input) : SV_Target
+float4 fragMain(VSOutput input) : SV_Target
 {
     float3 texColor = pow(texture_diffuse1.Sample(input.texCoords).rgb, float3(2.2));
     float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));

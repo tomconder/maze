@@ -7,15 +7,15 @@ struct VSInput
     float3 position : POSITION;
 }
 
-struct Varyings
+struct VSOutput
 {
     float4 pos : SV_Position;
 }
 
 [shader("vertex")]
-Varyings vertMain(VSInput input)
+VSOutput vertMain(VSInput input)
 {
-    Varyings output;
+    VSOutput output;
     output.pos = mul(lightSpaceMatrix, mul(model, float4(input.position, 1.0)));
     return output;
 }
@@ -28,7 +28,7 @@ void fragMain()
 
 // EVSM: store depth moments (depth, depth²) for variance shadow mapping.
 [shader("fragment")]
-float4 fragMainEVSM(Varyings input) : SV_Target
+float4 fragMainEVSM(VSOutput input) : SV_Target
 {
     float depth = input.pos.z;
     return float4(depth, depth * depth, 0.0, 1.0);
