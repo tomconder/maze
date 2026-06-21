@@ -143,14 +143,14 @@ compile_slang_shader(shadowmap.slang           fragMainEVSM shadowmap_evsm.frag.
 compile_slang_shader(shadowmap.slang           fragMain     shadowmap.frag.glsl)
 
 # Shadow blur (Dual Kawase, EVSM RG channels)
-compile_slang_shader(blur.frag.slang           fragMain   blur.frag.glsl)
-compile_slang_shader(blur_up.frag.slang        fragMain   blur_up.frag.glsl)
+compile_slang_shader(blur.slang                downFragMain      blur.frag.glsl)
+compile_slang_shader(blur.slang                upFragMain        blur_up.frag.glsl)
 
 # Bloom pipeline
-compile_slang_shader(bloom_extract.frag.slang  fragMain   bloom_extract.frag.glsl)
-compile_slang_shader(bloom_down.frag.slang     fragMain   bloom_down.frag.glsl)
-compile_slang_shader(bloom_up.frag.slang       fragMain   bloom_up.frag.glsl)
-compile_slang_shader(bloom_composite.frag.slang fragMain  bloom_composite.frag.glsl)
+compile_slang_shader(bloom.slang               extractFragMain   bloom_extract.frag.glsl)
+compile_slang_shader(bloom.slang               downFragMain      bloom_down.frag.glsl)
+compile_slang_shader(bloom.slang               upFragMain        bloom_up.frag.glsl)
+compile_slang_shader(bloom.slang               compositeFragMain bloom_composite.frag.glsl)
 
 # FXAA
 compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
