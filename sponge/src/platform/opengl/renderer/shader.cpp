@@ -5,9 +5,9 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <array>
 #include <cassert>
 #include <cstring>
-#include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -236,12 +236,13 @@ void Shader::initUBO() {
         glGetActiveUniformsiv(program, 1, reinterpret_cast<const GLuint*>(&i),
                               GL_UNIFORM_OFFSET, &offset);
 
-        char    rawName[256] = {};
-        GLsizei nameLen      = 0;
-        glGetActiveUniformName(program, static_cast<GLuint>(i), sizeof(rawName),
-                               &nameLen, rawName);
+        std::array<char, 256> rawName = {};
+        GLsizei               nameLen = 0;
+        glGetActiveUniformName(program, static_cast<GLuint>(i),
+                               static_cast<GLsizei>(rawName.size()), &nameLen,
+                               rawName.data());
 
-        std::string name(rawName, nameLen);
+        std::string name(rawName.data(), static_cast<size_t>(nameLen));
         // Strip Slang's _0 suffix from mangled names
         for (size_t pos = 0;
              (pos = name.find("_0.", pos)) != std::string::npos;) {
