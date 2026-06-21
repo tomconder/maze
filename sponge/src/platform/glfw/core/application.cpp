@@ -215,7 +215,6 @@ std::pair<float, float> Application::getMousePosition() const {
 void Application::setVerticalSync(const bool val) {
     vsync = val;
     glfwSwapInterval(vsync ? 1 : 0);
-    SPONGE_CORE_DEBUG(fmt::format("Set vsync to {}", vsync));
 }
 
 void Application::setResolution(const uint32_t width, const uint32_t height) {
