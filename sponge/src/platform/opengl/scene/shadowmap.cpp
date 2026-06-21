@@ -132,7 +132,7 @@ void ShadowMap::initialize() {
     // Dual Kawase downsample shader
     const auto blurDownShaderInfo = renderer::ShaderCreateInfo{
         .name               = std::string(blurDownShaderName),
-        .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/blur.frag.glsl",
     };
     blurDownShader = AssetManager::createShader(blurDownShaderInfo);
@@ -140,7 +140,7 @@ void ShadowMap::initialize() {
     // Dual Kawase upsample shader
     const auto blurUpShaderInfo = renderer::ShaderCreateInfo{
         .name               = std::string(blurUpShaderName),
-        .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/blur_up.frag.glsl",
     };
     blurUpShader = AssetManager::createShader(blurUpShaderInfo);

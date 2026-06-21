@@ -31,7 +31,7 @@ void Bloom::initialize() {
     auto makeShader = [](std::string_view name, const char* frag) {
         return AssetManager::createShader(renderer::ShaderCreateInfo{
             .name               = std::string(name),
-            .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+            .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
             .fragmentShaderPath = frag,
         });
     };

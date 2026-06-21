@@ -130,9 +130,8 @@ endfunction()
 
 set(SLANG_COMPILED_OUTPUTS "")
 
-# screenquad (shared vertex for blur and fxaa passes)
-compile_slang_shader(screenquad.slang          vertMain   blur.vert.glsl)
-compile_slang_shader(screenquad.slang          vertMain   fxaa.vert.glsl)
+# screenquad vertex (shared by blur, bloom, and fxaa passes)
+compile_slang_shader(fxaa.slang                vertMain   screenquad.vert.glsl)
 
 # PBR
 compile_slang_shader(pbr.slang                 vertMain   pbr.vert.glsl)
@@ -155,6 +154,7 @@ compile_slang_shader(bloom.slang               compositeFragMain bloom_composite
 
 # FXAA
 compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
+
 
 # 2D / UI
 compile_slang_shader(quad.slang                vertMain   quad.vert.glsl)

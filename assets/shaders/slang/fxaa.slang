@@ -1,5 +1,26 @@
-// fxaa.slang — FXAA 3.11 (quality preset 12) + bloom overlay
-// Based on Timothy Lottes / NVIDIA, adapted to Slang.
+// fxaa.slang — fullscreen quad vertex + FXAA 3.11 (quality preset 12) + bloom overlay
+// FXAA based on Timothy Lottes / NVIDIA, adapted to Slang.
+
+struct VSInput
+{
+    float2 position : POSITION;
+    float2 texCoord : TEXCOORD0;
+};
+
+struct VSOutput
+{
+    float4 pos       : SV_Position;
+    float2 texCoords : TEXCOORD0;
+};
+
+[shader("vertex")]
+VSOutput vertMain(VSInput input)
+{
+    VSOutput output;
+    output.pos       = float4(input.position, 0.0, 1.0);
+    output.texCoords = input.texCoord;
+    return output;
+}
 
 [[vk::binding(0)]] Sampler2D<float4> screenTexture;
 [[vk::binding(1)]] Sampler2D<float4> bloomTex;
