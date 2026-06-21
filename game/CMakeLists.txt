@@ -88,6 +88,8 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
+include(cmake/CompileSlang.cmake)
+
 add_dependencies(game compile_shaders)
 
 # strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)

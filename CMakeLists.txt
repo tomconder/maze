@@ -91,6 +91,4 @@ endif ()
 
 add_subdirectory(sponge)
 
-include(cmake/CompileSlang.cmake)
-
 add_subdirectory(game)
