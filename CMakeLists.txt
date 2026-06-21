@@ -120,7 +120,7 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 -target glsl
                 -profile glsl_450
                 -matrix-layout-column-major
-                "$<$<CONFIG:Release>:-no-line-directives>"
+                "$<$<CONFIG:Release>:-line-directive-mode>" "$<$<CONFIG:Release>:none>"
                 -o "${OUTPUT}"
         DEPENDS "${INPUT}" ${SLANG_INCLUDES}
         COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"
