@@ -26,17 +26,10 @@ void fragMain()
 {
 }
 
-struct FSOutput
-{
-    float4 color : SV_Target;
-}
-
 // EVSM: store depth moments (depth, depth²) for variance shadow mapping.
 [shader("fragment")]
-FSOutput fragMainEVSM(Varyings input)
+float4 fragMainEVSM(Varyings input) : SV_Target
 {
-    float depth  = input.pos.z;
-    FSOutput output;
-    output.color = float4(depth, depth * depth, 0.0, 1.0);
-    return output;
+    float depth = input.pos.z;
+    return float4(depth, depth * depth, 0.0, 1.0);
 }
