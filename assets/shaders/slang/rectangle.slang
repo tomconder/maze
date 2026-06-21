@@ -1,4 +1,4 @@
-// quad.slang — UI rounded-rect vertex + SDF fragment shader
+// rectangle.slang — UI rounded-rect vertex + SDF fragment shader
 #include "include/uniforms.slang"
 
 struct VSInput
