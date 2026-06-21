@@ -1,6 +1,11 @@
 site/
 /build/
 /venv/
+vcpkg_installed/
+
+# slang
+.slangbuild.log
+buildlog.txt
 
 .ai/
 .claude/
