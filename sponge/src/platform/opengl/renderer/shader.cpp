@@ -67,17 +67,16 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 }
 
 Shader::~Shader() {
-    if (uboBlock) {
-        glDeleteBuffers(1, &uboBlock->buffer);
+    for (const auto& block : uboBlocks) {
+        glDeleteBuffers(1, &block.buffer);
     }
     glDeleteProgram(program);
 }
 
 void Shader::bind() const {
     glUseProgram(program);
-    if (uboBlock) {
-        glBindBufferBase(GL_UNIFORM_BUFFER, uboBlock->binding,
-                         uboBlock->buffer);
+    for (const auto& block : uboBlocks) {
+        glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
     }
     isBound = true;
 }
@@ -205,22 +204,27 @@ void Shader::initUBO() {
         return;
     }
 
-    constexpr uint32_t kBindingPoint = 0;
-    glUniformBlockBinding(program, 0, kBindingPoint);
+    uboBlocks.resize(static_cast<size_t>(numBlocks));
+    for (int32_t b = 0; b < numBlocks; ++b) {
+        const auto blockIdx = static_cast<GLuint>(b);
+        glUniformBlockBinding(program, blockIdx, blockIdx);
 
-    int32_t blockSize = 0;
-    glGetActiveUniformBlockiv(program, 0, GL_UNIFORM_BLOCK_DATA_SIZE,
-                              &blockSize);
+        int32_t blockSize = 0;
+        glGetActiveUniformBlockiv(program, blockIdx, GL_UNIFORM_BLOCK_DATA_SIZE,
+                                  &blockSize);
 
-    UBOBlock block;
-    block.binding = kBindingPoint;
-    block.size    = blockSize;
+        UBOBlock& block = uboBlocks[static_cast<size_t>(b)];
+        block.binding   = static_cast<uint32_t>(b);
+        block.size      = blockSize;
 
-    glGenBuffers(1, &block.buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
-    glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, kBindingPoint, block.buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glGenBuffers(1, &block.buffer);
+        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
+        glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        block.staging.assign(static_cast<size_t>(blockSize), 0);
+    }
 
     int32_t numUniforms = 0;
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
@@ -230,7 +234,7 @@ void Shader::initUBO() {
         int32_t    blockIndex = -1;
         glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_BLOCK_INDEX,
                               &blockIndex);
-        if (blockIndex != 0) {
+        if (blockIndex < 0 || blockIndex >= numBlocks) {
             continue;
         }
 
@@ -239,7 +243,7 @@ void Shader::initUBO() {
 
         std::array<char, 256> rawName = {};
         GLsizei               nameLen = 0;
-        glGetActiveUniformName(program, static_cast<GLuint>(i),
+        glGetActiveUniformName(program, ui,
                                static_cast<GLsizei>(rawName.size()), &nameLen,
                                rawName.data());
 
@@ -266,41 +270,40 @@ void Shader::initUBO() {
             name.erase(0, dot + 1);
         }
 
-        block.offsets[name] = offset;
-        SPONGE_GL_DEBUG("UBO member: [{}] offset={}", name, offset);
+        uboBlocks[static_cast<size_t>(blockIndex)].offsets[name] = offset;
+        SPONGE_GL_DEBUG("UBO block[{}] member: [{}] offset={}", blockIndex,
+                        name, offset);
     }
-
-    uboStaging.assign(static_cast<size_t>(blockSize), 0);
-    uboDirty = false;
-    uboBlock = std::move(block);
 }
 
 void Shader::uploadUBO() const {
-    if (!uboBlock || !uboDirty) {
-        return;
+    for (const auto& block : uboBlocks) {
+        if (!block.dirty) {
+            continue;
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, block.size, block.staging.data());
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        block.dirty = false;
     }
-    glBindBuffer(GL_UNIFORM_BUFFER, uboBlock->buffer);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, uboBlock->size, uboStaging.data());
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    uboDirty = false;
 }
 
 bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
                          size_t /*typeSize*/) const {
-    if (!uboBlock) {
-        return false;
+    for (auto& block : uboBlocks) {
+        auto it = block.offsets.find(std::string(name));
+        if (it == block.offsets.end()) {
+            continue;
+        }
+        assert(static_cast<size_t>(it->second) + bytes <= block.staging.size());
+        std::memcpy(block.staging.data() + it->second, data, bytes);
+        block.dirty = true;
+        if (isBound) {
+            uploadUBO();
+        }
+        return true;
     }
-    auto it = uboBlock->offsets.find(std::string(name));
-    if (it == uboBlock->offsets.end()) {
-        return false;
-    }
-    assert(static_cast<size_t>(it->second) + bytes <= uboStaging.size());
-    std::memcpy(uboStaging.data() + it->second, data, bytes);
-    uboDirty = true;
-    if (isBound) {
-        uploadUBO();
-    }
-    return true;
+    return false;
 }
 
 GLint Shader::getUniformLocation(const std::string_view name) const {

@@ -4,6 +4,10 @@
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <fmt/format.h>
+
+#include <cstdlib>
+#include <string>
 #include <utility>
 
 namespace {
@@ -62,6 +66,31 @@ void Context::init(GLFWwindow* window) const {
     if (version == 0) {
         SPONGE_GL_ERROR("Failed to initialize OpenGL context");
         return;
+    }
+
+    {
+        constexpr float minGLSL    = 4.5F;
+        constexpr auto  minGLSLStr = "4.50";
+
+        const auto* glslStr = reinterpret_cast<const char*>(
+            glGetString(GL_SHADING_LANGUAGE_VERSION));
+        float glslVer = 0.F;
+        try {
+            if (glslStr) {
+                glslVer = std::stof(glslStr);
+            }
+        } catch (...) {
+        }
+        if (glslVer < minGLSL) {
+            const char* found = glslStr ? glslStr : "Unknown";
+            SPONGE_GL_CRITICAL("GLSL {} or later is required (found {})",
+                               minGLSLStr, found);
+            fmt::print(
+                stderr,
+                "Error: OpenGL GLSL {} or later is required (found {})\n",
+                minGLSLStr, found);
+            std::exit(EXIT_FAILURE);
+        }
     }
 
     SPONGE_PROFILE_GPU_CONTEXT;

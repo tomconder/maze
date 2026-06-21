@@ -65,11 +65,11 @@ private:
         uint32_t                               binding = 0;
         GLsizei                                size    = 0;
         std::unordered_map<std::string, GLint> offsets;
+        mutable std::vector<uint8_t>           staging;
+        mutable bool                           dirty = false;
     };
-    std::optional<UBOBlock>      uboBlock;
-    mutable std::vector<uint8_t> uboStaging;
-    mutable bool                 uboDirty = false;
-    mutable bool                 isBound  = false;
+    std::vector<UBOBlock> uboBlocks;
+    mutable bool          isBound = false;
 
     void initUBO();
     void uploadUBO() const;
