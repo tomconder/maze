@@ -53,5 +53,6 @@ struct SpriteParams
 {
     float4x4 projection;   // vertex
     float    alpha;
+    float3   textColor;    // text fragment only
 };
 [[vk::binding(4)]] ConstantBuffer<SpriteParams> spriteParams;
