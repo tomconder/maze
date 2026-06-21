@@ -25,11 +25,12 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 -target glsl
                 -profile glsl_450
                 -matrix-layout-column-major
-                "$<$<CONFIG:Release>:-line-directive-mode>" "$<$<CONFIG:Release>:none>"
+                "$<$<CONFIG:Release>:-line-directive-mode;none>"
                 -o "${OUTPUT}"
         DEPENDS "${INPUT}" ${SLANG_INCLUDES}
         COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"
         VERBATIM
+        COMMAND_EXPAND_LISTS
     )
     set(SLANG_COMPILED_OUTPUTS "${SLANG_COMPILED_OUTPUTS};${OUTPUT}" PARENT_SCOPE)
 endfunction()
