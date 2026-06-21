@@ -225,16 +225,16 @@ void Shader::initUBO() {
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
 
     for (int32_t i = 0; i < numUniforms; ++i) {
-        int32_t blockIndex = -1;
-        glGetActiveUniformsiv(program, 1, reinterpret_cast<const GLuint*>(&i),
-                              GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+        const GLuint ui         = static_cast<GLuint>(i);
+        int32_t      blockIndex = -1;
+        glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_BLOCK_INDEX,
+                              &blockIndex);
         if (blockIndex != 0) {
             continue;
         }
 
         int32_t offset = 0;
-        glGetActiveUniformsiv(program, 1, reinterpret_cast<const GLuint*>(&i),
-                              GL_UNIFORM_OFFSET, &offset);
+        glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_OFFSET, &offset);
 
         std::array<char, 256> rawName = {};
         GLsizei               nameLen = 0;
@@ -266,8 +266,7 @@ void Shader::uploadUBO() const {
         return;
     }
     glBindBuffer(GL_UNIFORM_BUFFER, uboBlock->buffer);
-    glBufferData(GL_UNIFORM_BUFFER, uboBlock->size, uboStaging.data(),
-                 GL_DYNAMIC_DRAW);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, uboBlock->size, uboStaging.data());
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     uboDirty = false;
 }
