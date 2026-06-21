@@ -1,4 +1,4 @@
-// sprite.slang — sprite and text vertex + fragment shader
+// sprite.slang — sprite and text vertex + fragment shaders
 #include "include/uniforms.slang"
 
 struct VSInput
@@ -33,4 +33,19 @@ float4 fragMain(Varyings input) : SV_Target
     }
     color.a *= spriteParams.alpha;
     return color;
+}
+
+struct TextFSOutput
+{
+    [[vk::location(0)]] [[vk::index(0)]] float4 fragColor    : SV_Target0;
+    [[vk::location(0)]] [[vk::index(1)]] float4 fragCoverage : SV_Target1;
+}
+
+[shader("fragment")]
+TextFSOutput textFragMain(Varyings input)
+{
+    TextFSOutput output;
+    output.fragColor    = float4(spriteParams.textColor, 1.0);
+    output.fragCoverage = float4(image.Sample(input.texCoord).rgb, 1.0);
+    return output;
 }

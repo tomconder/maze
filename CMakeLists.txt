@@ -158,10 +158,9 @@ compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
 # 2D / UI
 compile_slang_shader(quad.slang                vertMain   quad.vert.glsl)
 compile_slang_shader(quad.slang                fragMain   quad.frag.glsl)
-compile_slang_shader(sprite.slang              vertMain   sprite.vert.glsl)
-compile_slang_shader(sprite.slang              vertMain   text.vert.glsl)
-compile_slang_shader(sprite.slang              fragMain   sprite.frag.glsl)
-compile_slang_shader(text.frag.slang           fragMain   text.frag.glsl)
+compile_slang_shader(sprite.slang              vertMain      sprite.vert.glsl)
+compile_slang_shader(sprite.slang              fragMain      sprite.frag.glsl)
+compile_slang_shader(sprite.slang              textFragMain  text.frag.glsl)
 
 # Debug light cube
 compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)

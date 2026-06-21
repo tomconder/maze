@@ -24,7 +24,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/text.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/sprite.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/text.frag.glsl"
     };
     shader = AssetManager::createShader(shaderCreateInfo);
