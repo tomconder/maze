@@ -34,6 +34,7 @@ public:
     void setFloat3(std::string_view name, const glm::vec3& value) const;
     void setFloat4(std::string_view name, const glm::vec4& value) const;
     void setInteger(std::string_view name, int value) const;
+    void setMat3(std::string_view name, const glm::mat3& value) const;
     void setMat4(std::string_view name, const glm::mat4& value) const;
 
     uint32_t getId() const {

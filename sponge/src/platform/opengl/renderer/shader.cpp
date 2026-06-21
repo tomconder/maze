@@ -189,6 +189,15 @@ void Shader::setInteger(const std::string_view name, const int value) const {
     }
 }
 
+void Shader::setMat3(const std::string_view name,
+                     const glm::mat3&       value) const {
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE,
+                           value_ptr(value));
+    }
+}
+
 void Shader::setMat4(const std::string_view name,
                      const glm::mat4&       value) const {
     if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),

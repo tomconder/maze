@@ -21,7 +21,8 @@
 struct PbrParams
 {
     float4x4         mvp;                // vertex
-    float4x4         model;             // vertex
+    float4x4         model;              // vertex
+    float3x3         normalMatrix;       // vertex; precomputed transpose(inverse(model)) on CPU
     float4x4         lightSpaceMatrix;  // vertex
     float            metallic;
     float            roughness;

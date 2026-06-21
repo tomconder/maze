@@ -2,19 +2,6 @@
 #include "include/uniforms.slang"
 #include "include/shadows.slang"
 
-// Slang does not expose inverse() for matrices; compute 3x3 inverse analytically.
-float3x3 inverse3x3(float3x3 m)
-{
-    float3 c0 = float3(m[0][0], m[1][0], m[2][0]);
-    float3 c1 = float3(m[0][1], m[1][1], m[2][1]);
-    float3 c2 = float3(m[0][2], m[1][2], m[2][2]);
-    float3 row0 = cross(c1, c2);
-    float3 row1 = cross(c2, c0);
-    float3 row2 = cross(c0, c1);
-    float det = dot(c0, row0);
-    return float3x3(row0 / det, row1 / det, row2 / det);
-}
-
 struct VSInput
 {
     float3 position : POSITION;
@@ -38,8 +25,7 @@ Varyings vertMain(VSInput input)
     float4 worldPos4        = mul(params.model, float4(input.position, 1.0));
     output.pos              = mul(params.mvp,   float4(input.position, 1.0));
     output.worldPosition    = worldPos4.xyz;
-    float3x3 normalMatrix   = transpose(inverse3x3((float3x3)params.model));
-    output.worldNormal      = mul(normalMatrix, input.normal);
+    output.worldNormal      = mul(params.normalMatrix, input.normal);
     output.texCoords        = input.texCoord;
     output.fragPosLightSpace= mul(params.lightSpaceMatrix, worldPos4);
     return output;
