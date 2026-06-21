@@ -171,26 +171,13 @@ if (APPLE)
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
-            $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+            COMMAND ${CMAKE_COMMAND}
+                -D DST_DIR=$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+                -D EXCLUDE_SUBDIR=slang
+                -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
+                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -P "${CMAKE_SOURCE_DIR}/cmake/copy_assets.cmake"
             COMMENT "Copying assets to bundle content folder"
-            VERBATIM)
-
-    add_custom_command(
-            TARGET game
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_BINARY_DIR}/shaders/glsl"
-                "$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources/shaders/glsl"
-            COMMENT "Copying compiled GLSL shaders to bundle content folder"
-            VERBATIM)
-
-    add_custom_command(
-            TARGET game
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rm -rf
-                "$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources/shaders/slang"
-            COMMENT "Removing Slang sources from bundle content folder"
             VERBATIM)
 
     install(TARGETS game BUNDLE DESTINATION .)
@@ -207,26 +194,13 @@ else ()
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
-            $<TARGET_FILE_DIR:game>/assets
+            COMMAND ${CMAKE_COMMAND}
+                -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
+                -D EXCLUDE_SUBDIR=shaders
+                -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
+                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -P "${CMAKE_SOURCE_DIR}/cmake/copy_assets.cmake"
             COMMENT "Copying assets to target folder"
-            VERBATIM)
-
-    add_custom_command(
-            TARGET game
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_BINARY_DIR}/shaders/glsl"
-                "$<TARGET_FILE_DIR:game>/assets/shaders/glsl"
-            COMMENT "Copying compiled GLSL shaders to target folder"
-            VERBATIM)
-
-    add_custom_command(
-            TARGET game
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rm -rf
-                "$<TARGET_FILE_DIR:game>/assets/shaders/slang"
-            COMMENT "Removing Slang sources from target folder"
             VERBATIM)
 
     install(TARGETS game RUNTIME DESTINATION .)
