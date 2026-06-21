@@ -1,4 +1,4 @@
-// fxaa.frag.slang — FXAA 3.11 (quality preset 12) + bloom overlay
+// fxaa.slang — FXAA 3.11 (quality preset 12) + bloom overlay
 // Based on Timothy Lottes / NVIDIA, adapted to Slang.
 
 [[vk::binding(0)]] Sampler2D<float4> screenTexture;

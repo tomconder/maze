@@ -38,8 +38,6 @@ Varyings vertMain(VSInput input)
     float4 worldPos4        = mul(params.model, float4(input.position, 1.0));
     output.pos              = mul(params.mvp,   float4(input.position, 1.0));
     output.worldPosition    = worldPos4.xyz;
-    // Normal matrix = transpose(inverse(model)) — computed on CPU ideally,
-    // but reproduced here to match original shader exactly.
     float3x3 normalMatrix   = transpose(inverse3x3((float3x3)params.model));
     output.worldNormal      = mul(normalMatrix, input.normal);
     output.texCoords        = input.texCoord;
@@ -47,8 +45,7 @@ Varyings vertMain(VSInput input)
     return output;
 }
 
-// Combined samplers — Slang's Sampler2D maps to GLSL `sampler2D`; explicit
-// binding pins the texture unit so the C++ side binds to the matching unit.
+// Explicit binding pins the texture unit the C++ side binds to.
 [[vk::binding(0)]] Sampler2D<float4> texture_diffuse1;
 [[vk::binding(1)]] Sampler2D<float2> shadowMap;
 
@@ -63,7 +60,7 @@ float4 fragMain(Varyings input) : SV_Target
     float3 V  = normalize(params.viewPos - input.worldPosition);
     float3 Lo = float3(0.0);
 
-    // Directional light — evaluatePBR<DirectionalLight> specialized at compile time
+    // Directional light
     float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, params.metallic, params.roughness);
     float  shadow     = 0.0;
     if (params.directionalLight.castShadow)
@@ -72,7 +69,7 @@ float4 fragMain(Varyings input) : SV_Target
     }
     Lo += dirContrib * (1.0 - shadow) * float(params.directionalLight.enabled);
 
-    // Point lights — evaluatePBR<PointLight> specialized at compile time
+    // Point lights
     for (int i = 0; i < params.numLights; i++)
     {
         Lo += evaluatePBR(params.pointLights[i], input.worldPosition, albedo, N, V, params.metallic, params.roughness);

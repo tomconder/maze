@@ -1,4 +1,4 @@
-// screenquad.vert.slang — fullscreen quad passthrough
+// screenquad.slang — fullscreen quad passthrough
 
 struct VSInput
 {
