@@ -28,7 +28,7 @@ function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
                 "$<$<CONFIG:Release>:-line-directive-mode;none>"
                 -o "${OUTPUT}"
         DEPENDS "${INPUT}" ${SLANG_INCLUDES}
-        COMMENT "slangc: ${SLANG_FILE} [${ENTRY_POINT}] -> ${OUTPUT_NAME}"
+        COMMENT "Compiling Slang file ${SLANG_FILE} [${ENTRY_POINT}] to target ${OUTPUT_NAME}"
         VERBATIM
         COMMAND_EXPAND_LISTS
     )
@@ -41,37 +41,37 @@ set(SLANG_COMPILED_OUTPUTS "")
 compile_slang_shader(fxaa.slang                vertMain   screenquad.vert.glsl)
 
 # PBR
-compile_slang_shader(pbr.slang                 vertMain   pbr.vert.glsl)
 compile_slang_shader(pbr.slang                 fragMain   pbr.frag.glsl)
+compile_slang_shader(pbr.slang                 vertMain   pbr.vert.glsl)
 
 # Shadow map passes
-compile_slang_shader(shadowmap.slang           vertMain     shadowmap.vert.glsl)
-compile_slang_shader(shadowmap.slang           fragMainEVSM shadowmap_evsm.frag.glsl)
 compile_slang_shader(shadowmap.slang           fragMain     shadowmap.frag.glsl)
+compile_slang_shader(shadowmap.slang           fragMainEVSM shadowmap_evsm.frag.glsl)
+compile_slang_shader(shadowmap.slang           vertMain     shadowmap.vert.glsl)
 
 # Shadow blur (Dual Kawase, EVSM RG channels)
 compile_slang_shader(blur.slang                downFragMain      blur.frag.glsl)
 compile_slang_shader(blur.slang                upFragMain        blur_up.frag.glsl)
 
 # Bloom pipeline
-compile_slang_shader(bloom.slang               extractFragMain   bloom_extract.frag.glsl)
-compile_slang_shader(bloom.slang               downFragMain      bloom_down.frag.glsl)
-compile_slang_shader(bloom.slang               upFragMain        bloom_up.frag.glsl)
 compile_slang_shader(bloom.slang               compositeFragMain bloom_composite.frag.glsl)
+compile_slang_shader(bloom.slang               downFragMain      bloom_down.frag.glsl)
+compile_slang_shader(bloom.slang               extractFragMain   bloom_extract.frag.glsl)
+compile_slang_shader(bloom.slang               upFragMain        bloom_up.frag.glsl)
 
 # FXAA
 compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
 
 # 2D / UI
-compile_slang_shader(rectangle.slang           vertMain      quad.vert.glsl)
 compile_slang_shader(rectangle.slang           fragMain      quad.frag.glsl)
-compile_slang_shader(sprite.slang              vertMain      sprite.vert.glsl)
+compile_slang_shader(rectangle.slang           vertMain      quad.vert.glsl)
 compile_slang_shader(sprite.slang              fragMain      sprite.frag.glsl)
 compile_slang_shader(sprite.slang              textFragMain  text.frag.glsl)
+compile_slang_shader(sprite.slang              vertMain      sprite.vert.glsl)
 
-# Debug light cube
-compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)
+# Light cube
 compile_slang_shader(cube.slang                fragMain   cube.frag.glsl)
+compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)
 
 add_custom_target(compile_shaders ALL
     DEPENDS ${SLANG_COMPILED_OUTPUTS}

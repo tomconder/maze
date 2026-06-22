@@ -198,7 +198,7 @@ else ()
             POST_BUILD
             COMMAND ${CMAKE_COMMAND}
                 -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
-                -D EXCLUDE_SUBDIR=shaders
+                -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
