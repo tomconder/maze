@@ -1,5 +1,6 @@
 #pragma once
-#include "common.slang"
+
+static const float M_PI = 3.14159265359;
 
 // Attenuation coefficients [constant, linear, quadratic] per distance range.
 // See https://learnopengl.com/Lighting/Light-casters
