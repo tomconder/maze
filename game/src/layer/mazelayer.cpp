@@ -555,7 +555,6 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shader->setInteger("shadowMap", 1);
         shadowMap->activateAndBindShadowTexture(1);
     }
 
@@ -564,6 +563,9 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
         shader->setMat4("model", modelMatrix);
+        const auto normalMatrix =
+            glm::mat4(glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
+        shader->setMat4("normalMatrix", normalMatrix);
         shader->setFloat3("emissive", frame.objectEmissives[i]);
 
         frame.objectModels[i]->render(shader);

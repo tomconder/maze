@@ -88,6 +88,10 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
+include(${CMAKE_SOURCE_DIR}/cmake/CompileSlang.cmake)
+
+add_dependencies(game compile_shaders)
+
 # strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)
 if (NOT MSVC)
     add_custom_command(TARGET game POST_BUILD COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}> $<$<CONFIG:Release>:$<TARGET_FILE:game>>)
@@ -169,8 +173,12 @@ if (APPLE)
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
-            $<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+            COMMAND ${CMAKE_COMMAND}
+                -D DST_DIR=$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
+                -D EXCLUDE_SUBDIR=slang
+                -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
+                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
 
@@ -188,12 +196,17 @@ else ()
     add_custom_command(
             TARGET game
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets
-            $<TARGET_FILE_DIR:game>/assets
+            COMMAND ${CMAKE_COMMAND}
+                -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
+                -D EXCLUDE_SUBDIR=shaders
+                -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
+                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
 endif ()

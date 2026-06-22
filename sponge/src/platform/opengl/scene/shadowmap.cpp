@@ -132,7 +132,7 @@ void ShadowMap::initialize() {
     // Dual Kawase downsample shader
     const auto blurDownShaderInfo = renderer::ShaderCreateInfo{
         .name               = std::string(blurDownShaderName),
-        .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/blur.frag.glsl",
     };
     blurDownShader = AssetManager::createShader(blurDownShaderInfo);
@@ -140,7 +140,7 @@ void ShadowMap::initialize() {
     // Dual Kawase upsample shader
     const auto blurUpShaderInfo = renderer::ShaderCreateInfo{
         .name               = std::string(blurUpShaderName),
-        .vertexShaderPath   = "/shaders/glsl/blur.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/blur_up.frag.glsl",
     };
     blurUpShader = AssetManager::createShader(blurUpShaderInfo);
@@ -153,7 +153,6 @@ void ShadowMap::applyBlur() const {
 
     // Downsample pass: read momentTexture → write blurTexture
     blurDownShader->bind();
-    blurDownShader->setInteger("image", 0);
     blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
     glBindTexture(GL_TEXTURE_2D, momentTexture);
@@ -162,7 +161,6 @@ void ShadowMap::applyBlur() const {
 
     // Upsample pass: read blurTexture → write momentTexture
     blurUpShader->bind();
-    blurUpShader->setInteger("image", 0);
     blurUpShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
     glBindTexture(GL_TEXTURE_2D, blurTexture);

@@ -9,7 +9,6 @@
 #include <string>
 
 namespace {
-inline const std::string          vertex  = "vertex";
 constexpr std::array<uint32_t, 6> indices = {
     0, 1, 2,  //
     0, 2, 3   //
@@ -43,15 +42,10 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
                                                   sizeof(indices));
     ebo->bind();
 
-    const auto program = shader->getId();
-
-    if (const auto location = glGetAttribLocation(program, vertex.c_str());
-        location != -1) {
-        const auto position = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(position);
-        glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
-                              4 * sizeof(float), nullptr);
-    }
+    constexpr uint32_t position = 0;
+    glEnableVertexAttribArray(position);
+    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                          nullptr);
 
     vbo->unbind();
     vao->unbind();

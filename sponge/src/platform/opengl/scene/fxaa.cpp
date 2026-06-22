@@ -34,7 +34,7 @@ FXAA::~FXAA() {
 void FXAA::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/fxaa.vert.glsl",
+        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/fxaa.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
@@ -47,24 +47,14 @@ void FXAA::initialize() {
                                                    sizeof(quadVertices));
     vbo->bind();
 
-    const auto program = shader->getId();
-
-    if (const auto loc = glGetAttribLocation(program, "position"); loc != -1) {
-        const auto pos = static_cast<uint32_t>(loc);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, quadStride,
-                              reinterpret_cast<const void*>(0));
-    }
-
-    if (const auto loc = glGetAttribLocation(program, "texCoord"); loc != -1) {
-        const auto tc = static_cast<uint32_t>(loc);
-        glEnableVertexAttribArray(tc);
-        glVertexAttribPointer(tc, 2, GL_FLOAT, GL_FALSE, quadStride,
-                              reinterpret_cast<const void*>(2 * sizeof(float)));
-    }
-
-    shader->setInteger("screenTexture", 0);
-    shader->setInteger("bloomTex", 1);
+    constexpr uint32_t kPositionLoc = 0;
+    constexpr uint32_t kTexCoordLoc = 1;
+    glEnableVertexAttribArray(kPositionLoc);
+    glVertexAttribPointer(kPositionLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
+                          reinterpret_cast<const void*>(0));
+    glEnableVertexAttribArray(kTexCoordLoc);
+    glVertexAttribPointer(kTexCoordLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
+                          reinterpret_cast<const void*>(2 * sizeof(float)));
 
     shader->unbind();
     vao->unbind();

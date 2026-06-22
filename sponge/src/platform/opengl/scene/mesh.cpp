@@ -9,9 +9,10 @@
 #include <vector>
 
 namespace {
-inline constexpr std::string_view normal   = "normal";
-inline constexpr std::string_view position = "position";
-inline constexpr std::string_view texCoord = "texCoord";
+// Slang-generated layout locations for pbr.vert.slang
+constexpr uint32_t kPositionLoc = 0;
+constexpr uint32_t kTexCoordLoc = 1;
+constexpr uint32_t kNormalLoc   = 2;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -48,34 +49,20 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         this->vertices.data(), numVertices * sizeof(Vertex));
     vbo->bind();
 
-    const auto program = shader->getId();
+    glEnableVertexAttribArray(kPositionLoc);
+    glVertexAttribPointer(kPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<const void*>(
+                              offsetof(sponge::scene::Vertex, position)));
 
-    auto location = glGetAttribLocation(program, position.data());
-    if (location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<const void*>(
-                                  offsetof(sponge::scene::Vertex, position)));
-    }
+    glEnableVertexAttribArray(kTexCoordLoc);
+    glVertexAttribPointer(kTexCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<const void*>(
+                              offsetof(sponge::scene::Vertex, texCoords)));
 
-    location = glGetAttribLocation(program, texCoord.data());
-    if (location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<const void*>(
-                                  offsetof(sponge::scene::Vertex, texCoords)));
-    }
-
-    location = glGetAttribLocation(program, normal.data());
-    if (location != -1) {
-        const auto pos = static_cast<uint32_t>(location);
-        glEnableVertexAttribArray(pos);
-        glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                              reinterpret_cast<const void*>(
-                                  offsetof(sponge::scene::Vertex, normal)));
-    }
+    glEnableVertexAttribArray(kNormalLoc);
+    glVertexAttribPointer(
+        kNormalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        reinterpret_cast<const void*>(offsetof(sponge::scene::Vertex, normal)));
 
     ebo = std::make_unique<renderer::IndexBuffer>(
         this->indices.data(), numIndices * sizeof(uint32_t));
@@ -92,7 +79,6 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
     if (shader->getId() == meshProgramId) {
         if (!textures.empty()) {
-            shader->setInteger("texture_diffuse1", 0);
             shader->setBoolean("hasNoTexture", false);
             textures.at(0)->activateAndBind(0);
         } else {

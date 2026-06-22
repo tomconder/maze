@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace sponge::platform::opengl::renderer {
 struct ShaderCreateInfo {
@@ -57,5 +58,22 @@ private:
     std::string shaderName;
 
     GLint getUniformLocation(std::string_view name) const;
+
+    // UBO support for Slang-generated shaders
+    struct UBOBlock {
+        uint32_t                               buffer  = 0;
+        uint32_t                               binding = 0;
+        GLsizei                                size    = 0;
+        std::unordered_map<std::string, GLint> offsets;
+        mutable std::vector<uint8_t>           staging;
+        mutable bool                           dirty = false;
+    };
+    std::vector<UBOBlock> uboBlocks;
+    mutable bool          isBound = false;
+
+    void initUBO();
+    void uploadUBO() const;
+    bool trySetInUBO(std::string_view name, const void* data, size_t bytes,
+                     size_t typeSize) const;
 };
 }  // namespace sponge::platform::opengl::renderer

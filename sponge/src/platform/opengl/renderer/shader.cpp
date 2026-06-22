@@ -5,8 +5,9 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <array>
 #include <cassert>
-#include <filesystem>
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -50,6 +51,8 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
         program = linkProgram(vs, fs);
     }
 
+    initUBO();
+
     glDetachShader(program, vs);
     glDetachShader(program, fs);
     if (!createInfo.geometryShaderPath.empty()) {
@@ -64,14 +67,23 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 }
 
 Shader::~Shader() {
+    for (const auto& block : uboBlocks) {
+        glDeleteBuffers(1, &block.buffer);
+    }
     glDeleteProgram(program);
 }
 
 void Shader::bind() const {
     glUseProgram(program);
+    for (const auto& block : uboBlocks) {
+        glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
+    }
+    isBound = true;
+    uploadUBO();
 }
 
 void Shader::unbind() const {
+    isBound = false;
     glUseProgram(0);
 }
 
@@ -134,35 +146,165 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
 }
 
 void Shader::setBoolean(const std::string_view name, const bool value) const {
-    glUniform1ui(getUniformLocation(name), value ? 1 : 0);
+    uint32_t v = value ? 1u : 0u;
+    if (!trySetInUBO(name, &v, sizeof(v), sizeof(v))) {
+        glUniform1ui(getUniformLocation(name), v);
+    }
 }
 
 void Shader::setFloat(const std::string_view name, const float value) const {
-    glUniform1f(getUniformLocation(name), value);
+    if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
+        glUniform1f(getUniformLocation(name), value);
+    }
 }
 
 void Shader::setFloat2(const std::string_view name,
                        const glm::vec2&       value) const {
-    glUniform2f(getUniformLocation(name), value.x, value.y);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniform2f(getUniformLocation(name), value.x, value.y);
+    }
 }
 
 void Shader::setFloat3(const std::string_view name,
                        const glm::vec3&       value) const {
-    glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(float) * 3,
+                     sizeof(float) * 3)) {
+        glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+    }
 }
 
 void Shader::setFloat4(const std::string_view name,
                        const glm::vec4&       value) const {
-    glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.a);
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniform4f(getUniformLocation(name), value.x, value.y, value.z,
+                    value.a);
+    }
 }
 
 void Shader::setInteger(const std::string_view name, const int value) const {
-    glUniform1i(getUniformLocation(name), value);
+    if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
+        glUniform1i(getUniformLocation(name), value);
+    }
 }
 
 void Shader::setMat4(const std::string_view name,
                      const glm::mat4&       value) const {
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value_ptr(value));
+    if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
+                     sizeof(value))) {
+        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
+                           value_ptr(value));
+    }
+}
+
+void Shader::initUBO() {
+    int32_t numBlocks = 0;
+    glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+    if (numBlocks == 0) {
+        return;
+    }
+
+    uboBlocks.resize(static_cast<size_t>(numBlocks));
+    for (int32_t b = 0; b < numBlocks; ++b) {
+        const auto blockIdx = static_cast<GLuint>(b);
+        glUniformBlockBinding(program, blockIdx, blockIdx);
+
+        int32_t blockSize = 0;
+        glGetActiveUniformBlockiv(program, blockIdx, GL_UNIFORM_BLOCK_DATA_SIZE,
+                                  &blockSize);
+
+        UBOBlock& block = uboBlocks[static_cast<size_t>(b)];
+        block.binding   = static_cast<uint32_t>(b);
+        block.size      = blockSize;
+
+        glGenBuffers(1, &block.buffer);
+        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
+        glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        block.staging.assign(static_cast<size_t>(blockSize), 0);
+    }
+
+    int32_t numUniforms = 0;
+    glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &numUniforms);
+
+    for (int32_t i = 0; i < numUniforms; ++i) {
+        const auto ui         = static_cast<GLuint>(i);
+        int32_t    blockIndex = -1;
+        glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_BLOCK_INDEX,
+                              &blockIndex);
+        if (blockIndex < 0 || blockIndex >= numBlocks) {
+            continue;
+        }
+
+        int32_t offset = 0;
+        glGetActiveUniformsiv(program, 1, &ui, GL_UNIFORM_OFFSET, &offset);
+
+        std::array<char, 256> rawName = {};
+        GLsizei               nameLen = 0;
+        glGetActiveUniformName(program, ui,
+                               static_cast<GLsizei>(rawName.size()), &nameLen,
+                               rawName.data());
+
+        std::string name(rawName.data(), static_cast<size_t>(nameLen));
+        // Strip Slang's _N disambiguation suffixes from mangled names
+        // e.g. "directionalLight_0.color_0"  -> "directionalLight.color"
+        //      "pointLights_0[0].color_1"    -> "pointLights[0].color"
+        for (size_t pos = 0; pos + 2 < name.size();) {
+            if (name[pos] == '_' && std::isdigit(name[pos + 1]) &&
+                (name[pos + 2] == '.' || name[pos + 2] == '[')) {
+                name.erase(pos, 2);
+            } else {
+                ++pos;
+            }
+        }
+        if (name.size() > 2 && name[name.size() - 2] == '_' &&
+            std::isdigit(name[name.size() - 1])) {
+            name.erase(name.size() - 2);
+        }
+        // Strip the block instance-name prefix that OpenGL prepends when the
+        // interface block has an instance name (e.g. "params.mvp" -> "mvp",
+        // "params.directionalLight.color" -> "directionalLight.color").
+        if (const auto dot = name.find('.'); dot != std::string::npos) {
+            name.erase(0, dot + 1);
+        }
+
+        uboBlocks[static_cast<size_t>(blockIndex)].offsets[name] = offset;
+        SPONGE_GL_DEBUG("UBO block[{}] member: [{}] offset={}", blockIndex,
+                        name, offset);
+    }
+}
+
+void Shader::uploadUBO() const {
+    for (const auto& block : uboBlocks) {
+        if (!block.dirty) {
+            continue;
+        }
+        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, block.size, block.staging.data());
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        block.dirty = false;
+    }
+}
+
+bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
+                         size_t /*typeSize*/) const {
+    for (auto& block : uboBlocks) {
+        auto it = block.offsets.find(std::string(name));
+        if (it == block.offsets.end()) {
+            continue;
+        }
+        assert(static_cast<size_t>(it->second) + bytes <= block.staging.size());
+        std::memcpy(block.staging.data() + it->second, data, bytes);
+        block.dirty = true;
+        if (isBound) {
+            uploadUBO();
+        }
+        return true;
+    }
+    return false;
 }
 
 GLint Shader::getUniformLocation(const std::string_view name) const {
