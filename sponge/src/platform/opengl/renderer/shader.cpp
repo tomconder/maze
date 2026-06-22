@@ -79,6 +79,7 @@ void Shader::bind() const {
         glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
     }
     isBound = true;
+    uploadUBO();
 }
 
 void Shader::unbind() const {
@@ -263,9 +264,9 @@ void Shader::initUBO() {
             std::isdigit(name[name.size() - 1])) {
             name.erase(name.size() - 2);
         }
-        // Strip Slang's synthesized block-name prefix (e.g.
-        // "block_GlobalParams.") so members are keyed by the name the engine
-        // sets them with ("mvp").
+        // Strip the block instance-name prefix that OpenGL prepends when the
+        // interface block has an instance name (e.g. "params.mvp" -> "mvp",
+        // "params.directionalLight.color" -> "directionalLight.color").
         if (const auto dot = name.find('.'); dot != std::string::npos) {
             name.erase(0, dot + 1);
         }
