@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <random>
 #include <string>
 
 namespace {
@@ -25,16 +26,10 @@ constexpr auto cubeScale = glm::vec3(.1F);
 
 constexpr std::string_view cameraName = "maze";
 
-game::scene::DirectionalLight          directionalLight;
-std::array<game::scene::PointLight, 6> pointLights;
+constexpr int32_t maxPointLights = 500;
 
-struct LightUniforms {
-    std::string position;
-    std::string color;
-    std::string attenuationIndex;
-};
-
-std::array<LightUniforms, 6> lightUniformNames;
+game::scene::DirectionalLight                       directionalLight;
+std::array<game::scene::PointLight, maxPointLights> pointLights;
 
 using game::layer::GameObject;
 
@@ -86,20 +81,13 @@ using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::Bloom;
+using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::ShadowMap;
 
-MazeLayer::MazeLayer() : Layer("maze") {
-    for (int32_t i = 0; i < 6; i++) {
-        const std::string base  = "pointLights[" + std::to_string(i) + "].";
-        auto&             names = lightUniformNames.at(i);
-        names.position          = base + "position";
-        names.color             = base + "color";
-        names.attenuationIndex  = base + "attenuationIndex";
-    }
-}
+MazeLayer::MazeLayer() : Layer("maze") {}
 
 void MazeLayer::onAttach() {
     for (auto& gameObject : gameObjects) {
@@ -164,12 +152,40 @@ void MazeLayer::onAttach() {
     queueResize(Maze::get().getWindow()->getWidth(),
                 Maze::get().getWindow()->getHeight());
 
+    const auto w = static_cast<int>(Maze::get().getWindow()->getWidth());
+    const auto h = static_cast<int>(Maze::get().getWindow()->getHeight());
+    screenWidth  = w;
+    screenHeight = h;
+    clusteredLights =
+        std::make_unique<ClusteredLights>(camera->getNear(), camera->getFar());
+
+    depthPrepassShader = AssetManager::createShader({
+        .name               = "depthprepass",
+        .vertexShaderPath   = "/shaders/glsl/depthprepass.vert.glsl",
+        .fragmentShaderPath = "/shaders/glsl/depthprepass.frag.glsl",
+        .geometryShaderPath = "",
+    });
+    createDepthPrepassFbo(w, h);
+
+    shader->bind();
+    shader->setFloat("nearPlane", camera->getNear());
+    shader->setFloat("farPlane", camera->getFar());
+    shader->setFloat2("screenSize",
+                      glm::vec2(static_cast<float>(w), static_cast<float>(h)));
+    shader->unbind();
+
     setNumLights(numLights);
-    updateShaderLights();
 }
 
 void MazeLayer::onDetach() {
-    // nothing
+    if (depthPrepassTexture != 0) {
+        glDeleteTextures(1, &depthPrepassTexture);
+        depthPrepassTexture = 0;
+    }
+    if (depthPrepassFbo != 0) {
+        glDeleteFramebuffers(1, &depthPrepassFbo);
+        depthPrepassFbo = 0;
+    }
 }
 
 void MazeLayer::onEvent(Event& event) {
@@ -252,8 +268,14 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     auto& frame = renderFrames[slotIndex];
 
-    frame.cameraMVP = camera->getMVP();
-    frame.cameraPos = camera->getPosition();
+    frame.cameraMVP        = camera->getMVP();
+    frame.cameraView       = camera->getViewMatrix();
+    frame.cameraProjection = camera->getProjectionMatrix();
+    frame.cameraPos        = camera->getPosition();
+    frame.nearPlane        = camera->getNear();
+    frame.farPlane         = camera->getFar();
+    frame.screenWidth      = screenWidth;
+    frame.screenHeight     = screenHeight;
 
     frame.shadowEnabled    = directionalLight.enabled;
     frame.shadowCastShadow = directionalLight.castShadow;
@@ -308,6 +330,15 @@ void MazeLayer::onRender() {
         if (bloom) {
             bloom->resize(w, h);
         }
+        screenWidth  = static_cast<int32_t>(w);
+        screenHeight = static_cast<int32_t>(h);
+        createDepthPrepassFbo(static_cast<int>(w), static_cast<int>(h));
+
+        const auto shader = Mesh::getShader();
+        shader->bind();
+        shader->setFloat2("screenSize", glm::vec2(static_cast<float>(w),
+                                                  static_cast<float>(h)));
+        shader->unbind();
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -315,17 +346,51 @@ void MazeLayer::onRender() {
     const auto& frame =
         renderFrames[renderReadIndex.load(std::memory_order_acquire)];
 
+    // Phase 1: shadow map
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         renderSceneToDepthMap(frame);
     }
 
+    // Phase 2: depth prepass
+    renderDepthPrepass(frame);
+
+    // Phase 3: light culling
+    if (clusteredLights && frame.numLights > 0) {
+        clusteredLights->update(
+            frame.lightPositions.data(), frame.lightColors.data(),
+            frame.lightAttenuationIndices.data(), frame.numLights,
+            frame.cameraView, frame.cameraProjection);
+    }
+
+    // Phase 4: opaque pass
+    const bool hasFbo = (frame.bloomEnabled && bloom != nullptr) ||
+                        (frame.fxaaEnabled && fxaa != nullptr);
     if (frame.bloomEnabled && bloom) {
         bloom->begin();
     } else if (frame.fxaaEnabled && fxaa) {
         fxaa->begin();
     }
 
+    if (hasFbo) {
+        // Blit prepass depth into the post-processing FBO so the opaque pass
+        // can use GL_LEQUAL (zero overdraw). Both FBOs use
+        // GL_DEPTH_COMPONENT24.
+        blitDepthToCurrentFbo(frame.screenWidth, frame.screenHeight);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+    } else {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
     renderGameObjects(frame);
+
+    if (hasFbo) {
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+    }
+
+    // Transparent pass (placeholder)
     renderLightCubes(frame);
 
     if (frame.bloomEnabled && bloom) {
@@ -466,17 +531,28 @@ int32_t MazeLayer::getNumLights() const {
 void MazeLayer::setNumLights(const int32_t val) {
     numLights = val;
 
+    std::mt19937                          rng(42U);
+    std::uniform_real_distribution<float> jitterAngle(-0.4F, 0.4F);
+    std::uniform_real_distribution<float> jitterRadius(-0.5F, 0.5F);
+
     for (int32_t i = 0; i < numLights; i++) {
-        auto& light    = pointLights.at(i);
-        light.color    = glm::vec3(1.F);
-        light.position = glm::vec3(rotate(glm::mat4(1.F),
-                                          glm::two_pi<float>() * i / numLights,
-                                          glm::vec3(0.F, 1.F, 0.F)) *
-                                   glm::vec4(0.F, 2.75F, -3.F, 1.F));
+        const float t =
+            numLights > 1 ? static_cast<float>(i) / (numLights - 1) : 0.F;
+        const float radius = 1.5F + t * 13.5F + jitterRadius(rng);
+        const float angle =
+            glm::two_pi<float>() * i / numLights + jitterAngle(rng);
+        auto& light = pointLights.at(i);
+        light.color = glm::vec3(1.F);
+        light.position =
+            glm::vec3(rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
+                      glm::vec4(0.F, 2.75F, -radius, 1.F));
         light.attenuationIndex = attenuationIndex;
     }
 
-    updateShaderLights();
+    const auto shader = Mesh::getShader();
+    shader->bind();
+    shader->setInteger("numLights", numLights);
+    shader->unbind();
 }
 
 float MazeLayer::getRoughness() const {
@@ -547,10 +623,14 @@ void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
 }
 
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     const auto shader = Mesh::getShader();
     shader->bind();
+    if (clusteredLights) {
+        clusteredLights->bindSSBOs();
+    }
+    shader->setFloat2("screenSize",
+                      glm::vec2(static_cast<float>(frame.screenWidth),
+                                static_cast<float>(frame.screenHeight)));
     shader->setFloat3("viewPos", frame.cameraPos);
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
@@ -572,6 +652,60 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     }
 
     shader->unbind();
+}
+
+void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
+    if (depthPrepassTexture != 0) {
+        glDeleteTextures(1, &depthPrepassTexture);
+    }
+    if (depthPrepassFbo != 0) {
+        glDeleteFramebuffers(1, &depthPrepassFbo);
+    }
+
+    glGenTextures(1, &depthPrepassTexture);
+    glBindTexture(GL_TEXTURE_2D, depthPrepassTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                 static_cast<GLsizei>(w), static_cast<GLsizei>(h), 0,
+                 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenFramebuffers(1, &depthPrepassFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                           depthPrepassTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
+    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    depthPrepassShader->bind();
+    for (size_t i = 0; i < frame.objectModels.size(); ++i) {
+        depthPrepassShader->setMat4("mvp", frame.cameraMVP *
+                                               frame.objectModelMatrices[i]);
+        frame.objectModels[i]->render(depthPrepassShader);
+    }
+    depthPrepassShader->unbind();
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void MazeLayer::blitDepthToCurrentFbo(const int w, const int h) const {
+    GLint drawFbo = 0;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFbo);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, depthPrepassFbo);
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, static_cast<GLuint>(drawFbo));
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
@@ -637,25 +771,6 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
             camera->mouseMove({ lookH, lookV });
         }
     }
-}
-
-void MazeLayer::updateShaderLights() const {
-    const auto shader = Mesh::getShader();
-
-    shader->bind();
-
-    shader->setInteger("numLights", numLights);
-
-    for (int32_t i = 0; i < numLights; i++) {
-        shader->setFloat3(lightUniformNames.at(i).position,
-                          pointLights.at(i).position);
-        shader->setFloat3(lightUniformNames.at(i).color,
-                          pointLights.at(i).color);
-        shader->setInteger(lightUniformNames.at(i).attenuationIndex,
-                           pointLights.at(i).attenuationIndex);
-    }
-
-    shader->unbind();
 }
 
 bool MazeLayer::isFxaaEnabled() const {

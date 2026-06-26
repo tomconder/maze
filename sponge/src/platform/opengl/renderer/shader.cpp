@@ -2,13 +2,13 @@
 
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+#include "platform/opengl/renderer/shaderutils.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
 #include <array>
 #include <cassert>
 #include <cstring>
-#include <fstream>
 #include <string>
 #include <vector>
 
@@ -23,14 +23,14 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     SPONGE_GL_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
                    createInfo.vertexShaderPath);
-    const std::string vertexSource = loadSourceFromFile(
-        createInfo.assetsFolder + createInfo.vertexShaderPath);
+    const std::string vertexSource =
+        loadGlslSource(createInfo.assetsFolder + createInfo.vertexShaderPath);
     assert(!vertexSource.empty());
 
     SPONGE_GL_INFO("Loading fragment shader file: [{}, {}]", createInfo.name,
                    createInfo.fragmentShaderPath);
-    const std::string fragmentSource = loadSourceFromFile(
-        createInfo.assetsFolder + createInfo.fragmentShaderPath);
+    const std::string fragmentSource =
+        loadGlslSource(createInfo.assetsFolder + createInfo.fragmentShaderPath);
     assert(!fragmentSource.empty());
 
     const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
@@ -41,7 +41,7 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
         SPONGE_GL_INFO("Loading geometry shader file: [{}, {}]",
                        createInfo.name, createInfo.geometryShaderPath);
 
-        const std::string geometrySource = loadSourceFromFile(
+        const std::string geometrySource = loadGlslSource(
             createInfo.assetsFolder + createInfo.geometryShaderPath);
         assert(!geometrySource.empty());
 
@@ -325,29 +325,6 @@ GLint Shader::getUniformLocation(const std::string_view name) const {
     uniformLocations.emplace(std::move(nameStr), location);
 
     return location;
-}
-
-std::string Shader::loadSourceFromFile(const std::string& path) const {
-    assert(!path.empty());
-
-    std::string code;
-    if (std::ifstream file(path, std::ios::in | std::ios::binary);
-        file.good()) {
-        file.seekg(0, std::ios::end);
-        const auto size = file.tellg();
-        if (size <= 0) {
-            SPONGE_GL_ERROR("Unable to determine size of file: {}", path);
-            return code;
-        }
-        file.seekg(0, std::ios::beg);
-        code.resize(size);
-        file.read(code.data(), size);
-        file.close();
-    } else {
-        SPONGE_GL_ERROR("Unable to open file: {}", path);
-    }
-
-    return code;
 }
 
 }  // namespace sponge::platform::opengl::renderer

@@ -21,7 +21,13 @@ namespace game::thread {
 struct MazeRenderFrame {
     // Camera
     glm::mat4 cameraMVP{ 1.F };
+    glm::mat4 cameraView{ 1.F };
+    glm::mat4 cameraProjection{ 1.F };
     glm::vec3 cameraPos{ 0.F };
+    float     nearPlane{ 0.1F };
+    float     farPlane{ 100.F };
+    int       screenWidth{ 0 };
+    int       screenHeight{ 0 };
 
     // Directional light / shadow
     bool      shadowEnabled{ false };
@@ -29,11 +35,11 @@ struct MazeRenderFrame {
     glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
     glm::mat4 lightSpaceMatrix{ 1.F };
 
-    // Point lights (up to 6)
-    int32_t                  numLights{ 0 };
-    std::array<glm::vec3, 6> lightPositions{};
-    std::array<glm::vec3, 6> lightColors{};
-    std::array<int32_t, 6>   lightAttenuationIndices{};
+    // Point lights (up to 500)
+    int32_t                    numLights{ 0 };
+    std::array<glm::vec3, 500> lightPositions{};
+    std::array<glm::vec3, 500> lightColors{};
+    std::array<int32_t, 500>   lightAttenuationIndices{};
 
     // Game objects: model matrices and resolved model handles. Handles are
     // resolved once at load; no per-frame name lookup.

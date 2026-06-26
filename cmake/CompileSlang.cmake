@@ -37,6 +37,30 @@ endfunction()
 
 set(SLANG_COMPILED_OUTPUTS "")
 
+# Usage: compile_slang_compute_shader(<slang-file> <entry-point> <output-name>)
+function(compile_slang_compute_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
+    set(INPUT  "${SLANG_SOURCE_DIR}/${SLANG_FILE}")
+    set(OUTPUT "${SLANG_OUTPUT_DIR}/${OUTPUT_NAME}")
+    file(GLOB SLANG_INCLUDES "${SLANG_SOURCE_DIR}/include/*.slang")
+    add_custom_command(
+        OUTPUT  "${OUTPUT}"
+        COMMAND "${SLANGC_EXECUTABLE}"
+                "${INPUT}"
+                -entry "${ENTRY_POINT}"
+                -stage compute
+                -target glsl
+                -profile glsl_450
+                -matrix-layout-column-major
+                "$<$<CONFIG:Release>:-line-directive-mode;none>"
+                -o "${OUTPUT}"
+        DEPENDS "${INPUT}" ${SLANG_INCLUDES}
+        COMMENT "Compiling Slang compute shader ${SLANG_FILE} [${ENTRY_POINT}] to ${OUTPUT_NAME}"
+        VERBATIM
+        COMMAND_EXPAND_LISTS
+    )
+    set(SLANG_COMPILED_OUTPUTS "${SLANG_COMPILED_OUTPUTS};${OUTPUT}" PARENT_SCOPE)
+endfunction()
+
 # screenquad vertex (shared by blur, bloom, and fxaa passes)
 compile_slang_shader(fxaa.slang                vertMain   screenquad.vert.glsl)
 
@@ -72,6 +96,13 @@ compile_slang_shader(sprite.slang              vertMain      sprite.vert.glsl)
 # Light cube
 compile_slang_shader(cube.slang                fragMain   cube.frag.glsl)
 compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)
+
+# Depth prepass (depth-only)
+compile_slang_shader(depthprepass.slang vertMain depthprepass.vert.glsl)
+compile_slang_shader(depthprepass.slang fragMain depthprepass.frag.glsl)
+
+# Cluster light assignment compute shader
+compile_slang_compute_shader(cluster_assign.slang csMain cluster_assign.comp.glsl)
 
 add_custom_target(compile_shaders ALL
     DEPENDS ${SLANG_COMPILED_OUTPUTS}

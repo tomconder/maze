@@ -4,7 +4,7 @@ static const float M_PI = 3.14159265359;
 
 // Attenuation coefficients [constant, linear, quadratic] per distance range.
 // See https://learnopengl.com/Lighting/Light-casters
-static const float3 kLightAttenuation[11] = {
+static const float3 lightAttenuation[11] = {
     float3(1.0, 0.70,  1.800),  float3(1.0, 0.35,  0.440),
     float3(1.0, 0.22,  0.200),  float3(1.0, 0.14,  0.070),
     float3(1.0, 0.09,  0.032),  float3(1.0, 0.07,  0.017),
@@ -58,7 +58,7 @@ extension PointLight : ILight
     {
         float  dist = length(position - worldPos);
         int    idx  = clamp(attenuationIndex, 0, 10);
-        float3 att  = kLightAttenuation[idx];
+        float3 att  = lightAttenuation[idx];
         float  atten = 1.0 / (att.x + att.y * dist + att.z * dist * dist);
         return color * atten;
     }
