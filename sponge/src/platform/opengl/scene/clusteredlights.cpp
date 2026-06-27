@@ -10,18 +10,18 @@
 namespace sponge::platform::opengl::scene {
 
 namespace {
-constexpr int kMaxLights = 500;
+constexpr int maxLights = 500;
 }  // namespace
 
 ClusteredLights::ClusteredLights(const float near, const float far) :
     near(near),
     far(far),
-    clusterAABBs(kNumClusters),
-    lightBuffer(static_cast<std::size_t>(kMaxLights) * sizeof(PointLightGPU)),
-    lightGrid(static_cast<std::size_t>(kNumClusters) * sizeof(glm::uvec2)),
-    lightIndices(static_cast<std::size_t>(kNumClusters) * kMaxLightsPerCluster *
+    clusterAABBs(numClusters),
+    lightBuffer(static_cast<std::size_t>(maxLights) * sizeof(PointLightGPU)),
+    lightGrid(static_cast<std::size_t>(numClusters) * sizeof(glm::uvec2)),
+    lightIndices(static_cast<std::size_t>(numClusters) * maxLightsPerCluster *
                  sizeof(uint32_t)),
-    clusterAABBsSSBO(static_cast<std::size_t>(kNumClusters) *
+    clusterAABBsSSBO(static_cast<std::size_t>(numClusters) *
                      sizeof(ClusterAABB)),
     computeParamsSSBO(sizeof(ComputeParams)),
     assignShader("cluster_assign", "/shaders/glsl/cluster_assign.comp.glsl") {}
@@ -29,24 +29,24 @@ ClusteredLights::ClusteredLights(const float near, const float far) :
 void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
     const glm::mat4 invProj = glm::inverse(projection);
 
-    for (int z = 0; z < kTilesZ; ++z) {
+    for (int z = 0; z < tilesZ; ++z) {
         // Z subdivision: sliceNear_k = near * pow(far/near, k/kTilesZ).
         // Must match clusterIndex() in clustered.slang.
         const float sliceNear =
-            near * std::pow(far / near, static_cast<float>(z) / kTilesZ);
+            near * std::pow(far / near, static_cast<float>(z) / tilesZ);
         const float sliceFar =
-            near * std::pow(far / near, static_cast<float>(z + 1) / kTilesZ);
+            near * std::pow(far / near, static_cast<float>(z + 1) / tilesZ);
 
-        for (int y = 0; y < kTilesY; ++y) {
-            for (int x = 0; x < kTilesX; ++x) {
+        for (int y = 0; y < tilesY; ++y) {
+            for (int x = 0; x < tilesX; ++x) {
                 const float ndcXMin =
-                    2.F * static_cast<float>(x) / kTilesX - 1.F;
+                    2.F * static_cast<float>(x) / tilesX - 1.F;
                 const float ndcXMax =
-                    2.F * static_cast<float>(x + 1) / kTilesX - 1.F;
+                    2.F * static_cast<float>(x + 1) / tilesX - 1.F;
                 const float ndcYMin =
-                    2.F * static_cast<float>(y) / kTilesY - 1.F;
+                    2.F * static_cast<float>(y) / tilesY - 1.F;
                 const float ndcYMax =
-                    2.F * static_cast<float>(y + 1) / kTilesY - 1.F;
+                    2.F * static_cast<float>(y + 1) / tilesY - 1.F;
 
                 // Unproject screen corners to unit view-space direction
                 // vectors.
@@ -79,7 +79,7 @@ void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
                     }
                 }
 
-                const int idx = x + y * kTilesX + z * kTilesX * kTilesY;
+                const int idx = x + y * tilesX + z * tilesX * tilesY;
                 clusterAABBs[static_cast<std::size_t>(idx)] = {
                     .minBounds = minB,
                     .padMin    = 0.F,
@@ -91,7 +91,7 @@ void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
     }
 
     clusterAABBsSSBO.update(clusterAABBs.data(),
-                            static_cast<std::size_t>(kNumClusters) *
+                            static_cast<std::size_t>(numClusters) *
                                 sizeof(ClusterAABB));
 }
 
@@ -134,7 +134,7 @@ void ClusteredLights::update(const glm::vec3* positions,
     computeParamsSSBO.bindBase(7);
 
     // 256 clusters / 64 threads per group = 4 dispatch groups.
-    assignShader.dispatch(static_cast<uint32_t>(kNumClusters / 64));
+    assignShader.dispatch(static_cast<uint32_t>(numClusters / 64));
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

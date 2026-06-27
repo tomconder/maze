@@ -10,9 +10,9 @@
 
 namespace {
 // Slang-generated layout locations for pbr.vert.slang
-constexpr uint32_t kPositionLoc = 0;
-constexpr uint32_t kTexCoordLoc = 1;
-constexpr uint32_t kNormalLoc   = 2;
+constexpr uint32_t positionLoc = 0;
+constexpr uint32_t texCoordLoc = 1;
+constexpr uint32_t normalLoc   = 2;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -49,19 +49,19 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         this->vertices.data(), numVertices * sizeof(Vertex));
     vbo->bind();
 
-    glEnableVertexAttribArray(kPositionLoc);
-    glVertexAttribPointer(kPositionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+    glEnableVertexAttribArray(positionLoc);
+    glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           reinterpret_cast<const void*>(
                               offsetof(sponge::scene::Vertex, position)));
 
-    glEnableVertexAttribArray(kTexCoordLoc);
-    glVertexAttribPointer(kTexCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+    glEnableVertexAttribArray(texCoordLoc);
+    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           reinterpret_cast<const void*>(
                               offsetof(sponge::scene::Vertex, texCoords)));
 
-    glEnableVertexAttribArray(kNormalLoc);
+    glEnableVertexAttribArray(normalLoc);
     glVertexAttribPointer(
-        kNormalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
         reinterpret_cast<const void*>(offsetof(sponge::scene::Vertex, normal)));
 
     ebo = std::make_unique<renderer::IndexBuffer>(

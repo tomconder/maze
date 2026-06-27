@@ -16,11 +16,11 @@ class ClusteredLights {
 public:
     // Grid dimensions — must match TILES_X/Y/Z in clustered.slang and
     // cluster_assign.comp.glsl.
-    static constexpr int kTilesX      = 8;
-    static constexpr int kTilesY      = 4;
-    static constexpr int kTilesZ      = 8;
-    static constexpr int kNumClusters = kTilesX * kTilesY * kTilesZ;
-    static constexpr int kMaxLightsPerCluster =
+    static constexpr int tilesX      = 8;
+    static constexpr int tilesY      = 4;
+    static constexpr int tilesZ      = 8;
+    static constexpr int numClusters = tilesX * tilesY * tilesZ;
+    static constexpr int maxLightsPerCluster =
         128;  // must match MAX_LIGHTS_PER_CLUSTER
 
     ClusteredLights(float near, float far);

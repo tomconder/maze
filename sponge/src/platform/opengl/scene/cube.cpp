@@ -49,10 +49,10 @@ Cube::Cube() {
                                                    sizeof(vertices));
     vbo->bind();
 
-    constexpr uint32_t kPositionLoc = 0;
-    glEnableVertexAttribArray(kPositionLoc);
-    glVertexAttribPointer(kPositionLoc, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(glm::vec3), reinterpret_cast<const void*>(0));
+    constexpr uint32_t positionLoc = 0;
+    glEnableVertexAttribArray(positionLoc);
+    glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
+                          reinterpret_cast<const void*>(0));
 
     shader->unbind();
     vao->unbind();

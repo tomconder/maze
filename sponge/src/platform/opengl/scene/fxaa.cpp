@@ -47,13 +47,13 @@ void FXAA::initialize() {
                                                    sizeof(quadVertices));
     vbo->bind();
 
-    constexpr uint32_t kPositionLoc = 0;
-    constexpr uint32_t kTexCoordLoc = 1;
-    glEnableVertexAttribArray(kPositionLoc);
-    glVertexAttribPointer(kPositionLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
+    constexpr uint32_t positionLoc = 0;
+    constexpr uint32_t texCoordLoc = 1;
+    glEnableVertexAttribArray(positionLoc);
+    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
                           reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(kTexCoordLoc);
-    glVertexAttribPointer(kTexCoordLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
+    glEnableVertexAttribArray(texCoordLoc);
+    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
                           reinterpret_cast<const void*>(2 * sizeof(float)));
 
     shader->unbind();
