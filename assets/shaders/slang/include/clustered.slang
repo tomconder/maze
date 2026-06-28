@@ -2,9 +2,9 @@
 #pragma once
 
 // Grid dimensions — must match kTilesX/Y/Z in clusteredlights.hpp and the GLSL compute shader.
-static const int TILES_X = 8;
-static const int TILES_Y = 4;
-static const int TILES_Z = 8;
+static const int TILES_X = 16;
+static const int TILES_Y = 9;
+static const int TILES_Z = 24;
 
 // Max lights per cluster — must match kMaxLightsPerCluster in clusteredlights.hpp.
 static const int MAX_LIGHTS_PER_CLUSTER = 128;
