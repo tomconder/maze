@@ -407,6 +407,10 @@ void MazeLayer::onRender() {
         fxaa->end();
         fxaa->apply();
     }
+
+    if (hasFbo) {
+        glDepthFunc(GL_LEQUAL);
+    }
 }
 
 float MazeLayer::getAmbientOcclusion() const {
