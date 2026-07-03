@@ -1,0 +1,6 @@
+---
+BasedOnStyle: InheritParentConfig
+AllowShortFunctionsOnASingleLine: All
+SortIncludes: Never
+ColumnLimit: 0
+...

@@ -4,14 +4,12 @@
 float shadowEVSM(
     Sampler2D<float2> shadowMap,
     float4            fragPosLightSpace,
-    float             evsmBleedThreshold)
-{
+    float             evsmBleedThreshold) {
     float3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    proj = proj * 0.5 + 0.5;
+    proj        = proj * 0.5 + 0.5;
     // Outside the shadow frustum (xy or z) there is no occlusion information;
     // sampling clamped edge texels would falsely shadow everything beyond it.
-    if (any(proj < 0.0) || any(proj > 1.0))
-    {
+    if (any(proj < 0.0) || any(proj > 1.0)) {
         return 0.0;
     }
 
@@ -22,6 +20,6 @@ float shadowEVSM(
     float variance = max(moments.y - moments.x * moments.x, 0.00002);
     float d        = currentDepth - moments.x;
     float pMax     = variance / (variance + d * d);
-    pMax = clamp((pMax - evsmBleedThreshold) / (1.0 - evsmBleedThreshold), 0.0, 1.0);
+    pMax           = clamp((pMax - evsmBleedThreshold) / (1.0 - evsmBleedThreshold), 0.0, 1.0);
     return 1.0 - max(p, pMax);
 }
