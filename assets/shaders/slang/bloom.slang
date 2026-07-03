@@ -34,12 +34,15 @@ float4 downFragMain(FSInput input) : SV_Target
 // Progressive upsample: blend the blurred coarse level with this level's
 // downsample so no single coarse mip dominates (its texel structure would
 // show as straight-edged rectangles). accumulate=0 at the deepest level.
+// SCATTER weights the coarse chain: higher = wider, softer glow.
+static const float SCATTER = 0.7;
+
 [shader("fragment")]
 float4 upFragMain(FSInput input) : SV_Target
 {
     float3 blurred = kawaseUp(image, input.texCoords, offset).rgb;
     float3 down    = bloomTex.Sample(input.texCoords).rgb;
-    return float4(lerp(blurred, (blurred + down) * 0.5, accumulate), 1.0);
+    return float4(lerp(blurred, lerp(down, blurred, SCATTER), accumulate), 1.0);
 }
 
 [shader("fragment")]

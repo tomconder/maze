@@ -146,17 +146,19 @@ private:
 
     std::atomic<int32_t> screenWidth{ 0 };
     std::atomic<int32_t> screenHeight{ 0 };
-    float                ambientStrength    = .25F;
-    float                ao                 = .25F;
-    int32_t              attenuationIndex   = 4;
-    bool                 fxaaEnabled        = true;
-    bool                 bloomEnabled       = true;
-    float                bloomThreshold     = 0.8F;
-    float                bloomIntensity     = 1.0F;
-    bool                 metallic           = false;
-    bool                 mouseButtonPressed = false;
-    int32_t              numLights          = 0;
-    float                roughness          = .5F;
+    float                ambientStrength  = .25F;
+    float                ao               = .25F;
+    int32_t              attenuationIndex = 4;
+    bool                 fxaaEnabled      = true;
+    bool                 bloomEnabled     = true;
+    float                bloomThreshold   = 0.8F;
+    // Compensates the soft-knee extract, which passes only above-threshold
+    // energy (the old hard threshold passed the full pixel color).
+    float   bloomIntensity     = 2.5F;
+    bool    metallic           = false;
+    bool    mouseButtonPressed = false;
+    int32_t numLights          = 0;
+    float   roughness          = .5F;
 #ifdef ENABLE_IMGUI
     bool isImguiOpen = true;
 #endif

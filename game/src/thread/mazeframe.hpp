@@ -52,7 +52,7 @@ struct MazeRenderFrame {
     bool  fxaaEnabled{ false };
     bool  bloomEnabled{ false };
     float bloomThreshold{ 0.8F };
-    float bloomIntensity{ 1.0F };
+    float bloomIntensity{ 2.5F };
 };
 
 }  // namespace game::thread
