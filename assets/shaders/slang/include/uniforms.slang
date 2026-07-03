@@ -5,7 +5,7 @@
 //
 // Each stage is compiled by a separate slangc invocation, so loose `uniform`
 // globals get collected into a per-stage block containing only the fields that
-// stage references — which makes the vertex and fragment blocks disagree and
+// stage references, which makes the vertex and fragment blocks disagree and
 // fails program linking ("struct type mismatch ... block_GlobalParams").
 //
 // A named ConstantBuffer is emitted whole (no per-field stripping) and with an
@@ -18,11 +18,10 @@
 // calls use the original names. Unreferenced ConstantBuffers are stripped by
 // slangc, so a shader only emits the block it actually uses.
 
-struct PbrParams
-{
-    float4x4         mvp;                // vertex
-    float4x4         model;              // vertex
-    float4x4         normalMatrix;       // vertex; precomputed transpose(inverse(model)) on CPU
+struct PbrParams {
+    float4x4         mvp;               // vertex
+    float4x4         model;             // vertex
+    float4x4         normalMatrix;      // vertex; precomputed transpose(inverse(model)) on CPU
     float4x4         lightSpaceMatrix;  // vertex
     float            metallic;
     float            roughness;
