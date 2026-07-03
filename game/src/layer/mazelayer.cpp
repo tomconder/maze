@@ -168,7 +168,9 @@ void MazeLayer::onAttach() {
     createDepthPrepassFbo(w, h);
 
     shader->bind();
-    shader->setFloat("nearPlane", camera->getNear());
+    shader->setFloat(
+        "clusterNear",
+        sponge::platform::opengl::scene::ClusteredLights::clusterNear);
     shader->setFloat("farPlane", camera->getFar());
     shader->setFloat2("screenSize",
                       glm::vec2(static_cast<float>(w), static_cast<float>(h)));
@@ -351,15 +353,18 @@ void MazeLayer::onRender() {
         renderSceneToDepthMap(frame);
     }
 
-    // Phase 2: depth prepass
+    // Phase 2: depth prepass (also marks active volume tiles)
+    if (clusteredLights) {
+        clusteredLights->prepare(frame.cameraProjection);
+    }
     renderDepthPrepass(frame);
 
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
-        clusteredLights->update(
-            frame.lightPositions.data(), frame.lightColors.data(),
-            frame.lightAttenuationIndices.data(), frame.numLights,
-            frame.cameraView, frame.cameraProjection);
+        clusteredLights->update(frame.lightPositions.data(),
+                                frame.lightColors.data(),
+                                frame.lightAttenuationIndices.data(),
+                                frame.numLights, frame.cameraView);
     }
 
     // Phase 4: opaque pass
@@ -640,6 +645,8 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     shader->setFloat3("viewForward",
                       -glm::vec3(frame.cameraView[0][2], frame.cameraView[1][2],
                                  frame.cameraView[2][2]));
+    shader->setInteger("tilesZ",
+                       clusteredLights ? clusteredLights->getTilesZ() : 1);
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
@@ -696,9 +703,20 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     depthPrepassShader->bind();
+    depthPrepassShader->setFloat2(
+        "screenSize", glm::vec2(static_cast<float>(frame.screenWidth),
+                                static_cast<float>(frame.screenHeight)));
+    depthPrepassShader->setFloat(
+        "clusterNear",
+        sponge::platform::opengl::scene::ClusteredLights::clusterNear);
+    depthPrepassShader->setFloat("clusterFar", frame.farPlane);
+    depthPrepassShader->setInteger(
+        "tilesZ", clusteredLights ? clusteredLights->getTilesZ() : 1);
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
         depthPrepassShader->setMat4("mvp", frame.cameraMVP *
                                                frame.objectModelMatrices[i]);
+        depthPrepassShader->setMat4(
+            "modelView", frame.cameraView * frame.objectModelMatrices[i]);
         frame.objectModels[i]->render(depthPrepassShader);
     }
     depthPrepassShader->unbind();

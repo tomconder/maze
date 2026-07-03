@@ -31,7 +31,7 @@ struct ComputeParams
     float  near;
     float  far;
     int    numLights;
-    int    pad;
+    int    numClusters;
 }
 
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU>  lightBuffer;    // read
@@ -39,20 +39,29 @@ struct ComputeParams
 [[vk::binding(5)]] RWStructuredBuffer<uint>          lightIndices;   // write
 [[vk::binding(6)]] StructuredBuffer<ClusterAABB>     clusterAABBs;   // read
 [[vk::binding(7)]] StructuredBuffer<ComputeParams>   computeParams;  // read
+[[vk::binding(8)]] StructuredBuffer<uint>            tileFlags;      // read
 
 [shader("compute")]
 [numthreads(64, 1, 1)]
 void csMain(uint3 tid : SV_DispatchThreadID)
 {
-    int ci = int(tid.x);
-    if (ci >= TILES_X * TILES_Y * TILES_Z) {
+    int           ci = int(tid.x);
+    ComputeParams p  = computeParams[0];
+    if (ci >= p.numClusters) {
         return;
     }
 
-    ComputeParams p    = computeParams[0];
-    ClusterAABB   aabb = clusterAABBs[ci];
-    uint          base = uint(ci) * uint(MAX_LIGHTS_PER_CLUSTER);
-    int           count = 0;
+    uint base = uint(ci) * uint(MAX_LIGHTS_PER_CLUSTER);
+
+    // Active-tile culling: skip clusters no visible fragment landed in
+    // (flags written by the depth prepass).
+    if (tileFlags[ci] == 0U) {
+        lightGrid[ci] = uint2(base, 0U);
+        return;
+    }
+
+    ClusterAABB aabb  = clusterAABBs[ci];
+    int         count = 0;
 
     for (int i = 0; i < p.numLights && count < MAX_LIGHTS_PER_CLUSTER; ++i)
     {

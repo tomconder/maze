@@ -76,7 +76,8 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target
                              params.viewForward);
         int   ci       = clusterIndex(fragCoord.xy, viewZ,
                                       params.screenSize,
-                                      params.nearPlane, params.farPlane);
+                                      params.clusterNear, params.farPlane,
+                                      params.tilesZ);
         uint2 tile     = lightGrid[ci];
         uint  tileEnd  = tile.x + tile.y;
         for (uint j = tile.x; j < tileEnd; ++j)

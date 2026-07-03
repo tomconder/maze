@@ -14,25 +14,38 @@ namespace sponge::platform::opengl::scene {
 
 class ClusteredLights {
 public:
-    // Grid dimensions — must match TILES_X/Y/Z in clustered.slang and
-    // cluster_assign.comp.glsl.
+    // Screen tile grid — must match TILES_X/Y in clustered.slang. The
+    // z-slice count is runtime, derived from the FOV so tiles are roughly
+    // cubic (van Oosten eq. 8.2); buffers are sized for maxTilesZ.
     static constexpr int tilesX      = 16;
     static constexpr int tilesY      = 9;
-    static constexpr int tilesZ      = 24;
-    static constexpr int numClusters = tilesX * tilesY * tilesZ;
+    static constexpr int maxTilesZ   = 96;  // FOV 30° needs 80 slices
+    static constexpr int maxClusters = tilesX * tilesY * maxTilesZ;
+    // Near bound of the cluster grid; slices below it are wasted on empty
+    // space in front of the camera. Slice 0's AABB extends to the camera
+    // near plane so closer fragments are still covered.
+    static constexpr float clusterNear = 1.F;
     // Must match MAX_LIGHTS_PER_CLUSTER in clustered.slang. Sized >= the max
     // scene light count so per-cluster truncation (visible cluster seams)
-    // cannot occur. ~7 MB of index storage at 512.
+    // cannot occur. ~28 MB of index storage at 512 x maxClusters.
     static constexpr int maxLightsPerCluster = 512;
 
     ClusteredLights(float near, float far);
 
+    // Rebuilds the grid if the projection changed and clears the active-tile
+    // flags. Call once per frame before the depth prepass writes tile flags.
+    void prepare(const glm::mat4& projection);
+
     // Dispatches the clustered light-culling compute shader.
     void update(const glm::vec3* positions, const glm::vec3* colors,
                 const int* attenuationIndices, int numLights,
-                const glm::mat4& view, const glm::mat4& projection);
+                const glm::mat4& view);
 
     void bindSSBOs() const;
+
+    int getTilesZ() const {
+        return tilesZ;
+    }
 
 private:
     // std430 layout, 48 bytes — must match PointLightGPU in
@@ -67,7 +80,7 @@ private:
         float     near{ 0.F };
         float     far{ 0.F };
         int       numLights{ 0 };
-        int       pad{ 0 };
+        int       numClusters{ 0 };
     };
     static_assert(sizeof(ComputeParams) == 64);
 
@@ -79,6 +92,8 @@ private:
 
     float     near;
     float     far;
+    int       tilesZ      = 1;
+    int       numClusters = tilesX * tilesY;
     glm::mat4 lastProjection{ 0.F };
 
     std::vector<ClusterAABB> clusterAABBs;
@@ -89,6 +104,7 @@ private:
     renderer::SSBO
         clusterAABBsSSBO;  // binding 6 — ClusterAABB[] (compute input)
     renderer::SSBO computeParamsSSBO;  // binding 7 — ComputeParams
+    renderer::SSBO tileFlags;          // binding 8 — uint[] active-tile flags
 
     renderer::ComputeShader assignShader;
 };

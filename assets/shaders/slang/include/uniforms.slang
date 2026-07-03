@@ -34,9 +34,10 @@ struct PbrParams
     float3           emissive;
     DirectionalLight directionalLight;
     int              numLights;
-    float            nearPlane;
+    float            clusterNear;  // near bound of the cluster grid
     float            farPlane;
     float2           screenSize;
     float3           viewForward;  // world-space camera forward, normalized
+    int              tilesZ;       // runtime cluster z-slice count
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;
