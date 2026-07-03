@@ -15,9 +15,12 @@ static const float3 lightAttenuation[11] = {
 
 // Culling radii (world units) per attenuation index. Radiance is windowed to
 // zero at this radius so cluster culling produces no visible seams.
+// Solved from 1/(1 + l*d + q*d^2) = 0.05 per index: cutting the <=5% tail
+// (vs the ~1% learnopengl nominal ranges) halves the radii so far fewer
+// lights overlap each cluster.
 static const float attenuationRadius[11] = {
-    7.0, 13.0, 20.0, 32.0, 50.0, 65.0,
-    100.0, 160.0, 200.0, 325.0, 600.0
+    3.0, 6.0, 9.0, 16.0, 23.0, 31.0,
+    47.0, 78.0, 94.0, 155.0, 290.0
 };
 
 // ---------------------------------------------------------------------------

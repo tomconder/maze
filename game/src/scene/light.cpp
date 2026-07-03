@@ -4,8 +4,9 @@
 
 namespace game::scene {
 
-constexpr float distance[11] = { 7.F,   13.F,  20.F,  32.F,  50.F, 65.F,
-                                 100.F, 160.F, 200.F, 325.F, 600.F };
+// Must match attenuationRadius in lighting.slang.
+constexpr float distance[11] = { 3.F,  6.F,  9.F,  16.F,  23.F, 31.F,
+                                 47.F, 78.F, 94.F, 155.F, 290.F };
 
 float Light::getAttenuationDistance(const int32_t index) {
     const uint32_t value = std::clamp(index, 0, 10);
