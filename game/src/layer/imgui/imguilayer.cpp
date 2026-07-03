@@ -102,7 +102,6 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
         showInfoSection();
         showLightsSection();
-        showShadowMapSection();
         showResourcesSection();
     }
     ImGui::End();
@@ -362,13 +361,6 @@ void ImGuiLayer::showAttenuationSlider(int32_t& attenuationIndex) {
 
     if (ImGui::SliderInt("Distance", &attenuationIndex, 0, 10, label.c_str())) {
         Maze::get().getMazeLayer()->setAttenuationIndex(attenuationIndex);
-    }
-}
-
-void ImGuiLayer::showShadowMapSection() {
-    if (ImGui::CollapsingHeader("Shadow Map")) {
-        ImGui::Image(Maze::get().getMazeLayer()->getShadowMapTextureId(),
-                     ImVec2(appInfoWidth * .85F, appInfoWidth * .85F));
     }
 }
 

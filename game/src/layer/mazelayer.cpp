@@ -577,10 +577,6 @@ void MazeLayer::setRoughness(const float val) {
     shader->unbind();
 }
 
-uint32_t MazeLayer::getShadowMapTextureId() const {
-    return shadowMap->getDepthMapTextureId();
-}
-
 void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
     if (!event.isFocused()) {
         mouseButtonPressed = false;

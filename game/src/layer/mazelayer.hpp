@@ -93,8 +93,6 @@ public:
 
     void setRoughness(float val);
 
-    uint32_t getShadowMapTextureId() const;
-
     bool isFxaaEnabled() const;
 
     void setFxaaEnabled(bool val);
