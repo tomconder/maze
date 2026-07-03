@@ -39,9 +39,9 @@ Quad::Quad() {
                                                   sizeof(indices));
     ebo->bind();
 
-    constexpr uint32_t kPositionLoc = 0;
-    glEnableVertexAttribArray(kPositionLoc);
-    glVertexAttribPointer(kPositionLoc, 2, GL_FLOAT, GL_FALSE,
+    constexpr uint32_t positionLoc = 0;
+    glEnableVertexAttribArray(positionLoc);
+    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE,
                           2 * sizeof(GLfloat),
                           reinterpret_cast<const void*>(0));
 

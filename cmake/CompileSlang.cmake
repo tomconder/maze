@@ -16,7 +16,7 @@ file(MAKE_DIRECTORY "${SLANG_OUTPUT_DIR}")
 function(compile_slang_shader SLANG_FILE ENTRY_POINT OUTPUT_NAME)
     set(INPUT  "${SLANG_SOURCE_DIR}/${SLANG_FILE}")
     set(OUTPUT "${SLANG_OUTPUT_DIR}/${OUTPUT_NAME}")
-    file(GLOB SLANG_INCLUDES "${SLANG_SOURCE_DIR}/include/*.slang")
+    file(GLOB SLANG_INCLUDES CONFIGURE_DEPENDS "${SLANG_SOURCE_DIR}/include/*.slang")
     add_custom_command(
         OUTPUT  "${OUTPUT}"
         COMMAND "${SLANGC_EXECUTABLE}"
@@ -70,8 +70,15 @@ compile_slang_shader(sprite.slang              textFragMain  text.frag.glsl)
 compile_slang_shader(sprite.slang              vertMain      sprite.vert.glsl)
 
 # Light cube
-compile_slang_shader(cube.slang                fragMain   cube.frag.glsl)
-compile_slang_shader(cube.slang                vertMain   cube.vert.glsl)
+compile_slang_shader(cube.slang                fragMain      cube.frag.glsl)
+compile_slang_shader(cube.slang                vertMain      cube.vert.glsl)
+
+# Depth prepass (depth-only)
+compile_slang_shader(depthprepass.slang        vertMain      depthprepass.vert.glsl)
+compile_slang_shader(depthprepass.slang        fragMain      depthprepass.frag.glsl)
+
+# Cluster light assignment compute shader
+compile_slang_shader(cluster_assign.slang      csMain        cluster_assign.comp.glsl)
 
 add_custom_target(compile_shaders ALL
     DEPENDS ${SLANG_COMPILED_OUTPUTS}

@@ -26,6 +26,22 @@ public:
         return cameraPos;
     }
 
+    const glm::mat4& getViewMatrix() const {
+        return view;
+    }
+
+    const glm::mat4& getProjectionMatrix() const {
+        return projection;
+    }
+
+    float getNear() const {
+        return zNear;
+    }
+
+    float getFar() const {
+        return zFar;
+    }
+
     float getFov() const {
         return fov;
     }

@@ -1,5 +1,6 @@
 // fxaa.slang — fullscreen quad vertex + FXAA 3.11 (quality preset 12) + bloom overlay
 // FXAA based on Timothy Lottes / NVIDIA, adapted to Slang.
+#include "include/dither.slang"
 
 struct VSInput
 {
@@ -31,7 +32,7 @@ uniform float     bloomIntensity;
 static const float FXAA_SUBPIX             = 0.75;
 static const float FXAA_EDGE_THRESHOLD     = 0.125;
 static const float FXAA_EDGE_THRESHOLD_MIN = 0.0625;
-static const float kSteps[5]               = { 1.5, 2.0, 2.0, 2.0, 8.0 };
+static const float steps[5]               = { 1.5, 2.0, 2.0, 2.0, 8.0 };
 
 // Green-channel-weighted luma (Lottes formula — blue excluded)
 float fxaaLuma(float3 rgb) { return rgb.y * (0.587 / 0.299) + rgb.x; }
@@ -102,8 +103,8 @@ float4 fxaaPass(float2 uv)
 
     float2 offNP = horzSpan ? float2(rcpFrame.x, 0.0) : float2(0.0, rcpFrame.y);
 
-    float2 posN      = posP - offNP * kSteps[0];
-    float2 posPos    = posP + offNP * kSteps[0];
+    float2 posN      = posP - offNP * steps[0];
+    float2 posPos    = posP + offNP * steps[0];
     float  lumaEndN  = fxaaLuma(screenTexture.Sample(posN  ).rgb) - localAvg;
     float  lumaEndP  = fxaaLuma(screenTexture.Sample(posPos).rgb) - localAvg;
     bool   doneN     = abs(lumaEndN) >= gradientScaled;
@@ -112,12 +113,12 @@ float4 fxaaPass(float2 uv)
     for (int i = 1; i < 5; i++)
     {
         if (!doneN) {
-            posN    -= offNP * kSteps[i];
+            posN    -= offNP * steps[i];
             lumaEndN = fxaaLuma(screenTexture.Sample(posN  ).rgb) - localAvg;
             doneN    = abs(lumaEndN) >= gradientScaled;
         }
         if (!doneP) {
-            posPos  += offNP * kSteps[i];
+            posPos  += offNP * steps[i];
             lumaEndP = fxaaLuma(screenTexture.Sample(posPos).rgb) - localAvg;
             doneP    = abs(lumaEndP) >= gradientScaled;
         }
@@ -155,12 +156,13 @@ float4 fxaaPass(float2 uv)
 struct FSInput { float2 texCoords : TEXCOORD0; }
 
 [shader("fragment")]
-float4 fragMain(FSInput input) : SV_Target
+float4 fragMain(FSInput input, float4 fragCoord : SV_Position) : SV_Target
 {
     float4 color = fxaaPass(input.texCoords);
     if (bloomIntensity > 0.0)
     {
         color.rgb += bloomTex.Sample(input.texCoords).rgb * bloomIntensity;
     }
+    color.rgb = dither8(color.rgb, fragCoord.xy);
     return color;
 }

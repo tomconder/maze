@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input/inputsnapshot.hpp"
+#include "platform/opengl/scene/clusteredlights.hpp"
 #include "scene/gamecamera.hpp"
 #include "sponge.hpp"
 #include "thread/mazeframe.hpp"
@@ -92,8 +93,6 @@ public:
 
     void setRoughness(float val);
 
-    uint32_t getShadowMapTextureId() const;
-
     bool isFxaaEnabled() const;
 
     void setFxaaEnabled(bool val);
@@ -114,7 +113,13 @@ private:
     std::vector<glm::mat4>             objectModelMatrices;
     std::vector<glm::vec3>             objectEmissives;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
-                                                                objectModels;
+        objectModels;
+    std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
+        clusteredLights;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader>
+             depthPrepassShader;
+    uint32_t depthPrepassFbo{ 0 };
+    uint32_t depthPrepassTexture{ 0 };
     std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
@@ -139,13 +144,17 @@ private:
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;
 
-    float   ambientStrength    = .25F;
-    float   ao                 = .25F;
-    int32_t attenuationIndex   = 4;
-    bool    fxaaEnabled        = true;
-    bool    bloomEnabled       = true;
-    float   bloomThreshold     = 0.8F;
-    float   bloomIntensity     = 1.0F;
+    std::atomic<int32_t> screenWidth{ 0 };
+    std::atomic<int32_t> screenHeight{ 0 };
+    float                ambientStrength  = .25F;
+    float                ao               = .25F;
+    int32_t              attenuationIndex = 4;
+    bool                 fxaaEnabled      = true;
+    bool                 bloomEnabled     = true;
+    float                bloomThreshold   = 0.8F;
+    // Compensates the soft-knee extract, which passes only above-threshold
+    // energy (the old hard threshold passed the full pixel color).
+    float   bloomIntensity     = 2.5F;
     bool    metallic           = false;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
@@ -166,6 +175,12 @@ private:
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
+    void createDepthPrepassFbo(int w, int h);
+
+    void renderDepthPrepass(const thread::MazeRenderFrame& frame) const;
+
+    void blitDepthToCurrentFbo(int w, int h) const;
+
     void renderGameObjects(const thread::MazeRenderFrame& frame) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
@@ -174,7 +189,5 @@ private:
 
     void updateCamera(const sponge::input::InputSnapshot& snap,
                       double                              elapsedTime) const;
-
-    void updateShaderLights() const;
 };
 }  // namespace game::layer

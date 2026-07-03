@@ -40,7 +40,6 @@ private:
     static void showPointLightControls();
     static void showAttenuationSlider(int32_t& attenuationIndex);
 
-    static void showShadowMapSection();
     static void showResourcesSection();
 
     // Resource tables

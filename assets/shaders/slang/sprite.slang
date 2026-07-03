@@ -1,5 +1,5 @@
 // sprite.slang — sprite and text vertex + fragment shaders
-#include "include/uniforms.slang"
+#include "include/ui_uniforms.slang"
 
 struct VSInput
 {

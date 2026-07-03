@@ -13,11 +13,11 @@
 namespace sponge::scene {
 
 namespace {
-constexpr uint32_t kAtlasSize  = 1024;
-constexpr char32_t kFirstGlyph = 32;
-constexpr char32_t kLastGlyph  = 126;
+constexpr uint32_t atlasSize  = 1024;
+constexpr char32_t firstGlyph = 32;
+constexpr char32_t lastGlyph  = 126;
 
-constexpr std::array<char32_t, 1> kSupplementalGlyphs = {
+constexpr std::array<char32_t, 1> supplementalGlyphs = {
     0xD7,  // × MULTIPLICATION SIGN
 };
 }  // namespace
@@ -123,11 +123,11 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             rects.push_back(rect);
         };
 
-        for (char32_t codepoint = kFirstGlyph; codepoint <= kLastGlyph;
+        for (char32_t codepoint = firstGlyph; codepoint <= lastGlyph;
              codepoint++) {
             rasterizeGlyph(codepoint);
         }
-        for (const char32_t codepoint : kSupplementalGlyphs) {
+        for (const char32_t codepoint : supplementalGlyphs) {
             rasterizeGlyph(codepoint);
         }
 
@@ -135,8 +135,8 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         hbFonts[size]     = hbFont;
     }
 
-    textureWidth  = kAtlasSize;
-    textureHeight = kAtlasSize;
+    textureWidth  = atlasSize;
+    textureHeight = atlasSize;
     atlasBuffer.assign(textureWidth * textureHeight * 3, 0);
 
     std::vector<stbrp_node> nodes(textureWidth);

@@ -8,12 +8,12 @@
 #include <string_view>
 
 namespace {
-constexpr size_t kMaxLength   = 256;
-constexpr size_t kIndexCount  = 6;
-constexpr size_t kVertexCount = 8;
+constexpr size_t maxLength   = 256;
+constexpr size_t indexCount  = 6;
+constexpr size_t vertexCount = 8;
 
-std::array<uint32_t, kMaxLength * kIndexCount>   batchIndices;
-std::array<glm::vec2, kMaxLength * kVertexCount> batchVertices;
+std::array<uint32_t, maxLength * indexCount>   batchIndices;
+std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -34,11 +34,11 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        nullptr, kMaxLength * kVertexCount * sizeof(glm::vec2));
+        nullptr, maxLength * vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
     ebo = std::make_unique<renderer::IndexBuffer>(
-        nullptr, kMaxLength * kIndexCount * sizeof(uint32_t));
+        nullptr, maxLength * indexCount * sizeof(uint32_t));
     ebo->bind();
 
     constexpr uint32_t pos = 0;
@@ -80,7 +80,7 @@ uint32_t BitmapFont::getHeight(const uint32_t size) const {
 uint32_t BitmapFont::getLength(const std::string_view text,
                                const uint32_t         size) {
     const auto str =
-        text.length() > kMaxLength ? text.substr(0, kMaxLength) : text;
+        text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     float penX = 0.0F;
     for (const auto& shapedGlyph : atlas.shape(str, size)) {
@@ -105,7 +105,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     assert(passTargetSize != 0);
 
     const auto str =
-        text.length() > kMaxLength ? text.substr(0, kMaxLength) : text;
+        text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     const float ascender   = atlas.getAscender(passTargetSize);
     float       penX       = position.x;
@@ -127,7 +127,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             const float uRight  = glyphInfo->uvLeft + glyphInfo->uvWidth;
             const float vBottom = glyphInfo->uvTop + glyphInfo->uvHeight;
 
-            const std::array<glm::vec2, kVertexCount> vertices{
+            const std::array<glm::vec2, vertexCount> vertices{
                 { { xpos, ypos + glyphHeight },
                   { uLeft, vBottom },
                   { xpos, ypos },
@@ -140,16 +140,16 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
 
             std::copy(vertices.begin(), vertices.end(),
                       batchVertices.begin() +
-                          static_cast<ptrdiff_t>(glyphCount * kVertexCount));
+                          static_cast<ptrdiff_t>(glyphCount * vertexCount));
 
-            const std::array<uint32_t, kIndexCount> indices = {
+            const std::array<uint32_t, indexCount> indices = {
                 glyphCount * 4, (glyphCount * 4) + 2, (glyphCount * 4) + 1,
                 glyphCount * 4, (glyphCount * 4) + 3, (glyphCount * 4) + 2
             };
 
             std::copy(indices.begin(), indices.end(),
                       batchIndices.begin() +
-                          static_cast<ptrdiff_t>(glyphCount * kIndexCount));
+                          static_cast<ptrdiff_t>(glyphCount * indexCount));
             glyphCount++;
         }
 
@@ -163,10 +163,10 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     shader->setFloat3("textColor", color);
 
     vbo->update(batchVertices.data(),
-                glyphCount * kVertexCount * sizeof(glm::vec2));
-    ebo->update(batchIndices.data(), glyphCount * kIndexCount);
+                glyphCount * vertexCount * sizeof(glm::vec2));
+    ebo->update(batchIndices.data(), glyphCount * indexCount);
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(glyphCount * kIndexCount),
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(glyphCount * indexCount),
                    GL_UNSIGNED_INT, nullptr);
 }
 

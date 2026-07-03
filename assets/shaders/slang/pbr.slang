@@ -1,6 +1,22 @@
 // pbr.slang — PBR vertex + fragment shader
 #include "include/uniforms.slang"
 #include "include/shadows.slang"
+#include "include/clustered.slang"
+#include "include/dither.slang"
+
+struct PointLightGPU
+{
+    float3 color;
+    float  pad0;
+    float3 position;
+    int    attenuationIndex;
+    float4 pad1;
+}
+
+[[vk::binding(3)]] StructuredBuffer<PointLightGPU> lightBuffer;
+[[vk::binding(4)]] StructuredBuffer<uint2>         lightGrid;
+[[vk::binding(5)]] StructuredBuffer<uint>          lightIndices;
+
 
 struct VSInput
 {
@@ -31,12 +47,11 @@ VSOutput vertMain(VSInput input)
     return output;
 }
 
-// Explicit binding pins the texture unit the C++ side binds to.
 [[vk::binding(0)]] Sampler2D<float4> texture_diffuse1;
 [[vk::binding(1)]] Sampler2D<float2> shadowMap;
 
 [shader("fragment")]
-float4 fragMain(VSOutput input) : SV_Target
+float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target
 {
     float3 texColor = pow(texture_diffuse1.Sample(input.texCoords).rgb, float3(2.2));
     float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
@@ -54,10 +69,28 @@ float4 fragMain(VSOutput input) : SV_Target
     }
     Lo += dirContrib * (1.0 - shadow) * float(params.directionalLight.enabled);
 
-    // Point lights
-    for (int i = 0; i < params.numLights; i++)
+    // Clustered point lights
+    if (params.numLights > 0)
     {
-        Lo += evaluatePBR(params.pointLights[i], input.worldPosition, albedo, N, V, params.metallic, params.roughness);
+        float viewZ    = dot(input.worldPosition - params.viewPos,
+                             params.viewForward);
+        int   ci       = clusterIndex(fragCoord.xy, viewZ,
+                                      params.screenSize,
+                                      params.clusterNear, params.farPlane,
+                                      params.tilesZ);
+        uint2 tile     = lightGrid[ci];
+        uint  tileEnd  = tile.x + tile.y;
+        for (uint j = tile.x; j < tileEnd; ++j)
+        {
+            uint          li    = lightIndices[j];
+            PointLightGPU gpu   = lightBuffer[li];
+            PointLight    pl;
+            pl.color            = gpu.color;
+            pl.position         = gpu.position;
+            pl.attenuationIndex = gpu.attenuationIndex;
+            Lo += evaluatePBR(pl, input.worldPosition, albedo, N, V,
+                              params.metallic, params.roughness);
+        }
     }
 
     float3 ambient = float3(params.ambientStrength) * albedo * params.ao;
@@ -68,6 +101,8 @@ float4 fragMain(VSOutput input) : SV_Target
 
     // Gamma correction
     color = pow(color, float3(1.0 / 2.2));
+
+    color = dither8(color, fragCoord.xy);
 
     return float4(color + params.emissive, 1.0);
 }

@@ -347,10 +347,10 @@ void InputManager::buildDefaultBindings() {
     auto& menu     = bindingMaps[+InputContext::Menu];
     auto& gameplay = bindingMaps[+InputContext::Gameplay];
 
-    constexpr float kSpeed = 0.075f;  // keyboard movement speed
-    constexpr float mSpeed = 0.125f;  // mouse look sensitivity
-    constexpr float gpLook = 0.5f;    // gamepad look sensitivity
-    constexpr float gpDZ   = 0.2f;    // gamepad axis deadzone
+    constexpr float keyboardSpeed   = 0.075f;  // keyboard movement speed
+    constexpr float mouseSpeed      = 0.125f;  // mouse look sensitivity
+    constexpr float gamepadLook     = 0.5f;    // gamepad look sensitivity
+    constexpr float gamepadDeadZone = 0.2f;    // gamepad axis deadzone
 
     // ── Menu ──────────────────────────────────────────────────────────────
     menu[+GameAction::MenuUp] = {
@@ -366,7 +366,7 @@ void InputManager::buildDefaultBindings() {
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
                       .axisScale = -1.f,
-                      .deadzone  = gpDZ },
+                      .deadzone  = gamepadDeadZone },
     };
     menu[+GameAction::MenuDown] = {
         InputBinding{ .type      = BindingType::Key,
@@ -381,7 +381,7 @@ void InputManager::buildDefaultBindings() {
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
                       .axisScale = 1.f,
-                      .deadzone  = gpDZ },
+                      .deadzone  = gamepadDeadZone },
     };
     menu[+GameAction::MenuLeft] = {
         InputBinding{ .type      = BindingType::Key,
@@ -432,64 +432,66 @@ void InputManager::buildDefaultBindings() {
     gameplay[+GameAction::MoveForward] = {
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_W,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_Up,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = -kSpeed,
-                      .deadzone  = gpDZ },
+                      .axisScale = -keyboardSpeed,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::MoveBack] = {
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_S,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_Down,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = kSpeed,
-                      .deadzone  = gpDZ },
+                      .axisScale = keyboardSpeed,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::MoveLeft] = {
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_A,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_Left,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
-                      .axisScale = -kSpeed,
-                      .deadzone  = gpDZ },
+                      .axisScale = -keyboardSpeed,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::MoveRight] = {
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_D,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::Key,
                       .rawCode   = +KeyCode::SpongeKey_Right,
-                      .axisScale = kSpeed },
+                      .axisScale = keyboardSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
-                      .axisScale = kSpeed,
-                      .deadzone  = gpDZ },
+                      .axisScale = keyboardSpeed,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::LookHorizontal] = {
-        InputBinding{ .type = BindingType::MouseAxisX, .axisScale = mSpeed },
+        InputBinding{ .type      = BindingType::MouseAxisX,
+                      .axisScale = mouseSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_X,
-                      .axisScale = gpLook,
-                      .deadzone  = gpDZ },
+                      .axisScale = gamepadLook,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::LookVertical] = {
-        InputBinding{ .type = BindingType::MouseAxisY, .axisScale = mSpeed },
+        InputBinding{ .type      = BindingType::MouseAxisY,
+                      .axisScale = mouseSpeed },
         InputBinding{ .type      = BindingType::GamepadAxis,
                       .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_Y,
-                      .axisScale = gpLook,
-                      .deadzone  = gpDZ },
+                      .axisScale = gamepadLook,
+                      .deadzone  = gamepadDeadZone },
     };
     gameplay[+GameAction::Pause] = {
         InputBinding{ .type      = BindingType::Key,

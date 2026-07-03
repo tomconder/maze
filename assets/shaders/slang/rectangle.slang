@@ -1,5 +1,5 @@
 // rectangle.slang — UI rounded-rect vertex + SDF fragment shader
-#include "include/uniforms.slang"
+#include "include/ui_uniforms.slang"
 
 struct VSInput
 {
