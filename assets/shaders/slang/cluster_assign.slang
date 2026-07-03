@@ -21,14 +21,17 @@ struct ClusterAABB
     float  padMax;
 }
 
-// Must match ComputeParams in clusteredlights.hpp.
+// Must match ComputeParams in clusteredlights.hpp. View passed as explicit
+// rows — SSBO matrix layout on nested structs is driver-inconsistent.
 struct ComputeParams
 {
-    float4x4 view;
-    float    near;
-    float    far;
-    int      numLights;
-    int      pad;
+    float4 viewRow0;
+    float4 viewRow1;
+    float4 viewRow2;
+    float  near;
+    float  far;
+    int    numLights;
+    int    pad;
 }
 
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU>  lightBuffer;    // read
@@ -53,7 +56,9 @@ void csMain(uint3 tid : SV_DispatchThreadID)
 
     for (int i = 0; i < p.numLights && count < MAX_LIGHTS_PER_CLUSTER; ++i)
     {
-        float3 vsPos = mul(p.view, float4(lightBuffer[i].position, 1.0)).xyz;
+        float4 wp    = float4(lightBuffer[i].position, 1.0);
+        float3 vsPos = float3(dot(p.viewRow0, wp), dot(p.viewRow1, wp),
+                              dot(p.viewRow2, wp));
 
         int   aidx = clamp(lightBuffer[i].attenuationIndex, 0, 10);
         float r    = attenuationRadius[aidx];

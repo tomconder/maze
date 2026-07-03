@@ -8,7 +8,9 @@ float shadowEVSM(
 {
     float3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
     proj = proj * 0.5 + 0.5;
-    if (proj.z > 1.0 || proj.z < 0.0)
+    // Outside the shadow frustum (xy or z) there is no occlusion information;
+    // sampling clamped edge texels would falsely shadow everything beyond it.
+    if (any(proj < 0.0) || any(proj > 1.0))
     {
         return 0.0;
     }

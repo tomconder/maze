@@ -118,8 +118,11 @@ void ClusteredLights::update(const glm::vec3* positions,
     lightBuffer.update(gpuLights.data(), static_cast<std::size_t>(numLights) *
                                              sizeof(PointLightGPU));
 
+    // glm is column-major: row r of the view matrix is (view[c][r] for c 0..3).
     const ComputeParams params{
-        .view      = view,
+        .viewRow0  = { view[0][0], view[1][0], view[2][0], view[3][0] },
+        .viewRow1  = { view[0][1], view[1][1], view[2][1], view[3][1] },
+        .viewRow2  = { view[0][2], view[1][2], view[2][2], view[3][2] },
         .near      = near,
         .far       = far,
         .numLights = numLights,

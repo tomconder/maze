@@ -1,5 +1,6 @@
 // fxaa.slang — fullscreen quad vertex + FXAA 3.11 (quality preset 12) + bloom overlay
 // FXAA based on Timothy Lottes / NVIDIA, adapted to Slang.
+#include "include/dither.slang"
 
 struct VSInput
 {
@@ -155,12 +156,13 @@ float4 fxaaPass(float2 uv)
 struct FSInput { float2 texCoords : TEXCOORD0; }
 
 [shader("fragment")]
-float4 fragMain(FSInput input) : SV_Target
+float4 fragMain(FSInput input, float4 fragCoord : SV_Position) : SV_Target
 {
     float4 color = fxaaPass(input.texCoords);
     if (bloomIntensity > 0.0)
     {
         color.rgb += bloomTex.Sample(input.texCoords).rgb * bloomIntensity;
     }
+    color.rgb = dither8(color.rgb, fragCoord.xy);
     return color;
 }

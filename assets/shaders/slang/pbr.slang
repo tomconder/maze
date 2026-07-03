@@ -2,6 +2,7 @@
 #include "include/uniforms.slang"
 #include "include/shadows.slang"
 #include "include/clustered.slang"
+#include "include/dither.slang"
 
 struct PointLightGPU
 {
@@ -15,6 +16,7 @@ struct PointLightGPU
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU> lightBuffer;
 [[vk::binding(4)]] StructuredBuffer<uint2>         lightGrid;
 [[vk::binding(5)]] StructuredBuffer<uint>          lightIndices;
+
 
 struct VSInput
 {
@@ -70,7 +72,9 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target
     // Clustered point lights
     if (params.numLights > 0)
     {
-        int   ci       = clusterIndex(fragCoord.xy, fragCoord.z,
+        float viewZ    = dot(input.worldPosition - params.viewPos,
+                             params.viewForward);
+        int   ci       = clusterIndex(fragCoord.xy, viewZ,
                                       params.screenSize,
                                       params.nearPlane, params.farPlane);
         uint2 tile     = lightGrid[ci];
@@ -96,6 +100,8 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target
 
     // Gamma correction
     color = pow(color, float3(1.0 / 2.2));
+
+    color = dither8(color, fragCoord.xy);
 
     return float4(color + params.emissive, 1.0);
 }

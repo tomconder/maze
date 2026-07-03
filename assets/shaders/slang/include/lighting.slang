@@ -13,6 +13,13 @@ static const float3 lightAttenuation[11] = {
     float3(1.0, 0.007, 0.0002)
 };
 
+// Culling radii (world units) per attenuation index. Radiance is windowed to
+// zero at this radius so cluster culling produces no visible seams.
+static const float attenuationRadius[11] = {
+    7.0,  13.0,  20.0,  32.0,  50.0,  65.0,
+    100.0, 160.0, 200.0, 325.0, 600.0
+};
+
 // ---------------------------------------------------------------------------
 // Light interface — all light types conform to this.
 // evaluatePBR<L:ILight>() is monomorphized per concrete type at compile time.
@@ -60,7 +67,12 @@ extension PointLight : ILight
         int    idx  = clamp(attenuationIndex, 0, 10);
         float3 att  = lightAttenuation[idx];
         float  atten = 1.0 / (att.x + att.y * dist + att.z * dist * dist);
-        return color * atten;
+        // Window to zero at the culling radius (Karis falloff) so lights
+        // culled per-cluster never leave a hard seam at cluster boundaries.
+        float  dr     = dist / attenuationRadius[idx];
+        float  dr2    = dr * dr;
+        float  window = saturate(1.0 - dr2 * dr2);
+        return color * atten * window * window;
     }
 }
 

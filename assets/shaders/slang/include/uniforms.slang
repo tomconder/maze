@@ -37,5 +37,6 @@ struct PbrParams
     float            nearPlane;
     float            farPlane;
     float2           screenSize;
+    float3           viewForward;  // world-space camera forward, normalized
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;

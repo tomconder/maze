@@ -199,19 +199,25 @@ void Bloom::process(const float threshold) const {
     }
     downShader->unbind();
 
-    // Upsample: from deepest down level back up to up[0]
+    // Upsample: from deepest down level back up to up[0], accumulating each
+    // level's downsample so the coarsest mip's texel structure never shows.
     upShader->bind();
     upShader->setFloat("offset", 1.0F);
     for (int i = numLevels - 1; i >= 0; i--) {
         glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
+        upShader->setFloat("accumulate", i == numLevels - 1 ? 0.F : 1.F);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, downTextures[i]);
+        glActiveTexture(GL_TEXTURE0);
         const uint32_t src =
             (i == numLevels - 1) ? downTextures[i] : upTextures[i + 1];
         glBindTexture(GL_TEXTURE_2D, src);
         renderQuad();
     }
     upShader->unbind();
+    glActiveTexture(GL_TEXTURE0);
 
     glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

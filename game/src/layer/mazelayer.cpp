@@ -636,6 +636,10 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                       glm::vec2(static_cast<float>(frame.screenWidth),
                                 static_cast<float>(frame.screenHeight)));
     shader->setFloat3("viewPos", frame.cameraPos);
+    // World-space camera forward = -(third row of the view matrix).
+    shader->setFloat3("viewForward",
+                      -glm::vec3(frame.cameraView[0][2], frame.cameraView[1][2],
+                                 frame.cameraView[2][2]));
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);

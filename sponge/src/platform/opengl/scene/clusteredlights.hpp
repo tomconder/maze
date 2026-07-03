@@ -20,8 +20,10 @@ public:
     static constexpr int tilesY      = 9;
     static constexpr int tilesZ      = 24;
     static constexpr int numClusters = tilesX * tilesY * tilesZ;
-    static constexpr int maxLightsPerCluster =
-        128;  // must match MAX_LIGHTS_PER_CLUSTER
+    // Must match MAX_LIGHTS_PER_CLUSTER in clustered.slang. Sized >= the max
+    // scene light count so per-cluster truncation (visible cluster seams)
+    // cannot occur. ~7 MB of index storage at 512.
+    static constexpr int maxLightsPerCluster = 512;
 
     ClusteredLights(float near, float far);
 
@@ -54,16 +56,20 @@ private:
     };
     static_assert(sizeof(ClusterAABB) == 32);
 
-    // std430 layout, 80 bytes — must match ComputeParams in
-    // cluster_assign.comp.glsl
+    // std430 layout, 64 bytes — must match ComputeParams in
+    // cluster_assign.slang. The view transform is passed as explicit rows
+    // (not a mat4): SSBO matrix layout qualifiers on nested structs are
+    // driver-inconsistent, and a transposed read silently breaks culling.
     struct ComputeParams {
-        glm::mat4 view{ 1.F };
+        glm::vec4 viewRow0{ 0.F };
+        glm::vec4 viewRow1{ 0.F };
+        glm::vec4 viewRow2{ 0.F };
         float     near{ 0.F };
         float     far{ 0.F };
         int       numLights{ 0 };
         int       pad{ 0 };
     };
-    static_assert(sizeof(ComputeParams) == 80);
+    static_assert(sizeof(ComputeParams) == 64);
 
     // Precomputes view-space AABBs for all clusters from the projection matrix.
     // Called once per unique projection (e.g., on FOV/resize change).

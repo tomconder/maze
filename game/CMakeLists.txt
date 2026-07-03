@@ -170,9 +170,10 @@ if (CMAKE_SKIP_INSTALL_RULES)
 endif ()
 
 if (APPLE)
-    add_custom_command(
-            TARGET game
-            POST_BUILD
+    # Always-run target (file(COPY) skips up-to-date files) so shader edits
+    # deploy even when the game target does not relink.
+    add_custom_target(
+            copy_assets
             COMMAND ${CMAKE_COMMAND}
                 -D DST_DIR=$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
                 -D EXCLUDE_SUBDIR=slang
@@ -181,6 +182,8 @@ if (APPLE)
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
+    add_dependencies(copy_assets compile_shaders)
+    add_dependencies(game copy_assets)
 
     install(TARGETS game BUNDLE DESTINATION .)
 
@@ -193,9 +196,10 @@ if (APPLE)
         fixup_bundle(\"${APPS}\" \"${LIBS}\" \"${DIRS}\"\)"
             COMPONENT Runtime)
 else ()
-    add_custom_command(
-            TARGET game
-            POST_BUILD
+    # Always-run target (file(COPY) skips up-to-date files) so shader edits
+    # deploy even when the game target does not relink.
+    add_custom_target(
+            copy_assets
             COMMAND ${CMAKE_COMMAND}
                 -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
                 -D EXCLUDE_SUBDIR=slang
@@ -204,6 +208,8 @@ else ()
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
+    add_dependencies(copy_assets compile_shaders)
+    add_dependencies(game copy_assets)
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
