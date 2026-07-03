@@ -464,7 +464,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
-    quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
+    quad->render({ 0.F, 0.F }, { width, height }, { 0.F, 0.F, 0.F, .5F });
+    UNUSED(backgroundColor);
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
         getNodeLayout(rootNode, 0.F, 0.F);

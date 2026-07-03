@@ -212,6 +212,10 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         wasActiveLastFrame = true;
     }
 
+    if (Maze::get().getOptionLayer()->isActive()) {
+        return isRunning;
+    }
+
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
