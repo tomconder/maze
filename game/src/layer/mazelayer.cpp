@@ -26,7 +26,8 @@ constexpr auto cubeScale = glm::vec3(.1F);
 
 constexpr std::string_view cameraName = "maze";
 
-constexpr int32_t maxPointLights = 500;
+constexpr int32_t maxPointLights =
+    sponge::platform::opengl::scene::ClusteredLights::maxLights;
 
 game::scene::DirectionalLight                       directionalLight;
 std::array<game::scene::PointLight, maxPointLights> pointLights;
@@ -290,11 +291,11 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
     }
 
-    frame.numLights = numLights;
+    frame.numLights             = numLights;
+    frame.lightAttenuationIndex = attenuationIndex;
     for (int32_t i = 0; i < numLights; i++) {
-        frame.lightPositions[i]          = pointLights.at(i).position;
-        frame.lightColors[i]             = pointLights.at(i).color;
-        frame.lightAttenuationIndices[i] = pointLights.at(i).attenuationIndex;
+        frame.lightPositions[i] = pointLights.at(i).position;
+        frame.lightColors[i]    = pointLights.at(i).color;
     }
 
     frame.fxaaEnabled    = fxaaEnabled;
@@ -353,18 +354,15 @@ void MazeLayer::onRender() {
         renderSceneToDepthMap(frame);
     }
 
-    // Phase 2: depth prepass (also marks active volume tiles)
-    if (clusteredLights) {
-        clusteredLights->prepare(frame.cameraProjection);
-    }
+    // Phase 2: depth prepass
     renderDepthPrepass(frame);
 
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
         clusteredLights->update(frame.lightPositions.data(),
                                 frame.lightColors.data(),
-                                frame.lightAttenuationIndices.data(),
-                                frame.numLights, frame.cameraView);
+                                frame.lightAttenuationIndex, frame.numLights,
+                                frame.cameraView, frame.cameraProjection);
     }
 
     // Phase 4: opaque pass
@@ -538,7 +536,7 @@ int32_t MazeLayer::getNumLights() const {
 }
 
 void MazeLayer::setNumLights(const int32_t val) {
-    numLights = val;
+    numLights = std::clamp(val, 0, maxPointLights);
 
     std::mt19937                          rng(42U);
     std::uniform_real_distribution<float> jitterAngle(-0.4F, 0.4F);
@@ -555,7 +553,6 @@ void MazeLayer::setNumLights(const int32_t val) {
         light.position =
             glm::vec3(rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
                       glm::vec4(0.F, 2.75F, -radius, 1.F));
-        light.attenuationIndex = attenuationIndex;
     }
 
     const auto shader = Mesh::getShader();
@@ -641,8 +638,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     shader->setFloat3("viewForward",
                       -glm::vec3(frame.cameraView[0][2], frame.cameraView[1][2],
                                  frame.cameraView[2][2]));
-    shader->setInteger("tilesZ",
-                       clusteredLights ? clusteredLights->getTilesZ() : 1);
+    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
@@ -699,20 +695,9 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     depthPrepassShader->bind();
-    depthPrepassShader->setFloat2(
-        "screenSize", glm::vec2(static_cast<float>(frame.screenWidth),
-                                static_cast<float>(frame.screenHeight)));
-    depthPrepassShader->setFloat(
-        "clusterNear",
-        sponge::platform::opengl::scene::ClusteredLights::clusterNear);
-    depthPrepassShader->setFloat("clusterFar", frame.farPlane);
-    depthPrepassShader->setInteger(
-        "tilesZ", clusteredLights ? clusteredLights->getTilesZ() : 1);
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
         depthPrepassShader->setMat4("mvp", frame.cameraMVP *
                                                frame.objectModelMatrices[i]);
-        depthPrepassShader->setMat4(
-            "modelView", frame.cameraView * frame.objectModelMatrices[i]);
         frame.objectModels[i]->render(depthPrepassShader);
     }
     depthPrepassShader->unbind();

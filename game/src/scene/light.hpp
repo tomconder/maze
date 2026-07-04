@@ -14,7 +14,6 @@ struct DirectionalLight {
 struct PointLight {
     glm::vec3 color;
     glm::vec3 position;
-    uint32_t  attenuationIndex;
 };
 
 class Light {

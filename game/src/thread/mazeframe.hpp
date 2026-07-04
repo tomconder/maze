@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform/opengl/scene/clusteredlights.hpp"
 #include "platform/opengl/scene/model.hpp"
 
 #include <glm/glm.hpp>
@@ -35,11 +36,14 @@ struct MazeRenderFrame {
     glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
     glm::mat4 lightSpaceMatrix{ 1.F };
 
-    // Point lights (up to 500)
-    int32_t                    numLights{ 0 };
-    std::array<glm::vec3, 500> lightPositions{};
-    std::array<glm::vec3, 500> lightColors{};
-    std::array<int32_t, 500>   lightAttenuationIndices{};
+    static constexpr size_t maxLights = static_cast<size_t>(
+        sponge::platform::opengl::scene::ClusteredLights::maxLights);
+
+    // Point lights (one attenuation index shared by all)
+    int32_t                          numLights{ 0 };
+    int32_t                          lightAttenuationIndex{ 0 };
+    std::array<glm::vec3, maxLights> lightPositions{};
+    std::array<glm::vec3, maxLights> lightColors{};
 
     // Game objects: model matrices and resolved model handles. Handles are
     // resolved once at load; no per-frame name lookup.

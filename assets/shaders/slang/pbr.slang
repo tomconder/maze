@@ -8,8 +8,7 @@ struct PointLightGPU {
     float3 color;
     float  pad0;
     float3 position;
-    int    attenuationIndex;
-    float4 pad1;
+    float  pad1;
 };
 
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU> lightBuffer;
@@ -72,8 +71,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
                             params.viewForward);
         int   ci      = clusterIndex(fragCoord.xy, viewZ,
                                      params.screenSize,
-                                     params.clusterNear, params.farPlane,
-                                     params.tilesZ);
+                                     params.clusterNear, params.farPlane);
         uint2 tile    = lightGrid[ci];
         uint  tileEnd = tile.x + tile.y;
         for (uint j = tile.x; j < tileEnd; ++j) {
@@ -82,7 +80,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
             PointLight    pl;
             pl.color            = gpu.color;
             pl.position         = gpu.position;
-            pl.attenuationIndex = gpu.attenuationIndex;
+            pl.attenuationIndex = params.attenuationIndex;
             Lo += evaluatePBR(pl, input.worldPosition, albedo, N, V,
                               params.metallic, params.roughness);
         }
