@@ -214,11 +214,15 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
                        static_cast<int>(text.size()));
     hb_buffer_guess_segment_properties(buffer);
 
+    // liga/clig/calt off so shaping never substitutes glyph indices the
+    // atlas did not bake (e.g. Inter calt swaps multiply for multiply.case
+    // between digits, which would render as nothing)
     const hb_feature_t features[] = {
         { HB_TAG('l', 'i', 'g', 'a'), 0, 0, UINT_MAX },
         { HB_TAG('c', 'l', 'i', 'g'), 0, 0, UINT_MAX },
+        { HB_TAG('c', 'a', 'l', 't'), 0, 0, UINT_MAX },
     };
-    hb_shape(hbFont, buffer, features, 2);
+    hb_shape(hbFont, buffer, features, 3);
 
     unsigned int     glyphCount = 0;
     hb_glyph_info_t* glyphInfos =
