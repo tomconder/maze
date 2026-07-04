@@ -10,10 +10,11 @@ A game engine featuring a nice walk through a maze.
 * Physically based rendering (PBR)
 * Cook-Torrance microfacet specular BRDF
 * Point lights and directional light
+* Clustered (volume-tiled) light culling with a compute shader
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Reinhard tone mapping
 * Fast approximate anti-aliasing (FXAA)
-* Multi-channel signed distance field (MSDF) text rendering
+* FreeType + HarfBuzz text rendering with LCD subpixel anti-aliasing and subpixel positioning
 * Performance profiling with Tracy
 * Gamepad support
 

@@ -45,6 +45,11 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
 
     FT_Library_SetLcdFilter(ftLibrary, FT_LCD_FILTER_DEFAULT);
 
+    // thicken stems to compensate for coverage loss in gamma-unaware blending
+    FT_Bool noStemDarkening = 0;
+    FT_Property_Set(ftLibrary, "autofitter", "no-stem-darkening",
+                    &noStemDarkening);
+
     if (faces.empty()) {
         return;
     }
@@ -57,6 +62,7 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
     struct PendingGlyph {
         char32_t             codepoint;
         uint32_t             size;
+        uint32_t             phase;
         GlyphInfo            glyphInfo;
         std::vector<uint8_t> bitmap;
         int                  bitmapWidth;
@@ -75,13 +81,21 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         ascenders[size] =
             static_cast<float>(ftFace->size->metrics.ascender >> 6);
 
-        auto rasterizeGlyph = [&](const char32_t codepoint) {
+        auto rasterizeGlyph = [&](const char32_t codepoint,
+                                  const uint32_t phase) {
             if (FT_Load_Char(ftFace, codepoint,
-                             FT_LOAD_RENDER | FT_LOAD_TARGET_LCD) != 0) {
+                             FT_LOAD_TARGET_LIGHT | FT_LOAD_NO_BITMAP) != 0) {
                 return;
             }
 
             const FT_GlyphSlot glyphSlot = ftFace->glyph;
+            // shift outline by phase/4 pixel (26.6 fixed point) before
+            // rasterizing so each phase bakes a distinct subpixel position
+            FT_Outline_Translate(&glyphSlot->outline,
+                                 static_cast<FT_Pos>(phase * 16), 0);
+            if (FT_Render_Glyph(glyphSlot, FT_RENDER_MODE_LCD) != 0) {
+                return;
+            }
             const int lcdWidth     = static_cast<int>(glyphSlot->bitmap.width);
             const int bitmapPitch  = std::abs(glyphSlot->bitmap.pitch);
             const int bitmapWidth  = lcdWidth / 3;
@@ -92,16 +106,16 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             glyphInfo.bearingY = glyphSlot->bitmap_top;
             glyphInfo.width    = bitmapWidth;
             glyphInfo.height   = bitmapHeight;
-            glyphInfo.advanceX = static_cast<float>(glyphSlot->advance.x >> 6);
 
             if (bitmapWidth == 0 || bitmapHeight == 0) {
-                glyphs[glyphKey(codepoint, size)] = glyphInfo;
+                glyphs[glyphKey(codepoint, size, phase)] = glyphInfo;
                 return;
             }
 
             PendingGlyph pendingGlyph;
             pendingGlyph.codepoint    = codepoint;
             pendingGlyph.size         = size;
+            pendingGlyph.phase        = phase;
             pendingGlyph.glyphInfo    = glyphInfo;
             pendingGlyph.bitmapWidth  = bitmapWidth;
             pendingGlyph.bitmapHeight = bitmapHeight;
@@ -123,16 +137,21 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
             rects.push_back(rect);
         };
 
-        for (char32_t codepoint = firstGlyph; codepoint <= lastGlyph;
-             codepoint++) {
-            rasterizeGlyph(codepoint);
-        }
-        for (const char32_t codepoint : supplementalGlyphs) {
-            rasterizeGlyph(codepoint);
+        for (uint32_t phase = 0; phase < subpixelPhases; phase++) {
+            for (char32_t codepoint = firstGlyph; codepoint <= lastGlyph;
+                 codepoint++) {
+                rasterizeGlyph(codepoint, phase);
+            }
+            for (const char32_t codepoint : supplementalGlyphs) {
+                rasterizeGlyph(codepoint, phase);
+            }
         }
 
         hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
-        hbFonts[size]     = hbFont;
+        // unhinted metrics keep advances fractional; light hinting would
+        // round them to whole pixels and defeat subpixel positioning
+        hb_ft_font_set_load_flags(hbFont, FT_LOAD_NO_HINTING);
+        hbFonts[size] = hbFont;
     }
 
     textureWidth  = atlasSize;
@@ -178,7 +197,8 @@ void FontAtlas::build(const std::vector<FontFaceSpec>& faces,
         glyphInfo.uvHeight = static_cast<float>(pendingGlyph.bitmapHeight) /
                              static_cast<float>(textureHeight);
 
-        glyphs[glyphKey(pendingGlyph.codepoint, pendingGlyph.size)] = glyphInfo;
+        glyphs[glyphKey(pendingGlyph.codepoint, pendingGlyph.size,
+                        pendingGlyph.phase)] = glyphInfo;
     }
 }
 
@@ -228,7 +248,7 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
         }
 
         ShapedGlyph shapedGlyph{};
-        shapedGlyph.glyphInfo = getGlyph(codepoint, size);
+        shapedGlyph.codepoint = codepoint;
         shapedGlyph.xAdvance =
             static_cast<float>(positions[index].x_advance) / 64.0F;
         shapedGlyph.xOffset =
@@ -243,8 +263,9 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
 }
 
 const GlyphInfo* FontAtlas::getGlyph(const char32_t codepoint,
-                                     const uint32_t size) const {
-    const auto iter = glyphs.find(glyphKey(codepoint, size));
+                                     const uint32_t size,
+                                     const uint32_t phase) const {
+    const auto iter = glyphs.find(glyphKey(codepoint, size, phase));
     return iter != glyphs.end() ? &iter->second : nullptr;
 }
 

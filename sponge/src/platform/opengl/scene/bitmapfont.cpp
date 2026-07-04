@@ -3,8 +3,10 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <string_view>
 
 namespace {
@@ -87,7 +89,7 @@ uint32_t BitmapFont::getLength(const std::string_view text,
         penX += shapedGlyph.xAdvance;
     }
 
-    return static_cast<uint32_t>(penX);
+    return static_cast<uint32_t>(std::lround(penX));
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
@@ -113,12 +115,23 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const auto  shaped     = atlas.shape(str, passTargetSize);
 
     for (const auto& shapedGlyph : shaped) {
-        const sponge::scene::GlyphInfo* glyphInfo = shapedGlyph.glyphInfo;
+        // quad sits on the whole pixel; the fractional remainder picks the
+        // subpixel-shifted bitmap baked for that phase
+        const float glyphX = penX + shapedGlyph.xOffset;
+        const float xfloor = std::floor(glyphX);
+        const auto  phase  = std::min(
+            sponge::scene::FontAtlas::subpixelPhases - 1,
+            static_cast<uint32_t>(
+                (glyphX - xfloor) *
+                static_cast<float>(sponge::scene::FontAtlas::subpixelPhases)));
+
+        const sponge::scene::GlyphInfo* glyphInfo =
+            atlas.getGlyph(shapedGlyph.codepoint, passTargetSize, phase);
         if (glyphInfo && glyphInfo->width > 0 && glyphInfo->height > 0) {
-            const float xpos = penX + shapedGlyph.xOffset +
-                               static_cast<float>(glyphInfo->bearingX);
-            const float ypos = position.y - shapedGlyph.yOffset + ascender -
-                               static_cast<float>(glyphInfo->bearingY);
+            const float xpos = xfloor + static_cast<float>(glyphInfo->bearingX);
+            const float ypos =
+                std::round(position.y - shapedGlyph.yOffset + ascender) -
+                static_cast<float>(glyphInfo->bearingY);
             const float glyphWidth  = static_cast<float>(glyphInfo->width);
             const float glyphHeight = static_cast<float>(glyphInfo->height);
 
