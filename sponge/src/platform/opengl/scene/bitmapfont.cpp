@@ -14,8 +14,22 @@ constexpr size_t maxLength   = 256;
 constexpr size_t indexCount  = 6;
 constexpr size_t vertexCount = 8;
 
-std::array<uint32_t, maxLength * indexCount>   batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
+
+// quad index pattern is fixed, so the index buffer is filled once at startup
+std::array<uint32_t, maxLength * indexCount> makeQuadIndices() {
+    std::array<uint32_t, maxLength * indexCount> indices;
+    for (uint32_t quad = 0; quad < maxLength; quad++) {
+        const uint32_t base            = quad * 4;
+        indices[quad * indexCount]     = base;
+        indices[quad * indexCount + 1] = base + 2;
+        indices[quad * indexCount + 2] = base + 1;
+        indices[quad * indexCount + 3] = base;
+        indices[quad * indexCount + 4] = base + 3;
+        indices[quad * indexCount + 5] = base + 2;
+    }
+    return indices;
+}
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -39,8 +53,9 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
         nullptr, maxLength * vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = std::make_unique<renderer::IndexBuffer>(
-        nullptr, maxLength * indexCount * sizeof(uint32_t));
+    const auto quadIndices = makeQuadIndices();
+    ebo                    = std::make_unique<renderer::IndexBuffer>(
+        quadIndices.data(), quadIndices.size() * sizeof(uint32_t));
     ebo->bind();
 
     constexpr uint32_t pos = 0;
@@ -53,7 +68,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     shader->unbind();
 
     const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
-    atlas.build({ { ttfPath } }, { 16, 24, 32, 48 });
+    atlas.build(ttfPath, { 16, 24, 32, 48 });
 
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -126,7 +141,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
                 static_cast<float>(sponge::scene::FontAtlas::subpixelPhases)));
 
         const sponge::scene::GlyphInfo* glyphInfo =
-            atlas.getGlyph(shapedGlyph.codepoint, passTargetSize, phase);
+            atlas.getGlyph(shapedGlyph.glyphIndex, passTargetSize, phase);
         if (glyphInfo && glyphInfo->width > 0 && glyphInfo->height > 0) {
             const float xpos = xfloor + static_cast<float>(glyphInfo->bearingX);
             const float ypos =
@@ -154,15 +169,6 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             std::copy(vertices.begin(), vertices.end(),
                       batchVertices.begin() +
                           static_cast<ptrdiff_t>(glyphCount * vertexCount));
-
-            const std::array<uint32_t, indexCount> indices = {
-                glyphCount * 4, (glyphCount * 4) + 2, (glyphCount * 4) + 1,
-                glyphCount * 4, (glyphCount * 4) + 3, (glyphCount * 4) + 2
-            };
-
-            std::copy(indices.begin(), indices.end(),
-                      batchIndices.begin() +
-                          static_cast<ptrdiff_t>(glyphCount * indexCount));
             glyphCount++;
         }
 
@@ -177,7 +183,6 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
 
     vbo->update(batchVertices.data(),
                 glyphCount * vertexCount * sizeof(glm::vec2));
-    ebo->update(batchIndices.data(), glyphCount * indexCount);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(glyphCount * indexCount),
                    GL_UNSIGNED_INT, nullptr);
