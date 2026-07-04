@@ -830,8 +830,7 @@ void OptionLayer::filterResolutions() {
     };
 
     auto filtered = availableResolutions | std::views::filter(matchesFilter);
-    filteredResolutions =
-        std::vector<sponge::core::Resolution>(filtered.begin(), filtered.end());
+    filteredResolutions = std::vector(filtered.begin(), filtered.end());
 
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
@@ -850,11 +849,10 @@ void OptionLayer::filterResolutions() {
             [&](const auto& r) {
                 return r.width == currentWidth && r.height == currentHeight;
             });
-        const auto idx =
-            it != filteredResolutions.end() ?
-                std::optional<size_t>{ static_cast<size_t>(
-                    std::distance(filteredResolutions.begin(), it)) } :
-                std::nullopt;
+        const auto idx = it != filteredResolutions.end() ?
+                             std::optional{ static_cast<size_t>(std::distance(
+                                 filteredResolutions.begin(), it)) } :
+                             std::nullopt;
         resolutionList->setSelectedIndex(idx.value_or(0));
         currentResolutionIndex = idx;
     } else {
@@ -924,7 +922,7 @@ void OptionLayer::updateChangeStatus() {
         const auto idx = findAspectRatioIndex(curW, curH);
         currentAspectRatioIndex =
             matchesAspectRatio(validAspectRatioFilters[idx], curW, curH) ?
-                std::optional<size_t>{ idx } :
+                std::optional{ idx } :
                 std::nullopt;
     } else {
         currentAspectRatioIndex = std::nullopt;
@@ -941,7 +939,7 @@ void OptionLayer::updateChangeStatus() {
             [&](const auto& r) { return r.width == curW && r.height == curH; });
         currentResolutionIndex =
             it != filteredResolutions.end() ?
-                std::optional<size_t>{ static_cast<size_t>(
+                std::optional{ static_cast<size_t>(
                     std::distance(filteredResolutions.begin(), it)) } :
                 std::nullopt;
     }
@@ -950,7 +948,7 @@ void OptionLayer::updateChangeStatus() {
         Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
     const auto sqIt = std::ranges::find(shadowResolutions, currentShadowRes);
     currentShadowResIndex = sqIt != shadowResolutions.end() ?
-                                std::optional<size_t>{ static_cast<size_t>(
+                                std::optional{ static_cast<size_t>(
                                     sqIt - shadowResolutions.begin()) } :
                                 std::nullopt;
     const bool shadowChanged =
