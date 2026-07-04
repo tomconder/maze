@@ -1,72 +1,66 @@
-#include "updatethread.hpp"
-
-#include <condition_variable>
-#include <functional>
-#include <mutex>
-#include <thread>
+#include "worker.hpp"
 
 namespace sponge::thread {
 
-UpdateThread::~UpdateThread() {
+Worker::~Worker() {
     if (thread.joinable()) {
         stop();
     }
 }
 
 // Start the worker thread. Must be called before kick().
-void UpdateThread::start() {
+void Worker::start() {
     thread = std::thread([this] {
         while (true) {
-            std::function<bool(double)> startTask;
-            double                      elapsed = 0.0;
+            std::function<bool()> currentTask;
 
             {
                 std::unique_lock lock(mutex);
+                // Predicate form guards against spurious wakeups
                 cv.wait(lock, [this] { return hasWork || shouldStop; });
 
                 if (shouldStop) {
                     return;
                 }
 
-                startTask = std::move(this->task);
-                elapsed   = elapsedTime;
-                hasWork   = false;
+                currentTask = std::move(task);
+                hasWork     = false;
             }
 
+            const bool taskResult = currentTask();
+
             {
-                const bool       startResult = startTask(elapsed);
                 std::scoped_lock lock(mutex);
-                this->result = startResult;
-                done         = true;
+                result = taskResult;
+                done   = true;
             }
             cv.notify_all();
         }
     });
 }
 
-// Assign work and wake the thread. Non-blocking returns immediately.
-// task(elapsedTime) returns false when the game loop should terminate.
-void UpdateThread::kick(const double                elapsed,
-                        std::function<bool(double)> newTask) {
+// Assign work and wake the thread. Returns immediately.
+// The task returns false when the game loop should terminate.
+void Worker::kick(std::function<bool()> newTask) {
     {
         std::scoped_lock lock(mutex);
-        elapsedTime = elapsed;
-        task        = std::move(newTask);
-        done        = false;
-        hasWork     = true;
+        task    = std::move(newTask);
+        done    = false;
+        hasWork = true;
     }
     cv.notify_one();
 }
 
 // Block until the current task completes. Returns the task's return value.
-bool UpdateThread::waitForComplete() {
+// Returns immediately if no task was kicked since the last wait.
+bool Worker::waitForComplete() {
     std::unique_lock lock(mutex);
     cv.wait(lock, [this] { return done || shouldStop; });
     return result;
 }
 
 // Signal the thread to exit and join it.
-void UpdateThread::stop() {
+void Worker::stop() {
     {
         std::scoped_lock lock(mutex);
         shouldStop = true;

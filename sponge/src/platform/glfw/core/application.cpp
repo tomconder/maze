@@ -13,7 +13,7 @@
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
-#include <array>
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -246,7 +246,9 @@ void Application::run() {
 
     // Render thread acquires GL context on first wake.
     bool renderContextAcquired = false;
-    renderThread.start([this, glfwWin, &renderContextAcquired] {
+
+    const std::function<bool()> renderTask = [this, glfwWin,
+                                              &renderContextAcquired] {
         if (!renderContextAcquired) {
             graphics->makeCurrent(glfwWin);
             renderContextAcquired = true;
@@ -283,15 +285,13 @@ void Application::run() {
         }
         imguiManager.end();
         graphics->flip(window->getNativeWindow());
-    });
+        return true;
+    };
 
-    // Start the two update worker threads.
-    updateThreads[0].start();
-    updateThreads[1].start();
+    renderThread.start();
+    updateThread.start();
 
-    SPONGE_CORE_INFO("Iterating loop (threaded: 2 update + 1 render)");
-
-    uint32_t frame = 0;
+    SPONGE_CORE_INFO("Iterating loop (threaded: 1 update + 1 render)");
 
     // Prime: frame 0 runs synchronously to give render thread a valid snapshot.
     mainTimer.tick();
@@ -304,18 +304,15 @@ void Application::run() {
     }
 
     // Warm up render thread (acquires GL context) before pipelined loop.
-    renderThread.kick();
-    renderThread.blockUntilRenderComplete();
-    frame++;
+    renderThread.kick(renderTask);
+    renderThread.waitForComplete();
 
-    // Pipelined loop: update[N] overlaps with render[N-1].
+    // Pipelined loop: update[N] overlaps with render[N].
     while (true) {
-        const uint32_t updateIdx = frame % 2;
-
         mainTimer.tick();
         // Must finish before poll: GLFW callbacks write ImGui's
         // InputEventsQueue; render thread reads it.
-        renderThread.blockUntilRenderComplete();
+        renderThread.waitForComplete();
         inputManager.recenterCursor();
         glfwPollEvents();
 
@@ -392,7 +389,7 @@ void Application::run() {
         }
 
         // Wait for update thread before writing new snapshot data.
-        const bool updateResult = updateThreads[updateIdx].waitForComplete();
+        const bool updateResult = updateThread.waitForComplete();
 
         // Now safe: all previous-frame reads of the snapshot are complete.
         inputManager.update();
@@ -410,23 +407,18 @@ void Application::run() {
         // Update elapsed time for render-thread layers.
         renderElapsedTime = elapsed;
 
-        // Game logic for this frame into renderFrames[updateIdx].
-        updateThreads[updateIdx].kick(elapsed, [this](const double dt) -> bool {
-            return onUserUpdate(dt);
-        });
+        // Game logic for frame N into the free snapshot slot.
+        updateThread.kick([this, elapsed] { return onUserUpdate(elapsed); });
 
-        // GPU work for frame N; overlaps with update[N+1].
-        renderThread.kick();
-
-        frame++;
+        // GPU work for frame N; overlaps with update[N].
+        renderThread.kick(renderTask);
     }
 
     // Drain in-flight render before stopping threads.
-    renderThread.blockUntilRenderComplete();
+    renderThread.waitForComplete();
 
     renderThread.stop();
-    updateThreads[0].stop();
-    updateThreads[1].stop();
+    updateThread.stop();
 
     // Reclaim GL context for shutdown.
     graphics->makeCurrent(glfwWin);
