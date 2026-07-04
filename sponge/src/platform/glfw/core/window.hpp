@@ -3,10 +3,10 @@
 #include "event/event.hpp"
 #include "logging/log.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include <functional>
 #include <vector>
+
+struct GLFWwindow;
 
 namespace sponge::platform::glfw::core {
 

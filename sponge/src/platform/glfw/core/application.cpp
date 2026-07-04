@@ -9,6 +9,7 @@
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 
+#include <GLFW/glfw3.h>
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 

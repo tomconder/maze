@@ -1,6 +1,6 @@
 #pragma once
 
-#include "platform/glfw/core/window.hpp"
+struct GLFWwindow;
 
 namespace sponge::platform::glfw::imgui {
 
