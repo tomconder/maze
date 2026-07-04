@@ -15,6 +15,7 @@ A game engine featuring a nice walk through a maze.
 * Reinhard tone mapping
 * Fast approximate anti-aliasing (FXAA)
 * FreeType + HarfBuzz text rendering with LCD subpixel anti-aliasing and subpixel positioning
+* Flexbox-based UI layout with Yoga
 * Performance profiling with Tracy
 
 ## Project Organization
