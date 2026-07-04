@@ -3,8 +3,10 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <string_view>
 
 namespace {
@@ -12,8 +14,22 @@ constexpr size_t maxLength   = 256;
 constexpr size_t indexCount  = 6;
 constexpr size_t vertexCount = 8;
 
-std::array<uint32_t, maxLength * indexCount>   batchIndices;
 std::array<glm::vec2, maxLength * vertexCount> batchVertices;
+
+// quad index pattern is fixed, so the index buffer is filled once at startup
+std::array<uint32_t, maxLength * indexCount> makeQuadIndices() {
+    std::array<uint32_t, maxLength * indexCount> indices;
+    for (uint32_t quad = 0; quad < maxLength; quad++) {
+        const uint32_t base            = quad * 4;
+        indices[quad * indexCount]     = base;
+        indices[quad * indexCount + 1] = base + 2;
+        indices[quad * indexCount + 2] = base + 1;
+        indices[quad * indexCount + 3] = base;
+        indices[quad * indexCount + 4] = base + 3;
+        indices[quad * indexCount + 5] = base + 2;
+    }
+    return indices;
+}
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -37,8 +53,9 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
         nullptr, maxLength * vertexCount * sizeof(glm::vec2));
     vbo->bind();
 
-    ebo = std::make_unique<renderer::IndexBuffer>(
-        nullptr, maxLength * indexCount * sizeof(uint32_t));
+    const auto quadIndices = makeQuadIndices();
+    ebo                    = std::make_unique<renderer::IndexBuffer>(
+        quadIndices.data(), quadIndices.size() * sizeof(uint32_t));
     ebo->bind();
 
     constexpr uint32_t pos = 0;
@@ -51,7 +68,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     shader->unbind();
 
     const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
-    atlas.build({ { ttfPath } }, { 16, 24, 32, 48 });
+    atlas.build(ttfPath, { 16, 24, 32, 48 });
 
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -87,7 +104,7 @@ uint32_t BitmapFont::getLength(const std::string_view text,
         penX += shapedGlyph.xAdvance;
     }
 
-    return static_cast<uint32_t>(penX);
+    return static_cast<uint32_t>(std::lround(penX));
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
@@ -113,12 +130,23 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const auto  shaped     = atlas.shape(str, passTargetSize);
 
     for (const auto& shapedGlyph : shaped) {
-        const sponge::scene::GlyphInfo* glyphInfo = shapedGlyph.glyphInfo;
+        // quad sits on the whole pixel; the fractional remainder picks the
+        // subpixel-shifted bitmap baked for that phase
+        const float glyphX = penX + shapedGlyph.xOffset;
+        const float xfloor = std::floor(glyphX);
+        const auto  phase  = std::min(
+            sponge::scene::FontAtlas::subpixelPhases - 1,
+            static_cast<uint32_t>(
+                (glyphX - xfloor) *
+                static_cast<float>(sponge::scene::FontAtlas::subpixelPhases)));
+
+        const sponge::scene::GlyphInfo* glyphInfo =
+            atlas.getGlyph(shapedGlyph.glyphIndex, passTargetSize, phase);
         if (glyphInfo && glyphInfo->width > 0 && glyphInfo->height > 0) {
-            const float xpos = penX + shapedGlyph.xOffset +
-                               static_cast<float>(glyphInfo->bearingX);
-            const float ypos = position.y - shapedGlyph.yOffset + ascender -
-                               static_cast<float>(glyphInfo->bearingY);
+            const float xpos = xfloor + static_cast<float>(glyphInfo->bearingX);
+            const float ypos =
+                std::round(position.y - shapedGlyph.yOffset + ascender) -
+                static_cast<float>(glyphInfo->bearingY);
             const float glyphWidth  = static_cast<float>(glyphInfo->width);
             const float glyphHeight = static_cast<float>(glyphInfo->height);
 
@@ -141,15 +169,6 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             std::copy(vertices.begin(), vertices.end(),
                       batchVertices.begin() +
                           static_cast<ptrdiff_t>(glyphCount * vertexCount));
-
-            const std::array<uint32_t, indexCount> indices = {
-                glyphCount * 4, (glyphCount * 4) + 2, (glyphCount * 4) + 1,
-                glyphCount * 4, (glyphCount * 4) + 3, (glyphCount * 4) + 2
-            };
-
-            std::copy(indices.begin(), indices.end(),
-                      batchIndices.begin() +
-                          static_cast<ptrdiff_t>(glyphCount * indexCount));
             glyphCount++;
         }
 
@@ -164,7 +183,6 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
 
     vbo->update(batchVertices.data(),
                 glyphCount * vertexCount * sizeof(glm::vec2));
-    ebo->update(batchIndices.data(), glyphCount * indexCount);
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(glyphCount * indexCount),
                    GL_UNSIGNED_INT, nullptr);

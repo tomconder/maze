@@ -11,6 +11,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_LCD_FILTER_H
+#include FT_MODULE_H
+#include FT_OUTLINE_H
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
 // clang-format on
@@ -24,30 +26,28 @@ struct GlyphInfo {
     int   bearingY;           // vertical bearing in pixels
     int   width;              // bitmap width in pixels
     int   height;             // bitmap height in pixels
-    float advanceX;           // horizontal advance in pixels
-};
-
-struct FontFaceSpec {
-    std::string path;  // absolute path to .ttf file
 };
 
 struct ShapedGlyph {
-    const GlyphInfo* glyphInfo;  // nullptr if not in atlas
-    float            xAdvance;   // horizontal advance (pixels)
-    float            xOffset;    // horizontal offset (pixels)
-    float            yOffset;    // vertical offset (pixels)
+    uint32_t glyphIndex;  // atlas lookup key; phase resolved at render time
+    float    xAdvance;    // horizontal advance (pixels)
+    float    xOffset;     // horizontal offset (pixels)
+    float    yOffset;     // vertical offset (pixels)
 };
 
 class FontAtlas {
 public:
+    // horizontal subpixel positions baked per glyph (1/4 pixel steps)
+    static constexpr uint32_t subpixelPhases = 4;
+
     ~FontAtlas();
 
-    void build(const std::vector<FontFaceSpec>& faces,
-               const std::vector<uint32_t>&     sizes);
+    void build(const std::string& path, const std::vector<uint32_t>& sizes);
 
     std::vector<ShapedGlyph> shape(std::string_view text, uint32_t size);
 
-    const GlyphInfo* getGlyph(char32_t codepoint, uint32_t size) const;
+    const GlyphInfo* getGlyph(uint32_t glyphIndex, uint32_t size,
+                              uint32_t phase) const;
     float            getLineHeight(uint32_t size) const;
     float            getAscender(uint32_t size) const;
 
@@ -62,14 +62,14 @@ public:
     }
 
 private:
-    static uint64_t glyphKey(const char32_t codepoint, const uint32_t size) {
-        return (static_cast<uint64_t>(codepoint) << 32) | size;
+    static uint64_t glyphKey(const uint32_t glyphIndex, const uint32_t size,
+                             const uint32_t phase) {
+        return (static_cast<uint64_t>(glyphIndex) << 32) | (size << 2) | phase;
     }
 
-    std::unordered_map<uint64_t, GlyphInfo>  glyphs;
-    std::unordered_map<uint32_t, float>      lineHeights;
-    std::unordered_map<uint32_t, float>      ascenders;
-    std::unordered_map<uint32_t, hb_font_t*> hbFonts;
+    std::unordered_map<uint64_t, GlyphInfo> glyphs;
+    std::unordered_map<uint32_t, float>     lineHeights;
+    std::unordered_map<uint32_t, float>     ascenders;
 
     std::vector<uint8_t> atlasBuffer;
     uint32_t             textureWidth  = 0;
@@ -77,6 +77,9 @@ private:
 
     FT_Library ftLibrary = nullptr;
     FT_Face    ftFace    = nullptr;
+    // one font for all sizes; shape() resyncs its scale via
+    // hb_ft_font_changed after FT_Set_Pixel_Sizes
+    hb_font_t* hbFont = nullptr;
 };
 
 }  // namespace sponge::scene
