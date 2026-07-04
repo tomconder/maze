@@ -15,10 +15,10 @@ namespace game::thread {
 //
 // The update thread fills this struct at the end of onUpdate() via
 // captureRenderFrame(). The render thread reads from it in onRender().
-// Two slots (indexed by frameIndex % 2) allow the next update thread to
-// write slot N+1 while the render thread is reading slot N — no locks needed
-// because the synchronization in UpdateThread/RenderThread ensures the writer
-// and reader are always in different slots at any given moment.
+// Two slots allow the update thread to write one slot while the render
+// thread is reading the other — no locks needed because the main-loop
+// synchronization ensures the writer and reader are always in different
+// slots at any given moment.
 struct MazeRenderFrame {
     // Camera
     glm::mat4 cameraMVP{ 1.F };

@@ -10,10 +10,8 @@
 #include "platform/glfw/imgui/noopmanager.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
-#include "thread/renderthread.hpp"
-#include "thread/updatethread.hpp"
+#include "thread/worker.hpp"
 
-#include <array>
 #include <atomic>
 #include <memory>
 #include <string_view>
@@ -142,9 +140,9 @@ private:
 
     ApplicationSpecification appSpec;
 
-    // 2 update threads (ping-pong, no GL) + 1 render thread (owns GL context).
-    sponge::thread::RenderThread                renderThread;
-    std::array<sponge::thread::UpdateThread, 2> updateThreads;
+    // 1 update thread (game logic, no GL) + 1 render thread (owns GL context).
+    sponge::thread::Worker renderThread;
+    sponge::thread::Worker updateThread;
 
     InputManager inputManager;
 
