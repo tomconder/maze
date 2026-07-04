@@ -5,6 +5,8 @@
 #include "logging/log.hpp"
 #include "platform/glfw/core/application.hpp"
 
+#include <GLFW/glfw3.h>
+
 #include <algorithm>
 #include <array>
 #include <ranges>

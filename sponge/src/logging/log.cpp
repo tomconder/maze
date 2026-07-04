@@ -1,13 +1,10 @@
 #include "logging/log.hpp"
 
-#include "logging/logflag.hpp"
-
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace sponge::logging {
@@ -15,29 +12,23 @@ std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::glLogger;
 
-inline const std::string Log::colorFormatPattern =
-    "%^%*%m%d %T.%f %7t %s:%# [%n] %v%$";
-inline const std::string Log::fileFormatPattern =
-    "%*%m%d %T.%f %7t %s:%# [%n] %v";
-inline const std::string Log::guiFormatPattern =
-    "%*%m%d %T.%f %7t %s:%# [%n] %v";
+const char Log::colorFormatPattern[] = "%^%L%m%d %T.%f %7t %s:%# [%n] %v%$";
+const char Log::fileFormatPattern[]  = "%L%m%d %T.%f %7t %s:%# [%n] %v";
 
 void Log::init(const std::string& logfile) {
-    const auto console = spdlog::stdout_color_mt("console");
-    set_default_logger(console);
-
-    spdlog::set_level(spdlog::level::trace);
+    spdlog::set_level(
+        static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
 
     std::vector<spdlog::sink_ptr> sinks;
 
     const auto colorSink =
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    setFormatter(colorSink, colorFormatPattern);
+    colorSink->set_pattern(colorFormatPattern);
     sinks.emplace_back(colorSink);
 
     const auto fileSink =
         std::make_shared<spdlog::sinks::basic_file_sink_mt>(logfile, true);
-    setFormatter(fileSink, fileFormatPattern);
+    fileSink->set_pattern(fileFormatPattern);
     sinks.emplace_back(fileSink);
 
     coreLogger = registerLogger("SPONGE", sinks);
@@ -53,18 +44,11 @@ void Log::shutdown() {
 }
 
 void Log::addSink(const spdlog::sink_ptr& sink, const std::string& pattern) {
-    setFormatter(sink, pattern);
+    sink->set_pattern(pattern);
 
     coreLogger->sinks().emplace_back(sink);
     appLogger->sinks().emplace_back(sink);
     glLogger->sinks().emplace_back(sink);
-}
-
-void Log::setFormatter(const spdlog::sink_ptr& sink,
-                       const std::string&      pattern) {
-    auto formatter = std::make_unique<spdlog::pattern_formatter>();
-    formatter->add_flag<LogFlag>('*').set_pattern(pattern);
-    sink->set_formatter(std::move(formatter));
 }
 
 std::shared_ptr<spdlog::logger>

@@ -9,6 +9,7 @@
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 
+#include <GLFW/glfw3.h>
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
@@ -30,7 +31,7 @@ Application* Application::instance = nullptr;
 Application::Application(ApplicationSpecification specification) :
     appSpec(std::move(specification)) {
     const auto guiSink = std::make_shared<imgui::Sink<std::mutex>>();
-    logging::Log::addSink(guiSink, logging::Log::guiFormatPattern);
+    logging::Log::addSink(guiSink, logging::Log::fileFormatPattern);
 
     assert(!instance && "Application already exists!");
     instance = this;

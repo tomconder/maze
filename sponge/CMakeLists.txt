@@ -176,6 +176,10 @@ endif ()
 
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)
 
+target_compile_definitions(sponge PUBLIC GLFW_INCLUDE_NONE)
+target_compile_definitions(sponge PUBLIC
+        SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_ERROR>)
+
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge PUBLIC deps/stb)

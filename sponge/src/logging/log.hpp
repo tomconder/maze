@@ -1,13 +1,6 @@
 #pragma once
 
-#ifndef SPDLOG_H
-#if !NDEBUG
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_ERROR
-#endif
 #include "spdlog/spdlog.h"
-#endif
 
 // include custom log formatters
 // ReSharper disable once CppUnusedIncludeDirective
@@ -45,9 +38,8 @@ public:
     static void addSink(const spdlog::sink_ptr& sink,
                         const std::string&      pattern);
 
-    static const std::string colorFormatPattern;
-    static const std::string fileFormatPattern;
-    static const std::string guiFormatPattern;
+    static const char colorFormatPattern[];
+    static const char fileFormatPattern[];
 
 private:
     static std::shared_ptr<spdlog::logger> appLogger;
@@ -57,9 +49,6 @@ private:
     static std::shared_ptr<spdlog::logger>
         registerLogger(const std::string&                   name,
                        const std::vector<spdlog::sink_ptr>& sinks);
-
-    static void setFormatter(const spdlog::sink_ptr& sink,
-                             const std::string&      pattern);
 };
 
 #define SPONGE_CORE_TRACE(...) \

@@ -4,6 +4,7 @@
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
 #include <cstdlib>
