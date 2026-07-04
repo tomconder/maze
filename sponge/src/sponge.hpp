@@ -20,7 +20,6 @@
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
 #include "logging/logcustom.hpp"
-#include "logging/logflag.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/window.hpp"
 #include "platform/glfw/logging/sink.hpp"

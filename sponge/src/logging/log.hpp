@@ -38,9 +38,8 @@ public:
     static void addSink(const spdlog::sink_ptr& sink,
                         const std::string&      pattern);
 
-    static const std::string colorFormatPattern;
-    static const std::string fileFormatPattern;
-    static const std::string guiFormatPattern;
+    static const char colorFormatPattern[];
+    static const char fileFormatPattern[];
 
 private:
     static std::shared_ptr<spdlog::logger> appLogger;
@@ -50,9 +49,6 @@ private:
     static std::shared_ptr<spdlog::logger>
         registerLogger(const std::string&                   name,
                        const std::vector<spdlog::sink_ptr>& sinks);
-
-    static void setFormatter(const spdlog::sink_ptr& sink,
-                             const std::string&      pattern);
 };
 
 #define SPONGE_CORE_TRACE(...) \
