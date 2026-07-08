@@ -61,6 +61,14 @@ file(
         src/platform/glfw/logging/*.cpp)
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
+# tinyobjloader
+message(STATUS "Including tinyobjloader files")
+file(
+        GLOB TINYOBJLOADER_SOURCES
+        LIST_DIRECTORIES false
+        deps/tinyobjloader/tiny_obj_loader.cpp)
+list(APPEND SOURCE_FILES ${TINYOBJLOADER_SOURCES})
+
 if (ENABLE_IMGUI)
     message(STATUS "Including imgui platform files")
     file(
@@ -106,7 +114,6 @@ find_package(glm CONFIG REQUIRED)
 find_package(meshoptimizer CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-find_package(tinyobjloader CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
@@ -183,6 +190,7 @@ target_compile_definitions(sponge PUBLIC
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge PUBLIC deps/stb)
+target_include_directories(sponge PUBLIC deps/tinyobjloader)
 
 target_link_libraries(sponge PRIVATE Freetype::Freetype)
 target_link_libraries(sponge PRIVATE harfbuzz::harfbuzz)
@@ -192,7 +200,6 @@ target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
-target_link_libraries(sponge PRIVATE tinyobjloader::tinyobjloader)
 if (ENABLE_IMGUI)
     target_link_libraries(sponge PUBLIC imgui::imgui)
 endif ()
