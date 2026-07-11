@@ -45,6 +45,12 @@ private:
     bool pendingFxaa           = false;
     int  pendingShadowResIndex = 1;
 
+    // Mirrors the vsync value last requested via Maze::requestVerticalSync().
+    // vsync is applied asynchronously on the render thread, so comparing
+    // pendingVsync against the live Maze::hasVerticalSync() right after
+    // applying would race the render thread; compare against this instead.
+    bool appliedVsync = false;
+
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
     std::unique_ptr<ui::SelectList> shadowQualityList;
@@ -61,7 +67,7 @@ private:
 
     void applyChanges();
 
-    void syncPendingCheckboxState(bool syncVsync = true);
+    void syncPendingCheckboxState();
 
     void updateChangeStatus();
 
