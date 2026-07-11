@@ -234,7 +234,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     } else {
         if (!overlayActive && snap.isActive(GameAction::Pause)) {
             Maze::get().getExitLayer()->setActive(true);
-            Application::get().setMouseVisible(true);
+            Application::get().requestMouseVisible(true);
             inputManager.setMouseLookActive(false);
             mouseButtonPressed = false;
             inputManager.setActiveContext(sponge::input::InputContext::Menu);

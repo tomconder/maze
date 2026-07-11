@@ -6,6 +6,7 @@
 #include "sponge.hpp"
 #include "ui/button.hpp"
 #include "ui/menufontsize.hpp"
+#include "ui/menulayout.hpp"
 
 #include <yoga/Yoga.h>
 
@@ -23,7 +24,6 @@ constexpr std::string_view fontPath   = "/fonts/inter.ttf";
 
 constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
-constexpr glm::vec4 hoverColor      = { 0.84F, 0.84F, 0.84F, 0.14F };
 constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
 constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.07F };
 
@@ -39,7 +39,6 @@ YGNodeRef newGameNode        = nullptr;
 YGNodeRef optionsNode        = nullptr;
 YGNodeRef quitNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
-YGNodeRef titleNode          = nullptr;
 
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
@@ -81,17 +80,9 @@ void IntroLayer::onAttach() {
     quad = std::make_unique<Quad>();
 
     auto makeMenuButton = [](std::string_view message) {
-        return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
-            .topLeft      = glm::vec2{ 0.F },
-            .bottomRight  = glm::vec2{ 0.F },
-            .message      = std::string(message),
-            .fontSize     = ui::menuFontSizeForWidth(orthoCamera->getWidth()),
-            .font         = menuFont,
-            .buttonColor  = buttonColor,
-            .textColor    = textColor,
-            .marginLeft   = 26,
-            .cornerRadius = 12.F,
-            .alignType    = ui::ButtonAlignType::LeftAligned });
+        return ui::makeMenuButton(
+            message, ui::menuFontSizeForWidth(orthoCamera->getWidth()),
+            menuFont, buttonColor, textColor);
     };
 
     newGameButton = makeMenuButton(newGameMessage);
@@ -104,33 +95,14 @@ void IntroLayer::onAttach() {
         shader->unbind();
     }
 
-    rootNode = YGNodeNew();
+    const auto skeleton = ui::buildMenuSkeleton(30.F);
+    rootNode            = skeleton.root;
+    menuNode            = skeleton.menu;
+    menuBackgroundNode  = skeleton.menuBackground;
 
-    titleNode = YGNodeNew();
-    YGNodeStyleSetFlexGrow(titleNode, 0.9F);
-    YGNodeInsertChild(rootNode, titleNode, 0);
-
-    menuNode = YGNodeNew();
-    YGNodeStyleSetFlex(menuNode, 1.F);
-    YGNodeStyleSetFlexDirection(menuNode, YGFlexDirectionRow);
-    YGNodeInsertChild(rootNode, menuNode, 1);
-
-    menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 30.F);
-    YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
-
-    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
-        auto* const child = YGNodeNew();
-        YGNodeStyleSetFlex(child, 1.F);
-        YGNodeStyleSetMaxHeight(child, 110);
-        YGNodeInsertChild(parent, child, index);
-        return child;
-    };
-
-    newGameNode = makeMenuNode(menuBackgroundNode, 0);
-    optionsNode = makeMenuNode(menuBackgroundNode, 1);
-    quitNode    = makeMenuNode(menuBackgroundNode, 2);
+    newGameNode = ui::makeMenuRow(menuBackgroundNode, 0);
+    optionsNode = ui::makeMenuRow(menuBackgroundNode, 1);
+    quitNode    = ui::makeMenuRow(menuBackgroundNode, 2);
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
@@ -228,28 +200,20 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
 
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
-    auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
-                            const float offsetY) {
-        return std::tuple{ offsetX + YGNodeLayoutGetLeft(node),
-                           offsetY + YGNodeLayoutGetTop(node),
-                           YGNodeLayoutGetWidth(node),
-                           YGNodeLayoutGetHeight(node) };
-    };
-
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        getNodeLayout(rootNode, 0.F, 0.F);
+        ui::getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
     auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
           menuBackgroundNodeH] =
-        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [newGameX, newGameY, newGameW, newGameH] =
-        getNodeLayout(newGameNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [optionsX, optionsY, optionsW, optionsH] =
-        getNodeLayout(optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [newGameX, newGameY, newGameW, newGameH] = ui::getNodeLayout(
+        newGameNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [optionsX, optionsY, optionsW, optionsH] = ui::getNodeLayout(
+        optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
     const auto [quitX, quitY, quitW, quitH] =
-        getNodeLayout(quitNode, menuBackgroundNodeX, menuBackgroundNodeY);
+        ui::getNodeLayout(quitNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     newGameButton->setPosition({ newGameX, newGameY },
                                { newGameX + newGameW, newGameY + newGameH });
@@ -257,23 +221,14 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                                { optionsX + optionsW, optionsY + optionsH });
     quitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
 
-    auto updateButtonVisuals = [this](ui::Button* button, IntroMenuItem item) {
-        if (selectedItem == item) {
-            button->setBorderWidth(3.F);
-            button->setBorderColor(glm::vec4{ 1.F });
-            button->setButtonColor(textHoverColor);
-        } else if (!button->hasHover()) {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(glm::vec4{ 0.F });
-        } else {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(hoverColor);
-        }
-    };
-
-    updateButtonVisuals(newGameButton.get(), IntroMenuItem::NewGame);
-    updateButtonVisuals(optionsButton.get(), IntroMenuItem::Options);
-    updateButtonVisuals(quitButton.get(), IntroMenuItem::Quit);
+    ui::updateMenuButtonVisuals(newGameButton.get(),
+                                selectedItem == IntroMenuItem::NewGame,
+                                textHoverColor);
+    ui::updateMenuButtonVisuals(optionsButton.get(),
+                                selectedItem == IntroMenuItem::Options,
+                                textHoverColor);
+    ui::updateMenuButtonVisuals(
+        quitButton.get(), selectedItem == IntroMenuItem::Quit, textHoverColor);
 
     UNUSED(newGameButton->onUpdate(elapsedTime));
     UNUSED(optionsButton->onUpdate(elapsedTime));
@@ -382,17 +337,9 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    auto updateHover = [&pos](ui::Button* button) {
-        if (!button->hasHover() && button->isInside(pos)) {
-            button->setHover(true);
-        } else if (button->hasHover() && !button->isInside(pos)) {
-            button->setHover(false);
-        }
-    };
-
-    updateHover(newGameButton.get());
-    updateHover(optionsButton.get());
-    updateHover(quitButton.get());
+    ui::updateButtonHover(newGameButton.get(), pos);
+    ui::updateButtonHover(optionsButton.get(), pos);
+    ui::updateButtonHover(quitButton.get(), pos);
 
     return false;
 }

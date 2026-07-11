@@ -37,13 +37,15 @@ public:
     // Prevents the cursor from drifting outside the window and sending
     // negative coordinates to ImGui.
     void setMouseLookActive(const bool active) {
-        mouseLookActive = active;
+        mouseLookActive.store(active, std::memory_order_release);
     }
 
 private:
     GLFWwindow* window = nullptr;
 
-    bool mouseLookActive = false;
+    // Written from the update thread (MazeLayer), read from the main thread
+    // (recenterCursor/update).
+    std::atomic<bool> mouseLookActive{ false };
 
     input::InputSnapshot snapshot;
 

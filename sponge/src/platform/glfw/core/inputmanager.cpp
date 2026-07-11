@@ -74,7 +74,7 @@ void InputManager::onMouseWarped() {
 }
 
 void InputManager::recenterCursor() {
-    if (!mouseLookActive) {
+    if (!mouseLookActive.load(std::memory_order_acquire)) {
         return;
     }
     int width  = 0;
@@ -127,7 +127,7 @@ void InputManager::update() {
     cursorDeltaY = cursorY - prevCursorY;
 
     recenterCursor();
-    if (!mouseLookActive) {
+    if (!mouseLookActive.load(std::memory_order_acquire)) {
         prevCursorX = cursorX;
         prevCursorY = cursorY;
     }

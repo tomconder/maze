@@ -6,6 +6,7 @@
 #include "sponge.hpp"
 #include "ui/button.hpp"
 #include "ui/menufontsize.hpp"
+#include "ui/menulayout.hpp"
 
 #include <yoga/Yoga.h>
 
@@ -23,7 +24,6 @@ constexpr std::string_view fontName   = "inter";
 constexpr std::string_view fontPath   = "/fonts/inter.ttf";
 
 constexpr glm::vec4 buttonColor    = { 0.05F, 0.05F, 0.05F, 1.F };
-constexpr glm::vec4 hoverColor     = { 0.84F, 0.84F, 0.84F, 0.14F };
 constexpr glm::vec3 textColor      = { 1.F, 1.F, 1.F };
 constexpr glm::vec4 textHoverColor = { 0.84F, 0.04F, 0.04F, 0.07F };
 
@@ -41,7 +41,6 @@ YGNodeRef menuNode           = nullptr;
 YGNodeRef optionsNode        = nullptr;
 YGNodeRef returnToMenuNode   = nullptr;
 YGNodeRef rootNode           = nullptr;
-YGNodeRef titleNode          = nullptr;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 
@@ -72,17 +71,9 @@ void ExitLayer::onAttach() {
     orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
     auto makeMenuButton = [](std::string_view message) {
-        return std::make_unique<ui::Button>(ui::ButtonCreateInfo{
-            .topLeft      = glm::vec2{ 0.F },
-            .bottomRight  = glm::vec2{ 0.F },
-            .message      = std::string(message),
-            .fontSize     = ui::menuFontSizeForWidth(orthoCamera->getWidth()),
-            .font         = menuFont,
-            .buttonColor  = buttonColor,
-            .textColor    = textColor,
-            .marginLeft   = 26,
-            .cornerRadius = 12.F,
-            .alignType    = ui::ButtonAlignType::LeftAligned });
+        return ui::makeMenuButton(
+            message, ui::menuFontSizeForWidth(orthoCamera->getWidth()),
+            menuFont, buttonColor, textColor);
     };
 
     continueButton     = makeMenuButton(continueMessage);
@@ -96,34 +87,15 @@ void ExitLayer::onAttach() {
         shader->unbind();
     }
 
-    rootNode = YGNodeNew();
+    const auto skeleton = ui::buildMenuSkeleton(45.F);
+    rootNode            = skeleton.root;
+    menuNode            = skeleton.menu;
+    menuBackgroundNode  = skeleton.menuBackground;
 
-    titleNode = YGNodeNew();
-    YGNodeStyleSetFlexGrow(titleNode, 0.9F);
-    YGNodeInsertChild(rootNode, titleNode, 0);
-
-    menuNode = YGNodeNew();
-    YGNodeStyleSetFlex(menuNode, 1.F);
-    YGNodeStyleSetFlexDirection(menuNode, YGFlexDirectionRow);
-    YGNodeInsertChild(rootNode, menuNode, 1);
-
-    menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
-    YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
-
-    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
-        auto* const child = YGNodeNew();
-        YGNodeStyleSetFlex(child, 1.F);
-        YGNodeStyleSetMaxHeight(child, 110);
-        YGNodeInsertChild(parent, child, index);
-        return child;
-    };
-
-    continueNode     = makeMenuNode(menuBackgroundNode, 0);
-    optionsNode      = makeMenuNode(menuBackgroundNode, 1);
-    returnToMenuNode = makeMenuNode(menuBackgroundNode, 2);
-    exitNode         = makeMenuNode(menuBackgroundNode, 3);
+    continueNode     = ui::makeMenuRow(menuBackgroundNode, 0);
+    optionsNode      = ui::makeMenuRow(menuBackgroundNode, 1);
+    returnToMenuNode = ui::makeMenuRow(menuBackgroundNode, 2);
+    exitNode         = ui::makeMenuRow(menuBackgroundNode, 3);
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
@@ -216,31 +188,23 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         shader->unbind();
     }
 
-    auto getNodeLayout = [](const YGNodeRef node, const float offsetX,
-                            const float offsetY) {
-        return std::tuple{ offsetX + YGNodeLayoutGetLeft(node),
-                           offsetY + YGNodeLayoutGetTop(node),
-                           YGNodeLayoutGetWidth(node),
-                           YGNodeLayoutGetHeight(node) };
-    };
-
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        getNodeLayout(rootNode, 0.F, 0.F);
+        ui::getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
     auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
           menuBackgroundNodeH] =
-        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [continueX, continueY, continueW, continueH] =
-        getNodeLayout(continueNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [optionsX, optionsY, optionsW, optionsH] =
-        getNodeLayout(optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [continueX, continueY, continueW, continueH] = ui::getNodeLayout(
+        continueNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [optionsX, optionsY, optionsW, optionsH] = ui::getNodeLayout(
+        optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
     const auto [returnToMenuX, returnToMenuY, returnToMenuW, returnToMenuH] =
-        getNodeLayout(returnToMenuNode, menuBackgroundNodeX,
-                      menuBackgroundNodeY);
+        ui::getNodeLayout(returnToMenuNode, menuBackgroundNodeX,
+                          menuBackgroundNodeY);
     const auto [quitX, quitY, quitW, quitH] =
-        getNodeLayout(exitNode, menuBackgroundNodeX, menuBackgroundNodeY);
+        ui::getNodeLayout(exitNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     continueButton->setPosition(
         { continueX, continueY },
@@ -252,24 +216,17 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         { returnToMenuX + returnToMenuW, returnToMenuY + returnToMenuH });
     exitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
 
-    auto updateButtonVisuals = [this](ui::Button* button, ExitMenuItem item) {
-        if (selectedItem == item) {
-            button->setBorderWidth(3.F);
-            button->setBorderColor(glm::vec4{ 1.F });
-            button->setButtonColor(textHoverColor);
-        } else if (!button->hasHover()) {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(glm::vec4{ 0.F });
-        } else {
-            button->setBorderWidth(0.F);
-            button->setButtonColor(hoverColor);
-        }
-    };
-
-    updateButtonVisuals(continueButton.get(), ExitMenuItem::Continue);
-    updateButtonVisuals(optionsButton.get(), ExitMenuItem::Options);
-    updateButtonVisuals(returnToMenuButton.get(), ExitMenuItem::ReturnToMenu);
-    updateButtonVisuals(exitButton.get(), ExitMenuItem::Exit);
+    ui::updateMenuButtonVisuals(continueButton.get(),
+                                selectedItem == ExitMenuItem::Continue,
+                                textHoverColor);
+    ui::updateMenuButtonVisuals(optionsButton.get(),
+                                selectedItem == ExitMenuItem::Options,
+                                textHoverColor);
+    ui::updateMenuButtonVisuals(returnToMenuButton.get(),
+                                selectedItem == ExitMenuItem::ReturnToMenu,
+                                textHoverColor);
+    ui::updateMenuButtonVisuals(
+        exitButton.get(), selectedItem == ExitMenuItem::Exit, textHoverColor);
 
     UNUSED(continueButton->onUpdate(elapsedTime));
     UNUSED(optionsButton->onUpdate(elapsedTime));
@@ -342,18 +299,10 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    auto updateHover = [&pos](ui::Button* button) {
-        if (!button->hasHover() && button->isInside(pos)) {
-            button->setHover(true);
-        } else if (button->hasHover() && !button->isInside(pos)) {
-            button->setHover(false);
-        }
-    };
-
-    updateHover(continueButton.get());
-    updateHover(optionsButton.get());
-    updateHover(returnToMenuButton.get());
-    updateHover(exitButton.get());
+    ui::updateButtonHover(continueButton.get(), pos);
+    ui::updateButtonHover(optionsButton.get(), pos);
+    ui::updateButtonHover(returnToMenuButton.get(), pos);
+    ui::updateButtonHover(exitButton.get(), pos);
 
     return true;
 }
