@@ -61,7 +61,7 @@ private:
 
     void applyChanges();
 
-    void syncPendingCheckboxState();
+    void syncPendingCheckboxState(bool syncVsync = true);
 
     void updateChangeStatus();
 

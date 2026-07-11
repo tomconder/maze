@@ -833,15 +833,20 @@ void OptionLayer::applyChanges() {
     saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
                       pendingFxaa, shadowRes);
 
-    syncPendingCheckboxState();
+    // vsync is applied asynchronously on the render thread, so
+    // hasVerticalSync() may not reflect pendingVsync yet; skip re-reading it
+    // here.
+    syncPendingCheckboxState(/*syncVsync=*/false);
     hasUnappliedChanges = false;
     returnButton->setMessage(returnMessage);
 }
 
-void OptionLayer::syncPendingCheckboxState() {
+void OptionLayer::syncPendingCheckboxState(const bool syncVsync) {
     pendingFullscreen = Maze::get().isFullscreen();
-    pendingVsync      = Maze::get().hasVerticalSync();
-    pendingFxaa       = Maze::get().isFxaaEnabled();
+    if (syncVsync) {
+        pendingVsync = Maze::get().hasVerticalSync();
+    }
+    pendingFxaa = Maze::get().isFxaaEnabled();
 
     const auto currentShadowRes =
         Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
