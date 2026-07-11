@@ -213,6 +213,6 @@ else ()
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE PATTERN ".clang-format" EXCLUDE)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
 endif ()
