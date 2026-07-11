@@ -24,6 +24,7 @@
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/menufontsize.hpp"
+#include "ui/menulayout.hpp"
 #include "ui/selectlist.hpp"
 
 namespace {
@@ -129,14 +130,6 @@ size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
                0;
 }
 
-std::tuple<float, float, float, float> getNodeLayout(const YGNodeRef node,
-                                                     const float     offsetX,
-                                                     const float     offsetY) {
-    return { offsetX + YGNodeLayoutGetLeft(node),
-             offsetY + YGNodeLayoutGetTop(node), YGNodeLayoutGetWidth(node),
-             YGNodeLayoutGetHeight(node) };
-}
-
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
 // max display width across all aspect-ratio labels and resolution strings
@@ -182,7 +175,6 @@ YGNodeRef verticalSyncNode   = nullptr;
 YGNodeRef fullScreenNode     = nullptr;
 YGNodeRef returnNode         = nullptr;
 YGNodeRef rootNode           = nullptr;
-YGNodeRef titleNode          = nullptr;
 
 std::optional<size_t> currentShadowResIndex;
 
@@ -217,17 +209,8 @@ void OptionLayer::onAttach() {
     fontSize = ui::menuFontSizeForWidth(
         static_cast<uint32_t>(orthoCamera->getWidth()));
 
-    returnButton = std::make_unique<ui::Button>(
-        ui::ButtonCreateInfo{ .topLeft      = glm::vec2{ 0.F },
-                              .bottomRight  = glm::vec2{ 0.F },
-                              .message      = std::string(returnMessage),
-                              .fontSize     = fontSize,
-                              .font         = menuFont,
-                              .buttonColor  = buttonColor,
-                              .textColor    = textColor,
-                              .marginLeft   = 26,
-                              .cornerRadius = 12.F,
-                              .alignType = ui::ButtonAlignType::LeftAligned });
+    returnButton = ui::makeMenuButton(returnMessage, fontSize, menuFont,
+                                      buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
@@ -235,37 +218,18 @@ void OptionLayer::onAttach() {
         shader->unbind();
     }
 
-    rootNode = YGNodeNew();
+    const auto skeleton = ui::buildMenuSkeleton(45.F);
+    rootNode            = skeleton.root;
+    menuNode            = skeleton.menu;
+    menuBackgroundNode  = skeleton.menuBackground;
 
-    titleNode = YGNodeNew();
-    YGNodeStyleSetFlexGrow(titleNode, 0.9F);
-    YGNodeInsertChild(rootNode, titleNode, 0);
-
-    menuNode = YGNodeNew();
-    YGNodeStyleSetFlex(menuNode, 1.F);
-    YGNodeStyleSetFlexDirection(menuNode, YGFlexDirectionRow);
-    YGNodeInsertChild(rootNode, menuNode, 1);
-
-    menuBackgroundNode = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackgroundNode, YGEdgeAll, 10.F);
-    YGNodeStyleSetWidthPercent(menuBackgroundNode, 45.F);
-    YGNodeInsertChild(menuNode, menuBackgroundNode, 0);
-
-    auto makeMenuNode = [](const YGNodeRef parent, const int index) {
-        auto* const child = YGNodeNew();
-        YGNodeStyleSetFlex(child, 1.F);
-        YGNodeStyleSetMaxHeight(child, 110);
-        YGNodeInsertChild(parent, child, index);
-        return child;
-    };
-
-    aspectRatioNode   = makeMenuNode(menuBackgroundNode, 0);
-    resolutionNode    = makeMenuNode(menuBackgroundNode, 1);
-    fullScreenNode    = makeMenuNode(menuBackgroundNode, 2);
-    verticalSyncNode  = makeMenuNode(menuBackgroundNode, 3);
-    antiAliasingNode  = makeMenuNode(menuBackgroundNode, 4);
-    shadowQualityNode = makeMenuNode(menuBackgroundNode, 5);
-    returnNode        = makeMenuNode(menuBackgroundNode, 6);
+    aspectRatioNode   = ui::makeMenuRow(menuBackgroundNode, 0);
+    resolutionNode    = ui::makeMenuRow(menuBackgroundNode, 1);
+    fullScreenNode    = ui::makeMenuRow(menuBackgroundNode, 2);
+    verticalSyncNode  = ui::makeMenuRow(menuBackgroundNode, 3);
+    antiAliasingNode  = ui::makeMenuRow(menuBackgroundNode, 4);
+    shadowQualityNode = ui::makeMenuRow(menuBackgroundNode, 5);
+    returnNode        = ui::makeMenuRow(menuBackgroundNode, 6);
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -467,26 +431,26 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        getNodeLayout(rootNode, 0.F, 0.F);
+        ui::getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
     auto [menuBgX, menuBgY, menuBgW, menuBgH] =
-        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
     const auto [arX, arY, arW, arH] =
-        getNodeLayout(aspectRatioNode, menuBgX, menuBgY);
+        ui::getNodeLayout(aspectRatioNode, menuBgX, menuBgY);
     const auto [resX, resY, resW, resH] =
-        getNodeLayout(resolutionNode, menuBgX, menuBgY);
+        ui::getNodeLayout(resolutionNode, menuBgX, menuBgY);
     const auto [fsX, fsY, fsW, fsH] =
-        getNodeLayout(fullScreenNode, menuBgX, menuBgY);
+        ui::getNodeLayout(fullScreenNode, menuBgX, menuBgY);
     const auto [vsX, vsY, vsW, vsH] =
-        getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
+        ui::getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
     const auto [aaX, aaY, aaW, aaH] =
-        getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
+        ui::getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
     const auto [sqX, sqY, sqW, sqH] =
-        getNodeLayout(shadowQualityNode, menuBgX, menuBgY);
+        ui::getNodeLayout(shadowQualityNode, menuBgX, menuBgY);
     const auto [retX, retY, retW, retH] =
-        getNodeLayout(returnNode, menuBgX, menuBgY);
+        ui::getNodeLayout(returnNode, menuBgX, menuBgY);
 
     auto renderDots = [&](const size_t count, const float valueCenterX,
                           const float rowY, const float rowH,
@@ -555,17 +519,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                shadowQualityList->getSelectedIndex(), currentShadowResIndex);
 
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
-    if (selectedItem == OptionMenuItem::Return) {
-        returnButton->setBorderWidth(selectedBorderWidth);
-        returnButton->setBorderColor(glm::vec4{ 1.F });
-        returnButton->setButtonColor(textHoverColor);
-    } else if (!returnButton->hasHover()) {
-        returnButton->setBorderWidth(0.F);
-        returnButton->setButtonColor(glm::vec4{ 0.F });
-    } else {
-        returnButton->setBorderWidth(0.F);
-        returnButton->setButtonColor(hoverColor);
-    }
+    ui::updateMenuButtonVisuals(returnButton.get(),
+                                selectedItem == OptionMenuItem::Return,
+                                textHoverColor);
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
@@ -616,14 +572,14 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     }
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        getNodeLayout(rootNode, 0.F, 0.F);
+        ui::getNodeLayout(rootNode, 0.F, 0.F);
     auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        getNodeLayout(menuNode, rootNodeX, rootNodeY);
+        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
     auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
           menuBackgroundNodeH] =
-        getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
+        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [arX, arY, arW, arH] = getNodeLayout(
+    const auto [arX, arY, arW, arH] = ui::getNodeLayout(
         aspectRatioNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= arX && mouseX <= arX + arW && mouseY >= arY &&
@@ -641,8 +597,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    const auto [resX, resY, resW, resH] =
-        getNodeLayout(resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [resX, resY, resW, resH] = ui::getNodeLayout(
+        resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= resX && mouseX <= resX + resW && mouseY >= resY &&
         mouseY <= resY + resH) {
@@ -661,8 +617,8 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    const auto [fullX, fullY, fullW, fullH] =
-        getNodeLayout(fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    const auto [fullX, fullY, fullW, fullH] = ui::getNodeLayout(
+        fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= fullX && mouseX <= fullX + fullW && mouseY >= fullY &&
         mouseY <= fullY + fullH) {
@@ -675,7 +631,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    const auto [vsyncX, vsyncY, vsyncW, vsyncH] = getNodeLayout(
+    const auto [vsyncX, vsyncY, vsyncW, vsyncH] = ui::getNodeLayout(
         verticalSyncNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= vsyncX && mouseX <= vsyncX + vsyncW && mouseY >= vsyncY &&
@@ -689,7 +645,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    const auto [aaX, aaY, aaW, aaH] = getNodeLayout(
+    const auto [aaX, aaY, aaW, aaH] = ui::getNodeLayout(
         antiAliasingNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= aaX && mouseX <= aaX + aaW && mouseY >= aaY &&
@@ -703,7 +659,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    const auto [sqX, sqY, sqW, sqH] = getNodeLayout(
+    const auto [sqX, sqY, sqW, sqH] = ui::getNodeLayout(
         shadowQualityNode, menuBackgroundNodeX, menuBackgroundNodeY);
 
     if (mouseX >= sqX && mouseX <= sqX + sqW && mouseY >= sqY &&
@@ -729,29 +685,21 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    auto updateHover = [&pos](ui::Button* button) {
-        if (!button->hasHover() && button->isInside(pos)) {
-            button->setHover(true);
-        } else if (button->hasHover() && !button->isInside(pos)) {
-            button->setHover(false);
-        }
-    };
+    ui::updateButtonHover(returnButton.get(), pos);
 
-    updateHover(returnButton.get());
-
-    const auto rootNodeLayout = getNodeLayout(rootNode, 0.F, 0.F);
-    const auto menuNodeLayout = getNodeLayout(
+    const auto rootNodeLayout = ui::getNodeLayout(rootNode, 0.F, 0.F);
+    const auto menuNodeLayout = ui::getNodeLayout(
         menuNode, std::get<0>(rootNodeLayout), std::get<1>(rootNodeLayout));
     const auto menuBackgroundNodeLayout =
-        getNodeLayout(menuBackgroundNode, std::get<0>(menuNodeLayout),
-                      std::get<1>(menuNodeLayout));
+        ui::getNodeLayout(menuBackgroundNode, std::get<0>(menuNodeLayout),
+                          std::get<1>(menuNodeLayout));
 
     const float menuBackgroundNodeX = std::get<0>(menuBackgroundNodeLayout);
     const float menuBackgroundNodeY = std::get<1>(menuBackgroundNodeLayout);
 
     auto isOver = [&](auto* node) {
         const auto nodeLayout =
-            getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
+            ui::getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
         const float x = std::get<0>(nodeLayout);
         const float y = std::get<1>(nodeLayout);
         const float w = std::get<2>(nodeLayout);

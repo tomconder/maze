@@ -11,10 +11,10 @@ namespace game::ui {
 enum class ButtonAlignType : uint8_t { CenterAligned = 0, LeftAligned };
 
 struct ButtonCreateInfo {
-    glm::vec2                                                    topLeft;
-    glm::vec2                                                    bottomRight;
-    std::string                                                  message;
-    uint32_t                                                     fontSize;
+    glm::vec2   topLeft     = {};
+    glm::vec2   bottomRight = {};
+    std::string message;
+    uint32_t    fontSize;
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     glm::vec4                                                    buttonColor;
     glm::vec3                                                    textColor;
@@ -81,4 +81,14 @@ private:
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;
 };
+
+std::unique_ptr<Button> makeMenuButton(
+    std::string_view message, uint32_t fontSize,
+    std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font,
+    const glm::vec4& buttonColor, const glm::vec3& textColor);
+
+void updateMenuButtonVisuals(Button* button, bool selected,
+                             const glm::vec4& selectedColor);
+
+void updateButtonHover(Button* button, const glm::vec2& pos);
 }  // namespace game::ui

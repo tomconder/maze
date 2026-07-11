@@ -101,4 +101,44 @@ void Button::setPosition(const glm::vec2& topLeft,
                              ((height - static_cast<float>(textSize)) / 2.F) };
     }
 }
+
+std::unique_ptr<Button> makeMenuButton(
+    std::string_view message, const uint32_t fontSize,
+    std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font,
+    const glm::vec4& buttonColor, const glm::vec3& textColor) {
+    return std::make_unique<Button>(
+        ButtonCreateInfo{ .message      = std::string(message),
+                          .fontSize     = fontSize,
+                          .font         = std::move(font),
+                          .buttonColor  = buttonColor,
+                          .textColor    = textColor,
+                          .marginLeft   = 26,
+                          .cornerRadius = 12.F,
+                          .alignType    = ButtonAlignType::LeftAligned });
+}
+
+void updateMenuButtonVisuals(Button* button, const bool selected,
+                             const glm::vec4& selectedColor) {
+    constexpr glm::vec4 hoverColor = { 0.84F, 0.84F, 0.84F, 0.14F };
+
+    if (selected) {
+        button->setBorderWidth(3.F);
+        button->setBorderColor(glm::vec4{ 1.F });
+        button->setButtonColor(selectedColor);
+    } else if (!button->hasHover()) {
+        button->setBorderWidth(0.F);
+        button->setButtonColor(glm::vec4{ 0.F });
+    } else {
+        button->setBorderWidth(0.F);
+        button->setButtonColor(hoverColor);
+    }
+}
+
+void updateButtonHover(Button* button, const glm::vec2& pos) {
+    if (!button->hasHover() && button->isInside(pos)) {
+        button->setHover(true);
+    } else if (button->hasHover() && !button->isInside(pos)) {
+        button->setHover(false);
+    }
+}
 }  // namespace game::ui
