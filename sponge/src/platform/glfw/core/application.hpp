@@ -76,6 +76,11 @@ public:
 
     void setVerticalSync(bool val);
 
+    // Thread-safe request to change vsync from a non-main thread (e.g. an
+    // update-thread or render-thread layer). Applied on the main thread,
+    // which owns the GLFW window/context.
+    void requestVerticalSync(bool val);
+
     std::vector<LogItem>& getMessages() const {
         return *messages;
     }
@@ -89,6 +94,11 @@ public:
     }
 
     void setMouseVisible(bool value) const;
+
+    // Thread-safe request to change mouse visibility from a non-main thread
+    // (e.g. an update-thread layer). Applied on the main thread, which owns
+    // the GLFW window.
+    void requestMouseVisible(bool value);
 
     void centerMouse();
 
@@ -169,6 +179,18 @@ private:
     // fullscreen flips immediately in toggleFullscreen(); the GLFW window call
     // runs here to avoid deadlocking the Win32 message pump.
     std::atomic<bool> pendingFullscreenToggle{ false };
+
+    // Deferred mouse-visibility change requested from update-thread layers
+    // (e.g. MazeLayer's pause handling). glfwSetInputMode must run on the
+    // thread that owns the window.
+    std::atomic<bool> pendingMouseVisible{ false };
+    std::atomic<bool> pendingMouseVisibleValue{ false };
+
+    // Deferred vsync change requested from update-thread or render-thread
+    // layers (e.g. OptionLayer, ImGuiLayer). glfwSwapInterval must run on
+    // the thread that owns the window/context.
+    std::atomic<bool> pendingVerticalSync{ false };
+    std::atomic<bool> pendingVerticalSyncValue{ false };
 
     static Application* instance;
 

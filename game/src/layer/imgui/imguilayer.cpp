@@ -421,7 +421,7 @@ void ImGuiLayer::showMenu() {
 
             if (ImGui::MenuItem("Vertical Sync", nullptr, hasVsync)) {
                 hasVsync = !hasVsync;
-                Maze::get().setVerticalSync(hasVsync);
+                Maze::get().requestVerticalSync(hasVsync);
             }
 
             if (ImGui::MenuItem("Anti-Aliasing", nullptr, hasFxaa)) {

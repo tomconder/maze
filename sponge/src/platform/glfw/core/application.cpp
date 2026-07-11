@@ -197,6 +197,11 @@ void Application::setMouseVisible(const bool value) const {
     }
 }
 
+void Application::requestMouseVisible(const bool value) {
+    pendingMouseVisibleValue.store(value, std::memory_order_relaxed);
+    pendingMouseVisible.store(true, std::memory_order_release);
+}
+
 void Application::centerMouse() {
     const auto cx = static_cast<double>(window->getWidth()) / 2.0;
     const auto cy = static_cast<double>(window->getHeight()) / 2.0;
@@ -216,6 +221,11 @@ std::pair<float, float> Application::getMousePosition() const {
 void Application::setVerticalSync(const bool val) {
     vsync = val;
     glfwSwapInterval(vsync ? 1 : 0);
+}
+
+void Application::requestVerticalSync(const bool val) {
+    pendingVerticalSyncValue.store(val, std::memory_order_relaxed);
+    pendingVerticalSync.store(true, std::memory_order_release);
 }
 
 void Application::setResolution(const uint32_t width, const uint32_t height) {
@@ -386,6 +396,18 @@ void Application::run() {
                 }
             }
             pendingResolution.store(false, std::memory_order_relaxed);
+        }
+
+        if (pendingMouseVisible.load(std::memory_order_acquire)) {
+            setMouseVisible(
+                pendingMouseVisibleValue.load(std::memory_order_relaxed));
+            pendingMouseVisible.store(false, std::memory_order_relaxed);
+        }
+
+        if (pendingVerticalSync.load(std::memory_order_acquire)) {
+            setVerticalSync(
+                pendingVerticalSyncValue.load(std::memory_order_relaxed));
+            pendingVerticalSync.store(false, std::memory_order_relaxed);
         }
 
         // Wait for update thread before writing new snapshot data.

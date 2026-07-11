@@ -877,7 +877,7 @@ void OptionLayer::applyChanges() {
     if (pendingFullscreen != Maze::get().isFullscreen()) {
         Maze::get().toggleFullscreen();
     }
-    Maze::get().setVerticalSync(pendingVsync);
+    Maze::get().requestVerticalSync(pendingVsync);
     Maze::get().setFxaaEnabled(pendingFxaa);
     const auto shadowRes =
         shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
