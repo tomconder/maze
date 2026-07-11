@@ -276,6 +276,14 @@ void Application::run() {
             pendingViewport.store(false, std::memory_order_relaxed);
         }
 
+        // glfwSwapInterval acts on the current context, which lives on this
+        // render thread (released from main above) — not the main thread.
+        if (pendingVerticalSync.load(std::memory_order_acquire)) {
+            setVerticalSync(
+                pendingVerticalSyncValue.load(std::memory_order_relaxed));
+            pendingVerticalSync.store(false, std::memory_order_relaxed);
+        }
+
         renderer->clear();
         imguiManager.begin();
 #ifdef ENABLE_IMGUI
@@ -402,12 +410,6 @@ void Application::run() {
             setMouseVisible(
                 pendingMouseVisibleValue.load(std::memory_order_relaxed));
             pendingMouseVisible.store(false, std::memory_order_relaxed);
-        }
-
-        if (pendingVerticalSync.load(std::memory_order_acquire)) {
-            setVerticalSync(
-                pendingVerticalSyncValue.load(std::memory_order_relaxed));
-            pendingVerticalSync.store(false, std::memory_order_relaxed);
         }
 
         // Wait for update thread before writing new snapshot data.
