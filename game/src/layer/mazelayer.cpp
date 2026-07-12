@@ -36,25 +36,25 @@ using game::layer::GameObject;
 
 std::array gameObjects = {
     GameObject{ .name        = "floor",
-                .path        = "/models/floor/floor.obj",
+                .path        = "/models/obj/floor/floor.obj",
                 .scale       = glm::vec3(2.F),
                 .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
                 .translation = glm::vec3(0.F, 0.F, 0.F) },
 
     // GameObject{ .name = "cube1",
-    //             .path = "/models/cube/cube-tex.obj",
+    //             .path = "/models/obj/cube/cube-tex.obj",
     //             .scale = glm::vec3(1.F),
     //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(-1.5F, .85F, -.5F) },
     //
     // GameObject{ .name = "cube2",
-    //             .path = "/models/cube/cube-tex.obj",
+    //             .path = "/models/obj/cube/cube-tex.obj",
     //             .scale = glm::vec3(.5F),
     //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
     //             .translation = glm::vec3(0.F, 0.F, .5F) },
 
     GameObject{ .name        = "cube3",
-                .path        = "/models/cube/cube-tex.obj",
+                .path        = "/models/obj/cube/cube-tex.obj",
                 .scale       = glm::vec3(.25F),
                 .rotation    = { .angle = glm::radians(60.F),
                                  .axis  = glm::vec3(1.F, 0.F, 1.F) },
@@ -62,7 +62,7 @@ std::array gameObjects = {
                 .emissive    = glm::vec3(1.5F, 1.2F, 0.5F) },
 
     GameObject{ .name        = "helmet",
-                .path        = "/models/helmet/damaged_helmet.obj",
+                .path        = "/models/obj/helmet/damaged_helmet.obj",
                 .scale       = glm::vec3(.5F),
                 .rotation    = { .angle = glm::radians(45.F),
                                  .axis  = glm::vec3(0.F, 1.F, 0.F) },
