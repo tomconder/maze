@@ -39,6 +39,16 @@ file(
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
+# cgltf
+message(STATUS "Including cgltf files")
+file(
+        GLOB CGLTF_SOURCES
+        LIST_DIRECTORIES false
+        deps/cgltf/cgltf.cpp)
+list(APPEND SOURCE_FILES ${CGLTF_SOURCES})
+set_source_files_properties(${CGLTF_SOURCES} PROPERTIES COMPILE_OPTIONS
+        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
+
 # stb
 message(STATUS "Including stb files")
 file(
@@ -188,6 +198,7 @@ target_compile_definitions(sponge PUBLIC
         SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_ERROR>)
 
 target_include_directories(sponge PUBLIC src)
+target_include_directories(sponge PUBLIC deps/cgltf)
 target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge PUBLIC deps/stb)
 target_include_directories(sponge PUBLIC deps/tinyobjloader)

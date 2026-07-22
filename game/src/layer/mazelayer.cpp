@@ -35,38 +35,36 @@ std::array<game::scene::PointLight, maxPointLights> pointLights;
 using game::layer::GameObject;
 
 std::array gameObjects = {
-    GameObject{ .name        = "floor",
-                .path        = "/models/obj/floor/floor.obj",
-                .scale       = glm::vec3(2.F),
-                .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
-                .translation = glm::vec3(0.F, 0.F, 0.F) },
+    GameObject{ .name  = "floor",
+                .path  = "/models/gltf/floor/floor.glb",
+                .scale = glm::vec3(2.F) },
 
     // GameObject{ .name = "cube1",
-    //             .path = "/models/obj/cube/cube-tex.obj",
+    //             .path = "/models/gltf/cube/cube-tex.glb",
     //             .scale = glm::vec3(1.F),
-    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
-    //             .translation = glm::vec3(-1.5F, .85F, -.5F) },
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
+    //             .translation = glm::vec3(-1.5F, .85F, -.5F), },
     //
     // GameObject{ .name = "cube2",
-    //             .path = "/models/obj/cube/cube-tex.obj",
+    //             .path = "/models/gltf/cube/cube-tex.glb",
     //             .scale = glm::vec3(.5F),
-    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F } },
-    //             .translation = glm::vec3(0.F, 0.F, .5F) },
+    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
+    //             .translation = glm::vec3(0.F, 0.F, .5F), },
 
     GameObject{ .name        = "cube3",
-                .path        = "/models/obj/cube/cube-tex.obj",
+                .path        = "/models/gltf/cube/cube-tex.glb",
                 .scale       = glm::vec3(.25F),
                 .rotation    = { .angle = glm::radians(60.F),
-                                 .axis  = glm::vec3(1.F, 0.F, 1.F) },
+                                 .axis  = glm::vec3(1.F, 0.F, 1.F), },
                 .translation = glm::vec3(-1.F, 0.25F, 1.F),
-                .emissive    = glm::vec3(1.5F, 1.2F, 0.5F) },
+                .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
 
     GameObject{ .name        = "helmet",
-                .path        = "/models/obj/helmet/damaged_helmet.obj",
+                .path        = "/models/gltf/helmet/DamagedHelmet.glb",
                 .scale       = glm::vec3(.5F),
                 .rotation    = { .angle = glm::radians(45.F),
-                                 .axis  = glm::vec3(0.F, 1.F, 0.F) },
-                .translation = glm::vec3(0.F, 0.F, 0.F) }
+                                 .axis  = glm::vec3(0.F, 1.F, 0.F), },
+                .translation = glm::vec3(0.F, .5F, 0.F), },
 };
 }  // namespace
 
@@ -116,8 +114,6 @@ void MazeLayer::onAttach() {
     const auto shader = Mesh::getShader();
     shader->bind();
 
-    shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->setFloat("roughness", roughness);
     shader->setFloat("ao", ao);
 
     shader->setFloat("ambientStrength", ambientStrength);
@@ -518,19 +514,6 @@ void MazeLayer::setShadowMapRes(const uint32_t res) {
     pendingShadowRebuild.store(true, std::memory_order_release);
 }
 
-bool MazeLayer::isMetallic() const {
-    return metallic;
-}
-
-void MazeLayer::setMetallic(const bool val) {
-    metallic = val;
-
-    const auto shader = Mesh::getShader();
-    shader->bind();
-    shader->setFloat("metallic", metallic ? 1.F : 0.F);
-    shader->unbind();
-}
-
 int32_t MazeLayer::getNumLights() const {
     return numLights;
 }
@@ -558,19 +541,6 @@ void MazeLayer::setNumLights(const int32_t val) {
     const auto shader = Mesh::getShader();
     shader->bind();
     shader->setInteger("numLights", numLights);
-    shader->unbind();
-}
-
-float MazeLayer::getRoughness() const {
-    return roughness;
-}
-
-void MazeLayer::setRoughness(const float val) {
-    roughness = val;
-
-    const auto shader = Mesh::getShader();
-    shader->bind();
-    shader->setFloat("roughness", roughness);
     shader->unbind();
 }
 
