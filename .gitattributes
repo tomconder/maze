@@ -105,6 +105,8 @@ readme            text
 TODO              text
 
 # Graphics
+*.glb      binary
+*.gltf     binary
 *.png      binary
 *.jpg      binary
 *.jpeg     binary
