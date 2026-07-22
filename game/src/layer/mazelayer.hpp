@@ -20,7 +20,7 @@ struct GameObject {
     struct {
         float     angle{ 0.F };
         glm::vec3 axis{ 0.F, 1.F, 0.F };
-    } rotation;
+    } rotation{};
     glm::vec3 translation{ 0.F };
     glm::vec3 emissive{ 0.F };
 };
@@ -81,17 +81,9 @@ public:
 
     void setShadowMapRes(uint32_t res);
 
-    bool isMetallic() const;
-
-    void setMetallic(bool val);
-
     int32_t getNumLights() const;
 
     void setNumLights(int32_t val);
-
-    float getRoughness() const;
-
-    void setRoughness(float val);
 
     bool isFxaaEnabled() const;
 
@@ -155,10 +147,8 @@ private:
     // Compensates the soft-knee extract, which passes only above-threshold
     // energy (the old hard threshold passed the full pixel color).
     float   bloomIntensity     = 2.5F;
-    bool    metallic           = false;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
-    float   roughness          = .5F;
 #ifdef ENABLE_IMGUI
     bool isImguiOpen = true;
 #endif

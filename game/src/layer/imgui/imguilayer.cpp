@@ -321,28 +321,13 @@ void ImGuiLayer::showPointLightControls() {
     if (ImGui::BeginTable("PointLights##Table", 1,
                           ImGuiTableFlags_NoPadInnerX |
                               ImGuiTableFlags_NoPadOuterX)) {
-        auto metallic         = mazeLayer->isMetallic();
         auto ambientStrength  = mazeLayer->getAmbientStrength();
-        auto roughness        = mazeLayer->getRoughness();
         auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
-
-        showTableRow([&] {
-            if (ImGui::Checkbox("Metallic", &metallic)) {
-                mazeLayer->setMetallic(metallic);
-            }
-        });
 
         showTableRow([&] {
             if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F,
                                    1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setAmbientStrength(ambientStrength);
-            }
-        });
-
-        showTableRow([&] {
-            if (ImGui::SliderFloat("Roughness", &roughness, .089F, 1.F, "%.3f",
-                                   ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setRoughness(roughness);
             }
         });
 

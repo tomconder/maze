@@ -30,6 +30,11 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
         SPONGE_GL_INFO("Creating depth map texture: [{}, {}x{}]",
                        createInfo.name, createInfo.width, createInfo.height);
         createDepthMap(createInfo.width, createInfo.height);
+    } else if (createInfo.data != nullptr) {
+        SPONGE_GL_INFO("Creating texture from memory: [{}, {}x{}]",
+                       createInfo.name, createInfo.width, createInfo.height);
+        generate(createInfo.width, createInfo.height, createInfo.bytesPerPixel,
+                 createInfo.data, createInfo.loadFlag);
     } else {
         SPONGE_GL_ERROR("Unable to create texture");
     }

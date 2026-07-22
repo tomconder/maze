@@ -19,16 +19,26 @@
 // slangc, so a shader only emits the block it actually uses.
 
 struct PbrParams {
-    float4x4         mvp;               // vertex
-    float4x4         model;             // vertex
-    float4x4         normalMatrix;      // vertex; precomputed transpose(inverse(model)) on CPU
-    float4x4         lightSpaceMatrix;  // vertex
-    float            metallic;
-    float            roughness;
-    float            ao;
-    float            ambientStrength;
-    float            evsmBleedThreshold;
-    bool             hasNoTexture;
+    float4x4 mvp;               // vertex
+    float4x4 model;             // vertex
+    float4x4 normalMatrix;      // vertex; precomputed transpose(inverse(model)) on CPU
+    float4x4 lightSpaceMatrix;  // vertex
+    float    metallicFactor;
+    float    roughnessFactor;
+    float    ao;
+    float    ambientStrength;
+    float    evsmBleedThreshold;
+    bool     hasNoTexture;
+    bool     hasNormalMap;
+    bool     hasAOMap;
+    bool     hasEmissiveMap;
+    bool     hasMetallicRoughnessMap;
+    // xy = offset, zw = scale (KHR_texture_transform; no rotation support)
+    float4           albedoUVTransform;
+    float4           normalUVTransform;
+    float4           occlusionUVTransform;
+    float4           emissiveUVTransform;
+    float4           metallicRoughnessUVTransform;
     float3           viewPos;
     float3           emissive;
     DirectionalLight directionalLight;
