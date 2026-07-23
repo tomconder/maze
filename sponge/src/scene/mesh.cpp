@@ -30,13 +30,13 @@ void Mesh::optimize() {
                              numIndices, &optimalVertices[0].position.x,
                              optimalVertexCount, sizeof(Vertex), 1.05F);
 
-    meshopt_optimizeVertexFetch(optimalVertices.data(), optimalIndices.data(),
-                                numIndices, optimalVertices.data(),
-                                optimalVertexCount, sizeof(Vertex));
+    const auto fetchVertexCount = meshopt_optimizeVertexFetch(
+        optimalVertices.data(), optimalIndices.data(), numIndices,
+        optimalVertices.data(), optimalVertexCount, sizeof(Vertex));
 
     indices.swap(optimalIndices);
     vertices.swap(optimalVertices);
-    numVertices = optimalVertexCount;
+    numVertices = fetchVertexCount;
 }
 
 }  // namespace sponge::scene
