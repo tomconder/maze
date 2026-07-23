@@ -175,6 +175,14 @@ void MazeLayer::onAttach() {
     shader->unbind();
 
     setNumLights(numLights);
+
+    // Static after onAttach(); copy into both snapshot slots once instead of
+    // per frame in captureRenderFrame().
+    for (auto& frame : renderFrames) {
+        frame.objectModelMatrices = objectModelMatrices;
+        frame.objectEmissives     = objectEmissives;
+        frame.objectModels        = objectModels;
+    }
 }
 
 void MazeLayer::onDetach() {
@@ -304,11 +312,6 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.bloomThreshold = bloomThreshold;
         frame.bloomIntensity = bloomIntensity;
     }
-
-    // Static after onAttach(); safe to copy.
-    frame.objectModelMatrices = objectModelMatrices;
-    frame.objectEmissives     = objectEmissives;
-    frame.objectModels        = objectModels;
 
     // Publication happens in onFrameSync() on the main thread, while both
     // workers are idle — publishing here would race the in-flight render and
