@@ -9,6 +9,7 @@
 #include <array>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <string_view>
 #include <vector>
 
@@ -135,6 +136,11 @@ private:
 
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;
+
+    // Guards settings written by ImGui (render thread) and read by
+    // captureRenderFrame() (update thread): lights, directional light,
+    // fxaa/bloom params. Uncontended except while a debug slider is dragged.
+    mutable std::mutex settingsMutex;
 
     std::atomic<int32_t> screenWidth{ 0 };
     std::atomic<int32_t> screenHeight{ 0 };

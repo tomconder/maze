@@ -10,6 +10,7 @@
 
 #include <array>
 #include <memory>
+#include <mutex>
 #include <random>
 #include <string>
 
@@ -276,28 +277,33 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.screenWidth      = screenWidth;
     frame.screenHeight     = screenHeight;
 
-    frame.shadowEnabled    = directionalLight.enabled;
-    frame.shadowCastShadow = directionalLight.castShadow;
-    frame.lightDirection   = directionalLight.direction;
-    if (directionalLight.enabled && directionalLight.castShadow) {
-        // Update on update thread to avoid racing render thread
-        // bind()/unbind().
-        shadowMap->updateLightSpaceMatrix(
-            glm::normalize(directionalLight.direction));
-        frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
-    }
+    {
+        // ImGui setters mutate these from the render thread.
+        std::scoped_lock lock(settingsMutex);
 
-    frame.numLights             = numLights;
-    frame.lightAttenuationIndex = attenuationIndex;
-    for (int32_t i = 0; i < numLights; i++) {
-        frame.lightPositions[i] = pointLights.at(i).position;
-        frame.lightColors[i]    = pointLights.at(i).color;
-    }
+        frame.shadowEnabled    = directionalLight.enabled;
+        frame.shadowCastShadow = directionalLight.castShadow;
+        frame.lightDirection   = directionalLight.direction;
+        if (directionalLight.enabled && directionalLight.castShadow) {
+            // Update on update thread to avoid racing render thread
+            // bind()/unbind().
+            shadowMap->updateLightSpaceMatrix(
+                glm::normalize(directionalLight.direction));
+            frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+        }
 
-    frame.fxaaEnabled    = fxaaEnabled;
-    frame.bloomEnabled   = bloomEnabled;
-    frame.bloomThreshold = bloomThreshold;
-    frame.bloomIntensity = bloomIntensity;
+        frame.numLights             = numLights;
+        frame.lightAttenuationIndex = attenuationIndex;
+        for (int32_t i = 0; i < numLights; i++) {
+            frame.lightPositions[i] = pointLights.at(i).position;
+            frame.lightColors[i]    = pointLights.at(i).color;
+        }
+
+        frame.fxaaEnabled    = fxaaEnabled;
+        frame.bloomEnabled   = bloomEnabled;
+        frame.bloomThreshold = bloomThreshold;
+        frame.bloomIntensity = bloomIntensity;
+    }
 
     // Static after onAttach(); safe to copy.
     frame.objectModelMatrices = objectModelMatrices;
@@ -443,7 +449,10 @@ int32_t MazeLayer::getAttenuationIndex() const {
 }
 
 void MazeLayer::setAttenuationIndex(const int32_t val) {
-    attenuationIndex = val;
+    {
+        std::scoped_lock lock(settingsMutex);
+        attenuationIndex = val;
+    }
     setNumLights(numLights);
 }
 
@@ -456,7 +465,10 @@ bool MazeLayer::getDirectionalLightCastsShadow() const {
 }
 
 void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
-    directionalLight.castShadow = value;
+    {
+        std::scoped_lock lock(settingsMutex);
+        directionalLight.castShadow = value;
+    }
 
     const auto shader = Mesh::getShader();
     shader->bind();
@@ -483,7 +495,10 @@ glm::vec3 MazeLayer::getDirectionalLightDirection() const {
 }
 
 void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
-    directionalLight.direction = direction;
+    {
+        std::scoped_lock lock(settingsMutex);
+        directionalLight.direction = direction;
+    }
 
     const auto shader = Mesh::getShader();
     shader->bind();
@@ -496,7 +511,10 @@ bool MazeLayer::getDirectionalLightEnabled() const {
 }
 
 void MazeLayer::setDirectionalLightEnabled(const bool value) {
-    directionalLight.enabled = value;
+    {
+        std::scoped_lock lock(settingsMutex);
+        directionalLight.enabled = value;
+    }
 
     const auto shader = Mesh::getShader();
     shader->bind();
@@ -519,23 +537,26 @@ int32_t MazeLayer::getNumLights() const {
 }
 
 void MazeLayer::setNumLights(const int32_t val) {
-    numLights = std::clamp(val, 0, maxPointLights);
+    {
+        std::scoped_lock lock(settingsMutex);
+        numLights = std::clamp(val, 0, maxPointLights);
 
-    std::mt19937                          rng(42U);
-    std::uniform_real_distribution<float> jitterAngle(-0.4F, 0.4F);
-    std::uniform_real_distribution<float> jitterRadius(-0.5F, 0.5F);
+        std::mt19937                          rng(42U);
+        std::uniform_real_distribution<float> jitterAngle(-0.4F, 0.4F);
+        std::uniform_real_distribution<float> jitterRadius(-0.5F, 0.5F);
 
-    for (int32_t i = 0; i < numLights; i++) {
-        const float t =
-            numLights > 1 ? static_cast<float>(i) / (numLights - 1) : 0.F;
-        const float radius = 1.5F + t * 13.5F + jitterRadius(rng);
-        const float angle =
-            glm::two_pi<float>() * i / numLights + jitterAngle(rng);
-        auto& light = pointLights.at(i);
-        light.color = glm::vec3(1.F);
-        light.position =
-            glm::vec3(rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
-                      glm::vec4(0.F, 2.75F, -radius, 1.F));
+        for (int32_t i = 0; i < numLights; i++) {
+            const float t =
+                numLights > 1 ? static_cast<float>(i) / (numLights - 1) : 0.F;
+            const float radius = 1.5F + t * 13.5F + jitterRadius(rng);
+            const float angle =
+                glm::two_pi<float>() * i / numLights + jitterAngle(rng);
+            auto& light    = pointLights.at(i);
+            light.color    = glm::vec3(1.F);
+            light.position = glm::vec3(
+                rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
+                glm::vec4(0.F, 2.75F, -radius, 1.F));
+        }
     }
 
     const auto shader = Mesh::getShader();
@@ -755,7 +776,10 @@ bool MazeLayer::isFxaaEnabled() const {
 }
 
 void MazeLayer::setFxaaEnabled(const bool val) {
-    fxaaEnabled = val;
+    {
+        std::scoped_lock lock(settingsMutex);
+        fxaaEnabled = val;
+    }
     if (fxaa) {
         fxaa->setEnabled(val);
     }
@@ -766,6 +790,7 @@ bool MazeLayer::isBloomEnabled() const {
 }
 
 void MazeLayer::setBloomEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
     bloomEnabled = val;
 }
 
@@ -774,6 +799,7 @@ float MazeLayer::getBloomThreshold() const {
 }
 
 void MazeLayer::setBloomThreshold(const float val) {
+    std::scoped_lock lock(settingsMutex);
     bloomThreshold = val;
 }
 
@@ -782,6 +808,7 @@ float MazeLayer::getBloomIntensity() const {
 }
 
 void MazeLayer::setBloomIntensity(const float val) {
+    std::scoped_lock lock(settingsMutex);
     bloomIntensity = val;
 }
 
