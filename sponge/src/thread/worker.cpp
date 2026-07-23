@@ -1,5 +1,10 @@
 #include "worker.hpp"
 
+#include "logging/log.hpp"
+
+#include <cassert>
+#include <exception>
+
 namespace sponge::thread {
 
 Worker::~Worker() {
@@ -27,7 +32,16 @@ void Worker::start() {
                 hasWork     = false;
             }
 
-            const bool taskResult = currentTask();
+            bool taskResult = false;
+            try {
+                taskResult = currentTask();
+            } catch (const std::exception& e) {
+                // Uncaught here would std::terminate the whole process;
+                // report failure so the main loop shuts down cleanly.
+                SPONGE_CORE_ERROR("Worker task threw: {}", e.what());
+            } catch (...) {
+                SPONGE_CORE_ERROR("Worker task threw a non-std exception");
+            }
 
             {
                 std::scoped_lock lock(mutex);
@@ -44,6 +58,9 @@ void Worker::start() {
 void Worker::kick(std::function<bool()> newTask) {
     {
         std::scoped_lock lock(mutex);
+        // Kicking over an in-flight task would silently drop it; callers must
+        // waitForComplete() first.
+        assert(done && "Worker::kick() called while a task is in flight");
         task    = std::move(newTask);
         done    = false;
         hasWork = true;
