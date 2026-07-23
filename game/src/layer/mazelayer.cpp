@@ -310,8 +310,15 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.objectEmissives     = objectEmissives;
     frame.objectModels        = objectModels;
 
-    // Publish slot; release/acquire pair with onRender()'s load.
-    renderReadIndex.store(slotIndex, std::memory_order_release);
+    // Publication happens in onFrameSync() on the main thread, while both
+    // workers are idle — publishing here would race the in-flight render and
+    // make the frame pairing nondeterministic.
+    writtenSlot = slotIndex;
+}
+
+void MazeLayer::onFrameSync() {
+    // Release pairs with onRender()'s acquire load.
+    renderReadIndex.store(writtenSlot, std::memory_order_release);
 }
 
 void MazeLayer::onRender() {

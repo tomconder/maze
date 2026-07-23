@@ -321,6 +321,18 @@ void Application::run() {
         renderElapsedTime = primeElapsed;
     }
 
+    // Both workers idle: publish update-thread layer state for the next
+    // render so the frame pairing is deterministic.
+    const auto frameSync = [this] {
+        for (const auto& layer : *layerStack) {
+            if (layer->isActive() && layer->runsOnUpdateThread()) {
+                layer->onFrameSync();
+            }
+        }
+    };
+
+    frameSync();
+
     // Warm up render thread (acquires GL context) before pipelined loop.
     renderThread.kick(renderTask);
     renderThread.waitForComplete();
@@ -430,6 +442,8 @@ void Application::run() {
 
         // Update elapsed time for render-thread layers.
         renderElapsedTime = elapsed;
+
+        frameSync();
 
         // Game logic for frame N into the free snapshot slot.
         updateThread.kick([this, elapsed] { return onUserUpdate(elapsed); });
