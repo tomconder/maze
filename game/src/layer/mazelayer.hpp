@@ -48,6 +48,10 @@ public:
     // Render thread: all GL commands, reads from latest update snapshot.
     void onRender() override;
 
+    // Main thread, both workers idle: publish the slot written by the last
+    // completed onUpdate() so render[N] always reads update[N-1]'s frame.
+    void onFrameSync() override;
+
     float getAmbientOcclusion() const;
 
     void setAmbientOcclusion(float val);
@@ -121,6 +125,11 @@ private:
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
     std::atomic<uint32_t>                  renderReadIndex{ 0 };
+
+    // Slot filled by the last completed captureRenderFrame(). Written on the
+    // update thread, read in onFrameSync() on the main thread — ordered by
+    // the Worker wait/kick handshake, so no atomic needed.
+    uint32_t writtenSlot{ 0 };
 
     // Deferred viewport/FXAA resize: set by onWindowResize(), applied in
     // onRender(). Dimensions are packed into one uint64_t (width << 32 |

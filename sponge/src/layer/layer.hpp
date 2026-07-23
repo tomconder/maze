@@ -28,6 +28,11 @@ public:
     // GPU commands using state from onUpdate(). No-op for render-thread layers.
     virtual void onRender() {}
 
+    // Called on the main thread while both worker threads are idle, before
+    // update[N] and render[N] are kicked. Publish state produced by
+    // update[N-1] here so render[N] sees a deterministic, completed frame.
+    virtual void onFrameSync() {}
+
     // True if onUpdate() runs on the update thread (GL-free; onRender() does
     // GPU work).
     virtual bool runsOnUpdateThread() const {
