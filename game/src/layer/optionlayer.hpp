@@ -1,9 +1,13 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "event/mouseevent.hpp"
+#include "layer/layer.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/selectlist.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <tuple>

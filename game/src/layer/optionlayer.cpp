@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <numeric>
 #include <optional>
 #include <ranges>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>

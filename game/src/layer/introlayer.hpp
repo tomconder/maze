@@ -1,6 +1,11 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "event/mouseevent.hpp"
+#include "layer/layer.hpp"
+
+#include <cstdint>
 
 namespace game::layer {
 

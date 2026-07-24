@@ -12,9 +12,11 @@
 #include <yoga/Yoga.h>
 
 #include <array>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace {
 using game::layer::ExitMenuItem;
