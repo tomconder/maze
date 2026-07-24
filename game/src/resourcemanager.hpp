@@ -1,11 +1,14 @@
 #pragma once
 
+#include "core/stringutils.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 #include "scene/gamecamera.hpp"
 #include "scene/orthocamera.hpp"
-#include "sponge.hpp"
 
+#include <cassert>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace game {

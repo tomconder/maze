@@ -13,9 +13,12 @@
 #include <spdlog/spdlog.h>
 
 #include "core/settings.hpp"
+#include "layer/layer.hpp"
+#include "layer/layerstack.hpp"
+#include "logging/log.hpp"
 #include "maze.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
 #include "scene/light.hpp"
-#include "sponge.hpp"
 #include "version.hpp"
 
 namespace {

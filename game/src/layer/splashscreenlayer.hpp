@@ -1,7 +1,13 @@
 #pragma once
 
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "layer/layer.hpp"
+#include "platform/opengl/scene/quad.hpp"
+#include "platform/opengl/scene/sprite.hpp"
 #include "scene/orthocamera.hpp"
-#include "sponge.hpp"
+
+#include <glm/glm.hpp>
 
 #include <memory>
 

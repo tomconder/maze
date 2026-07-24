@@ -1,12 +1,16 @@
 #pragma once
 
 #include "imgui.h"
-#include "sponge.hpp"
+#include "layer/layer.hpp"
+#include "layer/layerstack.hpp"
+#include "logging/log.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 // Forward declarations
 struct ImGuiTextFilter;

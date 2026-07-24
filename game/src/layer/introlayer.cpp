@@ -1,14 +1,22 @@
 #include "layer/introlayer.hpp"
 
+#include "core/base.hpp"
+#include "input/gameaction.hpp"
+#include "input/inputcontext.hpp"
+#include "input/mousecode.hpp"
 #include "maze.hpp"
+#include "platform/glfw/core/application.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
+#include "platform/opengl/scene/bitmapfont.hpp"
+#include "platform/opengl/scene/quad.hpp"
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
-#include "sponge.hpp"
 #include "ui/button.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
 
+#include <glm/glm.hpp>
 #include <yoga/Yoga.h>
 
 #include <array>

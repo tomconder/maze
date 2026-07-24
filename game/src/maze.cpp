@@ -1,8 +1,16 @@
 #include "maze.hpp"
 
+#include "core/application.hpp"
+#include "core/base.hpp"
+#include "core/settings.hpp"
 #include "entrypoint.hpp"
-#include "sponge.hpp"
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
 #include "version.hpp"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;

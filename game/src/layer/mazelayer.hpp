@@ -1,13 +1,25 @@
 #pragma once
 
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "event/mouseevent.hpp"
 #include "input/inputsnapshot.hpp"
+#include "layer/layer.hpp"
+#include "platform/opengl/renderer/shader.hpp"
+#include "platform/opengl/scene/bloom.hpp"
 #include "platform/opengl/scene/clusteredlights.hpp"
+#include "platform/opengl/scene/cube.hpp"
+#include "platform/opengl/scene/fxaa.hpp"
+#include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/gamecamera.hpp"
-#include "sponge.hpp"
 #include "thread/mazeframe.hpp"
+
+#include <glm/glm.hpp>
 
 #include <array>
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string_view>
