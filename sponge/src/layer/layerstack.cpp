@@ -1,6 +1,8 @@
 #include "layer/layerstack.hpp"
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 
 namespace sponge::layer {
 

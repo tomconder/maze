@@ -5,7 +5,9 @@
 
 #include <fmt/format.h>
 
+#include <cstdint>
 #include <sstream>
+#include <string>
 
 namespace sponge::platform::opengl::debug {
 void Diagnostics::log() {

@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include <cstdint>
+
 namespace game::scene {
 
 struct DirectionalLight {

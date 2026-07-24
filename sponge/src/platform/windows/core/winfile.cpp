@@ -1,6 +1,9 @@
 #include "platform/windows/core/winfile.hpp"
 
+#include <cstddef>
 #include <filesystem>
+#include <stdexcept>
+#include <string>
 
 namespace sponge::platform::windows::core {
 

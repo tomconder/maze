@@ -3,7 +3,9 @@
 #include "event/event.hpp"
 #include "logging/log.hpp"
 
+#include <cstdint>
 #include <functional>
+#include <string_view>
 #include <vector>
 
 struct GLFWwindow;

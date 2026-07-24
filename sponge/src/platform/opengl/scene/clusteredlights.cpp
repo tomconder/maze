@@ -3,7 +3,10 @@
 
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <glm/glm.hpp>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <vector>
 

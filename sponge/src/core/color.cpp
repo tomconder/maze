@@ -2,7 +2,9 @@
 
 #include "logging/log.hpp"
 
+#include <glm/glm.hpp>
 #include <algorithm>
+#include <string_view>
 
 namespace sponge::core {
 glm::vec3 Color::hexToRGB(const std::string_view hex) {

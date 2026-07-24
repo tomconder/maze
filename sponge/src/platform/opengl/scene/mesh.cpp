@@ -3,9 +3,12 @@
 #include "debug/profiler.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 
+#include <glm/glm.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace {

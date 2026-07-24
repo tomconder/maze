@@ -5,6 +5,8 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 
+#include <cstdint>
+
 namespace game::scene {
 OrthoCamera::OrthoCamera(const OrthoCameraCreateInfo& createInfo) {
     SPONGE_INFO("Creating ortho camera: {}", createInfo.name);

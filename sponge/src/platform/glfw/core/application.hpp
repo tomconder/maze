@@ -13,8 +13,10 @@
 #include "thread/worker.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace sponge::platform::glfw::core {

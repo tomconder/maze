@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
+
 #include <string>
 
 namespace game::scene {

@@ -6,6 +6,9 @@
 #include "platform/opengl/renderer/shaderutils.hpp"
 
 #include <cassert>
+#include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace sponge::platform::opengl::renderer {

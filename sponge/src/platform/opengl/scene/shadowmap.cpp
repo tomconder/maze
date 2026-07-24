@@ -7,8 +7,11 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
+#include <glm/glm.hpp>
 #include <array>
+#include <cstdint>
 #include <memory>
+#include <string>
 
 namespace {
 constexpr float nearPlane    = 1.F;

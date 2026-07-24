@@ -8,7 +8,7 @@
 
 #include <array>
 #include <atomic>
-#include <cstring>
+#include <cstdint>
 
 namespace sponge::platform::glfw::core {
 

@@ -1,6 +1,8 @@
 #include "platform/glfw/core/inputmanager.hpp"
 
+#include <atomic>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 
 #include "input/gameaction.hpp"

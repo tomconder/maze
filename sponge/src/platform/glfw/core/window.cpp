@@ -9,8 +9,12 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <ranges>
 #include <span>
+#include <string>
+#include <vector>
 
 namespace sponge::platform::glfw::core {
 Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {

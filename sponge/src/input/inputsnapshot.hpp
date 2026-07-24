@@ -4,7 +4,6 @@
 #include "input/gameaction.hpp"
 
 #include <array>
-#include <string_view>
 
 namespace sponge::input {
 

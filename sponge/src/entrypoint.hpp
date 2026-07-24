@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/application.hpp"
+#include "core/base.hpp"
 #include <memory>
 
 extern std::unique_ptr<sponge::core::Application>

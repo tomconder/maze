@@ -2,7 +2,9 @@
 
 #include "platform/opengl/renderer/assetmanager.hpp"
 
+#include <glm/glm.hpp>
 #include <array>
+#include <cstdint>
 #include <memory>
 
 namespace {

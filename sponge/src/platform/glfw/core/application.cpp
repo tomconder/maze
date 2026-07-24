@@ -13,9 +13,15 @@
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
+#include <atomic>
+#include <cassert>
+#include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 sponge::core::Timer mainTimer;

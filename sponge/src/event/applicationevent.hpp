@@ -2,6 +2,8 @@
 
 #include "event/event.hpp"
 
+#include <cstdint>
+
 namespace sponge::event {
 
 class WindowResizeEvent final : public Event {

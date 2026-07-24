@@ -2,6 +2,7 @@
 
 #include "layer/layer.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 

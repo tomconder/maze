@@ -9,6 +9,8 @@
 
 #include <glm/glm.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string_view>
 #include <vector>
