@@ -1,11 +1,7 @@
 #pragma once
 
-#include "core/base.hpp"
-
 #include <cstdint>
 #include <functional>
-#include <ostream>
-#include <string>
 
 namespace sponge::event {
 enum class EventType : uint8_t {
@@ -22,47 +18,21 @@ enum class EventType : uint8_t {
     WindowResize
 };
 
-enum EventCategory : uint8_t {
-    None                     = 0,
-    EventCategoryApplication = BIT(0),
-    EventCategoryInput       = BIT(1),
-    EventCategoryMouse       = BIT(2),
-    EventCategoryMouseButton = BIT(3)
-};
-
-#define EVENT_CLASS_TYPE(type)                  \
-    static EventType getStaticType() {          \
-        return EventType::type;                 \
-    }                                           \
-    EventType getEventType() const override {   \
-        return getStaticType();                 \
-    }                                           \
-    std::string_view getName() const override { \
-        return #type;                           \
-    }
-
-#define EVENT_CLASS_CATEGORY(category)      \
-    int getCategoryFlags() const override { \
-        return category;                    \
+#define EVENT_CLASS_TYPE(type)                \
+    static EventType getStaticType() {        \
+        return EventType::type;               \
+    }                                         \
+    EventType getEventType() const override { \
+        return getStaticType();               \
     }
 
 class Event {
 public:
     virtual ~Event() = default;
 
-    virtual std::string toString() const {
-        return getName().data();
-    }
-
     bool handled = false;
 
-    virtual EventType        getEventType() const     = 0;
-    virtual int              getCategoryFlags() const = 0;
-    virtual std::string_view getName() const          = 0;
-
-    bool isInCategory(const EventCategory category) const {
-        return getCategoryFlags() & category;
-    }
+    virtual EventType getEventType() const = 0;
 };
 
 class EventDispatcher {
@@ -84,8 +54,4 @@ public:
 private:
     Event& event;
 };
-
-inline std::ostream& operator<<(std::ostream& os, const Event& e) {
-    return os << e.toString();
-}
 }  // namespace sponge::event

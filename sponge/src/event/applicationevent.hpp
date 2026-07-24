@@ -2,9 +2,6 @@
 
 #include "event/event.hpp"
 
-#include <sstream>
-#include <string>
-
 namespace sponge::event {
 
 class WindowResizeEvent final : public Event {
@@ -19,14 +16,7 @@ public:
         return height;
     }
 
-    std::string toString() const override {
-        std::stringstream ss;
-        ss << "WindowResizeEvent: " << width << ", " << height;
-        return ss.str();
-    }
-
     EVENT_CLASS_TYPE(WindowResize)
-    EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 private:
     uint32_t width;
@@ -38,7 +28,6 @@ public:
     WindowCloseEvent() = default;
 
     EVENT_CLASS_TYPE(WindowClose)
-    EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
 class WindowFocusEvent final : public Event {
@@ -50,7 +39,6 @@ public:
     }
 
     EVENT_CLASS_TYPE(WindowFocus)
-    EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 private:
     bool focused;
@@ -61,7 +49,6 @@ public:
     WindowFullscreenEvent() = default;
 
     EVENT_CLASS_TYPE(WindowFullscreen)
-    EVENT_CLASS_CATEGORY(EventCategoryApplication)
 };
 
 class WindowMinimizeEvent final : public Event {
@@ -73,7 +60,6 @@ public:
     }
 
     EVENT_CLASS_TYPE(WindowMinimize)
-    EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 private:
     bool minimized;
