@@ -34,8 +34,8 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
-    // Acts on a menu item; shared by the keyboard and mouse paths.
-    void activate(ExitMenuItem item);
+    // Acts on selectedItem; shared by the keyboard and mouse paths.
+    void activateSelected();
 
     static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 

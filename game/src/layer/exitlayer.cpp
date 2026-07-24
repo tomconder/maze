@@ -148,14 +148,13 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
             }
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
-                clearHoveredItems();
                 selectedItem = ExitMenuItem::Continue;
-                resumeGame();
+                activateSelected();
             }
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
-                activate(selectedItem);
+                activateSelected();
             }
         }
         wasActiveLastFrame = true;
@@ -233,21 +232,18 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         if (!menuButtons[i]->isInside({ x, y })) {
             continue;
         }
-        const auto item = static_cast<ExitMenuItem>(i);
-        // Clicking Continue also clears hover; the keyboard path does not.
-        if (item == ExitMenuItem::Continue) {
-            clearHoveredItems();
-        }
-        activate(item);
+        selectedItem = static_cast<ExitMenuItem>(i);
+        activateSelected();
         break;
     }
 
     return true;
 }
 
-void ExitLayer::activate(const ExitMenuItem item) {
-    switch (item) {
+void ExitLayer::activateSelected() {
+    switch (selectedItem) {
         case ExitMenuItem::Continue:
+            clearHoveredItems();
             resumeGame();
             break;
         case ExitMenuItem::Options:
