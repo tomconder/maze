@@ -165,18 +165,65 @@ void saveVideoSettings(const uint32_t width, const uint32_t height,
 
 std::unique_ptr<game::ui::Button> returnButton;
 
-YGNodeRef antiAliasingNode   = nullptr;
-YGNodeRef aspectRatioNode    = nullptr;
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
-YGNodeRef resolutionNode     = nullptr;
-YGNodeRef shadowQualityNode  = nullptr;
-YGNodeRef verticalSyncNode   = nullptr;
-YGNodeRef fullScreenNode     = nullptr;
-YGNodeRef returnNode         = nullptr;
 YGNodeRef rootNode           = nullptr;
 
+using game::layer::OptionMenuItem;
+
+constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
+
+// Rows are laid out top-to-bottom in OptionMenuItem order, so the enum
+// doubles as the row index.
+std::array<YGNodeRef, rowCount> rowNodes{};
+
+struct RowDef {
+    OptionMenuItem   item;
+    std::string_view label;
+};
+
+// Every row except Return, which is a Button rather than a setting widget.
+constexpr std::array settingRows = {
+    RowDef{ .item = OptionMenuItem::AspectRatio, .label = "Aspect Ratio" },
+    RowDef{ .item = OptionMenuItem::Resolution, .label = "Resolution" },
+    RowDef{ .item = OptionMenuItem::FullScreen, .label = "Full Screen" },
+    RowDef{ .item = OptionMenuItem::VerticalSync, .label = "Vertical Sync" },
+    RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-Aliasing" },
+    RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Map" },
+};
+
+// rowNodes are created by index, so the table must stay in enum order and
+// cover every row but Return.
+static_assert(settingRows.size() + 1 == rowCount);
+static_assert([] {
+    for (size_t i = 0; i < settingRows.size(); i++) {
+        if (static_cast<size_t>(settingRows[i].item) != i) {
+            return false;
+        }
+    }
+    return true;
+}());
+
 std::optional<size_t> currentShadowResIndex;
+
+// Dot strip state for the three cycling rows: total items, applied index.
+std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
+    switch (item) {
+        case OptionMenuItem::AspectRatio:
+            return { validAspectRatioFilters.size(), currentAspectRatioIndex };
+        case OptionMenuItem::Resolution:
+            return { filteredResolutions.size(), currentResolutionIndex };
+        case OptionMenuItem::ShadowQuality:
+            return { shadowResolutions.size(), currentShadowResIndex };
+        default:
+            return { 0, std::nullopt };
+    }
+}
+
+bool contains(const float x, const float y, const float w, const float h,
+              const float px, const float py) {
+    return px >= x && px <= x + w && py >= y && py <= y + h;
+}
 
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
@@ -223,13 +270,9 @@ void OptionLayer::onAttach() {
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
 
-    aspectRatioNode   = ui::makeMenuRow(menuBackgroundNode, 0);
-    resolutionNode    = ui::makeMenuRow(menuBackgroundNode, 1);
-    fullScreenNode    = ui::makeMenuRow(menuBackgroundNode, 2);
-    verticalSyncNode  = ui::makeMenuRow(menuBackgroundNode, 3);
-    antiAliasingNode  = ui::makeMenuRow(menuBackgroundNode, 4);
-    shadowQualityNode = ui::makeMenuRow(menuBackgroundNode, 5);
-    returnNode        = ui::makeMenuRow(menuBackgroundNode, 6);
+    for (size_t i = 0; i < rowNodes.size(); i++) {
+        rowNodes[i] = ui::makeMenuRow(menuBackgroundNode, static_cast<int>(i));
+    }
 
     availableResolutions = Maze::get().getAvailableResolutions();
 
@@ -357,34 +400,10 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                     itemCount);
             }
             if (input.isActive(GameAction::MenuLeft)) {
-                if (selectedItem == OptionMenuItem::AspectRatio) {
-                    aspectRatioList->selectPrev();
-                    filterResolutions();
-                } else if (selectedItem == OptionMenuItem::Resolution &&
-                           !filteredResolutions.empty()) {
-                    resolutionList->selectPrev();
-                    updateChangeStatus();
-                } else if (selectedItem == OptionMenuItem::ShadowQuality) {
-                    shadowQualityList->selectPrev();
-                    pendingShadowResIndex =
-                        static_cast<int>(shadowQualityList->getSelectedIndex());
-                    updateChangeStatus();
-                }
+                cycleList(selectedItem, -1);
             }
             if (input.isActive(GameAction::MenuRight)) {
-                if (selectedItem == OptionMenuItem::AspectRatio) {
-                    aspectRatioList->selectNext();
-                    filterResolutions();
-                } else if (selectedItem == OptionMenuItem::Resolution &&
-                           !filteredResolutions.empty()) {
-                    resolutionList->selectNext();
-                    updateChangeStatus();
-                } else if (selectedItem == OptionMenuItem::ShadowQuality) {
-                    shadowQualityList->selectNext();
-                    pendingShadowResIndex =
-                        static_cast<int>(shadowQualityList->getSelectedIndex());
-                    updateChangeStatus();
-                }
+                cycleList(selectedItem, 1);
             }
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
@@ -405,15 +424,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                         resetSelectionToCurrentState();
                         setActive(false);
                     }
-                } else if (selectedItem == OptionMenuItem::FullScreen) {
-                    pendingFullscreen = !pendingFullscreen;
-                    updateChangeStatus();
-                } else if (selectedItem == OptionMenuItem::VerticalSync) {
-                    pendingVsync = !pendingVsync;
-                    updateChangeStatus();
-                } else if (selectedItem == OptionMenuItem::AntiAliasing) {
-                    pendingFxaa = !pendingFxaa;
-                    updateChangeStatus();
+                } else {
+                    togglePending(selectedItem);
                 }
             }
         }
@@ -429,28 +441,6 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
-
-    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        ui::getNodeLayout(rootNode, 0.F, 0.F);
-    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
-    auto [menuBgX, menuBgY, menuBgW, menuBgH] =
-        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
-
-    const auto [arX, arY, arW, arH] =
-        ui::getNodeLayout(aspectRatioNode, menuBgX, menuBgY);
-    const auto [resX, resY, resW, resH] =
-        ui::getNodeLayout(resolutionNode, menuBgX, menuBgY);
-    const auto [fsX, fsY, fsW, fsH] =
-        ui::getNodeLayout(fullScreenNode, menuBgX, menuBgY);
-    const auto [vsX, vsY, vsW, vsH] =
-        ui::getNodeLayout(verticalSyncNode, menuBgX, menuBgY);
-    const auto [aaX, aaY, aaW, aaH] =
-        ui::getNodeLayout(antiAliasingNode, menuBgX, menuBgY);
-    const auto [sqX, sqY, sqW, sqH] =
-        ui::getNodeLayout(shadowQualityNode, menuBgX, menuBgY);
-    const auto [retX, retY, retW, retH] =
-        ui::getNodeLayout(returnNode, menuBgX, menuBgY);
 
     auto renderDots = [&](const size_t count, const float valueCenterX,
                           const float rowY, const float rowH,
@@ -479,18 +469,6 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         }
     };
 
-    renderRowBackground(arX, arY, arW, arH, OptionMenuItem::AspectRatio);
-    aspectRatioList->onUpdate(arX, arY, arW, arH, "Aspect Ratio");
-    renderDots(validAspectRatioFilters.size(),
-               aspectRatioList->getValueCenterX(arX, arW), arY, arH,
-               aspectRatioList->getSelectedIndex(), currentAspectRatioIndex);
-
-    renderRowBackground(resX, resY, resW, resH, OptionMenuItem::Resolution);
-    resolutionList->onUpdate(resX, resY, resW, resH, "Resolution");
-    renderDots(filteredResolutions.size(),
-               resolutionList->getValueCenterX(resX, resW), resY, resH,
-               resolutionList->getSelectedIndex(), currentResolutionIndex);
-
     auto renderRowLabel = [&](const float x, const float y, const float h,
                               const std::string_view label) {
         const float textY = std::floor(
@@ -500,24 +478,22 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         menuFont->endPass();
     };
 
-    renderRowBackground(fsX, fsY, fsW, fsH, OptionMenuItem::FullScreen);
-    renderRowLabel(fsX, fsY, fsH, "Full Screen");
-    fullScreenCheckbox->onUpdate(fsX, fsY, fsW, fsH, pendingFullscreen);
+    for (const auto& [item, label] : settingRows) {
+        const auto [x, y, w, h] = rowLayout(item);
+        renderRowBackground(x, y, w, h, item);
 
-    renderRowBackground(vsX, vsY, vsW, vsH, OptionMenuItem::VerticalSync);
-    renderRowLabel(vsX, vsY, vsH, "Vertical Sync");
-    verticalSyncCheckbox->onUpdate(vsX, vsY, vsW, vsH, pendingVsync);
+        if (auto* const list = listFor(item); list != nullptr) {
+            list->onUpdate(x, y, w, h, label);
+            const auto [dotCount, appliedIndex] = dotState(item);
+            renderDots(dotCount, list->getValueCenterX(x, w), y, h,
+                       list->getSelectedIndex(), appliedIndex);
+        } else {
+            renderRowLabel(x, y, h, label);
+            checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
+        }
+    }
 
-    renderRowBackground(aaX, aaY, aaW, aaH, OptionMenuItem::AntiAliasing);
-    renderRowLabel(aaX, aaY, aaH, "Anti-Aliasing");
-    antiAliasingCheckbox->onUpdate(aaX, aaY, aaW, aaH, pendingFxaa);
-
-    renderRowBackground(sqX, sqY, sqW, sqH, OptionMenuItem::ShadowQuality);
-    shadowQualityList->onUpdate(sqX, sqY, sqW, sqH, "Shadow Map");
-    renderDots(shadowResolutions.size(),
-               shadowQualityList->getValueCenterX(sqX, sqW), sqY, sqH,
-               shadowQualityList->getSelectedIndex(), currentShadowResIndex);
-
+    const auto [retX, retY, retW, retH] = rowLayout(OptionMenuItem::Return);
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
     ui::updateMenuButtonVisuals(returnButton.get(),
                                 selectedItem == OptionMenuItem::Return,
@@ -546,6 +522,91 @@ void OptionLayer::renderRowBackground(float x, float y, const float w,
                  glm::vec4{ 1.F });
 }
 
+std::tuple<float, float, float, float>
+    OptionLayer::rowLayout(const OptionMenuItem item) {
+    const auto [rootX, rootY, rootW, rootH] =
+        ui::getNodeLayout(rootNode, 0.F, 0.F);
+    const auto [menuX, menuY, menuW, menuH] =
+        ui::getNodeLayout(menuNode, rootX, rootY);
+    const auto [bgX, bgY, bgW, bgH] =
+        ui::getNodeLayout(menuBackgroundNode, menuX, menuY);
+    return ui::getNodeLayout(rowNodes[static_cast<size_t>(item)], bgX, bgY);
+}
+
+ui::SelectList* OptionLayer::listFor(const OptionMenuItem item) const {
+    switch (item) {
+        case OptionMenuItem::AspectRatio:
+            return aspectRatioList.get();
+        case OptionMenuItem::Resolution:
+            return resolutionList.get();
+        case OptionMenuItem::ShadowQuality:
+            return shadowQualityList.get();
+        default:
+            return nullptr;
+    }
+}
+
+ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
+    switch (item) {
+        case OptionMenuItem::FullScreen:
+            return fullScreenCheckbox.get();
+        case OptionMenuItem::VerticalSync:
+            return verticalSyncCheckbox.get();
+        case OptionMenuItem::AntiAliasing:
+            return antiAliasingCheckbox.get();
+        default:
+            return nullptr;
+    }
+}
+
+bool* OptionLayer::pendingFor(const OptionMenuItem item) {
+    switch (item) {
+        case OptionMenuItem::FullScreen:
+            return &pendingFullscreen;
+        case OptionMenuItem::VerticalSync:
+            return &pendingVsync;
+        case OptionMenuItem::AntiAliasing:
+            return &pendingFxaa;
+        default:
+            return nullptr;
+    }
+}
+
+// delta < 0 steps back, otherwise forward. No-op on non-cycling rows.
+void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
+    auto* const list = listFor(item);
+    if (list == nullptr ||
+        (item == OptionMenuItem::Resolution && filteredResolutions.empty())) {
+        return;
+    }
+
+    if (delta < 0) {
+        list->selectPrev();
+    } else {
+        list->selectNext();
+    }
+
+    if (item == OptionMenuItem::AspectRatio) {
+        // filterResolutions() ends in updateChangeStatus()
+        filterResolutions();
+        return;
+    }
+
+    if (item == OptionMenuItem::ShadowQuality) {
+        pendingShadowResIndex = static_cast<int>(list->getSelectedIndex());
+    }
+    updateChangeStatus();
+}
+
+void OptionLayer::togglePending(const OptionMenuItem item) {
+    auto* const pending = pendingFor(item);
+    if (pending == nullptr) {
+        return;
+    }
+    *pending = !*pending;
+    updateChangeStatus();
+}
+
 void OptionLayer::recalculateLayout(const float width, const float height) {
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, height);
@@ -571,111 +632,24 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =
-        ui::getNodeLayout(rootNode, 0.F, 0.F);
-    auto [menuNodeX, menuNodeY, menuNodeW, menuNodeH] =
-        ui::getNodeLayout(menuNode, rootNodeX, rootNodeY);
-    auto [menuBackgroundNodeX, menuBackgroundNodeY, menuBackgroundNodeW,
-          menuBackgroundNodeH] =
-        ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
-
-    const auto [arX, arY, arW, arH] = ui::getNodeLayout(
-        aspectRatioNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= arX && mouseX <= arX + arW && mouseY >= arY &&
-        mouseY <= arY + arH) {
-        selectedItem = OptionMenuItem::AspectRatio;
-
-        if (aspectRatioList->isInsideLeft(mouseX, arX, arW)) {
-            aspectRatioList->selectPrev();
-            filterResolutions();
-        } else if (aspectRatioList->isInsideRight(mouseX, arX, arW)) {
-            aspectRatioList->selectNext();
-            filterResolutions();
+    for (const auto& [item, label] : settingRows) {
+        const auto [x, y, w, h] = rowLayout(item);
+        if (!contains(x, y, w, h, mouseX, mouseY)) {
+            continue;
         }
 
-        return true;
-    }
+        selectedItem = item;
 
-    const auto [resX, resY, resW, resH] = ui::getNodeLayout(
-        resolutionNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= resX && mouseX <= resX + resW && mouseY >= resY &&
-        mouseY <= resY + resH) {
-        selectedItem = OptionMenuItem::Resolution;
-
-        if (!filteredResolutions.empty()) {
-            if (resolutionList->isInsideLeft(mouseX, resX, resW)) {
-                resolutionList->selectPrev();
-                updateChangeStatus();
-            } else if (resolutionList->isInsideRight(mouseX, resX, resW)) {
-                resolutionList->selectNext();
-                updateChangeStatus();
+        if (auto* const list = listFor(item); list != nullptr) {
+            if (list->isInsideLeft(mouseX, x, w)) {
+                cycleList(item, -1);
+            } else if (list->isInsideRight(mouseX, x, w)) {
+                cycleList(item, 1);
             }
+        } else if (checkboxFor(item)->isInside(mouseX, mouseY, x, y, w, h)) {
+            togglePending(item);
         }
 
-        return true;
-    }
-
-    const auto [fullX, fullY, fullW, fullH] = ui::getNodeLayout(
-        fullScreenNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= fullX && mouseX <= fullX + fullW && mouseY >= fullY &&
-        mouseY <= fullY + fullH) {
-        selectedItem = OptionMenuItem::FullScreen;
-        if (fullScreenCheckbox->isInside(mouseX, mouseY, fullX, fullY, fullW,
-                                         fullH)) {
-            pendingFullscreen = !pendingFullscreen;
-            updateChangeStatus();
-        }
-        return true;
-    }
-
-    const auto [vsyncX, vsyncY, vsyncW, vsyncH] = ui::getNodeLayout(
-        verticalSyncNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= vsyncX && mouseX <= vsyncX + vsyncW && mouseY >= vsyncY &&
-        mouseY <= vsyncY + vsyncH) {
-        selectedItem = OptionMenuItem::VerticalSync;
-        if (verticalSyncCheckbox->isInside(mouseX, mouseY, vsyncX, vsyncY,
-                                           vsyncW, vsyncH)) {
-            pendingVsync = !pendingVsync;
-            updateChangeStatus();
-        }
-        return true;
-    }
-
-    const auto [aaX, aaY, aaW, aaH] = ui::getNodeLayout(
-        antiAliasingNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= aaX && mouseX <= aaX + aaW && mouseY >= aaY &&
-        mouseY <= aaY + aaH) {
-        selectedItem = OptionMenuItem::AntiAliasing;
-        if (antiAliasingCheckbox->isInside(mouseX, mouseY, aaX, aaY, aaW,
-                                           aaH)) {
-            pendingFxaa = !pendingFxaa;
-            updateChangeStatus();
-        }
-        return true;
-    }
-
-    const auto [sqX, sqY, sqW, sqH] = ui::getNodeLayout(
-        shadowQualityNode, menuBackgroundNodeX, menuBackgroundNodeY);
-
-    if (mouseX >= sqX && mouseX <= sqX + sqW && mouseY >= sqY &&
-        mouseY <= sqY + sqH) {
-        selectedItem = OptionMenuItem::ShadowQuality;
-        if (shadowQualityList->isInsideLeft(mouseX, sqX, sqW)) {
-            shadowQualityList->selectPrev();
-            pendingShadowResIndex =
-                static_cast<int>(shadowQualityList->getSelectedIndex());
-            updateChangeStatus();
-        } else if (shadowQualityList->isInsideRight(mouseX, sqX, sqW)) {
-            shadowQualityList->selectNext();
-            pendingShadowResIndex =
-                static_cast<int>(shadowQualityList->getSelectedIndex());
-            updateChangeStatus();
-        }
         return true;
     }
 
@@ -687,40 +661,13 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
 
     ui::updateButtonHover(returnButton.get(), pos);
 
-    const auto rootNodeLayout = ui::getNodeLayout(rootNode, 0.F, 0.F);
-    const auto menuNodeLayout = ui::getNodeLayout(
-        menuNode, std::get<0>(rootNodeLayout), std::get<1>(rootNodeLayout));
-    const auto menuBackgroundNodeLayout =
-        ui::getNodeLayout(menuBackgroundNode, std::get<0>(menuNodeLayout),
-                          std::get<1>(menuNodeLayout));
-
-    const float menuBackgroundNodeX = std::get<0>(menuBackgroundNodeLayout);
-    const float menuBackgroundNodeY = std::get<1>(menuBackgroundNodeLayout);
-
-    auto isOver = [&](auto* node) {
-        const auto nodeLayout =
-            ui::getNodeLayout(node, menuBackgroundNodeX, menuBackgroundNodeY);
-        const float x = std::get<0>(nodeLayout);
-        const float y = std::get<1>(nodeLayout);
-        const float w = std::get<2>(nodeLayout);
-        const float h = std::get<3>(nodeLayout);
-        return pos.x >= x && pos.x <= x + w && pos.y >= y && pos.y <= y + h;
-    };
-
-    if (isOver(aspectRatioNode)) {
-        hoveredItem = OptionMenuItem::AspectRatio;
-    } else if (isOver(resolutionNode)) {
-        hoveredItem = OptionMenuItem::Resolution;
-    } else if (isOver(fullScreenNode)) {
-        hoveredItem = OptionMenuItem::FullScreen;
-    } else if (isOver(verticalSyncNode)) {
-        hoveredItem = OptionMenuItem::VerticalSync;
-    } else if (isOver(antiAliasingNode)) {
-        hoveredItem = OptionMenuItem::AntiAliasing;
-    } else if (isOver(shadowQualityNode)) {
-        hoveredItem = OptionMenuItem::ShadowQuality;
-    } else {
-        hoveredItem = std::nullopt;
+    hoveredItem = std::nullopt;
+    for (const auto& [item, label] : settingRows) {
+        const auto [x, y, w, h] = rowLayout(item);
+        if (contains(x, y, w, h, pos.x, pos.y)) {
+            hoveredItem = item;
+            break;
+        }
     }
 
     return true;
@@ -738,20 +685,18 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         fontSize = newFontSize;
 
         returnButton->setFontSize(fontSize);
-        aspectRatioList->setFontSize(fontSize);
-        resolutionList->setFontSize(fontSize);
-        shadowQualityList->setFontSize(fontSize);
 
-        const auto checkboxSize = static_cast<float>(fontSize);
-        antiAliasingCheckbox->setSize(checkboxSize);
-        fullScreenCheckbox->setSize(checkboxSize);
-        verticalSyncCheckbox->setSize(checkboxSize);
-
+        const auto  checkboxSize       = static_cast<float>(fontSize);
         const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
-        aspectRatioList->setMaxValueWidth(maxCycleValueWidth);
-        resolutionList->setMaxValueWidth(maxCycleValueWidth);
-        shadowQualityList->setMaxValueWidth(maxCycleValueWidth);
+        for (const auto& [item, label] : settingRows) {
+            if (auto* const list = listFor(item); list != nullptr) {
+                list->setFontSize(fontSize);
+                list->setMaxValueWidth(maxCycleValueWidth);
+            } else {
+                checkboxFor(item)->setSize(checkboxSize);
+            }
+        }
     }
 
     if (isActive()) {

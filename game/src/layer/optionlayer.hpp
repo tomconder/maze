@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <optional>
+#include <tuple>
 
 namespace game::layer {
 
@@ -60,6 +61,19 @@ private:
 
     void renderRowBackground(float x, float y, float w, float h,
                              OptionMenuItem item) const;
+
+    // Screen rect of a row, resolved through the root/menu/background chain.
+    static std::tuple<float, float, float, float>
+        rowLayout(OptionMenuItem item);
+
+    // Widget backing a row, or nullptr when the row is not of that kind.
+    ui::SelectList* listFor(OptionMenuItem item) const;
+    ui::Checkbox*   checkboxFor(OptionMenuItem item) const;
+    bool*           pendingFor(OptionMenuItem item);
+
+    void cycleList(OptionMenuItem item, int delta);
+
+    void togglePending(OptionMenuItem item);
 
     void filterResolutions();
 
