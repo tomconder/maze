@@ -7,6 +7,7 @@
 #include "ui/button.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuselection.hpp"
 
 #include <yoga/Yoga.h>
 
@@ -147,18 +148,10 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         if (wasActiveLastFrame && !isFadingIn &&
             !Maze::get().getOptionLayer()->isActive()) {
             using sponge::input::GameAction;
-            const auto&    input     = mgr.getSnapshot();
-            constexpr auto itemCount = static_cast<int>(IntroMenuItem::Count);
+            const auto& input = mgr.getSnapshot();
 
-            if (input.isActive(GameAction::MenuDown)) {
-                selectedItem = static_cast<IntroMenuItem>(
-                    (static_cast<int>(selectedItem) + 1) % itemCount);
-            }
-            if (input.isActive(GameAction::MenuUp)) {
-                selectedItem = static_cast<IntroMenuItem>(
-                    (static_cast<int>(selectedItem) - 1 + itemCount) %
-                    itemCount);
-            }
+            ui::stepSelection(input, selectedItem);
+
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);

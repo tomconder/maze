@@ -25,6 +25,7 @@
 #include "ui/checkbox.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuselection.hpp"
 #include "ui/selectlist.hpp"
 
 namespace {
@@ -387,18 +388,10 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         }
 
         if (wasActiveLastFrame) {
-            const auto&    input     = mgr.getSnapshot();
-            constexpr auto itemCount = static_cast<int>(OptionMenuItem::Count);
+            const auto& input = mgr.getSnapshot();
 
-            if (input.isActive(GameAction::MenuDown)) {
-                selectedItem = static_cast<OptionMenuItem>(
-                    (static_cast<int>(selectedItem) + 1) % itemCount);
-            }
-            if (input.isActive(GameAction::MenuUp)) {
-                selectedItem = static_cast<OptionMenuItem>(
-                    (static_cast<int>(selectedItem) - 1 + itemCount) %
-                    itemCount);
-            }
+            ui::stepSelection(input, selectedItem);
+
             if (input.isActive(GameAction::MenuLeft)) {
                 cycleList(selectedItem, -1);
             }
