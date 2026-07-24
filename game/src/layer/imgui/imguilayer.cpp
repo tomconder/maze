@@ -46,10 +46,7 @@ constexpr float  logHeight     = 220.F;
 
 namespace game::layer::imgui {
 bool                     ImGuiLayer::hasAppInfoMenu = true;
-bool                     ImGuiLayer::hasFxaa        = true;
 bool                     ImGuiLayer::hasLogMenu     = true;
-bool                     ImGuiLayer::hasVsync       = true;
-bool                     ImGuiLayer::isFullscreen   = false;
 std::vector<const char*> ImGuiLayer::levelNames;
 std::vector<const char*> ImGuiLayer::categoryNames;
 
@@ -74,7 +71,6 @@ void ImGuiLayer::onImGuiRender() {
     const auto width  = static_cast<float>(window->getWidth());
     const auto height = static_cast<float>(window->getHeight());
 
-    updateState();
     showMenu();
 
     if (hasAppInfoMenu) {
@@ -84,12 +80,6 @@ void ImGuiLayer::onImGuiRender() {
     if (hasLogMenu) {
         showLogWindow(width, height);
     }
-}
-
-void ImGuiLayer::updateState() {
-    hasFxaa      = Maze::get().isFxaaEnabled();
-    hasVsync     = Maze::get().hasVerticalSync();
-    isFullscreen = Maze::get().isFullscreen();
 }
 
 void ImGuiLayer::showAppInfoWindow(const float width) {
@@ -399,23 +389,6 @@ void ImGuiLayer::showMenu() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
-            if (ImGui::MenuItem("Full Screen", nullptr, isFullscreen)) {
-                isFullscreen = !isFullscreen;
-                Maze::get().toggleFullscreen();
-            }
-
-            if (ImGui::MenuItem("Vertical Sync", nullptr, hasVsync)) {
-                hasVsync = !hasVsync;
-                Maze::get().requestVerticalSync(hasVsync);
-            }
-
-            if (ImGui::MenuItem("Anti-Aliasing", nullptr, hasFxaa)) {
-                hasFxaa = !hasFxaa;
-                Maze::get().setFxaaEnabled(hasFxaa);
-            }
-
-            ImGui::Separator();
-
             if (ImGui::MenuItem("App Info", nullptr, hasAppInfoMenu)) {
                 hasAppInfoMenu = !hasAppInfoMenu;
             }

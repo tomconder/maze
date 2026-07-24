@@ -20,16 +20,12 @@ public:
 
 private:
     static bool hasAppInfoMenu;
-    static bool hasFxaa;
     static bool hasLogMenu;
-    static bool hasVsync;
-    static bool isFullscreen;
 
     static std::vector<const char*> levelNames;
     static std::vector<const char*> categoryNames;
 
     // Main sections
-    static void updateState();
     static void showInfoSection();
     static void showAppInfoWindow(float width);
     static void showLogWindow(float width, float height);
