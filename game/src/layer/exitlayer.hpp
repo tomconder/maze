@@ -34,6 +34,9 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
+    // Acts on a menu item; shared by the keyboard and mouse paths.
+    void activate(ExitMenuItem item);
+
     static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 
     static bool onWindowResize(const sponge::event::WindowResizeEvent& event);

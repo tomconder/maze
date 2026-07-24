@@ -33,6 +33,9 @@ private:
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
 
+    // Acts on selectedItem; shared by the keyboard and mouse paths.
+    void activateSelected();
+
     static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 
     static bool onWindowResize(const sponge::event::WindowResizeEvent& event);

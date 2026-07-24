@@ -10,13 +10,21 @@
 
 #include <yoga/Yoga.h>
 
+#include <array>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace {
-constexpr std::string_view newGameMessage = "New Game";
-constexpr std::string_view optionsMessage = "Options";
-constexpr std::string_view quitMessage    = "Quit";
+using game::layer::IntroMenuItem;
+
+constexpr size_t menuItemCount = static_cast<size_t>(IntroMenuItem::Count);
+
+// Rows are laid out top-to-bottom in IntroMenuItem order, so the enum doubles
+// as the button and row index.
+constexpr std::array<std::string_view, menuItemCount> menuLabels = { "New Game",
+                                                                     "Options",
+                                                                     "Quit" };
 
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
@@ -29,15 +37,11 @@ constexpr glm::vec4 textHoverColor  = { 0.84F, 0.04F, 0.04F, 0.07F };
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
-std::unique_ptr<game::ui::Button> newGameButton;
-std::unique_ptr<game::ui::Button> optionsButton;
-std::unique_ptr<game::ui::Button> quitButton;
+std::array<std::unique_ptr<game::ui::Button>, menuItemCount> menuButtons;
+std::array<YGNodeRef, menuItemCount>                         menuNodes{};
 
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
-YGNodeRef newGameNode        = nullptr;
-YGNodeRef optionsNode        = nullptr;
-YGNodeRef quitNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
 
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
@@ -51,9 +55,7 @@ namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
 using sponge::event::MouseButtonPressedEvent;
-using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
-using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
@@ -79,15 +81,11 @@ void IntroLayer::onAttach() {
 
     quad = std::make_unique<Quad>();
 
-    auto makeMenuButton = [](std::string_view message) {
-        return ui::makeMenuButton(
-            message, ui::menuFontSizeForWidth(orthoCamera->getWidth()),
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        menuButtons[i] = ui::makeMenuButton(
+            menuLabels[i], ui::menuFontSizeForWidth(orthoCamera->getWidth()),
             menuFont, buttonColor, textColor);
-    };
-
-    newGameButton = makeMenuButton(newGameMessage);
-    optionsButton = makeMenuButton(optionsMessage);
-    quitButton    = makeMenuButton(quitMessage);
+    }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->bind();
@@ -100,9 +98,9 @@ void IntroLayer::onAttach() {
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
 
-    newGameNode = ui::makeMenuRow(menuBackgroundNode, 0);
-    optionsNode = ui::makeMenuRow(menuBackgroundNode, 1);
-    quitNode    = ui::makeMenuRow(menuBackgroundNode, 2);
+    for (size_t i = 0; i < menuNodes.size(); i++) {
+        menuNodes[i] = ui::makeMenuRow(menuBackgroundNode, static_cast<int>(i));
+    }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
@@ -164,21 +162,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
-                if (selectedItem == IntroMenuItem::NewGame) {
-                    clearHoveredItems();
-                    setActive(false);
-                    Maze::get().getMazeLayer()->setActive(true);
-#ifdef ENABLE_IMGUI
-                    if (Maze::get().getMazeLayer()->isImguiActive()) {
-                        Maze::get().getImGuiLayer()->setActive(true);
-                    }
-#endif
-                } else if (selectedItem == IntroMenuItem::Options) {
-                    clearHoveredItems();
-                    Maze::get().getOptionLayer()->setActive(true);
-                } else if (selectedItem == IntroMenuItem::Quit) {
-                    isRunning = false;
-                }
+                activateSelected();
             }
         }
         wasActiveLastFrame = true;
@@ -208,31 +192,16 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
           menuBackgroundNodeH] =
         ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [newGameX, newGameY, newGameW, newGameH] = ui::getNodeLayout(
-        newGameNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [optionsX, optionsY, optionsW, optionsH] = ui::getNodeLayout(
-        optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [quitX, quitY, quitW, quitH] =
-        ui::getNodeLayout(quitNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        const auto [x, y, w, h] = ui::getNodeLayout(
+            menuNodes[i], menuBackgroundNodeX, menuBackgroundNodeY);
 
-    newGameButton->setPosition({ newGameX, newGameY },
-                               { newGameX + newGameW, newGameY + newGameH });
-    optionsButton->setPosition({ optionsX, optionsY },
-                               { optionsX + optionsW, optionsY + optionsH });
-    quitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
-
-    ui::updateMenuButtonVisuals(newGameButton.get(),
-                                selectedItem == IntroMenuItem::NewGame,
-                                textHoverColor);
-    ui::updateMenuButtonVisuals(optionsButton.get(),
-                                selectedItem == IntroMenuItem::Options,
-                                textHoverColor);
-    ui::updateMenuButtonVisuals(
-        quitButton.get(), selectedItem == IntroMenuItem::Quit, textHoverColor);
-
-    UNUSED(newGameButton->onUpdate(elapsedTime));
-    UNUSED(optionsButton->onUpdate(elapsedTime));
-    UNUSED(quitButton->onUpdate(elapsedTime));
+        menuButtons[i]->setPosition({ x, y }, { x + w, y + h });
+        ui::updateMenuButtonVisuals(menuButtons[i].get(),
+                                    static_cast<size_t>(selectedItem) == i,
+                                    textHoverColor);
+        UNUSED(menuButtons[i]->onUpdate(elapsedTime));
+    }
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
@@ -283,9 +252,9 @@ bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
     recalculateLayout(width, height);
 
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
-    newGameButton->setFontSize(newFontSize);
-    optionsButton->setFontSize(newFontSize);
-    quitButton->setFontSize(newFontSize);
+    for (const auto& button : menuButtons) {
+        button->setFontSize(newFontSize);
+    }
 
     return false;
 }
@@ -305,48 +274,55 @@ bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     auto [x, y] =
         sponge::platform::glfw::core::Application::get().getMousePosition();
 
-    if (newGameButton->isInside({ x, y })) {
-        selectedItem = IntroMenuItem::NewGame;
-        clearHoveredItems();
-        setActive(false);
-        Maze::get().getMazeLayer()->setActive(true);
-#ifdef ENABLE_IMGUI
-        if (Maze::get().getMazeLayer()->isImguiActive()) {
-            Maze::get().getImGuiLayer()->setActive(true);
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        if (!menuButtons[i]->isInside({ x, y })) {
+            continue;
         }
-#endif
-        return true;
-    }
-
-    if (optionsButton->isInside({ x, y })) {
-        selectedItem = IntroMenuItem::Options;
-        clearHoveredItems();
-        Maze::get().getOptionLayer()->setActive(true);
-        return true;
-    }
-
-    if (quitButton->isInside({ x, y })) {
-        selectedItem = IntroMenuItem::Quit;
-        isRunning    = false;
+        selectedItem = static_cast<IntroMenuItem>(i);
+        activateSelected();
         return true;
     }
 
     return false;
+}
+
+void IntroLayer::activateSelected() {
+    switch (selectedItem) {
+        case IntroMenuItem::NewGame:
+            clearHoveredItems();
+            setActive(false);
+            Maze::get().getMazeLayer()->setActive(true);
+#ifdef ENABLE_IMGUI
+            if (Maze::get().getMazeLayer()->isImguiActive()) {
+                Maze::get().getImGuiLayer()->setActive(true);
+            }
+#endif
+            break;
+        case IntroMenuItem::Options:
+            clearHoveredItems();
+            Maze::get().getOptionLayer()->setActive(true);
+            break;
+        case IntroMenuItem::Quit:
+            isRunning = false;
+            break;
+        default:
+            break;
+    }
 }
 
 bool IntroLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    ui::updateButtonHover(newGameButton.get(), pos);
-    ui::updateButtonHover(optionsButton.get(), pos);
-    ui::updateButtonHover(quitButton.get(), pos);
+    for (const auto& button : menuButtons) {
+        ui::updateButtonHover(button.get(), pos);
+    }
 
     return false;
 }
 
 void IntroLayer::clearHoveredItems() {
-    newGameButton->setHover(false);
-    optionsButton->setHover(false);
-    quitButton->setHover(false);
+    for (const auto& button : menuButtons) {
+        button->setHover(false);
+    }
 }
 }  // namespace game::layer

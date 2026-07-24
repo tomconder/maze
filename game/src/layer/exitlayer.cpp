@@ -10,14 +10,21 @@
 
 #include <yoga/Yoga.h>
 
+#include <array>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace {
-constexpr std::string_view continueMessage     = "Continue";
-constexpr std::string_view optionsMessage      = "Options";
-constexpr std::string_view returnToMenuMessage = "Return to Menu";
-constexpr std::string_view exitMessage         = "Exit the Game";
+using game::layer::ExitMenuItem;
+
+constexpr size_t menuItemCount = static_cast<size_t>(ExitMenuItem::Count);
+
+// Rows are laid out top-to-bottom in ExitMenuItem order, so the enum doubles
+// as the button and row index.
+constexpr std::array<std::string_view, menuItemCount> menuLabels = {
+    "Continue", "Options", "Return to Menu", "Exit the Game"
+};
 
 constexpr std::string_view cameraName = "exit";
 constexpr std::string_view fontName   = "inter";
@@ -29,17 +36,11 @@ constexpr glm::vec4 textHoverColor = { 0.84F, 0.04F, 0.04F, 0.07F };
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
-std::unique_ptr<game::ui::Button> continueButton;
-std::unique_ptr<game::ui::Button> optionsButton;
-std::unique_ptr<game::ui::Button> returnToMenuButton;
-std::unique_ptr<game::ui::Button> exitButton;
+std::array<std::unique_ptr<game::ui::Button>, menuItemCount> menuButtons;
+std::array<YGNodeRef, menuItemCount>                         menuNodes{};
 
-YGNodeRef continueNode       = nullptr;
-YGNodeRef exitNode           = nullptr;
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
-YGNodeRef optionsNode        = nullptr;
-YGNodeRef returnToMenuNode   = nullptr;
 YGNodeRef rootNode           = nullptr;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
@@ -70,16 +71,11 @@ void ExitLayer::onAttach() {
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
     orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
 
-    auto makeMenuButton = [](std::string_view message) {
-        return ui::makeMenuButton(
-            message, ui::menuFontSizeForWidth(orthoCamera->getWidth()),
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        menuButtons[i] = ui::makeMenuButton(
+            menuLabels[i], ui::menuFontSizeForWidth(orthoCamera->getWidth()),
             menuFont, buttonColor, textColor);
-    };
-
-    continueButton     = makeMenuButton(continueMessage);
-    optionsButton      = makeMenuButton(optionsMessage);
-    returnToMenuButton = makeMenuButton(returnToMenuMessage);
-    exitButton         = makeMenuButton(exitMessage);
+    }
 
     for (const auto& shader : { Quad::getShader(), menuFont->getShader() }) {
         shader->bind();
@@ -92,10 +88,9 @@ void ExitLayer::onAttach() {
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
 
-    continueNode     = ui::makeMenuRow(menuBackgroundNode, 0);
-    optionsNode      = ui::makeMenuRow(menuBackgroundNode, 1);
-    returnToMenuNode = ui::makeMenuRow(menuBackgroundNode, 2);
-    exitNode         = ui::makeMenuRow(menuBackgroundNode, 3);
+    for (size_t i = 0; i < menuNodes.size(); i++) {
+        menuNodes[i] = ui::makeMenuRow(menuBackgroundNode, static_cast<int>(i));
+    }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
@@ -160,19 +155,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
-                if (selectedItem == ExitMenuItem::Continue) {
-                    resumeGame();
-                } else if (selectedItem == ExitMenuItem::Options) {
-                    clearHoveredItems();
-                    Maze::get().getOptionLayer()->setActive(true);
-                } else if (selectedItem == ExitMenuItem::ReturnToMenu) {
-                    clearHoveredItems();
-                    Maze::get().getIntroLayer()->setActive(true);
-                    Maze::get().getMazeLayer()->setActive(false);
-                    setActive(false);
-                } else if (selectedItem == ExitMenuItem::Exit) {
-                    isRunning = false;
-                }
+                activate(selectedItem);
             }
         }
         wasActiveLastFrame = true;
@@ -196,42 +179,16 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
           menuBackgroundNodeH] =
         ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    const auto [continueX, continueY, continueW, continueH] = ui::getNodeLayout(
-        continueNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [optionsX, optionsY, optionsW, optionsH] = ui::getNodeLayout(
-        optionsNode, menuBackgroundNodeX, menuBackgroundNodeY);
-    const auto [returnToMenuX, returnToMenuY, returnToMenuW, returnToMenuH] =
-        ui::getNodeLayout(returnToMenuNode, menuBackgroundNodeX,
-                          menuBackgroundNodeY);
-    const auto [quitX, quitY, quitW, quitH] =
-        ui::getNodeLayout(exitNode, menuBackgroundNodeX, menuBackgroundNodeY);
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        const auto [x, y, w, h] = ui::getNodeLayout(
+            menuNodes[i], menuBackgroundNodeX, menuBackgroundNodeY);
 
-    continueButton->setPosition(
-        { continueX, continueY },
-        { continueX + continueW, continueY + continueH });
-    optionsButton->setPosition({ optionsX, optionsY },
-                               { optionsX + optionsW, optionsY + optionsH });
-    returnToMenuButton->setPosition(
-        { returnToMenuX, returnToMenuY },
-        { returnToMenuX + returnToMenuW, returnToMenuY + returnToMenuH });
-    exitButton->setPosition({ quitX, quitY }, { quitX + quitW, quitY + quitH });
-
-    ui::updateMenuButtonVisuals(continueButton.get(),
-                                selectedItem == ExitMenuItem::Continue,
-                                textHoverColor);
-    ui::updateMenuButtonVisuals(optionsButton.get(),
-                                selectedItem == ExitMenuItem::Options,
-                                textHoverColor);
-    ui::updateMenuButtonVisuals(returnToMenuButton.get(),
-                                selectedItem == ExitMenuItem::ReturnToMenu,
-                                textHoverColor);
-    ui::updateMenuButtonVisuals(
-        exitButton.get(), selectedItem == ExitMenuItem::Exit, textHoverColor);
-
-    UNUSED(continueButton->onUpdate(elapsedTime));
-    UNUSED(optionsButton->onUpdate(elapsedTime));
-    UNUSED(returnToMenuButton->onUpdate(elapsedTime));
-    UNUSED(exitButton->onUpdate(elapsedTime));
+        menuButtons[i]->setPosition({ x, y }, { x + w, y + h });
+        ui::updateMenuButtonVisuals(menuButtons[i].get(),
+                                    static_cast<size_t>(selectedItem) == i,
+                                    textHoverColor);
+        UNUSED(menuButtons[i]->onUpdate(elapsedTime));
+    }
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
@@ -251,10 +208,9 @@ bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
     recalculateLayout(width, height);
 
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
-    continueButton->setFontSize(newFontSize);
-    optionsButton->setFontSize(newFontSize);
-    returnToMenuButton->setFontSize(newFontSize);
-    exitButton->setFontSize(newFontSize);
+    for (const auto& button : menuButtons) {
+        button->setFontSize(newFontSize);
+    }
 
     return false;
 }
@@ -272,37 +228,52 @@ bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     }
 
     auto [x, y] = Application::get().getMousePosition();
-    if (continueButton->isInside({ x, y })) {
-        clearHoveredItems();
-        resumeGame();
-    }
 
-    if (optionsButton->isInside({ x, y })) {
-        clearHoveredItems();
-        Maze::get().getOptionLayer()->setActive(true);
-    }
-
-    if (returnToMenuButton->isInside({ x, y })) {
-        clearHoveredItems();
-        Maze::get().getIntroLayer()->setActive(true);
-        Maze::get().getMazeLayer()->setActive(false);
-        setActive(false);
-    }
-
-    if (exitButton->isInside({ x, y })) {
-        isRunning = false;
+    for (size_t i = 0; i < menuButtons.size(); i++) {
+        if (!menuButtons[i]->isInside({ x, y })) {
+            continue;
+        }
+        const auto item = static_cast<ExitMenuItem>(i);
+        // Clicking Continue also clears hover; the keyboard path does not.
+        if (item == ExitMenuItem::Continue) {
+            clearHoveredItems();
+        }
+        activate(item);
+        break;
     }
 
     return true;
 }
 
+void ExitLayer::activate(const ExitMenuItem item) {
+    switch (item) {
+        case ExitMenuItem::Continue:
+            resumeGame();
+            break;
+        case ExitMenuItem::Options:
+            clearHoveredItems();
+            Maze::get().getOptionLayer()->setActive(true);
+            break;
+        case ExitMenuItem::ReturnToMenu:
+            clearHoveredItems();
+            Maze::get().getIntroLayer()->setActive(true);
+            Maze::get().getMazeLayer()->setActive(false);
+            setActive(false);
+            break;
+        case ExitMenuItem::Exit:
+            isRunning = false;
+            break;
+        default:
+            break;
+    }
+}
+
 bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    ui::updateButtonHover(continueButton.get(), pos);
-    ui::updateButtonHover(optionsButton.get(), pos);
-    ui::updateButtonHover(returnToMenuButton.get(), pos);
-    ui::updateButtonHover(exitButton.get(), pos);
+    for (const auto& button : menuButtons) {
+        ui::updateButtonHover(button.get(), pos);
+    }
 
     return true;
 }
@@ -317,9 +288,8 @@ void ExitLayer::resumeGame() {
 }
 
 void ExitLayer::clearHoveredItems() {
-    continueButton->setHover(false);
-    optionsButton->setHover(false);
-    returnToMenuButton->setHover(false);
-    exitButton->setHover(false);
+    for (const auto& button : menuButtons) {
+        button->setHover(false);
+    }
 }
 }  // namespace game::layer
