@@ -77,8 +77,8 @@ public:
     void setVerticalSync(bool val);
 
     // Thread-safe request to change vsync from a non-main thread (e.g. an
-    // update-thread or render-thread layer). Applied on the main thread,
-    // which owns the GLFW window/context.
+    // update-thread or render-thread layer). hasVerticalSync() reflects the
+    // new value at once; glfwSwapInterval runs on the context-owning thread.
     void requestVerticalSync(bool val);
 
     std::vector<LogItem>& getMessages() const {

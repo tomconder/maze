@@ -224,6 +224,9 @@ void Application::setVerticalSync(const bool val) {
 }
 
 void Application::requestVerticalSync(const bool val) {
+    // vsync is authoritative immediately so hasVerticalSync() is truthful to
+    // the caller; only glfwSwapInterval is deferred to the context owner.
+    vsync = val;
     pendingVerticalSyncValue.store(val, std::memory_order_relaxed);
     pendingVerticalSync.store(true, std::memory_order_release);
 }
