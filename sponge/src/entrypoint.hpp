@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/application.hpp"
 #include "core/base.hpp"
+#include "platform/glfw/core/application.hpp"
 #include <memory>
 
-extern std::unique_ptr<sponge::core::Application>
-    sponge::core::createApplication(int argc, char** argv);
+extern std::unique_ptr<sponge::platform::glfw::core::Application>
+    sponge::platform::glfw::core::createApplication(int argc, char** argv);
 
 #ifdef _WIN32
 #pragma warning(push)
@@ -19,7 +19,7 @@ namespace sponge::core {
 int main(const int argc, char** argv) {
     startupCore();
 
-    const auto app = createApplication(argc, argv);
+    const auto app = platform::glfw::core::createApplication(argc, argv);
     app->run();
 
     shutdownCore();

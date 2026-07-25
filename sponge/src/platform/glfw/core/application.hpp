@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/application.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
@@ -30,23 +29,23 @@ struct ApplicationSpecification {
 
 using logging::LogItem;
 
-class Application : public sponge::core::Application {
+class Application {
 public:
     explicit Application(ApplicationSpecification specification);
 
-    ~Application() override;
+    virtual ~Application();
 
-    bool start() override;
+    virtual bool start();
 
-    void shutdown() override;
+    virtual void shutdown();
 
-    bool onUserCreate() override;
+    virtual bool onUserCreate();
 
-    bool onUserUpdate(double elapsedTime) override;
+    virtual bool onUserUpdate(double elapsedTime);
 
-    bool onUserDestroy() override;
+    virtual bool onUserDestroy();
 
-    void onEvent(event::Event& event) override;
+    virtual void onEvent(event::Event& event);
 
     void onImGuiRender() const;
 
@@ -118,7 +117,7 @@ public:
     }
     std::pair<float, float> getMousePosition() const;
 
-    void run() override;
+    virtual void run();
 
     bool isEventHandledByImGui() const {
         return imguiManager.isEventHandled();
@@ -194,4 +193,8 @@ private:
     imgui::NoopManager imguiManager;
 #endif
 };
+
+// implemented by the client
+std::unique_ptr<Application> createApplication(int argc, char** argv);
+
 }  // namespace sponge::platform::glfw::core

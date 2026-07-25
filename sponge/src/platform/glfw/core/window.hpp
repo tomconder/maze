@@ -21,10 +21,10 @@ struct WindowData {
     EventCallbackFn  eventCallback;
 };
 
-class Window final : public sponge::core::Window {
+class Window final {
 public:
     explicit Window(const sponge::core::WindowProps& props);
-    ~Window() noexcept override;
+    ~Window() noexcept;
 
     std::string_view getTitle() const {
         return data.title;
@@ -34,15 +34,15 @@ public:
         data.title = title;
     }
 
-    uint32_t getWidth() const override {
+    uint32_t getWidth() const {
         return data.width;
     }
 
-    uint32_t getHeight() const override {
+    uint32_t getHeight() const {
         return data.height;
     }
 
-    void* getNativeWindow() const override {
+    void* getNativeWindow() const {
         return window;
     }
 

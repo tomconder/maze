@@ -1,6 +1,5 @@
 #include "maze.hpp"
 
-#include "core/application.hpp"
 #include "core/base.hpp"
 #include "core/settings.hpp"
 #include "entrypoint.hpp"
@@ -80,13 +79,13 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 }
 }  // namespace game
 
-std::unique_ptr<sponge::core::Application>
-    sponge::core::createApplication(const int argc, char** argv) {
+std::unique_ptr<sponge::platform::glfw::core::Application>
+    sponge::platform::glfw::core::createApplication(const int argc,
+                                                    char**    argv) {
     UNUSED(argc);
     UNUSED(argv);
 
-    using core::Settings;
-    using platform::glfw::core::ApplicationSpecification;
+    using sponge::core::Settings;
 
     const auto spec = ApplicationSpecification{
         .name       = game::project_name,
