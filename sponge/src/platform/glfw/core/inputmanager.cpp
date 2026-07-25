@@ -46,15 +46,6 @@ void InputManager::onDetach() {
     window   = nullptr;
 }
 
-void InputManager::pushContext(const input::InputContext ctx) {
-    setActiveContext(ctx);
-}
-
-void InputManager::popContext() {
-    // No-op: context is set per-frame via setActiveContext(); push/pop
-    // is no longer used but kept for API compatibility.
-}
-
 void InputManager::setActiveContext(const input::InputContext ctx) {
     // Menu always wins: if any layer requests Menu this frame, Menu is used
     // for the next resolveActions() call regardless of write order between

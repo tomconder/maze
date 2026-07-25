@@ -1,6 +1,5 @@
 #include "layer/layerstack.hpp"
 
-#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -19,25 +18,6 @@ void LayerStack::pushLayer(const std::shared_ptr<Layer>& layer) {
 
 void LayerStack::pushOverlay(const std::shared_ptr<Layer>& overlay) {
     layers.emplace_back(overlay);
-}
-
-void LayerStack::popLayer(const std::shared_ptr<Layer>& layer) {
-    const auto it =
-        std::find(layers.begin(), layers.begin() + layerInsertIndex, layer);
-    if (it != layers.begin() + layerInsertIndex) {
-        layer->onDetach();
-        layers.erase(it);
-        layerInsertIndex--;
-    }
-}
-
-void LayerStack::popOverlay(const std::shared_ptr<Layer>& overlay) {
-    const auto it =
-        std::find(layers.begin() + layerInsertIndex, layers.end(), overlay);
-    if (it != layers.end()) {
-        overlay->onDetach();
-        layers.erase(it);
-    }
 }
 
 std::vector<std::shared_ptr<Layer>>::const_iterator LayerStack::begin() {

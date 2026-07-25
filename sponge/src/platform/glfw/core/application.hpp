@@ -54,10 +54,6 @@ public:
 
     void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
 
-    void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
-
-    void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
-
     void toggleFullscreen();
 
     void setResolution(uint32_t width, uint32_t height);
@@ -89,10 +85,6 @@ public:
 
     void addMessage(const LogItem& item) const {
         messages->emplace_back(item);
-    }
-
-    void clearMessages() const {
-        messages->clear();
     }
 
     void setMouseVisible(bool value) const;

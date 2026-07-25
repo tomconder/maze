@@ -180,14 +180,6 @@ void Application::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layer->setActive(true);
 }
 
-void Application::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
-    layerStack->popLayer(layer);
-}
-
-void Application::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
-    layerStack->popOverlay(layer);
-}
-
 void Application::toggleFullscreen() {
     fullscreen = !fullscreen;
     pendingFullscreenToggle.store(true, std::memory_order_release);

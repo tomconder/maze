@@ -15,8 +15,6 @@ public:
 
     void pushLayer(const std::shared_ptr<Layer>& layer);
     void pushOverlay(const std::shared_ptr<Layer>& overlay);
-    void popLayer(const std::shared_ptr<Layer>& layer);
-    void popOverlay(const std::shared_ptr<Layer>& overlay);
 
     std::vector<std::shared_ptr<Layer>>::const_iterator         begin();
     std::vector<std::shared_ptr<Layer>>::const_iterator         end();
