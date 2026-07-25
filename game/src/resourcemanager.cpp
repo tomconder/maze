@@ -1,8 +1,8 @@
 #include "resourcemanager.hpp"
 
 namespace game {
-ResourceHandler<scene::OrthoCamera, scene::OrthoCameraCreateInfo>
+AssetHandler<scene::OrthoCamera, scene::OrthoCameraCreateInfo>
     ResourceManager::orthoCameraHandler;
-ResourceHandler<scene::GameCamera, scene::GameCameraCreateInfo>
+AssetHandler<scene::GameCamera, scene::GameCameraCreateInfo>
     ResourceManager::gameCameraHandler;
 }  // namespace game
