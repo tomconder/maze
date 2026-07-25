@@ -110,32 +110,27 @@ bool matchesAspectRatio(const AspectRatioFilter& filter, const uint32_t width,
 bool hasMatchingResolution(
     const AspectRatioFilter&                     filter,
     const std::vector<sponge::core::Resolution>& resolutions) {
-    for (const auto& res : resolutions) {
-        if (matchesAspectRatio(filter, res.width, res.height)) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(resolutions, [&](const auto& res) {
+        return matchesAspectRatio(filter, res.width, res.height);
+    });
 }
 
 size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
     const auto g  = std::gcd(width, height);
     const auto rw = width / g;
     const auto rh = height / g;
-    auto       it =
-        std::find_if(validAspectRatioFilters.begin(),
-                     validAspectRatioFilters.end(), [&](const auto& f) {
-                         const auto fg = std::gcd(f.numerator, f.denominator);
-                         return !f.approximate && rw == f.numerator / fg &&
-                                rh == f.denominator / fg;
-                     });
+    auto it = std::ranges::find_if(validAspectRatioFilters, [&](const auto& f) {
+        const auto fg = std::gcd(f.numerator, f.denominator);
+        return !f.approximate && rw == f.numerator / fg &&
+               rh == f.denominator / fg;
+    });
     if (it != validAspectRatioFilters.end()) {
         return static_cast<size_t>(
             std::distance(validAspectRatioFilters.begin(), it));
     }
-    it = std::find_if(
-        validAspectRatioFilters.begin(), validAspectRatioFilters.end(),
-        [&](const auto& f) { return matchesAspectRatio(f, width, height); });
+    it = std::ranges::find_if(validAspectRatioFilters, [&](const auto& f) {
+        return matchesAspectRatio(f, width, height);
+    });
     return it != validAspectRatioFilters.end() ?
                static_cast<size_t>(
                    std::distance(validAspectRatioFilters.begin(), it)) :
@@ -286,7 +281,8 @@ void OptionLayer::onAttach() {
         rowNodes[i] = ui::makeMenuRow(menuBackgroundNode, static_cast<int>(i));
     }
 
-    availableResolutions = Maze::get().getAvailableResolutions();
+    availableResolutions =
+        sponge::platform::glfw::core::Application::getAvailableResolutions();
 
     validAspectRatioFilters.clear();
     for (const auto& f : aspectRatioFilters) {
@@ -741,9 +737,8 @@ void OptionLayer::filterResolutions() {
     resolutionList->setItems(std::move(resItems));
 
     if (!filteredResolutions.empty()) {
-        const auto it = std::find_if(
-            filteredResolutions.begin(), filteredResolutions.end(),
-            [&](const auto& r) {
+        const auto it =
+            std::ranges::find_if(filteredResolutions, [&](const auto& r) {
                 return r.width == currentWidth && r.height == currentHeight;
             });
         const auto idx = it != filteredResolutions.end() ?
@@ -831,9 +826,10 @@ void OptionLayer::updateChangeStatus() {
             filteredResolutions[resolutionList->getSelectedIndex()];
         resolutionChanged = res.width != curW || res.height != curH;
 
-        const auto it = std::find_if(
-            filteredResolutions.begin(), filteredResolutions.end(),
-            [&](const auto& r) { return r.width == curW && r.height == curH; });
+        const auto it =
+            std::ranges::find_if(filteredResolutions, [&](const auto& r) {
+                return r.width == curW && r.height == curH;
+            });
         currentResolutionIndex =
             it != filteredResolutions.end() ?
                 std::optional{ static_cast<size_t>(

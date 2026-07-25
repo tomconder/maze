@@ -120,12 +120,10 @@ void ExitLayer::onEvent(Event& event) {
             return isActive() ? this->onMouseButtonPressed(event) : false;
         });
     dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? this->onMouseMoved(event) : false;
+        return isActive() ? onMouseMoved(event) : false;
     });
     dispatcher.dispatch<WindowResizeEvent>(
-        [this](const WindowResizeEvent& event) {
-            return this->onWindowResize(event);
-        });
+        [](const WindowResizeEvent& event) { return onWindowResize(event); });
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {
