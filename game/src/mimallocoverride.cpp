@@ -2,6 +2,7 @@
 
 #include "debug/profiler.hpp"
 
+#include <cstddef>
 #include <new>
 
 #if defined(__APPLE__)

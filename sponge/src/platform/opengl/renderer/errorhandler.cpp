@@ -4,6 +4,7 @@
 #include "glad/gl.h"
 #include "logging/log.hpp"
 
+#include <cstdint>
 #include <string>
 
 void GLAPIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,

@@ -1,7 +1,12 @@
 #include "ui/selectlist.hpp"
 
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace game::ui {
 

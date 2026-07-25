@@ -8,7 +8,7 @@
 
 #include <array>
 #include <atomic>
-#include <cstring>
+#include <cstdint>
 
 namespace sponge::platform::glfw::core {
 
@@ -28,10 +28,7 @@ public:
         snapshot.active[+a] = false;
     }
 
-    void                pushContext(input::InputContext ctx);
-    void                popContext();
-    void                setActiveContext(input::InputContext ctx);
-    input::InputContext activeContext() const;
+    void setActiveContext(input::InputContext ctx);
 
     // Enable continuous cursor recentering while mouse-look is active.
     // Prevents the cursor from drifting outside the window and sending
@@ -41,6 +38,8 @@ public:
     }
 
 private:
+    input::InputContext activeContext() const;
+
     GLFWwindow* window = nullptr;
 
     // Written from the update thread (MazeLayer), read from the main thread

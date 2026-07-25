@@ -13,9 +13,15 @@
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
+#include <atomic>
+#include <cassert>
+#include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace {
 sponge::core::Timer mainTimer;
@@ -174,14 +180,6 @@ void Application::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layer->setActive(true);
 }
 
-void Application::popLayer(const std::shared_ptr<layer::Layer>& layer) const {
-    layerStack->popLayer(layer);
-}
-
-void Application::popOverlay(const std::shared_ptr<layer::Layer>& layer) const {
-    layerStack->popOverlay(layer);
-}
-
 void Application::toggleFullscreen() {
     fullscreen = !fullscreen;
     pendingFullscreenToggle.store(true, std::memory_order_release);
@@ -224,6 +222,9 @@ void Application::setVerticalSync(const bool val) {
 }
 
 void Application::requestVerticalSync(const bool val) {
+    // vsync is authoritative immediately so hasVerticalSync() is truthful to
+    // the caller; only glfwSwapInterval is deferred to the context owner.
+    vsync = val;
     pendingVerticalSyncValue.store(val, std::memory_order_relaxed);
     pendingVerticalSync.store(true, std::memory_order_release);
 }

@@ -1,6 +1,8 @@
 #include "platform/glfw/core/inputmanager.hpp"
 
+#include <atomic>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 
 #include "input/gameaction.hpp"
@@ -42,15 +44,6 @@ void InputManager::onDetach() {
     glfwSetJoystickCallback(nullptr);
     instance = nullptr;
     window   = nullptr;
-}
-
-void InputManager::pushContext(const input::InputContext ctx) {
-    setActiveContext(ctx);
-}
-
-void InputManager::popContext() {
-    // No-op: context is set per-frame via setActiveContext(); push/pop
-    // is no longer used but kept for API compatibility.
 }
 
 void InputManager::setActiveContext(const input::InputContext ctx) {

@@ -5,6 +5,10 @@
 #include "platform/opengl/renderer/gl.hpp"
 
 #include <array>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace {
 constexpr std::array quadVertices = {

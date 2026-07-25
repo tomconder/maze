@@ -1,10 +1,16 @@
 #include "layer/mazelayer.hpp"
 
 #include "core/settings.hpp"
+#include "input/gameaction.hpp"
+#include "input/inputcontext.hpp"
+#include "input/mousecode.hpp"
 #include "maze.hpp"
+#include "platform/glfw/core/application.hpp"
+#include "platform/opengl/renderer/assetmanager.hpp"
+#include "platform/opengl/renderer/gl.hpp"
+#include "platform/opengl/scene/mesh.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
-#include "sponge.hpp"
 
 #include <glm/ext/matrix_transform.hpp>
 

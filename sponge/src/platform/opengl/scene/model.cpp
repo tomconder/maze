@@ -24,8 +24,12 @@
 // #define TINYOBJLOADER_USE_MAPBOX_EARCUT
 #include "tiny_obj_loader.h"
 
+#include <glm/glm.hpp>
 #include <cgltf.h>
 #include <stb_image.h>
+#include <cstddef>
+#include <cstdint>
+#include <utility>
 
 namespace {
 constexpr double secondsToMilliseconds = 1000.F;

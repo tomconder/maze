@@ -1,12 +1,12 @@
 #pragma once
 
-#include "platform/opengl/renderer/buffer.hpp"
+#include <cstdint>
 
 #include <memory>
 
 namespace sponge::platform::opengl::renderer {
 
-class VertexArray final : public Buffer {
+class VertexArray final {
 public:
     static std::unique_ptr<VertexArray> create();
 
@@ -16,13 +16,15 @@ public:
     VertexArray(VertexArray&& other) noexcept;
     VertexArray& operator=(VertexArray&& other) noexcept;
 
-    ~VertexArray() override;
+    ~VertexArray();
 
-    void bind() const override;
-    void unbind() const override;
+    void bind() const;
+    void unbind() const;
 
 private:
     VertexArray();
+
+    mutable uint32_t id = 0;
 };
 
 }  // namespace sponge::platform::opengl::renderer

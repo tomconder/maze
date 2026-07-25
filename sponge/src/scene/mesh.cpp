@@ -2,6 +2,7 @@
 
 #include <meshoptimizer.h>
 
+#include <cstdint>
 #include <vector>
 
 namespace sponge::scene {

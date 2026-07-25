@@ -1,7 +1,11 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "platform/opengl/scene/bitmapfont.hpp"
 
+#include <glm/glm.hpp>
+
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>

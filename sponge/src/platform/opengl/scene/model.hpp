@@ -7,6 +7,8 @@
 #include <cgltf.h>
 #include <tiny_obj_loader.h>
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>

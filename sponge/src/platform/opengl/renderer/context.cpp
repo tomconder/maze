@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <utility>

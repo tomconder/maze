@@ -1,11 +1,16 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "event/mouseevent.hpp"
+#include "layer/layer.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/selectlist.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <optional>
+#include <tuple>
 
 namespace game::layer {
 
@@ -45,12 +50,6 @@ private:
     bool pendingFxaa           = false;
     int  pendingShadowResIndex = 1;
 
-    // Mirrors the vsync value last requested via Maze::requestVerticalSync().
-    // vsync is applied asynchronously on the render thread, so comparing
-    // pendingVsync against the live Maze::hasVerticalSync() right after
-    // applying would race the render thread; compare against this instead.
-    bool appliedVsync = false;
-
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
     std::unique_ptr<ui::SelectList> shadowQualityList;
@@ -60,6 +59,19 @@ private:
 
     void renderRowBackground(float x, float y, float w, float h,
                              OptionMenuItem item) const;
+
+    // Screen rect of a row, resolved through the root/menu/background chain.
+    static std::tuple<float, float, float, float>
+        rowLayout(OptionMenuItem item);
+
+    // Widget backing a row, or nullptr when the row is not of that kind.
+    ui::SelectList* listFor(OptionMenuItem item) const;
+    ui::Checkbox*   checkboxFor(OptionMenuItem item) const;
+    bool*           pendingFor(OptionMenuItem item);
+
+    void cycleList(OptionMenuItem item, int delta);
+
+    void togglePending(OptionMenuItem item);
 
     void filterResolutions();
 

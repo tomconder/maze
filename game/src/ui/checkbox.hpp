@@ -1,6 +1,8 @@
 #pragma once
 
-#include "sponge.hpp"
+#include "platform/opengl/scene/quad.hpp"
+
+#include <glm/glm.hpp>
 
 #include <memory>
 

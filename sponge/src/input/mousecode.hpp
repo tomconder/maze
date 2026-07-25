@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <ostream>
 
 namespace sponge::input {
 
@@ -23,11 +22,6 @@ enum class MouseButton : uint8_t {
 
 constexpr int operator+(const MouseButton button) noexcept {
     return static_cast<int>(button);
-}
-
-inline std::ostream& operator<<(std::ostream& os, const MouseButton button) {
-    os << +button;
-    return os;
 }
 
 }  // namespace sponge::input

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "layer/splashscreenlayer.hpp"
-#include "sponge.hpp"
+#include "platform/glfw/core/application.hpp"
 
 #ifdef ENABLE_IMGUI
 #include "layer/imgui/imguilayer.hpp"

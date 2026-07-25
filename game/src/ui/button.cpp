@@ -1,6 +1,11 @@
 #include "ui/button.hpp"
 
+#include "core/base.hpp"
+
+#include <cmath>
+#include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 
 namespace game::ui {

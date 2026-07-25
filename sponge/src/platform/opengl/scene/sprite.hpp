@@ -7,7 +7,9 @@
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/sprite.hpp"
 
+#include <glm/glm.hpp>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace sponge::platform::opengl::scene {

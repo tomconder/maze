@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <ostream>
 
 namespace sponge::input {
 
@@ -144,11 +143,6 @@ enum class KeyCode : uint16_t {
 
 constexpr int operator+(const KeyCode keyCode) noexcept {
     return static_cast<int>(keyCode);
-}
-
-inline std::ostream& operator<<(std::ostream& os, const KeyCode keyCode) {
-    os << +keyCode;
-    return os;
 }
 
 }  // namespace sponge::input

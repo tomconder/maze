@@ -1,10 +1,10 @@
 #pragma once
 
-#include "platform/opengl/renderer/buffer.hpp"
+#include <cstdint>
 
 namespace sponge::platform::opengl::renderer {
 
-class FrameBuffer final : public Buffer {
+class FrameBuffer final {
 public:
     FrameBuffer();
 
@@ -14,11 +14,14 @@ public:
     FrameBuffer(FrameBuffer&& other) noexcept;
     FrameBuffer& operator=(FrameBuffer&& other) noexcept;
 
-    ~FrameBuffer() override;
+    ~FrameBuffer();
 
-    void        bind() const override;
-    void        unbind() const override;
+    void        bind() const;
+    void        unbind() const;
     static bool checkStatus();
+
+private:
+    mutable uint32_t id = 0;
 };
 
 }  // namespace sponge::platform::opengl::renderer

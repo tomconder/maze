@@ -1,12 +1,16 @@
 #pragma once
 
 #include "imgui.h"
-#include "sponge.hpp"
+#include "layer/layer.hpp"
+#include "layer/layerstack.hpp"
+#include "logging/log.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 // Forward declarations
 struct ImGuiTextFilter;
@@ -20,16 +24,12 @@ public:
 
 private:
     static bool hasAppInfoMenu;
-    static bool hasFxaa;
     static bool hasLogMenu;
-    static bool hasVsync;
-    static bool isFullscreen;
 
     static std::vector<const char*> levelNames;
     static std::vector<const char*> categoryNames;
 
     // Main sections
-    static void updateState();
     static void showInfoSection();
     static void showAppInfoWindow(float width);
     static void showLogWindow(float width, float height);

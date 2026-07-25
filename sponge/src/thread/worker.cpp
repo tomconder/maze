@@ -4,6 +4,10 @@
 
 #include <cassert>
 #include <exception>
+#include <functional>
+#include <mutex>
+#include <thread>
+#include <utility>
 
 namespace sponge::thread {
 

@@ -1,6 +1,8 @@
 #include "linuxfile.hpp"
 #include <cstdlib>
 #include <filesystem>
+#include <stdexcept>
+#include <string>
 
 namespace sponge::platform::linux::core {
 

@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 namespace sponge::scene {

@@ -1,6 +1,11 @@
 #pragma once
 
-#include "ui/button.hpp"
+#include "event/applicationevent.hpp"
+#include "event/event.hpp"
+#include "event/mouseevent.hpp"
+#include "layer/layer.hpp"
+
+#include <cstdint>
 
 namespace game::layer {
 
@@ -33,6 +38,9 @@ private:
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);
+
+    // Acts on selectedItem; shared by the keyboard and mouse paths.
+    void activateSelected();
 
     static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/application.hpp"
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
@@ -13,8 +12,10 @@
 #include "thread/worker.hpp"
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace sponge::platform::glfw::core {
@@ -28,33 +29,29 @@ struct ApplicationSpecification {
 
 using logging::LogItem;
 
-class Application : public sponge::core::Application {
+class Application {
 public:
     explicit Application(ApplicationSpecification specification);
 
-    ~Application() override;
+    virtual ~Application();
 
-    bool start() override;
+    virtual bool start();
 
-    void shutdown() override;
+    virtual void shutdown();
 
-    bool onUserCreate() override;
+    virtual bool onUserCreate();
 
-    bool onUserUpdate(double elapsedTime) override;
+    virtual bool onUserUpdate(double elapsedTime);
 
-    bool onUserDestroy() override;
+    virtual bool onUserDestroy();
 
-    void onEvent(event::Event& event) override;
+    virtual void onEvent(event::Event& event);
 
     void onImGuiRender() const;
 
     void pushOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
     void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
-
-    void popLayer(const std::shared_ptr<layer::Layer>& layer) const;
-
-    void popOverlay(const std::shared_ptr<layer::Layer>& layer) const;
 
     void toggleFullscreen();
 
@@ -77,8 +74,8 @@ public:
     void setVerticalSync(bool val);
 
     // Thread-safe request to change vsync from a non-main thread (e.g. an
-    // update-thread or render-thread layer). Applied on the main thread,
-    // which owns the GLFW window/context.
+    // update-thread or render-thread layer). hasVerticalSync() reflects the
+    // new value at once; glfwSwapInterval runs on the context-owning thread.
     void requestVerticalSync(bool val);
 
     std::vector<LogItem>& getMessages() const {
@@ -87,10 +84,6 @@ public:
 
     void addMessage(const LogItem& item) const {
         messages->emplace_back(item);
-    }
-
-    void clearMessages() const {
-        messages->clear();
     }
 
     void setMouseVisible(bool value) const;
@@ -124,7 +117,7 @@ public:
     }
     std::pair<float, float> getMousePosition() const;
 
-    void run() override;
+    virtual void run();
 
     bool isEventHandledByImGui() const {
         return imguiManager.isEventHandled();
@@ -200,4 +193,8 @@ private:
     imgui::NoopManager imguiManager;
 #endif
 };
+
+// implemented by the client
+std::unique_ptr<Application> createApplication(int argc, char** argv);
+
 }  // namespace sponge::platform::glfw::core

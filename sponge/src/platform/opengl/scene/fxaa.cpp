@@ -4,7 +4,10 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <glm/glm.hpp>
 #include <array>
+#include <cstdint>
+#include <memory>
 
 namespace {
 // Interleaved NDC position (vec2) + UV (vec2) for a full-screen triangle strip.

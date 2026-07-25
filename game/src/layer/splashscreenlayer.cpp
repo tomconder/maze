@@ -1,11 +1,17 @@
 #include "layer/splashscreenlayer.hpp"
 
+#include "input/gameaction.hpp"
+#include "input/inputcontext.hpp"
 #include "maze.hpp"
+#include "platform/glfw/core/application.hpp"
 #include "resourcemanager.hpp"
 
 #include <glm/glm.hpp>
+
 #include <memory>
 #include <string>
+#include <string_view>
+#include <utility>
 
 namespace {
 constexpr std::string_view cameraName  = "splash";

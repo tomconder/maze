@@ -6,6 +6,7 @@
 #include <sysdir.h>
 
 #include <filesystem>
+#include <stdexcept>
 #include <string>
 
 namespace sponge::platform::osx::core {
