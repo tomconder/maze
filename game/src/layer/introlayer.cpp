@@ -130,12 +130,10 @@ void IntroLayer::onEvent(Event& event) {
             return isActive() ? this->onMouseButtonPressed(event) : false;
         });
     dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? this->onMouseMoved(event) : false;
+        return isActive() ? onMouseMoved(event) : false;
     });
     dispatcher.dispatch<WindowResizeEvent>(
-        [this](const WindowResizeEvent& event) {
-            return this->onWindowResize(event);
-        });
+        [](const WindowResizeEvent& event) { return onWindowResize(event); });
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {
@@ -219,7 +217,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                 .getInputManager()
                 .getSnapshot()
                 .gamepadConnected;
-        const auto gamepadStatus =
+        const auto* const gamepadStatus =
             gamepadConnected ? "Gamepad connected" : "No gamepad";
         constexpr auto statusFontSize = 16;
         constexpr auto margin         = 10.F;

@@ -144,8 +144,8 @@ private:
     ApplicationSpecification appSpec;
 
     // 1 update thread (game logic, no GL) + 1 render thread (owns GL context).
-    sponge::thread::Worker renderThread;
-    sponge::thread::Worker updateThread;
+    thread::Worker renderThread;
+    thread::Worker updateThread;
 
     InputManager inputManager;
 

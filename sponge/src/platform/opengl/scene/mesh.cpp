@@ -32,7 +32,7 @@ using sponge::scene::Vertex;
 
 uint32_t Mesh::meshProgramId = 0;
 
-std::shared_ptr<renderer::Shader> Mesh::shader;
+std::shared_ptr<Shader> Mesh::shader;
 
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,

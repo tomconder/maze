@@ -305,7 +305,7 @@ void ImGuiLayer::showPointLightControls() {
     int32_t    attenuationIndex = mazeLayer->getAttenuationIndex();
     if (ImGui::SliderInt(
             "Lights ", &numLights, 0,
-            static_cast<int>(game::thread::MazeRenderFrame::maxLights))) {
+            static_cast<int>(thread::MazeRenderFrame::maxLights))) {
         mazeLayer->setNumLights(numLights);
     }
 

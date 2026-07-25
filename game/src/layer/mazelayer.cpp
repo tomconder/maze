@@ -172,9 +172,7 @@ void MazeLayer::onAttach() {
     createDepthPrepassFbo(w, h);
 
     shader->bind();
-    shader->setFloat(
-        "clusterNear",
-        sponge::platform::opengl::scene::ClusteredLights::clusterNear);
+    shader->setFloat("clusterNear", ClusteredLights::clusterNear);
     shader->setFloat("farPlane", camera->getFar());
     shader->setFloat2("screenSize",
                       glm::vec2(static_cast<float>(w), static_cast<float>(h)));
