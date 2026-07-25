@@ -80,12 +80,4 @@ public:
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };
 
-class MouseButtonDownEvent final : public MouseButtonEvent {
-public:
-    explicit MouseButtonDownEvent(const input::MouseButton button) :
-        MouseButtonEvent(button) {}
-
-    EVENT_CLASS_TYPE(MouseButtonDown)
-};
-
 }  // namespace sponge::event

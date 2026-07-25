@@ -6,15 +6,12 @@
 namespace sponge::event {
 enum class EventType : uint8_t {
     None = 0,
-    MouseButtonDown,
     MouseButtonPressed,
     MouseButtonReleased,
     MouseMoved,
     MouseScrolled,
     WindowClose,
     WindowFocus,
-    WindowFullscreen,
-    WindowMinimize,
     WindowResize
 };
 
