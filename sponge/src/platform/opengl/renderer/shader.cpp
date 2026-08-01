@@ -16,36 +16,36 @@ namespace sponge::platform::opengl::renderer {
 
 Shader::Shader(const ShaderCreateInfo& createInfo) {
     assert(!createInfo.name.empty());
-    assert(!createInfo.vertexShaderPath.empty());
-    assert(!createInfo.fragmentShaderPath.empty());
 
     shaderName = createInfo.name;
 
-    SPONGE_GL_INFO("Loading vertex shader file: [{}, {}]", createInfo.name,
-                   createInfo.vertexShaderPath);
-    const std::string vertexSource =
-        loadGlslSource(createInfo.assetsFolder + createInfo.vertexShaderPath);
-    assert(!vertexSource.empty());
+    if (!createInfo.computeShaderPath.empty()) {
+        const uint32_t cs =
+            compileStage(GL_COMPUTE_SHADER, "compute", createInfo.assetsFolder,
+                         createInfo.computeShaderPath);
+        program = linkProgram(cs);
+        if (program != 0) {
+            glDetachShader(program, cs);
+        }
+        glDeleteShader(cs);
+        return;
+    }
 
-    SPONGE_GL_INFO("Loading fragment shader file: [{}, {}]", createInfo.name,
-                   createInfo.fragmentShaderPath);
-    const std::string fragmentSource =
-        loadGlslSource(createInfo.assetsFolder + createInfo.fragmentShaderPath);
-    assert(!fragmentSource.empty());
+    assert(!createInfo.vertexShaderPath.empty());
+    assert(!createInfo.fragmentShaderPath.empty());
 
-    const uint32_t vs = compileShader(GL_VERTEX_SHADER, vertexSource);
-    const uint32_t fs = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    const uint32_t vs =
+        compileStage(GL_VERTEX_SHADER, "vertex", createInfo.assetsFolder,
+                     createInfo.vertexShaderPath);
+    const uint32_t fs =
+        compileStage(GL_FRAGMENT_SHADER, "fragment", createInfo.assetsFolder,
+                     createInfo.fragmentShaderPath);
 
     uint32_t gs = 0;
     if (!createInfo.geometryShaderPath.empty()) {
-        SPONGE_GL_INFO("Loading geometry shader file: [{}, {}]",
-                       createInfo.name, createInfo.geometryShaderPath);
-
-        const std::string geometrySource = loadGlslSource(
-            createInfo.assetsFolder + createInfo.geometryShaderPath);
-        assert(!geometrySource.empty());
-
-        gs      = compileShader(GL_GEOMETRY_SHADER, geometrySource);
+        gs      = compileStage(GL_GEOMETRY_SHADER, "geometry",
+                               createInfo.assetsFolder,
+                               createInfo.geometryShaderPath);
         program = linkProgram(vs, fs, gs);
     } else {
         program = linkProgram(vs, fs);
@@ -87,62 +87,12 @@ void Shader::unbind() const {
     glUseProgram(0);
 }
 
-uint32_t Shader::compileShader(const GLenum       type,
-                               const std::string& source) const {
-    const uint32_t id = glCreateShader(type);
-    assert(id != 0);
-
-    const char* srcPtr = source.c_str();
-    glShaderSource(id, 1, &srcPtr, nullptr);
-    glCompileShader(id);
-
-    int32_t result = GL_FALSE;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length = 0;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        if (length > 0) {
-            std::vector<GLchar> message(length);
-            glGetShaderInfoLog(id, length, &length, message.data());
-            SPONGE_GL_ERROR("Shader compiling failed: {0}", message.data());
-        }
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
-                             const std::optional<uint32_t> gs) const {
-    const uint32_t id = glCreateProgram();
-
-    glAttachShader(id, vs);
-    glAttachShader(id, fs);
-    if (gs) {
-        glAttachShader(id, *gs);
-    }
-
-    glLinkProgram(id);
-
-    int32_t result = GL_FALSE;
-
-    glGetProgramiv(id, GL_LINK_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length = 0;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
-        if (length > 0) {
-            std::vector<GLchar> message(length);
-            glGetProgramInfoLog(id, length, &length, message.data());
-            SPONGE_GL_ERROR("Shader linking failed: {0}", message.data());
-        }
-        glDeleteProgram(id);
-        return 0;
-    }
-
-    glValidateProgram(id);
-
-    return id;
+void Shader::dispatch(const uint32_t groupsX, const uint32_t groupsY,
+                      const uint32_t groupsZ) const {
+    assert(program != 0);
+    glUseProgram(program);
+    glDispatchCompute(groupsX, groupsY, groupsZ);
+    glUseProgram(0);
 }
 
 void Shader::setBoolean(const std::string_view name, const bool value) const {
@@ -196,6 +146,96 @@ void Shader::setMat4(const std::string_view name,
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
                            value_ptr(value));
     }
+}
+
+uint32_t Shader::compileShader(const GLenum       type,
+                               const std::string& source) const {
+    const uint32_t id = glCreateShader(type);
+    assert(id != 0);
+
+    const char* srcPtr = source.c_str();
+    glShaderSource(id, 1, &srcPtr, nullptr);
+    glCompileShader(id);
+
+    int32_t result = GL_FALSE;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) {
+        int length = 0;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        if (length > 0) {
+            std::vector<GLchar> message(length);
+            glGetShaderInfoLog(id, length, &length, message.data());
+            SPONGE_GL_ERROR("Shader compiling failed: {0}", message.data());
+        }
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+uint32_t Shader::compileStage(const GLenum type, std::string_view stageName,
+                              const std::string& assetsFolder,
+                              const std::string& path) const {
+    SPONGE_GL_INFO("Loading {} shader file: [{}, {}]", stageName, shaderName,
+                   path);
+    const std::string source = loadGlslSource(assetsFolder + path);
+    assert(!source.empty());
+    return compileShader(type, source);
+}
+
+uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
+                             const std::optional<uint32_t> gs) const {
+    const uint32_t id = glCreateProgram();
+
+    glAttachShader(id, vs);
+    if (fs != 0) {
+        glAttachShader(id, fs);
+    }
+    if (gs) {
+        glAttachShader(id, *gs);
+    }
+
+    glLinkProgram(id);
+
+    int32_t result = GL_FALSE;
+
+    glGetProgramiv(id, GL_LINK_STATUS, &result);
+    if (result == GL_FALSE) {
+        int length = 0;
+        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
+        if (length > 0) {
+            std::vector<GLchar> message(length);
+            glGetProgramInfoLog(id, length, &length, message.data());
+            SPONGE_GL_ERROR("Shader linking failed: {0}", message.data());
+        }
+        glDeleteProgram(id);
+        return 0;
+    }
+
+    glValidateProgram(id);
+
+    return id;
+}
+
+GLint Shader::getUniformLocation(const std::string_view name) const {
+    assert(!name.empty());
+
+    if (const auto it = uniformLocations.find(name);
+        it != uniformLocations.end()) {
+        return it->second;
+    }
+
+    // allocate string if not cached
+    std::string nameStr(name);
+    const auto  location = glGetUniformLocation(program, nameStr.c_str());
+    if (location == -1) {
+        SPONGE_GL_WARN("Uniform name not found: [{}, {}]", nameStr.c_str(),
+                       program);
+    }
+    uniformLocations.emplace(std::move(nameStr), location);
+
+    return location;
 }
 
 void Shader::initUBO() {
@@ -305,26 +345,6 @@ bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
         return true;
     }
     return false;
-}
-
-GLint Shader::getUniformLocation(const std::string_view name) const {
-    assert(!name.empty());
-
-    if (const auto it = uniformLocations.find(name);
-        it != uniformLocations.end()) {
-        return it->second;
-    }
-
-    // allocate string if not cached
-    std::string nameStr(name);
-    const auto  location = glGetUniformLocation(program, nameStr.c_str());
-    if (location == -1) {
-        SPONGE_GL_WARN("Uniform name not found: [{}, {}]", nameStr.c_str(),
-                       program);
-    }
-    uniformLocations.emplace(std::move(nameStr), location);
-
-    return location;
 }
 
 }  // namespace sponge::platform::opengl::renderer

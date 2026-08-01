@@ -23,7 +23,9 @@ ClusteredLights::ClusteredLights(const float near, const float far) :
     clusterAABBsSSBO(static_cast<std::size_t>(maxClusters) *
                      sizeof(ClusterAABB)),
     computeParamsSSBO(sizeof(ComputeParams)),
-    assignShader("cluster_assign", "/shaders/glsl/cluster_assign.comp.glsl") {}
+    assignShader(renderer::ShaderCreateInfo{
+        .name              = "cluster_assign",
+        .computeShaderPath = "/shaders/glsl/cluster_assign.comp.glsl" }) {}
 
 void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
     const glm::mat4 invProj = glm::inverse(projection);

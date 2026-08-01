@@ -167,7 +167,6 @@ void MazeLayer::onAttach() {
         .name               = "depthprepass",
         .vertexShaderPath   = "/shaders/glsl/depthprepass.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/depthprepass.frag.glsl",
-        .geometryShaderPath = "",
     });
     createDepthPrepassFbo(w, h);
 
