@@ -14,10 +14,11 @@
 namespace sponge::platform::opengl::renderer {
 struct ShaderCreateInfo {
     std::string name;
-    std::string vertexShaderPath;
-    std::string fragmentShaderPath;
-    std::string geometryShaderPath;
-    std::string assetsFolder = core::File::getResourceDir();
+    std::string vertexShaderPath   = "";
+    std::string fragmentShaderPath = "";
+    std::string geometryShaderPath = "";
+    std::string computeShaderPath  = "";
+    std::string assetsFolder       = core::File::getResourceDir();
 };
 
 class Shader final {
@@ -27,6 +28,12 @@ public:
 
     void bind() const;
     void unbind() const;
+
+    // Dispatch groupsX * groupsY * groupsZ work groups (compute shaders only).
+    // Caller must issue glMemoryBarrier after if SSBOs are read by later
+    // stages.
+    void dispatch(uint32_t groupsX, uint32_t groupsY = 1,
+                  uint32_t groupsZ = 1) const;
 
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
@@ -50,7 +57,10 @@ private:
         uniformLocations;
 
     uint32_t    compileShader(GLenum type, const std::string& source) const;
-    uint32_t    linkProgram(uint32_t vs, uint32_t fs,
+    uint32_t    compileStage(GLenum type, std::string_view stageName,
+                             const std::string& assetsFolder,
+                             const std::string& path) const;
+    uint32_t    linkProgram(uint32_t vs, uint32_t fs = 0,
                             std::optional<uint32_t> gs = std::nullopt) const;
     uint32_t    program = 0;
     std::string shaderName;

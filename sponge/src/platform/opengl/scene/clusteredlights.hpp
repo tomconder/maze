@@ -1,7 +1,7 @@
 // sponge/src/platform/opengl/scene/clusteredlights.hpp
 #pragma once
 
-#include "platform/opengl/renderer/computeshader.hpp"
+#include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/ssbo.hpp"
 
 #include <glm/glm.hpp>
@@ -99,7 +99,7 @@ private:
         clusterAABBsSSBO;  // binding 6 — ClusterAABB[] (compute input)
     renderer::SSBO computeParamsSSBO;  // binding 7 — ComputeParams
 
-    renderer::ComputeShader assignShader;
+    renderer::Shader assignShader;
 };
 
 }  // namespace sponge::platform::opengl::scene
