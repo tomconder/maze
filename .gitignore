@@ -7,10 +7,7 @@ vcpkg_installed/
 .slangbuild.log
 buildlog.txt
 
-.ai/
-.claude/
-CLAUDE.md
-
+.claude
 .cache
 
 ### C++ ###
