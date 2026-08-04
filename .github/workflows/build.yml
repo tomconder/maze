@@ -146,7 +146,7 @@ jobs:
               uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
 
             - name: Setup vcpkg
-              uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
+              uses: lukka/run-vcpkg@b2d136d6889529a06ddb4c3a90cc36decbbf18fe # v11
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
