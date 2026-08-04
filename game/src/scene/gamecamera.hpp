@@ -73,7 +73,7 @@ private:
     static constexpr float zFar  = 100.F;
 
     float pitch = -24.F;
-    float yaw   = 270.F;
+    float yaw   = 0.F;
 
     float width  = 0.F;
     float height = 0.F;

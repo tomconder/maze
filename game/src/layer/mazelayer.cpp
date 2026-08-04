@@ -21,11 +21,11 @@
 #include <string>
 
 namespace {
-constexpr auto cameraPosition = glm::vec3(0.F, 3.5F, 6.5F);
+constexpr auto cameraPosition = glm::vec3(0.F, 3.F, 0.F);
 
 constexpr auto dirLightCastsShadow = true;
 constexpr auto dirLightColor       = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto dirLightDirection   = glm::vec3(0.F, -2.F, 1.333F);
+constexpr auto dirLightDirection   = glm::vec3(0.F, -10.F, 1.333F);
 constexpr auto dirLightEnabled     = true;
 constexpr auto defaultShadowMapRes = 1024U;
 
@@ -42,9 +42,9 @@ std::array<game::scene::PointLight, maxPointLights> pointLights;
 using game::layer::GameObject;
 
 std::array gameObjects = {
-    GameObject{ .name  = "floor",
-                .path  = "/models/gltf/floor/floor.glb",
-                .scale = glm::vec3(2.F) },
+    // GameObject{ .name  = "floor",
+    //             .path  = "/models/gltf/floor/floor.glb",
+    //             .scale = glm::vec3(2.F) },
 
     // GameObject{ .name = "cube1",
     //             .path = "/models/gltf/cube/cube-tex.glb",
@@ -63,15 +63,19 @@ std::array gameObjects = {
                 .scale       = glm::vec3(.25F),
                 .rotation    = { .angle = glm::radians(60.F),
                                  .axis  = glm::vec3(1.F, 0.F, 1.F), },
-                .translation = glm::vec3(-1.F, 0.25F, 1.F),
+                .translation = glm::vec3(-1.F, 2.25F, 1.F),
                 .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/gltf/helmet/DamagedHelmet.glb",
-                .scale       = glm::vec3(.5F),
+                .scale       = glm::vec3(.3F),
                 .rotation    = { .angle = glm::radians(45.F),
                                  .axis  = glm::vec3(0.F, 1.F, 0.F), },
-                .translation = glm::vec3(0.F, .5F, 0.F), },
+                .translation = glm::vec3(2.F, 2.F, 0.F), },
+
+    GameObject{ .name        = "sponza",
+                .path        = "/models/gltf/sponza/sponza.glb",
+                .translation = glm::vec3(0.5F, 1.F, 0.310F), },
 };
 }  // namespace
 
