@@ -129,6 +129,10 @@ jobs:
               if: runner.os == 'macOS'
               run: brew install mono
 
+            - name: Sync mono certificate store
+              if: runner.os == 'Linux'
+              run: cert-sync --user /etc/ssl/certs/ca-certificates.crt
+
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
