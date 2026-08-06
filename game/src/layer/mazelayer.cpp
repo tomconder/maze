@@ -21,11 +21,11 @@
 #include <string>
 
 namespace {
-constexpr auto cameraPosition = glm::vec3(0.F, 3.F, 0.F);
+constexpr auto cameraPosition = glm::vec3(-5.F, 1.5F, 0.F);
 
 constexpr auto dirLightCastsShadow = true;
 constexpr auto dirLightColor       = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto dirLightDirection   = glm::vec3(0.F, -10.F, 1.333F);
+constexpr auto dirLightDirection   = glm::vec3(0.F, -20.F, 1.333F);
 constexpr auto dirLightEnabled     = true;
 constexpr auto defaultShadowMapRes = 1024U;
 
@@ -58,24 +58,24 @@ std::array gameObjects = {
     //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
     //             .translation = glm::vec3(0.F, 0.F, .5F), },
 
-    GameObject{ .name        = "cube3",
-                .path        = "/models/gltf/cube/cube-tex.glb",
-                .scale       = glm::vec3(.25F),
-                .rotation    = { .angle = glm::radians(60.F),
-                                 .axis  = glm::vec3(1.F, 0.F, 1.F), },
-                .translation = glm::vec3(-1.F, 2.25F, 1.F),
-                .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
+    // GameObject{ .name        = "cube3",
+    //             .path        = "/models/gltf/cube/cube-tex.glb",
+    //             .scale       = glm::vec3(.25F),
+    //             .rotation    = { .angle = glm::radians(60.F),
+    //                              .axis  = glm::vec3(1.F, 0.F, 1.F), },
+    //             .translation = glm::vec3(-1.F, 2.25F, 1.F),
+    //             .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/gltf/helmet/DamagedHelmet.glb",
                 .scale       = glm::vec3(.3F),
-                .rotation    = { .angle = glm::radians(45.F),
+                .rotation    = { .angle = glm::radians(-75.F),
                                  .axis  = glm::vec3(0.F, 1.F, 0.F), },
-                .translation = glm::vec3(2.F, 2.F, 0.F), },
+                .translation = glm::vec3(2.F, 0.5F, 0.F), },
 
     GameObject{ .name        = "sponza",
                 .path        = "/models/gltf/sponza/sponza.glb",
-                .translation = glm::vec3(0.5F, 1.F, 0.310F), },
+                .translation = glm::vec3(0.F, 0.F, 0.F), },
 };
 }  // namespace
 
@@ -572,7 +572,7 @@ void MazeLayer::setNumLights(const int32_t val) {
             light.color    = glm::vec3(1.F);
             light.position = glm::vec3(
                 rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
-                glm::vec4(0.F, 2.75F, -radius, 1.F));
+                glm::vec4(0.F, 5.75F, -radius, 1.F));
         }
     }
 

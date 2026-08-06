@@ -9,14 +9,16 @@
 
 #include <glm/glm.hpp>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <string>
 
 namespace {
-constexpr float nearPlane    = 1.F;
-constexpr float farPlane     = 75.F;
-constexpr float orthoBoxSize = 5.F;
+constexpr float nearPlane     = 1.F;
+constexpr float farPlane      = 75.F;
+constexpr float orthoBoxSize  = 20.F;
+constexpr float lightDistance = 30.F;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -213,16 +215,16 @@ const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
 }
 
 void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
-    const float left   = -orthoBoxSize;
-    const float right  = orthoBoxSize;
-    const float bottom = -orthoBoxSize;
-    const float top    = orthoBoxSize;
-
     const auto lightProjection =
-        glm::ortho(left, right, bottom, top, nearPlane, farPlane);
+        glm::ortho(-orthoBoxSize, orthoBoxSize, -orthoBoxSize, orthoBoxSize,
+                   nearPlane, farPlane);
 
-    const auto lightView = glm::lookAt(10.F * -lightDirection, glm::vec3(0.0f),
-                                       glm::vec3(0.0f, 1.0f, 0.0f));
+    // avoid lookAt degenerating when light direction nears vertical
+    const auto up = std::abs(lightDirection.y) > 0.99F ?
+                        glm::vec3(0.F, 0.F, 1.F) :
+                        glm::vec3(0.F, 1.F, 0.F);
+    const auto lightView =
+        glm::lookAt(lightDistance * -lightDirection, glm::vec3(0.0f), up);
 
     lightSpaceMatrix = lightProjection * lightView;
 }
