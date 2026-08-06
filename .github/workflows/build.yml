@@ -138,7 +138,7 @@ jobs:
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
 
             - name: Setup CMake
-              uses: lukka/get-cmake@e6906078ebd1ccb8ce51ab4626ac46a1b5a517e3 # v4.4.0
+              uses: lukka/get-cmake@fffaaafeea488556c2c12dad60690008bc1caacb # v4.4.2
 
             - name: Configure sccache
               shell: bash
@@ -147,10 +147,10 @@ jobs:
                   echo "ACTIONS_RUNTIME_TOKEN=${ACTIONS_RUNTIME_TOKEN}" >> $GITHUB_ENV
 
             - name: Cache the build
-              uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
+              uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
 
             - name: Setup vcpkg
-              uses: lukka/run-vcpkg@305c06bd4dee21e23dcf142c85c657a993f7aa1a # v11
+              uses: lukka/run-vcpkg@b2d136d6889529a06ddb4c3a90cc36decbbf18fe # v11
               with:
                   vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
