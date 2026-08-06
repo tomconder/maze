@@ -5,10 +5,10 @@
 namespace game::ui {
 
 inline uint32_t menuFontSizeForWidth(const uint32_t windowWidth) {
-    if (windowWidth < 1280) {
+    if (windowWidth < 1920) {
         return 24;
     }
-    if (windowWidth < 1920) {
+    if (windowWidth < 2560) {
         return 32;
     }
     return 48;
