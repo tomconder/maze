@@ -247,7 +247,7 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::Text("Direction");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat3("##directionaldirection", vec.data(), -10.F,
+            if (ImGui::SliderFloat3("##directionaldirection", vec.data(), -50.F,
                                     10.F, "%2.2f",
                                     ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setDirectionalLightDirection(
