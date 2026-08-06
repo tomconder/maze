@@ -131,7 +131,7 @@ jobs:
 
             - name: Sync mono certificate store
               if: runner.os == 'Linux'
-              run: cert-sync /etc/ssl/certs/ca-certificates.crt
+              run: sudo cert-sync /etc/ssl/certs/ca-certificates.crt
 
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
