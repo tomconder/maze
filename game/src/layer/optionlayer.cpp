@@ -52,10 +52,12 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
     { .label = "5:3", .numerator = 5, .denominator = 3 },
     { .label = "5:4", .numerator = 5, .denominator = 4 },
     { .label = "16:9", .numerator = 16, .denominator = 9 },
-    { .label       = "~16:9",
-      .numerator   = 16,
-      .denominator = 9,
-      .approximate = true },
+    {
+        .label       = "~16:9",
+        .numerator   = 16,
+        .denominator = 9,
+        .approximate = true,
+    },
     { .label = "16:10", .numerator = 16, .denominator = 10 },
     { .label = "25:16", .numerator = 25, .denominator = 16 },
 });
@@ -250,9 +252,11 @@ using sponge::platform::opengl::scene::Quad;
 OptionLayer::OptionLayer() : Layer("options") {}
 
 void OptionLayer::onAttach() {
-    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
-                                                .path = std::string(fontPath) };
-    menuFont                  = AssetManager::createFont(fontCreateInfo);
+    const auto fontCreateInfo = FontCreateInfo{
+        .name = std::string(fontName),
+        .path = std::string(fontPath),
+    };
+    menuFont = AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
@@ -260,8 +264,7 @@ void OptionLayer::onAttach() {
 
     quad = std::make_unique<Quad>();
 
-    fontSize = ui::menuFontSizeForWidth(
-        static_cast<uint32_t>(orthoCamera->getWidth()));
+    fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
 
     returnButton = ui::makeMenuButton(returnMessage, fontSize, menuFont,
                                       buttonColor, textColor);
@@ -306,7 +309,8 @@ void OptionLayer::onAttach() {
     shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
 
     const ui::CheckboxCreateInfo checkboxCreateInfo{
-        .margin = textMarginLeft, .size = static_cast<float>(fontSize)
+        .margin = textMarginLeft,
+        .size   = static_cast<float>(fontSize),
     };
     antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);

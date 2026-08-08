@@ -97,13 +97,13 @@ void Button::setPosition(const glm::vec2& topLeft,
     const auto height = std::abs(topLeft.y - bottomRight.y);
 
     if (alignType == ButtonAlignType::CenterAligned) {
-        textPosition = { top.x + ((width - static_cast<float>(length)) / 2.F),
+        textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
                          top.y +
-                             ((height - static_cast<float>(textSize)) / 2.F) };
+                             (height - static_cast<float>(textSize)) / 2.F };
     } else {
         textPosition = { top.x + marginLeft,
                          top.y +
-                             ((height - static_cast<float>(textSize)) / 2.F) };
+                             (height - static_cast<float>(textSize)) / 2.F };
     }
 }
 
@@ -111,15 +111,16 @@ std::unique_ptr<Button> makeMenuButton(
     std::string_view message, const uint32_t fontSize,
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font,
     const glm::vec4& buttonColor, const glm::vec3& textColor) {
-    return std::make_unique<Button>(
-        ButtonCreateInfo{ .message      = std::string(message),
-                          .fontSize     = fontSize,
-                          .font         = std::move(font),
-                          .buttonColor  = buttonColor,
-                          .textColor    = textColor,
-                          .marginLeft   = 26,
-                          .cornerRadius = 12.F,
-                          .alignType    = ButtonAlignType::LeftAligned });
+    return std::make_unique<Button>(ButtonCreateInfo{
+        .message      = std::string(message),
+        .fontSize     = fontSize,
+        .font         = std::move(font),
+        .buttonColor  = buttonColor,
+        .textColor    = textColor,
+        .marginLeft   = 26,
+        .cornerRadius = 12.F,
+        .alignType    = ButtonAlignType::LeftAligned,
+    });
 }
 
 void updateMenuButtonVisuals(Button* button, const bool selected,

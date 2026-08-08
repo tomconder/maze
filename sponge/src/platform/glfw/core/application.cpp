@@ -70,11 +70,12 @@ bool Application::start() {
 
     graphics = std::make_unique<Context>();
 
-    window = std::make_unique<Window>(
-        sponge::core::WindowProps{ .title      = appName,
-                                   .width      = appSpec.width,
-                                   .height     = appSpec.height,
-                                   .fullscreen = appSpec.fullscreen });
+    window           = std::make_unique<Window>(sponge::core::WindowProps{
+        .title      = appName,
+        .width      = appSpec.width,
+        .height     = appSpec.height,
+        .fullscreen = appSpec.fullscreen,
+    });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
     if (glfwWindow == nullptr) {
         SPONGE_CORE_CRITICAL("Failed to create window");

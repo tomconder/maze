@@ -558,9 +558,9 @@ void MazeLayer::setNumLights(const int32_t val) {
         std::scoped_lock lock(settingsMutex);
         numLights = std::clamp(val, 0, maxPointLights);
 
-        std::mt19937                          rng(42U);
-        std::uniform_real_distribution<float> jitterAngle(-0.4F, 0.4F);
-        std::uniform_real_distribution<float> jitterRadius(-0.5F, 0.5F);
+        std::mt19937                   rng(42U);
+        std::uniform_real_distribution jitterAngle(-0.4F, 0.4F);
+        std::uniform_real_distribution jitterRadius(-0.5F, 0.5F);
 
         for (int32_t i = 0; i < numLights; i++) {
             const float t =

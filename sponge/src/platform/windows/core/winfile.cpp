@@ -1,23 +1,24 @@
 #include "platform/windows/core/winfile.hpp"
 
 #include <cstddef>
+#include <cstdlib>
 #include <filesystem>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
 namespace sponge::platform::windows::core {
 
 std::string WinFile::getLogDir(const std::string& app) {
-    char*  appdata = nullptr;
-    size_t sz      = 0;
-    if (_dupenv_s(&appdata, &sz, "LOCALAPPDATA") == 0 && appdata != nullptr) {
-        std::string result = (std::filesystem::path(appdata) / app).string();
-        free(appdata);
-        return result;
+    char*  rawAppdata = nullptr;
+    size_t sz         = 0;
+    if (_dupenv_s(&rawAppdata, &sz, "LOCALAPPDATA") != 0 ||
+        rawAppdata == nullptr) {
+        throw std::runtime_error("Failed to get appdata folder");
     }
-    free(appdata);
+    const std::unique_ptr<char, decltype(&free)> appdata(rawAppdata, free);
 
-    throw std::runtime_error("Failed to get appdata folder");
+    return (std::filesystem::path(appdata.get()) / app).string();
 }
 
 }  // namespace sponge::platform::windows::core

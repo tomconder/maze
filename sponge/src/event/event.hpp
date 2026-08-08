@@ -12,7 +12,7 @@ enum class EventType : uint8_t {
     MouseScrolled,
     WindowClose,
     WindowFocus,
-    WindowResize
+    WindowResize,
 };
 
 #define EVENT_CLASS_TYPE(type)                \
@@ -40,7 +40,7 @@ public:
     explicit EventDispatcher(Event& event) : event(event) {}
 
     template <typename T>
-    bool dispatch(EventFn<T> func) {
+    bool dispatch(const EventFn<T>& func) {
         if (event.getEventType() == T::getStaticType() && !event.handled) {
             event.handled |= func(static_cast<T&>(event));
             return true;

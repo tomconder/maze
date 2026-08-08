@@ -12,7 +12,7 @@ enum LoadFlag : uint8_t {
     None                = 0,
     ExcludeAssetsFolder = BIT(0),
     GammaCorrection     = BIT(1),
-    DepthMap            = BIT(2)
+    DepthMap            = BIT(2),
 };
 
 struct TextureCreateInfo {

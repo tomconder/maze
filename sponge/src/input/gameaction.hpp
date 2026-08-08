@@ -20,7 +20,7 @@ enum class GameAction : uint8_t {
     ExitGame,
     ToggleFullscreen,
     ToggleDebugUI,
-    Count
+    Count,
 };
 
 constexpr int operator+(const GameAction a) noexcept {

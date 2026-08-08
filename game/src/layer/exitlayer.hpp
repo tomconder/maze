@@ -14,7 +14,7 @@ enum class ExitMenuItem : uint8_t {
     Options,
     ReturnToMenu,
     Exit,
-    Count
+    Count,
 };
 
 class ExitLayer final : public sponge::layer::Layer {

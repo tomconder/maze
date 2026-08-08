@@ -331,7 +331,7 @@ void Shader::uploadUBO() const {
 
 bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
                          size_t /*typeSize*/) const {
-    for (auto& block : uboBlocks) {
+    for (const auto& block : uboBlocks) {
         auto it = block.offsets.find(std::string(name));
         if (it == block.offsets.end()) {
             continue;

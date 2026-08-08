@@ -33,9 +33,11 @@ constexpr size_t menuItemCount = static_cast<size_t>(IntroMenuItem::Count);
 
 // Rows are laid out top-to-bottom in IntroMenuItem order, so the enum doubles
 // as the button and row index.
-constexpr std::array<std::string_view, menuItemCount> menuLabels = { "New Game",
-                                                                     "Options",
-                                                                     "Quit" };
+constexpr std::array<std::string_view, menuItemCount> menuLabels = {
+    "New Game",
+    "Options",
+    "Quit",
+};
 
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
@@ -82,9 +84,11 @@ void IntroLayer::beginFadeIn(const double duration) {
 }
 
 void IntroLayer::onAttach() {
-    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
-                                                .path = std::string(fontPath) };
-    menuFont                  = AssetManager::createFont(fontCreateInfo);
+    const auto fontCreateInfo = FontCreateInfo{
+        .name = std::string(fontName),
+        .path = std::string(fontPath),
+    };
+    menuFont = AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
@@ -126,14 +130,17 @@ void IntroLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<MouseButtonPressedEvent>(
-        [this](const MouseButtonPressedEvent& event) {
-            return isActive() ? this->onMouseButtonPressed(event) : false;
+        [this](const MouseButtonPressedEvent& mbEvent) {
+            return isActive() ? this->onMouseButtonPressed(mbEvent) : false;
         });
-    dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? onMouseMoved(event) : false;
-    });
+    dispatcher.dispatch<MouseMovedEvent>(
+        [this](const MouseMovedEvent& mmEvent) {
+            return isActive() ? onMouseMoved(mmEvent) : false;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
-        [](const WindowResizeEvent& event) { return onWindowResize(event); });
+        [](const WindowResizeEvent& wrEvent) {
+            return onWindowResize(wrEvent);
+        });
 }
 
 bool IntroLayer::onUpdate(const double elapsedTime) {

@@ -17,7 +17,7 @@ enum class MouseButton : uint8_t {
 
     ButtonLeft   = Button0,
     ButtonRight  = Button1,
-    ButtonMiddle = Button2
+    ButtonMiddle = Button2,
 };
 
 constexpr int operator+(const MouseButton button) noexcept {
