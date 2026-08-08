@@ -174,9 +174,10 @@ uint32_t Shader::compileShader(const GLenum       type,
     return id;
 }
 
-uint32_t Shader::compileStage(const GLenum type, std::string_view stageName,
-                              const std::string& assetsFolder,
-                              const std::string& path) const {
+uint32_t Shader::compileStage(const GLenum                      type,
+                              [[maybe_unused]] std::string_view stageName,
+                              const std::string&                assetsFolder,
+                              const std::string&                path) const {
     SPONGE_GL_INFO("Loading {} shader file: [{}, {}]", stageName, shaderName,
                    path);
     const std::string source = loadGlslSource(assetsFolder + path);

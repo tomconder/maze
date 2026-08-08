@@ -78,6 +78,8 @@ file(
         LIST_DIRECTORIES false
         deps/tinyobjloader/tiny_obj_loader.cpp)
 list(APPEND SOURCE_FILES ${TINYOBJLOADER_SOURCES})
+set_source_files_properties(${TINYOBJLOADER_SOURCES} PROPERTIES COMPILE_OPTIONS
+        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
 
 if (ENABLE_IMGUI)
     message(STATUS "Including imgui platform files")
@@ -144,43 +146,43 @@ if (MSVC)
             /guard:cf>)
 
     # properly report what c++ version is being used
-    target_compile_options(sponge INTERFACE /Zc:__cplusplus)
+    target_compile_options(sponge PUBLIC /Zc:__cplusplus)
 
     # fast math and SIMD support
     # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
+    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:/fp:fast>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge INTERFACE /Oy-)
+    target_compile_options(sponge PUBLIC /Oy-)
 
     # enable exception handling
-    target_compile_options(sponge INTERFACE /EHsc)
+    target_compile_options(sponge PUBLIC /EHsc)
 
     # enable warnings as errors
-    target_compile_options(sponge INTERFACE /W4 /WX)
+    target_compile_options(sponge PUBLIC /W4 /WX)
 
     # disable RTTI
-    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
+    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-ffast-math>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge INTERFACE -fno-omit-frame-pointer)
+    target_compile_options(sponge PUBLIC -fno-omit-frame-pointer)
 
     # enable exception handling
-    target_compile_options(sponge INTERFACE -fexceptions)
+    target_compile_options(sponge PUBLIC -fexceptions)
 
     # enable warnings as errors
-    target_compile_options(sponge INTERFACE -Wall -Werror)
+    target_compile_options(sponge PUBLIC -Wall -Werror)
 
     # disable RTTI
-    target_compile_options(sponge INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
     target_compile_options(sponge
-            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(sponge INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
+            PUBLIC $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
     target_link_options(
