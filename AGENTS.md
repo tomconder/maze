@@ -55,6 +55,11 @@ cmake.exe -B build --preset windows-msvc-release
 cmake.exe --build build --target game --config Release
 ```
 
+`windows-msvc-debug`/`windows-msvc-release` use real `cl.exe` (`ci-windows-*`
+use `clang-cl`, which warns differently) — run both commands from a Developer
+Command Prompt, or `VsDevCmd.bat` first, so `cl.exe`/`rc.exe`/`INCLUDE`/`LIB`
+are on `PATH`.
+
 ## Running
 
 On Windows, you can find the maze executable will be found in the build directory.

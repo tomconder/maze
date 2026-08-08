@@ -142,16 +142,25 @@
             "inherits": ["base-windows", "ninja", "release", "sccache", "vcpkg"]
         },
         {
+            "name": "msvc-cl",
+            "description": "Use real cl.exe instead of clang-cl; run from a Developer Command Prompt (VsDevCmd.bat) so cl.exe/rc.exe/INCLUDE/LIB are on PATH",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl"
+            }
+        },
+        {
             "name": "windows-msvc-debug",
             "displayName": "VSCode - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch",
-            "inherits": ["base-windows", "debug", "imgui", "ninja", "vcpkg"]
+            "inherits": ["base-windows", "debug", "imgui", "ninja", "msvc-cl", "vcpkg"]
         },
         {
             "name": "windows-msvc-release",
             "displayName": "VSCode - Windows x64 - Release",
             "description": "Sets release build type",
-            "inherits": ["base-windows", "ninja", "release", "vcpkg"]
+            "inherits": ["base-windows", "ninja", "release", "msvc-cl", "vcpkg"]
         },
         {
             "name": "base-osx",
