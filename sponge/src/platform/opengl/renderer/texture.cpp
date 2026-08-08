@@ -45,11 +45,11 @@ Texture::~Texture() {
     glDeleteTextures(1, &id);
 }
 
-void Texture::createDepthMap(const uint32_t width,
-                             const uint32_t height) const {
+void Texture::createDepthMap(const uint32_t depthWidth,
+                             const uint32_t depthHeight) const {
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
-                 GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthWidth, depthHeight,
+                 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -98,18 +98,18 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     const std::filesystem::path name{ path };
 
     int bytesPerPixel = 0;
-    int height        = 0;
-    int width         = 0;
+    int loadedHeight  = 0;
+    int loadedWidth   = 0;
 
-    auto* data =
-        stbi_load(name.string().data(), &width, &height, &bytesPerPixel, 0);
+    auto* data = stbi_load(name.string().data(), &loadedWidth, &loadedHeight,
+                           &bytesPerPixel, 0);
     if (data == nullptr) {
         SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),
                         stbi_failure_reason());
         return;
     }
 
-    generate(width, height, bytesPerPixel, data, flag);
+    generate(loadedWidth, loadedHeight, bytesPerPixel, data, flag);
 
     stbi_image_free(data);
 }

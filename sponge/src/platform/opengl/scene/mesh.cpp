@@ -32,7 +32,7 @@ using sponge::scene::Vertex;
 
 uint32_t Mesh::meshProgramId = 0;
 
-std::shared_ptr<Shader> Mesh::shader;
+std::shared_ptr<Shader> Mesh::defaultShader;
 
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
@@ -61,9 +61,9 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .vertexShaderPath   = "/shaders/glsl/pbr.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/pbr.frag.glsl",
     };
-    shader        = AssetManager::createShader(shaderCreateInfo);
-    meshProgramId = shader->getId();
-    shader->bind();
+    defaultShader = AssetManager::createShader(shaderCreateInfo);
+    meshProgramId = defaultShader->getId();
+    defaultShader->bind();
 
     vao = renderer::VertexArray::create();
     vao->bind();
@@ -96,7 +96,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         this->indices.data(), numIndices * sizeof(uint32_t));
     ebo->bind();
 
-    shader->unbind();
+    defaultShader->unbind();
     vao->unbind();
 }
 

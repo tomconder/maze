@@ -29,7 +29,7 @@
 #include <utility>
 
 namespace {
-constexpr double secondsToMilliseconds = 1000.F;
+[[maybe_unused]] constexpr double secondsToMilliseconds = 1000.F;
 }
 
 namespace sponge::platform::opengl::scene {
@@ -158,7 +158,7 @@ std::shared_ptr<Mesh>
 
     // calculate normals since they are missing
     if (attrib.normals.empty()) {
-        for (auto j = 0; j < vertices.size(); j += 3) {
+        for (size_t j = 0; j < vertices.size(); j += 3) {
             const auto p0 = vertices[j + 0].position;
             const auto p1 = vertices[j + 1].position;
             const auto p2 = vertices[j + 2].position;

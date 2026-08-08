@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 
+#ifndef __APPLE__
 namespace {
 constexpr std::array<std::pair<int, int>, 13> glVersions = {
     { { 4, 6 },
@@ -31,6 +32,7 @@ constexpr std::array<std::pair<int, int>, 13> glVersions = {
       { 2, 0 } },
 };
 }  // namespace
+#endif
 
 namespace sponge::platform::opengl::renderer {
 Context::Context() {
