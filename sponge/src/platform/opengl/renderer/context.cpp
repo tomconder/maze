@@ -7,17 +7,30 @@
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
+#include <array>
 #include <cstdint>
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 namespace {
-constexpr std::pair<int, int> glVersions[13] = {
-    { 4, 6 }, { 4, 5 }, { 4, 4 }, { 4, 3 }, { 4, 2 }, { 4, 1 }, { 4, 0 },
-    { 3, 3 }, { 3, 2 }, { 3, 1 }, { 3, 0 }, { 2, 1 }, { 2, 0 }
+constexpr std::array<std::pair<int, int>, 13> glVersions = {
+    { { 4, 6 },
+      { 4, 5 },
+      { 4, 4 },
+      { 4, 3 },
+      { 4, 2 },
+      { 4, 1 },
+      { 4, 0 },
+      { 3, 3 },
+      { 3, 2 },
+      { 3, 1 },
+      { 3, 0 },
+      { 2, 1 },
+      { 2, 0 } },
 };
-}
+}  // namespace
 
 namespace sponge::platform::opengl::renderer {
 Context::Context() {
@@ -81,7 +94,9 @@ void Context::init(GLFWwindow* window) const {
             if (glslStr) {
                 glslVer = std::stof(glslStr);
             }
-        } catch (...) {
+        } catch (const std::exception& e) {
+            SPONGE_GL_ERROR("Failed to parse GLSL version '{}': {}", glslStr,
+                            e.what());
         }
         if (glslVer < minGLSL) {
             const char* found = glslStr ? glslStr : "Unknown";

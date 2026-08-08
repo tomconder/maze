@@ -12,9 +12,6 @@ std::shared_ptr<spdlog::logger> Log::appLogger;
 std::shared_ptr<spdlog::logger> Log::coreLogger;
 std::shared_ptr<spdlog::logger> Log::glLogger;
 
-const char Log::colorFormatPattern[] = "%^%L%m%d %T.%f %7t %s:%# [%n] %v%$";
-const char Log::fileFormatPattern[]  = "%L%m%d %T.%f %7t %s:%# [%n] %v";
-
 void Log::init(const std::string& logfile) {
     spdlog::set_level(
         static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));

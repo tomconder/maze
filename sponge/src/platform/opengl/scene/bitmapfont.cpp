@@ -18,7 +18,7 @@ std::array<glm::vec2, maxLength * vertexCount> batchVertices;
 
 // quad index pattern is fixed, so the index buffer is filled once at startup
 std::array<uint32_t, maxLength * indexCount> makeQuadIndices() {
-    std::array<uint32_t, maxLength * indexCount> indices;
+    std::array<uint32_t, maxLength * indexCount> indices{};
     for (uint32_t quad = 0; quad < maxLength; quad++) {
         const uint32_t base            = quad * 4;
         indices[quad * indexCount]     = base;
@@ -41,7 +41,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
         .vertexShaderPath   = "/shaders/glsl/sprite.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/text.frag.glsl"
+        .fragmentShaderPath = "/shaders/glsl/text.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
@@ -147,8 +147,8 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             const float ypos =
                 std::round(position.y - shapedGlyph.yOffset + ascender) -
                 static_cast<float>(glyphInfo->bearingY);
-            const float glyphWidth  = static_cast<float>(glyphInfo->width);
-            const float glyphHeight = static_cast<float>(glyphInfo->height);
+            const auto glyphWidth  = static_cast<float>(glyphInfo->width);
+            const auto glyphHeight = static_cast<float>(glyphInfo->height);
 
             const float uLeft   = glyphInfo->uvLeft;
             const float vTop    = glyphInfo->uvTop;
@@ -163,12 +163,12 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
                   { xpos + glyphWidth, ypos },
                   { uRight, vTop },
                   { xpos + glyphWidth, ypos + glyphHeight },
-                  { uRight, vBottom } }
+                  { uRight, vBottom } },
             };
 
-            std::copy(vertices.begin(), vertices.end(),
-                      batchVertices.begin() +
-                          static_cast<ptrdiff_t>(glyphCount * vertexCount));
+            std::ranges::copy(
+                vertices, batchVertices.begin() +
+                              static_cast<ptrdiff_t>(glyphCount * vertexCount));
             glyphCount++;
         }
 

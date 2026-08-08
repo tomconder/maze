@@ -56,9 +56,9 @@ private:
     // std430-compatible: explicit padding so vec3 → 16-byte slot.
     // Must match ClusterAABB in cluster_assign.comp.glsl.
     struct ClusterAABB {
-        glm::vec3 minBounds;
+        glm::vec3 minBounds{ 0.F };
         float     padMin{ 0.F };
-        glm::vec3 maxBounds;
+        glm::vec3 maxBounds{ 0.F };
         float     padMax{ 0.F };
     };
     static_assert(sizeof(ClusterAABB) == 32);

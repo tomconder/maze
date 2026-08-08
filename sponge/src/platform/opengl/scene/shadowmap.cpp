@@ -111,7 +111,7 @@ void ShadowMap::initialize() {
     // Fullscreen quad VAO/VBO for blur pass
     constexpr std::array<float, 24> quadVerts = {
         -1.F, 1.F, 0.F, 1.F, -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-        -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F
+        -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F,
     };
     glGenVertexArrays(1, &blurVao);
     glGenBuffers(1, &blurVbo);

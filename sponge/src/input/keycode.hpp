@@ -138,7 +138,7 @@ enum class KeyCode : uint16_t {
     SpongeKey_RightControl = 345,
     SpongeKey_RightAlt     = 346,
     SpongeKey_RightSuper   = 347,
-    SpongeKey_Menu         = 348
+    SpongeKey_Menu         = 348,
 };
 
 constexpr int operator+(const KeyCode keyCode) noexcept {

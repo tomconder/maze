@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <new>
 
-#if defined(__APPLE__)
+#ifdef __APPLE__
 // Apple's libc++ std::basic_string::__grow_by_and_replace calls system realloc
 // directly rather than going through operator new/delete. With operator new
 // overridden to use mimalloc, string buffers are mimalloc memory, but system

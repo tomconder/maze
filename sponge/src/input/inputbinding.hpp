@@ -13,7 +13,7 @@ enum class BindingType : uint8_t {
     MouseAxisX,
     MouseAxisY,
     GamepadButton,
-    GamepadAxis
+    GamepadAxis,
 };
 
 struct InputBinding {

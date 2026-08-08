@@ -22,7 +22,7 @@ constexpr char32_t firstGlyph = 32;
 constexpr char32_t lastGlyph  = 126;
 
 constexpr std::array<char32_t, 1> supplementalGlyphs = {
-    0xD7,  // × MULTIPLICATION SIGN
+    0xD7  // × MULTIPLICATION SIGN
 };
 }  // namespace
 
@@ -65,14 +65,14 @@ void FontAtlas::build(const std::string&           path,
     hb_ft_font_set_load_flags(hbFont, FT_LOAD_NO_HINTING);
 
     struct PendingGlyph {
-        uint32_t             glyphIndex;
-        uint32_t             size;
-        uint32_t             phase;
-        GlyphInfo            glyphInfo;
+        uint32_t             glyphIndex = 0;
+        uint32_t             size       = 0;
+        uint32_t             phase      = 0;
+        GlyphInfo            glyphInfo{};
         std::vector<uint8_t> bitmap;
-        int                  bitmapWidth;
-        int                  bitmapHeight;
-        int                  rectIdx;
+        int                  bitmapWidth  = 0;
+        int                  bitmapHeight = 0;
+        int                  rectIdx      = 0;
     };
 
     std::vector<PendingGlyph> pending;
@@ -139,8 +139,8 @@ void FontAtlas::build(const std::string&           path,
 
             stbrp_rect rect{};
             rect.id = pending.back().rectIdx;
-            rect.w  = static_cast<stbrp_coord>(bitmapWidth + 1);
-            rect.h  = static_cast<stbrp_coord>(bitmapHeight + 1);
+            rect.w  = bitmapWidth + 1;
+            rect.h  = bitmapHeight + 1;
             rects.push_back(rect);
         };
 
@@ -221,12 +221,22 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
     // liga/clig/calt off so shaping never substitutes glyph indices the
     // atlas did not bake (e.g. Inter calt swaps multiply for multiply.case
     // between digits, which would render as nothing)
-    const hb_feature_t features[] = {
-        { HB_TAG('l', 'i', 'g', 'a'), 0, 0, UINT_MAX },
-        { HB_TAG('c', 'l', 'i', 'g'), 0, 0, UINT_MAX },
-        { HB_TAG('c', 'a', 'l', 't'), 0, 0, UINT_MAX },
+    const std::array<hb_feature_t, 3> features = {
+        { { .tag   = HB_TAG('l', 'i', 'g', 'a'),
+            .value = 0,
+            .start = 0,
+            .end   = UINT_MAX },
+          { .tag   = HB_TAG('c', 'l', 'i', 'g'),
+            .value = 0,
+            .start = 0,
+            .end   = UINT_MAX },
+          { .tag   = HB_TAG('c', 'a', 'l', 't'),
+            .value = 0,
+            .start = 0,
+            .end   = UINT_MAX } }
     };
-    hb_shape(hbFont, buffer, features, 3);
+    hb_shape(hbFont, buffer, features.data(),
+             static_cast<unsigned int>(features.size()));
 
     unsigned int     glyphCount = 0;
     hb_glyph_info_t* glyphInfos =

@@ -132,13 +132,13 @@ std::shared_ptr<Mesh>
     indices.reserve(mesh.indices.size());
 
     Vertex vertex{};
-    for (auto [vertex_index, normal_index, texcoord_index] : mesh.indices) {
-        auto i          = vertex_index * 3;
+    for (auto [vertexIndex, normalIndex, texcoordIndex] : mesh.indices) {
+        auto i          = vertexIndex * 3;
         vertex.position = glm::vec3{ attrib.vertices[i], attrib.vertices[i + 1],
                                      attrib.vertices[i + 2] };
 
         if (!attrib.texcoords.empty()) {
-            i                = texcoord_index * 2;
+            i                = texcoordIndex * 2;
             vertex.texCoords = glm::vec2{ attrib.texcoords[i],
                                           1.0F - attrib.texcoords[i + 1] };
         } else {
@@ -146,7 +146,7 @@ std::shared_ptr<Mesh>
         }
 
         if (!attrib.normals.empty()) {
-            i             = normal_index * 3;
+            i             = normalIndex * 3;
             vertex.normal = glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
                                        attrib.normals[i + 2] };
         }
@@ -200,13 +200,13 @@ std::shared_ptr<renderer::Texture>
         std::filesystem::path(path) / baseName(material.diffuse_texname));
 
     auto name = baseName(material.diffuse_texname);
-    std::transform(name.begin(), name.end(), name.begin(),
-                   [](const uint8_t c) { return std::tolower(c); });
+    std::ranges::transform(name, name.begin(),
+                           [](const uint8_t c) { return std::tolower(c); });
 
     const renderer::TextureCreateInfo textureCreateInfo{
         .name     = name,
         .path     = filename.string(),
-        .loadFlag = renderer::ExcludeAssetsFolder
+        .loadFlag = renderer::ExcludeAssetsFolder,
     };
     return AssetManager::createTexture(textureCreateInfo);
 }
@@ -405,8 +405,10 @@ UVTransform Model::gltfUVTransform(const cgltf_texture_view& textureView) {
         SPONGE_GL_WARN(
             "KHR_texture_transform rotation is not supported; ignoring");
     }
-    return UVTransform{ .offset = glm::vec2(t.offset[0], t.offset[1]),
-                        .scale  = glm::vec2(t.scale[0], t.scale[1]) };
+    return UVTransform{
+        .offset = glm::vec2(t.offset[0], t.offset[1]),
+        .scale  = glm::vec2(t.scale[0], t.scale[1]),
+    };
 }
 
 // Per-triangle tangent accumulation (Lengyel's method), averaged per vertex

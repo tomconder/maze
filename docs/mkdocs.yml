@@ -1,10 +1,10 @@
 site_name: Maze
 site_description: 'A nice walk through a maze'
 site_author: 'Tom Conder <tom@itstom.co>'
-site_url: 'http://github.com/tomconder/maze'
+site_url: 'https://github.com/tomconder/maze'
 
 repo_name: 'maze'
-repo_url: 'http://github.com/tomconder/maze'
+repo_url: 'https://github.com/tomconder/maze'
 edit_uri: 'tree/main/docs/'
 remote_branch: gh-pages
 

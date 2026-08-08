@@ -347,177 +347,263 @@ void InputManager::buildDefaultBindings() {
 
     // ── Menu ──────────────────────────────────────────────────────────────
     menu[+GameAction::MenuUp] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Up,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_KP8,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_UP,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = -1.f,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Up,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_KP8,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_UP,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
+            .axisScale = -1.f,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     menu[+GameAction::MenuDown] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Down,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_KP2,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_DOWN,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = 1.f,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Down,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_KP2,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_DOWN,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
+            .axisScale = 1.f,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     menu[+GameAction::MenuLeft] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Left,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_KP4,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_LEFT,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Left,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_KP4,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_LEFT,
+            .axisScale = 1.f,
+        },
     };
     menu[+GameAction::MenuRight] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Right,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_KP6,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Right,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_KP6,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,
+            .axisScale = 1.f,
+        },
     };
     menu[+GameAction::MenuConfirm] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Enter,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_KPEnter,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Space,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_A,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Enter,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_KPEnter,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Space,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_A,
+            .axisScale = 1.f,
+        },
     };
     menu[+GameAction::MenuBack] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Escape,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_B,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Escape,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_B,
+            .axisScale = 1.f,
+        },
     };
 
     // ── Gameplay ──────────────────────────────────────────────────────────
     gameplay[+GameAction::MoveForward] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_W,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Up,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = -keyboardSpeed,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_W,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Up,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
+            .axisScale = -keyboardSpeed,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::MoveBack] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_S,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Down,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
-                      .axisScale = keyboardSpeed,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_S,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Down,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_Y,
+            .axisScale = keyboardSpeed,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::MoveLeft] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_A,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Left,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
-                      .axisScale = -keyboardSpeed,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_A,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Left,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
+            .axisScale = -keyboardSpeed,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::MoveRight] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_D,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Right,
-                      .axisScale = keyboardSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
-                      .axisScale = keyboardSpeed,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_D,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Right,
+            .axisScale = keyboardSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_LEFT_X,
+            .axisScale = keyboardSpeed,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::LookHorizontal] = {
-        InputBinding{ .type      = BindingType::MouseAxisX,
-                      .axisScale = mouseSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_X,
-                      .axisScale = gamepadLook,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::MouseAxisX,
+            .axisScale = mouseSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_X,
+            .axisScale = gamepadLook,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::LookVertical] = {
-        InputBinding{ .type      = BindingType::MouseAxisY,
-                      .axisScale = mouseSpeed },
-        InputBinding{ .type      = BindingType::GamepadAxis,
-                      .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_Y,
-                      .axisScale = gamepadLook,
-                      .deadzone  = gamepadDeadZone },
+        InputBinding{
+            .type      = BindingType::MouseAxisY,
+            .axisScale = mouseSpeed,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadAxis,
+            .rawCode   = GLFW_GAMEPAD_AXIS_RIGHT_Y,
+            .axisScale = gamepadLook,
+            .deadzone  = gamepadDeadZone,
+        },
     };
     gameplay[+GameAction::Pause] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_Escape,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_START,
-                      .axisScale = 1.f },
-        InputBinding{ .type      = BindingType::GamepadButton,
-                      .rawCode   = GLFW_GAMEPAD_BUTTON_BACK,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Escape,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_START,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_BACK,
+            .axisScale = 1.f,
+        },
     };
 
     // ── Toggle actions (both contexts) ───────────────────────────────────────
     menu[+GameAction::ToggleFullscreen] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_F,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_F,
+            .axisScale = 1.f,
+        },
     };
     menu[+GameAction::ToggleDebugUI] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_GraveAccent,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_GraveAccent,
+            .axisScale = 1.f,
+        },
     };
     gameplay[+GameAction::ToggleFullscreen] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_F,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_F,
+            .axisScale = 1.f,
+        },
     };
     gameplay[+GameAction::ToggleDebugUI] = {
-        InputBinding{ .type      = BindingType::Key,
-                      .rawCode   = +KeyCode::SpongeKey_GraveAccent,
-                      .axisScale = 1.f },
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_GraveAccent,
+            .axisScale = 1.f,
+        },
     };
 }
 

@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace sponge::platform::glfw::core {
-Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {
+Window::Window(const sponge::core::WindowProps& props) {
     init(props);
 }
 
@@ -209,17 +209,17 @@ std::vector<sponge::core::Resolution> Window::getAvailableResolutions() {
         }) |
         std::views::transform(
             [](const GLFWvidmode& m) -> sponge::core::Resolution {
-                return { static_cast<uint32_t>(m.width),
-                         static_cast<uint32_t>(m.height) };
+                return {
+                    .width  = static_cast<uint32_t>(m.width),
+                    .height = static_cast<uint32_t>(m.height),
+                };
             });
 
     auto resolutions = std::vector(filtered.begin(), filtered.end());
 
-    std::sort(resolutions.begin(), resolutions.end(),
-              [](const auto& a, const auto& b) {
-                  return a.width != b.width ? a.width < b.width :
-                                              a.height < b.height;
-              });
+    std::ranges::sort(resolutions, [](const auto& a, const auto& b) {
+        return a.width != b.width ? a.width < b.width : a.height < b.height;
+    });
 
     return resolutions;
 }

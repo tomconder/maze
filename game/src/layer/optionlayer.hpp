@@ -22,7 +22,7 @@ enum class OptionMenuItem : uint8_t {
     AntiAliasing,
     ShadowQuality,
     Return,
-    Count
+    Count,
 };
 
 class OptionLayer final : public sponge::layer::Layer {

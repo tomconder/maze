@@ -5,6 +5,7 @@
 
 #include <stb_image.h>
 
+#include <array>
 #include <filesystem>
 #include <string>
 
@@ -53,8 +54,9 @@ void Texture::createDepthMap(const uint32_t width,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    constexpr float borderColor[] = { 1.F, 1.F, 1.F, 1.F };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    constexpr std::array<float, 4> borderColor = { 1.F, 1.F, 1.F, 1.F };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
+                     borderColor.data());
 }
 
 void Texture::generate(const uint32_t textureWidth,

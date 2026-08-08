@@ -19,7 +19,7 @@ public:
     explicit Sprite(const std::string& name, const std::string& texturePath);
 
     void render(const glm::vec2& position, const glm::vec2& size,
-                std::optional<float> alpha = std::nullopt) const override;
+                std::optional<float> alpha) const override;
 
     std::shared_ptr<renderer::Shader> getShader() const {
         return shader;
