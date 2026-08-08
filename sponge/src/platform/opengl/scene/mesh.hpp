@@ -46,13 +46,13 @@ public:
     void render(const std::shared_ptr<renderer::Shader>& shader) const;
 
     static std::shared_ptr<renderer::Shader> getShader() {
-        return shader;
+        return defaultShader;
     }
 
 private:
     static constexpr std::string_view        shaderName = "mesh";
     static uint32_t                          meshProgramId;
-    static std::shared_ptr<renderer::Shader> shader;
+    static std::shared_ptr<renderer::Shader> defaultShader;
 
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;
