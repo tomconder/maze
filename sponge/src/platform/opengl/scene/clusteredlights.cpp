@@ -144,7 +144,7 @@ void ClusteredLights::update(const glm::vec3* positions,
     clusterAABBsSSBO.bindBase(6);
     computeParamsSSBO.bindBase(7);
 
-    assignShader.dispatch((maxClusters + 63) / 64);
+    assignShader.dispatch(static_cast<uint32_t>((maxClusters + 63) / 64));
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

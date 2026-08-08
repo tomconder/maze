@@ -415,8 +415,8 @@ UVTransform Model::gltfUVTransform(const cgltf_texture_view& textureView) {
 // and Gram-Schmidt orthogonalized against the vertex normal.
 void Model::computeTangents(std::vector<Vertex>&         vertices,
                             const std::vector<uint32_t>& indices) {
-    std::vector tan(vertices.size(), glm::vec3(0.F));
-    std::vector bitan(vertices.size(), glm::vec3(0.F));
+    std::vector<glm::vec3> tan(vertices.size(), glm::vec3(0.F));
+    std::vector<glm::vec3> bitan(vertices.size(), glm::vec3(0.F));
 
     for (size_t i = 0; i + 2 < indices.size(); i += 3) {
         const auto i0 = indices[i];
