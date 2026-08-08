@@ -34,7 +34,10 @@ constexpr size_t menuItemCount = static_cast<size_t>(ExitMenuItem::Count);
 // Rows are laid out top-to-bottom in ExitMenuItem order, so the enum doubles
 // as the button and row index.
 constexpr std::array<std::string_view, menuItemCount> menuLabels = {
-    "Continue", "Options", "Return to Menu", "Exit the Game"
+    "Continue",
+    "Options",
+    "Return to Menu",
+    "Exit the Game",
 };
 
 constexpr std::string_view cameraName = "exit";
@@ -74,9 +77,11 @@ using sponge::platform::opengl::scene::Quad;
 ExitLayer::ExitLayer() : Layer("exit") {}
 
 void ExitLayer::onAttach() {
-    const auto fontCreateInfo = FontCreateInfo{ .name = std::string(fontName),
-                                                .path = std::string(fontPath) };
-    menuFont                  = AssetManager::createFont(fontCreateInfo);
+    const auto fontCreateInfo = FontCreateInfo{
+        .name = std::string(fontName),
+        .path = std::string(fontPath),
+    };
+    menuFont = AssetManager::createFont(fontCreateInfo);
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
@@ -116,14 +121,17 @@ void ExitLayer::onEvent(Event& event) {
     EventDispatcher dispatcher(event);
 
     dispatcher.dispatch<MouseButtonPressedEvent>(
-        [this](const MouseButtonPressedEvent& event) {
-            return isActive() ? this->onMouseButtonPressed(event) : false;
+        [this](const MouseButtonPressedEvent& mbEvent) {
+            return isActive() ? this->onMouseButtonPressed(mbEvent) : false;
         });
-    dispatcher.dispatch<MouseMovedEvent>([this](const MouseMovedEvent& event) {
-        return isActive() ? onMouseMoved(event) : false;
-    });
+    dispatcher.dispatch<MouseMovedEvent>(
+        [this](const MouseMovedEvent& mmEvent) {
+            return isActive() ? onMouseMoved(mmEvent) : false;
+        });
     dispatcher.dispatch<WindowResizeEvent>(
-        [](const WindowResizeEvent& event) { return onWindowResize(event); });
+        [](const WindowResizeEvent& wrEvent) {
+            return onWindowResize(wrEvent);
+        });
 }
 
 bool ExitLayer::onUpdate(const double elapsedTime) {

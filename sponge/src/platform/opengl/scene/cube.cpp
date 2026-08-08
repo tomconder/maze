@@ -27,7 +27,7 @@ constexpr std::array vertices = {
     glm::vec3{ 0.5, -0.5, 0.5 },   glm::vec3{ 0.5, 0.5, 0.5 },
     glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, -0.5, -0.5 },
     glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ -0.5, -0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, -0.5, 0.5 }
+    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, -0.5, 0.5 },
 };
 constexpr uint32_t vertexCount = 36;
 }  // namespace
@@ -39,7 +39,7 @@ Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name               = shaderName.data(),
         .vertexShaderPath   = "/shaders/glsl/cube.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/cube.frag.glsl"
+        .fragmentShaderPath = "/shaders/glsl/cube.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

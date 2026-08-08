@@ -12,7 +12,7 @@
 namespace {
 constexpr std::array<uint32_t, 6> indices = {
     0, 1, 2,  //
-    0, 2, 3   //
+    0, 2, 3,  //
 };
 constexpr uint32_t indexCount  = 6;
 constexpr uint32_t vertexCount = 8;
@@ -51,8 +51,10 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
     vbo->unbind();
     vao->unbind();
 
-    const renderer::TextureCreateInfo textureCreateInfo{ .name = name,
-                                                         .path = texturePath };
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name = name,
+        .path = texturePath,
+    };
     tex = AssetManager::createTexture(textureCreateInfo);
     tex->bind();
 
@@ -69,7 +71,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size,
           { position.x, position.y + size.y },
           { 0.F, 1.F },  //
           { position.x + size.x, position.y + size.y },
-          { 1.F, 1.F } }
+          { 1.F, 1.F } },
     };
 
     vao->bind();

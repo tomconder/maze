@@ -25,13 +25,17 @@ namespace {
 constexpr ImColor                         darkDebugColor{ .3F, .8F, .8F, 1.F };
 constexpr ImColor                         darkErrorColor{ .7F, .3F, 0.3F, 1.F };
 constexpr ImColor                         darkWarnColor{ .8F, .8F, 0.3F, 1.F };
-constexpr std::array<std::string_view, 4> categories = { "categories", "app",
-                                                         "sponge", "opengl" };
-constexpr std::array<std::string_view, 7> logLevels  = {
+constexpr std::array<std::string_view, 4> categories = {
+    "categories",
+    "app",
+    "sponge",
+    "opengl",
+};
+constexpr std::array<std::string_view, 7> logLevels = {
     SPDLOG_LEVEL_NAME_TRACE.data(), SPDLOG_LEVEL_NAME_DEBUG.data(),
     SPDLOG_LEVEL_NAME_INFO.data(),  SPDLOG_LEVEL_NAME_WARNING.data(),
     SPDLOG_LEVEL_NAME_ERROR.data(), SPDLOG_LEVEL_NAME_CRITICAL.data(),
-    SPDLOG_LEVEL_NAME_OFF.data()
+    SPDLOG_LEVEL_NAME_OFF.data(),
 };
 
 constexpr ImGuiWindowFlags windowFlags =
@@ -269,10 +273,16 @@ void ImGuiLayer::showDirectionalLightControls() {
             ImGui::TableNextColumn();
 
             static constexpr std::array<uint32_t, 4> shadowResolutions = {
-                512, 1024, 2048, 4096
+                512,
+                1024,
+                2048,
+                4096,
             };
             static constexpr std::array<const char*, 4> shadowResLabels = {
-                "Low", "Normal", "High", "Ultra"
+                "Low",
+                "Normal",
+                "High",
+                "Ultra",
             };
 
             const auto currentRes =

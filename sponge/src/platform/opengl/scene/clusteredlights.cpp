@@ -25,7 +25,8 @@ ClusteredLights::ClusteredLights(const float near, const float far) :
     computeParamsSSBO(sizeof(ComputeParams)),
     assignShader(renderer::ShaderCreateInfo{
         .name              = "cluster_assign",
-        .computeShaderPath = "/shaders/glsl/cluster_assign.comp.glsl" }) {}
+        .computeShaderPath = "/shaders/glsl/cluster_assign.comp.glsl",
+    }) {}
 
 void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
     const glm::mat4 invProj = glm::inverse(projection);
@@ -143,7 +144,7 @@ void ClusteredLights::update(const glm::vec3* positions,
     clusterAABBsSSBO.bindBase(6);
     computeParamsSSBO.bindBase(7);
 
-    assignShader.dispatch(static_cast<uint32_t>((maxClusters + 63) / 64));
+    assignShader.dispatch((maxClusters + 63) / 64);
 
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

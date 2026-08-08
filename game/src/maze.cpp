@@ -92,7 +92,7 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         .width      = Settings::getUInt32("video.width", 0),
         .height     = Settings::getUInt32("video.height", 0),
         .fullscreen = Settings::getBool("video.fullscreen", true),
-        .vsync      = Settings::getBool("video.vsync", true)
+        .vsync      = Settings::getBool("video.vsync", true),
     };
 
     return std::make_unique<game::Maze>(spec);

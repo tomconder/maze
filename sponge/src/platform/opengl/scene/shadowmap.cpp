@@ -65,7 +65,7 @@ void ShadowMap::initialize() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    const std::array<float, 4> borderColor = { 1.F, 1.F, 0.F, 0.F };
+    const std::array borderColor = { 1.F, 1.F, 0.F, 0.F };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
                      borderColor.data());
 
@@ -109,9 +109,9 @@ void ShadowMap::initialize() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Fullscreen quad VAO/VBO for blur pass
-    constexpr std::array<float, 24> quadVerts = {
+    constexpr std::array quadVerts = {
         -1.F, 1.F, 0.F, 1.F, -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-        -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F
+        -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F,
     };
     glGenVertexArrays(1, &blurVao);
     glGenBuffers(1, &blurVbo);

@@ -4,7 +4,7 @@
 
 namespace sponge::core {
 
-constexpr double MICROSECONDS_TO_SECONDS = 1e-6F;
+constexpr double microsecondsToSeconds = 1e-6F;
 
 using std::chrono::high_resolution_clock;
 
@@ -17,7 +17,7 @@ public:
         const auto duration =
             std::chrono::duration_cast<std::chrono::microseconds>(
                 currentTicks - previousTicks);
-        elapsedSeconds = duration.count() * MICROSECONDS_TO_SECONDS;
+        elapsedSeconds = duration.count() * microsecondsToSeconds;
         previousTicks  = currentTicks;
     }
 
@@ -28,7 +28,7 @@ public:
 private:
     double                            elapsedSeconds{ 0.0 };
     high_resolution_clock::time_point previousTicks{
-        high_resolution_clock::now()
+        high_resolution_clock::now(),
     };
 };
 
