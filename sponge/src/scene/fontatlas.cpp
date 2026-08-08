@@ -68,7 +68,7 @@ void FontAtlas::build(const std::string&           path,
         uint32_t             glyphIndex = 0;
         uint32_t             size       = 0;
         uint32_t             phase      = 0;
-        GlyphInfo            glyphInfo;
+        GlyphInfo            glyphInfo{};
         std::vector<uint8_t> bitmap;
         int                  bitmapWidth  = 0;
         int                  bitmapHeight = 0;

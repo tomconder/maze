@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace sponge::platform::glfw::core {
-Window::Window(const sponge::core::WindowProps& props) : window(nullptr) {
+Window::Window(const sponge::core::WindowProps& props) {
     init(props);
 }
 
