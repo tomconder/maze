@@ -9,8 +9,7 @@
 
 namespace {
 constexpr std::array<uint32_t, 6> indices = {
-    0, 2, 1,  //
-    0, 3, 2,  //
+    0, 2, 1, 0, 3, 2,
 };
 constexpr uint32_t indexCount  = 6;
 constexpr uint32_t vertexCount = 4;
@@ -57,10 +56,10 @@ void Quad::render(const glm::vec2& top, const glm::vec2& bottom,
                   const glm::vec4& color, const float cornerRadius,
                   const float borderWidth, const glm::vec4& borderColor) const {
     const std::array<glm::vec2, vertexCount> vertices{ {
-        { top.x, bottom.y },     //
-        { top.x, top.y },        //
-        { bottom.x, top.y },     //
-        { bottom.x, bottom.y },  //
+        { top.x, bottom.y },
+        { top.x, top.y },
+        { bottom.x, top.y },
+        { bottom.x, bottom.y },
     } };
 
     const auto corners = glm::vec4(top.x, top.y, bottom.x, bottom.y);

@@ -18,9 +18,8 @@ GameCamera::GameCamera(const GameCameraCreateInfo& createInfo) {
 
     const auto radYaw   = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
-    cameraFront         = { glm::cos(radYaw) * glm::cos(radPitch),  //
-                            glm::sin(radPitch),                     //
-                            glm::sin(radYaw) * glm::cos(radPitch) };
+    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch), glm::sin(radPitch),
+                    glm::sin(radYaw) * glm::cos(radPitch) };
 }
 
 void GameCamera::updateProjection() {
@@ -82,10 +81,9 @@ void GameCamera::mouseMove(const glm::vec2& offset) {
 
     const auto radYaw   = glm::radians(yaw);
     const auto radPitch = glm::radians(pitch);
-    cameraFront =
-        normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),  //
-                             glm::sin(radPitch),                     //
-                             glm::sin(radYaw) * glm::cos(radPitch) });
+    cameraFront = normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),
+                                       glm::sin(radPitch),
+                                       glm::sin(radYaw) * glm::cos(radPitch) });
 
     updateView();
 }
