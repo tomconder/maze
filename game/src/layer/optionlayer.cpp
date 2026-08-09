@@ -141,21 +141,22 @@ size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
-// max display width across all aspect-ratio labels and resolution strings
+// max display width across all aspect-ratio labels and resolution strings.
+// Measured with tabularFigures=true to match how they render.
 float computeMaxCycleValueWidth() {
     float width = std::accumulate(
         validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
         [](const float acc, const auto& f) {
-            return std::max(acc, static_cast<float>(
-                                     menuFont->getLength(f.label, fontSize)));
+            return std::max(acc, static_cast<float>(menuFont->getLength(
+                                     f.label, fontSize, true)));
         });
     return std::accumulate(
         availableResolutions.begin(), availableResolutions.end(), width,
         [](const float acc, const auto& res) {
-            return std::max(
-                acc,
-                static_cast<float>(menuFont->getLength(
-                    fmt::format("{} × {}", res.width, res.height), fontSize)));
+            return std::max(acc,
+                            static_cast<float>(menuFont->getLength(
+                                fmt::format("{} × {}", res.width, res.height),
+                                fontSize, true)));
         });
 }
 
@@ -304,8 +305,12 @@ void OptionLayer::onAttach() {
         .textMarginLeft     = textMarginLeft,
         .maxValueWidth      = maxCycleValueWidth,
     };
-    aspectRatioList   = std::make_unique<ui::SelectList>(selectCreateInfo);
-    resolutionList    = std::make_unique<ui::SelectList>(selectCreateInfo);
+    // tabular figures: aspect ratio/resolution digits shouldn't shift width
+    // as the player cycles through values
+    auto numericCreateInfo           = selectCreateInfo;
+    numericCreateInfo.tabularFigures = true;
+    aspectRatioList   = std::make_unique<ui::SelectList>(numericCreateInfo);
+    resolutionList    = std::make_unique<ui::SelectList>(numericCreateInfo);
     shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
 
     const ui::CheckboxCreateInfo checkboxCreateInfo{

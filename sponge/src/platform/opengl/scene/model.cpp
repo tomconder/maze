@@ -14,7 +14,9 @@
 #include <array>
 #include <cassert>
 #include <filesystem>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <string>
 #include <vector>
@@ -30,7 +32,15 @@
 
 namespace {
 [[maybe_unused]] constexpr double secondsToMilliseconds = 1000.F;
+
+std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
+                                const int height, const int bytesPerPixel) {
+    const auto* begin = pixels;
+    const auto* end =
+        pixels + (static_cast<size_t>(width) * height * bytesPerPixel);
+    return { begin, end };
 }
+}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -38,24 +48,122 @@ using sponge::scene::Vertex;
 
 Model::Model(const ModelCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
-    SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
-                   createInfo.path);
-    load(createInfo.assetsFolder + createInfo.path);
-}
 
-void Model::load(const std::string& path) {
-    assert(!path.empty());
-
-    const auto extension = std::filesystem::path(path).extension().string();
-    if (extension == ".glb" || extension == ".gltf") {
-        loadGltf(path);
-    } else {
-        loadObj(path);
+    for (auto& parsedMesh : parse(createInfo).meshes) {
+        auto mesh = buildMesh(std::move(parsedMesh));
+        numIndices += mesh->getNumIndices();
+        numVertices += mesh->getNumVertices();
+        meshes.emplace_back(std::move(mesh));
     }
 }
 
-void Model::loadObj(const std::string& path) {
-    meshes.clear();
+Model::Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes) {
+    for (const auto& mesh : builtMeshes) {
+        numIndices += mesh->getNumIndices();
+        numVertices += mesh->getNumVertices();
+    }
+    meshes = std::move(builtMeshes);
+}
+
+ModelData Model::parse(const ModelCreateInfo&       createInfo,
+                       const std::function<void()>& onMeshParsed) {
+    assert(!createInfo.path.empty());
+    SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
+                   createInfo.path);
+
+    const auto path      = createInfo.assetsFolder + createInfo.path;
+    const auto extension = std::filesystem::path(path).extension().string();
+    if (extension == ".glb" || extension == ".gltf") {
+        return parseGltf(path, onMeshParsed);
+    }
+    return parseObj(path, onMeshParsed);
+}
+
+std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
+    const auto path      = createInfo.assetsFolder + createInfo.path;
+    const auto extension = std::filesystem::path(path).extension().string();
+    if (extension == ".glb" || extension == ".gltf") {
+        return countGltfMeshes(path);
+    }
+    return 1;
+}
+
+std::size_t Model::countGltfMeshes(const std::string& path) {
+    const cgltf_options options{};
+    cgltf_data*         data = nullptr;
+    if (cgltf_parse_file(&options, path.c_str(), &data) !=
+        cgltf_result_success) {
+        return 0;
+    }
+
+    std::size_t count = 0;
+    for (size_t n = 0; n < data->nodes_count; n++) {
+        const auto& node = data->nodes[n];
+        if (node.mesh == nullptr) {
+            continue;
+        }
+        for (size_t p = 0; p < node.mesh->primitives_count; p++) {
+            const auto& primitive = node.mesh->primitives[p];
+            if (primitive.type != cgltf_primitive_type_triangles) {
+                continue;
+            }
+            for (size_t a = 0; a < primitive.attributes_count; a++) {
+                if (primitive.attributes[a].type ==
+                    cgltf_attribute_type_position) {
+                    count++;
+                    break;
+                }
+            }
+        }
+    }
+
+    cgltf_free(data);
+    return count;
+}
+
+std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&& parsedMesh) {
+    // captured before the moves below: arg evaluation order is unspecified
+    const auto vertexCount = parsedMesh.vertices.size();
+    const auto indexCount  = parsedMesh.indices.size();
+
+    std::vector<std::shared_ptr<renderer::Texture>> textures;
+    if (auto albedo = buildTexture(std::move(parsedMesh.albedo))) {
+        textures.emplace_back(std::move(albedo));
+    }
+
+    auto mesh = std::make_shared<Mesh>(
+        std::move(parsedMesh.vertices), vertexCount,
+        std::move(parsedMesh.indices), indexCount, std::move(textures),
+        buildTexture(std::move(parsedMesh.normal)),
+        buildTexture(std::move(parsedMesh.occlusion)),
+        buildTexture(std::move(parsedMesh.emissive)),
+        buildTexture(std::move(parsedMesh.metallicRoughness)),
+        parsedMesh.metallicFactor, parsedMesh.roughnessFactor,
+        parsedMesh.uvTransforms);
+    mesh->optimize();
+    return mesh;
+}
+
+std::shared_ptr<renderer::Texture>
+    Model::buildTexture(std::optional<ParsedImage>&& image) {
+    if (!image) {
+        return nullptr;
+    }
+
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name          = image->name,
+        .path          = "",
+        .width         = image->width,
+        .height        = image->height,
+        .bytesPerPixel = image->bytesPerPixel,
+        .data          = image->pixels.data(),
+    };
+    return AssetManager::createTexture(textureCreateInfo);
+}
+
+ModelData Model::parseObj(const std::string&           path,
+                          const std::function<void()>& onMeshParsed) {
+    ModelData data;
 
     tinyobj::attrib_t                attrib;
     std::vector<tinyobj::shape_t>    shapes;
@@ -81,7 +189,7 @@ void Model::loadObj(const std::string& path) {
 
     if (!ret) {
         SPONGE_GL_ERROR("Unable to load model: {}", dir.string());
-        return;
+        return data;
     }
 
     timer.tick();
@@ -99,32 +207,24 @@ void Model::loadObj(const std::string& path) {
     SPONGE_GL_DEBUG("# of materials = {}", static_cast<int>(materials.size()));
     SPONGE_GL_DEBUG("# of shapes    = {}", static_cast<int>(shapes.size()));
 
-    process(attrib, shapes, materials, dir.parent_path().string());
-}
-
-void Model::process(tinyobj::attrib_t&                      attrib,
-                    std::vector<tinyobj::shape_t>&          shapes,
-                    const std::vector<tinyobj::material_t>& materials,
-                    const std::string&                      path) {
-    numIndices  = 0;
-    numVertices = 0;
-
     for (auto& [name, mesh, lines, points] : shapes) {
-        auto newMesh = processMesh(attrib, mesh, materials, path);
-        newMesh->optimize();
-        numIndices += newMesh->getNumIndices();
-        numVertices += newMesh->getNumVertices();
-        meshes.emplace_back(newMesh);
+        SPONGE_GL_INFO("Loading mesh: [{}]", name);
+        data.meshes.emplace_back(
+            parseObjMesh(attrib, mesh, materials, dir.parent_path().string()));
+        if (onMeshParsed) {
+            onMeshParsed();
+        }
     }
+
+    return data;
 }
 
-std::shared_ptr<Mesh>
-    Model::processMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-                       const std::vector<tinyobj::material_t>& materials,
-                       const std::string&                      path) {
-    std::vector<Vertex>                             vertices;
-    std::vector<uint32_t>                           indices;
-    std::vector<std::shared_ptr<renderer::Texture>> textures;
+ParsedMesh
+    Model::parseObjMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
+                        const std::vector<tinyobj::material_t>& materials,
+                        const std::string&                      path) {
+    std::vector<Vertex>   vertices;
+    std::vector<uint32_t> indices;
 
     auto numIndices = 0;
 
@@ -171,23 +271,23 @@ std::shared_ptr<Mesh>
         }
     }
 
+    ParsedMesh parsedMesh;
     if (!mesh.material_ids.empty()) {
         if (const auto id = mesh.material_ids[0]; id != -1) {
             if (!materials[id].diffuse_texname.empty()) {
-                textures.emplace_back(
-                    loadMaterialTextures(materials[id], path));
+                parsedMesh.albedo = decodeMaterialTexture(materials[id], path);
             }
         }
     }
 
-    return std::make_shared<Mesh>(std::move(vertices), numIndices,
-                                  std::move(indices), numIndices,
-                                  std::move(textures));
+    parsedMesh.vertices = std::move(vertices);
+    parsedMesh.indices  = std::move(indices);
+    return parsedMesh;
 }
 
-std::shared_ptr<renderer::Texture>
-    Model::loadMaterialTextures(const tinyobj::material_t& material,
-                                const std::string&         path) {
+std::optional<ParsedImage>
+    Model::decodeMaterialTexture(const tinyobj::material_t& material,
+                                 const std::string&         path) {
     auto baseName = [](const std::string& filepath) {
         if (const auto pos = filepath.find_last_of("/\\");
             pos != std::string::npos) {
@@ -203,43 +303,57 @@ std::shared_ptr<renderer::Texture>
     std::ranges::transform(name, name.begin(),
                            [](const uint8_t c) { return std::tolower(c); });
 
-    const renderer::TextureCreateInfo textureCreateInfo{
-        .name     = name,
-        .path     = filename.string(),
-        .loadFlag = renderer::ExcludeAssetsFolder,
+    SPONGE_GL_INFO("Loading texture: [{}, {}]", name, filename.string());
+
+    int   width         = 0;
+    int   height        = 0;
+    int   bytesPerPixel = 0;
+    auto* pixels =
+        stbi_load(filename.string().data(), &width, &height, &bytesPerPixel, 0);
+    if (pixels == nullptr) {
+        SPONGE_GL_ERROR("Unable to decode material texture: {}: {}",
+                        filename.string(), stbi_failure_reason());
+        return std::nullopt;
+    }
+
+    ParsedImage image{
+        .name          = name,
+        .width         = static_cast<uint32_t>(width),
+        .height        = static_cast<uint32_t>(height),
+        .bytesPerPixel = static_cast<uint32_t>(bytesPerPixel),
+        .pixels        = copyPixels(pixels, width, height, bytesPerPixel),
     };
-    return AssetManager::createTexture(textureCreateInfo);
+    stbi_image_free(pixels);
+    return image;
 }
 
-void Model::loadGltf(const std::string& path) {
-    meshes.clear();
+ModelData Model::parseGltf(const std::string&           path,
+                           const std::function<void()>& onMeshParsed) {
+    ModelData data;
 
     core::Timer timer;
     timer.tick();
 
-    cgltf_options options{};
-    cgltf_data*   data = nullptr;
-    if (cgltf_parse_file(&options, path.c_str(), &data) !=
+    const cgltf_options options{};
+    cgltf_data*         gltfData = nullptr;
+    if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
         cgltf_result_success) {
         SPONGE_GL_ERROR("Unable to parse gltf model: {}", path);
-        return;
+        return data;
     }
 
-    if (cgltf_load_buffers(&options, data, path.c_str()) !=
+    if (cgltf_load_buffers(&options, gltfData, path.c_str()) !=
         cgltf_result_success) {
         SPONGE_GL_ERROR("Unable to load gltf buffers: {}", path);
-        cgltf_free(data);
-        return;
+        cgltf_free(gltfData);
+        return data;
     }
-
-    numIndices  = 0;
-    numVertices = 0;
 
     // Bake each node's world transform into its mesh's vertices so glTF
     // files authored Z-up (or otherwise offset) render the same as their
     // node hierarchy intends, instead of in raw local mesh space.
-    for (size_t n = 0; n < data->nodes_count; n++) {
-        const auto& node = data->nodes[n];
+    for (size_t n = 0; n < gltfData->nodes_count; n++) {
+        const auto& node = gltfData->nodes[n];
         if (node.mesh == nullptr) {
             continue;
         }
@@ -248,34 +362,39 @@ void Model::loadGltf(const std::string& path) {
         cgltf_node_transform_world(&node, worldMatrix.data());
         const auto transform = glm::make_mat4(worldMatrix.data());
 
+        [[maybe_unused]] const auto* nodeName =
+            node.name != nullptr ? node.name : "unnamed";
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            auto newMesh =
-                processGltfPrimitive(node.mesh->primitives[p], transform, path);
-            if (!newMesh) {
+            SPONGE_GL_INFO("Loading mesh: [{}, primitive {}]", nodeName, p);
+            auto parsedMesh =
+                parseGltfPrimitive(node.mesh->primitives[p], transform, path);
+            if (!parsedMesh) {
                 continue;
             }
-            newMesh->optimize();
-            numIndices += newMesh->getNumIndices();
-            numVertices += newMesh->getNumVertices();
-            meshes.emplace_back(newMesh);
+            data.meshes.emplace_back(std::move(*parsedMesh));
+            if (onMeshParsed) {
+                onMeshParsed();
+            }
         }
     }
 
-    cgltf_free(data);
+    cgltf_free(gltfData);
 
     timer.tick();
     SPONGE_GL_DEBUG("Parsing time for model: {:.2f} ms",
                     timer.getElapsedSeconds() * secondsToMilliseconds);
-    SPONGE_GL_DEBUG("# of vertices  = {}", static_cast<int>(numVertices));
-    SPONGE_GL_DEBUG("# of meshes    = {}", static_cast<int>(meshes.size()));
+    SPONGE_GL_DEBUG("# of meshes    = {}",
+                    static_cast<int>(data.meshes.size()));
+
+    return data;
 }
 
-std::shared_ptr<Mesh>
-    Model::processGltfPrimitive(const cgltf_primitive& primitive,
-                                const glm::mat4&       transform,
-                                const std::string&     path) {
+std::optional<ParsedMesh>
+    Model::parseGltfPrimitive(const cgltf_primitive& primitive,
+                              const glm::mat4&       transform,
+                              const std::string&     path) {
     if (primitive.type != cgltf_primitive_type_triangles) {
-        return nullptr;
+        return std::nullopt;
     }
 
     const auto normalMatrix = glm::mat3(transpose(inverse(transform)));
@@ -297,7 +416,7 @@ std::shared_ptr<Mesh>
     }
 
     if (positionAccessor == nullptr) {
-        return nullptr;
+        return std::nullopt;
     }
 
     const auto vertexCount = positionAccessor->count;
@@ -354,46 +473,37 @@ std::shared_ptr<Mesh>
 
     computeTangents(vertices, indices);
 
-    std::vector<std::shared_ptr<renderer::Texture>> textures;
-    std::shared_ptr<renderer::Texture>              normalTexture;
-    std::shared_ptr<renderer::Texture>              occlusionTexture;
-    std::shared_ptr<renderer::Texture>              emissiveTexture;
-    std::shared_ptr<renderer::Texture>              metallicRoughnessTexture;
-    // Defaults match the non-PBR-textured (obj) baseline: mostly rough
-    // dielectric.
-    float            metallicFactor  = 0.F;
-    float            roughnessFactor = .5F;
-    MeshUVTransforms uvTransforms;
+    ParsedMesh parsedMesh;
     if (primitive.material != nullptr) {
         const auto& material = *primitive.material;
         if (material.has_pbr_metallic_roughness) {
-            const auto& pbr = material.pbr_metallic_roughness;
-            if (auto texture = loadGltfTexture(pbr.base_color_texture, path)) {
-                textures.emplace_back(std::move(texture));
-            }
-            metallicRoughnessTexture =
-                loadGltfTexture(pbr.metallic_roughness_texture, path);
-            metallicFactor      = pbr.metallic_factor;
-            roughnessFactor     = pbr.roughness_factor;
-            uvTransforms.albedo = gltfUVTransform(pbr.base_color_texture);
-            uvTransforms.metallicRoughness =
+            const auto& pbr   = material.pbr_metallic_roughness;
+            parsedMesh.albedo = decodeGltfTexture(pbr.base_color_texture, path);
+            parsedMesh.metallicRoughness =
+                decodeGltfTexture(pbr.metallic_roughness_texture, path);
+            parsedMesh.metallicFactor  = pbr.metallic_factor;
+            parsedMesh.roughnessFactor = pbr.roughness_factor;
+            parsedMesh.uvTransforms.albedo =
+                gltfUVTransform(pbr.base_color_texture);
+            parsedMesh.uvTransforms.metallicRoughness =
                 gltfUVTransform(pbr.metallic_roughness_texture);
         }
-        normalTexture       = loadGltfTexture(material.normal_texture, path);
-        occlusionTexture    = loadGltfTexture(material.occlusion_texture, path);
-        emissiveTexture     = loadGltfTexture(material.emissive_texture, path);
-        uvTransforms.normal = gltfUVTransform(material.normal_texture);
-        uvTransforms.occlusion = gltfUVTransform(material.occlusion_texture);
-        uvTransforms.emissive  = gltfUVTransform(material.emissive_texture);
+        parsedMesh.normal = decodeGltfTexture(material.normal_texture, path);
+        parsedMesh.occlusion =
+            decodeGltfTexture(material.occlusion_texture, path);
+        parsedMesh.emissive =
+            decodeGltfTexture(material.emissive_texture, path);
+        parsedMesh.uvTransforms.normal =
+            gltfUVTransform(material.normal_texture);
+        parsedMesh.uvTransforms.occlusion =
+            gltfUVTransform(material.occlusion_texture);
+        parsedMesh.uvTransforms.emissive =
+            gltfUVTransform(material.emissive_texture);
     }
 
-    const auto indexCount = indices.size();
-    return std::make_shared<Mesh>(
-        std::move(vertices), vertexCount, std::move(indices), indexCount,
-        std::move(textures), std::move(normalTexture),
-        std::move(occlusionTexture), std::move(emissiveTexture),
-        std::move(metallicRoughnessTexture), metallicFactor, roughnessFactor,
-        uvTransforms);
+    parsedMesh.vertices = std::move(vertices);
+    parsedMesh.indices  = std::move(indices);
+    return parsedMesh;
 }
 
 UVTransform Model::gltfUVTransform(const cgltf_texture_view& textureView) {
@@ -461,33 +571,33 @@ void Model::computeTangents(std::vector<Vertex>&         vertices,
     }
 }
 
-std::shared_ptr<renderer::Texture>
-    Model::loadGltfTexture(const cgltf_texture_view& textureView,
-                           const std::string&        path) {
+std::optional<ParsedImage>
+    Model::decodeGltfTexture(const cgltf_texture_view& textureView,
+                             const std::string&        path) {
     const auto* texture = textureView.texture;
     if (texture == nullptr || texture->image == nullptr) {
-        return nullptr;
+        return std::nullopt;
     }
 
     const auto* image = texture->image;
     if (image->buffer_view == nullptr) {
         SPONGE_GL_WARN("Unsupported gltf image source (expected buffer view)");
-        return nullptr;
+        return std::nullopt;
     }
 
     const auto* bytes = cgltf_buffer_view_data(image->buffer_view);
     const auto  size  = static_cast<int>(image->buffer_view->size);
 
-    // Cache key: file path + byte range within it. Not the cgltf_image*
-    // address, which is only valid until cgltf_free() and gets reused by
-    // later, unrelated model loads, causing cache collisions (one model
-    // silently sampling another model's texture).
-    const auto  name = path + "#" + std::to_string(image->buffer_view->offset) +
-                       "_" + std::to_string(image->buffer_view->size);
-    const auto& cachedTextures = AssetManager::getTextures();
-    if (const auto it = cachedTextures.find(name); it != cachedTextures.end()) {
-        return it->second;
-    }
+    // Cache key: path + byte range, not the cgltf_image* address — that's
+    // freed by cgltf_free() and gets reused across unrelated model loads,
+    // causing collisions.
+    //
+    // No cross-material decode dedup; AssetManager::createTexture still
+    // dedups the GL upload, so a repeat decode only costs CPU time.
+    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
+                      "_" + std::to_string(image->buffer_view->size);
+
+    SPONGE_GL_INFO("Loading texture: [{}]", name);
 
     int   width         = 0;
     int   height        = 0;
@@ -497,20 +607,18 @@ std::shared_ptr<renderer::Texture>
     if (pixels == nullptr) {
         SPONGE_GL_ERROR("Unable to decode gltf image: {}",
                         stbi_failure_reason());
-        return nullptr;
+        return std::nullopt;
     }
 
-    const renderer::TextureCreateInfo textureCreateInfo{
+    ParsedImage decoded{
         .name          = name,
-        .path          = "",
         .width         = static_cast<uint32_t>(width),
         .height        = static_cast<uint32_t>(height),
         .bytesPerPixel = static_cast<uint32_t>(bytesPerPixel),
-        .data          = pixels,
+        .pixels        = copyPixels(pixels, width, height, bytesPerPixel),
     };
-    auto result = AssetManager::createTexture(textureCreateInfo);
     stbi_image_free(pixels);
-    return result;
+    return decoded;
 }
 
 void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {

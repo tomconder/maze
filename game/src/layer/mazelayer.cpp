@@ -95,25 +95,34 @@ using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
+using sponge::platform::opengl::scene::Model;
+using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::ShadowMap;
 
 MazeLayer::MazeLayer() : Layer("maze") {}
 
-void MazeLayer::onAttach() {
+std::vector<ModelCreateInfo> MazeLayer::getModelLoadRequests() const {
+    std::vector<ModelCreateInfo> requests;
+    requests.reserve(gameObjects.size());
     for (auto& gameObject : gameObjects) {
-        // compute the model matrix once; it never changes after onAttach
+        requests.push_back({
+            .name = std::string(gameObject.name),
+            .path = std::string(gameObject.path),
+        });
+    }
+    return requests;
+}
+
+void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
+    for (auto& gameObject : gameObjects) {
+        // model matrix never changes after this point
         objectModelMatrices.push_back(glm::scale(
             glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
                         gameObject.rotation.angle, gameObject.rotation.axis),
             gameObject.scale));
         objectEmissives.push_back(gameObject.emissive);
-
-        sponge::platform::opengl::scene::ModelCreateInfo modelCreateInfo{
-            .name = std::string(gameObject.name),
-            .path = std::string(gameObject.path)
-        };
-        objectModels.push_back(AssetManager::createModel(modelCreateInfo));
     }
+    objectModels = std::move(builtModels);
 
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
@@ -132,11 +141,13 @@ void MazeLayer::onAttach() {
     const auto savedShadowRes = sponge::core::Settings::getUInt32(
         "video.shadowRes", defaultShadowMapRes);
 
-    directionalLight = { .enabled      = dirLightEnabled,
-                         .castShadow   = dirLightCastsShadow,
-                         .color        = dirLightColor,
-                         .direction    = dirLightDirection,
-                         .shadowMapRes = savedShadowRes };
+    directionalLight = {
+        .enabled      = dirLightEnabled,
+        .castShadow   = dirLightCastsShadow,
+        .color        = dirLightColor,
+        .direction    = dirLightDirection,
+        .shadowMapRes = savedShadowRes,
+    };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
     shader->setBoolean("directionalLight.castShadow",
@@ -183,13 +194,26 @@ void MazeLayer::onAttach() {
 
     setNumLights(numLights);
 
-    // Static after onAttach(); copy into both snapshot slots once instead of
-    // per frame in captureRenderFrame().
+    // static after this: bake into both snapshot slots once, not per frame
     for (auto& frame : renderFrames) {
         frame.objectModelMatrices = objectModelMatrices;
         frame.objectEmissives     = objectEmissives;
         frame.objectModels        = objectModels;
     }
+
+    // must precede setActive(true) in activate(): onUpdate/onRender only run
+    // while isActive()
+    resourcesReady.store(true, std::memory_order_release);
+    activate();
+}
+
+void MazeLayer::activate() {
+#ifdef ENABLE_IMGUI
+    if (isImguiOpen) {
+        Maze::get().getImGuiLayer()->setActive(true);
+    }
+#endif
+    setActive(true);
 }
 
 void MazeLayer::onDetach() {
@@ -233,6 +257,10 @@ void MazeLayer::onEvent(Event& event) {
 
 bool MazeLayer::onUpdate(const double elapsedTime) {
     // Update thread only — no GL calls.
+    if (!resourcesReady.load(std::memory_order_acquire)) {
+        return true;
+    }
+
     auto&      inputManager  = Application::get().getInputManager();
     const bool overlayActive = Maze::get().getExitLayer()->isActive() ||
                                Maze::get().getOptionLayer()->isActive();
@@ -617,6 +645,10 @@ bool MazeLayer::onMouseScrolled(const MouseScrolledEvent& event) const {
 }
 
 bool MazeLayer::onWindowResize(const WindowResizeEvent& event) const {
+    if (!camera) {
+        // camera not created until finishLoading(); resize is moot before then
+        return false;
+    }
     camera->setViewportSize(event.getWidth(), event.getHeight());
     queueResize(event.getWidth(), event.getHeight());
     return false;

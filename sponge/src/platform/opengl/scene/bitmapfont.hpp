@@ -27,11 +27,13 @@ public:
     explicit BitmapFont(const FontCreateInfo& createInfo);
     ~BitmapFont();
 
-    uint32_t getLength(std::string_view text, uint32_t size);
+    // tabularFigures: see FontAtlas::shape()'s doc comment.
+    uint32_t getLength(std::string_view text, uint32_t size,
+                       bool tabularFigures = false);
     uint32_t getHeight(uint32_t size) const;
     void     beginPass(uint32_t size);
     void     render(std::string_view text, const glm::vec2& position,
-                    const glm::vec3& color);
+                    const glm::vec3& color, bool tabularFigures = false);
     void     endPass();
 
     std::shared_ptr<renderer::Shader> getShader() const {

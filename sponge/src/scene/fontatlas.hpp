@@ -44,7 +44,10 @@ public:
 
     void build(const std::string& path, const std::vector<uint32_t>& sizes);
 
-    std::vector<ShapedGlyph> shape(std::string_view text, uint32_t size);
+    // tabularFigures: fixed-width digits (OpenType "tnum") instead of
+    // proportional; build() bakes both variants.
+    std::vector<ShapedGlyph> shape(std::string_view text, uint32_t size,
+                                   bool tabularFigures = false);
 
     const GlyphInfo* getGlyph(uint32_t glyphIndex, uint32_t size,
                               uint32_t phase) const;

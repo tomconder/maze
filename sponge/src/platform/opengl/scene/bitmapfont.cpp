@@ -68,7 +68,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     shader->unbind();
 
     const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
-    atlas.build(ttfPath, { 16, 24, 32, 48 });
+    atlas.build(ttfPath, { 18, 24, 32, 48 });
 
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
@@ -94,13 +94,13 @@ uint32_t BitmapFont::getHeight(const uint32_t size) const {
     return static_cast<uint32_t>(atlas.getLineHeight(size));
 }
 
-uint32_t BitmapFont::getLength(const std::string_view text,
-                               const uint32_t         size) {
+uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
+                               const bool tabularFigures) {
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
     float penX = 0.0F;
-    for (const auto& shapedGlyph : atlas.shape(str, size)) {
+    for (const auto& shapedGlyph : atlas.shape(str, size, tabularFigures)) {
         penX += shapedGlyph.xAdvance;
     }
 
@@ -118,7 +118,7 @@ void BitmapFont::beginPass(const uint32_t size) {
 }
 
 void BitmapFont::render(const std::string_view text, const glm::vec2& position,
-                        const glm::vec3& color) {
+                        const glm::vec3& color, const bool tabularFigures) {
     assert(passTargetSize != 0);
 
     const auto str =
@@ -127,7 +127,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const float ascender   = atlas.getAscender(passTargetSize);
     float       penX       = position.x;
     uint32_t    glyphCount = 0;
-    const auto  shaped     = atlas.shape(str, passTargetSize);
+    const auto  shaped     = atlas.shape(str, passTargetSize, tabularFigures);
 
     for (const auto& shapedGlyph : shaped) {
         // quad sits on the whole pixel; the fractional remainder picks the
@@ -156,14 +156,16 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
             const float vBottom = glyphInfo->uvTop + glyphInfo->uvHeight;
 
             const std::array<glm::vec2, vertexCount> vertices{
-                { { xpos, ypos + glyphHeight },
-                  { uLeft, vBottom },
-                  { xpos, ypos },
-                  { uLeft, vTop },
-                  { xpos + glyphWidth, ypos },
-                  { uRight, vTop },
-                  { xpos + glyphWidth, ypos + glyphHeight },
-                  { uRight, vBottom } },
+                {
+                    { xpos, ypos + glyphHeight },
+                    { uLeft, vBottom },
+                    { xpos, ypos },
+                    { uLeft, vTop },
+                    { xpos + glyphWidth, ypos },
+                    { uRight, vTop },
+                    { xpos + glyphWidth, ypos + glyphHeight },
+                    { uRight, vBottom },
+                },
             };
 
             std::ranges::copy(

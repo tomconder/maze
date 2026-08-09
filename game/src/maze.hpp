@@ -4,6 +4,7 @@
 #include "event/event.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
+#include "layer/loadinglayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "layer/splashscreenlayer.hpp"
 #include "platform/glfw/core/application.hpp"
@@ -46,6 +47,10 @@ public:
 
     std::shared_ptr<layer::IntroLayer> getIntroLayer() const {
         return introLayer;
+    }
+
+    std::shared_ptr<layer::LoadingLayer> getLoadingLayer() const {
+        return loadingLayer;
     }
 
     std::shared_ptr<layer::MazeLayer> getMazeLayer() const {
@@ -103,6 +108,8 @@ private:
 #endif
     std::shared_ptr<layer::IntroLayer> introLayer =
         std::make_shared<layer::IntroLayer>();
+    std::shared_ptr<layer::LoadingLayer> loadingLayer =
+        std::make_shared<layer::LoadingLayer>();
     std::shared_ptr<layer::MazeLayer> mazeLayer =
         std::make_shared<layer::MazeLayer>();
     std::shared_ptr<layer::OptionLayer> optionLayer =
