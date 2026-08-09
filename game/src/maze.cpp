@@ -30,10 +30,12 @@ bool Maze::onUserCreate() {
     pushOverlay(optionLayer);
 
     pushLayer(mazeLayer);
+    pushLayer(loadingLayer);
     pushLayer(introLayer);
 
     exitLayer->setActive(false);
     introLayer->setActive(false);
+    loadingLayer->setActive(false);
     mazeLayer->setActive(false);
     optionLayer->setActive(false);
     splashScreenLayer->setActive(true);

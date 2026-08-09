@@ -48,8 +48,6 @@ public:
         return true;
     }
 
-    void onAttach() override;
-
     void onDetach() override;
 
     void onEvent(sponge::event::Event& event) override;
@@ -117,6 +115,24 @@ public:
     bool isImguiActive() const;
 #endif
 
+    // True once finishLoading() has run; LoadingLayer skips reloading if set.
+    bool isLoaded() const {
+        return resourcesReady.load(std::memory_order_acquire);
+    }
+
+    // Load requests for LoadingLayer, in the order finishLoading() expects.
+    std::vector<sponge::platform::opengl::scene::ModelCreateInfo>
+        getModelLoadRequests() const;
+
+    // Finishes sync setup (camera/shader/shadow map/FXAA/bloom/clustered
+    // lights) from LoadingLayer's built models and activates the layer.
+    void finishLoading(
+        std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
+            builtModels);
+
+    // Re-activates an already-loaded layer without going through LoadingLayer.
+    void activate();
+
 private:
     std::shared_ptr<scene::GameCamera> camera;
     std::vector<glm::mat4>             objectModelMatrices;
@@ -157,6 +173,9 @@ private:
 
     void captureRenderFrame(uint32_t slotIndex);
     void queueResize(uint32_t w, uint32_t h) const;
+
+    // Set by finishLoading(); onUpdate()/onRender() no-op until then.
+    std::atomic<bool> resourcesReady{ false };
 
     // Guards settings written by ImGui (render thread) and read by
     // captureRenderFrame() (update thread): lights, directional light,

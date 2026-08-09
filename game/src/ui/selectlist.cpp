@@ -21,7 +21,8 @@ SelectList::SelectList(const SelectListCreateInfo& createInfo) :
     textColor(createInfo.textColor),
     arrowDisabledColor(createInfo.arrowDisabledColor),
     textMarginLeft(createInfo.textMarginLeft),
-    maxValueWidth(createInfo.maxValueWidth) {
+    maxValueWidth(createInfo.maxValueWidth),
+    tabularFigures(createInfo.tabularFigures) {
     leftLen  = static_cast<float>(font->getLength(leftArrow, fontSize));
     rightLen = static_cast<float>(font->getLength(rightArrow, fontSize));
 }
@@ -97,8 +98,9 @@ void SelectList::onUpdate(const float x, const float y, const float w,
                           const float h, const std::string_view label) {
     const float textY = std::floor(
         y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    const auto  value  = getValue();
-    const auto  valLen = static_cast<float>(font->getLength(value, fontSize));
+    const auto value = getValue();
+    const auto valLen =
+        static_cast<float>(font->getLength(value, fontSize, tabularFigures));
     const float startX = getStartX(x, w);
     const float valueX = startX + leftLen + (maxValueWidth - valLen) / 2.F;
 
@@ -106,7 +108,7 @@ void SelectList::onUpdate(const float x, const float y, const float w,
     font->render(label, { x + textMarginLeft, textY }, textColor);
     font->render(leftArrow, { startX, textY },
                  hasLeft() ? textColor : arrowDisabledColor);
-    font->render(value, { valueX, textY }, textColor);
+    font->render(value, { valueX, textY }, textColor, tabularFigures);
     font->render(rightArrow, { startX + leftLen + maxValueWidth, textY },
                  hasRight() ? textColor : arrowDisabledColor);
     font->endPass();

@@ -22,7 +22,29 @@ constexpr char32_t firstGlyph = 32;
 constexpr char32_t lastGlyph  = 126;
 
 constexpr std::array<char32_t, 1> supplementalGlyphs = {
-    0xD7  // × MULTIPLICATION SIGN
+    0xD7,  // × MULTIPLICATION SIGN
+};
+
+// characters that appear in tabular-figure strings (percent, resolution,
+// aspect ratio) — only these need their tnum glyph resolved and baked
+constexpr std::array<uint32_t, 15> tabularCandidates = {
+    {
+        U'0',
+        U'1',
+        U'2',
+        U'3',
+        U'4',
+        U'5',
+        U'6',
+        U'7',
+        U'8',
+        U'9',
+        U':',
+        U'%',
+        U'~',
+        U' ',
+        0xD7,
+    },
 };
 }  // namespace
 
@@ -50,7 +72,7 @@ void FontAtlas::build(const std::string&           path,
     FT_Library_SetLcdFilter(ftLibrary, FT_LCD_FILTER_DEFAULT);
 
     // thicken stems to compensate for coverage loss in gamma-unaware blending
-    FT_Bool noStemDarkening = 0;
+    const FT_Bool noStemDarkening = 0;
     FT_Property_Set(ftLibrary, "autofitter", "no-stem-darkening",
                     &noStemDarkening);
 
@@ -80,15 +102,15 @@ void FontAtlas::build(const std::string&           path,
 
     for (const uint32_t size : sizes) {
         FT_Set_Pixel_Sizes(ftFace, 0, size);
+        hb_ft_font_changed(hbFont);
 
         lineHeights[size] =
             static_cast<float>(ftFace->size->metrics.height >> 6);
         ascenders[size] =
             static_cast<float>(ftFace->size->metrics.ascender >> 6);
 
-        auto rasterizeGlyph = [&](const char32_t codepoint,
-                                  const uint32_t phase) {
-            const FT_UInt glyphIndex = FT_Get_Char_Index(ftFace, codepoint);
+        auto rasterizeGlyphIndex = [&](const FT_UInt  glyphIndex,
+                                       const uint32_t phase) {
             if (glyphIndex == 0 ||
                 FT_Load_Glyph(ftFace, glyphIndex,
                               FT_LOAD_TARGET_LIGHT | FT_LOAD_NO_BITMAP) != 0) {
@@ -129,10 +151,10 @@ void FontAtlas::build(const std::string&           path,
             pendingGlyph.bitmap.resize(
                 static_cast<size_t>(bitmapWidth * 3 * bitmapHeight));
             for (int row = 0; row < bitmapHeight; row++) {
-                std::copy(glyphSlot->bitmap.buffer + row * bitmapPitch,
-                          glyphSlot->bitmap.buffer + row * bitmapPitch +
-                              bitmapWidth * 3,
-                          pendingGlyph.bitmap.begin() + row * bitmapWidth * 3);
+                std::copy_n(glyphSlot->bitmap.buffer + row * bitmapPitch,
+                            bitmapWidth * 3,
+                            pendingGlyph.bitmap.begin() +
+                                row * bitmapWidth * 3);
             }
             pendingGlyph.rectIdx = static_cast<int>(rects.size());
             pending.push_back(std::move(pendingGlyph));
@@ -144,6 +166,64 @@ void FontAtlas::build(const std::string&           path,
             rects.push_back(rect);
         };
 
+        auto rasterizeGlyph = [&](const char32_t codepoint,
+                                  const uint32_t phase) {
+            rasterizeGlyphIndex(FT_Get_Char_Index(ftFace, codepoint), phase);
+        };
+
+        // tnum-substituted glyphs (Inter also swaps some punctuation, e.g.
+        // ':') live outside the cmap the loop below rasterizes from, so
+        // resolve them via hb_shape and bake whatever glyph comes back.
+        std::vector<FT_UInt> tabularGlyphIndices;
+        {
+            hb_buffer_t* tnumBuffer = hb_buffer_create();
+            hb_buffer_add_utf32(tnumBuffer, tabularCandidates.data(),
+                                static_cast<int>(tabularCandidates.size()), 0,
+                                static_cast<int>(tabularCandidates.size()));
+            hb_buffer_guess_segment_properties(tnumBuffer);
+            // must match shape()'s tabularFigures=true feature set exactly,
+            // or this bakes a glyph index shape() never actually requests
+            constexpr std::array<hb_feature_t, 4> tnumFeatures = {
+                {
+                    {
+                        .tag   = HB_TAG('l', 'i', 'g', 'a'),
+                        .value = 0,
+                        .start = 0,
+                        .end   = UINT_MAX,
+                    },
+                    {
+                        .tag   = HB_TAG('c', 'l', 'i', 'g'),
+                        .value = 0,
+                        .start = 0,
+                        .end   = UINT_MAX,
+                    },
+                    {
+                        .tag   = HB_TAG('c', 'a', 'l', 't'),
+                        .value = 0,
+                        .start = 0,
+                        .end   = UINT_MAX,
+                    },
+                    {
+                        .tag   = HB_TAG('t', 'n', 'u', 'm'),
+                        .value = 1,
+                        .start = 0,
+                        .end   = UINT_MAX,
+                    },
+                },
+            };
+            hb_shape(hbFont, tnumBuffer, tnumFeatures.data(),
+                     static_cast<unsigned int>(tnumFeatures.size()));
+
+            unsigned int           glyphCount = 0;
+            const hb_glyph_info_t* glyphInfos =
+                hb_buffer_get_glyph_infos(tnumBuffer, &glyphCount);
+            tabularGlyphIndices.reserve(glyphCount);
+            for (unsigned int i = 0; i < glyphCount; i++) {
+                tabularGlyphIndices.push_back(glyphInfos[i].codepoint);
+            }
+            hb_buffer_destroy(tnumBuffer);
+        }
+
         for (uint32_t phase = 0; phase < subpixelPhases; phase++) {
             for (char32_t codepoint = firstGlyph; codepoint <= lastGlyph;
                  codepoint++) {
@@ -151,6 +231,9 @@ void FontAtlas::build(const std::string&           path,
             }
             for (const char32_t codepoint : supplementalGlyphs) {
                 rasterizeGlyph(codepoint, phase);
+            }
+            for (const FT_UInt glyphIndex : tabularGlyphIndices) {
+                rasterizeGlyphIndex(glyphIndex, phase);
             }
         }
     }
@@ -203,7 +286,8 @@ void FontAtlas::build(const std::string&           path,
 }
 
 std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
-                                          const uint32_t         size) {
+                                          const uint32_t         size,
+                                          const bool tabularFigures) {
     std::vector<ShapedGlyph> result;
 
     if (hbFont == nullptr) {
@@ -218,22 +302,36 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
                        static_cast<int>(text.size()));
     hb_buffer_guess_segment_properties(buffer);
 
-    // liga/clig/calt off so shaping never substitutes glyph indices the
-    // atlas did not bake (e.g. Inter calt swaps multiply for multiply.case
-    // between digits, which would render as nothing)
-    const std::array<hb_feature_t, 3> features = {
-        { { .tag   = HB_TAG('l', 'i', 'g', 'a'),
-            .value = 0,
-            .start = 0,
-            .end   = UINT_MAX },
-          { .tag   = HB_TAG('c', 'l', 'i', 'g'),
-            .value = 0,
-            .start = 0,
-            .end   = UINT_MAX },
-          { .tag   = HB_TAG('c', 'a', 'l', 't'),
-            .value = 0,
-            .start = 0,
-            .end   = UINT_MAX } }
+    // liga/clig/calt off: shaping must never request a glyph the atlas
+    // didn't bake (e.g. Inter's calt swaps multiply for multiply.case).
+    // tnum off by default; callers opt in for fixed-width digits.
+    const std::array<hb_feature_t, 4> features = {
+        {
+            {
+                .tag   = HB_TAG('l', 'i', 'g', 'a'),
+                .value = 0,
+                .start = 0,
+                .end   = UINT_MAX,
+            },
+            {
+                .tag   = HB_TAG('c', 'l', 'i', 'g'),
+                .value = 0,
+                .start = 0,
+                .end   = UINT_MAX,
+            },
+            {
+                .tag   = HB_TAG('c', 'a', 'l', 't'),
+                .value = 0,
+                .start = 0,
+                .end   = UINT_MAX,
+            },
+            {
+                .tag   = HB_TAG('t', 'n', 'u', 'm'),
+                .value = tabularFigures ? 1U : 0U,
+                .start = 0,
+                .end   = UINT_MAX,
+            },
+        },
     };
     hb_shape(hbFont, buffer, features.data(),
              static_cast<unsigned int>(features.size()));
@@ -241,7 +339,7 @@ std::vector<ShapedGlyph> FontAtlas::shape(const std::string_view text,
     unsigned int     glyphCount = 0;
     hb_glyph_info_t* glyphInfos =
         hb_buffer_get_glyph_infos(buffer, &glyphCount);
-    hb_glyph_position_t* positions =
+    const hb_glyph_position_t* positions =
         hb_buffer_get_glyph_positions(buffer, &glyphCount);
 
     result.reserve(glyphCount);

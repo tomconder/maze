@@ -226,7 +226,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                 .gamepadConnected;
         const auto* const gamepadStatus =
             gamepadConnected ? "Gamepad connected" : "No gamepad";
-        constexpr auto statusFontSize = 16;
+        constexpr auto statusFontSize = 18;
         constexpr auto margin         = 10.F;
         constexpr auto statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
 
@@ -299,12 +299,11 @@ void IntroLayer::activateSelected() {
         case IntroMenuItem::NewGame:
             clearHoveredItems();
             setActive(false);
-            Maze::get().getMazeLayer()->setActive(true);
-#ifdef ENABLE_IMGUI
-            if (Maze::get().getMazeLayer()->isImguiActive()) {
-                Maze::get().getImGuiLayer()->setActive(true);
+            if (Maze::get().getMazeLayer()->isLoaded()) {
+                Maze::get().getMazeLayer()->activate();
+            } else {
+                Maze::get().getLoadingLayer()->setActive(true);
             }
-#endif
             break;
         case IntroMenuItem::Options:
             clearHoveredItems();

@@ -20,6 +20,8 @@ struct SelectListCreateInfo {
     glm::vec3 arrowDisabledColor;
     float     textMarginLeft;
     float     maxValueWidth = 0.F;
+    // fixed-width digits for the selected value; see FontAtlas::shape()
+    bool tabularFigures = false;
 };
 
 class SelectList {
@@ -54,6 +56,7 @@ private:
     glm::vec3 arrowDisabledColor;
     float     textMarginLeft;
     float     maxValueWidth;
+    bool      tabularFigures;
 
     std::vector<std::string> items;
     size_t                   selectedIndex = 0;
