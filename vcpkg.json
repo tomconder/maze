@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "2475cc332a47b3a63bb3de58293bdab7726613ca",
+  "builtin-baseline": "ea1a7396b05637a53bf23c078647ecc0edee4b80",
   "dependencies": [
     {
       "name": "fmt",
@@ -13,7 +13,7 @@
     },
     {
       "name": "glfw3",
-      "version>=": "3.4"
+      "version>=": "3.5.1"
     },
     {
       "name": "glm",
@@ -21,7 +21,7 @@
     },
     {
       "name": "harfbuzz",
-      "version>=": "14.2.1"
+      "version>=": "14.3.0"
     },
     {
       "name": "imgui",
