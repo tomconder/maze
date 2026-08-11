@@ -37,7 +37,10 @@
     },
     {
       "name": "mimalloc",
-      "version>=": "3.4.3"
+      "version>=": "3.4.3",
+      "features": [
+        "secure"
+      ]
     },
     {
       "name": "nlohmann-json",
