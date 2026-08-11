@@ -49,6 +49,7 @@ private:
     bool pendingVsync          = false;
     bool pendingFxaa           = false;
     int  pendingShadowResIndex = 1;
+    int  appliedShadowResIndex = 1;  // baseline pendingShadowResIndex synced to
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;

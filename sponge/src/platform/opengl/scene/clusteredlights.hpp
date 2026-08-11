@@ -16,7 +16,10 @@ class ClusteredLights {
 public:
     // Cluster grid — must match TILES_X/Y/Z in clustered.slang.
     // ponytail: fixed 16x9x24 grid (Doom 2016 shape); slices are less cubic
-    // at narrow FOV, which only coarsens culling, never causes artifacts.
+    // at narrow FOV (already reachable via scroll zoom, gamecamera.cpp),
+    // which only coarsens culling, never causes artifacts. upgrade: derive
+    // tilesX/Y/Z from FOV/aspect if profiling shows over-lit clusters at
+    // min FOV (30 deg).
     static constexpr int tilesX      = 16;
     static constexpr int tilesY      = 9;
     static constexpr int tilesZ      = 24;
