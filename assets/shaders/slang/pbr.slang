@@ -131,7 +131,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
 
     float3 ambient = float3(params.ambientStrength) * albedo * ao;
-    float3 color   = ambient + Lo;
+    float3 color   = ambient + Lo + params.emissive + emissiveTexColor;
 
     // Reinhard HDR tone mapping
     color = color / (color + float3(1.0));
@@ -141,5 +141,5 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
 
     color = dither8(color, fragCoord.xy);
 
-    return float4(color + params.emissive + emissiveTexColor, 1.0);
+    return float4(color, 1.0);
 };

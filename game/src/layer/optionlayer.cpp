@@ -332,19 +332,6 @@ void OptionLayer::onAttach() {
         shadowQualityList->setItems({ "Low", "Normal", "High", "Ultra" });
     }
 
-    {
-        const auto currentShadowRes =
-            Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
-        const auto it = std::ranges::find(shadowResolutions, currentShadowRes);
-        pendingShadowResIndex =
-            it != shadowResolutions.end() ?
-                static_cast<int>(it - shadowResolutions.begin()) :
-                1;
-        shadowQualityList->setSelectedIndex(
-            static_cast<size_t>(pendingShadowResIndex));
-        currentShadowResIndex = static_cast<size_t>(pendingShadowResIndex);
-    }
-
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
@@ -394,8 +381,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         {
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
-                syncPendingCheckboxState();
-                updateChangeStatus();
+                resetSelectionToCurrentState();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -807,6 +793,7 @@ void OptionLayer::syncPendingCheckboxState() {
         shadowQualityList->setSelectedIndex(
             static_cast<size_t>(pendingShadowResIndex));
     }
+    appliedShadowResIndex = pendingShadowResIndex;
 }
 
 void OptionLayer::updateChangeStatus() {
@@ -849,13 +836,11 @@ void OptionLayer::updateChangeStatus() {
     const auto currentShadowRes =
         Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
     const auto sqIt = std::ranges::find(shadowResolutions, currentShadowRes);
-    currentShadowResIndex = sqIt != shadowResolutions.end() ?
-                                std::optional{ static_cast<size_t>(
-                                    sqIt - shadowResolutions.begin()) } :
-                                std::nullopt;
-    const bool shadowChanged =
-        shadowResolutions[static_cast<size_t>(pendingShadowResIndex)] !=
-        currentShadowRes;
+    currentShadowResIndex    = sqIt != shadowResolutions.end() ?
+                                   std::optional{ static_cast<size_t>(
+                                       sqIt - shadowResolutions.begin()) } :
+                                   std::nullopt;
+    const bool shadowChanged = pendingShadowResIndex != appliedShadowResIndex;
 
     hasUnappliedChanges = checkboxChanged || resolutionChanged || shadowChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
