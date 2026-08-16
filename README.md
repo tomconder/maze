@@ -20,6 +20,7 @@ A game engine featuring a nice walk through a maze.
 * Flexbox-based UI layout with Yoga
 * Performance profiling with Tracy
 * Gamepad support
+* Dear ImGui debug and options UI
 
 ## Project Organization
 
