@@ -13,6 +13,7 @@ A game engine featuring a nice walk through a maze.
 * Clustered (volume-tiled) light culling
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Reinhard tone mapping
+* Physically based bloom
 * Fast approximate anti-aliasing (FXAA)
 * FreeType + HarfBuzz text rendering with LCD subpixel anti-aliasing and subpixel positioning
 * Flexbox-based UI layout with Yoga

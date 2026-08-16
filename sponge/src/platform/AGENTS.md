@@ -42,10 +42,10 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
-* Anti-aliasing lives across `FXAA` (single-pass) and TAA (ping-pong history
-  buffer + Halton jitter applied in `captureRenderFrame` on the update side);
-  don't add a third AA path without checking `game/src/layer/mazelayer.*`
-  first for where jitter is injected.
+* Anti-aliasing is `FXAA` (single-pass) only. No TAA exists in this codebase
+  despite older docs/memory claiming it — verified no ping-pong history
+  buffer, no Halton jitter anywhere in `sponge/src` or `game/src` as of
+  2026-08-16.
 
 ## Anti-patterns
 
