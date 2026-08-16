@@ -34,9 +34,9 @@ than calling GLFW/OpenGL/OS APIs directly.
   is broken on at least one driver in this project's history. Pass matrices
   as individual float4 rows instead. See `opengl/renderer/ssbo.*` and
   `opengl/scene/clusteredlights.cpp`.
-* `ClusteredLights::maxLightsPerCluster` (currently 512) must stay >= the
-  actual max light count per cluster; silently truncates the list if it's
-  set too low instead of erroring.
+* `ClusteredLights::maxLightsPerCluster` is defined as `= maxLights`
+  (currently 128) so per-cluster truncation can never occur; don't split it
+  back into its own literal or it silently truncates instead of erroring.
 * `ShadowMap` uses EVSM with a Dual Kawase blur; shadow resolution is a
   discrete quality setting (`video.shadowRes`), not a continuous slider, and
   FBO rebuilds are deferred to the render thread the same way viewport resize
