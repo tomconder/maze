@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "94a541197763a4f449a1b91478df48c0584a6256",
+  "builtin-baseline": "809d4e072ea48e74bc0c5e6c1227a5cc636a63ad",
   "dependencies": [
     {
       "name": "fmt",
@@ -43,7 +43,7 @@
     },
     {
       "name": "mimalloc",
-      "version>=": "3.4.5",
+      "version>=": "3.5.0",
       "features": [
         "secure"
       ]

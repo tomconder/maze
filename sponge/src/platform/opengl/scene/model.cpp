@@ -362,10 +362,8 @@ ModelData Model::parseGltf(const std::string&           path,
         cgltf_node_transform_world(&node, worldMatrix.data());
         const auto transform = glm::make_mat4(worldMatrix.data());
 
-        [[maybe_unused]] const auto* nodeName =
-            node.name != nullptr ? node.name : "unnamed";
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            SPONGE_GL_INFO("Loading mesh: [{}, primitive {}]", nodeName, p);
+            SPONGE_GL_INFO("Loading mesh: [primitive {}]", p);
             auto parsedMesh =
                 parseGltfPrimitive(node.mesh->primitives[p], transform, path);
             if (!parsedMesh) {
