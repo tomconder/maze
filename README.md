@@ -18,6 +18,7 @@ A game engine featuring a nice walk through a maze.
 * Fast approximate anti-aliasing (FXAA)
 * FreeType + HarfBuzz text rendering with LCD subpixel anti-aliasing and subpixel positioning
 * Flexbox-based UI layout with Yoga
+* Audio playback with miniaudio
 * Performance profiling with Tracy
 * Gamepad support
 * Dear ImGui debug and options UI

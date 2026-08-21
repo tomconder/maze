@@ -10,6 +10,8 @@ than calling GLFW/OpenGL/OS APIs directly.
 * `glfw/core/` - `Application` (main loop, layer stack, window/vsync/mouse
   state), `Window`, `InputManager`. This is the only place that owns the GLFW
   window and drives the update/render worker threads.
+* `audio/` - miniaudio playback (`Audio::init` / `shutdown` / `play`). Init and
+  shutdown from `Application`; game code only calls `play`.
 * `glfw/imgui/` - `GLFWManager` (real ImGui backend, built when
   `ENABLE_IMGUI`) vs `NoopManager` (stub for release builds).
 * `opengl/renderer/` - GL primitives: `Context`, `RendererAPI`, buffers

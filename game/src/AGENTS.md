@@ -3,7 +3,7 @@
 The `maze` game itself: layers, scenes, UI, and the game-specific render frame.
 Built on top of the sponge engine (`sponge/src`); does not implement rendering
 primitives, windowing, or platform backends itself — see
-`../../sponge/src/platform/AGENTS.md` for those.
+`../../sponge/src/AGENTS.md` and `../../sponge/src/platform/AGENTS.md`.
 
 ## Entry Points
 
@@ -18,9 +18,10 @@ primitives, windowing, or platform backends itself — see
 
 ## Contracts & Invariants
 
-* `MazeLayer::onUpdate()` runs on the update thread and must issue **no GL
-  calls**; `onRender()` runs on the render thread and owns all GL commands.
-  See `runsOnUpdateThread()` override and the double-buffered
+* Only `MazeLayer` opts into `runsOnUpdateThread()`. Its `onUpdate()` runs on
+  the update thread and must issue **no GL calls**; `onRender()` runs on the
+  render thread and owns all GL commands. Other game layers keep the default
+  (`false`) so `onUpdate()` runs on the render thread. See the double-buffered
   `renderFrames` / `renderReadIndex` in `mazelayer.hpp`.
 * `onFrameSync()` runs on the main thread and publishes the slot from the last
   completed `captureRenderFrame()`, so render\[N] always reads update\[N-1]'s
@@ -35,8 +36,14 @@ primitives, windowing, or platform backends itself — see
   above-threshold energy); don't "simplify" it back toward the old hard
   threshold without re-deriving the constant.
 
+## Anti-patterns
+
+* Don't call GLFW or raw GL from this tree; go through sponge platform wrappers.
+* Don't put engine primitives here (buffers, shaders, Worker) — those belong in
+  `sponge/src`.
+* Don't apply viewport / FXAA / shadow-FBO changes on the update thread.
+
 ## Related Context
 
-* Threading model (Worker, double-buffering, kick discipline):
-  see project memory `project_threading` / `sponge/src/thread/`.
-* Clustered lighting, shadows, AA: `../../sponge/src/platform/AGENTS.md`.
+* Engine core (Layer, Worker, GameAction): `../../sponge/src/AGENTS.md`
+* Clustered lighting, shadows, AA: `../../sponge/src/platform/AGENTS.md`

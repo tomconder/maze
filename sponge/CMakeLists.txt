@@ -71,6 +71,29 @@ file(
         src/platform/glfw/logging/*.cpp)
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
+# miniaudio
+message(STATUS "Including miniaudio files")
+file(
+        GLOB MINIAUDIO_SOURCES
+        LIST_DIRECTORIES false
+        deps/miniaudio/miniaudio.cpp)
+list(APPEND SOURCE_FILES ${MINIAUDIO_SOURCES})
+set_source_files_properties(${MINIAUDIO_SOURCES} PROPERTIES COMPILE_OPTIONS
+        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
+
+# audio
+message(STATUS "Including audio platform files")
+file(
+        GLOB AUDIO_HEADERS
+        LIST_DIRECTORIES false
+        src/platform/audio/*.hpp)
+list(APPEND HEADER_FILES ${AUDIO_HEADERS})
+file(
+        GLOB AUDIO_SOURCES
+        LIST_DIRECTORIES false
+        src/platform/audio/*.cpp)
+list(APPEND SOURCE_FILES ${AUDIO_SOURCES})
+
 # tinyobjloader
 message(STATUS "Including tinyobjloader files")
 file(
@@ -204,6 +227,7 @@ target_include_directories(sponge PUBLIC deps/cgltf)
 target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge PUBLIC deps/stb)
 target_include_directories(sponge PUBLIC deps/tinyobjloader)
+target_include_directories(sponge PRIVATE deps/miniaudio)
 
 target_link_libraries(sponge PRIVATE Freetype::Freetype)
 target_link_libraries(sponge PRIVATE harfbuzz::harfbuzz)
@@ -213,6 +237,13 @@ target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
+if (APPLE)
+    target_link_libraries(sponge PRIVATE "-framework AudioToolbox"
+            "-framework CoreAudio" "-framework CoreFoundation")
+elseif (UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(sponge PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
+endif ()
 if (ENABLE_IMGUI)
     target_link_libraries(sponge PUBLIC imgui::imgui)
 endif ()

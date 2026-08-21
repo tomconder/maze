@@ -656,14 +656,18 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
 
     ui::updateButtonHover(returnButton.get(), pos);
 
-    hoveredItem = std::nullopt;
+    std::optional<OptionMenuItem> nextHover;
     for (const auto& [item, label] : settingRows) {
         const auto [x, y, w, h] = rowLayout(item);
         if (contains(x, y, w, h, pos.x, pos.y)) {
-            hoveredItem = item;
+            nextHover = item;
             break;
         }
     }
+    if (nextHover && nextHover != hoveredItem) {
+        ui::playHoverClick();
+    }
+    hoveredItem = nextHover;
 
     return true;
 }
