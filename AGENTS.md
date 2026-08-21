@@ -15,22 +15,33 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 
 # Drop: old exploration paths, repeated logs
 
-* Do not edit generated files in out/
+* Do not edit generated files in `out/`
+* Do not edit 3rd-party files in `sponge/deps`
+* App code: `game/` `sponge/`
 
-* Do not edit 3rd party files in sponge/deps
+## Architecture
 
-* App code: games/ sponge/
+* `game/` — maze application (layers, UI, cameras). CMake target `game`; Windows exe `maze.exe`.
+* `sponge/src/{core,event,input,layer,logging,scene,thread}` — platform-agnostic engine.
+* `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
+* `assets/shaders/slang/` — Slang sources. CMake (`cmake/CompileSlang.cmake`) compiles to GLSL 450 with `-matrix-layout-column-major`. Runtime loads compiled GLSL from the build tree, not `.slang`.
+* C++23, vcpkg manifest (`vcpkg.json`). Optional CMake flags: `ENABLE_IMGUI`, `ENABLE_PROFILING` (Tracy).
+* No automated test suite. Verify with compile + run + `pre-commit.exe run --all-files`.
 
 ## Intent Layer
 
 **Before modifying code in a subdirectory, read its AGENTS.md first** to understand local patterns and invariants.
 
-* **Game code**: `game/src/AGENTS.md` - the `maze` game itself: layers, scenes, UI
-* **Platform backends**: `sponge/src/platform/AGENTS.md` - GLFW/OpenGL/OS-specific code
+* **Game**: `game/src/AGENTS.md` — maze layers, scenes, UI
+* **Engine core**: `sponge/src/AGENTS.md` — platform-agnostic engine (layers, events, input types, Worker)
+* **Platform backends**: `sponge/src/platform/AGENTS.md` — GLFW / OpenGL / OS-specific code
+
+`CLAUDE.md` is a Claude Code pointer to this file. Do not duplicate rules there.
 
 ### Global Invariants
 
-* `sponge/src/{core,event,layer,scene,thread}` is the platform-agnostic engine core; it must not call GLFW/GL/OS APIs directly — those go through `sponge/src/platform/`.
+* `sponge/src/{core,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
+* Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## Building
@@ -62,13 +73,13 @@ are on `PATH`.
 
 ## Running
 
-On Windows, you can find the maze executable will be found in the build directory.
+On Windows, the maze executable is in the build directory:
 
 ```
 build\maze\Release\maze.exe
 ```
 
-Or, for MacOS, the app bundle will be found in the build directory.
+Or, for MacOS, the app bundle is in the build directory:
 
 ```
 build/maze/maze.app
