@@ -4,6 +4,7 @@
 #include "debug/profiler.hpp"
 #include "event/applicationevent.hpp"
 #include "logging/log.hpp"
+#include "platform/audio/audio.hpp"
 #include "platform/glfw/logging/sink.hpp"
 #include "platform/opengl/debug/diagnostics.hpp"
 #include "platform/opengl/renderer/context.hpp"
@@ -28,6 +29,7 @@ sponge::core::Timer mainTimer;
 }  // namespace
 
 namespace sponge::platform::glfw::core {
+using audio::Audio;
 using opengl::debug::Diagnostics;
 using opengl::renderer::Context;
 using opengl::renderer::RendererAPI;
@@ -89,6 +91,8 @@ bool Application::start() {
     inputManager.onAttach(glfwWindow);
     imguiManager.onAttach(static_cast<GLFWwindow*>(window->getNativeWindow()));
 
+    Audio::init();
+
     setVerticalSync(appSpec.vsync);
 
     renderer = std::make_unique<RendererAPI>();
@@ -117,6 +121,7 @@ bool Application::start() {
 void Application::shutdown() {
     inputManager.onDetach();
     imguiManager.onDetach();
+    Audio::shutdown();
 }
 
 bool Application::onUserCreate() {

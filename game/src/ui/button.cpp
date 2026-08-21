@@ -1,6 +1,8 @@
 #include "ui/button.hpp"
 
 #include "core/base.hpp"
+#include "core/file.hpp"
+#include "platform/audio/audio.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -140,9 +142,15 @@ void updateMenuButtonVisuals(Button* button, const bool selected,
     }
 }
 
+void playHoverClick() {
+    sponge::platform::audio::Audio::play(sponge::core::File::getResourceDir() +
+                                         "/audio/click.wav");
+}
+
 void updateButtonHover(Button* button, const glm::vec2& pos) {
     if (!button->hasHover() && button->isInside(pos)) {
         button->setHover(true);
+        playHoverClick();
     } else if (button->hasHover() && !button->isInside(pos)) {
         button->setHover(false);
     }

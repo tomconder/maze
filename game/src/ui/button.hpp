@@ -94,5 +94,7 @@ std::unique_ptr<Button> makeMenuButton(
 void updateMenuButtonVisuals(Button* button, bool selected,
                              const glm::vec4& selectedColor);
 
+void playHoverClick();
+
 void updateButtonHover(Button* button, const glm::vec2& pos);
 }  // namespace game::ui
