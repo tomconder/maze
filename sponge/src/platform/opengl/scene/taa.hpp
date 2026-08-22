@@ -37,9 +37,7 @@ public:
     // Resolves the scene into the history buffer and presents it.
     // `velocityTexId` supplies per-pixel motion wherever `depthTexId` is not
     // at the far plane; elsewhere the two matrices reproject the camera alone.
-    // `bloomTexId` may be 0 when `bloomIntensity` is 0.
     void apply(uint32_t sceneTexId, uint32_t depthTexId, uint32_t velocityTexId,
-               uint32_t bloomTexId, float bloomIntensity,
                const glm::mat4& invViewProj, const glm::mat4& prevViewProj);
 
     uint32_t getSceneTexture() const {
@@ -70,7 +68,6 @@ private:
     // creation path and these are rebuilt on every resize.
     uint32_t sceneFbo          = 0;
     uint32_t sceneColorTexture = 0;
-    uint32_t sceneDepthRbo     = 0;
 
     // Ping-pong: historyIndex is the slot written this frame.
     std::array<uint32_t, 2> historyFbos{};

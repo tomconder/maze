@@ -22,8 +22,6 @@ public:
     void begin() const;
     void end() const;
     void apply() const;
-    void applyWithBloom(uint32_t sceneTexId, uint32_t bloomTexId,
-                        float intensity) const;
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
@@ -36,9 +34,9 @@ private:
 
     // Raw GL handles — managed here because the Texture class has no
     // color-buffer creation path, and the framebuffer must be recreated on
-    // every window resize.
+    // every window resize. No depth attachment: only the resolve pass's
+    // full-screen quad draws here, never scene geometry.
     uint32_t colorTexture = 0;
-    uint32_t depthRbo     = 0;
     uint32_t fbo          = 0;
 
     uint32_t width  = 0;

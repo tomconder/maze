@@ -45,8 +45,6 @@ void Bloom::initialize() {
     downShader =
         makeShader(downShaderName, "/shaders/glsl/bloom_down.frag.glsl");
     upShader = makeShader(upShaderName, "/shaders/glsl/bloom_up.frag.glsl");
-    compositeShader = makeShader(compositeShaderName,
-                                 "/shaders/glsl/bloom_composite.frag.glsl");
 
     vao = renderer::VertexArray::create();
     vao->bind();
@@ -69,34 +67,6 @@ void Bloom::initialize() {
 }
 
 void Bloom::createFramebuffers() {
-    // Scene capture FBO at full resolution (HDR)
-    glGenTextures(1, &sceneColorTexture);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    glGenRenderbuffers(1, &sceneDepthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(width),
-                          static_cast<GLsizei>(height));
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    glGenFramebuffers(1, &sceneFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           sceneColorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, sceneDepthRbo);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("Bloom scene framebuffer is not complete!");
-    }
-
     // Mip-chain FBOs: level i at (width >> (i+1)) x (height >> (i+1))
     glGenFramebuffers(numLevels, downFbos.data());
     glGenTextures(numLevels, downTextures.data());
@@ -141,18 +111,6 @@ void Bloom::createFramebuffers() {
 }
 
 void Bloom::destroyFramebuffers() {
-    if (sceneFbo != 0) {
-        glDeleteFramebuffers(1, &sceneFbo);
-        sceneFbo = 0;
-    }
-    if (sceneColorTexture != 0) {
-        glDeleteTextures(1, &sceneColorTexture);
-        sceneColorTexture = 0;
-    }
-    if (sceneDepthRbo != 0) {
-        glDeleteRenderbuffers(1, &sceneDepthRbo);
-        sceneDepthRbo = 0;
-    }
     glDeleteFramebuffers(numLevels, downFbos.data());
     glDeleteTextures(numLevels, downTextures.data());
     glDeleteFramebuffers(numLevels, upFbos.data());
@@ -163,21 +121,13 @@ void Bloom::destroyFramebuffers() {
     upTextures.fill(0);
 }
 
-void Bloom::begin() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
-}
-
-void Bloom::end() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void Bloom::renderQuad() const {
     vao->bind();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
     vao->unbind();
 }
 
-void Bloom::process(const float threshold) const {
+void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
 
@@ -187,7 +137,7 @@ void Bloom::process(const float threshold) const {
                static_cast<GLsizei>(height >> 1));
     extractShader->bind();
     extractShader->setFloat("threshold", threshold);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
+    glBindTexture(GL_TEXTURE_2D, sceneTexId);
     renderQuad();
     extractShader->unbind();
 
@@ -225,24 +175,6 @@ void Bloom::process(const float threshold) const {
 
     glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glEnable(GL_DEPTH_TEST);
-}
-
-void Bloom::apply(const float intensity) const {
-    glDisable(GL_DEPTH_TEST);
-
-    compositeShader->bind();
-    compositeShader->setFloat("intensity", intensity);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, upTextures[0]);
-
-    renderQuad();
-    compositeShader->unbind();
-
-    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_DEPTH_TEST);
 }
 

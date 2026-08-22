@@ -100,8 +100,9 @@ void TAA::initialize() {
 }
 
 void TAA::createFramebuffers() {
-    // Scene capture, used only when bloom is off — otherwise the scene is
-    // already in the bloom FBO and apply() takes that texture instead.
+    // Receives the tone-mapped image from SceneTarget::resolve(). RGB16F
+    // rather than 8-bit so the history accumulates without requantising the
+    // input every frame.
     glGenTextures(1, &sceneColorTexture);
     glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
@@ -112,21 +113,10 @@ void TAA::createFramebuffers() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    // GL_DEPTH_COMPONENT24 to match the prepass FBO — blitDepthToCurrentFbo()
-    // requires identical depth formats.
-    glGenRenderbuffers(1, &sceneDepthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(width),
-                          static_cast<GLsizei>(height));
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
     glGenFramebuffers(1, &sceneFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                            sceneColorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, sceneDepthRbo);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         SPONGE_GL_CRITICAL("TAA scene framebuffer is not complete!");
     }
@@ -168,10 +158,6 @@ void TAA::destroyFramebuffers() {
         glDeleteTextures(1, &sceneColorTexture);
         sceneColorTexture = 0;
     }
-    if (sceneDepthRbo != 0) {
-        glDeleteRenderbuffers(1, &sceneDepthRbo);
-        sceneDepthRbo = 0;
-    }
     for (uint32_t i = 0; i < historyTextures.size(); i++) {
         if (historyFbos[i] != 0) {
             glDeleteFramebuffers(1, &historyFbos[i]);
@@ -200,8 +186,7 @@ void TAA::renderQuad() const {
 }
 
 void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
-                const uint32_t velocityTexId, const uint32_t bloomTexId,
-                const float bloomIntensity, const glm::mat4& invViewProj,
+                const uint32_t velocityTexId, const glm::mat4& invViewProj,
                 const glm::mat4& prevViewProj) {
     // Depth testing would discard the full-screen quad behind whatever the
     // scene pass left in the depth buffer.
@@ -217,7 +202,6 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     resolveShader->setFloat2("rcpFrame",
                              glm::vec2(1.F / static_cast<float>(width),
                                        1.F / static_cast<float>(height)));
-    resolveShader->setFloat("bloomIntensity", bloomIntensity);
     resolveShader->setFloat("historyBlend", historyValid ? currentWeight : 1.F);
     resolveShader->setMat4("invViewProj", invViewProj);
     resolveShader->setMat4("prevViewProj", prevViewProj);
@@ -228,8 +212,6 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     glBindTexture(GL_TEXTURE_2D, historyTextures[readIndex]);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, depthTexId);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, bloomTexId);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, velocityTexId);
 

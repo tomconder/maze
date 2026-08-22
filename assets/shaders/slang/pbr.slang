@@ -2,7 +2,6 @@
 #include "include/uniforms.slang"
 #include "include/shadows.slang"
 #include "include/clustered.slang"
-#include "include/dither.slang"
 
 struct PointLightGPU {
     float3 color;
@@ -133,13 +132,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float3 ambient = float3(params.ambientStrength) * albedo * ao;
     float3 color   = ambient + Lo + params.emissive + emissiveTexColor;
 
-    // Reinhard HDR tone mapping
-    color = color / (color + float3(1.0));
-
-    // Gamma correction
-    color = pow(color, float3(1.0 / 2.2));
-
-    color = dither8(color, fragCoord.xy);
-
+    // Linear HDR out. Tone mapping, gamma and dither happen once in
+    // tonemap.slang, after bloom has extracted from this unbounded radiance.
     return float4(color, 1.0);
 };

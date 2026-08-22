@@ -20,14 +20,10 @@ public:
     Bloom(const Bloom&)            = delete;
     Bloom& operator=(const Bloom&) = delete;
 
-    void begin() const;
-    void end() const;
-    void process(float threshold) const;
-    void apply(float intensity) const;
-
-    uint32_t getSceneTexture() const {
-        return sceneColorTexture;
-    }
+    // Extracts and blurs from `sceneTexId`, which must be linear HDR — the
+    // threshold is a radiance value, so feeding it a tone-mapped image makes
+    // the setting meaningless.
+    void process(uint32_t sceneTexId, float threshold) const;
 
     uint32_t getBloomTexture() const {
         return upTextures[0];
@@ -36,22 +32,16 @@ public:
     void resize(uint32_t newWidth, uint32_t newHeight);
 
 private:
-    static constexpr std::string_view extractShaderName   = "bloom_extract";
-    static constexpr std::string_view downShaderName      = "bloom_down";
-    static constexpr std::string_view upShaderName        = "bloom_up";
-    static constexpr std::string_view compositeShaderName = "bloom_composite";
-    static constexpr int              numLevels           = 5;
+    static constexpr std::string_view extractShaderName = "bloom_extract";
+    static constexpr std::string_view downShaderName    = "bloom_down";
+    static constexpr std::string_view upShaderName      = "bloom_up";
+    static constexpr int              numLevels         = 5;
 
     std::shared_ptr<renderer::Shader>       extractShader;
     std::shared_ptr<renderer::Shader>       downShader;
     std::shared_ptr<renderer::Shader>       upShader;
-    std::shared_ptr<renderer::Shader>       compositeShader;
     std::unique_ptr<renderer::VertexArray>  vao;
     std::unique_ptr<renderer::VertexBuffer> vbo;
-
-    uint32_t sceneFbo          = 0;
-    uint32_t sceneColorTexture = 0;
-    uint32_t sceneDepthRbo     = 0;
 
     std::array<uint32_t, numLevels> downFbos{};
     std::array<uint32_t, numLevels> downTextures{};

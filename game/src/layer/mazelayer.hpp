@@ -11,6 +11,7 @@
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/gamecamera.hpp"
@@ -152,8 +153,9 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA> fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::TAA>  taa;
-    std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
-    std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
+    std::unique_ptr<sponge::platform::opengl::scene::Bloom>       bloom;
+    std::unique_ptr<sponge::platform::opengl::scene::SceneTarget> sceneTarget;
+    std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>   shadowMap;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
