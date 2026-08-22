@@ -16,7 +16,6 @@ struct FSInput {
 [[vk::binding(4)]] Sampler2D<float4> velocityTex;
 
 uniform float2 rcpFrame;
-uniform float  bloomIntensity;
 // 1.0 discards history entirely (first frame after a resize or a mode change)
 uniform float    historyBlend;
 uniform float4x4 invViewProj;   // inverse of this frame's jittered view-proj

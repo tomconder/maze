@@ -1,8 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
-#include "platform/opengl/renderer/vertexarray.hpp"
-#include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "platform/opengl/scene/screenquad.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -47,9 +46,8 @@ public:
 private:
     static constexpr std::string_view shaderName = "tonemap";
 
-    std::shared_ptr<renderer::Shader>       shader;
-    std::unique_ptr<renderer::VertexArray>  vao;
-    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::shared_ptr<renderer::Shader> shader;
+    ScreenQuad                        quad;
 
     // Raw GL handles, as in the other post-processing classes: the Texture
     // class has no colour-buffer creation path and these are rebuilt on resize.

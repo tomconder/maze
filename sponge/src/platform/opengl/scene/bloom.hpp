@@ -1,8 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
-#include "platform/opengl/renderer/vertexarray.hpp"
-#include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "platform/opengl/scene/screenquad.hpp"
 
 #include <array>
 #include <cstdint>
@@ -37,11 +36,10 @@ private:
     static constexpr std::string_view upShaderName      = "bloom_up";
     static constexpr int              numLevels         = 5;
 
-    std::shared_ptr<renderer::Shader>       extractShader;
-    std::shared_ptr<renderer::Shader>       downShader;
-    std::shared_ptr<renderer::Shader>       upShader;
-    std::unique_ptr<renderer::VertexArray>  vao;
-    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::shared_ptr<renderer::Shader> extractShader;
+    std::shared_ptr<renderer::Shader> downShader;
+    std::shared_ptr<renderer::Shader> upShader;
+    ScreenQuad                        quad;
 
     std::array<uint32_t, numLevels> downFbos{};
     std::array<uint32_t, numLevels> downTextures{};
@@ -54,7 +52,6 @@ private:
     void initialize();
     void createFramebuffers();
     void destroyFramebuffers();
-    void renderQuad() const;
 };
 
 }  // namespace sponge::platform::opengl::scene

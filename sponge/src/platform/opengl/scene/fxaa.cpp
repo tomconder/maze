@@ -5,22 +5,7 @@
 #include "platform/opengl/renderer/gl.hpp"
 
 #include <glm/glm.hpp>
-#include <array>
 #include <cstdint>
-#include <memory>
-
-namespace {
-// Interleaved NDC position (vec2) + UV (vec2) for a full-screen triangle strip.
-// Triangle strip chosen over two separate triangles to halve the vertex count
-// and avoid a diagonal seam that can produce a one-pixel artifact on some GPUs.
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -41,26 +26,6 @@ void FXAA::initialize() {
         .fragmentShaderPath = "/shaders/glsl/fxaa.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    vao = renderer::VertexArray::create();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    constexpr uint32_t positionLoc = 0;
-    constexpr uint32_t texCoordLoc = 1;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(texCoordLoc);
-    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    shader->unbind();
-    vao->unbind();
 
     createFramebuffer();
 }
@@ -127,9 +92,7 @@ void FXAA::apply() const {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
 
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
+    quad.draw();
 
     shader->unbind();
 

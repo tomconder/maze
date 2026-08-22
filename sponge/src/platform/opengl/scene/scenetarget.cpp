@@ -4,18 +4,7 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
-#include <array>
 #include <cstdint>
-#include <memory>
-
-namespace {
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -35,21 +24,6 @@ void SceneTarget::initialize() {
         .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
         .fragmentShaderPath = "/shaders/glsl/tonemap.frag.glsl",
     });
-
-    vao = renderer::VertexArray::create();
-    vao->bind();
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    vao->unbind();
 
     createFramebuffer();
 }
@@ -119,16 +93,14 @@ void SceneTarget::resolve(const uint32_t bloomTexId, const float bloomIntensity,
 
     shader->bind();
     shader->setFloat("bloomIntensity", bloomIntensity);
-    shader->setFloat("ditherOutput", ditherOutput ? 1.F : 0.F);
+    shader->setBoolean("ditherOutput", ditherOutput);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, bloomTexId);
 
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
+    quad.draw();
 
     glActiveTexture(GL_TEXTURE0);
     shader->unbind();

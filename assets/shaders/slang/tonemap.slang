@@ -13,10 +13,10 @@ struct FSInput {
 [[vk::binding(1)]] Sampler2D<float4> bloomTex;
 
 uniform float bloomIntensity;
-// Non-zero only when this pass writes the final 8-bit target. Anti-aliasing
+// True only when this pass writes the final 8-bit target. Anti-aliasing
 // runs after it and dithers on its own write, and dithering into an
 // intermediate float target would just seed noise for TAA to accumulate.
-uniform float ditherOutput;
+uniform bool ditherOutput;
 
 // clang-format off
 [shader("fragment")]
@@ -32,7 +32,7 @@ float4 fragMain(FSInput input, float4 fragCoord : SV_Position) : SV_Target {
 
     color = pow(color, float3(1.0 / 2.2));
 
-    if (ditherOutput > 0.0) {
+    if (ditherOutput) {
         color = dither8(color, fragCoord.xy);
     }
     return float4(color, 1.0);

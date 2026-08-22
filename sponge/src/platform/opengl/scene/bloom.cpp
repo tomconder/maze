@@ -4,20 +4,9 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
-#include <array>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <string_view>
-
-namespace {
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -45,23 +34,6 @@ void Bloom::initialize() {
     downShader =
         makeShader(downShaderName, "/shaders/glsl/bloom_down.frag.glsl");
     upShader = makeShader(upShaderName, "/shaders/glsl/bloom_up.frag.glsl");
-
-    vao = renderer::VertexArray::create();
-    vao->bind();
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    // blur.vert.glsl uses layout(location=0) aPos, layout(location=1)
-    // aTexCoords
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    vao->unbind();
 
     createFramebuffers();
 }
@@ -121,12 +93,6 @@ void Bloom::destroyFramebuffers() {
     upTextures.fill(0);
 }
 
-void Bloom::renderQuad() const {
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
-}
-
 void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
@@ -138,7 +104,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     extractShader->bind();
     extractShader->setFloat("threshold", threshold);
     glBindTexture(GL_TEXTURE_2D, sceneTexId);
-    renderQuad();
+    quad.draw();
     extractShader->unbind();
 
     // Downsample: down[i-1] → down[i]
@@ -149,7 +115,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
         glBindTexture(GL_TEXTURE_2D, downTextures[i - 1]);
-        renderQuad();
+        quad.draw();
     }
     downShader->unbind();
 
@@ -168,7 +134,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
         const uint32_t src =
             (i == numLevels - 1) ? downTextures[i] : upTextures[i + 1];
         glBindTexture(GL_TEXTURE_2D, src);
-        renderQuad();
+        quad.draw();
     }
     upShader->unbind();
     glActiveTexture(GL_TEXTURE0);

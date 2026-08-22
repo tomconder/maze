@@ -6,20 +6,11 @@
 
 #include <glm/glm.hpp>
 
-#include <array>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <string_view>
 
 namespace {
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-
 // Radical inverse in the given base — the Halton building block.
 constexpr float halton(uint32_t index, const uint32_t base) {
     float result   = 0.F;
@@ -80,21 +71,6 @@ void TAA::initialize() {
         makeShader(resolveShaderName, "/shaders/glsl/taa_resolve.frag.glsl");
     presentShader =
         makeShader(presentShaderName, "/shaders/glsl/taa_present.frag.glsl");
-
-    vao = renderer::VertexArray::create();
-    vao->bind();
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    vao->unbind();
 
     createFramebuffers();
 }
@@ -179,15 +155,8 @@ void TAA::end() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void TAA::renderQuad() const {
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
-}
-
-void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
-                const uint32_t velocityTexId, const glm::mat4& invViewProj,
-                const glm::mat4& prevViewProj) {
+void TAA::apply(const uint32_t depthTexId, const uint32_t velocityTexId,
+                const glm::mat4& invViewProj, const glm::mat4& prevViewProj) {
     // Depth testing would discard the full-screen quad behind whatever the
     // scene pass left in the depth buffer.
     glDisable(GL_DEPTH_TEST);
@@ -207,7 +176,7 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     resolveShader->setMat4("prevViewProj", prevViewProj);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneTexId);
+    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, historyTextures[readIndex]);
     glActiveTexture(GL_TEXTURE2);
@@ -215,7 +184,7 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, velocityTexId);
 
-    renderQuad();
+    quad.draw();
     resolveShader->unbind();
 
     // Pass 2: present the resolved history. A blit would skip the dither the
@@ -226,7 +195,7 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     // Unit 1: the present pass shares historyTex with the resolve pass.
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, historyTextures[historyIndex]);
-    renderQuad();
+    quad.draw();
     presentShader->unbind();
     glActiveTexture(GL_TEXTURE0);
 

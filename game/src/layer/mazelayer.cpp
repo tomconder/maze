@@ -425,9 +425,7 @@ void MazeLayer::onRender() {
         if (bloom) {
             bloom->resize(w, h);
         }
-        if (sceneTarget) {
-            sceneTarget->resize(w, h);
-        }
+        sceneTarget->resize(w, h);
         screenWidth  = static_cast<int32_t>(w);
         screenHeight = static_cast<int32_t>(h);
         createDepthPrepassFbo(static_cast<int>(w), static_cast<int>(h));
@@ -516,8 +514,8 @@ void MazeLayer::onRender() {
         // resolves highlight edges better; that is a change to TAA, not to the
         // pass order this commit is fixing.
         taa->end();
-        taa->apply(taa->getSceneTexture(), depthPrepassTexture, velocityTexture,
-                   frame.invCameraMVP, frame.prevCameraViewProj);
+        taa->apply(depthPrepassTexture, velocityTexture, frame.invCameraMVP,
+                   frame.prevCameraViewProj);
     }
 
     glDepthFunc(GL_LEQUAL);
