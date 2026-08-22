@@ -39,9 +39,11 @@ primitives, windowing, or platform backends itself — see
   post-process resize, shadow map FBO rebuild) is set via an atomic flag +
   payload and consumed in `onRender()` on the GL thread; don't apply it inline
   where it's requested.
-* `bloomIntensity` compensates the soft-knee bloom extract (passes only
-  above-threshold energy); don't "simplify" it back toward the old hard
-  threshold without re-deriving the constant.
+* `bloomThreshold` and `bloomIntensity` operate on LINEAR radiance and are
+  applied before tone mapping. The bloom texture holds unbounded values, not
+  the [0,1] ones it held when bloom composited after the curve, so both
+  settings are roughly an order of magnitude smaller than they once were.
+  Re-derive them from a texture readback, never by scaling the old numbers.
 
 ## Anti-patterns
 

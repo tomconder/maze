@@ -1,4 +1,4 @@
-// fxaa.slang: fullscreen quad vertex + FXAA 3.11 (quality preset 12) + bloom overlay
+// fxaa.slang: fullscreen quad vertex + FXAA 3.11 (quality preset 12)
 // FXAA based on Timothy Lottes / NVIDIA, adapted to Slang.
 #include "include/dither.slang"
 
@@ -23,9 +23,7 @@ VSOutput vertMain(VSInput input) {
 };
 
 [[vk::binding(0)]] Sampler2D<float4> screenTexture;
-[[vk::binding(1)]] Sampler2D<float4> bloomTex;
 uniform float2                       rcpFrame;
-uniform float                        bloomIntensity;
 
 // Quality preset 12: 5-step search (1.5, 2.0, 2.0, 2.0, 8.0)
 static const float FXAA_SUBPIX             = 0.75;
@@ -149,9 +147,6 @@ struct FSInput {
 float4 fragMain(FSInput input, float4 fragCoord : SV_Position) : SV_Target {
     // clang-format on
     float4 color = fxaaPass(input.texCoords);
-    if (bloomIntensity > 0.0) {
-        color.rgb += bloomTex.Sample(input.texCoords).rgb * bloomIntensity;
-    }
-    color.rgb = dither8(color.rgb, fragCoord.xy);
+    color.rgb    = dither8(color.rgb, fragCoord.xy);
     return color;
 };

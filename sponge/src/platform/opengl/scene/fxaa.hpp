@@ -1,8 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
-#include "platform/opengl/renderer/vertexarray.hpp"
-#include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "platform/opengl/scene/screenquad.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -22,23 +21,20 @@ public:
     void begin() const;
     void end() const;
     void apply() const;
-    void applyWithBloom(uint32_t sceneTexId, uint32_t bloomTexId,
-                        float intensity) const;
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
 private:
     static constexpr std::string_view shaderName = "fxaa";
 
-    std::shared_ptr<renderer::Shader>       shader;
-    std::unique_ptr<renderer::VertexArray>  vao;
-    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::shared_ptr<renderer::Shader> shader;
+    ScreenQuad                        quad;
 
     // Raw GL handles — managed here because the Texture class has no
     // color-buffer creation path, and the framebuffer must be recreated on
-    // every window resize.
+    // every window resize. No depth attachment: only the resolve pass's
+    // full-screen quad draws here, never scene geometry.
     uint32_t colorTexture = 0;
-    uint32_t depthRbo     = 0;
     uint32_t fbo          = 0;
 
     uint32_t width  = 0;

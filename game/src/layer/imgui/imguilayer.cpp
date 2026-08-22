@@ -194,7 +194,9 @@ void ImGuiLayer::showBloomControls() {
             ImGui::Text("Threshold");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat("##bloomthreshold", &threshold, 0.F, 1.F,
+            // Radiance now, not a point on a tone curve, so useful values
+            // run past 1.0.
+            if (ImGui::SliderFloat("##bloomthreshold", &threshold, 0.F, 4.F,
                                    "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setBloomThreshold(threshold);
             }
@@ -205,8 +207,10 @@ void ImGuiLayer::showBloomControls() {
             ImGui::Text("Intensity");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 5.F,
-                                   "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
+            // Weights a linear-space radiance texture, so the whole useful
+            // range sits below 1.0.
+            if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 0.5F,
+                                   "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setBloomIntensity(intensity);
             }
         });

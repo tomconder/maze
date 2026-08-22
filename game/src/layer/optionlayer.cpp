@@ -161,15 +161,16 @@ float computeMaxCycleValueWidth() {
         });
 }
 
+// video.vsync is not here: it applies and persists the moment its checkbox is
+// toggled, so it never waits for Apply.
 void saveVideoSettings(const uint32_t width, const uint32_t height,
-                       const bool fullscreen, const bool vsync,
+                       const bool                       fullscreen,
                        const game::thread::AntiAliasing antiAliasing,
                        const uint32_t                   shadowRes) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
     Settings::set("video.fullscreen", fullscreen);
-    Settings::set("video.vsync", vsync);
     Settings::set("video.aa", static_cast<uint32_t>(antiAliasing));
     Settings::set("video.shadowRes", shadowRes);
     Settings::save();
@@ -613,6 +614,15 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
         return;
     }
     *pending = !*pending;
+
+    // Vsync applies on the spot — unlike resolution and fullscreen it needs no
+    // batching, so it never lights up the Apply button.
+    if (item == OptionMenuItem::VerticalSync) {
+        Maze::get().requestVerticalSync(pendingVsync);
+        sponge::core::Settings::set("video.vsync", pendingVsync);
+        sponge::core::Settings::save();
+    }
+
     updateChangeStatus();
 }
 
@@ -782,14 +792,13 @@ void OptionLayer::applyChanges() {
     if (pendingFullscreen != Maze::get().isFullscreen()) {
         Maze::get().toggleFullscreen();
     }
-    Maze::get().requestVerticalSync(pendingVsync);
     const auto aaMode = aaModes[static_cast<size_t>(pendingAaIndex)];
     Maze::get().setAntiAliasing(aaMode);
     const auto shadowRes =
         shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
     Maze::get().getMazeLayer()->setShadowMapRes(shadowRes);
-    saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
-                      aaMode, shadowRes);
+    saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, aaMode,
+                      shadowRes);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
