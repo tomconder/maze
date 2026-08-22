@@ -33,6 +33,45 @@ float3 sceneColor(float2 uv) {
     return color;
 }
 
+// Catmull-Rom history filter (5-tap form of the 9-tap bicubic).
+// prevUV almost never lands on a texel centre while the camera moves, so the
+// history is resampled every frame. Bilinear iterated ~10 deep is a low-pass
+// filter and the image goes soft in motion; Catmull-Rom's negative lobes keep
+// the high frequencies. Its overshoot is bounded by the neighbourhood clamp
+// applied to the result.
+float3 sampleHistory(float2 uv) {
+    float2 texSize   = 1.0 / rcpFrame;
+    float2 samplePos = uv * texSize;
+    float2 texPos1   = floor(samplePos - 0.5) + 0.5;
+    float2 f         = samplePos - texPos1;
+
+    float2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+    float2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+    float2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+    float2 w3 = f * f * (-0.5 + 0.5 * f);
+
+    // Fold the middle pair into one bilinear tap at their weighted centre.
+    float2 w12      = w1 + w2;
+    float2 offset12 = w2 / w12;
+
+    float2 texPos0  = (texPos1 - 1.0) * rcpFrame;
+    float2 texPos3  = (texPos1 + 2.0) * rcpFrame;
+    float2 texPos12 = (texPos1 + offset12) * rcpFrame;
+
+    float3 result = float3(0.0);
+    result += historyTex.Sample(float2(texPos12.x, texPos0.y)).rgb * w12.x * w0.y;
+    result += historyTex.Sample(float2(texPos0.x, texPos12.y)).rgb * w0.x * w12.y;
+    result += historyTex.Sample(float2(texPos12.x, texPos12.y)).rgb * w12.x * w12.y;
+    result += historyTex.Sample(float2(texPos3.x, texPos12.y)).rgb * w3.x * w12.y;
+    result += historyTex.Sample(float2(texPos12.x, texPos3.y)).rgb * w12.x * w3.y;
+
+    // Dropping the four corner taps loses a little weight (~1.6% at the worst
+    // sub-texel offset), so renormalise rather than dim the history.
+    float weight = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y +
+                   w3.x * w12.y + w12.x * w3.y;
+    return result / weight;
+}
+
 // clang-format off
 [shader("fragment")]
 float4 resolveFragMain(FSInput input) : SV_Target {
@@ -82,7 +121,7 @@ float4 resolveFragMain(FSInput input) : SV_Target {
         }
     }
 
-    float3 history = clamp(historyTex.Sample(prevUV).rgb, boxMin, boxMax);
+    float3 history = clamp(sampleHistory(prevUV), boxMin, boxMax);
     return float4(lerp(history, current, blend), 1.0);
 };
 

@@ -65,6 +65,11 @@ than calling GLFW/OpenGL/OS APIs directly.
   global clear colour is grey and reads back as ~22 pixels of bogus motion.
 * Motion is measured with unjittered matrices while rasterization uses the
   jittered one; mixing them makes the TAA jitter itself read as movement.
+* The TAA history is resampled with a Catmull-Rom filter, not the bilinear
+  `Sample()` the hardware gives you. `prevUV` rarely lands on a texel centre
+  while the camera moves, so the history is refiltered every frame; bilinear
+  compounded over a ~10-frame tail is a low-pass filter and the image goes
+  soft in motion. Do not "simplify" it back to a single `Sample()`.
 
 ## Anti-patterns
 
