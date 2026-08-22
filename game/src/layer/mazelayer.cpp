@@ -486,12 +486,15 @@ void MazeLayer::onRender() {
 
     // Phase 5: bloom, extracted from linear radiance rather than from an
     // already tone-mapped image.
-    uint32_t bloomTexture   = 0;
-    float    bloomIntensity = 0.F;
+    // Named apart from the bloomIntensity member on purpose: that one is the
+    // ImGui-mutated setting behind settingsMutex, and the render thread must
+    // only ever see it through the snapshot.
+    uint32_t bloomTexId  = 0;
+    float    bloomWeight = 0.F;
     if (frame.bloomEnabled && bloom) {
         bloom->process(sceneTarget->getTexture(), frame.bloomThreshold);
-        bloomTexture   = bloom->getBloomTexture();
-        bloomIntensity = frame.bloomIntensity;
+        bloomTexId  = bloom->getBloomTexture();
+        bloomWeight = frame.bloomIntensity;
     }
 
     // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
@@ -502,8 +505,7 @@ void MazeLayer::onRender() {
         taa->begin();
     }
 
-    sceneTarget->resolve(bloomTexture, bloomIntensity,
-                         !fxaaActive && !taaActive);
+    sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive);
 
     if (fxaaActive) {
         fxaa->end();
