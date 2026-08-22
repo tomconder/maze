@@ -15,7 +15,7 @@ A game engine featuring a nice walk through a maze.
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Reinhard tone mapping
 * Physically based bloom
-* Fast approximate anti-aliasing (FXAA)
+* Selectable anti-aliasing: FXAA or temporal (TAA)
 * FreeType + HarfBuzz text rendering with LCD subpixel anti-aliasing and subpixel positioning
 * Flexbox-based UI layout with Yoga
 * Audio playback with miniaudio

@@ -47,14 +47,15 @@ private:
 
     bool pendingFullscreen     = false;
     bool pendingVsync          = false;
-    bool pendingFxaa           = false;
+    int  pendingAaIndex        = 0;
+    int  appliedAaIndex        = 0;  // baseline pendingAaIndex synced to
     int  pendingShadowResIndex = 1;
     int  appliedShadowResIndex = 1;  // baseline pendingShadowResIndex synced to
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
     std::unique_ptr<ui::SelectList> shadowQualityList;
-    std::unique_ptr<ui::Checkbox>   antiAliasingCheckbox;
+    std::unique_ptr<ui::SelectList> antiAliasingList;
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
 

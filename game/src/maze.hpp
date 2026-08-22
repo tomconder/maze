@@ -61,12 +61,12 @@ public:
         return optionLayer;
     }
 
-    bool isFxaaEnabled() const {
-        return mazeLayer->isFxaaEnabled();
+    thread::AntiAliasing getAntiAliasing() const {
+        return mazeLayer->getAntiAliasing();
     }
 
-    void setFxaaEnabled(bool val) {
-        mazeLayer->setFxaaEnabled(val);
+    void setAntiAliasing(thread::AntiAliasing val) {
+        mazeLayer->setAntiAliasing(val);
     }
 
     bool isBloomEnabled() const {

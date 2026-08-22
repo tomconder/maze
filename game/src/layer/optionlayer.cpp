@@ -32,6 +32,7 @@
 #include "platform/opengl/scene/quad.hpp"
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
+#include "thread/mazeframe.hpp"
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/menufontsize.hpp"
@@ -161,14 +162,15 @@ float computeMaxCycleValueWidth() {
 }
 
 void saveVideoSettings(const uint32_t width, const uint32_t height,
-                       const bool fullscreen, const bool vsync, const bool fxaa,
-                       const uint32_t shadowRes) {
+                       const bool fullscreen, const bool vsync,
+                       const game::thread::AntiAliasing antiAliasing,
+                       const uint32_t                   shadowRes) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
     Settings::set("video.fullscreen", fullscreen);
     Settings::set("video.vsync", vsync);
-    Settings::set("video.fxaa", fxaa);
+    Settings::set("video.aa", static_cast<uint32_t>(antiAliasing));
     Settings::set("video.shadowRes", shadowRes);
     Settings::save();
 }
@@ -215,6 +217,16 @@ static_assert([] {
 }());
 
 std::optional<size_t> currentShadowResIndex;
+std::optional<size_t> currentAaIndex;
+
+// Index order is the OptionMenuItem row order the SelectList shows.
+constexpr std::array aaModes = {
+    game::thread::AntiAliasing::None,
+    game::thread::AntiAliasing::Fxaa,
+    game::thread::AntiAliasing::Taa,
+};
+static_assert(aaModes.size() ==
+              static_cast<size_t>(game::thread::AntiAliasing::Count));
 
 // Dot strip state for the three cycling rows: total items, applied index.
 std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
@@ -223,6 +235,8 @@ std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
             return { validAspectRatioFilters.size(), currentAspectRatioIndex };
         case OptionMenuItem::Resolution:
             return { filteredResolutions.size(), currentResolutionIndex };
+        case OptionMenuItem::AntiAliasing:
+            return { aaModes.size(), currentAaIndex };
         case OptionMenuItem::ShadowQuality:
             return { shadowResolutions.size(), currentShadowResIndex };
         default:
@@ -312,12 +326,12 @@ void OptionLayer::onAttach() {
     aspectRatioList   = std::make_unique<ui::SelectList>(numericCreateInfo);
     resolutionList    = std::make_unique<ui::SelectList>(numericCreateInfo);
     shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
+    antiAliasingList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
     const ui::CheckboxCreateInfo checkboxCreateInfo{
         .margin = textMarginLeft,
         .size   = static_cast<float>(fontSize),
     };
-    antiAliasingCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
 
@@ -328,9 +342,8 @@ void OptionLayer::onAttach() {
     }
     aspectRatioList->setItems(std::move(arItems));
 
-    {
-        shadowQualityList->setItems({ "Low", "Normal", "High", "Ultra" });
-    }
+    shadowQualityList->setItems({ "Low", "Normal", "High", "Ultra" });
+    antiAliasingList->setItems({ "Off", "FXAA", "TAA" });
 
     const auto window        = Maze::get().getWindow();
     const auto currentWidth  = window->getWidth();
@@ -534,6 +547,8 @@ ui::SelectList* OptionLayer::listFor(const OptionMenuItem item) const {
             return aspectRatioList.get();
         case OptionMenuItem::Resolution:
             return resolutionList.get();
+        case OptionMenuItem::AntiAliasing:
+            return antiAliasingList.get();
         case OptionMenuItem::ShadowQuality:
             return shadowQualityList.get();
         default:
@@ -547,8 +562,6 @@ ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
             return fullScreenCheckbox.get();
         case OptionMenuItem::VerticalSync:
             return verticalSyncCheckbox.get();
-        case OptionMenuItem::AntiAliasing:
-            return antiAliasingCheckbox.get();
         default:
             return nullptr;
     }
@@ -560,8 +573,6 @@ bool* OptionLayer::pendingFor(const OptionMenuItem item) {
             return &pendingFullscreen;
         case OptionMenuItem::VerticalSync:
             return &pendingVsync;
-        case OptionMenuItem::AntiAliasing:
-            return &pendingFxaa;
         default:
             return nullptr;
     }
@@ -589,6 +600,9 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
 
     if (item == OptionMenuItem::ShadowQuality) {
         pendingShadowResIndex = static_cast<int>(list->getSelectedIndex());
+    }
+    if (item == OptionMenuItem::AntiAliasing) {
+        pendingAaIndex = static_cast<int>(list->getSelectedIndex());
     }
     updateChangeStatus();
 }
@@ -769,12 +783,13 @@ void OptionLayer::applyChanges() {
         Maze::get().toggleFullscreen();
     }
     Maze::get().requestVerticalSync(pendingVsync);
-    Maze::get().setFxaaEnabled(pendingFxaa);
+    const auto aaMode = aaModes[static_cast<size_t>(pendingAaIndex)];
+    Maze::get().setAntiAliasing(aaMode);
     const auto shadowRes =
         shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
     Maze::get().getMazeLayer()->setShadowMapRes(shadowRes);
     saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, pendingVsync,
-                      pendingFxaa, shadowRes);
+                      aaMode, shadowRes);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
@@ -784,7 +799,14 @@ void OptionLayer::applyChanges() {
 void OptionLayer::syncPendingCheckboxState() {
     pendingFullscreen = Maze::get().isFullscreen();
     pendingVsync      = Maze::get().hasVerticalSync();
-    pendingFxaa       = Maze::get().isFxaaEnabled();
+
+    const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
+    pendingAaIndex =
+        aaIt != aaModes.end() ? static_cast<int>(aaIt - aaModes.begin()) : 0;
+    if (antiAliasingList) {
+        antiAliasingList->setSelectedIndex(static_cast<size_t>(pendingAaIndex));
+    }
+    appliedAaIndex = pendingAaIndex;
 
     const auto currentShadowRes =
         Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
@@ -803,8 +825,7 @@ void OptionLayer::syncPendingCheckboxState() {
 void OptionLayer::updateChangeStatus() {
     const bool checkboxChanged =
         pendingFullscreen != Maze::get().isFullscreen() ||
-        pendingVsync != Maze::get().hasVerticalSync() ||
-        pendingFxaa != Maze::get().isFxaaEnabled();
+        pendingVsync != Maze::get().hasVerticalSync();
 
     const auto window = Maze::get().getWindow();
     const auto curW   = window->getWidth();
@@ -846,7 +867,15 @@ void OptionLayer::updateChangeStatus() {
                                    std::nullopt;
     const bool shadowChanged = pendingShadowResIndex != appliedShadowResIndex;
 
-    hasUnappliedChanges = checkboxChanged || resolutionChanged || shadowChanged;
+    const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
+    currentAaIndex =
+        aaIt != aaModes.end() ?
+            std::optional{ static_cast<size_t>(aaIt - aaModes.begin()) } :
+            std::nullopt;
+    const bool aaChanged = pendingAaIndex != appliedAaIndex;
+
+    hasUnappliedChanges =
+        checkboxChanged || resolutionChanged || shadowChanged || aaChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
                                                    returnMessage);
 }

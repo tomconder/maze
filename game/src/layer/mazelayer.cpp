@@ -80,6 +80,7 @@ std::array gameObjects = {
 }  // namespace
 
 namespace game::layer {
+using game::thread::AntiAliasing;
 using sponge::event::Event;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
@@ -98,6 +99,7 @@ using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::ShadowMap;
+using sponge::platform::opengl::scene::TAA;
 
 MazeLayer::MazeLayer() : Layer("maze") {}
 
@@ -163,7 +165,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
-    fxaa->setEnabled(fxaaEnabled);
+
+    taa = std::make_unique<TAA>(Maze::get().getWindow()->getWidth(),
+                                Maze::get().getWindow()->getHeight());
 
     bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
                                     Maze::get().getWindow()->getHeight());
@@ -194,11 +198,16 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     setNumLights(numLights);
 
-    // static after this: bake into both snapshot slots once, not per frame
+    // Static after this: bake into both snapshot slots once, not per frame.
+    // prevObjectModelMatrices is the same data because nothing animates; if a
+    // model matrix ever becomes per-frame, captureRenderFrame() must write
+    // BOTH arrays — current from this frame, previous from the last — or TAA
+    // measures motion between a live matrix and a stale one.
     for (auto& frame : renderFrames) {
-        frame.objectModelMatrices = objectModelMatrices;
-        frame.objectEmissives     = objectEmissives;
-        frame.objectModels        = objectModels;
+        frame.objectModelMatrices     = objectModelMatrices;
+        frame.prevObjectModelMatrices = objectModelMatrices;
+        frame.objectEmissives         = objectEmissives;
+        frame.objectModels            = objectModels;
     }
 
     // must precede setActive(true) in activate(): onUpdate/onRender only run
@@ -220,6 +229,10 @@ void MazeLayer::onDetach() {
     if (depthPrepassTexture != 0) {
         glDeleteTextures(1, &depthPrepassTexture);
         depthPrepassTexture = 0;
+    }
+    if (velocityTexture != 0) {
+        glDeleteTextures(1, &velocityTexture);
+        velocityTexture = 0;
     }
     if (depthPrepassFbo != 0) {
         glDeleteFramebuffers(1, &depthPrepassFbo);
@@ -311,7 +324,20 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     auto& frame = renderFrames[slotIndex];
 
-    frame.cameraMVP        = camera->getMVP();
+    frame.cameraMVP      = camera->getMVP();
+    frame.cameraViewProj = frame.cameraMVP;
+    if (antiAliasing == AntiAliasing::Taa) {
+        const auto jitter = TAA::haltonJitter(
+            jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
+            static_cast<uint32_t>(screenHeight.load()));
+        frame.cameraMVP =
+            glm::translate(glm::mat4(1.F), glm::vec3(jitter, 0.F)) *
+            frame.cameraMVP;
+    }
+    frame.invCameraMVP       = glm::inverse(frame.cameraMVP);
+    frame.prevCameraViewProj = prevCameraViewProj;
+    prevCameraViewProj       = frame.cameraViewProj;
+
     frame.cameraView       = camera->getViewMatrix();
     frame.cameraProjection = camera->getProjectionMatrix();
     frame.cameraPos        = camera->getPosition();
@@ -338,11 +364,13 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.numLights             = numLights;
         frame.lightAttenuationIndex = attenuationIndex;
         for (int32_t i = 0; i < numLights; i++) {
-            frame.lightPositions[i] = pointLights.at(i).position;
-            frame.lightColors[i]    = pointLights.at(i).color;
+            frame.lightPositions[i]     = pointLights.at(i).position;
+            frame.prevLightPositions[i] = prevLightPositions.at(i);
+            frame.lightColors[i]        = pointLights.at(i).color;
+            prevLightPositions.at(i)    = pointLights.at(i).position;
         }
 
-        frame.fxaaEnabled    = fxaaEnabled;
+        frame.antiAliasing   = antiAliasing;
         frame.bloomEnabled   = bloomEnabled;
         frame.bloomThreshold = bloomThreshold;
         frame.bloomIntensity = bloomIntensity;
@@ -376,6 +404,9 @@ void MazeLayer::onRender() {
         glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
         if (fxaa) {
             fxaa->resize(w, h);
+        }
+        if (taa) {
+            taa->resize(w, h);
         }
         if (bloom) {
             bloom->resize(w, h);
@@ -413,12 +444,16 @@ void MazeLayer::onRender() {
     }
 
     // Phase 4: opaque pass
-    const bool hasFbo = (frame.bloomEnabled && bloom != nullptr) ||
-                        (frame.fxaaEnabled && fxaa != nullptr);
+    const bool fxaaActive = frame.antiAliasing == AntiAliasing::Fxaa && fxaa;
+    const bool taaActive  = frame.antiAliasing == AntiAliasing::Taa && taa;
+    const bool hasFbo =
+        (frame.bloomEnabled && bloom != nullptr) || fxaaActive || taaActive;
     if (frame.bloomEnabled && bloom) {
         bloom->begin();
-    } else if (frame.fxaaEnabled && fxaa) {
+    } else if (fxaaActive) {
         fxaa->begin();
+    } else if (taaActive) {
+        taa->begin();
     }
 
     if (hasFbo) {
@@ -435,27 +470,38 @@ void MazeLayer::onRender() {
 
     renderGameObjects(frame);
 
+    // The cubes are in the prepass too, so their depth is already in the
+    // buffer — GL_LESS would reject every one of their fragments. They stay
+    // on the opaque pass's GL_LEQUAL / depth-write-off state.
+    renderLightCubes(frame);
+
     if (hasFbo) {
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
     }
 
-    // Transparent pass (placeholder)
-    renderLightCubes(frame);
-
     if (frame.bloomEnabled && bloom) {
         bloom->end();
         bloom->process(frame.bloomThreshold);
-        if (frame.fxaaEnabled && fxaa) {
+        if (fxaaActive) {
             fxaa->applyWithBloom(bloom->getSceneTexture(),
                                  bloom->getBloomTexture(),
                                  frame.bloomIntensity);
+        } else if (taaActive) {
+            taa->apply(bloom->getSceneTexture(), depthPrepassTexture,
+                       velocityTexture, bloom->getBloomTexture(),
+                       frame.bloomIntensity, frame.invCameraMVP,
+                       frame.prevCameraViewProj);
         } else {
             bloom->apply(frame.bloomIntensity);
         }
-    } else if (frame.fxaaEnabled && fxaa) {
+    } else if (fxaaActive) {
         fxaa->end();
         fxaa->apply();
+    } else if (taaActive) {
+        taa->end();
+        taa->apply(taa->getSceneTexture(), depthPrepassTexture, velocityTexture,
+                   0, 0.F, frame.invCameraMVP, frame.prevCameraViewProj);
     }
 
     if (hasFbo) {
@@ -705,6 +751,9 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
     if (depthPrepassTexture != 0) {
         glDeleteTextures(1, &depthPrepassTexture);
     }
+    if (velocityTexture != 0) {
+        glDeleteTextures(1, &velocityTexture);
+    }
     if (depthPrepassFbo != 0) {
         glDeleteFramebuffers(1, &depthPrepassFbo);
     }
@@ -718,30 +767,97 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    // RG16F holds a UV delta, not an absolute UV: at 1920 wide a one-pixel
+    // motion is ~5e-4, which a half float carries accurately as a delta and
+    // would quantise to worse than a pixel as an absolute coordinate.
+    glGenTextures(1, &velocityTexture);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, static_cast<GLsizei>(w),
+                 static_cast<GLsizei>(h), 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glGenFramebuffers(1, &depthPrepassFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                            depthPrepassTexture, 0);
-    glDrawBuffer(GL_NONE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           velocityTexture, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glReadBuffer(GL_NONE);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        SPONGE_GL_CRITICAL("Depth prepass framebuffer is not complete!");
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
+    // Only TAA reads the velocity target, so the other modes mask the writes
+    // off. They still carry the plumbing: the RG16F attachment stays
+    // allocated and the prepass shader still computes both clip-space
+    // varyings. Cheap, but not free — measure before assuming parity with the
+    // old depth-only pass.
+    const bool writeVelocity = frame.antiAliasing == AntiAliasing::Taa;
+
     glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glColorMask(writeVelocity ? GL_TRUE : GL_FALSE,
+                writeVelocity ? GL_TRUE : GL_FALSE, GL_FALSE, GL_FALSE);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    if (writeVelocity) {
+        // Blending is enabled globally (RendererAPI) and never turned off, so
+        // the restore below is unconditional. Without this, the shader writes
+        // no alpha and the motion vectors get blended against the clear colour
+        // and never reach the texture. Motion is not a colour; there is
+        // nothing here to blend.
+        glDisable(GL_BLEND);
+        // Explicit zero rather than glClear, which would use the global grey
+        // clear colour and read back as ~22 pixels of bogus motion.
+        constexpr std::array noMotion = { 0.F, 0.F, 0.F, 0.F };
+        glClearBufferfv(GL_COLOR, 0, noMotion.data());
+    }
+
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
+        // Rasterization uses the jittered matrix so prepass depth lines up with
+        // the scene pass; motion is measured unjittered, or the jitter itself
+        // would read as movement.
         depthPrepassShader->setMat4("mvp", frame.cameraMVP *
                                                frame.objectModelMatrices[i]);
+        depthPrepassShader->setMat4(
+            "mvpNoJitter", frame.cameraViewProj * frame.objectModelMatrices[i]);
+        depthPrepassShader->setMat4("prevMvpNoJitter",
+                                    frame.prevCameraViewProj *
+                                        frame.prevObjectModelMatrices[i]);
         frame.objectModels[i]->render(depthPrepassShader);
     }
+
+    // Light cubes go through the same shader: position-only geometry at
+    // location 0, so they need no variant of their own. Including them here
+    // is what gives them depth coverage and motion vectors.
+    for (int32_t i = 0; i < frame.numLights; i++) {
+        const auto model = scale(
+            translate(glm::mat4(1.F), frame.lightPositions[i]), cubeScale);
+        const auto prevModel = scale(
+            translate(glm::mat4(1.F), frame.prevLightPositions[i]), cubeScale);
+        depthPrepassShader->setMat4("mvp", frame.cameraMVP * model);
+        depthPrepassShader->setMat4("mvpNoJitter",
+                                    frame.cameraViewProj * model);
+        depthPrepassShader->setMat4("prevMvpNoJitter",
+                                    frame.prevCameraViewProj * prevModel);
+        cube->render();
+    }
+
     depthPrepassShader->unbind();
 
+    if (writeVelocity) {
+        glEnable(GL_BLEND);
+    }
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -820,17 +936,18 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
     }
 }
 
-bool MazeLayer::isFxaaEnabled() const {
-    return fxaaEnabled;
+AntiAliasing MazeLayer::getAntiAliasing() const {
+    return antiAliasing;
 }
 
-void MazeLayer::setFxaaEnabled(const bool val) {
+void MazeLayer::setAntiAliasing(const AntiAliasing val) {
     {
         std::scoped_lock lock(settingsMutex);
-        fxaaEnabled = val;
+        antiAliasing = val;
     }
-    if (fxaa) {
-        fxaa->setEnabled(val);
+    if (taa) {
+        // The accumulated history belongs to whatever was on screen before.
+        taa->invalidateHistory();
     }
 }
 

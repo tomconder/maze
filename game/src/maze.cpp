@@ -7,6 +7,7 @@
 #include "event/event.hpp"
 #include "version.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -40,7 +41,12 @@ bool Maze::onUserCreate() {
     optionLayer->setActive(false);
     splashScreenLayer->setActive(true);
 
-    setFxaaEnabled(sponge::core::Settings::getBool("video.fxaa", true));
+    const auto savedAa = sponge::core::Settings::getUInt32(
+        "video.aa", static_cast<uint32_t>(thread::AntiAliasing::Taa));
+    setAntiAliasing(savedAa <
+                            static_cast<uint32_t>(thread::AntiAliasing::Count) ?
+                        static_cast<thread::AntiAliasing>(savedAa) :
+                        thread::AntiAliasing::Taa);
     setBloomEnabled(
         sponge::core::Settings::getBool("video.bloomEnabled", true));
     setBloomThreshold(std::stof(

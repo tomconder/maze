@@ -12,6 +12,7 @@
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
+#include "platform/opengl/scene/taa.hpp"
 #include "scene/gamecamera.hpp"
 #include "thread/mazeframe.hpp"
 
@@ -100,9 +101,9 @@ public:
 
     void setNumLights(int32_t val);
 
-    bool isFxaaEnabled() const;
+    thread::AntiAliasing getAntiAliasing() const;
 
-    void setFxaaEnabled(bool val);
+    void setAntiAliasing(thread::AntiAliasing val);
 
     bool  isBloomEnabled() const;
     void  setBloomEnabled(bool val);
@@ -145,8 +146,12 @@ private:
              depthPrepassShader;
     uint32_t depthPrepassFbo{ 0 };
     uint32_t depthPrepassTexture{ 0 };
-    std::unique_ptr<sponge::platform::opengl::scene::Cube>      cube;
-    std::unique_ptr<sponge::platform::opengl::scene::FXAA>      fxaa;
+    // Screen-space motion (RG16F, current UV minus previous UV) written by the
+    // depth prepass and consumed by TAA. Shares the prepass FBO.
+    uint32_t                                               velocityTexture{ 0 };
+    std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
+    std::unique_ptr<sponge::platform::opengl::scene::FXAA> fxaa;
+    std::unique_ptr<sponge::platform::opengl::scene::TAA>  taa;
     std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
 
@@ -172,6 +177,21 @@ private:
     mutable std::atomic<uint32_t> pendingShadowRebuildRes{ 0 };
 
     void captureRenderFrame(uint32_t slotIndex);
+
+    // Update-thread only: the previous snapshot's unjittered view-projection,
+    // published into the next frame so TAA's camera history and object history
+    // always describe the same past frame. Never read the live camera at
+    // resolve time — render[N] reads update[N-1], so it is frames ahead.
+    glm::mat4 prevCameraViewProj{ 1.F };
+
+    // Update-thread only: last frame's light positions, published into the
+    // next snapshot so the light cubes get motion vectors of their own.
+    std::array<glm::vec3, thread::MazeRenderFrame::maxLights>
+        prevLightPositions{};
+
+    // Update-thread only: index into the Halton jitter sequence.
+    uint32_t jitterIndex{ 0 };
+
     void queueResize(uint32_t w, uint32_t h) const;
 
     // Set by finishLoading(); onUpdate()/onRender() no-op until then.
@@ -187,7 +207,7 @@ private:
     float                ambientStrength  = .25F;
     float                ao               = .25F;
     int32_t              attenuationIndex = 4;
-    bool                 fxaaEnabled      = true;
+    thread::AntiAliasing antiAliasing     = thread::AntiAliasing::Taa;
     bool                 bloomEnabled     = true;
     float                bloomThreshold   = 0.8F;
     // Compensates the soft-knee extract, which passes only above-threshold
