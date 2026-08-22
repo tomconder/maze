@@ -44,6 +44,15 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
+* The pipeline is: scene to a linear HDR `SceneTarget` -> bloom extracts and
+  blurs in linear -> `SceneTarget::resolve()` composites bloom, tone maps,
+  gamma encodes. Nothing upstream of resolve() may tone map, or the bloom
+  threshold stops being a radiance value.
+* Dither exactly once, at the final 8-bit write, and keep every intermediate
+  target float (`GL_RGB16F`). An 8-bit intermediate quantises undithered and
+  then quantises again at the real output — the banding `dither8` exists to
+  prevent. resolve() dithers only when it writes the back buffer directly;
+  when FXAA or TAA follows, each dithers on its own final write instead.
 * Anti-aliasing is a three-way mode (`AntiAliasing::None/Fxaa/Taa`), not a
   toggle. `FXAA` is single-pass; `TAA` jitters the camera with Halton(2,3),
   accumulates into a ping-pong `GL_RGB16F` history, and reprojects it through
