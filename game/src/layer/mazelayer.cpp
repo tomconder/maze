@@ -324,9 +324,18 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
 void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     auto& frame = renderFrames[slotIndex];
 
+    // One locked read for the whole snapshot: the jitter branch below and
+    // frame.antiAliasing have to agree. Reading the member twice lets a mode
+    // switch land between them and tag a jittered frame as FXAA.
+    AntiAliasing aaMode;
+    {
+        std::scoped_lock lock(settingsMutex);
+        aaMode = antiAliasing;
+    }
+
     frame.cameraMVP      = camera->getMVP();
     frame.cameraViewProj = frame.cameraMVP;
-    if (antiAliasing == AntiAliasing::Taa) {
+    if (aaMode == AntiAliasing::Taa) {
         const auto jitter = TAA::haltonJitter(
             jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
             static_cast<uint32_t>(screenHeight.load()));
@@ -370,7 +379,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
             prevLightPositions.at(i)    = pointLights.at(i).position;
         }
 
-        frame.antiAliasing   = antiAliasing;
+        frame.antiAliasing   = aaMode;
         frame.bloomEnabled   = bloomEnabled;
         frame.bloomThreshold = bloomThreshold;
         frame.bloomIntensity = bloomIntensity;
