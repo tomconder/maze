@@ -19,7 +19,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   `Shader`, `Texture`, `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
-  `Bloom`, `FXAA`.
+  `Bloom`, `FXAA`, `TAA`.
 * `opengl/debug/` - GL diagnostics/profiler, debug-build only.
 * `windows/`, `osx/`, `linux/` `core/*file.*` - the only OS-specific file I/O
   shims; everything else is GLFW-portable.
@@ -44,10 +44,32 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
-* Anti-aliasing is `FXAA` (single-pass) only. No TAA exists in this codebase
-  despite older docs/memory claiming it — verified no ping-pong history
-  buffer, no Halton jitter anywhere in `sponge/src` or `game/src` as of
-  2026-08-16.
+* Anti-aliasing is a three-way mode (`AntiAliasing::None/Fxaa/Taa`), not a
+  toggle. `FXAA` is single-pass; `TAA` jitters the camera with Halton(2,3),
+  accumulates into a ping-pong `GL_RGB16F` history, and reprojects it through
+  the depth prepass texture. The history must stay float — an 8-bit target
+  quantises every sub-LSB increment to zero and never converges.
+* TAA reprojects through an RG16F velocity buffer (`current UV - previous UV`)
+  written as a second attachment on the depth prepass FBO, so a moving object
+  reprojects correctly. Depth 1.0 is the coverage mask — background pixels,
+  which the prepass never draws, fall back to reconstructing the world
+  position from depth and reprojecting with the camera alone.
+* The prepass draws the light cubes as well as the models, so they carry
+  motion vectors. That also puts their depth in the buffer, which means the
+  cube pass must run `GL_LEQUAL`: under `GL_LESS` every cube fragment is
+  rejected by its own prepass depth and the cubes vanish.
+* The velocity pass must run with `GL_BLEND` disabled. Blending is enabled
+  globally in `RendererAPI` and the prepass shader writes no alpha, so motion
+  vectors get blended against the clear colour and never reach the texture.
+  Clear that attachment with `glClearBufferfv` to zero, never `glClear` — the
+  global clear colour is grey and reads back as ~22 pixels of bogus motion.
+* Motion is measured with unjittered matrices while rasterization uses the
+  jittered one; mixing them makes the TAA jitter itself read as movement.
+* The TAA history is resampled with a Catmull-Rom filter, not the bilinear
+  `Sample()` the hardware gives you. `prevUV` rarely lands on a texel centre
+  while the camera moves, so the history is refiltered every frame; bilinear
+  compounded over a ~10-frame tail is a low-pass filter and the image goes
+  soft in motion. Do not "simplify" it back to a single `Sample()`.
 
 ## Anti-patterns
 

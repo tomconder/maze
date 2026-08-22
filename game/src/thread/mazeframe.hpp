@@ -13,6 +13,13 @@
 
 namespace game::thread {
 
+enum class AntiAliasing : uint8_t {
+    None = 0,
+    Fxaa,
+    Taa,
+    Count,
+};
+
 // Immutable snapshot of all rendering-relevant game state for one frame.
 //
 // The update thread fills this struct at the end of onUpdate() via
@@ -23,7 +30,16 @@ namespace game::thread {
 // slots at any given moment.
 struct MazeRenderFrame {
     // Camera
+    // Jittered when TAA is on — this is what the geometry passes use.
     glm::mat4 cameraMVP{ 1.F };
+    // Unjittered view-projection, and the inverse of the jittered one: TAA
+    // reprojects through the depth buffer between the two.
+    glm::mat4 cameraViewProj{ 1.F };
+    // The previous snapshot's unjittered view-projection. Carried here rather
+    // than kept on the render thread so it always pairs with
+    // prevObjectModelMatrices below — both describe the same past frame.
+    glm::mat4 prevCameraViewProj{ 1.F };
+    glm::mat4 invCameraMVP{ 1.F };
     glm::mat4 cameraView{ 1.F };
     glm::mat4 cameraProjection{ 1.F };
     glm::vec3 cameraPos{ 0.F };
@@ -45,17 +61,20 @@ struct MazeRenderFrame {
     int32_t                          numLights{ 0 };
     int32_t                          lightAttenuationIndex{ 0 };
     std::array<glm::vec3, maxLights> lightPositions{};
+    std::array<glm::vec3, maxLights> prevLightPositions{};
     std::array<glm::vec3, maxLights> lightColors{};
 
     // Game objects: model matrices and resolved model handles. Handles are
     // resolved once at load; no per-frame name lookup.
     std::vector<glm::mat4> objectModelMatrices;
+    std::vector<glm::mat4> prevObjectModelMatrices;
     std::vector<glm::vec3> objectEmissives;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 
     // Post-processing
-    bool  fxaaEnabled{ false };
+    AntiAliasing antiAliasing{ AntiAliasing::None };
+
     bool  bloomEnabled{ false };
     float bloomThreshold{ 0.8F };
     float bloomIntensity{ 2.5F };

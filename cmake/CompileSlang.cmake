@@ -62,6 +62,10 @@ compile_slang_shader(bloom.slang               upFragMain        bloom_up.frag.g
 # FXAA
 compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
 
+# TAA
+compile_slang_shader(taa.slang                 resolveFragMain taa_resolve.frag.glsl)
+compile_slang_shader(taa.slang                 presentFragMain taa_present.frag.glsl)
+
 # 2D / UI
 compile_slang_shader(rectangle.slang           fragMain      quad.frag.glsl)
 compile_slang_shader(rectangle.slang           vertMain      quad.vert.glsl)

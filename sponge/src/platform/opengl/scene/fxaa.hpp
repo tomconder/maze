@@ -27,14 +27,6 @@ public:
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
-    bool isEnabled() const {
-        return enabled;
-    }
-
-    void setEnabled(const bool val) {
-        enabled = val;
-    }
-
 private:
     static constexpr std::string_view shaderName = "fxaa";
 
@@ -49,9 +41,8 @@ private:
     uint32_t depthRbo     = 0;
     uint32_t fbo          = 0;
 
-    uint32_t width   = 0;
-    uint32_t height  = 0;
-    bool     enabled = true;
+    uint32_t width  = 0;
+    uint32_t height = 0;
 
     void initialize();
     void createFramebuffer();
