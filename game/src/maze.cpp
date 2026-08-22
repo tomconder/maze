@@ -52,7 +52,7 @@ bool Maze::onUserCreate() {
     setBloomThreshold(std::stof(
         sponge::core::Settings::getString("video.bloomThreshold", "0.8")));
     setBloomIntensity(std::stof(
-        sponge::core::Settings::getString("video.bloomIntensity", "2.5")));
+        sponge::core::Settings::getString("video.bloomIntensity", "0.08")));
 
     return true;
 }
