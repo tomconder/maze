@@ -16,6 +16,7 @@
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
+#include "version.hpp"
 
 #include <glm/glm.hpp>
 #include <yoga/Yoga.h>
@@ -229,24 +230,19 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         selectedItem          = IntroMenuItem::NewGame;
     }
 
-    // Render gamepad connection status
+    // Render the build version
     {
-        const bool gamepadConnected =
-            sponge::platform::glfw::core::Application::get()
-                .getInputManager()
-                .getSnapshot()
-                .gamepadConnected;
-        const auto* const gamepadStatus =
-            gamepadConnected ? "Gamepad connected" : "No gamepad";
+        static const std::string versionText =
+            project_version + " (" + git_sha + ")";
         constexpr auto statusFontSize = 18;
         constexpr auto margin         = 10.F;
         constexpr auto statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
 
         const auto statusWidth = static_cast<float>(
-            menuFont->getLength(gamepadStatus, statusFontSize));
+            menuFont->getLength(versionText, statusFontSize));
         menuFont->beginPass(statusFontSize);
         menuFont->render(
-            gamepadStatus,
+            versionText,
             { width - statusWidth - margin,
               height - menuFont->getHeight(statusFontSize) - margin },
             statusColor);
