@@ -49,27 +49,44 @@ void Texture::generate(const uint32_t textureWidth,
 
     const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
 
-    uint32_t internalFormat = GL_RGB;
+    const auto pixelated = (flag & Pixelated) == Pixelated;
+
+    // Sized internal formats: the unsized names let the driver pick a
+    // narrower layout, which shows up as fringing on the subpixel glyph
+    // atlas.
+    uint32_t internalFormat = GL_RGB8;
     uint32_t format         = GL_RGB;
     if (bytesPerPixel == 1) {
-        internalFormat = format = GL_RED;
+        internalFormat = GL_R8;
+        format         = GL_RED;
     } else if (bytesPerPixel == 3) {
-        internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
+        internalFormat = gammaCorrection ? GL_SRGB8 : GL_RGB8;
         format         = GL_RGB;
     } else if (bytesPerPixel == 4) {
-        internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
+        internalFormat = gammaCorrection ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         format         = GL_RGBA;
     }
 
     glBindTexture(GL_TEXTURE_2D, id);
+    // Rows are tightly packed. The default alignment of 4 skews any upload
+    // whose width times bytesPerPixel is not a multiple of it.
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (pixelated) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
 }
 

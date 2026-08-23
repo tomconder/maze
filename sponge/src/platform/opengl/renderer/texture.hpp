@@ -12,6 +12,10 @@ enum LoadFlag : uint8_t {
     None                = 0,
     ExcludeAssetsFolder = BIT(0),
     GammaCorrection     = BIT(1),
+    // Sample exactly: nearest, clamped, no mip chain. For atlases and UI
+    // sheets, where a filtered or wrapped sample crosses into a neighbouring
+    // glyph.
+    Pixelated = BIT(2),
 };
 
 struct TextureCreateInfo {
