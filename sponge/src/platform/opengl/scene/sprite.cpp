@@ -55,7 +55,6 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
         .path = texturePath,
     };
     tex = AssetManager::createTexture(textureCreateInfo);
-    tex->bind();
 
     shader->unbind();
 }
