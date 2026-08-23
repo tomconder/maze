@@ -65,7 +65,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     meshProgramId = defaultShader->getId();
     defaultShader->bind();
 
-    vao = renderer::VertexArray::create();
+    vao = std::make_unique<renderer::VertexArray>();
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(

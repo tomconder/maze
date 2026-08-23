@@ -22,7 +22,7 @@ constexpr uint32_t stride      = 4 * sizeof(float);
 namespace sponge::platform::opengl::scene {
 
 ScreenQuad::ScreenQuad() {
-    vao = renderer::VertexArray::create();
+    vao = std::make_unique<renderer::VertexArray>();
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(vertices.data(),

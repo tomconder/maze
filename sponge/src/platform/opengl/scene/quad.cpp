@@ -29,7 +29,7 @@ Quad::Quad() {
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
 
-    vao = renderer::VertexArray::create();
+    vao = std::make_unique<renderer::VertexArray>();
     vao->bind();
 
     vbo = std::make_unique<renderer::VertexBuffer>(
