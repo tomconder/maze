@@ -15,8 +15,8 @@ than calling GLFW/OpenGL/OS APIs directly.
 * `glfw/imgui/` - `GLFWManager` (real ImGui backend, built when
   `ENABLE_IMGUI`) vs `NoopManager` (stub for release builds).
 * `opengl/renderer/` - GL primitives: `Context`, `RendererAPI`, buffers
-  (`vertexbuffer`, `indexbuffer`, `vertexarray`, `ssbo`, `framebuffer`),
-  `Shader`, `Texture`, `AssetManager`.
+  (`vertexbuffer`, `indexbuffer`, `vertexarray`, `ssbo`), `Shader`, `Texture`,
+  `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
   `Bloom`, `FXAA`, `TAA`.

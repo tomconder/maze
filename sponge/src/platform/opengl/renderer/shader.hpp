@@ -6,6 +6,7 @@
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 
+#include <functional>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -53,7 +54,7 @@ public:
 
 private:
     mutable std::unordered_map<std::string, GLint, core::TransparentStringHash,
-                               core::TransparentStringEqual>
+                               std::equal_to<>>
         uniformLocations;
 
     uint32_t    compileShader(GLenum type, const std::string& source) const;
