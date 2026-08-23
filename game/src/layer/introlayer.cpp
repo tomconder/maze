@@ -63,8 +63,9 @@ std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 
 constexpr std::array<game::ui::KeyHint, 2> introKeyHints = {
-    game::ui::KeyHint{ "Arrows", "D-Pad", "Navigate" },
-    game::ui::KeyHint{ "Enter", "A", "Select" },
+    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
+                       "Navigate" },
+    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
 };
 
 bool isRunning = true;
@@ -219,7 +220,8 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         UNUSED(menuButtons[i]->onUpdate(elapsedTime));
     }
 
-    ui::renderKeyHints(introKeyHints, menuFont, width, height);
+    ui::renderKeyHints(introKeyHints, menuFont, orthoCamera->getProjection(),
+                       width, height);
 
     if (!isActive()) {
         wasActiveLastFrame    = false;

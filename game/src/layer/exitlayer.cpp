@@ -61,9 +61,10 @@ YGNodeRef rootNode           = nullptr;
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 
 constexpr std::array<game::ui::KeyHint, 3> exitKeyHints = {
-    game::ui::KeyHint{ "Arrows", "D-Pad", "Navigate" },
-    game::ui::KeyHint{ "Enter", "A", "Select" },
-    game::ui::KeyHint{ "Esc", "B", "Back" },
+    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
+                       "Navigate" },
+    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
 };
 
 bool isRunning = true;
@@ -196,7 +197,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
           menuBackgroundNodeH] =
         ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
-    ui::renderKeyHints(exitKeyHints, menuFont,
+    ui::renderKeyHints(exitKeyHints, menuFont, orthoCamera->getProjection(),
                        static_cast<float>(orthoCamera->getWidth()),
                        static_cast<float>(orthoCamera->getHeight()));
 

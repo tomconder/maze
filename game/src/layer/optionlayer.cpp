@@ -252,10 +252,12 @@ bool contains(const float x, const float y, const float w, const float h,
 }
 
 constexpr std::array<game::ui::KeyHint, 4> optionKeyHints = {
-    game::ui::KeyHint{ "Arrows", "D-Pad U/D", "Navigate" },
-    game::ui::KeyHint{ "Left/Right", "D-Pad L/R", "Change" },
-    game::ui::KeyHint{ "Enter", "A", "Select" },
-    game::ui::KeyHint{ "Esc", "B", "Back" },
+    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
+                       "Navigate" },
+    game::ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
+                       "Change" },
+    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
 };
 
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
@@ -520,7 +522,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
-    ui::renderKeyHints(optionKeyHints, menuFont, width, height);
+    ui::renderKeyHints(optionKeyHints, menuFont, orthoCamera->getProjection(),
+                       width, height);
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
