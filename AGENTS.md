@@ -44,6 +44,16 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
+## IDE Tooling
+
+When running inside CLion with MCP, prefer the `mcp_clion_*` tools:
+
+* `mcp_clion_search_text` for project-wide text search.
+* `mcp_clion_read_file` for reading sources, including inside JARs and decompiled classes.
+* `mcp_clion_list_directory_tree` for directory exploration.
+* `mcp_clion_apply_patch` for applying diffs.
+* `mcp_clion_open_file_in_editor` to surface a file in the editor for the user.
+
 ## Building
 
 Use a configuration preset to compile `maze`. Possible values are:

@@ -165,7 +165,9 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
 
-            ui::stepSelection(input, selectedItem);
+            if (ui::stepSelection(input, selectedItem)) {
+                ui::playHoverClick();
+            }
 
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {

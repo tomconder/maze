@@ -406,7 +406,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         if (wasActiveLastFrame) {
             const auto& input = mgr.getSnapshot();
 
-            ui::stepSelection(input, selectedItem);
+            if (ui::stepSelection(input, selectedItem)) {
+                ui::playHoverClick();
+            }
 
             if (input.isActive(GameAction::MenuLeft)) {
                 cycleList(selectedItem, -1);
@@ -587,10 +589,9 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
         return;
     }
 
-    if (delta < 0) {
-        list->selectPrev();
-    } else {
-        list->selectNext();
+    const bool changed = delta < 0 ? list->selectPrev() : list->selectNext();
+    if (changed) {
+        ui::playHoverClick();
     }
 
     if (item == OptionMenuItem::AspectRatio) {

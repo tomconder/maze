@@ -153,7 +153,9 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
             const auto& input = mgr.getSnapshot();
 
-            ui::stepSelection(input, selectedItem);
+            if (ui::stepSelection(input, selectedItem)) {
+                ui::playHoverClick();
+            }
 
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
