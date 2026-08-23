@@ -91,6 +91,7 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
+using sponge::platform::opengl::renderer::createRenderTarget;
 using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
@@ -98,6 +99,7 @@ using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
+using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::TAA;
 
@@ -171,6 +173,10 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
                                     Maze::get().getWindow()->getHeight());
+
+    sceneTarget =
+        std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
+                                      Maze::get().getWindow()->getHeight());
 
     queueResize(Maze::get().getWindow()->getWidth(),
                 Maze::get().getWindow()->getHeight());
@@ -420,6 +426,7 @@ void MazeLayer::onRender() {
         if (bloom) {
             bloom->resize(w, h);
         }
+        sceneTarget->resize(w, h);
         screenWidth  = static_cast<int32_t>(w);
         screenHeight = static_cast<int32_t>(h);
         createDepthPrepassFbo(static_cast<int>(w), static_cast<int>(h));
@@ -452,30 +459,18 @@ void MazeLayer::onRender() {
                                 frame.cameraView, frame.cameraProjection);
     }
 
-    // Phase 4: opaque pass
+    // Phase 4: opaque pass, into the linear HDR scene target.
     const bool fxaaActive = frame.antiAliasing == AntiAliasing::Fxaa && fxaa;
     const bool taaActive  = frame.antiAliasing == AntiAliasing::Taa && taa;
-    const bool hasFbo =
-        (frame.bloomEnabled && bloom != nullptr) || fxaaActive || taaActive;
-    if (frame.bloomEnabled && bloom) {
-        bloom->begin();
-    } else if (fxaaActive) {
-        fxaa->begin();
-    } else if (taaActive) {
-        taa->begin();
-    }
 
-    if (hasFbo) {
-        // Blit prepass depth into the post-processing FBO so the opaque pass
-        // can use GL_LEQUAL (zero overdraw). Both FBOs use
-        // GL_DEPTH_COMPONENT24.
-        blitDepthToCurrentFbo(frame.screenWidth, frame.screenHeight);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-    } else {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+    sceneTarget->begin();
+
+    // Blit prepass depth in so the opaque pass can use GL_LEQUAL (zero
+    // overdraw). Both FBOs use GL_DEPTH_COMPONENT24.
+    blitDepthToCurrentFbo(frame.screenWidth, frame.screenHeight);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
 
     renderGameObjects(frame);
 
@@ -484,38 +479,47 @@ void MazeLayer::onRender() {
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
 
-    if (hasFbo) {
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    sceneTarget->end();
+
+    // Phase 5: bloom, extracted from linear radiance rather than from an
+    // already tone-mapped image.
+    // Named apart from the bloomIntensity member on purpose: that one is the
+    // ImGui-mutated setting behind settingsMutex, and the render thread must
+    // only ever see it through the snapshot.
+    uint32_t bloomTexId  = 0;
+    float    bloomWeight = 0.F;
+    if (frame.bloomEnabled && bloom) {
+        bloom->process(sceneTarget->getTexture(), frame.bloomThreshold);
+        bloomTexId  = bloom->getBloomTexture();
+        bloomWeight = frame.bloomIntensity;
     }
 
-    if (frame.bloomEnabled && bloom) {
-        bloom->end();
-        bloom->process(frame.bloomThreshold);
-        if (fxaaActive) {
-            fxaa->applyWithBloom(bloom->getSceneTexture(),
-                                 bloom->getBloomTexture(),
-                                 frame.bloomIntensity);
-        } else if (taaActive) {
-            taa->apply(bloom->getSceneTexture(), depthPrepassTexture,
-                       velocityTexture, bloom->getBloomTexture(),
-                       frame.bloomIntensity, frame.invCameraMVP,
-                       frame.prevCameraViewProj);
-        } else {
-            bloom->apply(frame.bloomIntensity);
-        }
-    } else if (fxaaActive) {
+    // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
+    // resolved image and does its own dithered write to the back buffer.
+    if (fxaaActive) {
+        fxaa->begin();
+    } else if (taaActive) {
+        taa->begin();
+    }
+
+    sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive);
+
+    if (fxaaActive) {
         fxaa->end();
         fxaa->apply();
     } else if (taaActive) {
+        // ponytail: TAA accumulates the tone-mapped image, which is where it
+        // already ran. Accumulating in linear with a reversible weighting curve
+        // resolves highlight edges better; that is a change to TAA, not to the
+        // pass order this commit is fixing.
         taa->end();
-        taa->apply(taa->getSceneTexture(), depthPrepassTexture, velocityTexture,
-                   0, 0.F, frame.invCameraMVP, frame.prevCameraViewProj);
+        taa->apply(depthPrepassTexture, velocityTexture, frame.invCameraMVP,
+                   frame.prevCameraViewProj);
     }
 
-    if (hasFbo) {
-        glDepthFunc(GL_LEQUAL);
-    }
+    glDepthFunc(GL_LEQUAL);
 }
 
 float MazeLayer::getAmbientOcclusion() const {
@@ -767,27 +771,16 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
         glDeleteFramebuffers(1, &depthPrepassFbo);
     }
 
-    glGenTextures(1, &depthPrepassTexture);
-    glBindTexture(GL_TEXTURE_2D, depthPrepassTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
-                 static_cast<GLsizei>(w), static_cast<GLsizei>(h), 0,
-                 GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    depthPrepassTexture = createRenderTarget(
+        static_cast<uint32_t>(w), static_cast<uint32_t>(h),
+        GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, GL_NEAREST);
 
     // RG16F holds a UV delta, not an absolute UV: at 1920 wide a one-pixel
     // motion is ~5e-4, which a half float carries accurately as a delta and
     // would quantise to worse than a pixel as an absolute coordinate.
-    glGenTextures(1, &velocityTexture);
-    glBindTexture(GL_TEXTURE_2D, velocityTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, static_cast<GLsizei>(w),
-                 static_cast<GLsizei>(h), 0, GL_RG, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    velocityTexture =
+        createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
+                           GL_RG16F, GL_RG, GL_FLOAT, GL_NEAREST);
 
     glGenFramebuffers(1, &depthPrepassFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);

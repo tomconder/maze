@@ -1,8 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
-#include "platform/opengl/renderer/vertexarray.hpp"
-#include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "platform/opengl/scene/screenquad.hpp"
 
 #include <glm/glm.hpp>
 
@@ -37,14 +36,8 @@ public:
     // Resolves the scene into the history buffer and presents it.
     // `velocityTexId` supplies per-pixel motion wherever `depthTexId` is not
     // at the far plane; elsewhere the two matrices reproject the camera alone.
-    // `bloomTexId` may be 0 when `bloomIntensity` is 0.
-    void apply(uint32_t sceneTexId, uint32_t depthTexId, uint32_t velocityTexId,
-               uint32_t bloomTexId, float bloomIntensity,
+    void apply(uint32_t depthTexId, uint32_t velocityTexId,
                const glm::mat4& invViewProj, const glm::mat4& prevViewProj);
-
-    uint32_t getSceneTexture() const {
-        return sceneColorTexture;
-    }
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 
@@ -61,16 +54,14 @@ private:
     // convergence — enough to resolve the jitter pattern without visible lag.
     static constexpr float currentWeight = 0.1F;
 
-    std::shared_ptr<renderer::Shader>       resolveShader;
-    std::shared_ptr<renderer::Shader>       presentShader;
-    std::unique_ptr<renderer::VertexArray>  vao;
-    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::shared_ptr<renderer::Shader> resolveShader;
+    std::shared_ptr<renderer::Shader> presentShader;
+    ScreenQuad                        quad;
 
     // Raw GL handles, as in FXAA: the Texture class has no colour-buffer
     // creation path and these are rebuilt on every resize.
     uint32_t sceneFbo          = 0;
     uint32_t sceneColorTexture = 0;
-    uint32_t sceneDepthRbo     = 0;
 
     // Ping-pong: historyIndex is the slot written this frame.
     std::array<uint32_t, 2> historyFbos{};
@@ -84,7 +75,6 @@ private:
     void initialize();
     void createFramebuffers();
     void destroyFramebuffers();
-    void renderQuad() const;
 };
 
 }  // namespace sponge::platform::opengl::scene

@@ -11,6 +11,7 @@
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/gamecamera.hpp"
@@ -152,8 +153,9 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA> fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::TAA>  taa;
-    std::unique_ptr<sponge::platform::opengl::scene::Bloom>     bloom;
-    std::unique_ptr<sponge::platform::opengl::scene::ShadowMap> shadowMap;
+    std::unique_ptr<sponge::platform::opengl::scene::Bloom>       bloom;
+    std::unique_ptr<sponge::platform::opengl::scene::SceneTarget> sceneTarget;
+    std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>   shadowMap;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
@@ -210,9 +212,13 @@ private:
     thread::AntiAliasing antiAliasing     = thread::AntiAliasing::Taa;
     bool                 bloomEnabled     = true;
     float                bloomThreshold   = 0.8F;
-    // Compensates the soft-knee extract, which passes only above-threshold
-    // energy (the old hard threshold passed the full pixel color).
-    float   bloomIntensity     = 2.5F;
+    // Additive weight for the bloom texture, applied in LINEAR space before
+    // tone mapping. The bloom texture holds radiance (measured peak ~2.6 in
+    // this scene), not the [0,1] tone-mapped values it held when bloom
+    // composited after the curve, so this is roughly 1/30th of the old value
+    // for the same look. Re-derive it against a measurement, never by
+    // scaling the old number.
+    float   bloomIntensity     = 0.08F;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
 #ifdef ENABLE_IMGUI

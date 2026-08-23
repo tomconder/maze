@@ -5,7 +5,6 @@
 
 #include <stb_image.h>
 
-#include <array>
 #include <filesystem>
 #include <string>
 
@@ -27,10 +26,6 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
                     .string();
 
         loadFromFile(texturePath, createInfo.loadFlag);
-    } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {
-        SPONGE_GL_INFO("Creating depth map texture: [{}, {}x{}]",
-                       createInfo.name, createInfo.width, createInfo.height);
-        createDepthMap(createInfo.width, createInfo.height);
     } else if (createInfo.data != nullptr) {
         SPONGE_GL_INFO("Creating texture from memory: [{}, {}x{}]",
                        createInfo.name, createInfo.width, createInfo.height);
@@ -45,20 +40,6 @@ Texture::~Texture() {
     glDeleteTextures(1, &id);
 }
 
-void Texture::createDepthMap(const uint32_t depthWidth,
-                             const uint32_t depthHeight) const {
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthWidth, depthHeight,
-                 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    constexpr std::array<float, 4> borderColor = { 1.F, 1.F, 1.F, 1.F };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
-                     borderColor.data());
-}
-
 void Texture::generate(const uint32_t textureWidth,
                        const uint32_t textureHeight,
                        const uint32_t bytesPerPixel, const uint8_t* data,
@@ -68,27 +49,44 @@ void Texture::generate(const uint32_t textureWidth,
 
     const auto gammaCorrection = (flag & GammaCorrection) == GammaCorrection;
 
-    uint32_t internalFormat = GL_RGB;
+    const auto pixelated = (flag & Pixelated) == Pixelated;
+
+    // Sized internal formats: the unsized names let the driver pick a
+    // narrower layout, which shows up as fringing on the subpixel glyph
+    // atlas.
+    uint32_t internalFormat = GL_RGB8;
     uint32_t format         = GL_RGB;
     if (bytesPerPixel == 1) {
-        internalFormat = format = GL_RED;
+        internalFormat = GL_R8;
+        format         = GL_RED;
     } else if (bytesPerPixel == 3) {
-        internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
+        internalFormat = gammaCorrection ? GL_SRGB8 : GL_RGB8;
         format         = GL_RGB;
     } else if (bytesPerPixel == 4) {
-        internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
+        internalFormat = gammaCorrection ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         format         = GL_RGBA;
     }
 
     glBindTexture(GL_TEXTURE_2D, id);
+    // Rows are tightly packed. The default alignment of 4 skews any upload
+    // whose width times bytesPerPixel is not a multiple of it.
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (pixelated) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     glActiveTexture(GL_TEXTURE0);
 }
 

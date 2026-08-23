@@ -2,11 +2,13 @@
 
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+#include "platform/opengl/renderer/texture.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <memory>
 #include <string_view>
 
 namespace {
@@ -70,24 +72,19 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
     atlas.build(ttfPath, { 18, 24, 32, 48 });
 
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8,
-                 static_cast<GLsizei>(atlas.atlasWidth()),
-                 static_cast<GLsizei>(atlas.atlasHeight()), 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, atlas.data());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-BitmapFont::~BitmapFont() {
-    if (textureId != 0) {
-        glDeleteTextures(1, &textureId);
-    }
+    // The atlas holds per-channel LCD coverage, not colour, so no gamma
+    // correction: an sRGB internal format would apply a transfer function to
+    // the coverage that feeds the dual-source blend in beginPass().
+    const renderer::TextureCreateInfo textureCreateInfo{
+        .name          = createInfo.name,
+        .path          = "",
+        .width         = atlas.atlasWidth(),
+        .height        = atlas.atlasHeight(),
+        .bytesPerPixel = 3,
+        .data          = atlas.data(),
+        .loadFlag      = renderer::Pixelated,
+    };
+    texture = std::make_unique<renderer::Texture>(textureCreateInfo);
 }
 
 uint32_t BitmapFont::getHeight(const uint32_t size) const {
@@ -108,12 +105,11 @@ uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
-    assert(textureId != 0);
+    assert(texture);
     passTargetSize = size;
     vao->bind();
     shader->bind();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
+    texture->activateAndBind(0);
     glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
 }
 

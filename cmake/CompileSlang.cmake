@@ -54,13 +54,15 @@ compile_slang_shader(blur.slang                downFragMain      blur.frag.glsl)
 compile_slang_shader(blur.slang                upFragMain        blur_up.frag.glsl)
 
 # Bloom pipeline
-compile_slang_shader(bloom.slang               compositeFragMain bloom_composite.frag.glsl)
 compile_slang_shader(bloom.slang               downFragMain      bloom_down.frag.glsl)
 compile_slang_shader(bloom.slang               extractFragMain   bloom_extract.frag.glsl)
 compile_slang_shader(bloom.slang               upFragMain        bloom_up.frag.glsl)
 
 # FXAA
 compile_slang_shader(fxaa.slang                fragMain   fxaa.frag.glsl)
+
+# Tone mapping / resolve
+compile_slang_shader(tonemap.slang             fragMain   tonemap.frag.glsl)
 
 # TAA
 compile_slang_shader(taa.slang                 resolveFragMain taa_resolve.frag.glsl)

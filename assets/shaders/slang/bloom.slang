@@ -1,12 +1,12 @@
-// bloom.slang: brightness extraction, Dual Kawase bloom pipeline, composite
+// bloom.slang: brightness extraction + Dual Kawase blur chain.
+// The composite lives in tonemap.slang, which adds bloom in linear light.
 #include "include/kawase.slang"
-#include "include/dither.slang"
 
 [[vk::binding(0)]] Sampler2D<float4> image;
+// The matching down-level, accumulated by the upsample pass.
 [[vk::binding(1)]] Sampler2D<float4> bloomTex;
 uniform float                        threshold;
 uniform float                        offset;
-uniform float                        intensity;
 uniform float                        accumulate;
 
 struct FSInput {
@@ -48,13 +48,4 @@ float4 upFragMain(FSInput input) : SV_Target {
     float3 blurred = kawaseUp(image, input.texCoords, offset).rgb;
     float3 down    = bloomTex.Sample(input.texCoords).rgb;
     return float4(lerp(blurred, lerp(down, blurred, SCATTER), accumulate), 1.0);
-};
-
-// clang-format off
-[shader("fragment")]
-float4 compositeFragMain(FSInput input, float4 fragCoord : SV_Position) : SV_Target {
-    // clang-format on
-    float3 color = image.Sample(input.texCoords).rgb;
-    float3 bloom = bloomTex.Sample(input.texCoords).rgb;
-    return float4(dither8(color + bloom * intensity, fragCoord.xy), 1.0);
 };

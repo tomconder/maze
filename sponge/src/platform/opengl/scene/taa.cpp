@@ -6,20 +6,11 @@
 
 #include <glm/glm.hpp>
 
-#include <array>
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <string_view>
 
 namespace {
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-
 // Radical inverse in the given base — the Halton building block.
 constexpr float halton(uint32_t index, const uint32_t base) {
     float result   = 0.F;
@@ -81,52 +72,20 @@ void TAA::initialize() {
     presentShader =
         makeShader(presentShaderName, "/shaders/glsl/taa_present.frag.glsl");
 
-    vao = renderer::VertexArray::create();
-    vao->bind();
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    vao->unbind();
-
     createFramebuffers();
 }
 
 void TAA::createFramebuffers() {
-    // Scene capture, used only when bloom is off — otherwise the scene is
-    // already in the bloom FBO and apply() takes that texture instead.
-    glGenTextures(1, &sceneColorTexture);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // GL_DEPTH_COMPONENT24 to match the prepass FBO — blitDepthToCurrentFbo()
-    // requires identical depth formats.
-    glGenRenderbuffers(1, &sceneDepthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(width),
-                          static_cast<GLsizei>(height));
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // Receives the tone-mapped image from SceneTarget::resolve(). RGB16F
+    // rather than 8-bit so the history accumulates without requantising the
+    // input every frame.
+    sceneColorTexture = renderer::createRenderTarget(
+        width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
 
     glGenFramebuffers(1, &sceneFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                            sceneColorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, sceneDepthRbo);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         SPONGE_GL_CRITICAL("TAA scene framebuffer is not complete!");
     }
@@ -134,16 +93,8 @@ void TAA::createFramebuffers() {
     // Float history: with a 0.1 blend factor an 8-bit target quantises every
     // increment below 1/255 to zero and the image never converges.
     for (uint32_t i = 0; i < historyTextures.size(); i++) {
-        glGenTextures(1, &historyTextures[i]);
-        glBindTexture(GL_TEXTURE_2D, historyTextures[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                     static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT,
-                     nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        historyTextures[i] = renderer::createRenderTarget(
+            width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
 
         glGenFramebuffers(1, &historyFbos[i]);
         glBindFramebuffer(GL_FRAMEBUFFER, historyFbos[i]);
@@ -168,10 +119,6 @@ void TAA::destroyFramebuffers() {
         glDeleteTextures(1, &sceneColorTexture);
         sceneColorTexture = 0;
     }
-    if (sceneDepthRbo != 0) {
-        glDeleteRenderbuffers(1, &sceneDepthRbo);
-        sceneDepthRbo = 0;
-    }
     for (uint32_t i = 0; i < historyTextures.size(); i++) {
         if (historyFbos[i] != 0) {
             glDeleteFramebuffers(1, &historyFbos[i]);
@@ -193,16 +140,8 @@ void TAA::end() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void TAA::renderQuad() const {
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
-}
-
-void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
-                const uint32_t velocityTexId, const uint32_t bloomTexId,
-                const float bloomIntensity, const glm::mat4& invViewProj,
-                const glm::mat4& prevViewProj) {
+void TAA::apply(const uint32_t depthTexId, const uint32_t velocityTexId,
+                const glm::mat4& invViewProj, const glm::mat4& prevViewProj) {
     // Depth testing would discard the full-screen quad behind whatever the
     // scene pass left in the depth buffer.
     glDisable(GL_DEPTH_TEST);
@@ -217,23 +156,20 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     resolveShader->setFloat2("rcpFrame",
                              glm::vec2(1.F / static_cast<float>(width),
                                        1.F / static_cast<float>(height)));
-    resolveShader->setFloat("bloomIntensity", bloomIntensity);
     resolveShader->setFloat("historyBlend", historyValid ? currentWeight : 1.F);
     resolveShader->setMat4("invViewProj", invViewProj);
     resolveShader->setMat4("prevViewProj", prevViewProj);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneTexId);
+    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, historyTextures[readIndex]);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, depthTexId);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, bloomTexId);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, velocityTexId);
 
-    renderQuad();
+    quad.draw();
     resolveShader->unbind();
 
     // Pass 2: present the resolved history. A blit would skip the dither the
@@ -244,7 +180,7 @@ void TAA::apply(const uint32_t sceneTexId, const uint32_t depthTexId,
     // Unit 1: the present pass shares historyTex with the resolve pass.
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, historyTextures[historyIndex]);
-    renderQuad();
+    quad.draw();
     presentShader->unbind();
     glActiveTexture(GL_TEXTURE0);
 

@@ -5,22 +5,7 @@
 #include "platform/opengl/renderer/gl.hpp"
 
 #include <glm/glm.hpp>
-#include <array>
 #include <cstdint>
-#include <memory>
-
-namespace {
-// Interleaved NDC position (vec2) + UV (vec2) for a full-screen triangle strip.
-// Triangle strip chosen over two separate triangles to halve the vertex count
-// and avoid a diagonal seam that can produce a one-pixel artifact on some GPUs.
-constexpr std::array quadVertices = {
-    -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-    -1.F, 1.F,  0.F, 1.F, 1.F, 1.F,  1.F, 1.F,
-};
-
-constexpr uint32_t quadVertexCount = 4;
-constexpr uint32_t quadStride      = 4 * sizeof(float);
-}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -41,61 +26,26 @@ void FXAA::initialize() {
         .fragmentShaderPath = "/shaders/glsl/fxaa.frag.glsl",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    vao = renderer::VertexArray::create();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(quadVertices.data(),
-                                                   sizeof(quadVertices));
-    vbo->bind();
-
-    constexpr uint32_t positionLoc = 0;
-    constexpr uint32_t texCoordLoc = 1;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(texCoordLoc);
-    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, quadStride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    shader->unbind();
-    vao->unbind();
 
     createFramebuffer();
 }
 
 void FXAA::createFramebuffer() {
-    glGenTextures(1, &colorTexture);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_UNSIGNED_BYTE,
-                 nullptr);
-
+    // RGB16F, not RGB8. This holds the tone-mapped image on its way into the
+    // filter, and an 8-bit target here would quantise it a second time — once
+    // undithered on the way in, once dithered on the way out — which is the
+    // banding dither8 exists to prevent. Dither belongs at the final write
+    // only, which is apply()'s.
+    //
     // Linear filtering is required — FXAA samples between texels when blending
     // across detected edges, so nearest-neighbor would negate the entire pass.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // Depth renderbuffer rather than a depth texture because the FXAA pass
-    // never samples depth — renderbuffers are faster for write-only
-    // attachments.
-    glGenRenderbuffers(1, &depthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(width),
-                          static_cast<GLsizei>(height));
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
+                                                GL_RGB, GL_FLOAT, GL_LINEAR);
 
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                            colorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, depthRbo);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         SPONGE_GL_CRITICAL("FXAA framebuffer is not complete!");
@@ -112,10 +62,6 @@ void FXAA::destroyFramebuffer() {
     if (colorTexture != 0) {
         glDeleteTextures(1, &colorTexture);
         colorTexture = 0;
-    }
-    if (depthRbo != 0) {
-        glDeleteRenderbuffers(1, &depthRbo);
-        depthRbo = 0;
     }
 }
 
@@ -135,39 +81,12 @@ void FXAA::apply() const {
     shader->bind();
     shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
                                             1.0f / static_cast<float>(height)));
-    shader->setFloat("bloomIntensity", 0.0f);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
 
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
+    quad.draw();
 
-    shader->unbind();
-
-    glEnable(GL_DEPTH_TEST);
-}
-
-void FXAA::applyWithBloom(const uint32_t sceneTexId, const uint32_t bloomTexId,
-                          const float intensity) const {
-    glDisable(GL_DEPTH_TEST);
-
-    shader->bind();
-    shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
-                                            1.0f / static_cast<float>(height)));
-    shader->setFloat("bloomIntensity", intensity);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneTexId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, bloomTexId);
-
-    vao->bind();
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, quadVertexCount);
-    vao->unbind();
-
-    glActiveTexture(GL_TEXTURE0);
     shader->unbind();
 
     glEnable(GL_DEPTH_TEST);
