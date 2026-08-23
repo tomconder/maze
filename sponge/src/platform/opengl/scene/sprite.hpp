@@ -5,7 +5,6 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
-#include "scene/sprite.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -14,12 +13,12 @@
 
 namespace sponge::platform::opengl::scene {
 
-class Sprite final : public sponge::scene::Sprite {
+class Sprite final {
 public:
     explicit Sprite(const std::string& name, const std::string& texturePath);
 
     void render(const glm::vec2& position, const glm::vec2& size,
-                std::optional<float> alpha) const override;
+                std::optional<float> alpha) const;
 
     std::shared_ptr<renderer::Shader> getShader() const {
         return shader;
