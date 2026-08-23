@@ -35,6 +35,7 @@
 #include "thread/mazeframe.hpp"
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
+#include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
@@ -250,6 +251,15 @@ bool contains(const float x, const float y, const float w, const float h,
     return px >= x && px <= x + w && py >= y && py <= y + h;
 }
 
+constexpr std::array<game::ui::KeyHint, 4> optionKeyHints = {
+    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
+                       "Navigate" },
+    game::ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
+                       "Change" },
+    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
+};
+
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
@@ -291,7 +301,7 @@ void OptionLayer::onAttach() {
         shader->unbind();
     }
 
-    const auto skeleton = ui::buildMenuSkeleton(45.F);
+    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.35F);
     rootNode            = skeleton.root;
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
@@ -512,6 +522,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
+    ui::renderKeyHints(optionKeyHints, menuFont, orthoCamera->getProjection(),
+                       width, height);
+
     if (!isActive()) {
         wasActiveLastFrame    = false;
         waitForConfirmRelease = false;
@@ -628,9 +641,11 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
 }
 
 void OptionLayer::recalculateLayout(const float width, const float height) {
+    // leave room for the key hint bar along the bottom
+    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
     YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, height);
-    YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
+    YGNodeStyleSetHeight(rootNode, usableHeight);
+    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
 }
 
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {

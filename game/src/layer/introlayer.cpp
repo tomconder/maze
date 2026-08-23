@@ -12,9 +12,11 @@
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
+#include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
+#include "version.hpp"
 
 #include <glm/glm.hpp>
 #include <yoga/Yoga.h>
@@ -60,6 +62,12 @@ YGNodeRef rootNode           = nullptr;
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
+
+constexpr std::array<game::ui::KeyHint, 2> introKeyHints = {
+    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
+                       "Navigate" },
+    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+};
 
 bool isRunning = true;
 }  // namespace
@@ -213,34 +221,14 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         UNUSED(menuButtons[i]->onUpdate(elapsedTime));
     }
 
+    static const std::string versionText = project_version + "-" + git_sha;
+    ui::renderKeyHints(introKeyHints, menuFont, orthoCamera->getProjection(),
+                       width, height, versionText);
+
     if (!isActive()) {
         wasActiveLastFrame    = false;
         waitForConfirmRelease = false;
         selectedItem          = IntroMenuItem::NewGame;
-    }
-
-    // Render gamepad connection status
-    {
-        const bool gamepadConnected =
-            sponge::platform::glfw::core::Application::get()
-                .getInputManager()
-                .getSnapshot()
-                .gamepadConnected;
-        const auto* const gamepadStatus =
-            gamepadConnected ? "Gamepad connected" : "No gamepad";
-        constexpr auto statusFontSize = 18;
-        constexpr auto margin         = 10.F;
-        constexpr auto statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
-
-        const auto statusWidth = static_cast<float>(
-            menuFont->getLength(gamepadStatus, statusFontSize));
-        menuFont->beginPass(statusFontSize);
-        menuFont->render(
-            gamepadStatus,
-            { width - statusWidth - margin,
-              height - menuFont->getHeight(statusFontSize) - margin },
-            statusColor);
-        menuFont->endPass();
     }
 
     if (isFadingIn) {
@@ -270,9 +258,11 @@ bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void IntroLayer::recalculateLayout(float width, float height) {
+    // leave room for the key hint bar along the bottom
+    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
     YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, height);
-    YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
+    YGNodeStyleSetHeight(rootNode, usableHeight);
+    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
 }
 
 bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {

@@ -12,11 +12,14 @@ struct MenuSkeleton {
     YGNodeRef menuBackground;
 };
 
-inline MenuSkeleton buildMenuSkeleton(const float menuBackgroundWidthPercent) {
+// titleFlexGrow sets the empty space above the rows, relative to the row area
+// (which is 1.0). Menus with many rows want a smaller share.
+inline MenuSkeleton buildMenuSkeleton(const float menuBackgroundWidthPercent,
+                                      const float titleFlexGrow = 0.9F) {
     auto* const root = YGNodeNew();
 
     auto* const title = YGNodeNew();
-    YGNodeStyleSetFlexGrow(title, 0.9F);
+    YGNodeStyleSetFlexGrow(title, titleFlexGrow);
     YGNodeInsertChild(root, title, 0);
 
     auto* const menu = YGNodeNew();
