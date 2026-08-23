@@ -259,7 +259,7 @@ bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
 
 void IntroLayer::recalculateLayout(float width, float height) {
     // leave room for the key hint bar along the bottom
-    const auto usableHeight = height - ui::keyHintBarHeight(width);
+    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);

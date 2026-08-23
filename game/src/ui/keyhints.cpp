@@ -1,6 +1,7 @@
 #include "ui/keyhints.hpp"
 
 #include "input/activedevice.hpp"
+#include "input/inputsnapshot.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/sprite.hpp"
@@ -8,6 +9,7 @@
 
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <span>
@@ -67,6 +69,10 @@ float keyHintBarHeight(const float windowWidth) {
     return metrics.iconSize + metrics.marginY * 2.F;
 }
 
+float heightWithoutKeyHints(const float windowWidth, const float windowHeight) {
+    return std::max(0.F, windowHeight - keyHintBarHeight(windowWidth));
+}
+
 void renderKeyHints(std::span<const KeyHint>           hints,
                     const std::shared_ptr<BitmapFont>& font,
                     const glm::mat4& projection, const float windowWidth,
@@ -80,7 +86,8 @@ void renderKeyHints(std::span<const KeyHint>           hints,
         metricsFor(windowWidth);
 
     const auto iconTop = windowHeight - marginY - iconSize;
-    const auto textTop = iconTop + (iconSize - static_cast<float>(size)) / 2.F;
+    const auto textTop =
+        iconTop + (iconSize - static_cast<float>(font->getHeight(size))) / 2.F;
 
     const bool gamepad =
         sponge::platform::glfw::core::Application::get()

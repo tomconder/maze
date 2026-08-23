@@ -240,7 +240,7 @@ bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
 void ExitLayer::recalculateLayout(float width, float height) {
     const auto panelWidth = width * 0.54F;
     // leave room for the key hint bar along the bottom
-    const auto usableHeight = height - ui::keyHintBarHeight(width);
+    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
     YGNodeStyleSetWidth(rootNode, panelWidth);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, panelWidth, usableHeight, YGDirectionLTR);

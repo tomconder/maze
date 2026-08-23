@@ -642,7 +642,7 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
 
 void OptionLayer::recalculateLayout(const float width, const float height) {
     // leave room for the key hint bar along the bottom
-    const auto usableHeight = height - ui::keyHintBarHeight(width);
+    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
