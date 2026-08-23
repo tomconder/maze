@@ -12,7 +12,6 @@ enum LoadFlag : uint8_t {
     None                = 0,
     ExcludeAssetsFolder = BIT(0),
     GammaCorrection     = BIT(1),
-    DepthMap            = BIT(2),
 };
 
 struct TextureCreateInfo {
@@ -50,7 +49,6 @@ private:
     uint32_t height = 0;
 
     void loadFromFile(const std::string& path, uint8_t flag);
-    void createDepthMap(uint32_t depthWidth, uint32_t depthHeight) const;
     void generate(uint32_t textureWidth, uint32_t textureHeight,
                   uint32_t bytesPerPixel, const uint8_t* data, uint8_t flag);
 };

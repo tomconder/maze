@@ -5,7 +5,6 @@
 
 #include <stb_image.h>
 
-#include <array>
 #include <filesystem>
 #include <string>
 
@@ -27,10 +26,6 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
                     .string();
 
         loadFromFile(texturePath, createInfo.loadFlag);
-    } else if ((createInfo.loadFlag & DepthMap) == DepthMap) {
-        SPONGE_GL_INFO("Creating depth map texture: [{}, {}x{}]",
-                       createInfo.name, createInfo.width, createInfo.height);
-        createDepthMap(createInfo.width, createInfo.height);
     } else if (createInfo.data != nullptr) {
         SPONGE_GL_INFO("Creating texture from memory: [{}, {}x{}]",
                        createInfo.name, createInfo.width, createInfo.height);
@@ -43,20 +38,6 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
 
 Texture::~Texture() {
     glDeleteTextures(1, &id);
-}
-
-void Texture::createDepthMap(const uint32_t depthWidth,
-                             const uint32_t depthHeight) const {
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthWidth, depthHeight,
-                 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    constexpr std::array<float, 4> borderColor = { 1.F, 1.F, 1.F, 1.F };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
-                     borderColor.data());
 }
 
 void Texture::generate(const uint32_t textureWidth,
