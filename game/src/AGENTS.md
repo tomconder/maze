@@ -41,9 +41,11 @@ primitives, windowing, or platform backends itself — see
   where it's requested.
 * `bloomThreshold` and `bloomIntensity` operate on LINEAR radiance and are
   applied before tone mapping. The bloom texture holds unbounded values, not
-  the [0,1] ones it held when bloom composited after the curve, so both
-  settings are roughly an order of magnitude smaller than they once were.
-  Re-derive them from a texture readback, never by scaling the old numbers.
+  the [0,1] ones it held when bloom composited after the curve, so
+  `bloomIntensity` is roughly an order of magnitude smaller than it once was.
+  `bloomThreshold` stays at 0.8, but it now cuts on radiance, not on a point
+  of the tone curve, so useful values run past 1.0. Re-derive both from a
+  texture readback, never by scaling the old numbers.
 
 ## Anti-patterns
 
