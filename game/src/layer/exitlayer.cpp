@@ -12,6 +12,7 @@
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
+#include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
@@ -58,6 +59,12 @@ YGNodeRef menuNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
+
+constexpr std::array<game::ui::KeyHint, 3> exitKeyHints = {
+    game::ui::KeyHint{ "Arrows", "D-Pad", "Navigate" },
+    game::ui::KeyHint{ "Enter", "A", "Select" },
+    game::ui::KeyHint{ "Esc", "B", "Back" },
+};
 
 bool isRunning = true;
 }  // namespace
@@ -189,6 +196,10 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
           menuBackgroundNodeH] =
         ui::getNodeLayout(menuBackgroundNode, menuNodeX, menuNodeY);
 
+    ui::renderKeyHints(exitKeyHints, menuFont,
+                       static_cast<float>(orthoCamera->getWidth()),
+                       static_cast<float>(orthoCamera->getHeight()));
+
     for (size_t i = 0; i < menuButtons.size(); i++) {
         const auto [x, y, w, h] = ui::getNodeLayout(
             menuNodes[i], menuBackgroundNodeX, menuBackgroundNodeY);
@@ -227,9 +238,11 @@ bool ExitLayer::onWindowResize(const WindowResizeEvent& event) {
 
 void ExitLayer::recalculateLayout(float width, float height) {
     const auto panelWidth = width * 0.54F;
+    // leave room for the key hint bar along the bottom
+    const auto usableHeight = height - ui::keyHintBarHeight(width);
     YGNodeStyleSetWidth(rootNode, panelWidth);
-    YGNodeStyleSetHeight(rootNode, height);
-    YGNodeCalculateLayout(rootNode, panelWidth, height, YGDirectionLTR);
+    YGNodeStyleSetHeight(rootNode, usableHeight);
+    YGNodeCalculateLayout(rootNode, panelWidth, usableHeight, YGDirectionLTR);
 }
 
 bool ExitLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {

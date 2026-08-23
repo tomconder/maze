@@ -12,6 +12,7 @@
 #include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
+#include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
@@ -60,6 +61,11 @@ YGNodeRef rootNode           = nullptr;
 std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
 std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
+
+constexpr std::array<game::ui::KeyHint, 2> introKeyHints = {
+    game::ui::KeyHint{ "Arrows", "D-Pad", "Navigate" },
+    game::ui::KeyHint{ "Enter", "A", "Select" },
+};
 
 bool isRunning = true;
 }  // namespace
@@ -213,6 +219,8 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         UNUSED(menuButtons[i]->onUpdate(elapsedTime));
     }
 
+    ui::renderKeyHints(introKeyHints, menuFont, width, height);
+
     if (!isActive()) {
         wasActiveLastFrame    = false;
         waitForConfirmRelease = false;
@@ -270,9 +278,11 @@ bool IntroLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void IntroLayer::recalculateLayout(float width, float height) {
+    // leave room for the key hint bar along the bottom
+    const auto usableHeight = height - ui::keyHintBarHeight(width);
     YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, height);
-    YGNodeCalculateLayout(rootNode, width, height, YGDirectionLTR);
+    YGNodeStyleSetHeight(rootNode, usableHeight);
+    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
 }
 
 bool IntroLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
