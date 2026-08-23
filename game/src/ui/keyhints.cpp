@@ -3,6 +3,8 @@
 #include "input/activedevice.hpp"
 #include "input/inputsnapshot.hpp"
 #include "platform/glfw/core/application.hpp"
+#include "platform/glfw/core/inputmanager.hpp"
+#include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/sprite.hpp"
 #include "ui/menufontsize.hpp"
