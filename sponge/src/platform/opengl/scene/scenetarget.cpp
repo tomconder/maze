@@ -31,15 +31,8 @@ void SceneTarget::initialize() {
 void SceneTarget::createFramebuffer() {
     // RGB16F, not RGB8: the whole point of this target is that radiance above
     // 1.0 survives as far as the bloom extract and the tone map.
-    glGenTextures(1, &colorTexture);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
+                                                GL_RGB, GL_FLOAT, GL_LINEAR);
 
     // GL_DEPTH_COMPONENT24 to match the prepass FBO — blitDepthToCurrentFbo()
     // requires identical depth formats.

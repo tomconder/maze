@@ -41,26 +41,17 @@ void Bloom::initialize() {
 void Bloom::createFramebuffers() {
     // Mip-chain FBOs: level i at (width >> (i+1)) x (height >> (i+1))
     glGenFramebuffers(numLevels, downFbos.data());
-    glGenTextures(numLevels, downTextures.data());
     glGenFramebuffers(numLevels, upFbos.data());
-    glGenTextures(numLevels, upTextures.data());
-
-    auto makeMipTex = [](uint32_t tex, GLsizei w, GLsizei h) {
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, w, h, 0, GL_RGB, GL_FLOAT,
-                     nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_2D, 0);
+    auto makeMipTex = [](uint32_t w, uint32_t h) {
+        return renderer::createRenderTarget(w, h, GL_RGB16F, GL_RGB, GL_FLOAT,
+                                            GL_LINEAR);
     };
 
     for (int i = 0; i < numLevels; i++) {
-        const auto w = static_cast<GLsizei>(width >> (i + 1));
-        const auto h = static_cast<GLsizei>(height >> (i + 1));
+        const auto w = width >> (i + 1);
+        const auto h = height >> (i + 1);
 
-        makeMipTex(downTextures[i], w, h);
+        downTextures[i] = makeMipTex(w, h);
         glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_2D, downTextures[i], 0);
@@ -69,7 +60,7 @@ void Bloom::createFramebuffers() {
             SPONGE_GL_CRITICAL("Bloom down framebuffer {} is not complete!", i);
         }
 
-        makeMipTex(upTextures[i], w, h);
+        upTextures[i] = makeMipTex(w, h);
         glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_2D, upTextures[i], 0);

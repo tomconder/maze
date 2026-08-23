@@ -56,29 +56,21 @@ ShadowMap::~ShadowMap() {
 
 void ShadowMap::initialize() {
     // Moment texture (RG32F): R = depth, G = depth²
-    glGenTextures(1, &momentTexture);
+    momentTexture = renderer::createRenderTarget(
+        shadowWidth, shadowHeight, GL_RG32F, GL_RG, GL_FLOAT, GL_LINEAR);
+    // Overrides the helper's CLAMP_TO_EDGE: outside the light frustum the
+    // moments must read as fully lit, which is what the border colour encodes.
     glBindTexture(GL_TEXTURE_2D, momentTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, static_cast<GLsizei>(shadowWidth),
-                 static_cast<GLsizei>(shadowHeight), 0, GL_RG, GL_FLOAT,
-                 nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     const std::array<float, 4> borderColor = { 1.F, 1.F, 0.F, 0.F };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
                      borderColor.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // Blur ping-pong texture (same format)
-    glGenTextures(1, &blurTexture);
-    glBindTexture(GL_TEXTURE_2D, blurTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, static_cast<GLsizei>(shadowWidth),
-                 static_cast<GLsizei>(shadowHeight), 0, GL_RG, GL_FLOAT,
-                 nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    blurTexture = renderer::createRenderTarget(
+        shadowWidth, shadowHeight, GL_RG32F, GL_RG, GL_FLOAT, GL_LINEAR);
 
     // Depth renderbuffer for depth testing during the moment-writing pass
     glGenRenderbuffers(1, &depthRbo);

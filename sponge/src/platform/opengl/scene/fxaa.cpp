@@ -31,23 +31,16 @@ void FXAA::initialize() {
 }
 
 void FXAA::createFramebuffer() {
-    glGenTextures(1, &colorTexture);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
     // RGB16F, not RGB8. This holds the tone-mapped image on its way into the
     // filter, and an 8-bit target here would quantise it a second time — once
     // undithered on the way in, once dithered on the way out — which is the
     // banding dither8 exists to prevent. Dither belongs at the final write
     // only, which is apply()'s.
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT, nullptr);
-
+    //
     // Linear filtering is required — FXAA samples between texels when blending
     // across detected edges, so nearest-neighbor would negate the entire pass.
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
+                                                GL_RGB, GL_FLOAT, GL_LINEAR);
 
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);

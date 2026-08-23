@@ -79,15 +79,8 @@ void TAA::createFramebuffers() {
     // Receives the tone-mapped image from SceneTarget::resolve(). RGB16F
     // rather than 8-bit so the history accumulates without requantising the
     // input every frame.
-    glGenTextures(1, &sceneColorTexture);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                 static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    sceneColorTexture = renderer::createRenderTarget(
+        width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
 
     glGenFramebuffers(1, &sceneFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
@@ -100,16 +93,8 @@ void TAA::createFramebuffers() {
     // Float history: with a 0.1 blend factor an 8-bit target quantises every
     // increment below 1/255 to zero and the image never converges.
     for (uint32_t i = 0; i < historyTextures.size(); i++) {
-        glGenTextures(1, &historyTextures[i]);
-        glBindTexture(GL_TEXTURE_2D, historyTextures[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, static_cast<GLsizei>(width),
-                     static_cast<GLsizei>(height), 0, GL_RGB, GL_FLOAT,
-                     nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        historyTextures[i] = renderer::createRenderTarget(
+            width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
 
         glGenFramebuffers(1, &historyFbos[i]);
         glBindFramebuffer(GL_FRAMEBUFFER, historyFbos[i]);
