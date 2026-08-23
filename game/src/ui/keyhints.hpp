@@ -25,9 +25,11 @@ float keyHintBarHeight(float windowWidth);
 // Draws a row of input prompts along the bottom-left of the window. Positioned
 // from the window size, not the Yoga tree, so it survives resize without
 // relayout. Shows the gamepad prompt while the gamepad is the device in use.
+// rightText, if given, is drawn on the same line against the right margin.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth, float windowHeight);
+    const glm::mat4& projection, float windowWidth, float windowHeight,
+    std::string_view rightText = {});
 
 }  // namespace game::ui

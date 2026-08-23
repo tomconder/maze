@@ -16,7 +16,8 @@
 #include <unordered_map>
 
 namespace {
-constexpr glm::vec3 labelColor = { 0.9F, 0.9F, 0.9F };
+constexpr glm::vec3 labelColor     = { 0.9F, 0.9F, 0.9F };
+constexpr glm::vec3 rightTextColor = { 0.6F, 0.6F, 0.6F };
 
 struct Metrics {
     uint32_t size;
@@ -69,7 +70,8 @@ float keyHintBarHeight(const float windowWidth) {
 void renderKeyHints(std::span<const KeyHint>           hints,
                     const std::shared_ptr<BitmapFont>& font,
                     const glm::mat4& projection, const float windowWidth,
-                    const float windowHeight) {
+                    const float            windowHeight,
+                    const std::string_view rightText) {
     if (hints.empty()) {
         return;
     }
@@ -104,6 +106,15 @@ void renderKeyHints(std::span<const KeyHint>           hints,
 
         x += iconSize + gap +
              static_cast<float>(font->getLength(hint.label, size)) + gap * 2.F;
+    }
+
+    if (!rightText.empty()) {
+        const auto textWidth =
+            static_cast<float>(font->getLength(rightText, size));
+        font->beginPass(size);
+        font->render(rightText, { windowWidth - marginX - textWidth, textTop },
+                     rightTextColor);
+        font->endPass();
     }
 }
 }  // namespace game::ui

@@ -221,31 +221,14 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         UNUSED(menuButtons[i]->onUpdate(elapsedTime));
     }
 
+    static const std::string versionText = project_version + "-" + git_sha;
     ui::renderKeyHints(introKeyHints, menuFont, orthoCamera->getProjection(),
-                       width, height);
+                       width, height, versionText);
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
         waitForConfirmRelease = false;
         selectedItem          = IntroMenuItem::NewGame;
-    }
-
-    // Render the build version
-    {
-        static const std::string versionText = project_version + "-" + git_sha;
-        constexpr auto           statusFontSize = 18;
-        constexpr auto           margin         = 10.F;
-        constexpr auto           statusColor    = glm::vec3{ 0.6F, 0.6F, 0.6F };
-
-        const auto statusWidth = static_cast<float>(
-            menuFont->getLength(versionText, statusFontSize));
-        menuFont->beginPass(statusFontSize);
-        menuFont->render(
-            versionText,
-            { width - statusWidth - margin,
-              height - menuFont->getHeight(statusFontSize) - margin },
-            statusColor);
-        menuFont->endPass();
     }
 
     if (isFadingIn) {
