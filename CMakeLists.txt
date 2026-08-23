@@ -21,9 +21,11 @@ execute_process(
         OUTPUT_VARIABLE GIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# FORCE: a plain cache entry keeps the hash from the first configure, so the
+# version the game shows goes stale after the next commit
 set(GIT_SHA
         ${GIT_HASH}
-        CACHE STRING "Hash this build was generated from")
+        CACHE STRING "Hash this build was generated from" FORCE)
 
 message(STATUS "Configuring ${PROJECT_NAME} ${PROJECT_VERSION} ${GIT_SHA}")
 
