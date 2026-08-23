@@ -26,14 +26,4 @@ struct TransparentStringHash {
     }
 };
 
-// Transparent equality comparator for heterogeneous string lookup
-struct TransparentStringEqual {
-    using is_transparent = void;
-
-    [[nodiscard]] bool operator()(const std::string_view lhs,
-                                  const std::string_view rhs) const noexcept {
-        return lhs == rhs;
-    }
-};
-
 }  // namespace sponge::core
