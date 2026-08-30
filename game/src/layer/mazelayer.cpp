@@ -223,11 +223,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 }
 
 void MazeLayer::activate() {
-#ifdef ENABLE_IMGUI
     if (isImguiOpen) {
         Maze::get().getImGuiLayer()->setActive(true);
     }
-#endif
     setActive(true);
 }
 
@@ -297,19 +295,15 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
             inputManager.setMouseLookActive(false);
             mouseButtonPressed = false;
             inputManager.setActiveContext(sponge::input::InputContext::Menu);
-#ifdef ENABLE_IMGUI
             if (isImguiOpen) {
                 Maze::get().getImGuiLayer()->setActive(false);
             }
-#endif
         }
 
-#ifdef ENABLE_IMGUI
         if (!overlayActive && snap.isActive(GameAction::ToggleDebugUI)) {
             isImguiOpen = !isImguiOpen;
             Maze::get().getImGuiLayer()->setActive(isImguiOpen);
         }
-#endif
         if (!overlayActive && snap.isActive(GameAction::ToggleFullscreen)) {
             Application::get().toggleFullscreen();
         }
@@ -980,9 +974,7 @@ void MazeLayer::setBloomIntensity(const float val) {
     bloomIntensity = val;
 }
 
-#ifdef ENABLE_IMGUI
 bool MazeLayer::isImguiActive() const {
     return isImguiOpen;
 }
-#endif
 }  // namespace game::layer

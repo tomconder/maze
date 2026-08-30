@@ -293,9 +293,7 @@ void Application::run() {
 
         renderer->clear();
         imguiManager.begin();
-#ifdef ENABLE_IMGUI
         onImGuiRender();
-#endif
         for (const auto& layer : *layerStack) {
             if (!layer->isActive()) {
                 continue;

@@ -6,7 +6,8 @@ file(
         GLOB HEADER_FILES
         CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
-        src/*.hpp src/layer/*.hpp src/scene/*.hpp src/thread/*.hpp src/ui/*.hpp)
+        src/*.hpp src/layer/*.hpp src/layer/imgui/*.hpp src/scene/*.hpp
+        src/thread/*.hpp src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
@@ -20,11 +21,6 @@ file(
         ${CMAKE_SOURCE_DIR}/assets/*)
 
 if (ENABLE_IMGUI)
-    file(
-            GLOB IMGUI_HEADERS
-            LIST_DIRECTORIES false
-            src/layer/imgui/*.hpp)
-    list(APPEND HEADER_FILES ${IMGUI_HEADERS})
     file(
             GLOB IMGUI_SOURCES
             LIST_DIRECTORIES false
