@@ -14,6 +14,13 @@ primitives, windowing, or platform backends itself — see
   shadow map, bloom/FXAA/TAA post-processing, and the update/render split.
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/exitlayer.hpp`,
   `layer/splashscreenlayer.hpp` - other screens in the layer stack.
+* `layer/imgui/imguilayer.hpp` / `.cpp` - the debug UI, compiled only when
+  `ENABLE_IMGUI`. `layer/imgui/noopimguilayer.hpp` defines an inert
+  `ImGuiLayer` with the same name for release builds, picked by the single
+  `#ifdef` in `maze.hpp`, so no other file needs one. Mirrors
+  `GLFWManager`/`NoopManager` in `../../sponge/src/platform/glfw/imgui/`.
+  Never link imgui into release: keep the `imgui::imgui` link and the
+  `layer/imgui/*.cpp` glob behind `ENABLE_IMGUI`.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants

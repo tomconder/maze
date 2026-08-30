@@ -21,10 +21,8 @@ Maze::Maze(ApplicationSpecification specification) :
 }
 
 bool Maze::onUserCreate() {
-#ifdef ENABLE_IMGUI
     pushOverlay(imguiLayer);
     imguiLayer->setActive(false);
-#endif
 
     pushOverlay(splashScreenLayer);
     pushOverlay(exitLayer);

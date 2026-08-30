@@ -11,6 +11,8 @@
 
 #ifdef ENABLE_IMGUI
 #include "layer/imgui/imguilayer.hpp"
+#else
+#include "layer/imgui/noopimguilayer.hpp"
 #endif
 
 #include "layer/optionlayer.hpp"
@@ -39,11 +41,9 @@ public:
         return exitLayer;
     }
 
-#ifdef ENABLE_IMGUI
     std::shared_ptr<layer::imgui::ImGuiLayer> getImGuiLayer() const {
         return imguiLayer;
     }
-#endif
 
     std::shared_ptr<layer::IntroLayer> getIntroLayer() const {
         return introLayer;
@@ -102,10 +102,8 @@ private:
 
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
-#ifdef ENABLE_IMGUI
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
-#endif
     std::shared_ptr<layer::IntroLayer> introLayer =
         std::make_shared<layer::IntroLayer>();
     std::shared_ptr<layer::LoadingLayer> loadingLayer =

@@ -301,11 +301,9 @@ bool ExitLayer::onMouseMoved(const MouseMovedEvent& event) {
 
 void ExitLayer::resumeGame() {
     setActive(false);
-#ifdef ENABLE_IMGUI
     if (Maze::get().getMazeLayer()->isImguiActive()) {
         Maze::get().getImGuiLayer()->setActive(true);
     }
-#endif
 }
 
 void ExitLayer::clearHoveredItems() {

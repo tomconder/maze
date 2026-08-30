@@ -113,9 +113,7 @@ public:
     float getBloomIntensity() const;
     void  setBloomIntensity(float val);
 
-#ifdef ENABLE_IMGUI
     bool isImguiActive() const;
-#endif
 
     // True once finishLoading() has run; LoadingLayer skips reloading if set.
     bool isLoaded() const {
@@ -221,9 +219,7 @@ private:
     float   bloomIntensity     = 0.08F;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
-#ifdef ENABLE_IMGUI
-    bool isImguiOpen = true;
-#endif
+    bool    isImguiOpen        = true;
 
     void onWindowFocus(const sponge::event::WindowFocusEvent& event);
 
