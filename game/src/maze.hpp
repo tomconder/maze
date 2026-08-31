@@ -4,6 +4,7 @@
 #include "event/event.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
+#include "layer/keymaplayer.hpp"
 #include "layer/loadinglayer.hpp"
 #include "layer/mazelayer.hpp"
 #include "layer/splashscreenlayer.hpp"
@@ -47,6 +48,16 @@ public:
 
     std::shared_ptr<layer::IntroLayer> getIntroLayer() const {
         return introLayer;
+    }
+
+    std::shared_ptr<layer::KeyMapLayer> getKeyMapLayer() const {
+        return keyMapLayer;
+    }
+
+    // The options screen is two layers, one per tab, and only one of them is
+    // ever active — ask this rather than any single layer.
+    bool isOptionsOpen() const {
+        return optionLayer->isActive() || keyMapLayer->isActive();
     }
 
     std::shared_ptr<layer::LoadingLayer> getLoadingLayer() const {
@@ -106,6 +117,8 @@ private:
         std::make_shared<layer::imgui::ImGuiLayer>();
     std::shared_ptr<layer::IntroLayer> introLayer =
         std::make_shared<layer::IntroLayer>();
+    std::shared_ptr<layer::KeyMapLayer> keyMapLayer =
+        std::make_shared<layer::KeyMapLayer>();
     std::shared_ptr<layer::LoadingLayer> loadingLayer =
         std::make_shared<layer::LoadingLayer>();
     std::shared_ptr<layer::MazeLayer> mazeLayer =

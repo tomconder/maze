@@ -1,10 +1,13 @@
 #include "platform/glfw/core/inputmanager.hpp"
 
 #include <atomic>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <string>
 
+#include "core/settings.hpp"
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/keycode.hpp"
@@ -14,6 +17,12 @@
 namespace sponge::platform::glfw::core {
 
 InputManager* InputManager::instance = nullptr;
+
+namespace {
+std::string bindingSettingsKey(const input::GameAction action) {
+    return "input." + std::string(input::actionNames[+action]);
+}
+}  // namespace
 
 static_assert(+input::InputContext::Menu + 1 == 2,
               "Update bindingMaps array size to match InputContext values");
@@ -137,8 +146,171 @@ void InputManager::update() {
     resolvedContext = static_cast<input::InputContext>(
         pendingContext.exchange(0, std::memory_order_acq_rel));
 
-    // 7. Map bindings to snapshot
-    resolveActions();
+    // 7. Map bindings to snapshot. A pending rebind swallows the frame so the
+    //    captured key cannot also fire the action it is being bound to.
+    if (pendingResetBindings.exchange(false, std::memory_order_acq_rel)) {
+        resetBindings();
+        // a reset cancels a capture that never got its key
+        rebindAction.store(-1, std::memory_order_release);
+    }
+    if (captureRebind()) {
+        snapshot.active.fill(false);
+        snapshot.held.fill(false);
+        snapshot.axis.fill(0.f);
+    } else {
+        resolveActions();
+    }
+}
+
+int InputManager::getPrimaryKey(const input::GameAction action) const {
+    for (const auto& map : bindingMaps) {
+        for (const auto& binding : map[+action]) {
+            if (binding.type == input::BindingType::Key) {
+                return binding.rawCode;
+            }
+        }
+    }
+    return 0;
+}
+
+void InputManager::setPrimaryKey(const input::GameAction action,
+                                 const int               rawCode) {
+    for (auto& map : bindingMaps) {
+        for (auto& binding : map[+action]) {
+            if (binding.type == input::BindingType::Key) {
+                binding.rawCode = rawCode;
+                break;
+            }
+        }
+    }
+}
+
+std::string InputManager::keyLabel(const int rawCode) {
+    using input::KeyCode;
+
+    switch (static_cast<KeyCode>(rawCode)) {
+        case KeyCode::SpongeKey_None:
+            return "Unbound";
+        case KeyCode::SpongeKey_Space:
+            return "Space";
+        case KeyCode::SpongeKey_GraveAccent:
+            return "`";
+        case KeyCode::SpongeKey_Escape:
+            return "Escape";
+        case KeyCode::SpongeKey_Enter:
+            return "Enter";
+        case KeyCode::SpongeKey_Tab:
+            return "Tab";
+        case KeyCode::SpongeKey_Backspace:
+            return "Backspace";
+        case KeyCode::SpongeKey_Insert:
+            return "Insert";
+        case KeyCode::SpongeKey_Delete:
+            return "Delete";
+        case KeyCode::SpongeKey_Right:
+            return "Right";
+        case KeyCode::SpongeKey_Left:
+            return "Left";
+        case KeyCode::SpongeKey_Down:
+            return "Down";
+        case KeyCode::SpongeKey_Up:
+            return "Up";
+        case KeyCode::SpongeKey_PageUp:
+            return "Page Up";
+        case KeyCode::SpongeKey_PageDown:
+            return "Page Down";
+        case KeyCode::SpongeKey_Home:
+            return "Home";
+        case KeyCode::SpongeKey_End:
+            return "End";
+        case KeyCode::SpongeKey_LeftShift:
+            return "Left Shift";
+        case KeyCode::SpongeKey_RightShift:
+            return "Right Shift";
+        case KeyCode::SpongeKey_LeftControl:
+            return "Left Ctrl";
+        case KeyCode::SpongeKey_RightControl:
+            return "Right Ctrl";
+        case KeyCode::SpongeKey_LeftAlt:
+            return "Left Alt";
+        case KeyCode::SpongeKey_RightAlt:
+            return "Right Alt";
+        case KeyCode::SpongeKey_KPEnter:
+            return "Keypad Enter";
+        default:
+            break;
+    }
+
+    // Function and keypad keys are contiguous, so one label each is enough.
+    if (rawCode >= GLFW_KEY_F1 && rawCode <= GLFW_KEY_F25) {
+        return "F" + std::to_string(rawCode - GLFW_KEY_F1 + 1);
+    }
+    if (rawCode >= GLFW_KEY_KP_0 && rawCode <= GLFW_KEY_KP_9) {
+        return "Keypad " + std::to_string(rawCode - GLFW_KEY_KP_0);
+    }
+
+    // Printable keys carry a layout-dependent name; GLFW reports it lower case.
+    if (const char* name = glfwGetKeyName(rawCode, 0); name != nullptr) {
+        std::string label{ name };
+        for (auto& c : label) {
+            c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        }
+        return label;
+    }
+
+    return "Key " + std::to_string(rawCode);
+}
+
+// Settings writes happen here, on the main thread, rather than in the menu
+// layer that asked for the rebind: Settings is not thread-safe.
+bool InputManager::captureRebind() {
+    const int pending = rebindAction.load(std::memory_order_acquire);
+    if (pending < 0) {
+        return false;
+    }
+
+    for (int key = 0; key <= GLFW_KEY_LAST; key++) {
+        if (!keyDown[key] || keyPrev[key]) {
+            continue;
+        }
+        // ponytail: no conflict check — the same key may end up on two
+        // actions; add a duplicate scan here if that proves confusing.
+        // ponytail: Escape cancels, so an action cannot be bound back to
+        // Escape by hand; Reset to Defaults restores the ones that had it.
+        if (key != +input::KeyCode::SpongeKey_Escape) {
+            const auto action = static_cast<input::GameAction>(pending);
+            setPrimaryKey(action, key);
+            sponge::core::Settings::set(bindingSettingsKey(action),
+                                        static_cast<uint32_t>(key));
+            sponge::core::Settings::save();
+        }
+        rebindAction.store(-1, std::memory_order_release);
+        break;
+    }
+
+    return true;
+}
+
+void InputManager::resetBindings() {
+    for (int action = 0; action < +input::GameAction::Count; action++) {
+        sponge::core::Settings::set(
+            bindingSettingsKey(static_cast<input::GameAction>(action)),
+            static_cast<uint32_t>(0));
+    }
+    sponge::core::Settings::save();
+    buildDefaultBindings();
+}
+
+// A stored key of 0 means "no override", so defaults survive a reset.
+void InputManager::applyBindingOverrides() {
+    for (int action = 0; action < +input::GameAction::Count; action++) {
+        const auto gameAction = static_cast<input::GameAction>(action);
+        const auto rawCode    = sponge::core::Settings::getUInt32(
+            bindingSettingsKey(gameAction), 0);
+        if (rawCode > 0 && rawCode <= GLFW_KEY_LAST) {
+            setPrimaryKey(gameAction, static_cast<int>(rawCode));
+        }
+    }
 }
 
 void InputManager::pollGamepad() {
@@ -461,6 +633,32 @@ void InputManager::buildDefaultBindings() {
         },
     };
 
+    // Category tabs on the menu screens.
+    menu[+GameAction::TabPrev] = {
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_Q,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_LEFT_BUMPER,
+            .axisScale = 1.f,
+        },
+    };
+    menu[+GameAction::TabNext] = {
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_E,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER,
+            .axisScale = 1.f,
+        },
+    };
+
     // ── Gameplay ──────────────────────────────────────────────────────────
     gameplay[+GameAction::MoveForward] = {
         InputBinding{
@@ -605,6 +803,8 @@ void InputManager::buildDefaultBindings() {
             .axisScale = 1.f,
         },
     };
+
+    applyBindingOverrides();
 }
 
 }  // namespace sponge::platform::glfw::core

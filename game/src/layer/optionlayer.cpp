@@ -40,6 +40,7 @@
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
 #include "ui/selectlist.hpp"
+#include "ui/tabbar.hpp"
 
 namespace {
 struct AspectRatioFilter {
@@ -426,6 +427,13 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             if (input.isActive(GameAction::MenuRight)) {
                 cycleList(selectedItem, 1);
             }
+            if (input.isActive(GameAction::TabNext) ||
+                input.isActive(GameAction::TabPrev)) {
+                mgr.consumeActive(GameAction::TabNext);
+                mgr.consumeActive(GameAction::TabPrev);
+                clearHoveredItems();
+                ui::showOptionTab(ui::OptionTab::Keyboard);
+            }
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
                 clearHoveredItems();
@@ -522,6 +530,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
+    ui::renderTabBar(ui::OptionTab::Display, menuFont,
+                     orthoCamera->getProjection(), width);
+
     ui::renderKeyHints(optionKeyHints, menuFont, orthoCamera->getProjection(),
                        width, height);
 
@@ -548,8 +559,9 @@ void OptionLayer::renderRowBackground(float x, float y, const float w,
 
 std::tuple<float, float, float, float>
     OptionLayer::rowLayout(const OptionMenuItem item) {
-    const auto [rootX, rootY, rootW, rootH] =
-        ui::getNodeLayout(rootNode, 0.F, 0.F);
+    const auto [rootX, rootY, rootW, rootH] = ui::getNodeLayout(
+        rootNode, 0.F,
+        ui::tabBarHeight(static_cast<float>(orthoCamera->getWidth())));
     const auto [menuX, menuY, menuW, menuH] =
         ui::getNodeLayout(menuNode, rootX, rootY);
     const auto [bgX, bgY, bgW, bgH] =
@@ -641,8 +653,11 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
 }
 
 void OptionLayer::recalculateLayout(const float width, const float height) {
-    // leave room for the key hint bar along the bottom
-    const auto usableHeight = ui::heightWithoutKeyHints(width, height);
+    // leave room for the tab bar along the top and the key hint bar along the
+    // bottom
+    const auto usableHeight =
+        std::max(0.F, ui::heightWithoutKeyHints(width, height) -
+                          ui::tabBarHeight(width));
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
@@ -655,6 +670,15 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     auto [mouseX, mouseY] =
         sponge::platform::glfw::core::Application::get().getMousePosition();
+
+    const auto clickedTab =
+        ui::tabBarHitTest(menuFont, static_cast<float>(orthoCamera->getWidth()),
+                          { mouseX, mouseY });
+    if (clickedTab) {
+        clearHoveredItems();
+        ui::showOptionTab(*clickedTab);
+        return true;
+    }
 
     if (returnButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges) {

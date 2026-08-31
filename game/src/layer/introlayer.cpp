@@ -168,8 +168,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             }
         }
 
-        if (wasActiveLastFrame && !isFadingIn &&
-            !Maze::get().getOptionLayer()->isActive()) {
+        if (wasActiveLastFrame && !isFadingIn && !Maze::get().isOptionsOpen()) {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
 
@@ -186,7 +185,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         wasActiveLastFrame = true;
     }
 
-    if (Maze::get().getOptionLayer()->isActive()) {
+    if (Maze::get().isOptionsOpen()) {
         return isRunning;
     }
 

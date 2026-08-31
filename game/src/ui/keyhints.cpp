@@ -46,7 +46,11 @@ Metrics metricsFor(const float windowWidth) {
              windowWidth * 0.03F, iconSize * 0.3F };
 }
 
-// Prompt sprites, built on first use — construction needs a GL context.
+}  // namespace
+
+namespace game::ui {
+using sponge::platform::opengl::scene::BitmapFont;
+
 const sponge::platform::opengl::scene::Sprite&
     promptSprite(const std::string_view name) {
     static std::unordered_map<
@@ -61,10 +65,6 @@ const sponge::platform::opengl::scene::Sprite&
     }
     return *sprite;
 }
-}  // namespace
-
-namespace game::ui {
-using sponge::platform::opengl::scene::BitmapFont;
 
 float keyHintBarHeight(const float windowWidth) {
     const auto metrics = metricsFor(windowWidth);

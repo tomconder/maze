@@ -27,6 +27,7 @@ bool Maze::onUserCreate() {
     pushOverlay(splashScreenLayer);
     pushOverlay(exitLayer);
     pushOverlay(optionLayer);
+    pushOverlay(keyMapLayer);
 
     pushLayer(mazeLayer);
     pushLayer(loadingLayer);
@@ -36,6 +37,7 @@ bool Maze::onUserCreate() {
     introLayer->setActive(false);
     loadingLayer->setActive(false);
     mazeLayer->setActive(false);
+    keyMapLayer->setActive(false);
     optionLayer->setActive(false);
     splashScreenLayer->setActive(true);
 

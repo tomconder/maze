@@ -158,7 +158,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
             }
         }
 
-        if (wasActiveLastFrame && !Maze::get().getOptionLayer()->isActive()) {
+        if (wasActiveLastFrame && !Maze::get().isOptionsOpen()) {
             const auto& input = mgr.getSnapshot();
 
             if (ui::stepSelection(input, selectedItem)) {
@@ -179,7 +179,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         wasActiveLastFrame = true;
     }
 
-    if (Maze::get().getOptionLayer()->isActive()) {
+    if (Maze::get().isOptionsOpen()) {
         return isRunning;
     }
 
