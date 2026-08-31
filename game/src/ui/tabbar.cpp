@@ -65,27 +65,20 @@ struct TabRect {
     float width;
 };
 
-// Left edge and width of every tab label. The icons bracket the labels and the
-// whole row is centred, so the labels sit off-centre by half an icon.
+// Left edge and width of every tab label. left is the strip's left edge, where
+// the first prompt icon sits, so the labels start one icon further in.
 std::array<TabRect, tabCount> tabRects(
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const float windowWidth) {
+    const float windowWidth, const float left) {
     const auto metrics = metricsFor(windowWidth);
 
     std::array<TabRect, tabCount> rects{};
-    float                         total = 0.F;
+    float                         x = left + metrics.iconSize + metrics.iconGap;
     for (size_t i = 0; i < tabCount; i++) {
         rects[i].width = static_cast<float>(
             font->getLength(game::ui::optionTabLabels[i], metrics.size));
-        total += rects[i].width;
-    }
-    total += metrics.tabGap * (static_cast<float>(tabCount) - 1.F);
-    total += (metrics.iconSize + metrics.iconGap) * 2.F;
-
-    float x = (windowWidth - total) / 2.F + metrics.iconSize + metrics.iconGap;
-    for (auto& rect : rects) {
-        rect.x = x;
-        x += rect.width + metrics.tabGap;
+        rects[i].x = x;
+        x += rects[i].width + metrics.tabGap;
     }
     return rects;
 }
@@ -102,9 +95,10 @@ float tabBarHeight(const float windowWidth) {
 
 void renderTabBar(const OptionTab                    active,
                   const std::shared_ptr<BitmapFont>& font,
-                  const glm::mat4& projection, const float windowWidth) {
+                  const glm::mat4& projection, const float windowWidth,
+                  const float left) {
     const auto metrics = metricsFor(windowWidth);
-    const auto rects   = tabRects(font, windowWidth);
+    const auto rects   = tabRects(font, windowWidth, left);
 
     const auto iconTop = metrics.marginY;
     const auto textTop =
@@ -154,12 +148,13 @@ void renderTabBar(const OptionTab                    active,
 
 std::optional<OptionTab> tabBarHitTest(const std::shared_ptr<BitmapFont>& font,
                                        const float      windowWidth,
+                                       const float      left,
                                        const glm::vec2& position) {
     if (position.y < 0.F || position.y > tabBarHeight(windowWidth)) {
         return std::nullopt;
     }
 
-    const auto rects = tabRects(font, windowWidth);
+    const auto rects = tabRects(font, windowWidth, left);
     for (size_t i = 0; i < tabCount; i++) {
         if (position.x >= rects[i].x &&
             position.x <= rects[i].x + rects[i].width) {

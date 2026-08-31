@@ -530,8 +530,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     UNUSED(returnButton->onUpdate(elapsedTime));
 
+    // the strip lines up with the rows, so it starts at the first row's edge
+    const auto [tabX, tabY, tabW, tabH] =
+        rowLayout(OptionMenuItem::AspectRatio);
     ui::renderTabBar(ui::OptionTab::Display, menuFont,
-                     orthoCamera->getProjection(), width);
+                     orthoCamera->getProjection(), width, tabX);
 
     ui::renderKeyHints(optionKeyHints, menuFont, orthoCamera->getProjection(),
                        width, height);
@@ -671,9 +674,11 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     auto [mouseX, mouseY] =
         sponge::platform::glfw::core::Application::get().getMousePosition();
 
+    const auto [tabX, tabY, tabW, tabH] =
+        rowLayout(OptionMenuItem::AspectRatio);
     const auto clickedTab =
         ui::tabBarHitTest(menuFont, static_cast<float>(orthoCamera->getWidth()),
-                          { mouseX, mouseY });
+                          tabX, { mouseX, mouseY });
     if (clickedTab) {
         clearHoveredItems();
         ui::showOptionTab(*clickedTab);

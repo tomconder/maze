@@ -295,8 +295,10 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
         UNUSED(button->onUpdate(elapsedTime));
     }
 
+    // the strip lines up with the rows, so it starts at the first row's edge
+    const auto [tabX, tabY, tabW, tabH] = rowLayout(KeyMapItem::MoveForward);
     ui::renderTabBar(ui::OptionTab::Keyboard, menuFont,
-                     orthoCamera->getProjection(), width);
+                     orthoCamera->getProjection(), width, tabX);
 
     ui::renderKeyHints(keyMapKeyHints, menuFont, orthoCamera->getProjection(),
                        width, height);
@@ -376,9 +378,10 @@ bool KeyMapLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     auto [mouseX, mouseY] =
         sponge::platform::glfw::core::Application::get().getMousePosition();
 
+    const auto [tabX, tabY, tabW, tabH] = rowLayout(KeyMapItem::MoveForward);
     const auto clickedTab =
         ui::tabBarHitTest(menuFont, static_cast<float>(orthoCamera->getWidth()),
-                          { mouseX, mouseY });
+                          tabX, { mouseX, mouseY });
     if (clickedTab) {
         clearHoveredItems();
         ui::showOptionTab(*clickedTab);

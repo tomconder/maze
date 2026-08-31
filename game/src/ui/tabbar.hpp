@@ -23,19 +23,19 @@ constexpr std::array<std::string_view, static_cast<size_t>(OptionTab::Count)>
 float tabBarHeight(float windowWidth);
 
 // Draws the tabs across the top of the window, underlining the active one and
-// bracketing them with the prompts that switch tab. Positioned from the window
-// size, not the Yoga tree, so it survives resize without relayout. Shares the
+// bracketing them with the prompts that switch tab. The strip starts at left,
+// which callers pass from their first row so the two line up. Shares the
 // caller's font and quad shaders, so the caller must already have set their
 // projection this frame.
 void renderTabBar(
     OptionTab                                                           active,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth);
+    const glm::mat4& projection, float windowWidth, float left);
 
-// Tab under a point, if any.
+// Tab under a point, if any. left must match the value given to renderTabBar.
 std::optional<OptionTab> tabBarHitTest(
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    float windowWidth, const glm::vec2& position);
+    float windowWidth, float left, const glm::vec2& position);
 
 // Hands the screen to the layer that owns the tab.
 void showOptionTab(OptionTab tab);
