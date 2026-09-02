@@ -353,31 +353,18 @@ void InputManager::updateActiveDevice() {
         }
     }
 
-    // Physical Escape switches to KeyboardMouse. Placed after the gamepad
-    // check so a driver-aliased Escape (e.g. from Start) does not falsely
-    // set the device while the gamepad button is held.
-    if (keyDown[+input::KeyCode::SpongeKey_Escape]) {
-        snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
-        return;
-    }
-
-    // Arrow keys switch to KeyboardMouse. No early return — the gamepad check
-    // above has already run, so there is nothing left to override this.
-    if (keyDown[+input::KeyCode::SpongeKey_Up] ||
-        keyDown[+input::KeyCode::SpongeKey_Down] ||
-        keyDown[+input::KeyCode::SpongeKey_Left] ||
-        keyDown[+input::KeyCode::SpongeKey_Right]) {
-        snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
-    }
-
+    // Keyboard/mouse only takes over on a fresh press or real cursor motion,
+    // never on held state: a gamepad button that the driver aliases to a key
+    // leaves that key down for a frame after release, and held-state checks
+    // would bounce the device back on every gamepad press.
     for (int key = 0; key <= GLFW_KEY_LAST; key++) {
-        if (keyDown[key]) {
+        if (keyDown[key] && !keyPrev[key]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
         }
     }
     for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; button++) {
-        if (mouseDown[button]) {
+        if (mouseDown[button] && !mousePrev[button]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
             return;
         }
