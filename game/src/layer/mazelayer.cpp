@@ -278,9 +278,9 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         return true;
     }
 
-    auto&      inputManager  = Application::get().getInputManager();
-    const bool overlayActive = Maze::get().getExitLayer()->isActive() ||
-                               Maze::get().getOptionLayer()->isActive();
+    auto&      inputManager = Application::get().getInputManager();
+    const bool overlayActive =
+        Maze::get().getExitLayer()->isActive() || Maze::get().isOptionsOpen();
     if (!overlayActive) {
         inputManager.setActiveContext(sponge::input::InputContext::Gameplay);
     }

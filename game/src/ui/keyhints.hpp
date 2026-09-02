@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/scene/bitmapfont.hpp"
+#include "platform/opengl/scene/sprite.hpp"
 
 #include <glm/glm.hpp>
 
@@ -17,6 +18,11 @@ struct KeyHint {
     std::string_view padIcon;  // gamepad prompt for the same action
     std::string_view label;    // what it does, e.g. "Back"
 };
+
+// Prompt sprite by file stem, built on first use and cached — construction
+// needs a GL context, so never call this before one is current.
+const sponge::platform::opengl::scene::Sprite&
+    promptSprite(std::string_view name);
 
 // Vertical space the bar occupies; reserve it in layouts that reach the
 // bottom of the window.

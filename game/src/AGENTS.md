@@ -12,8 +12,15 @@ primitives, windowing, or platform backends itself — see
   exposes the anti-aliasing mode and bloom toggles the UI reads.
 * `layer/mazelayer.hpp` / `.cpp` - the core gameplay layer: camera, lighting,
   shadow map, bloom/FXAA/TAA post-processing, and the update/render split.
-* `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/exitlayer.hpp`,
-  `layer/splashscreenlayer.hpp` - other screens in the layer stack.
+* `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
+  `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp` - other screens in the
+  layer stack. The options screen is two layers, one per tab: `OptionLayer` is
+  the Display tab and `KeyMapLayer` the Keyboard tab. Only one is ever active;
+  `ui/tabbar.hpp` draws the shared tab strip and owns the swap
+  (`showOptionTab`), so both layers reserve `tabBarHeight()` at the top of
+  their Yoga root. `KeyMapLayer` rebinds keys through
+  `InputManager::requestRebind()`; the key capture and the settings write both
+  happen on the main thread, never in the layer.
 * `layer/imgui/imguilayer.hpp` / `.cpp` - the debug UI, compiled only when
   `ENABLE_IMGUI`. `layer/imgui/noopimguilayer.hpp` defines an inert
   `ImGuiLayer` with the same name for release builds, picked by the single

@@ -1,5 +1,6 @@
 // sponge/src/platform/glfw/core/inputmanager.hpp
 #pragma once
+#include "input/gameaction.hpp"
 #include "input/inputbinding.hpp"
 #include "input/inputcontext.hpp"
 #include "input/inputsnapshot.hpp"
@@ -9,6 +10,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <string>
 
 namespace sponge::platform::glfw::core {
 
@@ -29,6 +31,28 @@ public:
     }
 
     void setActiveContext(input::InputContext ctx);
+
+    // Primary keyboard binding for an action, or 0 when it has none.
+    int getPrimaryKey(input::GameAction action) const;
+
+    // Display name for a raw key code, e.g. "W", "Escape", "Unbound".
+    static std::string keyLabel(int rawCode);
+
+    // The next key pressed replaces the primary keyboard binding of action in
+    // every context that binds it, and is swallowed so it does not also fire
+    // the action; Escape cancels. Applied on the main thread in update().
+    void requestRebind(const input::GameAction action) {
+        rebindAction.store(+action, std::memory_order_release);
+    }
+
+    bool isRebinding() const {
+        return rebindAction.load(std::memory_order_acquire) >= 0;
+    }
+
+    // Drops every stored key override; applied on the main thread in update().
+    void requestResetBindings() {
+        pendingResetBindings.store(true, std::memory_order_release);
+    }
 
     // Enable continuous cursor recentering while mouse-look is active.
     // Prevents the cursor from drifting outside the window and sending
@@ -55,6 +79,11 @@ private:
     std::atomic<uint8_t> pendingContext{ 0 };
     input::InputContext  resolvedContext{ input::InputContext::Gameplay };
 
+    // GameAction awaiting a new key, or -1 when idle. Written by menu layers
+    // on the render thread, consumed on the main thread.
+    std::atomic<int>  rebindAction{ -1 };
+    std::atomic<bool> pendingResetBindings{ false };
+
     // [0] = Gameplay bindings, [1] = Menu bindings
     std::array<input::BindingMap, 2> bindingMaps;
 
@@ -73,6 +102,13 @@ private:
     GLFWgamepadstate gamepadStatePrev{};
 
     void buildDefaultBindings();
+    void applyBindingOverrides();
+    void setPrimaryKey(input::GameAction action, int rawCode);
+
+    // True while a rebind is pending, in which case no actions resolve.
+    bool captureRebind();
+    void resetBindings();
+
     void pollGamepad();
     void resolveActions();
     void updateActiveDevice();
