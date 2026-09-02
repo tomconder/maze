@@ -22,9 +22,11 @@
 #include "ui/menufontsize.hpp"
 
 namespace {
-constexpr glm::vec3 activeColor    = { 1.F, 1.F, 1.F };
-constexpr glm::vec3 inactiveColor  = { 0.55F, 0.55F, 0.55F };
-constexpr glm::vec4 underlineColor = { 0.84F, 0.04F, 0.04F, 1.F };
+constexpr glm::vec3 activeColor   = { 1.F, 1.F, 1.F };
+constexpr glm::vec3 inactiveColor = { 0.55F, 0.55F, 0.55F };
+// same highlight the menu rows use for the selected row
+constexpr glm::vec4 activeFillColor = { 0.84F, 0.04F, 0.04F, 0.14F };
+constexpr glm::vec4 activeDotColor  = { 1.F, 1.F, 1.F, 1.F };
 
 constexpr std::string_view prevKeyIcon = "keyboard_q";
 constexpr std::string_view nextKeyIcon = "keyboard_e";
@@ -39,7 +41,7 @@ struct Metrics {
     float    iconGap;  // icon to the label beside it
     float    tabGap;   // label to label
     float    marginY;
-    float    underline;
+    float    padX;  // highlight inset around the active label
 };
 
 Metrics metricsFor(const float windowWidth) {
@@ -49,12 +51,12 @@ Metrics metricsFor(const float windowWidth) {
 
     // the prompt art is inset in its sprite, so it needs more room than the
     // label text to read at the same weight
-    return { size,         fSize * 2.F,  fSize * 0.4F,
-             fSize * 1.6F, fSize * 0.4F, std::max(2.F, fSize / 12.F) };
+    return { size,         fSize * 2.F,  fSize * 2.4F,
+             fSize * 2.4F, fSize * 0.4F, fSize * 0.4F };
 }
 
-// Underline quad, built on first use — construction needs a GL context.
-const sponge::platform::opengl::scene::Quad& underlineQuad() {
+// Highlight quad, built on first use — construction needs a GL context.
+const sponge::platform::opengl::scene::Quad& highlightQuad() {
     static const auto quad =
         std::make_unique<sponge::platform::opengl::scene::Quad>();
     return *quad;
@@ -106,6 +108,25 @@ void renderTabBar(const OptionTab                    active,
         (metrics.iconSize - static_cast<float>(font->getHeight(metrics.size))) /
             2.F;
 
+    // the highlight goes down first so the label sits on top of it
+    const auto& rect        = rects[static_cast<size_t>(active)];
+    const auto  labelHeight = static_cast<float>(font->getHeight(metrics.size));
+    const auto  dotSize     = static_cast<float>(metrics.size) * 0.25F;
+
+    // the highlight makes room on the left for the marker dot
+    highlightQuad().render(
+        { rect.x - metrics.padX * 2.F - dotSize, textTop - metrics.marginY },
+        { rect.x + rect.width + metrics.padX,
+          textTop + labelHeight + metrics.marginY },
+        activeFillColor);
+
+    // a square with a half-width radius is a circle
+    const auto dotLeft = rect.x - metrics.padX - dotSize;
+    const auto dotTop  = textTop + (labelHeight - dotSize) / 2.F;
+    highlightQuad().render({ dotLeft, dotTop },
+                           { dotLeft + dotSize, dotTop + dotSize },
+                           activeDotColor, dotSize / 2.F);
+
     font->beginPass(metrics.size);
     for (size_t i = 0; i < tabCount; i++) {
         const bool isActive = static_cast<size_t>(active) == i;
@@ -113,15 +134,6 @@ void renderTabBar(const OptionTab                    active,
                      isActive ? activeColor : inactiveColor);
     }
     font->endPass();
-
-    const auto& rect       = rects[static_cast<size_t>(active)];
-    const auto  underlineY = textTop +
-                             static_cast<float>(font->getHeight(metrics.size)) +
-                             metrics.marginY * 0.4F;
-    underlineQuad().render(
-        { rect.x, underlineY },
-        { rect.x + rect.width, underlineY + metrics.underline },
-        underlineColor);
 
     const bool gamepad =
         sponge::platform::glfw::core::Application::get()
