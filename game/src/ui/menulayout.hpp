@@ -4,6 +4,8 @@
 
 #include <tuple>
 
+#include "ui/menufontsize.hpp"
+
 namespace game::ui {
 
 struct MenuSkeleton {
@@ -33,6 +35,31 @@ inline MenuSkeleton buildMenuSkeleton(const float menuBackgroundWidthPercent,
     YGNodeInsertChild(menu, menuBackground, 0);
 
     return { root, menu, menuBackground };
+}
+
+// Rows track the menu font, which steps with the window width.
+inline float menuRowHeight(const float windowWidth) {
+    return static_cast<float>(
+               menuFontSizeForWidth(static_cast<uint32_t>(windowWidth))) *
+           3.4F;
+}
+
+// Auto margin takes the leftover space, the fixed height keeps the row off the
+// flex share, so it lands in the same place whatever sits above it.
+// Row heights are set here, not at construction, because the window width is
+// only known once the layout runs.
+inline void setMenuRowHeight(const YGNodeRef row, const float windowWidth) {
+    YGNodeStyleSetMaxHeight(row, menuRowHeight(windowWidth));
+}
+
+inline void pinMenuRowToBottom(const YGNodeRef row, const float windowWidth) {
+    YGNodeStyleSetMarginAuto(row, YGEdgeTop);
+    YGNodeStyleSetFlexGrow(row, 0.F);
+    YGNodeStyleSetFlexShrink(row, 0.F);
+    // makeMenuRow left a flex basis of 0, so the siblings would grow into
+    // this row's space; the basis is what reserves it
+    YGNodeStyleSetFlexBasis(row, menuRowHeight(windowWidth));
+    YGNodeStyleSetHeight(row, menuRowHeight(windowWidth));
 }
 
 inline YGNodeRef makeMenuRow(const YGNodeRef parent, const int index) {

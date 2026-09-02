@@ -175,7 +175,8 @@ void KeyMapLayer::onAttach() {
         shader->unbind();
     }
 
-    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.2F);
+    // no spacer above: the rows start under the tab bar
+    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.F);
     rootNode            = skeleton.root;
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
@@ -364,6 +365,14 @@ void KeyMapLayer::recalculateLayout(const float width, const float height) {
     const auto usableHeight =
         std::max(0.F, ui::heightWithoutKeyHints(width, height) -
                           ui::tabBarHeight(width));
+    for (auto* const row : rowNodes) {
+        ui::setMenuRowHeight(row, width);
+    }
+
+    // this menu fills its column, so keep Reset to Defaults off Return
+    YGNodeStyleSetMargin(rowNodes[+KeyMapItem::ResetDefaults], YGEdgeBottom,
+                         ui::menuRowHeight(width) * 0.4F);
+    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::Return], width);
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
