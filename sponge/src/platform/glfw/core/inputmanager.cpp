@@ -353,10 +353,8 @@ void InputManager::updateActiveDevice() {
         }
     }
 
-    // Keyboard/mouse only takes over on a fresh press or real cursor motion,
-    // never on held state: a gamepad button that the driver aliases to a key
-    // leaves that key down for a frame after release, and held-state checks
-    // would bounce the device back on every gamepad press.
+    // Fresh press only. An aliased key stays down for a frame after the
+    // gamepad button releases, and held state would bounce the device back.
     for (int key = 0; key <= GLFW_KEY_LAST; key++) {
         if (keyDown[key] && !keyPrev[key]) {
             snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;

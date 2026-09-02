@@ -49,8 +49,7 @@ Metrics metricsFor(const float windowWidth) {
         game::ui::menuFontSizeForWidth(static_cast<uint32_t>(windowWidth));
     const auto fSize = static_cast<float>(size);
 
-    // the prompt art is inset in its sprite, so it needs more room than the
-    // label text to read at the same weight
+    // the prompt art is inset in its sprite, so it needs more room than text
     return { size,         fSize * 2.F,  fSize * 2.4F,
              fSize * 2.4F, fSize * 0.4F, fSize * 0.4F };
 }
@@ -108,7 +107,6 @@ void renderTabBar(const OptionTab                    active,
         (metrics.iconSize - static_cast<float>(font->getHeight(metrics.size))) /
             2.F;
 
-    // the highlight goes down first so the label sits on top of it
     const auto& rect        = rects[static_cast<size_t>(active)];
     const auto  labelHeight = static_cast<float>(font->getHeight(metrics.size));
     const auto  dotSize     = static_cast<float>(metrics.size) * 0.25F;
