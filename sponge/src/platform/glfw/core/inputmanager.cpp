@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cctype>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -12,7 +13,6 @@
 #include "input/inputcontext.hpp"
 #include "input/keycode.hpp"
 #include "input/mousecode.hpp"
-#include "logging/log.hpp"
 
 namespace sponge::platform::glfw::core {
 
@@ -342,12 +342,14 @@ void InputManager::updateActiveDevice() {
                 isTrigger ? (axisValue > -0.5f) : (std::abs(axisValue) > 0.1f);
             if (axisActive) {
                 snapshot.activeDevice = input::ActiveDevice::Gamepad;
+                lastGamepadInput      = std::chrono::steady_clock::now();
                 return;
             }
         }
         for (int button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; button++) {
             if (gamepadStateCurrent.buttons[button] == GLFW_PRESS) {
                 snapshot.activeDevice = input::ActiveDevice::Gamepad;
+                lastGamepadInput      = std::chrono::steady_clock::now();
                 return;
             }
         }
@@ -355,10 +357,14 @@ void InputManager::updateActiveDevice() {
 
     // Fresh press only. An aliased key stays down for a frame after the
     // gamepad button releases, and held state would bounce the device back.
-    for (int key = 0; key <= GLFW_KEY_LAST; key++) {
-        if (keyDown[key] && !keyPrev[key]) {
-            snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
-            return;
+    // inside the grace the gamepad still owns the device, so an aliased key
+    // cannot take it and fire the action again
+    if (std::chrono::steady_clock::now() - lastGamepadInput >= gamepadGrace) {
+        for (int key = 0; key <= GLFW_KEY_LAST; key++) {
+            if (keyDown[key] && !keyPrev[key]) {
+                snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
+                return;
+            }
         }
     }
     for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; button++) {
@@ -367,7 +373,11 @@ void InputManager::updateActiveDevice() {
             return;
         }
     }
-    if (std::abs(cursorDeltaX) > 0.5 || std::abs(cursorDeltaY) > 0.5) {
+    // Cursor drift is passive — a resting hand clears half a pixel — so it
+    // only takes the device once the gamepad grace has run out. A click above
+    // is deliberate and takes it straight away.
+    if (std::chrono::steady_clock::now() - lastGamepadInput >= gamepadGrace &&
+        (std::abs(cursorDeltaX) > 0.5 || std::abs(cursorDeltaY) > 0.5)) {
         snapshot.activeDevice = input::ActiveDevice::KeyboardMouse;
     }
 }
@@ -481,6 +491,24 @@ void InputManager::resolveActions() {
             // Highest-magnitude binding wins
             if (std::abs(newAxis) > std::abs(snapshot.axis[action])) {
                 snapshot.axis[action] = newAxis;
+            }
+        }
+
+        // One action per press. The button bounces on release — the pad
+        // reports a second down/up a few ms later — so the latch is held
+        // until the action has been released for the whole debounce.
+        const auto now = std::chrono::steady_clock::now();
+        if (snapshot.held[action]) {
+            lastHeld[action] = now;
+        } else if (now - lastHeld[action] >= releaseDebounce) {
+            actionLatched[action] = false;
+        }
+
+        if (snapshot.active[action]) {
+            if (actionLatched[action]) {
+                snapshot.active[action] = false;
+            } else {
+                actionLatched[action] = true;
             }
         }
     }
