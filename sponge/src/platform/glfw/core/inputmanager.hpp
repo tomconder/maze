@@ -9,6 +9,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <string>
 
@@ -87,11 +88,31 @@ private:
     // [0] = Gameplay bindings, [1] = Menu bindings
     std::array<input::BindingMap, 2> bindingMaps;
 
+    // How long the gamepad keeps the device after its last input. The driver's
+    // aliased key lands a little behind the button, and without the grace it
+    // would claim the device and fire the action a second time. Wall clock,
+    // not frames: with vsync off the loop runs fast enough that a frame count
+    // expires before the alias arrives.
+    static constexpr std::chrono::milliseconds gamepadGrace{ 250 };
+    std::chrono::steady_clock::time_point      lastGamepadInput{};
+
     // Polled state — main thread only
     std::array<bool, GLFW_KEY_LAST + 1>          keyDown{};
     std::array<bool, GLFW_KEY_LAST + 1>          keyPrev{};
     std::array<bool, GLFW_MOUSE_BUTTON_LAST + 1> mouseDown{};
     std::array<bool, GLFW_MOUSE_BUTTON_LAST + 1> mousePrev{};
+
+    // How long an action must stay released before a new press counts. The
+    // gamepad button bounces: it reports a second down/up 3-6ms after the
+    // real release, which lands as a fresh edge and fires the action twice.
+    // Well under the ~100ms of a deliberate second press.
+    static constexpr std::chrono::milliseconds releaseDebounce{ 50 };
+
+    // One action per press, held until the action has been released for the
+    // debounce above.
+    std::array<bool, +input::GameAction::Count> actionLatched{};
+    std::array<std::chrono::steady_clock::time_point, +input::GameAction::Count>
+        lastHeld{};
 
     double prevCursorX  = 0.0;
     double prevCursorY  = 0.0;

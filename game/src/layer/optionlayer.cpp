@@ -302,7 +302,8 @@ void OptionLayer::onAttach() {
         shader->unbind();
     }
 
-    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.35F);
+    // no spacer above: the rows start under the tab bar
+    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.F);
     rootNode            = skeleton.root;
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
@@ -661,6 +662,10 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
     const auto usableHeight =
         std::max(0.F, ui::heightWithoutKeyHints(width, height) -
                           ui::tabBarHeight(width));
+    for (auto* const row : rowNodes) {
+        ui::setMenuRowHeight(row, width);
+    }
+    ui::pinMenuRowToBottom(rowNodes[+OptionMenuItem::Return], width);
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);

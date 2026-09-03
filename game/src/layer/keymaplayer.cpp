@@ -175,7 +175,8 @@ void KeyMapLayer::onAttach() {
         shader->unbind();
     }
 
-    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.2F);
+    // no spacer above: the rows start under the tab bar
+    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.F);
     rootNode            = skeleton.root;
     menuNode            = skeleton.menu;
     menuBackgroundNode  = skeleton.menuBackground;
@@ -220,18 +221,22 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
         rebindingItem.reset();
     }
 
+    // the row being bound takes the input itself, so the menu is not taking
+    // input while a capture is running
+    const bool takesInput = !rebindingItem;
+
     {
         using sponge::input::GameAction;
         const auto& input = mgr.getSnapshot();
 
-        if (!wasActiveLastFrame) {
+        if (takesInput && !wasActiveLastFrame) {
             waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
         } else if (waitForConfirmRelease &&
                    !input.isHeld(GameAction::MenuConfirm)) {
             waitForConfirmRelease = false;
         }
 
-        if (wasActiveLastFrame && !rebindingItem) {
+        if (wasActiveLastFrame && takesInput) {
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
             }
@@ -252,7 +257,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
                 activate(selectedItem);
             }
         }
-        wasActiveLastFrame = true;
+        wasActiveLastFrame = takesInput;
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
@@ -364,6 +369,14 @@ void KeyMapLayer::recalculateLayout(const float width, const float height) {
     const auto usableHeight =
         std::max(0.F, ui::heightWithoutKeyHints(width, height) -
                           ui::tabBarHeight(width));
+    for (auto* const row : rowNodes) {
+        ui::setMenuRowHeight(row, width);
+    }
+
+    // this menu fills its column, so keep Reset to Defaults off Return
+    YGNodeStyleSetMargin(rowNodes[+KeyMapItem::ResetDefaults], YGEdgeBottom,
+                         ui::menuRowHeight(width) * 0.4F);
+    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::Return], width);
     YGNodeStyleSetWidth(rootNode, width);
     YGNodeStyleSetHeight(rootNode, usableHeight);
     YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);

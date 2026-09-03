@@ -147,10 +147,14 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         auto& mgr = Application::get().getInputManager();
         mgr.setActiveContext(sponge::input::InputContext::Menu);
 
+        // the options screen sits on top of this one, so the menu is not
+        // taking input while it is open
+        const bool takesInput = !Maze::get().isOptionsOpen();
+
         {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
-            if (!wasActiveLastFrame) {
+            if (takesInput && !wasActiveLastFrame) {
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -158,7 +162,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
             }
         }
 
-        if (wasActiveLastFrame && !Maze::get().isOptionsOpen()) {
+        if (wasActiveLastFrame && takesInput) {
             const auto& input = mgr.getSnapshot();
 
             if (ui::stepSelection(input, selectedItem)) {
@@ -176,7 +180,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
                 activateSelected();
             }
         }
-        wasActiveLastFrame = true;
+        wasActiveLastFrame = takesInput;
     }
 
     if (Maze::get().isOptionsOpen()) {
