@@ -223,20 +223,20 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
 
     // the row being bound takes the input itself, so the menu is not taking
     // input while a capture is running
-    const bool active = !rebindingItem;
+    const bool takesInput = !rebindingItem;
 
     {
         using sponge::input::GameAction;
         const auto& input = mgr.getSnapshot();
 
-        if (active && !wasActiveLastFrame) {
+        if (takesInput && !wasActiveLastFrame) {
             waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
         } else if (waitForConfirmRelease &&
                    !input.isHeld(GameAction::MenuConfirm)) {
             waitForConfirmRelease = false;
         }
 
-        if (wasActiveLastFrame && active) {
+        if (wasActiveLastFrame && takesInput) {
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
             }
@@ -257,7 +257,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
                 activate(selectedItem);
             }
         }
-        wasActiveLastFrame = active;
+        wasActiveLastFrame = takesInput;
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {

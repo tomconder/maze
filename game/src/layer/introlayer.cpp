@@ -159,12 +159,12 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
 
         // the options screen sits on top of this one, so the menu is not
         // taking input while it is open
-        const bool active = !isFadingIn && !Maze::get().isOptionsOpen();
+        const bool takesInput = !isFadingIn && !Maze::get().isOptionsOpen();
 
         {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
-            if (active && !wasActiveLastFrame) {
+            if (takesInput && !wasActiveLastFrame) {
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -172,7 +172,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
             }
         }
 
-        if (wasActiveLastFrame && active) {
+        if (wasActiveLastFrame && takesInput) {
             using sponge::input::GameAction;
             const auto& input = mgr.getSnapshot();
 
@@ -186,7 +186,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
                 activateSelected();
             }
         }
-        wasActiveLastFrame = active;
+        wasActiveLastFrame = takesInput;
     }
 
     if (Maze::get().isOptionsOpen()) {
