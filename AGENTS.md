@@ -5,7 +5,7 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 * Keep components modular and concerns clearly separated.
 * Prefer established, well-maintained libraries and frameworks when they reduce overall complexity or improve reliability. Do not reimplement common functionality without a clear reason.
 * Lean on the dependencies already in the project before writing your own implementation or adding packages. Do not assume a library lacks a capability without checking its documentation.
-* Make architecture decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
+* Make architecture decisions for the long term. If the change in front of you only warrants a stopgap, take it and say so — name the ceiling and what would force the real fix. Flag the larger decision; do not fold it into the current change unasked.
 * Study how established libraries and frameworks solve similar problems. Adopt their patterns and conventions rather than inventing an approach from scratch.
 
 # When compacting, preserve:
@@ -41,18 +41,19 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 ### Global Invariants
 
 * `sponge/src/{core,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
+* No tool or persona names in code comments (`ponytail:`, agent names, etc.) — tag deliberate simplifications in plain words.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling
 
-When running inside CLion with MCP, prefer the `mcp_clion_*` tools:
+When running inside CLion with MCP, prefer the `mcp__clion__*` tools:
 
-* `mcp_clion_search_text` for project-wide text search.
-* `mcp_clion_read_file` for reading sources, including inside JARs and decompiled classes.
-* `mcp_clion_list_directory_tree` for directory exploration.
-* `mcp_clion_apply_patch` for applying diffs.
-* `mcp_clion_open_file_in_editor` to surface a file in the editor for the user.
+* `mcp__clion__search_text` for project-wide text search.
+* `mcp__clion__read_file` for reading sources, including inside JARs and decompiled classes.
+* `mcp__clion__list_directory_tree` for directory exploration.
+* `mcp__clion__apply_patch` for applying diffs.
+* `mcp__clion__open_file_in_editor` to surface a file in the editor for the user.
 
 ## Building
 
@@ -88,6 +89,10 @@ On Windows, the maze executable is in the build directory:
 ```
 build\maze\Release\maze.exe
 ```
+
+Run it from its own directory. `File::getResourceDir()` returns the relative
+path `assets` on Windows and Linux, so a different working directory loads no
+assets and the window stays grey.
 
 Or, for MacOS, the app bundle is in the build directory:
 
