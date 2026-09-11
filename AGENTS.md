@@ -8,6 +8,17 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 * Make architecture decisions for the long term. If the change in front of you only warrants a stopgap, take it and say so — name the ceiling and what would force the real fix. Flag the larger decision; do not fold it into the current change unasked.
 * Study how established libraries and frameworks solve similar problems. Adopt their patterns and conventions rather than inventing an approach from scratch.
 
+## Pull Requests
+
+Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other agents see it.
+
+* Don't write essays. Don't mention that you ran tests. Write a concise body.
+* Use bullet points, code snippets, and Mermaid diagrams.
+* For visual changes, show a before/after table with images.
+* For benchmarks, show before/after tables (baseline from target branch).
+* Skip intermediate PR details. Only the final squash commit matters.
+* For large or high-risk changes, write it like a technical blog post.
+
 # When compacting, preserve:
 
 * current task goal, files changed, commands run
