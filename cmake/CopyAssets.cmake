@@ -1,10 +1,20 @@
 # copy_assets.cmake — copy source assets to destination, excluding Slang
-# sources, then overlay compiled GLSL shaders and baked assets.
-# Required variables: SRC_DIR, DST_DIR, SRC_GLSL, SRC_BAKED, EXCLUDE_SUBDIR
+# sources and anything the manifest bakes, then overlay compiled GLSL shaders
+# and baked assets.
+#
+# EXCLUDE_REGEX drops the manifest's own inputs: a source that was baked must
+# not ship next to the file it was baked into. It names individual files
+# rather than directories so that licence files sitting beside the art they
+# cover still deploy.
+#
+# Required variables: SRC_DIR, DST_DIR, SRC_GLSL, SRC_BAKED, EXCLUDE_SUBDIR,
+# EXCLUDE_REGEX
 file(COPY "${SRC_DIR}/"
      DESTINATION "${DST_DIR}"
      FILES_MATCHING
      PATTERN "*"
+     REGEX "${EXCLUDE_REGEX}" EXCLUDE
+     PATTERN ".clang-format" EXCLUDE
      PATTERN "${EXCLUDE_SUBDIR}" EXCLUDE
      PATTERN "${EXCLUDE_SUBDIR}/*" EXCLUDE)
 

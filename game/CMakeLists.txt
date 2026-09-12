@@ -177,6 +177,7 @@ if (APPLE)
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
+                -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
@@ -204,6 +205,7 @@ else ()
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
+                -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
@@ -212,7 +214,12 @@ else ()
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE PATTERN ".clang-format" EXCLUDE)
+    # Same exclusions as the copy above: baked sources are build inputs and
+    # must not ship beside what they were baked into.
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .
+            REGEX "${BAKED_SOURCE_REGEX}" EXCLUDE
+            PATTERN "slang" EXCLUDE
+            PATTERN ".clang-format" EXCLUDE)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/assets/" DESTINATION assets)
 endif ()
