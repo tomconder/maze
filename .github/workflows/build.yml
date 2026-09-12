@@ -93,10 +93,6 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - name: mac
-                      os: macos-latest
-                      preset: ci-osx-release
-
                     - name: windows
                       os: windows-latest
                       preset: ci-windows-release
@@ -125,10 +121,6 @@ jobs:
                       libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev
                       libxrandr-dev mono-complete
                   version: 1.0
-
-            - name: Install mono
-              if: runner.os == 'macOS'
-              run: brew install mono
 
             - name: Sync mono certificate store
               if: runner.os == 'Linux'
