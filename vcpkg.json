@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4",
+  "builtin-baseline": "a1cae005c39be7b18ba319fced856b68d7276271",
   "dependencies": [
     {
       "name": "fmt",
@@ -35,7 +35,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.92.8"
+      "version>=": "1.92.9"
     },
     {
       "name": "meshoptimizer",
@@ -43,7 +43,7 @@
     },
     {
       "name": "mimalloc",
-      "version>=": "3.5.0",
+      "version>=": "3.5.1",
       "features": [
         "secure"
       ]

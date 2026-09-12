@@ -68,13 +68,14 @@ std::array gameObjects = {
 
     GameObject{ .name        = "helmet",
                 .path        = "/models/gltf/helmet/DamagedHelmet.glb",
-                .scale       = glm::vec3(.3F),
+                .scale       = glm::vec3(.5F),
                 .rotation    = { .angle = glm::radians(-75.F),
                                  .axis  = glm::vec3(0.F, 1.F, 0.F), },
                 .translation = glm::vec3(2.F, 0.5F, 0.F), },
 
     GameObject{ .name        = "sponza",
                 .path        = "/models/gltf/sponza/sponza.glb",
+                .scale       = glm::vec3(2.F),
                 .translation = glm::vec3(0.F, 0.F, 0.F), },
 };
 }  // namespace
