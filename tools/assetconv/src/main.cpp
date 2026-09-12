@@ -9,6 +9,7 @@
 #include "scene/gltfimport.hpp"
 #include "scene/ktx2.hpp"
 #include "scene/modeldata.hpp"
+#include "texenc.hpp"
 
 #include <cstdint>
 #include <cstdio>
@@ -21,43 +22,22 @@
 #include <vector>
 
 namespace {
+using assetconv::TextureKind;
 using sponge::scene::ModelData;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 namespace ktx2 = sponge::scene::ktx2;
 
-// Uncompressed formats only. BC7/BC5 encoding is the next step; until then
-// the baked file reproduces exactly what the runtime uploaded before, so a
-// bake cannot change how a model looks.
-ktx2::Format formatFor(const uint32_t bytesPerPixel) {
-    switch (bytesPerPixel) {
-        case 1:
-            return ktx2::formatR8Unorm;
-        case 2:
-            return ktx2::formatR8G8Unorm;
-        case 3:
-            return ktx2::formatR8G8B8Unorm;
-        case 4:
-            return ktx2::formatR8G8B8A8Unorm;
-        default:
-            return ktx2::formatUndefined;
-    }
-}
-
-bool encode(std::optional<ParsedImage>& image) {
+bool encode(std::optional<ParsedImage>& image, const TextureKind kind) {
     if (!image) {
         return true;
     }
 
-    const auto format = formatFor(image->bytesPerPixel);
-    if (format == ktx2::formatUndefined) {
-        SPONGE_ERROR("Unsupported channel count {} in {}", image->bytesPerPixel,
-                     image->name);
+    image->ktx2 = assetconv::encode(*image, kind);
+    if (image->ktx2.empty()) {
         return false;
     }
 
-    image->ktx2 =
-        ktx2::write(format, image->width, image->height, image->pixels);
     image->pixels.clear();
     image->pixels.shrink_to_fit();
     return true;
@@ -65,9 +45,11 @@ bool encode(std::optional<ParsedImage>& image) {
 
 bool encodeTextures(ModelData& data) {
     for (auto& mesh : data.meshes) {
-        if (!encode(mesh.albedo) || !encode(mesh.normal) ||
-            !encode(mesh.occlusion) || !encode(mesh.emissive) ||
-            !encode(mesh.metallicRoughness)) {
+        if (!encode(mesh.albedo, TextureKind::Color) ||
+            !encode(mesh.normal, TextureKind::Normal) ||
+            !encode(mesh.occlusion, TextureKind::Linear) ||
+            !encode(mesh.emissive, TextureKind::Color) ||
+            !encode(mesh.metallicRoughness, TextureKind::Linear)) {
             return false;
         }
     }
@@ -193,6 +175,8 @@ int main(const int argc, char** argv) {
     // business writing one into the source or build tree.
     sponge::logging::Log::init(
         (std::filesystem::temp_directory_path() / "assetconv.log").string());
+
+    assetconv::initEncoder();
 
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     if (args.size() == 3 && args[0] == "--verify") {

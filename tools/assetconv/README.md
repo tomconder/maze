@@ -104,19 +104,69 @@ Each image becomes a KTX2 file. The reader and writer are in
 No supercompression. Basis or UASTC would need libktx to transcode at load
 time, which defeats the point of baking.
 
-Current state and known gaps:
+Block format follows what the texture is for:
 
-- Images are stored **uncompressed**, in the UNORM format that matches what the
-  engine uploaded before baking existed, so a bake cannot change how a model
-  looks. This costs size: `cube-tex.glb` goes from 2 KB to 411 KB.
-- BC7 for colour and BC5 for normals are next. BC7 needs OpenGL 4.2 or
-  `ARB_texture_compression_bptc` and so will not load on macOS.
+| Slot | Format | Mip filter |
+| --- | --- | --- |
+| albedo, emissive | BC7 UNORM | sRGB |
+| normal | BC5 UNORM | linear |
+| occlusion, metallic-roughness | BC7 UNORM | linear |
+
+Filtering the mip chain in the wrong space is the classic bug here and shows
+up as a brightness shift in the distance, not a crash. Colour is resampled in
+sRGB; everything the shader reads as data is resampled linearly.
+
+BC7 is UNORM rather than SRGB because that matches the `GL_RGBA8` the engine
+uploaded before baking existed, so compression is the only change. Moving
+albedo to sRGB is a separate, visible change.
+
+BC7 needs OpenGL 4.2 or `ARB_texture_compression_bptc`, so baked models do
+not load on macOS, which caps at 4.1. BC5 is RGTC, core since 3.0.
+
+BC5 stores two channels. `pbr.slang` reconstructs Z as
+`sqrt(1 - x² - y²)`, which is also correct for a three-channel normal map, so
+baked and unbaked models go through the same path.
+
+Known gaps:
+
+- Standalone ONGs are not converted yet. When they are, UI sprites should stay
+  uncompressed (`VK_FORMAT_R8G8B8A8_SRGB`) — they are ~80 KB in total and BC7
+  on a UI icon is loss for no gain.
+- The BC4 encoder behind BC5 uses the eight-value ramp with a nearest-value
+  index search, and nothing more. Good enough for normal maps. Swap in
+  `rgbcx` if a texture ever needs better.
 - The header carries no data format descriptor. Our reader needs only
   `vkFormat`. External KTX tools want a DFD, so add one if these files ever
   leave the build.
-- Mip levels are not generated. A single-level uncompressed file is mipped by
-  the driver at upload. Compressed files cannot be, so they must ship every
-  level.
+- Conversion is not fast. Sponza's 69 textures take about 130 s through the
+  CPU BC7 encoder. It only runs when a source, the manifest or
+  `assetformat.hpp` changes, so an incremental build does not pay it, but a
+  clean build does.
+
+## Cost and benefit
+
+Baked files are much larger than the source, because a `.glb` stores its
+images as PNG or JPEG while BC7 is a fixed byte per texel plus a third again
+for the mip chain. The point is load time and GPU memory, not disk:
+
+| | glb | spnga |
+| --- | --- | --- |
+| `cube-tex` | 2 KB | 138 KB |
+| `DamagedHelmet` | 3.8 MB | 28.8 MB |
+| `sponza` | 32.1 MB | 107.5 MB |
+
+Time from starting a new game to the scene appearing, measured by polling
+screenshots, all three models:
+
+| | Load time |
+| --- | --- |
+| glTF at run time | 5497 ms |
+| baked | 949 ms |
+
+Compression is lossy, so the baked frame is not identical. Against the same
+scene loaded from glTF, 44% of pixels match exactly, 48.6% differ by 1-2,
+and 7 pixels of 2 073 600 differ by more than 64 — all in one cluster of
+specular foliage highlights.
 
 ## Building
 

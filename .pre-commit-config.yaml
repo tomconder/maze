@@ -14,7 +14,7 @@ repos:
     rev: 0.7.1
     hooks:
       - id: fix-smartquotes
-        exclude: assets/models|sponge/deps
+        exclude: assets/models|deps/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -23,12 +23,12 @@ repos:
       - id: detect-aws-credentials
         args: [ '--allow-missing-credentials' ]
       - id: mixed-line-ending
-        exclude: assets/models|sponge/deps
+        exclude: assets/models|deps/
         args: [ '--fix=lf' ]
       - id: trailing-whitespace
-        exclude: assets/models|sponge/deps
+        exclude: assets/models|deps/
       - id: end-of-file-fixer
-        exclude: assets/models|sponge/deps
+        exclude: assets/models|deps/
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
@@ -37,7 +37,7 @@ repos:
     rev: v1.49.0
     hooks:
       - id: typos
-        exclude: .clang-tidy|assets/models|sponge/deps
+        exclude: .clang-tidy|assets/models|deps/
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v22.1.8
@@ -46,13 +46,13 @@ repos:
         args: [ --style=file, -i ]
         types_or: [ file ]
         files: "\\.(c|cpp|h|hpp|glsl|slang)$"
-        exclude: sponge/deps
+        exclude: deps/
 
   - repo: https://github.com/cpplint/cpplint
     rev: 2.0.2
     hooks:
       - id: cpplint
-        exclude: sponge/deps
+        exclude: deps/
         args:
           - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-readability/nolint,-runtime/references,-whitespace/indent,-whitespace/line_length
 

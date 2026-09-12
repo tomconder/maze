@@ -67,11 +67,17 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
 
     float3 N = normalize(input.worldNormal);
     if (params.hasNormalMap) {
-        float2 normalUV      = applyUVTransform(input.texCoords, params.normalUVTransform);
-        float3 T             = normalize(input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz));
-        float3 B             = cross(N, T) * input.worldTangent.w;
-        float3 sampledNormal = normalMap.Sample(normalUV).rgb * 2.0 - 1.0;
-        N                    = normalize(T * sampledNormal.x + B * sampledNormal.y + N * sampledNormal.z);
+        float2 normalUV = applyUVTransform(input.texCoords, params.normalUVTransform);
+        float3 T        = normalize(input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz));
+        float3 B        = cross(N, T) * input.worldTangent.w;
+        // Z is reconstructed rather than sampled: baked normal maps are BC5,
+        // which stores XY only. A tangent-space normal always points out of
+        // the surface, so the positive root is the right one. Three-channel
+        // normal maps give the same result, since their stored Z agrees with
+        // their XY.
+        float2 sampledXY = normalMap.Sample(normalUV).rg * 2.0 - 1.0;
+        float  sampledZ  = sqrt(saturate(1.0 - dot(sampledXY, sampledXY)));
+        N                = normalize(T * sampledXY.x + B * sampledXY.y + N * sampledZ);
     }
 
     float ao = params.ao;
