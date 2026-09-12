@@ -17,7 +17,7 @@ namespace sponge::platform::glfw::core {
 
 class InputManager {
 public:
-    void onAttach(GLFWwindow* window);
+    void onAttach(GLFWwindow* glfwWindow);
     void onDetach();
     void recenterCursor();
     void update();

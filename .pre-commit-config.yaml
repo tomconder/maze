@@ -54,7 +54,7 @@ repos:
       - id: cpplint
         exclude: sponge/deps
         args:
-          - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-runtime/references,-whitespace/indent,-whitespace/line_length
+          - --filter=-build/c++17,-build/include_order,-build/include_subdir,-build/include_what_you_use,-legal/copyright,-readability/nolint,-runtime/references,-whitespace/indent,-whitespace/line_length
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1

@@ -136,11 +136,13 @@ bool Application::onUserUpdate(const double elapsedTime) {
     bool result = true;
 
     for (const auto& layer : *layerStack) {
-        if (layer->isActive() && layer->runsOnUpdateThread()) {
-            if (!layer->onUpdate(elapsedTime)) {
-                result = false;
-                break;
-            }
+        if (!layer->isActive() || !layer->runsOnUpdateThread()) {
+            continue;
+        }
+
+        if (!layer->onUpdate(elapsedTime)) {
+            result = false;
+            break;
         }
     }
 
@@ -154,7 +156,7 @@ bool Application::onUserDestroy() {
 void Application::onEvent(event::Event& event) {
     SPONGE_PROFILE_SECTION("Application::onEvent");
 
-    for (auto it = layerStack->rbegin(); it != layerStack->rend(); it++) {
+    for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
         const auto& layer = *it;
         layer->onEvent(event);
         if (event.handled) {

@@ -237,8 +237,8 @@ void ImGuiLayer::showDirectionalLightControls() {
 
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
-        auto   dirColor = mazeLayer->getDirectionalLightColor();
-        ImVec4 color    = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
+        auto dirColor = mazeLayer->getDirectionalLightColor();
+        auto color    = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
         showTableRow([&] {
             ImGui::Text("Color");
             ImGui::TableNextColumn();
@@ -430,7 +430,7 @@ void ImGuiLayer::showLayersTable(LayerStack* const layerStack) {
     if (ImGui::BeginTable("layerTable", 1)) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, compactSpacing);
 
-        for (auto it = layerStack->rbegin(); it != layerStack->rend(); it++) {
+        for (auto it = layerStack->rbegin(); it != layerStack->rend(); ++it) {
             const auto& layer = *it;
             ImGui::TableNextRow();
 

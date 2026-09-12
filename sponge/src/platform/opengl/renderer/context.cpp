@@ -86,8 +86,7 @@ void Context::init(GLFWwindow* window) const {
     }
 
     {
-        constexpr float minGLSL    = 4.5F;
-        constexpr auto  minGLSLStr = "4.50";
+        constexpr float minGLSL = 4.5F;
 
         const auto* glslStr = reinterpret_cast<const char*>(
             glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -101,7 +100,8 @@ void Context::init(GLFWwindow* window) const {
                             e.what());
         }
         if (glslVer < minGLSL) {
-            const char* found = glslStr ? glslStr : "Unknown";
+            constexpr auto minGLSLStr = "4.50";
+            const char*    found      = glslStr ? glslStr : "Unknown";
             SPONGE_GL_CRITICAL("GLSL {} or later is required (found {})",
                                minGLSLStr, found);
             fmt::print(

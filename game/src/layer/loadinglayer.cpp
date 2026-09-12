@@ -40,7 +40,6 @@ using sponge::event::EventDispatcher;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
-using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::Quad;
 

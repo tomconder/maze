@@ -112,6 +112,9 @@ __attribute__((constructor(101))) static void mi_register_zone() noexcept {
 }
 #endif
 
+// Replacement operators cannot match the parameter names the platform headers
+// declare, and those names differ per standard library.
+// NOLINTBEGIN(readability-inconsistent-declaration-parameter-name)
 void* operator new(std::size_t n) {
     auto* p = mi_malloc(n);
     if (!p) {
@@ -215,3 +218,4 @@ void operator delete[](void* p, std::size_t, std::align_val_t) noexcept {
     SPONGE_PROFILE_FREE(p);
     mi_free(p);
 }
+// NOLINTEND(readability-inconsistent-declaration-parameter-name)
