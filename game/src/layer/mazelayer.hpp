@@ -192,6 +192,13 @@ private:
     // Update-thread only: index into the Halton jitter sequence.
     uint32_t jitterIndex{ 0 };
 
+    // debug.fixedJitter: pins the TAA sample to one Halton position so
+    // successive runs converge on the same image. Screenshot comparisons are
+    // otherwise meaningless — the captured frame's jitter phase depends on
+    // how many frames elapsed before the capture. Read once in
+    // finishLoading(), never written afterwards.
+    bool fixedJitter{ false };
+
     void queueResize(uint32_t w, uint32_t h) const;
 
     // Set by finishLoading(); onUpdate()/onRender() no-op until then.

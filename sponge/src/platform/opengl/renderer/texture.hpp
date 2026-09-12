@@ -4,6 +4,7 @@
 #include "core/file.hpp"
 
 #include <cstdint>
+#include <span>
 #include <string>
 
 namespace sponge::platform::opengl::renderer {
@@ -25,8 +26,12 @@ struct TextureCreateInfo {
     uint32_t       height        = 0;
     uint32_t       bytesPerPixel = 4;
     const uint8_t* data          = nullptr;
-    const LoadFlag loadFlag      = None;
-    std::string    assetsFolder  = core::File::getResourceDir();
+    // A whole KTX2 file. Takes precedence over path and data: format and mip
+    // chain come from the container, so loadFlag's GammaCorrection does not
+    // apply.
+    std::span<const uint8_t> ktx2{};
+    const LoadFlag           loadFlag     = None;
+    std::string              assetsFolder = core::File::getResourceDir();
 };
 
 class Texture final {
@@ -53,6 +58,7 @@ private:
     uint32_t height = 0;
 
     void loadFromFile(const std::string& path, uint8_t flag);
+    void loadFromKtx2(std::span<const uint8_t> bytes, uint8_t flag);
     void generate(uint32_t textureWidth, uint32_t textureHeight,
                   uint32_t bytesPerPixel, const uint8_t* data, uint8_t flag);
 };

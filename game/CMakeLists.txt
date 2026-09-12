@@ -85,6 +85,7 @@ else ()
 endif ()
 
 include(${CMAKE_SOURCE_DIR}/cmake/CompileSlang.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/ConvertAssets.cmake)
 
 add_dependencies(game compile_shaders)
 
@@ -175,10 +176,11 @@ if (APPLE)
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
-    add_dependencies(copy_assets compile_shaders)
+    add_dependencies(copy_assets compile_shaders convert_assets)
     add_dependencies(game copy_assets)
 
     install(TARGETS game BUNDLE DESTINATION .)
@@ -201,14 +203,16 @@ else ()
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
+                -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
-    add_dependencies(copy_assets compile_shaders)
+    add_dependencies(copy_assets compile_shaders convert_assets)
     add_dependencies(game copy_assets)
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION . PATTERN "slang" EXCLUDE PATTERN ".clang-format" EXCLUDE)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/assets/" DESTINATION assets)
 endif ()

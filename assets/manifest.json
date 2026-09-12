@@ -1,0 +1,8 @@
+{
+  "models": [
+    {
+      "source": "models/gltf/cube/cube-tex.glb",
+      "output": "models/cube.spnga"
+    }
+  ]
+}

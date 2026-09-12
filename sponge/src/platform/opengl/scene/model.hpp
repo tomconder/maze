@@ -3,13 +3,12 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "scene/mesh.hpp"
+#include "scene/modeldata.hpp"
 
 #include <glm/glm.hpp>
-#include <cgltf.h>
 #include <tiny_obj_loader.h>
 
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -18,42 +17,14 @@
 
 namespace sponge::platform::opengl::scene {
 
+using sponge::scene::ModelData;
+using sponge::scene::ParsedImage;
+using sponge::scene::ParsedMesh;
+
 struct ModelCreateInfo {
     std::string name;
     std::string path;
     std::string assetsFolder = core::File::getResourceDir();
-};
-
-// Decoded (CPU-side) image: raw pixels, no GL texture yet. Produced by
-// Model::parse() — safe to build on any thread. Turned into a Texture only
-// by Model::build(), which must run on the GL thread.
-struct ParsedImage {
-    std::string          name;
-    uint32_t             width{ 0 };
-    uint32_t             height{ 0 };
-    uint32_t             bytesPerPixel{ 0 };
-    std::vector<uint8_t> pixels;
-};
-
-// One mesh primitive's worth of CPU-parsed data: vertices/indices plus
-// decoded (not yet GL-uploaded) material images.
-struct ParsedMesh {
-    std::vector<sponge::scene::Vertex> vertices;
-    std::vector<uint32_t>              indices;
-    std::optional<ParsedImage>         albedo;
-    std::optional<ParsedImage>         normal;
-    std::optional<ParsedImage>         occlusion;
-    std::optional<ParsedImage>         emissive;
-    std::optional<ParsedImage>         metallicRoughness;
-    float                              metallicFactor{ 0.F };
-    float                              roughnessFactor{ .5F };
-    MeshUVTransforms                   uvTransforms;
-};
-
-// CPU-only parse result for a whole model. Safe to build on any thread;
-// Model::build() turns it into GL objects on the GL thread.
-struct ModelData {
-    std::vector<ParsedMesh> meshes;
 };
 
 class Model {
@@ -72,8 +43,8 @@ public:
                            const std::function<void()>& onMeshParsed = {});
 
     // Structural mesh count without decoding data, for progress-bar sizing.
-    // glTF counts accurately; OBJ has no cheap count in tinyobjloader, so
-    // it always returns 1 (fine — no .obj assets today).
+    // Baked models and glTF count accurately; OBJ has no cheap count in
+    // tinyobjloader, so it always returns 1 (fine — no .obj assets today).
     static std::size_t countMeshes(const ModelCreateInfo& createInfo);
 
     // Builds one mesh's GL objects from CPU-parsed data. GL thread only —
@@ -106,19 +77,6 @@ private:
     static std::optional<ParsedImage>
         decodeMaterialTexture(const tinyobj::material_t& material,
                               const std::string&         path);
-
-    static ModelData   parseGltf(const std::string&           path,
-                                 const std::function<void()>& onMeshParsed);
-    static std::size_t countGltfMeshes(const std::string& path);
-    static std::optional<ParsedMesh>
-        parseGltfPrimitive(const cgltf_primitive& primitive,
-                           const glm::mat4& transform, const std::string& path);
-    static void computeTangents(std::vector<sponge::scene::Vertex>& vertices,
-                                const std::vector<uint32_t>&        indices);
-    static std::optional<ParsedImage>
-                       decodeGltfTexture(const cgltf_texture_view& textureView,
-                                         const std::string&        path);
-    static UVTransform gltfUVTransform(const cgltf_texture_view& textureView);
 };
 
 }  // namespace sponge::platform::opengl::scene

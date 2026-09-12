@@ -4,6 +4,7 @@
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/mousecode.hpp"
+#include "logging/log.hpp"
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
@@ -46,12 +47,12 @@ std::array gameObjects = {
     //             .path  = "/models/gltf/floor/floor.glb",
     //             .scale = glm::vec3(2.F) },
 
-    // GameObject{ .name = "cube1",
-    //             .path = "/models/gltf/cube/cube-tex.glb",
-    //             .scale = glm::vec3(1.F),
-    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
-    //             .translation = glm::vec3(-1.5F, .85F, -.5F), },
-    //
+    GameObject{ .name        = "cube1",
+                .path        = "/models/cube.spnga",
+                .scale       = glm::vec3(1.F),
+                .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
+                .translation = glm::vec3(-1.5F, .85F, -.5F), },
+
     // GameObject{ .name = "cube2",
     //             .path = "/models/gltf/cube/cube-tex.glb",
     //             .scale = glm::vec3(.5F),
@@ -145,6 +146,11 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     const auto savedShadowRes = sponge::core::Settings::getUInt32(
         "video.shadowRes", defaultShadowMapRes);
+
+    fixedJitter = sponge::core::Settings::getBool("debug.fixedJitter", false);
+    if (fixedJitter) {
+        SPONGE_INFO("debug.fixedJitter is on: TAA jitter pinned");
+    }
 
     directionalLight = {
         .enabled      = dirLightEnabled,
@@ -336,9 +342,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.cameraMVP      = camera->getMVP();
     frame.cameraViewProj = frame.cameraMVP;
     if (aaMode == AntiAliasing::Taa) {
-        const auto jitter = TAA::haltonJitter(
-            jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
-            static_cast<uint32_t>(screenHeight.load()));
+        const auto jitter =
+            TAA::haltonJitter(fixedJitter ? 0 : jitterIndex++,
+                              static_cast<uint32_t>(screenWidth.load()),
+                              static_cast<uint32_t>(screenHeight.load()));
         frame.cameraMVP =
             glm::translate(glm::mat4(1.F), glm::vec3(jitter, 0.F)) *
             frame.cameraMVP;

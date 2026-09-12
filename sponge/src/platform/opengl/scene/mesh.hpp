@@ -6,6 +6,7 @@
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/mesh.hpp"
+#include "scene/modeldata.hpp"
 
 #include <glm/glm.hpp>
 
@@ -17,20 +18,8 @@
 
 namespace sponge::platform::opengl::scene {
 
-// KHR_texture_transform offset/scale (no rotation support; unused by our
-// current gltf assets/gltfpack output).
-struct UVTransform {
-    glm::vec2 offset{ 0.F, 0.F };
-    glm::vec2 scale{ 1.F, 1.F };
-};
-
-struct MeshUVTransforms {
-    UVTransform albedo;
-    UVTransform normal;
-    UVTransform occlusion;
-    UVTransform emissive;
-    UVTransform metallicRoughness;
-};
+using sponge::scene::MeshUVTransforms;
+using sponge::scene::UVTransform;
 
 class Mesh : public sponge::scene::Mesh {
 public:
