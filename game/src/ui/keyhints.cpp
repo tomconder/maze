@@ -8,6 +8,7 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/sprite.hpp"
 #include "ui/menufontsize.hpp"
+#include "ui/uiatlas.hpp"
 
 #include <glm/glm.hpp>
 
@@ -53,17 +54,7 @@ using sponge::platform::opengl::scene::BitmapFont;
 
 const sponge::platform::opengl::scene::Sprite&
     promptSprite(const std::string_view name) {
-    static std::unordered_map<
-        std::string, std::unique_ptr<sponge::platform::opengl::scene::Sprite>>
-        sprites;
-
-    auto& sprite = sprites[std::string(name)];
-    if (!sprite) {
-        sprite = std::make_unique<sponge::platform::opengl::scene::Sprite>(
-            std::string(name),
-            "textures/prompts/" + std::string(name) + ".png");
-    }
-    return *sprite;
+    return uiAtlas().sprite(name);
 }
 
 float keyHintBarHeight(const float windowWidth) {

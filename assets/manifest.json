@@ -12,5 +12,30 @@
       "source": "models/gltf/sponza/sponza.glb",
       "output": "models/sponza.spnga"
     }
+  ],
+  "textures": [
+    {
+      "source": "textures/blackcoffee.png",
+      "output": "textures/blackcoffee.ktx2"
+    }
+  ],
+  "atlases": [
+    {
+      "output": "textures/ui.ktx2",
+      "sprites": {
+        "keyboard_arrows_horizontal": "textures/prompts/keyboard_arrows_horizontal.png",
+        "keyboard_arrows_vertical": "textures/prompts/keyboard_arrows_vertical.png",
+        "keyboard_e": "textures/prompts/keyboard_e.png",
+        "keyboard_enter": "textures/prompts/keyboard_enter.png",
+        "keyboard_escape": "textures/prompts/keyboard_escape.png",
+        "keyboard_q": "textures/prompts/keyboard_q.png",
+        "xbox_button_a": "textures/prompts/xbox_button_a.png",
+        "xbox_button_b": "textures/prompts/xbox_button_b.png",
+        "xbox_dpad_horizontal": "textures/prompts/xbox_dpad_horizontal.png",
+        "xbox_dpad_vertical": "textures/prompts/xbox_dpad_vertical.png",
+        "xbox_lb": "textures/prompts/xbox_lb.png",
+        "xbox_rb": "textures/prompts/xbox_rb.png"
+      }
+    }
   ]
 }

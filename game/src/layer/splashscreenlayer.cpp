@@ -14,9 +14,12 @@
 #include <utility>
 
 namespace {
-constexpr std::string_view cameraName  = "splash";
-constexpr std::string_view spriteName  = "blackcoffee-logo";
-constexpr std::string_view texturePath = "textures/blackcoffee.png";
+constexpr std::string_view cameraName = "splash";
+constexpr std::string_view spriteName = "blackcoffee-logo";
+// The logo is 1024x1024, far larger than the prompt icons, so it is baked on
+// its own instead of into the UI atlas: one image that size forces the whole
+// sheet up to the next power of two.
+constexpr std::string_view texturePath = "textures/blackcoffee.ktx2";
 
 constexpr double timeoutSeconds = 7.0;
 constexpr double fadeDuration   = 0.7;

@@ -3,7 +3,10 @@
 //
 // Usage: assetconv <source> <output.spnga>
 //        assetconv --verify <source> <output.spnga>
+//        assetconv --atlas <output.ktx2> <name>=<png> ...
+//        assetconv --texture <output.ktx2> <input.png>
 
+#include "atlas.hpp"
 #include "logging/log.hpp"
 #include "scene/assetformat.hpp"
 #include "scene/gltfimport.hpp"
@@ -168,6 +171,46 @@ int verify(const std::string& source, const std::string& output) {
                 actual.meshes.size(), source.c_str());
     return 0;
 }
+// One image, BC7 with a full mip chain. For UI art that is too big to share
+// a sprite sheet: a single large image forces the whole sheet up to the next
+// power of two.
+int convertTexture(const std::string& source, const std::string& output) {
+    auto image = assetconv::loadImage(source);
+    if (image.width == 0) {
+        return 1;
+    }
+
+    const auto file = assetconv::encode(image, TextureKind::Color);
+    if (file.empty() || !writeFile(output, file)) {
+        return 1;
+    }
+
+    std::printf("%s -> %s (%ux%u, %zu bytes)\n", source.c_str(), output.c_str(),
+                image.width, image.height, file.size());
+    return 0;
+}
+
+// Each argument is <sprite name>=<png path>. The name is what the engine
+// looks the sprite up by, so it stays stable if the file moves.
+int packAtlas(const std::string&                      output,
+              const std::span<const std::string_view> args) {
+    std::vector<assetconv::AtlasEntry> entries;
+    entries.reserve(args.size());
+    for (const auto arg : args) {
+        const auto split = arg.find('=');
+        if (split == std::string_view::npos) {
+            std::printf("expected <name>=<png>, got %.*s\n",
+                        static_cast<int>(arg.size()), arg.data());
+            return 2;
+        }
+        entries.emplace_back(assetconv::AtlasEntry{
+            .name = std::string{ arg.substr(0, split) },
+            .path = std::string{ arg.substr(split + 1) },
+        });
+    }
+
+    return assetconv::packAtlas(entries, output) ? 0 : 1;
+}
 }  // namespace
 
 int main(const int argc, char** argv) {
@@ -182,10 +225,18 @@ int main(const int argc, char** argv) {
     if (args.size() == 3 && args[0] == "--verify") {
         return verify(std::string{ args[1] }, std::string{ args[2] });
     }
+    if (args.size() >= 3 && args[0] == "--atlas") {
+        return packAtlas(std::string{ args[1] }, std::span{ args }.subspan(2));
+    }
+    if (args.size() == 3 && args[0] == "--texture") {
+        return convertTexture(std::string{ args[2] }, std::string{ args[1] });
+    }
     if (args.size() == 2) {
         return convert(std::string{ args[0] }, std::string{ args[1] });
     }
 
-    std::printf("usage: assetconv [--verify] <source> <output.spnga>\n");
+    std::printf("usage: assetconv [--verify] <source> <output.spnga>\n"
+                "       assetconv --atlas <output.ktx2> <name>=<png> ...\n"
+                "       assetconv --texture <output.ktx2> <input.png>\n");
     return 2;
 }

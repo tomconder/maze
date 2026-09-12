@@ -12,6 +12,8 @@ baked model and a `.glb` can coexist while the conversion grows.
 ```
 assetconv <source> <output.spnga>
 assetconv --verify <source> <output.spnga>
+assetconv --texture <output.ktx2> <input.png>
+assetconv --atlas <output.ktx2> <name>=<png> ...
 ```
 
 `--verify` imports the source again and compares it against the baked file:
@@ -51,8 +53,8 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | Format | State |
 | --- | --- |
 | `.glb`, `.gltf` | Supported |
+| `.png` (standalone, and into an atlas) | Supported |
 | `.obj` | Not yet. The engine still has the OBJ importer |
-| `.png` (standalone) | Not yet |
 
 ## Output format
 
@@ -127,11 +129,39 @@ BC5 stores two channels. `pbr.slang` reconstructs Z as
 `sqrt(1 - x² - y²)`, which is also correct for a three-channel normal map, so
 baked and unbaked models go through the same path.
 
+## Sprite atlases
+
+UI art is packed into one sheet with `stb_rect_pack`. The rect table lives in
+the container's own key/value data under the key `spongeAtlas`, one
+`name x y w h` line per sprite, so an atlas is still a single file:
+
+```
+keyboard_arrows_horizontal 1 1 64 64
+keyboard_arrows_vertical 67 1 64 64
+```
+
+`SpriteAtlas` reads it and hands out `Sprite`s that share one texture and draw
+their own sub-rect. A name the sheet does not hold logs once and draws
+nothing, rather than taking the frame down.
+
+Atlases are uncompressed and single-level, and each sprite is surrounded by a
+one-texel copy of its edge pixels. Mip levels would blend neighbouring sprites
+into each other, and UI is drawn at roughly native size, so there is nothing
+to gain from them. The border covers linear sampling at a sprite's edge.
+
+Only UI art is atlased. Model textures repeat, and a repeating texture cannot
+be a sub-rect of anything.
+
+Size candidates run smallest area first and include oblong shapes, because a
+square that fits by area often does not fit by packing, and the next square up
+wastes three quarters of itself. The twelve 64x64 prompt icons land in 256x512.
+
+A large image does not belong in a sheet: `blackcoffee.png` is 1024x1024, and
+including it forced the whole atlas to 2048x2048 and 16.7 MB. It is baked on
+its own with `--texture` instead, which brought the pair to 1.4 MB and 512 KB.
+
 Known gaps:
 
-- Standalone ONGs are not converted yet. When they are, UI sprites should stay
-  uncompressed (`VK_FORMAT_R8G8B8A8_SRGB`) — they are ~80 KB in total and BC7
-  on a UI icon is loss for no gain.
 - The BC4 encoder behind BC5 uses the eight-value ramp with a nearest-value
   index search, and nothing more. Good enough for normal maps. Swap in
   `rgbcx` if a texture ever needs better.

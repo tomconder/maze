@@ -8,8 +8,10 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <span>
 #include <string>
+#include <vector>
 
 namespace {
 // KTX2 vkFormat to the GL internal format and, for uncompressed formats, the
@@ -135,6 +137,25 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
 
     const std::filesystem::path name{ path };
 
+    // Baked textures carry their own format and mip chain.
+    if (name.extension() == ".ktx2") {
+        std::ifstream file{ name, std::ios::binary | std::ios::ate };
+        if (!file) {
+            SPONGE_GL_ERROR("Unable to open texture, path = {}", name.string());
+            return;
+        }
+        const auto size = static_cast<size_t>(file.tellg());
+        file.seekg(0);
+        std::vector<uint8_t> bytes(size);
+        if (!file.read(reinterpret_cast<char*>(bytes.data()),
+                       static_cast<std::streamsize>(size))) {
+            SPONGE_GL_ERROR("Unable to read texture, path = {}", name.string());
+            return;
+        }
+        loadFromKtx2(bytes, flag);
+        return;
+    }
+
     int bytesPerPixel = 0;
     int loadedHeight  = 0;
     int loadedWidth   = 0;
@@ -197,16 +218,14 @@ void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else {
-        // A single-level file still needs a mip chain. Compressed formats
-        // cannot be mipped by the driver, so those must ship every level.
-        if (image.levels.size() == 1 && !glFormat.compressed) {
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,
-                            static_cast<int32_t>(image.levels.size()) - 1);
-        }
+        // The file decides the mip chain; the driver is never asked to
+        // invent one. A sprite atlas ships a single level on purpose,
+        // because generated mips blend neighbouring sprites together.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,
+                        static_cast<int32_t>(image.levels.size()) - 1);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_LINEAR_MIPMAP_LINEAR);
+                        image.levels.size() == 1 ? GL_LINEAR :
+                                                   GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 

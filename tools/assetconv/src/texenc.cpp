@@ -5,6 +5,7 @@
 #include "scene/modeldata.hpp"
 
 #include <bc7enc.h>
+#include <stb_image.h>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize2.h>
@@ -12,6 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace {
@@ -194,6 +196,30 @@ namespace assetconv {
 
 void initEncoder() {
     bc7enc_compress_block_init();
+}
+
+sponge::scene::ParsedImage loadImage(const std::string& path) {
+    int   width   = 0;
+    int   height  = 0;
+    int   ignored = 0;
+    auto* pixels  = stbi_load(path.c_str(), &width, &height, &ignored,
+                              static_cast<int>(rgbaChannels));
+    if (pixels == nullptr) {
+        SPONGE_ERROR("Unable to load {}: {}", path, stbi_failure_reason());
+        return {};
+    }
+
+    sponge::scene::ParsedImage image{
+        .name          = path,
+        .width         = static_cast<uint32_t>(width),
+        .height        = static_cast<uint32_t>(height),
+        .bytesPerPixel = static_cast<uint32_t>(rgbaChannels),
+        .pixels = { pixels, pixels + (static_cast<size_t>(width) * height *
+                                      rgbaChannels) },
+        .ktx2   = {},
+    };
+    stbi_image_free(pixels);
+    return image;
 }
 
 std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,
