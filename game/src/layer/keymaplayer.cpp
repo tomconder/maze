@@ -223,11 +223,10 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
 
     // the row being bound takes the input itself, so the menu is not taking
     // input while a capture is running
-    const bool takesInput = !rebindingItem;
-
     {
         using sponge::input::GameAction;
-        const auto& input = mgr.getSnapshot();
+        const bool  takesInput = !rebindingItem;
+        const auto& input      = mgr.getSnapshot();
 
         if (takesInput && !wasActiveLastFrame) {
             waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);

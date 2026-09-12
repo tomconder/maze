@@ -21,9 +21,8 @@ constexpr uint32_t atlasSize  = 1024;
 constexpr char32_t firstGlyph = 32;
 constexpr char32_t lastGlyph  = 126;
 
-constexpr std::array<char32_t, 1> supplementalGlyphs = {
-    0xD7,  // × MULTIPLICATION SIGN
-};
+// 0xD7 is × MULTIPLICATION SIGN
+constexpr std::array<char32_t, 1> supplementalGlyphs = { 0xD7 };
 
 // characters that appear in tabular-figure strings (percent, resolution,
 // aspect ratio) — only these need their tnum glyph resolved and baked
@@ -72,7 +71,7 @@ void FontAtlas::build(const std::string&           path,
     FT_Library_SetLcdFilter(ftLibrary, FT_LCD_FILTER_DEFAULT);
 
     // thicken stems to compensate for coverage loss in gamma-unaware blending
-    const FT_Bool noStemDarkening = 0;
+    constexpr FT_Bool noStemDarkening = 0;
     FT_Property_Set(ftLibrary, "autofitter", "no-stem-darkening",
                     &noStemDarkening);
 

@@ -316,13 +316,15 @@ void InputManager::applyBindingOverrides() {
 void InputManager::pollGamepad() {
     gamepadStatePrev = gamepadStateCurrent;
 
-    if (snapshot.gamepadSlot >= 0) {
-        if (!glfwGetGamepadState(snapshot.gamepadSlot, &gamepadStateCurrent)) {
-            // Slot became invalid — treat as disconnect
-            snapshot.gamepadConnected = false;
-            snapshot.gamepadSlot      = -1;
-            std::memset(&gamepadStateCurrent, 0, sizeof(gamepadStateCurrent));
-        }
+    if (snapshot.gamepadSlot < 0) {
+        return;
+    }
+
+    if (!glfwGetGamepadState(snapshot.gamepadSlot, &gamepadStateCurrent)) {
+        // Slot became invalid — treat as disconnect
+        snapshot.gamepadConnected = false;
+        snapshot.gamepadSlot      = -1;
+        std::memset(&gamepadStateCurrent, 0, sizeof(gamepadStateCurrent));
     }
 }
 

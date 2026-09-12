@@ -89,8 +89,8 @@ std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
 }
 
 std::size_t Model::countGltfMeshes(const std::string& path) {
-    const cgltf_options options{};
-    cgltf_data*         data = nullptr;
+    constexpr cgltf_options options{};
+    cgltf_data*             data = nullptr;
     if (cgltf_parse_file(&options, path.c_str(), &data) !=
         cgltf_result_success) {
         return 0;
@@ -273,10 +273,9 @@ ParsedMesh
 
     ParsedMesh parsedMesh;
     if (!mesh.material_ids.empty()) {
-        if (const auto id = mesh.material_ids[0]; id != -1) {
-            if (!materials[id].diffuse_texname.empty()) {
-                parsedMesh.albedo = decodeMaterialTexture(materials[id], path);
-            }
+        if (const auto id = mesh.material_ids[0];
+            id != -1 && !materials[id].diffuse_texname.empty()) {
+            parsedMesh.albedo = decodeMaterialTexture(materials[id], path);
         }
     }
 
@@ -334,8 +333,8 @@ ModelData Model::parseGltf(const std::string&           path,
     core::Timer timer;
     timer.tick();
 
-    const cgltf_options options{};
-    cgltf_data*         gltfData = nullptr;
+    constexpr cgltf_options options{};
+    cgltf_data*             gltfData = nullptr;
     if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
         cgltf_result_success) {
         SPONGE_GL_ERROR("Unable to parse gltf model: {}", path);
@@ -523,8 +522,8 @@ UVTransform Model::gltfUVTransform(const cgltf_texture_view& textureView) {
 // and Gram-Schmidt orthogonalized against the vertex normal.
 void Model::computeTangents(std::vector<Vertex>&         vertices,
                             const std::vector<uint32_t>& indices) {
-    std::vector<glm::vec3> tan(vertices.size(), glm::vec3(0.F));
-    std::vector<glm::vec3> bitan(vertices.size(), glm::vec3(0.F));
+    std::vector tan(vertices.size(), glm::vec3(0.F));
+    std::vector bitan(vertices.size(), glm::vec3(0.F));
 
     for (size_t i = 0; i + 2 < indices.size(); i += 3) {
         const auto i0 = indices[i];

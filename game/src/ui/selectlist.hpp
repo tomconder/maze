@@ -28,7 +28,7 @@ class SelectList {
 public:
     explicit SelectList(const SelectListCreateInfo& createInfo);
 
-    void setItems(std::vector<std::string> items);
+    void setItems(std::vector<std::string> newItems);
     void setMaxValueWidth(float width);
     void setFontSize(uint32_t size);
 

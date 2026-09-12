@@ -81,7 +81,6 @@ std::array gameObjects = {
 }  // namespace
 
 namespace game::layer {
-using game::thread::AntiAliasing;
 using sponge::event::Event;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
@@ -103,6 +102,7 @@ using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::TAA;
+using thread::AntiAliasing;
 
 MazeLayer::MazeLayer() : Layer("maze") {}
 
@@ -328,11 +328,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     // One locked read for the whole snapshot: the jitter branch below and
     // frame.antiAliasing have to agree. Reading the member twice lets a mode
     // switch land between them and tag a jittered frame as FXAA.
-    AntiAliasing aaMode;
-    {
+    const AntiAliasing aaMode = [this] {
         std::scoped_lock lock(settingsMutex);
-        aaMode = antiAliasing;
-    }
+        return antiAliasing;
+    }();
 
     frame.cameraMVP      = camera->getMVP();
     frame.cameraViewProj = frame.cameraMVP;
@@ -640,6 +639,7 @@ void MazeLayer::setNumLights(const int32_t val) {
         std::scoped_lock lock(settingsMutex);
         numLights = std::clamp(val, 0, maxPointLights);
 
+        // NOLINTNEXTLINE(bugprone-random-generator-seed) fixed layout
         std::mt19937                   rng(42U);
         std::uniform_real_distribution jitterAngle(-0.4F, 0.4F);
         std::uniform_real_distribution jitterRadius(-0.5F, 0.5F);

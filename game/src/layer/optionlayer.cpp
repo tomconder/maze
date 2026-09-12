@@ -618,8 +618,7 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
         return;
     }
 
-    const bool changed = delta < 0 ? list->selectPrev() : list->selectNext();
-    if (changed) {
+    if (delta < 0 ? list->selectPrev() : list->selectNext()) {
         ui::playHoverClick();
     }
 

@@ -10,11 +10,9 @@
 #include <string>
 
 namespace {
-constexpr std::array<uint32_t, 6> indices = {
-    0, 1, 2, 0, 2, 3,
-};
-constexpr uint32_t indexCount  = 6;
-constexpr uint32_t vertexCount = 8;
+constexpr std::array<uint32_t, 6> indices     = { 0, 1, 2, 0, 2, 3 };
+constexpr uint32_t                indexCount  = 6;
+constexpr uint32_t                vertexCount = 8;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
