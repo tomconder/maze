@@ -4,8 +4,6 @@
 #include "platform/opengl/renderer/gl.hpp"
 #include "scene/ktx2.hpp"
 
-#include <stb_image.h>
-
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -136,41 +134,27 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     assert(!path.empty());
 
     const std::filesystem::path name{ path };
-
-    // Baked textures carry their own format and mip chain.
-    if (name.extension() == ".ktx2") {
-        std::ifstream file{ name, std::ios::binary | std::ios::ate };
-        if (!file) {
-            SPONGE_GL_ERROR("Unable to open texture, path = {}", name.string());
-            return;
-        }
-        const auto size = static_cast<size_t>(file.tellg());
-        file.seekg(0);
-        std::vector<uint8_t> bytes(size);
-        if (!file.read(reinterpret_cast<char*>(bytes.data()),
-                       static_cast<std::streamsize>(size))) {
-            SPONGE_GL_ERROR("Unable to read texture, path = {}", name.string());
-            return;
-        }
-        loadFromKtx2(bytes, flag);
+    if (name.extension() != ".ktx2") {
+        SPONGE_GL_ERROR("Not a baked texture, path = {}", name.string());
         return;
     }
 
-    int bytesPerPixel = 0;
-    int loadedHeight  = 0;
-    int loadedWidth   = 0;
-
-    auto* data = stbi_load(name.string().data(), &loadedWidth, &loadedHeight,
-                           &bytesPerPixel, 0);
-    if (data == nullptr) {
-        SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),
-                        stbi_failure_reason());
+    std::ifstream file{ name, std::ios::binary | std::ios::ate };
+    if (!file) {
+        SPONGE_GL_ERROR("Unable to open texture, path = {}", name.string());
         return;
     }
 
-    generate(loadedWidth, loadedHeight, bytesPerPixel, data, flag);
+    const auto size = static_cast<size_t>(file.tellg());
+    file.seekg(0);
+    std::vector<uint8_t> bytes(size);
+    if (!file.read(reinterpret_cast<char*>(bytes.data()),
+                   static_cast<std::streamsize>(size))) {
+        SPONGE_GL_ERROR("Unable to read texture, path = {}", name.string());
+        return;
+    }
 
-    stbi_image_free(data);
+    loadFromKtx2(bytes, flag);
 }
 
 void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,

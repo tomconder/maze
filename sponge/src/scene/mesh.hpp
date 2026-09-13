@@ -17,7 +17,6 @@ struct Vertex {
 
 class Mesh {
 public:
-    void   optimize();
     size_t getNumIndices() const {
         return numIndices;
     }

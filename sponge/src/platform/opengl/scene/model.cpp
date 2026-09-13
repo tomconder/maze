@@ -5,7 +5,6 @@
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "scene/assetformat.hpp"
-#include "scene/gltfimport.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -47,26 +46,26 @@ ModelData Model::parse(const ModelCreateInfo&       createInfo,
 
     const auto path      = createInfo.assetsFolder + createInfo.path;
     const auto extension = std::filesystem::path(path).extension().string();
-    if (extension == sponge::scene::asset::extension) {
-        return sponge::scene::asset::read(path);
+    if (extension != sponge::scene::asset::extension) {
+        SPONGE_GL_ERROR("Not a baked model: {}", path);
+        return {};
     }
-    if (extension == ".glb" || extension == ".gltf") {
-        return sponge::scene::gltf::parse(path, onMeshParsed);
+
+    auto data = sponge::scene::asset::read(path);
+    if (onMeshParsed) {
+        for (size_t i = 0; i < data.meshes.size(); i++) {
+            onMeshParsed();
+        }
     }
-    SPONGE_GL_ERROR("Unsupported model format: {}", path);
-    return {};
+    return data;
 }
 
 std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
     const auto path      = createInfo.assetsFolder + createInfo.path;
     const auto extension = std::filesystem::path(path).extension().string();
-    if (extension == sponge::scene::asset::extension) {
-        return sponge::scene::asset::readMeshCount(path);
-    }
-    if (extension == ".glb" || extension == ".gltf") {
-        return sponge::scene::gltf::countMeshes(path);
-    }
-    return 0;
+    return extension == sponge::scene::asset::extension ?
+               sponge::scene::asset::readMeshCount(path) :
+               0;
 }
 
 std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&& parsedMesh) {
@@ -88,7 +87,6 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&& parsedMesh) {
         buildTexture(std::move(parsedMesh.metallicRoughness)),
         parsedMesh.metallicFactor, parsedMesh.roughnessFactor,
         parsedMesh.uvTransforms);
-    mesh->optimize();
     return mesh;
 }
 

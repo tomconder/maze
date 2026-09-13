@@ -1,6 +1,5 @@
-#include "scene/gltfimport.hpp"
+#include "gltfimport.hpp"
 
-#include "core/timer.hpp"
 #include "logging/log.hpp"
 #include "scene/mesh.hpp"
 #include "scene/modeldata.hpp"
@@ -22,9 +21,6 @@
 #include <vector>
 
 namespace {
-// Release builds compile out the debug log that uses this.
-[[maybe_unused]] constexpr double secondsToMilliseconds = 1000.F;
-
 std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
                                 const int height, const int bytesPerPixel) {
     const auto* begin = pixels;
@@ -34,7 +30,13 @@ std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
 }
 }  // namespace
 
-namespace sponge::scene::gltf {
+namespace assetconv::gltf {
+using sponge::scene::computeTangents;
+using sponge::scene::ModelData;
+using sponge::scene::ParsedImage;
+using sponge::scene::ParsedMesh;
+using sponge::scene::UVTransform;
+using sponge::scene::Vertex;
 namespace {
 std::optional<ParsedMesh>  parsePrimitive(const cgltf_primitive& primitive,
                                           const glm::mat4&       transform,
@@ -77,12 +79,9 @@ std::size_t countMeshes(const std::string& path) {
     return count;
 }
 
-ModelData parse(const std::string&           path,
-                const std::function<void()>& onMeshParsed) {
+sponge::scene::ModelData parse(const std::string&           path,
+                               const std::function<void()>& onMeshParsed) {
     ModelData data;
-
-    core::Timer timer;
-    timer.tick();
 
     constexpr cgltf_options options{};
     cgltf_data*             gltfData = nullptr;
@@ -128,9 +127,6 @@ ModelData parse(const std::string&           path,
 
     cgltf_free(gltfData);
 
-    timer.tick();
-    SPONGE_DEBUG("Parsing time for model: {:.2f} ms",
-                 timer.getElapsedSeconds() * secondsToMilliseconds);
     SPONGE_DEBUG("# of meshes    = {}", static_cast<int>(data.meshes.size()));
 
     return data;
@@ -315,4 +311,4 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
 }
 }  // namespace
 
-}  // namespace sponge::scene::gltf
+}  // namespace assetconv::gltf

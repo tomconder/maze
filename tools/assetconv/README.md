@@ -3,9 +3,10 @@
 Build-time asset converter. It reads source models and writes the `.spnga`
 files the engine loads.
 
-The engine parses no third-party asset format at run time for a baked model.
-All importers live here. `Model::parse()` branches on the file extension, so a
-baked model and a `.glb` can coexist while the conversion grows.
+The engine parses no third-party asset format at run time. Every importer
+lives here, along with cgltf, tinyobjloader, stb_image, bc7enc,
+stb_image_resize2 and meshoptimizer; `Model::parse()` accepts `.spnga` and
+nothing else, and `Texture` accepts `.ktx2` and nothing else.
 
 ## Usage
 
@@ -54,7 +55,7 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | --- | --- |
 | `.glb`, `.gltf` | Supported |
 | `.png` (standalone, and into an atlas) | Supported |
-| `.obj` | Not yet. The engine still has the OBJ importer |
+| `.obj` | Supported |
 
 ## Output format
 
@@ -76,6 +77,12 @@ An image used by more than one material is stored once and referenced by index.
 
 `sponge/src/scene/assetformat.hpp` is the single definition of this layout and
 is compiled into both the converter and the engine, so the two cannot disagree.
+
+Vertices are written vertex-cache, overdraw and fetch optimized. That used to
+run in the engine on every load, where it had no effect at all: the `Mesh`
+constructor uploads its buffers, and `optimize()` ran afterwards and only
+swapped the CPU-side vectors. It is deterministic and depends on nothing but
+the mesh, so the bake is where it belongs.
 
 ### Versioning
 

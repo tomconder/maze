@@ -7,10 +7,11 @@
 //        assetconv --texture <output.ktx2> <input.png>
 
 #include "atlas.hpp"
+#include "gltfimport.hpp"
 #include "logging/log.hpp"
+#include "meshopt.hpp"
 #include "objimport.hpp"
 #include "scene/assetformat.hpp"
-#include "scene/gltfimport.hpp"
 #include "scene/ktx2.hpp"
 #include "scene/modeldata.hpp"
 #include "texenc.hpp"
@@ -65,7 +66,7 @@ bool encodeTextures(ModelData& data) {
 ModelData import(const std::string& source) {
     const auto extension = std::filesystem::path(source).extension().string();
     if (extension == ".glb" || extension == ".gltf") {
-        return sponge::scene::gltf::parse(source);
+        return assetconv::gltf::parse(source);
     }
     if (extension == ".obj") {
         return assetconv::obj::parse(source);
@@ -97,6 +98,12 @@ int convert(const std::string& source, const std::string& output) {
         return 1;
     }
 
+    // Vertex cache and fetch order used to be computed on every load. It is
+    // deterministic, so the baked file carries the result instead.
+    for (auto& mesh : data.meshes) {
+        assetconv::optimizeMesh(mesh);
+    }
+
     if (!encodeTextures(data)) {
         return 1;
     }
@@ -114,8 +121,13 @@ int convert(const std::string& source, const std::string& output) {
 // Re-imports the source and compares it against the baked file. This is the
 // check that catches a layout or offset bug in the format itself.
 int verify(const std::string& source, const std::string& output) {
-    auto       expected = import(source);
-    const auto actual   = sponge::scene::asset::read(output);
+    auto expected = import(source);
+    // The bake optimizes before writing, so the comparison has to as well.
+    // This checks the round trip through the container, not the optimizer.
+    for (auto& mesh : expected.meshes) {
+        assetconv::optimizeMesh(mesh);
+    }
+    const auto actual = sponge::scene::asset::read(output);
 
     if (expected.meshes.size() != actual.meshes.size()) {
         fmt::println(stderr, "FAIL {}: {} meshes baked, source has {}", output,
