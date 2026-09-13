@@ -211,11 +211,13 @@ else ()
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    # Same exclusions as the copy above: bake inputs and license files.
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .
-            REGEX "${DEPLOY_EXCLUDE_REGEX}" EXCLUDE
-            PATTERN "models" EXCLUDE
-            PATTERN "slang" EXCLUDE
-            PATTERN ".clang-format" EXCLUDE)
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/assets/" DESTINATION assets)
+    # Same script as the copy above, so the exclusions live in one place.
+    # install(DIRECTORY) cannot drop the folders the exclusions leave empty.
+    install(CODE "
+        set(SRC_DIR [=[${CMAKE_SOURCE_DIR}/assets]=])
+        set(DST_DIR \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/assets\")
+        set(SRC_BAKED [=[${CMAKE_BINARY_DIR}/assets]=])
+        set(EXCLUDE_SUBDIR slang)
+        set(EXCLUDE_REGEX [=[${DEPLOY_EXCLUDE_REGEX}]=])
+        include([=[${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake]=])")
 endif ()

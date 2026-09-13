@@ -23,3 +23,17 @@ file(COPY "${SRC_DIR}/"
 # Baked assets last: they overlay the raw sources they were built from.
 file(COPY "${SRC_BAKED}/"
      DESTINATION "${DST_DIR}")
+
+# file(COPY) still creates a folder whose files were all excluded, such as
+# textures/prompts/ once its atlas images are dropped. Remove those, deepest
+# first.
+file(GLOB_RECURSE DEPLOYED_DIRS LIST_DIRECTORIES true "${DST_DIR}/*")
+list(SORT DEPLOYED_DIRS ORDER DESCENDING)
+foreach (DIR IN LISTS DEPLOYED_DIRS)
+    if (IS_DIRECTORY "${DIR}")
+        file(GLOB CONTENTS "${DIR}/*")
+        if (NOT CONTENTS)
+            file(REMOVE_RECURSE "${DIR}")
+        endif ()
+    endif ()
+endforeach ()
