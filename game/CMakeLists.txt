@@ -218,6 +218,7 @@ else ()
     # must not ship beside what they were baked into.
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .
             REGEX "${BAKED_SOURCE_REGEX}" EXCLUDE
+            PATTERN "models" EXCLUDE
             PATTERN "slang" EXCLUDE
             PATTERN ".clang-format" EXCLUDE)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)

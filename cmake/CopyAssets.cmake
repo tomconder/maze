@@ -7,6 +7,10 @@
 # rather than directories so that licence files sitting beside the art they
 # cover still deploy.
 #
+# assets/models is excluded wholesale instead, because it holds nothing but
+# source art. Every model the runtime loads comes from the bake, so a file
+# left there is either an input or unused - shipping it either way is waste.
+#
 # Required variables: SRC_DIR, DST_DIR, SRC_GLSL, SRC_BAKED, EXCLUDE_SUBDIR,
 # EXCLUDE_REGEX
 file(COPY "${SRC_DIR}/"
@@ -15,6 +19,7 @@ file(COPY "${SRC_DIR}/"
      PATTERN "*"
      REGEX "${EXCLUDE_REGEX}" EXCLUDE
      PATTERN ".clang-format" EXCLUDE
+     PATTERN "models" EXCLUDE
      PATTERN "${EXCLUDE_SUBDIR}" EXCLUDE
      PATTERN "${EXCLUDE_SUBDIR}/*" EXCLUDE)
 
