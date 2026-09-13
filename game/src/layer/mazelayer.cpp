@@ -4,6 +4,7 @@
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/mousecode.hpp"
+#include "logging/log.hpp"
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
@@ -46,12 +47,12 @@ std::array gameObjects = {
     //             .path  = "/models/gltf/floor/floor.glb",
     //             .scale = glm::vec3(2.F) },
 
-    // GameObject{ .name = "cube1",
-    //             .path = "/models/gltf/cube/cube-tex.glb",
-    //             .scale = glm::vec3(1.F),
-    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
-    //             .translation = glm::vec3(-1.5F, .85F, -.5F), },
-    //
+    GameObject{ .name        = "cube1",
+                .path        = "/models/cube.spnga",
+                .scale       = glm::vec3(1.F),
+                .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
+                .translation = glm::vec3(-1.5F, .85F, -.5F), },
+
     // GameObject{ .name = "cube2",
     //             .path = "/models/gltf/cube/cube-tex.glb",
     //             .scale = glm::vec3(.5F),
@@ -67,14 +68,14 @@ std::array gameObjects = {
     //             .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
 
     GameObject{ .name        = "helmet",
-                .path        = "/models/gltf/helmet/DamagedHelmet.glb",
+                .path        = "/models/helmet.spnga",
                 .scale       = glm::vec3(1.F),
                 .rotation    = { .angle = glm::radians(-75.F),
                                  .axis  = glm::vec3(0.F, 1.F, 0.F), },
                 .translation = glm::vec3(2.F, 2.5F, 0.F), },
 
     GameObject{ .name        = "sponza",
-                .path        = "/models/gltf/sponza/sponza.glb",
+                .path        = "/models/sponza.spnga",
                 .scale       = glm::vec3(4.F),
                 .translation = glm::vec3(0.F, 0.F, 0.F), },
 };
@@ -190,9 +191,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         std::make_unique<ClusteredLights>(camera->getNear(), camera->getFar());
 
     depthPrepassShader = AssetManager::createShader({
-        .name               = "depthprepass",
-        .vertexShaderPath   = "/shaders/glsl/depthprepass.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/depthprepass.frag.glsl",
+        .name           = "depthprepass",
+        .vertexShader   = "depthprepass.vert",
+        .fragmentShader = "depthprepass.frag",
     });
     createDepthPrepassFbo(w, h);
 

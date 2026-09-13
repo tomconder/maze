@@ -21,9 +21,9 @@ FXAA::~FXAA() {
 
 void FXAA::initialize() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/fxaa.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "fxaa.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
 

@@ -39,24 +39,6 @@ file(
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
-# cgltf
-message(STATUS "Including cgltf files")
-file(
-        GLOB CGLTF_SOURCES
-        LIST_DIRECTORIES false
-        deps/cgltf/cgltf.cpp)
-list(APPEND SOURCE_FILES ${CGLTF_SOURCES})
-set_source_files_properties(${CGLTF_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
-
-# stb
-message(STATUS "Including stb files")
-file(
-        GLOB STB_SOURCES
-        LIST_DIRECTORIES false
-        deps/stb/stb_image.cpp deps/stb/stb_rect_pack.cpp)
-list(APPEND SOURCE_FILES ${STB_SOURCES})
-
 # glfw
 message(STATUS "Including glfw platform files")
 file(
@@ -71,16 +53,6 @@ file(
         src/platform/glfw/logging/*.cpp)
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
-# miniaudio
-message(STATUS "Including miniaudio files")
-file(
-        GLOB MINIAUDIO_SOURCES
-        LIST_DIRECTORIES false
-        deps/miniaudio/miniaudio.cpp)
-list(APPEND SOURCE_FILES ${MINIAUDIO_SOURCES})
-set_source_files_properties(${MINIAUDIO_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
-
 # audio
 message(STATUS "Including audio platform files")
 file(
@@ -93,16 +65,6 @@ file(
         LIST_DIRECTORIES false
         src/platform/audio/*.cpp)
 list(APPEND SOURCE_FILES ${AUDIO_SOURCES})
-
-# tinyobjloader
-message(STATUS "Including tinyobjloader files")
-file(
-        GLOB TINYOBJLOADER_SOURCES
-        LIST_DIRECTORIES false
-        deps/tinyobjloader/tiny_obj_loader.cpp)
-list(APPEND SOURCE_FILES ${TINYOBJLOADER_SOURCES})
-set_source_files_properties(${TINYOBJLOADER_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
 
 if (ENABLE_IMGUI)
     message(STATUS "Including imgui platform files")
@@ -142,11 +104,8 @@ if (UNIX AND NOT APPLE)
     list(APPEND SOURCE_FILES ${LINUX_SOURCES})
 endif ()
 
-find_package(Freetype REQUIRED)
-find_package(harfbuzz CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(meshoptimizer CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -160,59 +119,93 @@ if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
+# Build options shared by the engine and the format library, and so by
+# assetconv through the latter. Warnings are a separate target so vendored
+# code can take the options without /W4: a per-source /W0 cannot remove a
+# target's /W4, and MSVC warns D9025 when it overrides it.
+add_library(sponge_options INTERFACE)
+add_library(sponge_warnings INTERFACE)
+add_library(sponge::options ALIAS sponge_options)
+
+# miniaudio, vendored: no warnings.
+add_library(sponge_miniaudio OBJECT deps/miniaudio/miniaudio.cpp)
+set_target_properties(sponge_miniaudio PROPERTIES CXX_STANDARD 23)
+target_link_libraries(sponge_miniaudio PRIVATE sponge_options)
+target_compile_options(sponge_miniaudio PRIVATE
+        $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
+
+# Baked asset formats: readers for the engine, writers for assetconv. No
+# logging and no engine headers, so an engine edit does not relink assetconv
+# and rebake every asset.
+find_package(fmt CONFIG REQUIRED)
+file(
+        GLOB FORMAT_FILES
+        CONFIGURE_DEPENDS
+        LIST_DIRECTORIES false
+        format/scene/src/*.cpp format/scene/src/*.hpp)
+add_library(sponge_format STATIC ${FORMAT_FILES})
+add_library(sponge::format ALIAS sponge_format)
+set_target_properties(sponge_format PROPERTIES CXX_STANDARD 23)
+target_include_directories(sponge_format PUBLIC format/scene/src)
+target_link_libraries(sponge_format PUBLIC sponge_options sponge_warnings
+        glm::glm-header-only)
+target_link_libraries(sponge_format PRIVATE fmt::fmt)
+
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
+target_link_libraries(sponge PUBLIC sponge_format)
+target_link_libraries(sponge PRIVATE sponge_miniaudio)
 
 if (MSVC)
     # hardening
-    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
+    target_compile_options(sponge_options INTERFACE $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
             /guard:cf>)
 
     # properly report what c++ version is being used
-    target_compile_options(sponge PUBLIC /Zc:__cplusplus)
+    target_compile_options(sponge_options INTERFACE /Zc:__cplusplus)
 
     # fast math and SIMD support
     # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:/fp:fast>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge PUBLIC /Oy-)
+    target_compile_options(sponge_options INTERFACE /Oy-)
 
     # enable exception handling
-    target_compile_options(sponge PUBLIC /EHsc)
+    target_compile_options(sponge_options INTERFACE /EHsc)
 
     # enable warnings as errors
-    target_compile_options(sponge PUBLIC /W4 /WX)
+    target_compile_options(sponge_warnings INTERFACE /W4 /WX)
 
     # disable RTTI
-    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-ffast-math>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge PUBLIC -fno-omit-frame-pointer)
+    target_compile_options(sponge_options INTERFACE -fno-omit-frame-pointer)
 
     # enable exception handling
-    target_compile_options(sponge PUBLIC -fexceptions)
+    target_compile_options(sponge_options INTERFACE -fexceptions)
 
     # enable warnings as errors
-    target_compile_options(sponge PUBLIC -Wall -Werror)
+    target_compile_options(sponge_warnings INTERFACE -Wall -Werror)
 
     # disable RTTI
-    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
-    target_compile_options(sponge
-            PUBLIC $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-fdata-sections>)
+    target_compile_options(sponge_options
+            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
     target_link_options(
-            sponge PUBLIC
+            sponge_options INTERFACE
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
     target_link_options(
-            sponge PUBLIC
+            sponge_options INTERFACE
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 
@@ -223,17 +216,11 @@ target_compile_definitions(sponge PUBLIC
         SPDLOG_ACTIVE_LEVEL=$<IF:$<CONFIG:Debug>,SPDLOG_LEVEL_TRACE,SPDLOG_LEVEL_ERROR>)
 
 target_include_directories(sponge PUBLIC src)
-target_include_directories(sponge PUBLIC deps/cgltf)
 target_include_directories(sponge PUBLIC deps/glad2/include)
-target_include_directories(sponge PUBLIC deps/stb)
-target_include_directories(sponge PUBLIC deps/tinyobjloader)
 target_include_directories(sponge PRIVATE deps/miniaudio)
 
-target_link_libraries(sponge PRIVATE Freetype::Freetype)
-target_link_libraries(sponge PRIVATE harfbuzz::harfbuzz)
 target_link_libraries(sponge PUBLIC glfw)
 target_link_libraries(sponge PUBLIC glm::glm-header-only)
-target_link_libraries(sponge PRIVATE meshoptimizer::meshoptimizer)
 target_link_libraries(sponge PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PUBLIC spdlog::spdlog spdlog::spdlog_header_only)

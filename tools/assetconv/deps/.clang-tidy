@@ -1,0 +1,7 @@
+---
+# vendored, generated sources: not ours to lint.
+# One Objective-C check stays on because clang-tidy fails with
+# "no checks enabled" when the list is empty; it never fires in C.
+Checks: "-*,objc-super-self"
+WarningsAsErrors: ""
+HeaderFilterRegex: ""

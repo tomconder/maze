@@ -24,8 +24,8 @@ ClusteredLights::ClusteredLights(const float near, const float far) :
                      sizeof(ClusterAABB)),
     computeParamsSSBO(sizeof(ComputeParams)),
     assignShader(renderer::ShaderCreateInfo{
-        .name              = "cluster_assign",
-        .computeShaderPath = "/shaders/glsl/cluster_assign.comp.glsl",
+        .name          = "cluster_assign",
+        .computeShader = "cluster_assign.comp",
     }) {}
 
 void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {

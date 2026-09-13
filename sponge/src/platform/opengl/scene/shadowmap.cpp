@@ -118,27 +118,27 @@ void ShadowMap::initialize() {
                           reinterpret_cast<void*>(2 * sizeof(float)));
     glBindVertexArray(0);
 
-    // EVSM moment-writing shader (reuses shadowmap.vert.glsl)
+    // EVSM moment-writing shader (reuses shadowmap.vert)
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
-        .vertexShaderPath   = "/shaders/glsl/shadowmap.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/shadowmap_evsm.frag.glsl",
+        .name           = shaderName,
+        .vertexShader   = "shadowmap.vert",
+        .fragmentShader = "shadowmap_evsm.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
 
     // Dual Kawase downsample shader
     const auto blurDownShaderInfo = renderer::ShaderCreateInfo{
-        .name               = std::string(blurDownShaderName),
-        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/blur.frag.glsl",
+        .name           = std::string(blurDownShaderName),
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "blur.frag",
     };
     blurDownShader = AssetManager::createShader(blurDownShaderInfo);
 
     // Dual Kawase upsample shader
     const auto blurUpShaderInfo = renderer::ShaderCreateInfo{
-        .name               = std::string(blurUpShaderName),
-        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/blur_up.frag.glsl",
+        .name           = std::string(blurUpShaderName),
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "blur_up.frag",
     };
     blurUpShader = AssetManager::createShader(blurUpShaderInfo);
 }

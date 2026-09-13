@@ -7,6 +7,7 @@
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/sprite.hpp"
+#include "platform/opengl/scene/spriteatlas.hpp"
 #include "ui/menufontsize.hpp"
 
 #include <glm/glm.hpp>
@@ -17,7 +18,6 @@
 #include <span>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 
 namespace {
 constexpr glm::vec3 labelColor     = { 0.9F, 0.9F, 0.9F };
@@ -53,17 +53,12 @@ using sponge::platform::opengl::scene::BitmapFont;
 
 const sponge::platform::opengl::scene::Sprite&
     promptSprite(const std::string_view name) {
-    static std::unordered_map<
-        std::string, std::unique_ptr<sponge::platform::opengl::scene::Sprite>>
-        sprites;
-
-    auto& sprite = sprites[std::string(name)];
-    if (!sprite) {
-        sprite = std::make_unique<sponge::platform::opengl::scene::Sprite>(
-            std::string(name),
-            "textures/prompts/" + std::string(name) + ".png");
-    }
-    return *sprite;
+    // The baked UI sprite sheet: the input prompt icons. Built on first use,
+    // which needs a current GL context.
+    static const sponge::platform::opengl::scene::SpriteAtlas atlas{
+        "ui", "textures/ui.ktx2"
+    };
+    return atlas.sprite(name);
 }
 
 float keyHintBarHeight(const float windowWidth) {

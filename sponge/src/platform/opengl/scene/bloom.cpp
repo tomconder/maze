@@ -23,17 +23,15 @@ Bloom::~Bloom() {
 void Bloom::initialize() {
     auto makeShader = [](std::string_view name, const char* frag) {
         return AssetManager::createShader(renderer::ShaderCreateInfo{
-            .name               = std::string(name),
-            .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-            .fragmentShaderPath = frag,
+            .name           = std::string(name),
+            .vertexShader   = "screenquad.vert",
+            .fragmentShader = frag,
         });
     };
 
-    extractShader =
-        makeShader(extractShaderName, "/shaders/glsl/bloom_extract.frag.glsl");
-    downShader =
-        makeShader(downShaderName, "/shaders/glsl/bloom_down.frag.glsl");
-    upShader = makeShader(upShaderName, "/shaders/glsl/bloom_up.frag.glsl");
+    extractShader = makeShader(extractShaderName, "bloom_extract.frag");
+    downShader    = makeShader(downShaderName, "bloom_down.frag");
+    upShader      = makeShader(upShaderName, "bloom_up.frag");
 
     createFramebuffers();
 }

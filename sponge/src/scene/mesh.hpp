@@ -1,23 +1,14 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "vertex.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
 namespace sponge::scene {
-struct Vertex {
-    glm::vec3 position;
-    glm::vec2 texCoords;
-    glm::vec3 normal;
-    // xyz = tangent, w = bitangent handedness sign (glTF convention)
-    glm::vec4 tangent{ 0.F, 0.F, 0.F, 1.F };
-};
-
 class Mesh {
 public:
-    void   optimize();
     size_t getNumIndices() const {
         return numIndices;
     }

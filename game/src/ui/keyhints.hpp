@@ -11,16 +11,15 @@
 
 namespace game::ui {
 
-// Icons are Kenney input prompt sprites in assets/textures/prompts, named by
-// file stem.
+// Icons are Kenney input prompts, baked into the UI atlas and named by the
+// file stem they had in assets/textures/prompts.
 struct KeyHint {
     std::string_view keyIcon;  // keyboard prompt, e.g. "keyboard_escape"
     std::string_view padIcon;  // gamepad prompt for the same action
     std::string_view label;    // what it does, e.g. "Back"
 };
 
-// Prompt sprite by file stem, built on first use and cached — construction
-// needs a GL context, so never call this before one is current.
+// Prompt sprite by name, from the UI atlas.
 const sponge::platform::opengl::scene::Sprite&
     promptSprite(std::string_view name);
 

@@ -1,18 +1,50 @@
 #include "platform/opengl/renderer/texture.hpp"
 
+#include "ktx2.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
+#include "readbytes.hpp"
 
-#include <stb_image.h>
-
+#include <cstdint>
 #include <filesystem>
+#include <span>
 #include <string>
+#include <vector>
+
+namespace {
+// KTX2 vkFormat to the GL internal format and, for uncompressed formats, the
+// upload format. compressed is false when the level data is plain pixels.
+struct GlFormat {
+    uint32_t internalFormat{ 0 };
+    uint32_t format{ 0 };
+    bool     compressed{ false };
+};
+
+GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
+    namespace ktx2 = sponge::scene::ktx2;
+    switch (format) {
+        case ktx2::formatR8G8B8Unorm:
+            return { GL_RGB8, GL_RGB, false };
+        case ktx2::formatR8G8B8A8Unorm:
+            return { GL_RGBA8, GL_RGBA, false };
+        case ktx2::formatBc5Unorm:
+            return { GL_COMPRESSED_RG_RGTC2, 0, true };
+        case ktx2::formatBc7Unorm:
+            return { GL_COMPRESSED_RGBA_BPTC_UNORM, 0, true };
+        default:
+            return {};
+    }
+}
+}  // namespace
 
 namespace sponge::platform::opengl::renderer {
 Texture::Texture(const TextureCreateInfo& createInfo) {
     glGenTextures(1, &id);
 
-    if (!createInfo.path.empty()) {
+    if (!createInfo.ktx2.empty()) {
+        SPONGE_GL_INFO("Loading baked texture: [{}]", createInfo.name);
+        loadFromKtx2(createInfo.ktx2, createInfo.loadFlag);
+    } else if (!createInfo.path.empty()) {
         SPONGE_GL_INFO("Loading texture file: [{}, {}]", createInfo.name,
                        createInfo.path);
 
@@ -93,23 +125,75 @@ void Texture::generate(const uint32_t textureWidth,
 void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     assert(!path.empty());
 
-    const std::filesystem::path name{ path };
-
-    int bytesPerPixel = 0;
-    int loadedHeight  = 0;
-    int loadedWidth   = 0;
-
-    auto* data = stbi_load(name.string().data(), &loadedWidth, &loadedHeight,
-                           &bytesPerPixel, 0);
-    if (data == nullptr) {
-        SPONGE_GL_ERROR("Unable to load texture, path = {}: {}", name.string(),
-                        stbi_failure_reason());
+    const auto bytes = sponge::scene::readBytes(path);
+    if (bytes.empty()) {
+        SPONGE_GL_ERROR("Unable to read texture, path = {}", path);
         return;
     }
 
-    generate(loadedWidth, loadedHeight, bytesPerPixel, data, flag);
+    loadFromKtx2(bytes, flag);
+}
 
-    stbi_image_free(data);
+void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
+                           const uint8_t                  flag) {
+    std::string error;
+    const auto  image = sponge::scene::ktx2::read(bytes, error);
+    if (image.levels.empty()) {
+        SPONGE_GL_ERROR("{}", error);
+        return;
+    }
+
+    const auto glFormat = glFormatOf(image.format);
+    if (glFormat.internalFormat == 0) {
+        SPONGE_GL_ERROR("Unsupported KTX2 format {}",
+                        static_cast<uint32_t>(image.format));
+        return;
+    }
+
+    width  = image.width;
+    height = image.height;
+
+    glBindTexture(GL_TEXTURE_2D, id);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    for (uint32_t level = 0; level < image.levels.size(); level++) {
+        const auto& source = image.levels[level];
+        if (glFormat.compressed) {
+            glCompressedTexImage2D(
+                GL_TEXTURE_2D, static_cast<int32_t>(level),
+                glFormat.internalFormat, static_cast<int32_t>(source.width),
+                static_cast<int32_t>(source.height), 0,
+                static_cast<int32_t>(source.bytes.size()), source.bytes.data());
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, static_cast<int32_t>(level),
+                         static_cast<int32_t>(glFormat.internalFormat),
+                         static_cast<int32_t>(source.width),
+                         static_cast<int32_t>(source.height), 0,
+                         glFormat.format, GL_UNSIGNED_BYTE,
+                         source.bytes.data());
+        }
+    }
+
+    const auto pixelated = (flag & Pixelated) == Pixelated;
+    if (pixelated) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    } else {
+        // The file decides the mip chain; the driver is never asked to
+        // invent one. A sprite atlas ships a single level on purpose,
+        // because generated mips blend neighbouring sprites together.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,
+                        static_cast<int32_t>(image.levels.size()) - 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        image.levels.size() == 1 ? GL_LINEAR :
+                                                   GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void Texture::activateAndBind(const uint8_t unit) const {

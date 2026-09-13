@@ -22,9 +22,9 @@ std::shared_ptr<renderer::Shader> Quad::shader;
 
 Quad::Quad() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/quad.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/quad.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "quad.vert",
+        .fragmentShader = "quad.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

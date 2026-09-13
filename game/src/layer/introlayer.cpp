@@ -43,7 +43,7 @@ constexpr std::array<std::string_view, menuItemCount> menuLabels = {
 
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ttf";
+constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
 
 constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };

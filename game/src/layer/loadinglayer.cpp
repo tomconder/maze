@@ -17,14 +17,13 @@
 namespace {
 constexpr std::string_view cameraName = "loading";
 constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ttf";
+constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
 
 constexpr float barWidth  = 400.F;
 constexpr float barHeight = 24.F;
 
-// BitmapFont only bakes glyphs at {18, 24, 32, 48} (see
-// BitmapFont::BitmapFont); getGlyph() does an exact-size lookup with no
-// fallback, so this must be one of those.
+// The font holds only the sizes assets/manifest.json bakes, {18, 24, 32, 48},
+// and draws nothing at any other, so this must be one of those.
 constexpr uint32_t percentFontSize   = 18;
 constexpr float    percentTextMargin = 12.F;
 
@@ -118,9 +117,12 @@ void LoadingLayer::setActive(const bool value) {
 
     parseThread = std::thread([this] {
         for (std::size_t i = 0; i < requests.size(); i++) {
-            parsedData[i] = Model::parse(requests[i], [this] {
-                completedSteps.fetch_add(1, std::memory_order_acq_rel);
-            });
+            parsedData[i] = Model::parse(requests[i]);
+            // Per model, not per mesh: a model's meshes all become available
+            // at once, when its file has been read.
+            completedSteps.fetch_add(
+                static_cast<uint32_t>(parsedData[i].meshes.size()),
+                std::memory_order_acq_rel);
         }
         parseDone.store(true, std::memory_order_release);
     });

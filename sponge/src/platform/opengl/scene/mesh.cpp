@@ -57,9 +57,9 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     this->numVertices = numVertices;
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/pbr.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/pbr.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "pbr.vert",
+        .fragmentShader = "pbr.frag",
     };
     defaultShader = AssetManager::createShader(shaderCreateInfo);
     meshProgramId = defaultShader->getId();

@@ -93,4 +93,6 @@ endif ()
 
 add_subdirectory(sponge)
 
+add_subdirectory(tools/assetconv)
+
 add_subdirectory(game)

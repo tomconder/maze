@@ -1,14 +1,19 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 
+#include "font.hpp"
+#include "ktx2.hpp"
+#include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "readbytes.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
 #include <memory>
+#include <string>
 #include <string_view>
 
 namespace {
@@ -41,9 +46,9 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/sprite.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/text.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "sprite.vert",
+        .fragmentShader = "text.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();
@@ -69,26 +74,49 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     vao->unbind();
     shader->unbind();
 
-    const std::string ttfPath = createInfo.assetsFolder + createInfo.path;
-    atlas.build(ttfPath, { 18, 24, 32, 48 });
+    const auto path  = createInfo.assetsFolder + createInfo.path;
+    const auto bytes = sponge::scene::readBytes(path);
+    if (bytes.empty()) {
+        SPONGE_GL_ERROR("Unable to read font: {}", path);
+        return;
+    }
 
-    // The atlas holds per-channel LCD coverage, not colour, so no gamma
-    // correction: an sRGB internal format would apply a transfer function to
-    // the coverage that feeds the dual-source blend in beginPass().
+    std::string error;
+    const auto  image = sponge::scene::ktx2::read(bytes, error);
+    if (image.levels.empty()) {
+        SPONGE_GL_ERROR("{}: {}", path, error);
+        return;
+    }
+
+    const auto tables =
+        std::ranges::find_if(image.keyValues, [](const auto& entry) {
+            return entry.first == sponge::scene::font::fontKey;
+        });
+    if (tables == image.keyValues.end()) {
+        SPONGE_GL_ERROR("Font {} carries no glyph tables", path);
+        return;
+    }
+    font = sponge::scene::font::read(tables->second, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("{}: {}", path, error);
+        return;
+    }
+
+    // The atlas holds per-channel LCD coverage, not colour. It is stored
+    // UNORM, so no transfer function touches the coverage that feeds the
+    // dual-source blend in beginPass().
     const renderer::TextureCreateInfo textureCreateInfo{
-        .name          = createInfo.name,
-        .path          = "",
-        .width         = atlas.atlasWidth(),
-        .height        = atlas.atlasHeight(),
-        .bytesPerPixel = 3,
-        .data          = atlas.data(),
-        .loadFlag      = renderer::Pixelated,
+        .name     = createInfo.name,
+        .path     = "",
+        .ktx2     = bytes,
+        .loadFlag = renderer::Pixelated,
     };
     texture = std::make_unique<renderer::Texture>(textureCreateInfo);
 }
 
 uint32_t BitmapFont::getHeight(const uint32_t size) const {
-    return static_cast<uint32_t>(atlas.getLineHeight(size));
+    const auto* baked = sponge::scene::font::sizeOf(font, size);
+    return baked != nullptr ? static_cast<uint32_t>(baked->lineHeight) : size;
 }
 
 uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
@@ -96,8 +124,14 @@ uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
+    const auto* baked = sponge::scene::font::sizeOf(font, size);
+    if (baked == nullptr) {
+        return 0;
+    }
+
     float penX = 0.0F;
-    for (const auto& shapedGlyph : atlas.shape(str, size, tabularFigures)) {
+    for (const auto& shapedGlyph :
+         sponge::scene::font::shape(font, *baked, str, tabularFigures)) {
         penX += shapedGlyph.xAdvance;
     }
 
@@ -105,8 +139,10 @@ uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
 }
 
 void BitmapFont::beginPass(const uint32_t size) {
-    assert(texture);
     passTargetSize = size;
+    if (!texture) {
+        return;  // the font failed to load; render() draws nothing
+    }
     vao->bind();
     shader->bind();
     texture->activateAndBind(0);
@@ -120,36 +156,42 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const auto str =
         text.length() > maxLength ? text.substr(0, maxLength) : text;
 
-    const float ascender   = atlas.getAscender(passTargetSize);
+    const auto* baked = sponge::scene::font::sizeOf(font, passTargetSize);
+    if (baked == nullptr) {
+        return;
+    }
+
+    const float ascender   = baked->ascender;
     float       penX       = position.x;
     uint32_t    glyphCount = 0;
-    const auto  shaped     = atlas.shape(str, passTargetSize, tabularFigures);
+    const auto  shaped =
+        sponge::scene::font::shape(font, *baked, str, tabularFigures);
 
     for (const auto& shapedGlyph : shaped) {
         // quad sits on the whole pixel; the fractional remainder picks the
         // subpixel-shifted bitmap baked for that phase
-        const float glyphX = penX + shapedGlyph.xOffset;
-        const float xfloor = std::floor(glyphX);
+        const float xfloor = std::floor(penX);
         const auto  phase  = std::min(
-            sponge::scene::FontAtlas::subpixelPhases - 1,
+            sponge::scene::font::subpixelPhases - 1,
             static_cast<uint32_t>(
-                (glyphX - xfloor) *
-                static_cast<float>(sponge::scene::FontAtlas::subpixelPhases)));
+                (penX - xfloor) *
+                static_cast<float>(sponge::scene::font::subpixelPhases)));
 
-        const sponge::scene::GlyphInfo* glyphInfo =
-            atlas.getGlyph(shapedGlyph.glyphIndex, passTargetSize, phase);
-        if (glyphInfo && glyphInfo->width > 0 && glyphInfo->height > 0) {
-            const float xpos = xfloor + static_cast<float>(glyphInfo->bearingX);
-            const float ypos =
-                std::round(position.y - shapedGlyph.yOffset + ascender) -
-                static_cast<float>(glyphInfo->bearingY);
-            const auto glyphWidth  = static_cast<float>(glyphInfo->width);
-            const auto glyphHeight = static_cast<float>(glyphInfo->height);
+        const auto& glyphInfo =
+            baked->glyphs[(shapedGlyph.slot *
+                           sponge::scene::font::subpixelPhases) +
+                          phase];
+        if (glyphInfo.width > 0 && glyphInfo.height > 0) {
+            const float xpos = xfloor + static_cast<float>(glyphInfo.bearingX);
+            const float ypos = std::round(position.y + ascender) -
+                               static_cast<float>(glyphInfo.bearingY);
+            const auto  glyphWidth  = static_cast<float>(glyphInfo.width);
+            const auto  glyphHeight = static_cast<float>(glyphInfo.height);
 
-            const float uLeft   = glyphInfo->uvLeft;
-            const float vTop    = glyphInfo->uvTop;
-            const float uRight  = glyphInfo->uvLeft + glyphInfo->uvWidth;
-            const float vBottom = glyphInfo->uvTop + glyphInfo->uvHeight;
+            const float uLeft   = glyphInfo.uvLeft;
+            const float vTop    = glyphInfo.uvTop;
+            const float uRight  = glyphInfo.uvLeft + glyphInfo.uvWidth;
+            const float vBottom = glyphInfo.uvTop + glyphInfo.uvHeight;
 
             const std::array<glm::vec2, vertexCount> vertices{
                 {

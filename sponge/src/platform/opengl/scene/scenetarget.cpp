@@ -20,9 +20,9 @@ SceneTarget::~SceneTarget() {
 
 void SceneTarget::initialize() {
     shader = AssetManager::createShader(renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/tonemap.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "tonemap.frag",
     });
 
     createFramebuffer();
