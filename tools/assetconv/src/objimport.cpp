@@ -1,7 +1,7 @@
 #include "objimport.hpp"
 
 #include "scene/modeldata.hpp"
-#include "scene/tangents.hpp"
+#include "tangents.hpp"
 
 #include <fmt/base.h>
 #include <glm/glm.hpp>
@@ -120,7 +120,7 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
 
     // The engine never sees the source format, so an OBJ mesh has to arrive
     // with the same vertex data a glTF one does.
-    sponge::scene::computeTangents(vertices, indices);
+    assetconv::computeTangents(vertices, indices);
 
     ParsedMesh parsedMesh;
     if (!mesh.material_ids.empty()) {

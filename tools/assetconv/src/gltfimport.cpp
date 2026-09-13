@@ -3,7 +3,7 @@
 #include "logging/log.hpp"
 #include "scene/mesh.hpp"
 #include "scene/modeldata.hpp"
-#include "scene/tangents.hpp"
+#include "tangents.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
@@ -30,7 +30,6 @@ std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
 }  // namespace
 
 namespace assetconv::gltf {
-using sponge::scene::computeTangents;
 using sponge::scene::ModelData;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
