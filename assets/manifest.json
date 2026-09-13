@@ -45,6 +45,24 @@
       }
     }
   ],
+  "licenses": [
+    {
+      "name": "Damaged Helmet",
+      "files": ["models/gltf/helmet/LICENSE.md"]
+    },
+    {
+      "name": "Sponza",
+      "files": ["models/gltf/sponza/LICENSE.md"]
+    },
+    {
+      "name": "Inter",
+      "files": ["fonts/LICENSE.txt"]
+    },
+    {
+      "name": "Kenney Input Prompts",
+      "files": ["textures/prompts/License.txt"]
+    }
+  ],
   "shaders": {
     "output": "shaders/shaders.spnga",
     "stages": {

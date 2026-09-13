@@ -14,6 +14,7 @@ GLSL from `shaders/shaders.spnga` and nowhere else.
 
 ```
 assetconv [--threads <n>] --manifest <manifest.json> <output dir> [--no-line-directives]
+          [--notices <file> [--license <name>=<path>]...]
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
 
@@ -28,6 +29,23 @@ An output is skipped when it is newer than its sources, the manifest and
 `assetconv` itself. The converter stands in for the format headers compiled
 into it, so a format change rebakes everything. A failed conversion deletes
 its output, so a partial file never looks current.
+
+`--notices` joins third-party licenses into one file: the manifest's
+`licenses` entries plus each `--license`. A name given more than once gets all
+its files in one section. A section with one file holds that file; with
+several, each file follows its file name, as `vcpkg_install_copyright` does.
+The file is rewritten only when its text changes, and a missing license file
+fails the run.
+
+```json
+"licenses": [
+  { "name": "Inter", "files": ["fonts/LICENSE.txt"] }
+]
+```
+
+CMake passes the licenses of the code compiled into the game
+(`game/CMakeLists.txt`, `THIRD_PARTY_LICENSES`) and writes
+`THIRD-PARTY-NOTICES.txt` next to the executable, which `install` copies.
 
 `--verify` imports the source again and compares it against the baked file:
 mesh count, every vertex (position, UV, normal, tangent), every index, and

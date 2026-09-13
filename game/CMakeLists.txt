@@ -84,6 +84,40 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
+# Licenses of the third-party code compiled into maze.exe. Asset licenses are
+# listed in assets/manifest.json. A missing file fails the configure, so a
+# renamed port cannot drop a notice.
+set(VCPKG_SHARE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share")
+set(THIRD_PARTY_LICENSES
+        "fmt=${VCPKG_SHARE}/fmt/copyright"
+        "glad=${CMAKE_SOURCE_DIR}/sponge/deps/glad2/copyright.txt"
+        "glfw=${VCPKG_SHARE}/glfw3/copyright"
+        "glm=${VCPKG_SHARE}/glm/copyright"
+        "miniaudio=${CMAKE_SOURCE_DIR}/sponge/deps/miniaudio/LICENSE"
+        "mimalloc=${VCPKG_SHARE}/mimalloc/copyright"
+        "nlohmann-json=${VCPKG_SHARE}/nlohmann-json/copyright"
+        "spdlog=${VCPKG_SHARE}/spdlog/copyright"
+        "yoga=${VCPKG_SHARE}/yoga/copyright")
+if (ENABLE_IMGUI)
+    list(APPEND THIRD_PARTY_LICENSES "imgui=${VCPKG_SHARE}/imgui/copyright")
+endif ()
+if (ENABLE_PROFILING)
+    list(APPEND THIRD_PARTY_LICENSES "tracy=${VCPKG_SHARE}/tracy/copyright")
+endif ()
+foreach (LICENSE IN LISTS THIRD_PARTY_LICENSES)
+    string(REGEX REPLACE "^[^=]*=" "" LICENSE_FILE "${LICENSE}")
+    if (NOT EXISTS "${LICENSE_FILE}")
+        message(FATAL_ERROR "License file not found: ${LICENSE_FILE}")
+    endif ()
+endforeach ()
+
+if (APPLE)
+    set(NOTICES_FILE
+            "$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources/THIRD-PARTY-NOTICES.txt")
+else ()
+    set(NOTICES_FILE "$<TARGET_FILE_DIR:game>/THIRD-PARTY-NOTICES.txt")
+endif ()
+
 include(${CMAKE_SOURCE_DIR}/cmake/ConvertAssets.cmake)
 
 add_dependencies(game convert_assets)
@@ -208,7 +242,7 @@ else ()
     add_dependencies(game copy_assets)
 
     install(TARGETS game RUNTIME DESTINATION .)
-    install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
+    install(FILES $<TARGET_RUNTIME_DLLS:game> ${NOTICES_FILE} DESTINATION .)
     # Same script as the copy above, so the exclusions live in one place.
     # install(DIRECTORY) cannot drop the folders the exclusions leave empty.
     install(CODE "

@@ -1,8 +1,10 @@
-// Asset converter. Bakes the models, textures, atlases and shaders listed in
-// assets/manifest.json to the formats the engine loads.
+// Asset converter. Bakes the models, textures, fonts, atlases and shaders
+// listed in assets/manifest.json to the formats the engine loads, and joins
+// the third-party licenses into one notices file.
 //
 // Usage: assetconv [--threads <n>] --manifest <manifest.json> <output dir>
 //                  [--no-line-directives]
+//                  [--notices <file> [--license <name>=<path>]...]
 //        assetconv [--threads <n>] --verify <source> <output.spnga>
 
 #include "assetformat.hpp"
@@ -13,6 +15,7 @@
 #include "meshopt.hpp"
 #include "modeldata.hpp"
 #include "objimport.hpp"
+#include "readbytes.hpp"
 #include "shadercompile.hpp"
 #include "shaderpack.hpp"
 #include "texenc.hpp"
@@ -21,6 +24,7 @@
 #include <nlohmann/json.hpp>
 
 #include <charconv>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <exception>
@@ -287,6 +291,47 @@ int packAtlas(const std::vector<assetconv::AtlasEntry>& entries,
 using Json   = nlohmann::ordered_json;
 namespace fs = std::filesystem;
 
+// License name to license files.
+using Licenses = std::map<std::string, std::vector<std::string>>;
+
+// One notices file with a section per license. A section with several files
+// lists each under its file name, as vcpkg_install_copyright does. Written on
+// every run, but only when the text changes: the list comes partly from the
+// command line, which has no timestamp.
+bool writeNotices(const std::string& output, const Licenses& licenses) {
+    const std::string rule(80, '=');
+    std::string       text;
+    for (const auto& [name, files] : licenses) {
+        text += rule + "\n" + name + "\n" + rule + "\n\n";
+        for (const auto& path : files) {
+            const auto bytes = sponge::scene::readBytes(path);
+            if (bytes.empty()) {
+                fmt::println(stderr, "assetconv: unable to read {}", path);
+                return false;
+            }
+            std::string contents{ bytes.begin(), bytes.end() };
+            std::erase(contents, '\r');
+            if (files.size() > 1) {
+                text += fs::path(path).filename().string() + ":\n\n";
+            }
+            text += contents + "\n\n";
+        }
+    }
+
+    const auto        current = sponge::scene::readBytes(output);
+    const std::string written(current.begin(), current.end());
+    if (written == text) {
+        return true;
+    }
+    if (!writeFile(output, { reinterpret_cast<const uint8_t*>(text.data()),
+                             text.size() })) {
+        return false;
+    }
+    fmt::println("{} licenses -> {} ({} bytes)", licenses.size(), output,
+                 text.size());
+    return true;
+}
+
 // Current when newer than every input. A missing file on either side is stale.
 bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
     std::error_code ec;
@@ -305,7 +350,8 @@ bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
 
 // Sources are relative to the manifest's folder, outputs to outputDir.
 int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
-                 const bool lineDirectives, const fs::path& converter) {
+                 const bool lineDirectives, const fs::path& converter,
+                 const std::string& notices, Licenses licenses) {
     const auto sourceRoot = fs::path(manifestPath).parent_path();
     const auto outputRoot = fs::path(outputDir);
     const auto source     = [&](const std::string& path) {
@@ -424,6 +470,21 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
                 return 1;
             }
         }
+
+        // Asset licenses come from the manifest, code licenses from the
+        // command line: only the build knows what the game links.
+        if (!notices.empty()) {
+            for (const auto& license :
+                 manifest.value("licenses", Json::array())) {
+                auto& files = licenses[license.at("name").get<std::string>()];
+                for (const auto& path : license.at("files")) {
+                    files.push_back(source(path.get<std::string>()));
+                }
+            }
+            if (!writeNotices(notices, licenses)) {
+                return 1;
+            }
+        }
     } catch (const std::exception& e) {
         fmt::println(stderr, "assetconv: {}: {}", manifestPath, e.what());
         return 2;
@@ -450,13 +511,29 @@ int main(const int argc, char** argv) {
     }
     assetconv::initEncoder(threads);
 
-    if ((args.size() == 3 || args.size() == 4) && args[0] == "--manifest") {
-        if (args.size() == 4 && args[3] != "--no-line-directives") {
-            fmt::println(stderr, "assetconv: unknown option {}", args[3]);
-            return 2;
+    if (args.size() >= 3 && args[0] == "--manifest") {
+        bool        lineDirectives = true;
+        std::string notices;
+        Licenses    licenses;
+        for (size_t i = 3; i < args.size(); i++) {
+            if (args[i] == "--no-line-directives") {
+                lineDirectives = false;
+            } else if (args[i] == "--notices" && i + 1 < args.size()) {
+                notices = args[++i];
+            } else if (args[i] == "--license" && i + 1 < args.size() &&
+                       args[i + 1].find('=') != std::string_view::npos) {
+                const auto value  = args[++i];
+                const auto equals = value.find('=');
+                licenses[std::string{ value.substr(0, equals) }].emplace_back(
+                    value.substr(equals + 1));
+            } else {
+                fmt::println(stderr, "assetconv: unknown option {}", args[i]);
+                return 2;
+            }
         }
         return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
-                            args.size() == 3, argv[0]);
+                            lineDirectives, argv[0], notices,
+                            std::move(licenses));
     }
     if (args.size() == 3 && args[0] == "--verify") {
         return verify(std::string{ args[1] }, std::string{ args[2] });
@@ -465,6 +542,7 @@ int main(const int argc, char** argv) {
     fmt::println(stderr,
                  "usage: assetconv [--threads <n>] --manifest <manifest.json> "
                  "<output dir> [--no-line-directives]\n"
+                 "           [--notices <file> [--license <name>=<path>]...]\n"
                  "       assetconv [--threads <n>] --verify <source> "
                  "<output.spnga>");
     return 2;
