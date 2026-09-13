@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -25,6 +26,8 @@ constexpr size_t   texelsInBlock = blockSize * blockSize;
 constexpr size_t   bc7BlockBytes = 16;
 constexpr size_t   bc4BlockBytes = 8;
 constexpr size_t   rgbaChannels  = 4;
+
+unsigned encodeThreads = 1;
 
 // One level of an RGBA8 image.
 struct Surface {
@@ -141,20 +144,32 @@ std::vector<uint8_t> compress(const Surface&               surface,
     // (roughness, occlusion) as often as as colour.
     bc7enc_compress_block_params_init_linear_weights(&params);
 
-    for (uint32_t by = 0; by < blocksY; by++) {
-        for (uint32_t bx = 0; bx < blocksX; bx++) {
-            const auto block =
-                readBlock(surface, bx * blockSize, by * blockSize);
-            auto* dst = &out[((static_cast<size_t>(by) * blocksX) + bx) *
-                             bytesPerBlock];
-            if (normal) {
-                encodeBc4(block, 0, dst);
-                encodeBc4(block, 1, dst + bc4BlockBytes);
-            } else {
-                bc7enc_compress_block(dst, block.data(), &params);
+    const auto encodeRows = [&](const uint32_t first, const uint32_t last) {
+        for (uint32_t by = first; by < last; by++) {
+            for (uint32_t bx = 0; bx < blocksX; bx++) {
+                const auto block =
+                    readBlock(surface, bx * blockSize, by * blockSize);
+                auto* dst = &out[((static_cast<size_t>(by) * blocksX) + bx) *
+                                 bytesPerBlock];
+                if (normal) {
+                    encodeBc4(block, 0, dst);
+                    encodeBc4(block, 1, dst + bc4BlockBytes);
+                } else {
+                    bc7enc_compress_block(dst, block.data(), &params);
+                }
             }
         }
+    };
+
+    // Blocks are independent and bc7enc only reads its tables after init,
+    // so rows split across threads with the same bytes as a serial run.
+    const auto rowsPerThread = (blocksY + encodeThreads - 1) / encodeThreads;
+    std::vector<std::jthread> workers;
+    for (uint32_t first = 0; first < blocksY; first += rowsPerThread) {
+        workers.emplace_back(encodeRows, first,
+                             std::min(first + rowsPerThread, blocksY));
     }
+    workers.clear();  // joins
 
     return out;
 }
@@ -195,8 +210,11 @@ ktx2::Format formatFor(const assetconv::TextureKind kind) {
 
 namespace assetconv {
 
-void initEncoder() {
+void initEncoder(const unsigned threads) {
     bc7enc_compress_block_init();
+    encodeThreads = threads != 0 ?
+                        threads :
+                        std::max(std::thread::hardware_concurrency(), 1U);
 }
 
 sponge::scene::ParsedImage loadImage(const std::string& path) {

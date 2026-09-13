@@ -52,6 +52,10 @@ target_link_libraries(assetconv PRIVATE sponge::format)
 find_package(fmt CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE fmt::fmt)
 
+# BC7 encoding splits each image across threads.
+find_package(Threads REQUIRED)
+target_link_libraries(assetconv PRIVATE Threads::Threads)
+
 # Reads assets/manifest.json.
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE nlohmann_json::nlohmann_json)

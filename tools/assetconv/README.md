@@ -12,9 +12,12 @@ and `Shader` reads GLSL from `shaders/shaders.spnga` and nowhere else.
 ## Usage
 
 ```
-assetconv --manifest <manifest.json> <output dir> [--no-line-directives]
-assetconv --verify <source> <output.spnga>
+assetconv [--threads <n>] --manifest <manifest.json> <output dir> [--no-line-directives]
+assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
+
+`--threads` sets how many threads each image's BC7 blocks are split across.
+The default is one per hardware thread. The output bytes do not depend on it.
 
 `--manifest` bakes every asset the manifest lists: models, textures, atlases
 and the shader pack. Sources are relative to the manifest's folder, outputs to

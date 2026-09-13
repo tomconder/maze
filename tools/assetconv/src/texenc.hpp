@@ -19,8 +19,9 @@ enum class TextureKind : uint8_t {
     Linear,
 };
 
-// Must run once before any encode.
-void initEncoder();
+// Must run once before any encode. threads is the number of threads each
+// image is split across; 0 means one per hardware thread.
+void initEncoder(unsigned threads);
 
 // Decodes an image file to RGBA8. Returns an image with zero width on
 // failure.

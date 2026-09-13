@@ -1,9 +1,9 @@
 // Asset converter. Bakes the models, textures, atlases and shaders listed in
 // assets/manifest.json to the formats the engine loads.
 //
-// Usage: assetconv --manifest <manifest.json> <output dir>
+// Usage: assetconv [--threads <n>] --manifest <manifest.json> <output dir>
 //                  [--no-line-directives]
-//        assetconv --verify <source> <output.spnga>
+//        assetconv [--threads <n>] --verify <source> <output.spnga>
 
 #include "assetformat.hpp"
 #include "atlas.hpp"
@@ -19,17 +19,20 @@
 #include <fmt/base.h>
 #include <nlohmann/json.hpp>
 
+#include <charconv>
 #include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <optional>
 #include <set>
 #include <span>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -39,15 +42,24 @@ using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 namespace ktx2 = sponge::scene::ktx2;
 
-bool encode(std::optional<ParsedImage>& image, const TextureKind kind) {
+// Encoded KTX2 files by image name and kind.
+using EncodeCache =
+    std::map<std::pair<std::string, TextureKind>, std::vector<uint8_t>>;
+
+bool encode(std::optional<ParsedImage>& image, const TextureKind kind,
+            EncodeCache& cache) {
     if (!image) {
         return true;
     }
 
-    image->ktx2 = assetconv::encode(*image, kind);
-    if (image->ktx2.empty()) {
+    auto [entry, inserted] = cache.try_emplace({ image->name, kind });
+    if (inserted) {
+        entry->second = assetconv::encode(*image, kind);
+    }
+    if (entry->second.empty()) {
         return false;
     }
+    image->ktx2 = entry->second;
 
     image->pixels.clear();
     image->pixels.shrink_to_fit();
@@ -55,12 +67,14 @@ bool encode(std::optional<ParsedImage>& image, const TextureKind kind) {
 }
 
 bool encodeTextures(ModelData& data) {
+    // Materials share images: sponza has 307 texture slots over 69 images.
+    EncodeCache cache;
     for (auto& mesh : data.meshes) {
-        if (!encode(mesh.albedo, TextureKind::Color) ||
-            !encode(mesh.normal, TextureKind::Normal) ||
-            !encode(mesh.occlusion, TextureKind::Linear) ||
-            !encode(mesh.emissive, TextureKind::Color) ||
-            !encode(mesh.metallicRoughness, TextureKind::Linear)) {
+        if (!encode(mesh.albedo, TextureKind::Color, cache) ||
+            !encode(mesh.normal, TextureKind::Normal, cache) ||
+            !encode(mesh.occlusion, TextureKind::Linear, cache) ||
+            !encode(mesh.emissive, TextureKind::Color, cache) ||
+            !encode(mesh.metallicRoughness, TextureKind::Linear, cache)) {
             return false;
         }
     }
@@ -395,9 +409,23 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 }  // namespace
 
 int main(const int argc, char** argv) {
-    assetconv::initEncoder();
+    std::vector<std::string_view> args{ argv + 1, argv + argc };
 
-    const std::vector<std::string_view> args{ argv + 1, argv + argc };
+    // 0: one thread per hardware thread.
+    unsigned threads = 0;
+    if (args.size() >= 2 && args[0] == "--threads") {
+        const auto value = args[1];
+        const auto [end, error] =
+            std::from_chars(value.data(), value.data() + value.size(), threads);
+        if (error != std::errc() || end != value.data() + value.size() ||
+            threads == 0) {
+            fmt::println(stderr, "assetconv: --threads needs a number above 0");
+            return 2;
+        }
+        args.erase(args.begin(), args.begin() + 2);
+    }
+    assetconv::initEncoder(threads);
+
     if ((args.size() == 3 || args.size() == 4) && args[0] == "--manifest") {
         if (args.size() == 4 && args[3] != "--no-line-directives") {
             fmt::println(stderr, "assetconv: unknown option {}", args[3]);
@@ -411,8 +439,9 @@ int main(const int argc, char** argv) {
     }
 
     fmt::println(stderr,
-                 "usage: assetconv --manifest <manifest.json> <output dir> "
-                 "[--no-line-directives]\n"
-                 "       assetconv --verify <source> <output.spnga>");
+                 "usage: assetconv [--threads <n>] --manifest <manifest.json> "
+                 "<output dir> [--no-line-directives]\n"
+                 "       assetconv [--threads <n>] --verify <source> "
+                 "<output.spnga>");
     return 2;
 }
