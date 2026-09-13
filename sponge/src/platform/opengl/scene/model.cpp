@@ -1,10 +1,10 @@
 #include "platform/opengl/scene/model.hpp"
 
+#include "assetformat.hpp"
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
-#include "scene/assetformat.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -41,13 +41,23 @@ ModelData Model::parse(const ModelCreateInfo& createInfo) {
     SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
                    createInfo.path);
 
-    return sponge::scene::asset::read(createInfo.assetsFolder +
-                                      createInfo.path);
+    std::string error;
+    auto        data = sponge::scene::asset::read(
+        createInfo.assetsFolder + createInfo.path, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("{}", error);
+    }
+    return data;
 }
 
 std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
-    return sponge::scene::asset::readMeshCount(createInfo.assetsFolder +
-                                               createInfo.path);
+    std::string error;
+    const auto  count = sponge::scene::asset::readMeshCount(
+        createInfo.assetsFolder + createInfo.path, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("{}", error);
+    }
+    return count;
 }
 
 std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&& parsedMesh) {

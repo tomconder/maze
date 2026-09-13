@@ -139,59 +139,80 @@ if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
+# Build options shared by the engine and the format library, and so by
+# assetconv through the latter.
+add_library(sponge_options INTERFACE)
+
+# Baked asset formats: readers for the engine, writers for assetconv. No
+# logging and no engine headers, so an engine edit does not relink assetconv
+# and rebake every asset.
+find_package(fmt CONFIG REQUIRED)
+file(
+        GLOB FORMAT_FILES
+        CONFIGURE_DEPENDS
+        LIST_DIRECTORIES false
+        format/scene/src/*.cpp format/scene/src/*.hpp)
+add_library(sponge_format STATIC ${FORMAT_FILES})
+add_library(sponge::format ALIAS sponge_format)
+set_target_properties(sponge_format PROPERTIES CXX_STANDARD 23)
+target_include_directories(sponge_format PUBLIC format/scene/src)
+target_link_libraries(sponge_format PUBLIC sponge_options glm::glm-header-only)
+target_link_libraries(sponge_format PRIVATE fmt::fmt)
+
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
+target_link_libraries(sponge PUBLIC sponge_format)
 
 if (MSVC)
     # hardening
-    target_compile_options(sponge PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
+    target_compile_options(sponge_options INTERFACE $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
             /guard:cf>)
 
     # properly report what c++ version is being used
-    target_compile_options(sponge PUBLIC /Zc:__cplusplus)
+    target_compile_options(sponge_options INTERFACE /Zc:__cplusplus)
 
     # fast math and SIMD support
     # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:/fp:fast>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge PUBLIC /Oy-)
+    target_compile_options(sponge_options INTERFACE /Oy-)
 
     # enable exception handling
-    target_compile_options(sponge PUBLIC /EHsc)
+    target_compile_options(sponge_options INTERFACE /EHsc)
 
     # enable warnings as errors
-    target_compile_options(sponge PUBLIC /W4 /WX)
+    target_compile_options(sponge_options INTERFACE /W4 /WX)
 
     # disable RTTI
-    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 else ()
     # see the implications here: https://stackoverflow.com/q/45685487
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-ffast-math>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
     # do not omit frame pointers for crash dumps
-    target_compile_options(sponge PUBLIC -fno-omit-frame-pointer)
+    target_compile_options(sponge_options INTERFACE -fno-omit-frame-pointer)
 
     # enable exception handling
-    target_compile_options(sponge PUBLIC -fexceptions)
+    target_compile_options(sponge_options INTERFACE -fexceptions)
 
     # enable warnings as errors
-    target_compile_options(sponge PUBLIC -Wall -Werror)
+    target_compile_options(sponge_options INTERFACE -Wall -Werror)
 
     # disable RTTI
-    target_compile_options(sponge PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
     # enable separate sections per function and data item
-    target_compile_options(sponge
-            PUBLIC $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(sponge PUBLIC $<$<CONFIG:RELEASE>:-fdata-sections>)
+    target_compile_options(sponge_options
+            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
     # discard unused sections
     target_link_options(
-            sponge PUBLIC
+            sponge_options INTERFACE
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
     target_link_options(
-            sponge PUBLIC
+            sponge_options INTERFACE
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
 

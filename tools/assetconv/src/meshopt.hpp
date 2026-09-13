@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
 
 // Vertex cache, overdraw and fetch optimization. This used to run in the
 // engine on every load; it is deterministic and depends only on the mesh, so

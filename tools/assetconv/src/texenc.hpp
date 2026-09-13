@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
 
 #include <cstdint>
 #include <string>

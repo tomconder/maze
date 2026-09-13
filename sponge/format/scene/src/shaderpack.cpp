@@ -1,7 +1,8 @@
-#include "scene/shaderpack.hpp"
+#include "shaderpack.hpp"
 
-#include "core/file.hpp"
-#include "logging/log.hpp"
+#include "readbytes.hpp"
+
+#include <fmt/format.h>
 
 #include <cstdint>
 #include <cstring>
@@ -47,27 +48,27 @@ std::vector<uint8_t> write(const Sources& sources) {
     return out;
 }
 
-Sources read(const std::string& path) {
-    const auto bytes = core::File::readBytes(path);
+Sources read(const std::string& path, std::string& error) {
+    const auto bytes = readBytes(path);
     if (bytes.size() < sizeof(Header)) {
-        SPONGE_ERROR("Unable to read shader pack, or it is truncated: {}",
-                     path);
+        error = fmt::format(
+            "Unable to read shader pack, or it is truncated: {}", path);
         return {};
     }
 
     Header header{};
     std::memcpy(&header, bytes.data(), sizeof(Header));
     if (std::memcmp(header.magic, magic, sizeof(magic)) != 0) {
-        SPONGE_ERROR("Not a shader pack: {}", path);
+        error = fmt::format("Not a shader pack: {}", path);
         return {};
     }
     if (header.version != version) {
-        SPONGE_ERROR("Shader pack version {}, expected {}: {}", header.version,
-                     version, path);
+        error = fmt::format("Shader pack version {}, expected {}: {}",
+                            header.version, version, path);
         return {};
     }
     if (bytes.size() < sizeof(Header) + (sizeof(Entry) * header.count)) {
-        SPONGE_ERROR("Shader pack entry table is truncated: {}", path);
+        error = fmt::format("Shader pack entry table is truncated: {}", path);
         return {};
     }
 
@@ -78,7 +79,7 @@ Sources read(const std::string& path) {
                     sizeof(Entry));
         if (uint64_t{ entry.nameOffset } + entry.nameSize > bytes.size() ||
             uint64_t{ entry.sourceOffset } + entry.sourceSize > bytes.size()) {
-            SPONGE_ERROR("Shader {} runs past the end of {}", i, path);
+            error = fmt::format("Shader {} runs past the end of {}", i, path);
             return {};
         }
         const auto* base = reinterpret_cast<const char*>(bytes.data());

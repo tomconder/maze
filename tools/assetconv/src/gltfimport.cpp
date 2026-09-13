@@ -1,10 +1,10 @@
 #include "gltfimport.hpp"
 
-#include "logging/log.hpp"
-#include "scene/mesh.hpp"
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
 #include "tangents.hpp"
+#include "vertex.hpp"
 
+#include <fmt/base.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -14,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <optional>
 #include <string>
 #include <utility>
@@ -42,8 +43,8 @@ UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
     }
     const auto& t = textureView.transform;
     if (t.rotation != 0.F) {
-        SPONGE_WARN(
-            "KHR_texture_transform rotation is not supported; ignoring");
+        fmt::println(stderr, "assetconv: KHR_texture_transform rotation is "
+                             "not supported; ignoring");
     }
     return UVTransform{
         .offset = glm::vec2(t.offset[0], t.offset[1]),
@@ -60,7 +61,10 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
 
     const auto* image = texture->image;
     if (image->buffer_view == nullptr) {
-        SPONGE_WARN("Unsupported gltf image source (expected buffer view)");
+        fmt::println(stderr,
+                     "assetconv: {}: unsupported gltf image source "
+                     "(expected buffer view)",
+                     path);
         return std::nullopt;
     }
 
@@ -71,15 +75,14 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
     const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
                       "_" + std::to_string(image->buffer_view->size);
 
-    SPONGE_INFO("Loading texture: [{}]", name);
-
     int   width         = 0;
     int   height        = 0;
     int   bytesPerPixel = 0;
     auto* pixels =
         stbi_load_from_memory(bytes, size, &width, &height, &bytesPerPixel, 0);
     if (pixels == nullptr) {
-        SPONGE_ERROR("Unable to decode gltf image: {}", stbi_failure_reason());
+        fmt::println(stderr, "assetconv: unable to decode {}: {}", name,
+                     stbi_failure_reason());
         return std::nullopt;
     }
 
@@ -216,13 +219,13 @@ sponge::scene::ModelData parse(const std::string& path) {
     cgltf_data*             gltfData = nullptr;
     if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
         cgltf_result_success) {
-        SPONGE_ERROR("Unable to parse gltf model: {}", path);
+        fmt::println(stderr, "assetconv: unable to parse {}", path);
         return data;
     }
 
     if (cgltf_load_buffers(&options, gltfData, path.c_str()) !=
         cgltf_result_success) {
-        SPONGE_ERROR("Unable to load gltf buffers: {}", path);
+        fmt::println(stderr, "assetconv: unable to load buffers of {}", path);
         cgltf_free(gltfData);
         return data;
     }
@@ -241,7 +244,6 @@ sponge::scene::ModelData parse(const std::string& path) {
         const auto transform = glm::make_mat4(worldMatrix.data());
 
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            SPONGE_INFO("Loading mesh: [primitive {}]", p);
             auto parsedMesh =
                 parsePrimitive(node.mesh->primitives[p], transform, path);
             if (!parsedMesh) {
@@ -252,8 +254,6 @@ sponge::scene::ModelData parse(const std::string& path) {
     }
 
     cgltf_free(gltfData);
-
-    SPONGE_DEBUG("# of meshes    = {}", static_cast<int>(data.meshes.size()));
 
     return data;
 }

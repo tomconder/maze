@@ -1,9 +1,10 @@
-#include "scene/assetformat.hpp"
+#include "assetformat.hpp"
 
-#include "core/file.hpp"
-#include "logging/log.hpp"
-#include "scene/mesh.hpp"
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
+#include "readbytes.hpp"
+#include "vertex.hpp"
+
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <array>
@@ -55,26 +56,26 @@ auto slotsOf(M& mesh) {
 
 // Checks magic, version and vertex layout. Returns nullptr on rejection.
 const Header* validate(const std::vector<uint8_t>& bytes,
-                       const std::string&          path) {
+                       const std::string& path, std::string& error) {
     if (bytes.size() < sizeof(Header)) {
-        SPONGE_ERROR("Unable to read baked model, or it is truncated: {}",
-                     path);
+        error = fmt::format(
+            "Unable to read baked model, or it is truncated: {}", path);
         return nullptr;
     }
 
     const auto* header = reinterpret_cast<const Header*>(bytes.data());
     if (std::memcmp(header->magic, magic, sizeof(magic)) != 0) {
-        SPONGE_ERROR("Not a baked model: {}", path);
+        error = fmt::format("Not a baked model: {}", path);
         return nullptr;
     }
     if (header->version != version) {
-        SPONGE_ERROR("Baked model version {}, expected {}: {}", header->version,
-                     version, path);
+        error = fmt::format("Baked model version {}, expected {}: {}",
+                            header->version, version, path);
         return nullptr;
     }
     if (header->vertexSize != sizeof(Vertex)) {
-        SPONGE_ERROR("Baked model vertex size {}, expected {}: {}",
-                     header->vertexSize, sizeof(Vertex), path);
+        error = fmt::format("Baked model vertex size {}, expected {}: {}",
+                            header->vertexSize, sizeof(Vertex), path);
         return nullptr;
     }
     return header;
@@ -169,9 +170,9 @@ std::vector<uint8_t> write(const std::span<const ParsedMesh> meshes) {
     return out;
 }
 
-ModelData read(const std::string& path) {
-    const auto  bytes  = core::File::readBytes(path);
-    const auto* header = validate(bytes, path);
+ModelData read(const std::string& path, std::string& error) {
+    const auto  bytes  = readBytes(path);
+    const auto* header = validate(bytes, path, error);
     if (header == nullptr) {
         return {};
     }
@@ -180,7 +181,7 @@ ModelData read(const std::string& path) {
                            (sizeof(MeshEntry) * header->meshCount) +
                            (sizeof(TextureEntry) * header->textureCount);
     if (bytes.size() < tablesEnd) {
-        SPONGE_ERROR("Baked model entry tables are truncated: {}", path);
+        error = fmt::format("Baked model entry tables are truncated: {}", path);
         return {};
     }
 
@@ -195,7 +196,8 @@ ModelData read(const std::string& path) {
     for (uint32_t i = 0; i < header->textureCount; i++) {
         const auto& entry = textureEntries[i];
         if (entry.offset + entry.size > bytes.size()) {
-            SPONGE_ERROR("Baked texture {} runs past the end of {}", i, path);
+            error = fmt::format("Baked texture {} runs past the end of {}", i,
+                                path);
             return {};
         }
         textures[i].name = path + "#" + std::to_string(i);
@@ -213,7 +215,8 @@ ModelData read(const std::string& path) {
         const auto indexBytes  = entry.indexCount * sizeof(uint32_t);
         if (entry.vertexOffset + vertexBytes > bytes.size() ||
             entry.indexOffset + indexBytes > bytes.size()) {
-            SPONGE_ERROR("Baked mesh {} runs past the end of {}", i, path);
+            error =
+                fmt::format("Baked mesh {} runs past the end of {}", i, path);
             return {};
         }
 
@@ -241,11 +244,11 @@ ModelData read(const std::string& path) {
     return data;
 }
 
-std::size_t readMeshCount(const std::string& path) {
+std::size_t readMeshCount(const std::string& path, std::string& error) {
     // Header only: this is called before the load to size a progress bar, and
     // read() below pulls the rest.
-    const auto  bytes  = core::File::readBytes(path, sizeof(Header));
-    const auto* header = validate(bytes, path);
+    const auto  bytes  = readBytes(path, sizeof(Header));
+    const auto* header = validate(bytes, path, error);
     return header == nullptr ? 0 : header->meshCount;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scene/shaderpack.hpp"
+#include "shaderpack.hpp"
 
 #include <optional>
 #include <string>

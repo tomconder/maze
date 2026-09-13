@@ -1,7 +1,7 @@
 #include "texenc.hpp"
 
-#include "scene/ktx2.hpp"
-#include "scene/modeldata.hpp"
+#include "ktx2.hpp"
+#include "modeldata.hpp"
 
 #include <fmt/base.h>
 #include <bc7enc.h>

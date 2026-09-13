@@ -48,7 +48,7 @@ Add an entry to `assets/manifest.json`:
 
 `source` is relative to `assets/`, `output` to the baked asset directory.
 CMake never reads the manifest, so a new entry needs no re-configure. Editing
-the source, the manifest or `sponge/src/scene/assetformat.hpp` rebakes without
+the source, the manifest or `sponge/format/scene/src/assetformat.hpp` rebakes without
 a clean.
 
 Then reference the output from the game the way any other model is referenced:
@@ -84,7 +84,7 @@ blobs           vertices, indices, KTX2 files
 Texture slot order is albedo, normal, occlusion, emissive, metallic-roughness.
 An image used by more than one material is stored once and referenced by index.
 
-`sponge/src/scene/assetformat.hpp` is the single definition of this layout and
+`sponge/format/scene/src/assetformat.hpp` is the single definition of this layout and
 is compiled into both the converter and the engine, so the two cannot disagree.
 
 Vertices are written vertex-cache, overdraw and fetch optimized. That used to
@@ -117,7 +117,7 @@ forces the version bump in the same edit.
 ## Textures
 
 Each image becomes a KTX2 file. The reader and writer are in
-`sponge/src/scene/ktx2.{hpp,cpp}`.
+`sponge/format/scene/src/ktx2.{hpp,cpp}`.
 
 No supercompression. Basis or UASTC would need libktx to transcode at load
 time, which defeats the point of baking.
@@ -264,6 +264,7 @@ cmake.exe -B build --preset windows-msvc-release
 cmake.exe --build build --target assetconv --config Release
 ```
 
-It links `sponge::sponge` for the importers, the KTX2 codec and the format
-writer. That pulls in more than a console tool needs, and it is the reason the
-converter and the engine can never drift apart.
+It links `sponge::format`, the KTX2 codec and the format readers and writers
+the engine also links, so the converter and the engine can never drift apart.
+That library has no logging and no engine headers, so an engine edit does not
+relink the converter or rebake the assets.

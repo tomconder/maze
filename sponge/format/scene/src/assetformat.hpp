@@ -1,7 +1,7 @@
 #pragma once
 
-#include "scene/mesh.hpp"
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
+#include "vertex.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -63,10 +63,12 @@ std::vector<uint8_t> write(std::span<const ParsedMesh> meshes);
 
 // Reads a .spnga file into the same ParsedMesh form the glTF importer
 // produces, so buildMesh() does not care which path a model came from.
-// Returns an empty ModelData on any failure.
-ModelData read(const std::string& path);
+// On failure, returns an empty ModelData and sets error. error is left
+// alone on success, so pass an empty string.
+ModelData read(const std::string& path, std::string& error);
 
-// Mesh count from the header alone, for progress-bar sizing.
-std::size_t readMeshCount(const std::string& path);
+// Mesh count from the header alone, for progress-bar sizing. On failure,
+// returns 0 and sets error.
+std::size_t readMeshCount(const std::string& path, std::string& error);
 
 }  // namespace sponge::scene::asset

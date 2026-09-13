@@ -1,6 +1,6 @@
-#include "scene/ktx2.hpp"
+#include "ktx2.hpp"
 
-#include "logging/log.hpp"
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -128,18 +128,18 @@ std::vector<uint8_t> write(const Format format, const uint32_t width,
     return out;
 }
 
-Image read(const std::span<const uint8_t> bytes) {
+Image read(const std::span<const uint8_t> bytes, std::string& error) {
     if (bytes.size() < headerSize ||
         !std::equal(std::begin(identifier), std::end(identifier),
                     bytes.begin())) {
-        SPONGE_ERROR("Not a KTX2 file");
+        error = fmt::format("Not a KTX2 file");
         return {};
     }
 
     const auto supercompression = get32(bytes, supercompressionField);
     if (supercompression != 0) {
-        SPONGE_ERROR("KTX2 supercompression scheme {} is not supported",
-                     supercompression);
+        error = fmt::format("KTX2 supercompression scheme {} is not supported",
+                            supercompression);
         return {};
     }
 
@@ -150,14 +150,15 @@ Image read(const std::span<const uint8_t> bytes) {
 
     const auto levelCount = std::max(get32(bytes, 40), 1U);
     if (bytes.size() < headerSize + (levelEntrySize * levelCount)) {
-        SPONGE_ERROR("KTX2 level index is truncated");
+        error = fmt::format("KTX2 level index is truncated");
         return {};
     }
 
     const auto kvdOffset = get32(bytes, kvdOffsetField);
     const auto kvdLength = get32(bytes, kvdLengthField);
     if (kvdOffset + kvdLength > bytes.size()) {
-        SPONGE_ERROR("KTX2 key/value data runs past the end of the file");
+        error =
+            fmt::format("KTX2 key/value data runs past the end of the file");
         return {};
     }
 
@@ -170,7 +171,7 @@ Image read(const std::span<const uint8_t> bytes) {
                              kvdOffset + kvdLength - at - sizeof(uint32_t)));
         const auto nul = std::ranges::find(entry, uint8_t{ 0 });
         if (nul == entry.end()) {
-            SPONGE_ERROR("KTX2 key/value entry has no key terminator");
+            error = fmt::format("KTX2 key/value entry has no key terminator");
             return {};
         }
         const auto keyLength = static_cast<size_t>(nul - entry.begin());
@@ -186,7 +187,8 @@ Image read(const std::span<const uint8_t> bytes) {
         const auto offset = get64(bytes, entry);
         const auto length = get64(bytes, entry + 8);
         if (offset + length > bytes.size()) {
-            SPONGE_ERROR("KTX2 level {} runs past the end of the file", i);
+            error =
+                fmt::format("KTX2 level {} runs past the end of the file", i);
             return {};
         }
         image.levels.emplace_back(Level{

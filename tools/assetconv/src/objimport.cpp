@@ -1,6 +1,6 @@
 #include "objimport.hpp"
 
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
 #include "tangents.hpp"
 
 #include <fmt/base.h>

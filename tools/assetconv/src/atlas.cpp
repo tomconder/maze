@@ -1,7 +1,7 @@
 #include "atlas.hpp"
 
-#include "scene/ktx2.hpp"
-#include "scene/modeldata.hpp"
+#include "ktx2.hpp"
+#include "modeldata.hpp"
 #include "texenc.hpp"
 
 #include <fmt/base.h>

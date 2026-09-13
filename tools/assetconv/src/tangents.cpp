@@ -1,6 +1,6 @@
 #include "tangents.hpp"
 
-#include "scene/mesh.hpp"
+#include "vertex.hpp"
 
 #include <glm/glm.hpp>
 

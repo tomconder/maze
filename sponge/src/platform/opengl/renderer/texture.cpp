@@ -1,9 +1,9 @@
 #include "platform/opengl/renderer/texture.hpp"
 
-#include "core/file.hpp"
+#include "ktx2.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
-#include "scene/ktx2.hpp"
+#include "readbytes.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -123,7 +123,7 @@ void Texture::generate(const uint32_t textureWidth,
 void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
     assert(!path.empty());
 
-    const auto bytes = core::File::readBytes(path);
+    const auto bytes = sponge::scene::readBytes(path);
     if (bytes.empty()) {
         SPONGE_GL_ERROR("Unable to read texture, path = {}", path);
         return;
@@ -134,8 +134,10 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
 
 void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
                            const uint8_t                  flag) {
-    const auto image = sponge::scene::ktx2::read(bytes);
+    std::string error;
+    const auto  image = sponge::scene::ktx2::read(bytes, error);
     if (image.levels.empty()) {
+        SPONGE_GL_ERROR("{}", error);
         return;
     }
 

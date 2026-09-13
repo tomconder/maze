@@ -1,6 +1,6 @@
 #include "shadercompile.hpp"
 
-#include "scene/shaderpack.hpp"
+#include "shaderpack.hpp"
 
 #include <fmt/base.h>
 #include <slang-com-ptr.h>

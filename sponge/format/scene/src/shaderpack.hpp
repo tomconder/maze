@@ -34,7 +34,8 @@ using Sources = std::unordered_map<std::string, std::string>;
 
 std::vector<uint8_t> write(const Sources& sources);
 
-// Returns an empty map on any failure.
-Sources read(const std::string& path);
+// On failure, returns an empty map and sets error. error is left alone on
+// success, so pass an empty string.
+Sources read(const std::string& path, std::string& error);
 
 }  // namespace sponge::scene::shaderpack

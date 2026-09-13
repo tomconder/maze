@@ -47,7 +47,8 @@ std::vector<uint8_t> write(Format format, uint32_t width, uint32_t height,
                            std::span<const KeyValue> keyValues = {});
 
 // Parses a KTX2 file. Levels point into bytes, so bytes must outlive the
-// result. Returns an Image with formatUndefined if the file is unusable.
-Image read(std::span<const uint8_t> bytes);
+// result. On failure, returns an Image with no levels and sets error. error is
+// left alone on success, so pass an empty string.
+Image read(std::span<const uint8_t> bytes, std::string& error);
 
 }  // namespace sponge::scene::ktx2

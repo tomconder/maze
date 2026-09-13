@@ -5,16 +5,15 @@
 //                  [--no-line-directives]
 //        assetconv --verify <source> <output.spnga>
 
+#include "assetformat.hpp"
 #include "atlas.hpp"
 #include "gltfimport.hpp"
-#include "logging/log.hpp"
+#include "ktx2.hpp"
 #include "meshopt.hpp"
+#include "modeldata.hpp"
 #include "objimport.hpp"
-#include "scene/assetformat.hpp"
-#include "scene/ktx2.hpp"
-#include "scene/modeldata.hpp"
-#include "scene/shaderpack.hpp"
 #include "shadercompile.hpp"
+#include "shaderpack.hpp"
 #include "texenc.hpp"
 
 #include <fmt/base.h>
@@ -132,7 +131,12 @@ int verify(const std::string& source, const std::string& output) {
     for (auto& mesh : expected.meshes) {
         assetconv::optimizeMesh(mesh);
     }
-    const auto actual = sponge::scene::asset::read(output);
+    std::string error;
+    const auto  actual = sponge::scene::asset::read(output, error);
+    if (!error.empty()) {
+        fmt::println(stderr, "FAIL {}", error);
+        return 1;
+    }
 
     if (expected.meshes.size() != actual.meshes.size()) {
         fmt::println(stderr, "FAIL {}: {} meshes baked, source has {}", output,
@@ -176,7 +180,11 @@ int verify(const std::string& source, const std::string& output) {
         }
 
         if (got.albedo) {
-            const auto image = ktx2::read(got.albedo->ktx2);
+            const auto image = ktx2::read(got.albedo->ktx2, error);
+            if (!error.empty()) {
+                fmt::println(stderr, "FAIL {} mesh {}: {}", output, i, error);
+                return 1;
+            }
             if (image.width != want.albedo->width ||
                 image.height != want.albedo->height) {
                 fmt::println(stderr,
@@ -238,7 +246,12 @@ int packAtlas(const std::vector<assetconv::AtlasEntry>& entries,
         return 1;
     }
 
-    const auto image = ktx2::read(file);
+    std::string error;
+    const auto  image = ktx2::read(file, error);
+    if (!error.empty()) {
+        fmt::println(stderr, "assetconv: {}: {}", output, error);
+        return 1;
+    }
     fmt::println("{} sprites -> {} ({}x{}, {} bytes)", entries.size(), output,
                  image.width, image.height, file.size());
     return 0;
@@ -382,11 +395,6 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 }  // namespace
 
 int main(const int argc, char** argv) {
-    // Log::init always adds a file sink, and a build-time tool has no
-    // business writing one into the source or build tree.
-    sponge::logging::Log::init(
-        (std::filesystem::temp_directory_path() / "assetconv.log").string());
-
     assetconv::initEncoder();
 
     const std::vector<std::string_view> args{ argv + 1, argv + argc };

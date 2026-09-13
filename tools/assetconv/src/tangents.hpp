@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scene/mesh.hpp"
+#include "vertex.hpp"
 
 #include <cstdint>
 #include <vector>

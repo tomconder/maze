@@ -1,6 +1,6 @@
-# Asset converter. Links sponge for the importers, the KTX2 codec and the
-# baked format writer, so the converter and the engine can never disagree
-# about the layout.
+# Asset converter. Links sponge::format for the KTX2 codec and the baked
+# format writers, so the converter and the engine can never disagree about
+# the layout.
 file(
         GLOB SOURCE_FILES
         CONFIGURE_DEPENDS
@@ -22,14 +22,17 @@ target_include_directories(assetconv PRIVATE src)
 # blocks, stb_image_resize2 for the mip chain.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
 # cgltf, stb @ vendored with the engine originally, see git history
+# stb_rect_pack packs the sprite atlas; the engine's copy serves both.
 set(VENDORED_SOURCES
         deps/bc7enc/bc7enc.cpp
         deps/cgltf/cgltf.cpp
         deps/stb/stb_image.cpp
-        deps/tinyobjloader/tiny_obj_loader.cpp)
+        deps/tinyobjloader/tiny_obj_loader.cpp
+        ${CMAKE_SOURCE_DIR}/sponge/deps/stb/stb_rect_pack.cpp)
 target_sources(assetconv PRIVATE ${VENDORED_SOURCES})
 target_include_directories(assetconv PRIVATE
-        deps/bc7enc deps/cgltf deps/stb deps/tinyobjloader)
+        deps/bc7enc deps/cgltf deps/stb deps/tinyobjloader
+        ${CMAKE_SOURCE_DIR}/sponge/deps/stb)
 set_source_files_properties(${VENDORED_SOURCES} PROPERTIES COMPILE_OPTIONS
         "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
 
@@ -37,7 +40,10 @@ set_source_files_properties(${VENDORED_SOURCES} PROPERTIES COMPILE_OPTIONS
 find_package(meshoptimizer CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
 
-target_link_libraries(assetconv PRIVATE sponge::sponge)
+target_link_libraries(assetconv PRIVATE sponge::format)
+
+find_package(fmt CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE fmt::fmt)
 
 # Reads assets/manifest.json.
 find_package(nlohmann_json CONFIG REQUIRED)

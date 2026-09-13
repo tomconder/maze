@@ -1,7 +1,7 @@
 #include "meshopt.hpp"
 
-#include "scene/mesh.hpp"
-#include "scene/modeldata.hpp"
+#include "modeldata.hpp"
+#include "vertex.hpp"
 
 #include <meshoptimizer.h>
 

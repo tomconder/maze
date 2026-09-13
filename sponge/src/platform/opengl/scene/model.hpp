@@ -1,9 +1,9 @@
 #pragma once
 
+#include "modeldata.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "scene/mesh.hpp"
-#include "scene/modeldata.hpp"
 
 #include <glm/glm.hpp>
 

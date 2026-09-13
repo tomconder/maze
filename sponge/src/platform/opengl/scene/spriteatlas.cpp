@@ -1,9 +1,10 @@
 #include "platform/opengl/scene/spriteatlas.hpp"
 
 #include "core/file.hpp"
+#include "ktx2.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
-#include "scene/ktx2.hpp"
+#include "readbytes.hpp"
 
 #include <glm/glm.hpp>
 
@@ -27,14 +28,16 @@ SpriteAtlas::SpriteAtlas(const std::string& name, const std::string& path) {
     const auto fullPath =
         (std::filesystem::path(core::File::getResourceDir()) / path).string();
 
-    const auto bytes = core::File::readBytes(fullPath);
+    const auto bytes = sponge::scene::readBytes(fullPath);
     if (bytes.empty()) {
         SPONGE_GL_ERROR("Unable to read atlas: {}", path);
         return;
     }
 
-    const auto image = sponge::scene::ktx2::read(bytes);
+    std::string error;
+    const auto  image = sponge::scene::ktx2::read(bytes, error);
     if (image.levels.empty()) {
+        SPONGE_GL_ERROR("{}: {}", path, error);
         return;
     }
 
