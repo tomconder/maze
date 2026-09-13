@@ -39,7 +39,7 @@
     }
   ],
   "shaders": {
-    "output": "shaders.spnga",
+    "output": "shaders/shaders.spnga",
     "stages": {
       "screenquad.vert": "shaders/slang/fxaa.slang:vertMain",
       "pbr.frag": "shaders/slang/pbr.slang:fragMain",

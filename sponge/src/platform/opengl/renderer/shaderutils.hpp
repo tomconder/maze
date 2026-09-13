@@ -14,7 +14,7 @@ namespace sponge::platform::opengl::renderer {
 // and stays for the life of the process; it is about 50 KB.
 inline std::string loadGlslSource(const std::string_view name) {
     static const auto sources = scene::shaderpack::read(
-        core::File::getResourceDir() + "/shaders.spnga");
+        core::File::getResourceDir() + "/shaders/shaders.spnga");
 
     if (const auto it = sources.find(std::string{ name });
         it != sources.end()) {

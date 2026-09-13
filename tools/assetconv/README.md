@@ -7,7 +7,7 @@ The engine parses no third-party asset format at run time. Every importer
 lives here, along with cgltf, tinyobjloader, stb_image, bc7enc,
 stb_image_resize2, meshoptimizer and the Slang compiler; `Model::parse()`
 accepts `.spnga` and nothing else, `Texture` accepts `.ktx2` and nothing else,
-and `Shader` reads GLSL from `shaders.spnga` and nowhere else.
+and `Shader` reads GLSL from `shaders/shaders.spnga` and nowhere else.
 
 ## Usage
 
@@ -212,12 +212,12 @@ specular foliage highlights.
 ## Shaders
 
 Every stage listed under `shaders.stages` in the manifest compiles into one
-`shaders.spnga`. Each stage is `<source>:<entry point>`, with the source
+`shaders/shaders.spnga`. Each stage is `<source>:<entry point>`, with the source
 relative to `assets/`:
 
 ```json
 "shaders": {
-  "output": "shaders.spnga",
+  "output": "shaders/shaders.spnga",
   "stages": {
     "pbr.vert": "shaders/slang/pbr.slang:vertMain"
   }

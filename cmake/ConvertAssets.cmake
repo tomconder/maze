@@ -9,6 +9,8 @@ set(ASSET_OUTPUT_DIR "${CMAKE_BINARY_DIR}/assets")
 set(ASSET_FORMAT_HEADER "${CMAKE_SOURCE_DIR}/sponge/src/scene/assetformat.hpp")
 
 file(READ "${MANIFEST}" MANIFEST_JSON)
+# The commands below come from the manifest, so an edit must reconfigure.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${MANIFEST}")
 string(JSON MODEL_COUNT LENGTH "${MANIFEST_JSON}" models)
 message(STATUS "Asset manifest lists ${MODEL_COUNT} model(s)")
 
