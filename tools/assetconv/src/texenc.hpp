@@ -23,7 +23,7 @@ enum class TextureKind : uint8_t {
 void initEncoder();
 
 // Decodes an image file to RGBA8. Returns an image with zero width on
-// failure. Shared by the single-texture and atlas paths.
+// failure.
 sponge::scene::ParsedImage loadImage(const std::string& path);
 
 // Compresses an image and returns the whole KTX2 file, mip chain included.

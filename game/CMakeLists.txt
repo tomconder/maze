@@ -172,7 +172,6 @@ if (APPLE)
             copy_assets
             COMMAND ${CMAKE_COMMAND}
                 -D DST_DIR=$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
-                -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -D EXCLUDE_REGEX=${DEPLOY_EXCLUDE_REGEX}
@@ -199,7 +198,6 @@ else ()
             copy_assets
             COMMAND ${CMAKE_COMMAND}
                 -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
-                -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -D EXCLUDE_REGEX=${DEPLOY_EXCLUDE_REGEX}
@@ -217,7 +215,6 @@ else ()
         set(SRC_DIR [=[${CMAKE_SOURCE_DIR}/assets]=])
         set(DST_DIR \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/assets\")
         set(SRC_BAKED [=[${CMAKE_BINARY_DIR}/assets]=])
-        set(EXCLUDE_SUBDIR slang)
         set(EXCLUDE_REGEX [=[${DEPLOY_EXCLUDE_REGEX}]=])
         include([=[${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake]=])")
 endif ()

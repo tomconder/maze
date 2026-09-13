@@ -231,6 +231,19 @@ int packShaders(const std::string&                         output,
     return 0;
 }
 
+int packAtlas(const std::vector<assetconv::AtlasEntry>& entries,
+              const std::string&                        output) {
+    const auto file = assetconv::packAtlas(entries);
+    if (file.empty() || !writeFile(output, file)) {
+        return 1;
+    }
+
+    const auto image = ktx2::read(file);
+    fmt::println("{} sprites -> {} ({}x{}, {} bytes)", entries.size(), output,
+                 image.width, image.height, file.size());
+    return 0;
+}
+
 using Json   = nlohmann::ordered_json;
 namespace fs = std::filesystem;
 
@@ -311,7 +324,7 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
             }
             if (!bake(atlas.at("output").get<std::string>(), inputs,
                       [&](const std::string& to) {
-                          return assetconv::packAtlas(entries, to);
+                          return packAtlas(entries, to) == 0;
                       })) {
                 return 1;
             }

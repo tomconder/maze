@@ -8,7 +8,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -42,22 +41,13 @@ ModelData Model::parse(const ModelCreateInfo& createInfo) {
     SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
                    createInfo.path);
 
-    const auto path      = createInfo.assetsFolder + createInfo.path;
-    const auto extension = std::filesystem::path(path).extension().string();
-    if (extension != sponge::scene::asset::extension) {
-        SPONGE_GL_ERROR("Not a baked model: {}", path);
-        return {};
-    }
-
-    return sponge::scene::asset::read(path);
+    return sponge::scene::asset::read(createInfo.assetsFolder +
+                                      createInfo.path);
 }
 
 std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
-    const auto path      = createInfo.assetsFolder + createInfo.path;
-    const auto extension = std::filesystem::path(path).extension().string();
-    return extension == sponge::scene::asset::extension ?
-               sponge::scene::asset::readMeshCount(path) :
-               0;
+    return sponge::scene::asset::readMeshCount(createInfo.assetsFolder +
+                                               createInfo.path);
 }
 
 std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&& parsedMesh) {

@@ -1,22 +1,23 @@
 #include "atlas.hpp"
 
 #include "scene/ktx2.hpp"
+#include "scene/modeldata.hpp"
+#include "texenc.hpp"
 
 #include <fmt/base.h>
-#include <stb_image.h>
 #include <stb_rect_pack.h>
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstdio>
-#include <filesystem>
-#include <fstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
 namespace ktx2 = sponge::scene::ktx2;
+using sponge::scene::ParsedImage;
 
 constexpr uint32_t channels = 4;
 
@@ -42,37 +43,9 @@ constexpr std::array<Size, 7> candidateSizes = { { { 256, 256 },
                                                    { 1024, 2048 },
                                                    { 2048, 2048 } } };
 
-struct Source {
-    std::string          name;
-    uint32_t             width{ 0 };
-    uint32_t             height{ 0 };
-    std::vector<uint8_t> pixels;  // RGBA8
-};
-
-bool load(const assetconv::AtlasEntry& entry, Source& source) {
-    int   width   = 0;
-    int   height  = 0;
-    int   ignored = 0;
-    auto* pixels  = stbi_load(entry.path.c_str(), &width, &height, &ignored,
-                              static_cast<int>(channels));
-    if (pixels == nullptr) {
-        fmt::println(stderr, "assetconv: unable to load {}: {}", entry.path,
-                     stbi_failure_reason());
-        return false;
-    }
-
-    source.name   = entry.name;
-    source.width  = static_cast<uint32_t>(width);
-    source.height = static_cast<uint32_t>(height);
-    source.pixels.assign(
-        pixels, pixels + (static_cast<size_t>(width) * height * channels));
-    stbi_image_free(pixels);
-    return true;
-}
-
 // Copies a sprite in at (x, y) and extends its edge pixels into the gutter.
 void blit(std::vector<uint8_t>& atlas, const uint32_t atlasWidth,
-          const Source& source, const uint32_t x, const uint32_t y) {
+          const ParsedImage& source, const uint32_t x, const uint32_t y) {
     for (int32_t row = -static_cast<int32_t>(gutter);
          row < static_cast<int32_t>(source.height + gutter); row++) {
         const auto sourceRow =
@@ -96,8 +69,8 @@ void blit(std::vector<uint8_t>& atlas, const uint32_t atlasWidth,
 
 // "name x y w h" per line. Text because it is inspectable in a hex dump of
 // the container, and the table is fourteen lines long.
-std::vector<uint8_t> rectTable(const std::vector<Source>&     sources,
-                               const std::vector<stbrp_rect>& rects) {
+std::vector<uint8_t> rectTable(const std::vector<ParsedImage>& sources,
+                               const std::vector<stbrp_rect>&  rects) {
     std::string table;
     for (size_t i = 0; i < sources.size(); i++) {
         table += sources[i].name + " " + std::to_string(rects[i].x + gutter) +
@@ -111,13 +84,14 @@ std::vector<uint8_t> rectTable(const std::vector<Source>&     sources,
 
 namespace assetconv {
 
-bool packAtlas(const std::vector<AtlasEntry>& entries,
-               const std::string&             outputPath) {
-    std::vector<Source> sources(entries.size());
-    for (size_t i = 0; i < entries.size(); i++) {
-        if (!load(entries[i], sources[i])) {
-            return false;
+std::vector<uint8_t> packAtlas(const std::vector<AtlasEntry>& entries) {
+    std::vector<ParsedImage> sources;
+    for (const auto& entry : entries) {
+        sources.push_back(loadImage(entry.path));
+        if (sources.back().width == 0) {
+            return {};
         }
+        sources.back().name = entry.name;
     }
 
     std::vector<stbrp_rect> rects(sources.size());
@@ -146,7 +120,7 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
                      "assetconv: {} sprites do not fit in a {}x{} atlas",
                      entries.size(), candidateSizes.back().width,
                      candidateSizes.back().height);
-        return false;
+        return {};
     }
 
     std::vector<uint8_t> pixels(static_cast<size_t>(size.width) * size.height *
@@ -163,27 +137,9 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
     const std::vector<ktx2::KeyValue> keyValues{
         { "spongeAtlas", rectTable(sources, rects) }
     };
-    const auto file = ktx2::write(ktx2::formatR8G8B8A8Unorm, size.width,
-                                  size.height, pixels, keyValues);
-
-    const std::filesystem::path out{ outputPath };
-    if (out.has_parent_path()) {
-        std::filesystem::create_directories(out.parent_path());
-    }
-    std::ofstream stream{ out, std::ios::binary | std::ios::trunc };
-    if (!stream) {
-        fmt::println(stderr, "assetconv: unable to write {}", outputPath);
-        return false;
-    }
-    stream.write(reinterpret_cast<const char*>(file.data()),
-                 static_cast<std::streamsize>(file.size()));
-    if (!stream.good()) {
-        return false;
-    }
-
-    fmt::println("{} sprites -> {} ({}x{}, {} bytes)", entries.size(),
-                 outputPath, size.width, size.height, file.size());
-    return true;
+    return ktx2::write(ktx2::formatR8G8B8A8Unorm, size.width, size.height,
+                       std::vector<std::vector<uint8_t>>{ std::move(pixels) },
+                       keyValues);
 }
 
 }  // namespace assetconv

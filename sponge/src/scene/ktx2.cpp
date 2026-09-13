@@ -20,8 +20,7 @@ constexpr uint8_t identifier[12] = { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32,
 constexpr size_t headerSize     = 80;
 constexpr size_t levelEntrySize = 24;
 
-// Byte offsets of the header fields this reader uses. The fixed header is
-// the 12-byte identifier, nine u32s, then the index: four u32s and two u64s.
+// Byte offsets of the header fields this reader uses.
 constexpr size_t supercompressionField = 44;
 constexpr size_t kvdOffsetField        = 56;
 constexpr size_t kvdLengthField        = 60;
@@ -127,15 +126,6 @@ std::vector<uint8_t> write(const Format format, const uint32_t width,
     }
 
     return out;
-}
-
-std::vector<uint8_t> write(const Format format, const uint32_t width,
-                           const uint32_t                  height,
-                           const std::span<const uint8_t>  pixels,
-                           const std::span<const KeyValue> keyValues) {
-    const std::vector<std::vector<uint8_t>> levels{ std::vector<uint8_t>{
-        pixels.begin(), pixels.end() } };
-    return write(format, width, height, levels, keyValues);
 }
 
 Image read(const std::span<const uint8_t> bytes) {

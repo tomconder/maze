@@ -45,16 +45,12 @@ void appendBytes(std::vector<uint8_t>& out, const void* data,
     out.insert(out.end(), bytes, bytes + size);
 }
 
-std::array<const std::optional<ParsedImage>*, textureSlots>
-    slotsOf(const ParsedMesh& mesh) {
-    return { &mesh.albedo, &mesh.normal, &mesh.occlusion, &mesh.emissive,
-             &mesh.metallicRoughness };
-}
-
-std::array<std::optional<ParsedImage>*, textureSlots>
-    slotsOf(ParsedMesh& mesh) {
-    return { &mesh.albedo, &mesh.normal, &mesh.occlusion, &mesh.emissive,
-             &mesh.metallicRoughness };
+// Texture slot order in MeshEntry::textureIndex. Works for const and
+// non-const meshes.
+template <typename M>
+auto slotsOf(M& mesh) {
+    return std::array{ &mesh.albedo, &mesh.normal, &mesh.occlusion,
+                       &mesh.emissive, &mesh.metallicRoughness };
 }
 
 // Checks magic, version and vertex layout. Returns nullptr on rejection.

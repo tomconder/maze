@@ -3,9 +3,9 @@
 #include "core/file.hpp"
 #include "logging/log.hpp"
 
-#include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -13,12 +13,8 @@ namespace sponge::scene::shaderpack {
 
 std::vector<uint8_t> write(const Sources& sources) {
     // Sorted, so the same shaders always bake to the same bytes.
-    std::vector<const Sources::value_type*> sorted;
-    sorted.reserve(sources.size());
-    for (const auto& source : sources) {
-        sorted.emplace_back(&source);
-    }
-    std::ranges::sort(sorted, {}, [](const auto* s) { return s->first; });
+    const std::map<std::string, std::string> sorted{ sources.begin(),
+                                                     sources.end() };
 
     Header header{
         .magic   = {},
@@ -36,12 +32,13 @@ std::vector<uint8_t> write(const Sources& sources) {
         return offset;
     };
 
-    for (size_t i = 0; i < sorted.size(); i++) {
-        const auto& [name, source] = *sorted[i];
-        entries[i].nameOffset      = appendString(name);
-        entries[i].nameSize        = static_cast<uint32_t>(name.size());
-        entries[i].sourceOffset    = appendString(source);
-        entries[i].sourceSize      = static_cast<uint32_t>(source.size());
+    auto entry = entries.begin();
+    for (const auto& [name, source] : sorted) {
+        entry->nameOffset   = appendString(name);
+        entry->nameSize     = static_cast<uint32_t>(name.size());
+        entry->sourceOffset = appendString(source);
+        entry->sourceSize   = static_cast<uint32_t>(source.size());
+        entry++;
     }
 
     std::memcpy(out.data(), &header, sizeof(Header));

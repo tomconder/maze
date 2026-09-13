@@ -23,9 +23,6 @@ public:
     const Sprite& sprite(std::string_view spriteName) const;
 
 private:
-    // Returns nullptr when the atlas has no sprite of that name.
-    const Sprite* find(std::string_view spriteName) const;
-
     std::shared_ptr<renderer::Texture>                       tex;
     std::unordered_map<std::string, std::unique_ptr<Sprite>> sprites;
     mutable std::unique_ptr<Sprite>                          missing;

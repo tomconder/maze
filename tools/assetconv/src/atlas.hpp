@@ -16,8 +16,7 @@ struct AtlasEntry {
     std::string path;  // source image on disk
 };
 
-// Writes the atlas to outputPath. Returns false and logs on failure.
-bool packAtlas(const std::vector<AtlasEntry>& entries,
-               const std::string&             outputPath);
+// Returns the KTX2 file, or an empty vector after logging on failure.
+std::vector<uint8_t> packAtlas(const std::vector<AtlasEntry>& entries);
 
 }  // namespace assetconv

@@ -25,23 +25,12 @@ namespace sponge::scene::asset {
 constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'A', 0, 0, 0 };
 constexpr uint32_t version  = 1;
 
-constexpr auto extension = ".spnga";
-
 // Bumping either of these changes the on-disk vertex layout. The asserts
 // fire on a size change or a field reorder; bump version in the same edit.
 static_assert(sizeof(Vertex) == 48);
 static_assert(offsetof(Vertex, tangent) == 32);
 
 constexpr size_t textureSlots = 5;
-
-// Texture slot order in MeshEntry::textureIndex.
-enum TextureSlot : size_t {
-    slotAlbedo = 0,
-    slotNormal,
-    slotOcclusion,
-    slotEmissive,
-    slotMetallicRoughness,
-};
 
 struct Header {
     char     magic[sizeof(asset::magic)];

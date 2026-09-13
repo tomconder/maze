@@ -79,14 +79,10 @@ SpriteAtlas::SpriteAtlas(const std::string& name, const std::string& path) {
                    image.width, image.height);
 }
 
-const Sprite* SpriteAtlas::find(const std::string_view spriteName) const {
-    const auto found = sprites.find(std::string(spriteName));
-    return found == sprites.end() ? nullptr : found->second.get();
-}
-
 const Sprite& SpriteAtlas::sprite(const std::string_view spriteName) const {
-    if (const auto* found = find(spriteName)) {
-        return *found;
+    if (const auto found = sprites.find(std::string(spriteName));
+        found != sprites.end()) {
+        return *found->second;
     }
 
     if (!missing) {

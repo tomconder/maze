@@ -11,14 +11,9 @@ namespace sponge::scene::ktx2 {
 // Subset of VkFormat, the values KTX2 stores in its vkFormat field.
 enum Format : uint32_t {
     formatUndefined     = 0,
-    formatR8Unorm       = 9,
-    formatR8G8Unorm     = 16,
-    formatR8G8B8Unorm   = 23,
     formatR8G8B8A8Unorm = 37,
-    formatR8G8B8A8Srgb  = 43,
     formatBc5Unorm      = 141,
     formatBc7Unorm      = 145,
-    formatBc7Srgb       = 146,
 };
 
 // One mip level of a decoded KTX2 file, pointing into the caller's buffer.
@@ -49,11 +44,6 @@ using KeyValue = std::pair<std::string, std::vector<uint8_t>>;
 // DFD, so add one if these files ever leave the build.
 std::vector<uint8_t> write(Format format, uint32_t width, uint32_t height,
                            std::span<const std::vector<uint8_t>> levels,
-                           std::span<const KeyValue> keyValues = {});
-
-// Single-level convenience wrapper.
-std::vector<uint8_t> write(Format format, uint32_t width, uint32_t height,
-                           std::span<const uint8_t>  pixels,
                            std::span<const KeyValue> keyValues = {});
 
 // Parses a KTX2 file. Levels point into bytes, so bytes must outlive the

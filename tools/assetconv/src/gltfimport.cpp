@@ -14,7 +14,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <optional>
 #include <string>
 #include <utility>
@@ -38,101 +37,65 @@ using sponge::scene::ParsedMesh;
 using sponge::scene::UVTransform;
 using sponge::scene::Vertex;
 namespace {
-std::optional<ParsedMesh>  parsePrimitive(const cgltf_primitive& primitive,
-                                          const glm::mat4&       transform,
-                                          const std::string&     path);
-UVTransform                uvTransformOf(const cgltf_texture_view& textureView);
+UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
+    if (!textureView.has_transform) {
+        return {};
+    }
+    const auto& t = textureView.transform;
+    if (t.rotation != 0.F) {
+        SPONGE_WARN(
+            "KHR_texture_transform rotation is not supported; ignoring");
+    }
+    return UVTransform{
+        .offset = glm::vec2(t.offset[0], t.offset[1]),
+        .scale  = glm::vec2(t.scale[0], t.scale[1]),
+    };
+}
+
 std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
-                                         const std::string&        path);
-}  // namespace
-
-std::size_t countMeshes(const std::string& path) {
-    constexpr cgltf_options options{};
-    cgltf_data*             data = nullptr;
-    if (cgltf_parse_file(&options, path.c_str(), &data) !=
-        cgltf_result_success) {
-        return 0;
+                                         const std::string&        path) {
+    const auto* texture = textureView.texture;
+    if (texture == nullptr || texture->image == nullptr) {
+        return std::nullopt;
     }
 
-    std::size_t count = 0;
-    for (size_t n = 0; n < data->nodes_count; n++) {
-        const auto& node = data->nodes[n];
-        if (node.mesh == nullptr) {
-            continue;
-        }
-        for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            const auto& primitive = node.mesh->primitives[p];
-            if (primitive.type != cgltf_primitive_type_triangles) {
-                continue;
-            }
-            for (size_t a = 0; a < primitive.attributes_count; a++) {
-                if (primitive.attributes[a].type ==
-                    cgltf_attribute_type_position) {
-                    count++;
-                    break;
-                }
-            }
-        }
+    const auto* image = texture->image;
+    if (image->buffer_view == nullptr) {
+        SPONGE_WARN("Unsupported gltf image source (expected buffer view)");
+        return std::nullopt;
     }
 
-    cgltf_free(data);
-    return count;
+    const auto* bytes = cgltf_buffer_view_data(image->buffer_view);
+    const auto  size  = static_cast<int>(image->buffer_view->size);
+
+    // Path and byte range: the .spnga writer stores one copy per name.
+    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
+                      "_" + std::to_string(image->buffer_view->size);
+
+    SPONGE_INFO("Loading texture: [{}]", name);
+
+    int   width         = 0;
+    int   height        = 0;
+    int   bytesPerPixel = 0;
+    auto* pixels =
+        stbi_load_from_memory(bytes, size, &width, &height, &bytesPerPixel, 0);
+    if (pixels == nullptr) {
+        SPONGE_ERROR("Unable to decode gltf image: {}", stbi_failure_reason());
+        return std::nullopt;
+    }
+
+    ParsedImage decoded{
+        .name          = name,
+        .width         = static_cast<uint32_t>(width),
+        .height        = static_cast<uint32_t>(height),
+        .bytesPerPixel = static_cast<uint32_t>(bytesPerPixel),
+        .pixels        = copyPixels(pixels, width, height, bytesPerPixel),
+        .ktx2          = {},
+    };
+    stbi_image_free(pixels);
+    return decoded;
 }
 
-sponge::scene::ModelData parse(const std::string&           path,
-                               const std::function<void()>& onMeshParsed) {
-    ModelData data;
-
-    constexpr cgltf_options options{};
-    cgltf_data*             gltfData = nullptr;
-    if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
-        cgltf_result_success) {
-        SPONGE_ERROR("Unable to parse gltf model: {}", path);
-        return data;
-    }
-
-    if (cgltf_load_buffers(&options, gltfData, path.c_str()) !=
-        cgltf_result_success) {
-        SPONGE_ERROR("Unable to load gltf buffers: {}", path);
-        cgltf_free(gltfData);
-        return data;
-    }
-
-    // Bake each node's world transform into its mesh's vertices so glTF
-    // files authored Z-up (or otherwise offset) render the same as their
-    // node hierarchy intends, instead of in raw local mesh space.
-    for (size_t n = 0; n < gltfData->nodes_count; n++) {
-        const auto& node = gltfData->nodes[n];
-        if (node.mesh == nullptr) {
-            continue;
-        }
-
-        std::array<float, 16> worldMatrix{};
-        cgltf_node_transform_world(&node, worldMatrix.data());
-        const auto transform = glm::make_mat4(worldMatrix.data());
-
-        for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            SPONGE_INFO("Loading mesh: [primitive {}]", p);
-            auto parsedMesh =
-                parsePrimitive(node.mesh->primitives[p], transform, path);
-            if (!parsedMesh) {
-                continue;
-            }
-            data.meshes.emplace_back(std::move(*parsedMesh));
-            if (onMeshParsed) {
-                onMeshParsed();
-            }
-        }
-    }
-
-    cgltf_free(gltfData);
-
-    SPONGE_DEBUG("# of meshes    = {}", static_cast<int>(data.meshes.size()));
-
-    return data;
-}
-
-namespace {
 std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                                          const glm::mat4&       transform,
                                          const std::string&     path) {
@@ -245,70 +208,55 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
     parsedMesh.indices  = std::move(indices);
     return parsedMesh;
 }
-
-UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
-    if (!textureView.has_transform) {
-        return {};
-    }
-    const auto& t = textureView.transform;
-    if (t.rotation != 0.F) {
-        SPONGE_WARN(
-            "KHR_texture_transform rotation is not supported; ignoring");
-    }
-    return UVTransform{
-        .offset = glm::vec2(t.offset[0], t.offset[1]),
-        .scale  = glm::vec2(t.scale[0], t.scale[1]),
-    };
-}
-
-std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
-                                         const std::string&        path) {
-    const auto* texture = textureView.texture;
-    if (texture == nullptr || texture->image == nullptr) {
-        return std::nullopt;
-    }
-
-    const auto* image = texture->image;
-    if (image->buffer_view == nullptr) {
-        SPONGE_WARN("Unsupported gltf image source (expected buffer view)");
-        return std::nullopt;
-    }
-
-    const auto* bytes = cgltf_buffer_view_data(image->buffer_view);
-    const auto  size  = static_cast<int>(image->buffer_view->size);
-
-    // Cache key: path + byte range, not the cgltf_image* address — that's
-    // freed by cgltf_free() and gets reused across unrelated model loads,
-    // causing collisions.
-    //
-    // No cross-material decode dedup; AssetManager::createTexture still
-    // dedups the GL upload, so a repeat decode only costs CPU time.
-    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
-                      "_" + std::to_string(image->buffer_view->size);
-
-    SPONGE_INFO("Loading texture: [{}]", name);
-
-    int   width         = 0;
-    int   height        = 0;
-    int   bytesPerPixel = 0;
-    auto* pixels =
-        stbi_load_from_memory(bytes, size, &width, &height, &bytesPerPixel, 0);
-    if (pixels == nullptr) {
-        SPONGE_ERROR("Unable to decode gltf image: {}", stbi_failure_reason());
-        return std::nullopt;
-    }
-
-    ParsedImage decoded{
-        .name          = name,
-        .width         = static_cast<uint32_t>(width),
-        .height        = static_cast<uint32_t>(height),
-        .bytesPerPixel = static_cast<uint32_t>(bytesPerPixel),
-        .pixels        = copyPixels(pixels, width, height, bytesPerPixel),
-        .ktx2          = {},
-    };
-    stbi_image_free(pixels);
-    return decoded;
-}
 }  // namespace
+
+sponge::scene::ModelData parse(const std::string& path) {
+    ModelData data;
+
+    constexpr cgltf_options options{};
+    cgltf_data*             gltfData = nullptr;
+    if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
+        cgltf_result_success) {
+        SPONGE_ERROR("Unable to parse gltf model: {}", path);
+        return data;
+    }
+
+    if (cgltf_load_buffers(&options, gltfData, path.c_str()) !=
+        cgltf_result_success) {
+        SPONGE_ERROR("Unable to load gltf buffers: {}", path);
+        cgltf_free(gltfData);
+        return data;
+    }
+
+    // Bake each node's world transform into its mesh's vertices so glTF
+    // files authored Z-up (or otherwise offset) render the same as their
+    // node hierarchy intends, instead of in raw local mesh space.
+    for (size_t n = 0; n < gltfData->nodes_count; n++) {
+        const auto& node = gltfData->nodes[n];
+        if (node.mesh == nullptr) {
+            continue;
+        }
+
+        std::array<float, 16> worldMatrix{};
+        cgltf_node_transform_world(&node, worldMatrix.data());
+        const auto transform = glm::make_mat4(worldMatrix.data());
+
+        for (size_t p = 0; p < node.mesh->primitives_count; p++) {
+            SPONGE_INFO("Loading mesh: [primitive {}]", p);
+            auto parsedMesh =
+                parsePrimitive(node.mesh->primitives[p], transform, path);
+            if (!parsedMesh) {
+                continue;
+            }
+            data.meshes.emplace_back(std::move(*parsedMesh));
+        }
+    }
+
+    cgltf_free(gltfData);
+
+    SPONGE_DEBUG("# of meshes    = {}", static_cast<int>(data.meshes.size()));
+
+    return data;
+}
 
 }  // namespace assetconv::gltf
