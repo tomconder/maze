@@ -9,7 +9,6 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -19,23 +18,6 @@
 
 namespace {
 constexpr std::string_view rectTableKey = "spongeAtlas";
-
-std::vector<uint8_t> readFile(const std::string& path) {
-    std::ifstream file{ path, std::ios::binary | std::ios::ate };
-    if (!file) {
-        SPONGE_GL_ERROR("Unable to open atlas: {}", path);
-        return {};
-    }
-    const auto size = static_cast<size_t>(file.tellg());
-    file.seekg(0);
-    std::vector<uint8_t> bytes(size);
-    if (!file.read(reinterpret_cast<char*>(bytes.data()),
-                   static_cast<std::streamsize>(size))) {
-        SPONGE_GL_ERROR("Unable to read atlas: {}", path);
-        return {};
-    }
-    return bytes;
-}
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -45,8 +27,9 @@ SpriteAtlas::SpriteAtlas(const std::string& name, const std::string& path) {
     const auto fullPath =
         (std::filesystem::path(core::File::getResourceDir()) / path).string();
 
-    const auto bytes = readFile(fullPath);
+    const auto bytes = core::File::readBytes(fullPath);
     if (bytes.empty()) {
+        SPONGE_GL_ERROR("Unable to read atlas: {}", path);
         return;
     }
 

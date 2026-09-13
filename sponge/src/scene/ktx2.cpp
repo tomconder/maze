@@ -57,19 +57,6 @@ uint64_t get64(const std::span<const uint8_t> bytes, const size_t offset) {
     std::memcpy(&value, bytes.data() + offset, sizeof(value));
     return value;
 }
-
-// typeSize is the size of one channel for uncompressed formats and 1 for
-// block-compressed ones.
-uint32_t typeSizeFor(const sponge::scene::ktx2::Format format) {
-    switch (format) {
-        case sponge::scene::ktx2::formatBc5Unorm:
-        case sponge::scene::ktx2::formatBc7Unorm:
-        case sponge::scene::ktx2::formatBc7Srgb:
-            return 1;
-        default:
-            return 1;
-    }
-}
 }  // namespace
 
 namespace sponge::scene::ktx2 {
@@ -101,7 +88,10 @@ std::vector<uint8_t> write(const Format format, const uint32_t width,
     out.insert(out.end(), std::begin(identifier), std::end(identifier));
 
     put32(out, format);
-    put32(out, typeSizeFor(format));
+    // typeSize: one channel for the uncompressed formats here, and 1 by
+    // definition for block-compressed ones. Every format we write is one byte
+    // per channel either way.
+    put32(out, 1);
     put32(out, width);
     put32(out, height);
     put32(out, 0);  // pixelDepth

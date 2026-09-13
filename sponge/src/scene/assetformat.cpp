@@ -1,5 +1,6 @@
 #include "scene/assetformat.hpp"
 
+#include "core/file.hpp"
 #include "logging/log.hpp"
 #include "scene/mesh.hpp"
 #include "scene/modeldata.hpp"
@@ -8,7 +9,6 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <fstream>
 #include <optional>
 #include <span>
 #include <string>
@@ -57,28 +57,12 @@ std::array<std::optional<ParsedImage>*, textureSlots>
              &mesh.metallicRoughness };
 }
 
-std::vector<uint8_t> readFile(const std::string& path) {
-    std::ifstream file{ path, std::ios::binary | std::ios::ate };
-    if (!file) {
-        SPONGE_ERROR("Unable to open baked model: {}", path);
-        return {};
-    }
-    const auto size = static_cast<size_t>(file.tellg());
-    file.seekg(0);
-    std::vector<uint8_t> bytes(size);
-    if (!file.read(reinterpret_cast<char*>(bytes.data()),
-                   static_cast<std::streamsize>(size))) {
-        SPONGE_ERROR("Unable to read baked model: {}", path);
-        return {};
-    }
-    return bytes;
-}
-
 // Checks magic, version and vertex layout. Returns nullptr on rejection.
 const Header* validate(const std::vector<uint8_t>& bytes,
                        const std::string&          path) {
     if (bytes.size() < sizeof(Header)) {
-        SPONGE_ERROR("Baked model is truncated: {}", path);
+        SPONGE_ERROR("Unable to read baked model, or it is truncated: {}",
+                     path);
         return nullptr;
     }
 
@@ -190,7 +174,7 @@ std::vector<uint8_t> write(const std::span<const ParsedMesh> meshes) {
 }
 
 ModelData read(const std::string& path) {
-    const auto  bytes  = readFile(path);
+    const auto  bytes  = core::File::readBytes(path);
     const auto* header = validate(bytes, path);
     if (header == nullptr) {
         return {};
@@ -262,7 +246,9 @@ ModelData read(const std::string& path) {
 }
 
 std::size_t readMeshCount(const std::string& path) {
-    const auto  bytes  = readFile(path);
+    // Header only: this is called before the load to size a progress bar, and
+    // read() below pulls the rest.
+    const auto  bytes  = core::File::readBytes(path, sizeof(Header));
     const auto* header = validate(bytes, path);
     return header == nullptr ? 0 : header->meshCount;
 }

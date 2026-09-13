@@ -8,7 +8,6 @@
 #include <glm/glm.hpp>
 
 #include <cstddef>
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -37,9 +36,7 @@ public:
     explicit Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes);
 
     // CPU-only parse, no GL/AssetManager touch — safe on any thread.
-    // onMeshParsed, if set, fires once per mesh appended to the result.
-    static ModelData parse(const ModelCreateInfo&       createInfo,
-                           const std::function<void()>& onMeshParsed = {});
+    static ModelData parse(const ModelCreateInfo& createInfo);
 
     // Structural mesh count without decoding data, for progress-bar sizing.
     static std::size_t countMeshes(const ModelCreateInfo& createInfo);

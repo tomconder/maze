@@ -2,10 +2,10 @@
 # sources and anything the manifest bakes, then overlay compiled GLSL shaders
 # and baked assets.
 #
-# EXCLUDE_REGEX drops the manifest's own inputs: a source that was baked must
-# not ship next to the file it was baked into. It names individual files
-# rather than directories so that licence files sitting beside the art they
-# cover still deploy.
+# EXCLUDE_REGEX drops the bake's own inputs: a source that was baked must not
+# ship next to the file it was baked into. It matches extensions rather than
+# directories so that licence files sitting beside the art they cover still
+# deploy.
 #
 # assets/models is excluded wholesale instead, because it holds nothing but
 # source art. Every model the runtime loads comes from the bake, so a file

@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cstddef>
 #include <filesystem>
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,8 +37,7 @@ Model::Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes) {
     meshes = std::move(builtMeshes);
 }
 
-ModelData Model::parse(const ModelCreateInfo&       createInfo,
-                       const std::function<void()>& onMeshParsed) {
+ModelData Model::parse(const ModelCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
     SPONGE_GL_INFO("Loading model file: [{}, {}]", createInfo.name,
                    createInfo.path);
@@ -51,13 +49,7 @@ ModelData Model::parse(const ModelCreateInfo&       createInfo,
         return {};
     }
 
-    auto data = sponge::scene::asset::read(path);
-    if (onMeshParsed) {
-        for (size_t i = 0; i < data.meshes.size(); i++) {
-            onMeshParsed();
-        }
-    }
-    return data;
+    return sponge::scene::asset::read(path);
 }
 
 std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
@@ -96,16 +88,12 @@ std::shared_ptr<renderer::Texture>
         return nullptr;
     }
 
-    // A baked image carries a KTX2 file; the glTF importer hands over raw
-    // pixels. Texture takes whichever is populated.
+    // Every image in a baked model is a whole KTX2 file; the raw-pixel
+    // fields of ParsedImage are the converter's side of the struct.
     const renderer::TextureCreateInfo textureCreateInfo{
-        .name          = image->name,
-        .path          = "",
-        .width         = image->width,
-        .height        = image->height,
-        .bytesPerPixel = image->bytesPerPixel,
-        .data          = image->pixels.empty() ? nullptr : image->pixels.data(),
-        .ktx2          = image->ktx2,
+        .name = image->name,
+        .path = "",
+        .ktx2 = image->ktx2,
     };
     return AssetManager::createTexture(textureCreateInfo);
 }

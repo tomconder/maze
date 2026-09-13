@@ -19,8 +19,9 @@ assetconv --atlas <output.ktx2> <name>=<png> ...
 
 `--verify` imports the source again and compares it against the baked file:
 mesh count, every vertex (position, UV, normal, tangent), every index, and
-albedo dimensions. It does not compare pixel content. Use the
-`debug.fixedJitter` setting and a screenshot diff for that.
+albedo dimensions. It does not compare pixel content. With TAA on, the jitter
+phase depends on the frame count, so turn TAA off before you compare
+screenshots.
 
 CMake calls the converter once per entry in `assets/manifest.json`. Nothing is
 converted by globbing.

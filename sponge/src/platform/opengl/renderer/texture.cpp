@@ -1,12 +1,12 @@
 #include "platform/opengl/renderer/texture.hpp"
 
+#include "core/file.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "scene/ktx2.hpp"
 
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <span>
 #include <string>
 #include <vector>
@@ -139,17 +139,8 @@ void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
         return;
     }
 
-    std::ifstream file{ name, std::ios::binary | std::ios::ate };
-    if (!file) {
-        SPONGE_GL_ERROR("Unable to open texture, path = {}", name.string());
-        return;
-    }
-
-    const auto size = static_cast<size_t>(file.tellg());
-    file.seekg(0);
-    std::vector<uint8_t> bytes(size);
-    if (!file.read(reinterpret_cast<char*>(bytes.data()),
-                   static_cast<std::streamsize>(size))) {
+    const auto bytes = core::File::readBytes(name.string());
+    if (bytes.empty()) {
         SPONGE_GL_ERROR("Unable to read texture, path = {}", name.string());
         return;
     }

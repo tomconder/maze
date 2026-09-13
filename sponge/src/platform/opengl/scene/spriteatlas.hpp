@@ -17,15 +17,15 @@ public:
     // path is relative to the assets folder.
     explicit SpriteAtlas(const std::string& name, const std::string& path);
 
-    // Returns nullptr when the atlas has no sprite of that name.
-    const Sprite* find(std::string_view spriteName) const;
-
     // Never fails: a name the atlas does not hold logs once and returns a
     // sprite that draws nothing, so a missing icon cannot take the frame
-    // down. Callers that want to handle the miss use find() instead.
+    // down.
     const Sprite& sprite(std::string_view spriteName) const;
 
 private:
+    // Returns nullptr when the atlas has no sprite of that name.
+    const Sprite* find(std::string_view spriteName) const;
+
     std::shared_ptr<renderer::Texture>                       tex;
     std::unordered_map<std::string, std::unique_ptr<Sprite>> sprites;
     mutable std::unique_ptr<Sprite>                          missing;

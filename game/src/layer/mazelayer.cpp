@@ -147,11 +147,6 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     const auto savedShadowRes = sponge::core::Settings::getUInt32(
         "video.shadowRes", defaultShadowMapRes);
 
-    fixedJitter = sponge::core::Settings::getBool("debug.fixedJitter", false);
-    if (fixedJitter) {
-        SPONGE_INFO("debug.fixedJitter is on: TAA jitter pinned");
-    }
-
     directionalLight = {
         .enabled      = dirLightEnabled,
         .castShadow   = dirLightCastsShadow,
@@ -342,10 +337,9 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.cameraMVP      = camera->getMVP();
     frame.cameraViewProj = frame.cameraMVP;
     if (aaMode == AntiAliasing::Taa) {
-        const auto jitter =
-            TAA::haltonJitter(fixedJitter ? 0 : jitterIndex++,
-                              static_cast<uint32_t>(screenWidth.load()),
-                              static_cast<uint32_t>(screenHeight.load()));
+        const auto jitter = TAA::haltonJitter(
+            jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
+            static_cast<uint32_t>(screenHeight.load()));
         frame.cameraMVP =
             glm::translate(glm::mat4(1.F), glm::vec3(jitter, 0.F)) *
             frame.cameraMVP;

@@ -118,9 +118,12 @@ void LoadingLayer::setActive(const bool value) {
 
     parseThread = std::thread([this] {
         for (std::size_t i = 0; i < requests.size(); i++) {
-            parsedData[i] = Model::parse(requests[i], [this] {
-                completedSteps.fetch_add(1, std::memory_order_acq_rel);
-            });
+            parsedData[i] = Model::parse(requests[i]);
+            // Per model, not per mesh: a model's meshes all become available
+            // at once, when its file has been read.
+            completedSteps.fetch_add(
+                static_cast<uint32_t>(parsedData[i].meshes.size()),
+                std::memory_order_acq_rel);
         }
         parseDone.store(true, std::memory_order_release);
     });
