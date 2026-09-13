@@ -1,12 +1,9 @@
-// Asset converter. Reads one source model and writes the baked .spnga the
-// engine loads. CMake drives one invocation per entry in assets/manifest.json.
+// Asset converter. Bakes the models, textures, atlases and shaders listed in
+// assets/manifest.json to the formats the engine loads.
 //
-// Usage: assetconv <source> <output.spnga>
+// Usage: assetconv --manifest <manifest.json> <output dir>
+//                  [--no-line-directives]
 //        assetconv --verify <source> <output.spnga>
-//        assetconv --atlas <output.ktx2> <name>=<png> ...
-//        assetconv --texture <output.ktx2> <input.png>
-//        assetconv --shaders <output.spnga> [--no-line-directives]
-//                  <name>=<slang>:<entry> ...
 
 #include "atlas.hpp"
 #include "gltfimport.hpp"
@@ -21,15 +18,19 @@
 #include "texenc.hpp"
 
 #include <fmt/base.h>
+#include <nlohmann/json.hpp>
 
 #include <cstdint>
 #include <cstdio>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <set>
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 namespace {
@@ -212,57 +213,9 @@ int convertTexture(const std::string& source, const std::string& output) {
     return 0;
 }
 
-// Each argument is <sprite name>=<png path>. The name is what the engine
-// looks the sprite up by, so it stays stable if the file moves.
-int packAtlas(const std::string&                      output,
-              const std::span<const std::string_view> args) {
-    std::vector<assetconv::AtlasEntry> entries;
-    entries.reserve(args.size());
-    for (const auto arg : args) {
-        const auto split = arg.find('=');
-        if (split == std::string_view::npos) {
-            fmt::println(stderr, "assetconv: expected <name>=<png>, got {}",
-                         arg);
-            return 2;
-        }
-        entries.emplace_back(assetconv::AtlasEntry{
-            .name = std::string{ arg.substr(0, split) },
-            .path = std::string{ arg.substr(split + 1) },
-        });
-    }
-
-    return assetconv::packAtlas(entries, output) ? 0 : 1;
-}
-
-// Each argument is <name>=<slang path>:<entry point>. The last colon splits,
-// because a Windows path has one of its own.
-int packShaders(const std::string&                output,
-                std::span<const std::string_view> args) {
-    bool lineDirectives = true;
-    if (!args.empty() && args[0] == "--no-line-directives") {
-        lineDirectives = false;
-        args           = args.subspan(1);
-    }
-
-    std::vector<assetconv::ShaderEntry> entries;
-    entries.reserve(args.size());
-    for (const auto arg : args) {
-        const auto equals = arg.find('=');
-        const auto colon  = arg.rfind(':');
-        if (equals == std::string_view::npos ||
-            colon == std::string_view::npos || colon < equals) {
-            fmt::println(stderr,
-                         "assetconv: expected <name>=<slang>:<entry>, got {}",
-                         arg);
-            return 2;
-        }
-        entries.emplace_back(assetconv::ShaderEntry{
-            .name = std::string{ arg.substr(0, equals) },
-            .path = std::string{ arg.substr(equals + 1, colon - equals - 1) },
-            .entryPoint = std::string{ arg.substr(colon + 1) },
-        });
-    }
-
+int packShaders(const std::string&                         output,
+                const std::vector<assetconv::ShaderEntry>& entries,
+                const bool                                 lineDirectives) {
     const auto sources = assetconv::compileShaders(entries, lineDirectives);
     if (!sources) {
         return 1;
@@ -277,6 +230,142 @@ int packShaders(const std::string&                output,
                  bytes.size());
     return 0;
 }
+
+using Json   = nlohmann::ordered_json;
+namespace fs = std::filesystem;
+
+// Current when newer than every input. A missing file on either side is stale.
+bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
+    std::error_code ec;
+    const auto      built = fs::last_write_time(output, ec);
+    if (ec) {
+        return false;
+    }
+    for (const auto& input : inputs) {
+        const auto changed = fs::last_write_time(input, ec);
+        if (ec || changed > built) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Sources are relative to the manifest's folder, outputs to outputDir.
+int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
+                 const bool lineDirectives, const fs::path& converter) {
+    const auto sourceRoot = fs::path(manifestPath).parent_path();
+    const auto outputRoot = fs::path(outputDir);
+    const auto source     = [&](const std::string& path) {
+        return (sourceRoot / path).generic_string();
+    };
+
+    // Every output also depends on the manifest and on the converter, which
+    // stands in for the format headers compiled into it.
+    const auto bake = [&](const std::string& name, std::vector<fs::path> inputs,
+                          const auto& run) {
+        const auto output = (outputRoot / name).generic_string();
+        inputs.emplace_back(manifestPath);
+        inputs.emplace_back(converter);
+        if (upToDate(output, inputs) || run(output)) {
+            return true;
+        }
+        // A partial file would look current on the next run.
+        std::error_code ec;
+        fs::remove(output, ec);
+        return false;
+    };
+
+    try {
+        std::ifstream file{ manifestPath };
+        const auto    manifest = Json::parse(file);
+
+        for (const auto& model : manifest.value("models", Json::array())) {
+            const auto from = source(model.at("source").get<std::string>());
+            if (!bake(model.at("output").get<std::string>(), { from },
+                      [&](const std::string& to) {
+                          return convert(from, to) == 0;
+                      })) {
+                return 1;
+            }
+        }
+
+        for (const auto& texture : manifest.value("textures", Json::array())) {
+            const auto from = source(texture.at("source").get<std::string>());
+            if (!bake(texture.at("output").get<std::string>(), { from },
+                      [&](const std::string& to) {
+                          return convertTexture(from, to) == 0;
+                      })) {
+                return 1;
+            }
+        }
+
+        // The sprite name is what the engine looks up, so it stays stable if
+        // the file moves.
+        for (const auto& atlas : manifest.value("atlases", Json::array())) {
+            std::vector<assetconv::AtlasEntry> entries;
+            std::vector<fs::path>              inputs;
+            for (const auto& [sprite, path] : atlas.at("sprites").items()) {
+                entries.push_back({ .name = sprite,
+                                    .path = source(path.get<std::string>()) });
+                inputs.emplace_back(entries.back().path);
+            }
+            if (!bake(atlas.at("output").get<std::string>(), inputs,
+                      [&](const std::string& to) {
+                          return assetconv::packAtlas(entries, to);
+                      })) {
+                return 1;
+            }
+        }
+
+        // Each stage is <slang path>:<entry point>, keyed by the name the
+        // engine asks for.
+        if (manifest.contains("shaders")) {
+            const auto& shaders = manifest.at("shaders");
+            std::vector<assetconv::ShaderEntry> entries;
+            for (const auto& [stage, value] : shaders.at("stages").items()) {
+                const auto text  = value.get<std::string>();
+                const auto colon = text.rfind(':');
+                if (colon == std::string::npos) {
+                    fmt::println(stderr,
+                                 "assetconv: stage {} is not <slang>:<entry>, "
+                                 "got {}",
+                                 stage, text);
+                    return 2;
+                }
+                entries.push_back({ .name       = stage,
+                                    .path       = source(text.substr(0, colon)),
+                                    .entryPoint = text.substr(colon + 1) });
+            }
+
+            // Includes are not listed anywhere, so every file under a stage's
+            // folder counts as an input.
+            std::set<fs::path> folders;
+            for (const auto& entry : entries) {
+                folders.insert(fs::path(entry.path).parent_path());
+            }
+            std::vector<fs::path> inputs;
+            for (const auto& folder : folders) {
+                for (const auto& item :
+                     fs::recursive_directory_iterator(folder)) {
+                    if (item.is_regular_file()) {
+                        inputs.push_back(item.path());
+                    }
+                }
+            }
+
+            if (!bake(shaders.at("output").get<std::string>(), inputs,
+                      [&](const std::string& to) {
+                          return packShaders(to, entries, lineDirectives) == 0;
+                      })) {
+                return 1;
+            }
+        }
+    } catch (const std::exception& e) {
+        fmt::println(stderr, "assetconv: {}: {}", manifestPath, e.what());
+        return 2;
+    }
+    return 0;
+}
 }  // namespace
 
 int main(const int argc, char** argv) {
@@ -288,28 +377,21 @@ int main(const int argc, char** argv) {
     assetconv::initEncoder();
 
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
+    if ((args.size() == 3 || args.size() == 4) && args[0] == "--manifest") {
+        if (args.size() == 4 && args[3] != "--no-line-directives") {
+            fmt::println(stderr, "assetconv: unknown option {}", args[3]);
+            return 2;
+        }
+        return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
+                            args.size() == 3, argv[0]);
+    }
     if (args.size() == 3 && args[0] == "--verify") {
         return verify(std::string{ args[1] }, std::string{ args[2] });
     }
-    if (args.size() >= 3 && args[0] == "--atlas") {
-        return packAtlas(std::string{ args[1] }, std::span{ args }.subspan(2));
-    }
-    if (args.size() >= 3 && args[0] == "--shaders") {
-        return packShaders(std::string{ args[1] },
-                           std::span{ args }.subspan(2));
-    }
-    if (args.size() == 3 && args[0] == "--texture") {
-        return convertTexture(std::string{ args[2] }, std::string{ args[1] });
-    }
-    if (args.size() == 2) {
-        return convert(std::string{ args[0] }, std::string{ args[1] });
-    }
 
     fmt::println(stderr,
-                 "usage: assetconv [--verify] <source> <output.spnga>\n"
-                 "       assetconv --atlas <output.ktx2> <name>=<png> ...\n"
-                 "       assetconv --texture <output.ktx2> <input.png>\n"
-                 "       assetconv --shaders <output.spnga> "
-                 "[--no-line-directives] <name>=<slang>:<entry> ...");
+                 "usage: assetconv --manifest <manifest.json> <output dir> "
+                 "[--no-line-directives]\n"
+                 "       assetconv --verify <source> <output.spnga>");
     return 2;
 }

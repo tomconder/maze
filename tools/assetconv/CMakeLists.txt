@@ -39,6 +39,10 @@ target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
 
 target_link_libraries(assetconv PRIVATE sponge::sponge)
 
+# Reads assets/manifest.json.
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE nlohmann_json::nlohmann_json)
+
 # Slang compiles the shaders in-process. It loads its GLSL module and glslang
 # by name at run time, so those sit beside the exe along with the DLLs it
 # links against.

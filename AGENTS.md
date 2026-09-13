@@ -35,7 +35,7 @@ Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other ag
 * `game/` — maze application (layers, UI, cameras). CMake target `game`; Windows exe `maze.exe`.
 * `sponge/src/{core,event,input,layer,logging,scene,thread}` — platform-agnostic engine.
 * `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
-* `assets/shaders/slang/` — Slang sources. `assetconv --shaders` compiles every stage listed under `shaders` in `assets/manifest.json` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
+* `assets/shaders/slang/` — Slang sources. `assetconv --manifest` compiles every stage listed under `shaders` in `assets/manifest.json` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
 * C++23, vcpkg manifest (`vcpkg.json`). Optional CMake flags: `ENABLE_IMGUI`, `ENABLE_PROFILING` (Tracy).
 * No automated test suite. Verify with compile + run + `pre-commit.exe run --all-files`.
 

@@ -12,12 +12,18 @@ and `Shader` reads GLSL from `shaders/shaders.spnga` and nowhere else.
 ## Usage
 
 ```
-assetconv <source> <output.spnga>
+assetconv --manifest <manifest.json> <output dir> [--no-line-directives]
 assetconv --verify <source> <output.spnga>
-assetconv --texture <output.ktx2> <input.png>
-assetconv --atlas <output.ktx2> <name>=<png> ...
-assetconv --shaders <output.spnga> [--no-line-directives] <name>=<slang>:<entry> ...
 ```
+
+`--manifest` bakes every asset the manifest lists: models, textures, atlases
+and the shader pack. Sources are relative to the manifest's folder, outputs to
+the output directory. `--no-line-directives` applies to the shader pack.
+
+An output is skipped when it is newer than its sources, the manifest and
+`assetconv` itself. The converter stands in for the format headers compiled
+into it, so a format change rebakes everything. A failed conversion deletes
+its output, so a partial file never looks current.
 
 `--verify` imports the source again and compares it against the baked file:
 mesh count, every vertex (position, UV, normal, tangent), every index, and
@@ -25,8 +31,8 @@ albedo dimensions. It does not compare pixel content. With TAA on, the jitter
 phase depends on the frame count, so turn TAA off before you compare
 screenshots.
 
-CMake calls the converter once per entry in `assets/manifest.json`. Nothing is
-converted by globbing.
+CMake calls `--manifest` once, on every build. With nothing changed that
+costs a fraction of a second. Nothing is converted by globbing.
 
 ## Adding an asset
 
@@ -41,10 +47,9 @@ Add an entry to `assets/manifest.json`:
 ```
 
 `source` is relative to `assets/`, `output` to the baked asset directory.
-`cmake/ConvertAssets.cmake` reads the manifest at configure time, so a new
-entry needs a re-configure. Each generated command depends on the source, the
-manifest and `sponge/src/scene/assetformat.hpp`, so editing any of those
-rebakes without a clean.
+CMake never reads the manifest, so a new entry needs no re-configure. Editing
+the source, the manifest or `sponge/src/scene/assetformat.hpp` rebakes without
+a clean.
 
 Then reference the output from the game the way any other model is referenced:
 
@@ -169,7 +174,7 @@ wastes three quarters of itself. The twelve 64x64 prompt icons land in 256x512.
 
 A large image does not belong in a sheet: `blackcoffee.png` is 1024x1024, and
 including it forced the whole atlas to 2048x2048 and 16.7 MB. It is baked on
-its own with `--texture` instead, which brought the pair to 1.4 MB and 512 KB.
+on its own as a `textures` entry instead, which brought the pair to 1.4 MB and 512 KB.
 
 Known gaps:
 
@@ -182,7 +187,8 @@ Known gaps:
 - Conversion is not fast. Sponza's 69 textures take about 130 s through the
   CPU BC7 encoder. It only runs when a source, the manifest or
   `assetformat.hpp` changes, so an incremental build does not pay it, but a
-  clean build does.
+  clean build does. The manifest counts as an input to every output, so
+  any manifest edit rebakes Sponza too.
 
 ## Cost and benefit
 
@@ -232,9 +238,9 @@ byte-identical to what `slangc` wrote. Slang loads its GLSL module and
 glslang by name at run time, so on Windows the build copies those DLLs next
 to `assetconv.exe`.
 
-The pack is one output, so its build command depends on every stage source,
-every file in `shaders/slang/include/` and the manifest. A new include
-directory has to be added to that list in `cmake/ConvertAssets.cmake`.
+The pack is one output. Slang includes are not listed in the manifest, so
+every file under a stage source's folder counts as an input, and any edit
+there rebuilds the pack.
 
 ```
 Header   magic "SPNGSH" + two zero bytes, version, count
