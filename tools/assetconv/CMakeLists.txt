@@ -28,6 +28,11 @@ set_source_files_properties(deps/bc7enc/bc7enc.cpp PROPERTIES COMPILE_OPTIONS
 
 target_link_libraries(assetconv PRIVATE sponge::sponge)
 
+# fmt trips C4702 (unreachable code) inside its own headers under MSVC at
+# /W4 /WX. The vcpkg includes are already -external:W0, but C4702 comes from
+# the optimizer, and /external governs only frontend warnings.
+target_compile_options(assetconv PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/wd4702>)
+
 set_target_properties(assetconv PROPERTIES CXX_STANDARD 23)
 
 # Host tool: never installed with the game.
