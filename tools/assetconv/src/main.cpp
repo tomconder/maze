@@ -14,6 +14,8 @@
 #include "scene/modeldata.hpp"
 #include "texenc.hpp"
 
+#include <fmt/base.h>
+
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
@@ -62,7 +64,7 @@ bool encodeTextures(ModelData& data) {
 ModelData import(const std::string& source) {
     const auto extension = std::filesystem::path(source).extension().string();
     if (extension != ".glb" && extension != ".gltf") {
-        SPONGE_ERROR("Unsupported source format {}", source);
+        fmt::println(stderr, "assetconv: unsupported source format {}", source);
         return {};
     }
     return sponge::scene::gltf::parse(source);
@@ -76,7 +78,7 @@ bool writeFile(const std::string& path, const std::span<const uint8_t> bytes) {
 
     std::ofstream file{ out, std::ios::binary | std::ios::trunc };
     if (!file) {
-        SPONGE_ERROR("Unable to write {}", path);
+        fmt::println(stderr, "assetconv: unable to write {}", path);
         return false;
     }
     file.write(reinterpret_cast<const char*>(bytes.data()),
@@ -87,7 +89,7 @@ bool writeFile(const std::string& path, const std::span<const uint8_t> bytes) {
 int convert(const std::string& source, const std::string& output) {
     auto data = import(source);
     if (data.meshes.empty()) {
-        SPONGE_ERROR("No meshes imported from {}", source);
+        fmt::println(stderr, "assetconv: no meshes imported from {}", source);
         return 1;
     }
 
@@ -100,8 +102,8 @@ int convert(const std::string& source, const std::string& output) {
         return 1;
     }
 
-    std::printf("%s -> %s (%zu meshes, %zu bytes)\n", source.c_str(),
-                output.c_str(), data.meshes.size(), bytes.size());
+    fmt::println("{} -> {} ({} meshes, {} bytes)", source, output,
+                 data.meshes.size(), bytes.size());
     return 0;
 }
 
@@ -112,9 +114,8 @@ int verify(const std::string& source, const std::string& output) {
     const auto actual   = sponge::scene::asset::read(output);
 
     if (expected.meshes.size() != actual.meshes.size()) {
-        std::printf("FAIL %s: %zu meshes baked, source has %zu\n",
-                    output.c_str(), actual.meshes.size(),
-                    expected.meshes.size());
+        fmt::println(stderr, "FAIL {}: {} meshes baked, source has {}", output,
+                     actual.meshes.size(), expected.meshes.size());
         return 1;
     }
 
@@ -124,10 +125,10 @@ int verify(const std::string& source, const std::string& output) {
 
         if (want.vertices.size() != got.vertices.size() ||
             want.indices.size() != got.indices.size()) {
-            std::printf("FAIL %s mesh %zu: %zu/%zu vertices, %zu/%zu indices\n",
-                        output.c_str(), i, got.vertices.size(),
-                        want.vertices.size(), got.indices.size(),
-                        want.indices.size());
+            fmt::println(stderr,
+                         "FAIL {} mesh {}: {}/{} vertices, {}/{} indices",
+                         output, i, got.vertices.size(), want.vertices.size(),
+                         got.indices.size(), want.indices.size());
             return 1;
         }
 
@@ -136,21 +137,20 @@ int verify(const std::string& source, const std::string& output) {
                 want.vertices[v].texCoords != got.vertices[v].texCoords ||
                 want.vertices[v].normal != got.vertices[v].normal ||
                 want.vertices[v].tangent != got.vertices[v].tangent) {
-                std::printf("FAIL %s mesh %zu: vertex %zu differs\n",
-                            output.c_str(), i, v);
+                fmt::println(stderr, "FAIL {} mesh {}: vertex {} differs",
+                             output, i, v);
                 return 1;
             }
         }
 
         if (want.indices != got.indices) {
-            std::printf("FAIL %s mesh %zu: indices differ\n", output.c_str(),
-                        i);
+            fmt::println(stderr, "FAIL {} mesh {}: indices differ", output, i);
             return 1;
         }
 
         if (want.albedo.has_value() != got.albedo.has_value()) {
-            std::printf("FAIL %s mesh %zu: albedo presence differs\n",
-                        output.c_str(), i);
+            fmt::println(stderr, "FAIL {} mesh {}: albedo presence differs",
+                         output, i);
             return 1;
         }
 
@@ -158,19 +158,21 @@ int verify(const std::string& source, const std::string& output) {
             const auto image = ktx2::read(got.albedo->ktx2);
             if (image.width != want.albedo->width ||
                 image.height != want.albedo->height) {
-                std::printf("FAIL %s mesh %zu: albedo is %ux%u, source is "
-                            "%ux%u\n",
-                            output.c_str(), i, image.width, image.height,
-                            want.albedo->width, want.albedo->height);
+                fmt::println(stderr,
+                             "FAIL {} mesh {}: albedo is {}x{}, source is "
+                             "{}x{}",
+                             output, i, image.width, image.height,
+                             want.albedo->width, want.albedo->height);
                 return 1;
             }
         }
     }
 
-    std::printf("OK %s: %zu meshes match %s\n", output.c_str(),
-                actual.meshes.size(), source.c_str());
+    fmt::println("OK {}: {} meshes match {}", output, actual.meshes.size(),
+                 source);
     return 0;
 }
+
 // One image, BC7 with a full mip chain. For UI art that is too big to share
 // a sprite sheet: a single large image forces the whole sheet up to the next
 // power of two.
@@ -185,8 +187,8 @@ int convertTexture(const std::string& source, const std::string& output) {
         return 1;
     }
 
-    std::printf("%s -> %s (%ux%u, %zu bytes)\n", source.c_str(), output.c_str(),
-                image.width, image.height, file.size());
+    fmt::println("{} -> {} ({}x{}, {} bytes)", source, output, image.width,
+                 image.height, file.size());
     return 0;
 }
 
@@ -199,8 +201,8 @@ int packAtlas(const std::string&                      output,
     for (const auto arg : args) {
         const auto split = arg.find('=');
         if (split == std::string_view::npos) {
-            std::printf("expected <name>=<png>, got %.*s\n",
-                        static_cast<int>(arg.size()), arg.data());
+            fmt::println(stderr, "assetconv: expected <name>=<png>, got {}",
+                         arg);
             return 2;
         }
         entries.emplace_back(assetconv::AtlasEntry{
@@ -235,8 +237,9 @@ int main(const int argc, char** argv) {
         return convert(std::string{ args[0] }, std::string{ args[1] });
     }
 
-    std::printf("usage: assetconv [--verify] <source> <output.spnga>\n"
-                "       assetconv --atlas <output.ktx2> <name>=<png> ...\n"
-                "       assetconv --texture <output.ktx2> <input.png>\n");
+    fmt::println(stderr,
+                 "usage: assetconv [--verify] <source> <output.spnga>\n"
+                 "       assetconv --atlas <output.ktx2> <name>=<png> ...\n"
+                 "       assetconv --texture <output.ktx2> <input.png>");
     return 2;
 }

@@ -1,9 +1,9 @@
 #include "texenc.hpp"
 
-#include "logging/log.hpp"
 #include "scene/ktx2.hpp"
 #include "scene/modeldata.hpp"
 
+#include <fmt/base.h>
 #include <bc7enc.h>
 #include <stb_image.h>
 
@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -205,7 +206,8 @@ sponge::scene::ParsedImage loadImage(const std::string& path) {
     auto* pixels  = stbi_load(path.c_str(), &width, &height, &ignored,
                               static_cast<int>(rgbaChannels));
     if (pixels == nullptr) {
-        SPONGE_ERROR("Unable to load {}: {}", path, stbi_failure_reason());
+        fmt::println(stderr, "assetconv: unable to load {}: {}", path,
+                     stbi_failure_reason());
         return {};
     }
 
@@ -225,7 +227,8 @@ sponge::scene::ParsedImage loadImage(const std::string& path) {
 std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,
                             const TextureKind                 kind) {
     if (image.width == 0 || image.height == 0 || image.pixels.empty()) {
-        SPONGE_ERROR("Cannot encode empty image {}", image.name);
+        fmt::println(stderr, "assetconv: cannot encode empty image {}",
+                     image.name);
         return {};
     }
 

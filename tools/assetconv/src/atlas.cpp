@@ -1,8 +1,8 @@
 #include "atlas.hpp"
 
-#include "logging/log.hpp"
 #include "scene/ktx2.hpp"
 
+#include <fmt/base.h>
 #include <stb_image.h>
 #include <stb_rect_pack.h>
 
@@ -56,7 +56,7 @@ bool load(const assetconv::AtlasEntry& entry, Source& source) {
     auto* pixels  = stbi_load(entry.path.c_str(), &width, &height, &ignored,
                               static_cast<int>(channels));
     if (pixels == nullptr) {
-        SPONGE_ERROR("Unable to load {}: {}", entry.path,
+        fmt::println(stderr, "assetconv: unable to load {}: {}", entry.path,
                      stbi_failure_reason());
         return false;
     }
@@ -142,8 +142,10 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
     }
 
     if (size.width == 0) {
-        SPONGE_ERROR("{} sprites do not fit in a {}x{} atlas", entries.size(),
-                     candidateSizes.back().width, candidateSizes.back().height);
+        fmt::println(stderr,
+                     "assetconv: {} sprites do not fit in a {}x{} atlas",
+                     entries.size(), candidateSizes.back().width,
+                     candidateSizes.back().height);
         return false;
     }
 
@@ -156,7 +158,7 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
     }
 
     // One level, and UNORM rather than SRGB: this is what the engine
-    // uploaded for these ONGs before they were baked. Mips would bleed
+    // uploaded for these images before they were baked. Mips would bleed
     // between sprites anyway, and UI is drawn at native size.
     const std::vector<ktx2::KeyValue> keyValues{
         { "spongeAtlas", rectTable(sources, rects) }
@@ -170,7 +172,7 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
     }
     std::ofstream stream{ out, std::ios::binary | std::ios::trunc };
     if (!stream) {
-        SPONGE_ERROR("Unable to write {}", outputPath);
+        fmt::println(stderr, "assetconv: unable to write {}", outputPath);
         return false;
     }
     stream.write(reinterpret_cast<const char*>(file.data()),
@@ -179,8 +181,8 @@ bool packAtlas(const std::vector<AtlasEntry>& entries,
         return false;
     }
 
-    std::printf("%zu sprites -> %s (%ux%u, %zu bytes)\n", entries.size(),
-                outputPath.c_str(), size.width, size.height, file.size());
+    fmt::println("{} sprites -> {} ({}x{}, {} bytes)", entries.size(),
+                 outputPath, size.width, size.height, file.size());
     return true;
 }
 
