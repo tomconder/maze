@@ -22,19 +22,26 @@ target_include_directories(assetconv PRIVATE src)
 # blocks, stb_image_resize2 for the mip chain.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
 # cgltf, stb @ vendored with the engine originally, see git history
-# stb_rect_pack packs the sprite atlas; the engine's copy serves both.
-set(VENDORED_SOURCES
+# Own target so they take the engine's options but not its warnings.
+add_library(assetconv_deps OBJECT
         deps/bc7enc/bc7enc.cpp
         deps/cgltf/cgltf.cpp
         deps/stb/stb_image.cpp
-        deps/tinyobjloader/tiny_obj_loader.cpp
+        deps/tinyobjloader/tiny_obj_loader.cpp)
+set_target_properties(assetconv_deps PROPERTIES CXX_STANDARD 23)
+target_include_directories(assetconv_deps PUBLIC
+        deps/bc7enc deps/cgltf deps/stb deps/tinyobjloader)
+target_link_libraries(assetconv_deps PRIVATE sponge::options)
+target_compile_options(assetconv_deps PRIVATE
+        $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
+target_link_libraries(assetconv PRIVATE assetconv_deps)
+
+# stb_rect_pack packs the sprite atlas; the engine's copy serves both. It
+# builds clean at /W4.
+target_sources(assetconv PRIVATE
         ${CMAKE_SOURCE_DIR}/sponge/deps/stb/stb_rect_pack.cpp)
-target_sources(assetconv PRIVATE ${VENDORED_SOURCES})
 target_include_directories(assetconv PRIVATE
-        deps/bc7enc deps/cgltf deps/stb deps/tinyobjloader
         ${CMAKE_SOURCE_DIR}/sponge/deps/stb)
-set_source_files_properties(${VENDORED_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
 
 # Mesh optimization is a bake step now, so meshoptimizer links here.
 find_package(meshoptimizer CONFIG REQUIRED)

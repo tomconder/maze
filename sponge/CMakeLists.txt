@@ -61,16 +61,6 @@ file(
         src/platform/glfw/logging/*.cpp)
 list(APPEND SOURCE_FILES ${GLFW_SOURCES})
 
-# miniaudio
-message(STATUS "Including miniaudio files")
-file(
-        GLOB MINIAUDIO_SOURCES
-        LIST_DIRECTORIES false
-        deps/miniaudio/miniaudio.cpp)
-list(APPEND SOURCE_FILES ${MINIAUDIO_SOURCES})
-set_source_files_properties(${MINIAUDIO_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
-
 # audio
 message(STATUS "Including audio platform files")
 file(
@@ -140,8 +130,19 @@ if (ENABLE_PROFILING)
 endif ()
 
 # Build options shared by the engine and the format library, and so by
-# assetconv through the latter.
+# assetconv through the latter. Warnings are a separate target so vendored
+# code can take the options without /W4: a per-source /W0 cannot remove a
+# target's /W4, and MSVC warns D9025 when it overrides it.
 add_library(sponge_options INTERFACE)
+add_library(sponge_warnings INTERFACE)
+add_library(sponge::options ALIAS sponge_options)
+
+# miniaudio, vendored: no warnings.
+add_library(sponge_miniaudio OBJECT deps/miniaudio/miniaudio.cpp)
+set_target_properties(sponge_miniaudio PROPERTIES CXX_STANDARD 23)
+target_link_libraries(sponge_miniaudio PRIVATE sponge_options)
+target_compile_options(sponge_miniaudio PRIVATE
+        $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 
 # Baked asset formats: readers for the engine, writers for assetconv. No
 # logging and no engine headers, so an engine edit does not relink assetconv
@@ -156,12 +157,14 @@ add_library(sponge_format STATIC ${FORMAT_FILES})
 add_library(sponge::format ALIAS sponge_format)
 set_target_properties(sponge_format PROPERTIES CXX_STANDARD 23)
 target_include_directories(sponge_format PUBLIC format/scene/src)
-target_link_libraries(sponge_format PUBLIC sponge_options glm::glm-header-only)
+target_link_libraries(sponge_format PUBLIC sponge_options sponge_warnings
+        glm::glm-header-only)
 target_link_libraries(sponge_format PRIVATE fmt::fmt)
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 target_link_libraries(sponge PUBLIC sponge_format)
+target_link_libraries(sponge PRIVATE sponge_miniaudio)
 
 if (MSVC)
     # hardening
@@ -182,7 +185,7 @@ if (MSVC)
     target_compile_options(sponge_options INTERFACE /EHsc)
 
     # enable warnings as errors
-    target_compile_options(sponge_options INTERFACE /W4 /WX)
+    target_compile_options(sponge_warnings INTERFACE /W4 /WX)
 
     # disable RTTI
     target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
@@ -197,7 +200,7 @@ else ()
     target_compile_options(sponge_options INTERFACE -fexceptions)
 
     # enable warnings as errors
-    target_compile_options(sponge_options INTERFACE -Wall -Werror)
+    target_compile_options(sponge_warnings INTERFACE -Wall -Werror)
 
     # disable RTTI
     target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
