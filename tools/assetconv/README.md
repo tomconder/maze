@@ -1,12 +1,13 @@
 # assetconv
 
-Build-time asset converter. It reads source models and writes the `.spnga`
-files the engine loads.
+Build-time asset converter. It reads source models and shaders and writes the
+`.spnga` files the engine loads.
 
 The engine parses no third-party asset format at run time. Every importer
 lives here, along with cgltf, tinyobjloader, stb_image, bc7enc,
-stb_image_resize2 and meshoptimizer; `Model::parse()` accepts `.spnga` and
-nothing else, and `Texture` accepts `.ktx2` and nothing else.
+stb_image_resize2, meshoptimizer and the Slang compiler; `Model::parse()`
+accepts `.spnga` and nothing else, `Texture` accepts `.ktx2` and nothing else,
+and `Shader` reads GLSL from `shaders.spnga` and nowhere else.
 
 ## Usage
 
@@ -15,6 +16,7 @@ assetconv <source> <output.spnga>
 assetconv --verify <source> <output.spnga>
 assetconv --texture <output.ktx2> <input.png>
 assetconv --atlas <output.ktx2> <name>=<png> ...
+assetconv --shaders <output.spnga> [--no-line-directives] <name>=<slang>:<entry> ...
 ```
 
 `--verify` imports the source again and compares it against the baked file:
@@ -57,6 +59,7 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | `.glb`, `.gltf` | Supported |
 | `.png` (standalone, and into an atlas) | Supported |
 | `.obj` | Supported |
+| `.slang` (into the shader pack) | Supported |
 
 ## Output format
 
@@ -205,6 +208,46 @@ Compression is lossy, so the baked frame is not identical. Against the same
 scene loaded from glTF, 44% of pixels match exactly, 48.6% differ by 1-2,
 and 7 pixels of 2 073 600 differ by more than 64 — all in one cluster of
 specular foliage highlights.
+
+## Shaders
+
+Every stage listed under `shaders.stages` in the manifest compiles into one
+`shaders.spnga`. Each stage is `<source>:<entry point>`, with the source
+relative to `assets/`:
+
+```json
+"shaders": {
+  "output": "shaders.spnga",
+  "stages": {
+    "pbr.vert": "shaders/slang/pbr.slang:vertMain"
+  }
+}
+```
+
+The key is the name the engine asks for: `.vertexShader = "pbr.vert"`.
+
+Slang runs in-process with the same options `slangc` was given: GLSL 450,
+column-major matrices, and no `#line` directives in Release. The output is
+byte-identical to what `slangc` wrote. Slang loads its GLSL module and
+glslang by name at run time, so on Windows the build copies those DLLs next
+to `assetconv.exe`.
+
+The pack is one output, so its build command depends on every stage source,
+every file in `shaders/slang/include/` and the manifest. A new include
+directory has to be added to that list in `cmake/ConvertAssets.cmake`.
+
+```
+Header   magic "SPNGSH" + two zero bytes, version, count
+Entry[]  name offset and size, source offset and size
+blobs    names and GLSL text, sorted by name
+```
+
+The pack has its own magic and version, separate from the model container,
+so changing one layout never forces a rebake of the other.
+
+A GL compile error has no file on disk to open any more. Release GLSL also
+has no `#line` directives, so errors report lines in the generated source.
+Build Debug to get Slang source lines back.
 
 ## Building
 

@@ -41,9 +41,9 @@ Sprite::Sprite(std::shared_ptr<renderer::Texture> texture,
 
 void Sprite::createBuffers() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName,
-        .vertexShaderPath   = "/shaders/glsl/sprite.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/sprite.frag.glsl",
+        .name           = shaderName,
+        .vertexShader   = "sprite.vert",
+        .fragmentShader = "sprite.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

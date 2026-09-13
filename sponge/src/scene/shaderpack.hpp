@@ -1,0 +1,40 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+// Baked shader pack (shaders.spnga). Every compiled GLSL stage in one file,
+// keyed by name. Written by tools/assetconv, read by Shader.
+//
+// Own magic and version, separate from the model container, so a change to
+// one layout does not invalidate the other's baked files. magic and version
+// stay at offsets 0 and 8, as in assetformat.hpp.
+namespace sponge::scene::shaderpack {
+
+constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'S', 'H', 0, 0 };
+constexpr uint32_t version  = 1;
+
+struct Header {
+    char     magic[sizeof(shaderpack::magic)];
+    uint32_t version;
+    uint32_t count;
+};
+
+// Byte offsets are absolute from the start of the file.
+struct Entry {
+    uint32_t nameOffset;
+    uint32_t nameSize;
+    uint32_t sourceOffset;
+    uint32_t sourceSize;
+};
+
+using Sources = std::unordered_map<std::string, std::string>;
+
+std::vector<uint8_t> write(const Sources& sources);
+
+// Returns an empty map on any failure.
+Sources read(const std::string& path);
+
+}  // namespace sponge::scene::shaderpack

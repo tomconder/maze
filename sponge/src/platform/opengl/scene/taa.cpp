@@ -61,16 +61,14 @@ glm::vec2 TAA::haltonJitter(const uint32_t index, const uint32_t width,
 void TAA::initialize() {
     auto makeShader = [](std::string_view name, const char* frag) {
         return AssetManager::createShader(renderer::ShaderCreateInfo{
-            .name               = std::string(name),
-            .vertexShaderPath   = "/shaders/glsl/screenquad.vert.glsl",
-            .fragmentShaderPath = frag,
+            .name           = std::string(name),
+            .vertexShader   = "screenquad.vert",
+            .fragmentShader = frag,
         });
     };
 
-    resolveShader =
-        makeShader(resolveShaderName, "/shaders/glsl/taa_resolve.frag.glsl");
-    presentShader =
-        makeShader(presentShaderName, "/shaders/glsl/taa_present.frag.glsl");
+    resolveShader = makeShader(resolveShaderName, "taa_resolve.frag");
+    presentShader = makeShader(presentShaderName, "taa_present.frag");
 
     createFramebuffers();
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/file.hpp"
 #include "core/stringutils.hpp"
 
 #include <glad/gl.h>
@@ -15,11 +14,10 @@
 namespace sponge::platform::opengl::renderer {
 struct ShaderCreateInfo {
     std::string name;
-    std::string vertexShaderPath   = "";
-    std::string fragmentShaderPath = "";
-    std::string geometryShaderPath = "";
-    std::string computeShaderPath  = "";
-    std::string assetsFolder       = core::File::getResourceDir();
+    std::string vertexShader   = "";
+    std::string fragmentShader = "";
+    std::string geometryShader = "";
+    std::string computeShader  = "";
 };
 
 class Shader final {
@@ -59,8 +57,7 @@ private:
 
     uint32_t    compileShader(GLenum type, const std::string& source) const;
     uint32_t    compileStage(GLenum type, std::string_view stageName,
-                             const std::string& assetsFolder,
-                             const std::string& path) const;
+                             const std::string& name) const;
     uint32_t    linkProgram(uint32_t vs, uint32_t fs = 0,
                             std::optional<uint32_t> gs = std::nullopt) const;
     uint32_t    program = 0;

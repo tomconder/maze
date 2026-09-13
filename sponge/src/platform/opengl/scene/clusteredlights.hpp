@@ -57,7 +57,7 @@ private:
     static_assert(sizeof(PointLightGPU) == 32);
 
     // std430-compatible: explicit padding so vec3 → 16-byte slot.
-    // Must match ClusterAABB in cluster_assign.comp.glsl.
+    // Must match ClusterAABB in cluster_assign.slang.
     struct ClusterAABB {
         glm::vec3 minBounds{ 0.F };
         float     padMin{ 0.F };

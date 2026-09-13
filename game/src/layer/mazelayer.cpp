@@ -191,9 +191,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         std::make_unique<ClusteredLights>(camera->getNear(), camera->getFar());
 
     depthPrepassShader = AssetManager::createShader({
-        .name               = "depthprepass",
-        .vertexShaderPath   = "/shaders/glsl/depthprepass.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/depthprepass.frag.glsl",
+        .name           = "depthprepass",
+        .vertexShader   = "depthprepass.vert",
+        .fragmentShader = "depthprepass.frag",
     });
     createDepthPrepassFbo(w, h);
 

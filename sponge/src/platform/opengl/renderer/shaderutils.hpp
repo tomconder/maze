@@ -1,30 +1,27 @@
 // sponge/src/platform/opengl/renderer/shaderutils.hpp
 #pragma once
 
+#include "core/file.hpp"
 #include "logging/log.hpp"
+#include "scene/shaderpack.hpp"
 
-#include <fstream>
 #include <string>
+#include <string_view>
 
 namespace sponge::platform::opengl::renderer {
 
-inline std::string loadGlslSource(const std::string& path) {
-    std::string code;
-    if (std::ifstream file(path, std::ios::in | std::ios::binary);
-        file.good()) {
-        file.seekg(0, std::ios::end);
-        const auto size = file.tellg();
-        if (size <= 0) {
-            SPONGE_GL_ERROR("Unable to determine size of file: {}", path);
-            return code;
-        }
-        file.seekg(0, std::ios::beg);
-        code.resize(size);
-        file.read(code.data(), size);
-    } else {
-        SPONGE_GL_ERROR("Unable to open shader file: {}", path);
+// GLSL for one baked stage, by its manifest name. The pack loads on first use
+// and stays for the life of the process; it is about 50 KB.
+inline std::string loadGlslSource(const std::string_view name) {
+    static const auto sources = scene::shaderpack::read(
+        core::File::getResourceDir() + "/shaders.spnga");
+
+    if (const auto it = sources.find(std::string{ name });
+        it != sources.end()) {
+        return it->second;
     }
-    return code;
+    SPONGE_GL_ERROR("Shader pack has no stage named {}", name);
+    return {};
 }
 
 }  // namespace sponge::platform::opengl::renderer

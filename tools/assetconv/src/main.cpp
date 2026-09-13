@@ -5,6 +5,8 @@
 //        assetconv --verify <source> <output.spnga>
 //        assetconv --atlas <output.ktx2> <name>=<png> ...
 //        assetconv --texture <output.ktx2> <input.png>
+//        assetconv --shaders <output.spnga> [--no-line-directives]
+//                  <name>=<slang>:<entry> ...
 
 #include "atlas.hpp"
 #include "gltfimport.hpp"
@@ -14,6 +16,8 @@
 #include "scene/assetformat.hpp"
 #include "scene/ktx2.hpp"
 #include "scene/modeldata.hpp"
+#include "scene/shaderpack.hpp"
+#include "shadercompile.hpp"
 #include "texenc.hpp"
 
 #include <fmt/base.h>
@@ -229,6 +233,50 @@ int packAtlas(const std::string&                      output,
 
     return assetconv::packAtlas(entries, output) ? 0 : 1;
 }
+
+// Each argument is <name>=<slang path>:<entry point>. The last colon splits,
+// because a Windows path has one of its own.
+int packShaders(const std::string&                output,
+                std::span<const std::string_view> args) {
+    bool lineDirectives = true;
+    if (!args.empty() && args[0] == "--no-line-directives") {
+        lineDirectives = false;
+        args           = args.subspan(1);
+    }
+
+    std::vector<assetconv::ShaderEntry> entries;
+    entries.reserve(args.size());
+    for (const auto arg : args) {
+        const auto equals = arg.find('=');
+        const auto colon  = arg.rfind(':');
+        if (equals == std::string_view::npos ||
+            colon == std::string_view::npos || colon < equals) {
+            fmt::println(stderr,
+                         "assetconv: expected <name>=<slang>:<entry>, got {}",
+                         arg);
+            return 2;
+        }
+        entries.emplace_back(assetconv::ShaderEntry{
+            .name = std::string{ arg.substr(0, equals) },
+            .path = std::string{ arg.substr(equals + 1, colon - equals - 1) },
+            .entryPoint = std::string{ arg.substr(colon + 1) },
+        });
+    }
+
+    const auto sources = assetconv::compileShaders(entries, lineDirectives);
+    if (!sources) {
+        return 1;
+    }
+
+    const auto bytes = sponge::scene::shaderpack::write(*sources);
+    if (!writeFile(output, bytes)) {
+        return 1;
+    }
+
+    fmt::println("{} shaders -> {} ({} bytes)", sources->size(), output,
+                 bytes.size());
+    return 0;
+}
 }  // namespace
 
 int main(const int argc, char** argv) {
@@ -246,6 +294,10 @@ int main(const int argc, char** argv) {
     if (args.size() >= 3 && args[0] == "--atlas") {
         return packAtlas(std::string{ args[1] }, std::span{ args }.subspan(2));
     }
+    if (args.size() >= 3 && args[0] == "--shaders") {
+        return packShaders(std::string{ args[1] },
+                           std::span{ args }.subspan(2));
+    }
     if (args.size() == 3 && args[0] == "--texture") {
         return convertTexture(std::string{ args[2] }, std::string{ args[1] });
     }
@@ -256,6 +308,8 @@ int main(const int argc, char** argv) {
     fmt::println(stderr,
                  "usage: assetconv [--verify] <source> <output.spnga>\n"
                  "       assetconv --atlas <output.ktx2> <name>=<png> ...\n"
-                 "       assetconv --texture <output.ktx2> <input.png>");
+                 "       assetconv --texture <output.ktx2> <input.png>\n"
+                 "       assetconv --shaders <output.spnga> "
+                 "[--no-line-directives] <name>=<slang>:<entry> ...");
     return 2;
 }

@@ -39,6 +39,21 @@ target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
 
 target_link_libraries(assetconv PRIVATE sponge::sponge)
 
+# Slang compiles the shaders in-process. It loads its GLSL module and glslang
+# by name at run time, so those sit beside the exe along with the DLLs it
+# links against.
+find_package(slang CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE slang::slang)
+if (WIN32)
+    add_custom_command(TARGET assetconv POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_RUNTIME_DLLS:assetconv>
+                $<TARGET_FILE:slang::slang-glsl-module>
+                $<TARGET_FILE:slang::slang-glslang>
+                $<TARGET_FILE_DIR:assetconv>
+            COMMAND_EXPAND_LISTS)
+endif ()
+
 # fmt trips C4702 (unreachable code) inside its own headers under MSVC at
 # /W4 /WX. The vcpkg includes are already -external:W0, but C4702 comes from
 # the optimizer, and /external governs only frontend warnings.

@@ -37,9 +37,9 @@ using renderer::AssetManager;
 
 Cube::Cube() {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
-        .name               = shaderName.data(),
-        .vertexShaderPath   = "/shaders/glsl/cube.vert.glsl",
-        .fragmentShaderPath = "/shaders/glsl/cube.frag.glsl",
+        .name           = shaderName.data(),
+        .vertexShader   = "cube.vert",
+        .fragmentShader = "cube.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
     shader->bind();

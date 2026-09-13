@@ -19,11 +19,10 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     shaderName = createInfo.name;
 
-    if (!createInfo.computeShaderPath.empty()) {
-        const uint32_t cs =
-            compileStage(GL_COMPUTE_SHADER, "compute", createInfo.assetsFolder,
-                         createInfo.computeShaderPath);
-        program = linkProgram(cs);
+    if (!createInfo.computeShader.empty()) {
+        const uint32_t cs = compileStage(GL_COMPUTE_SHADER, "compute",
+                                         createInfo.computeShader);
+        program           = linkProgram(cs);
         if (program != 0) {
             glDetachShader(program, cs);
         }
@@ -31,21 +30,19 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
         return;
     }
 
-    assert(!createInfo.vertexShaderPath.empty());
-    assert(!createInfo.fragmentShaderPath.empty());
+    assert(!createInfo.vertexShader.empty());
+    assert(!createInfo.fragmentShader.empty());
 
     const uint32_t vs =
-        compileStage(GL_VERTEX_SHADER, "vertex", createInfo.assetsFolder,
-                     createInfo.vertexShaderPath);
+        compileStage(GL_VERTEX_SHADER, "vertex", createInfo.vertexShader);
     const uint32_t fs =
-        compileStage(GL_FRAGMENT_SHADER, "fragment", createInfo.assetsFolder,
-                     createInfo.fragmentShaderPath);
+        compileStage(GL_FRAGMENT_SHADER, "fragment", createInfo.fragmentShader);
 
     uint32_t gs = 0;
-    if (!createInfo.geometryShaderPath.empty()) {
+    if (!createInfo.geometryShader.empty()) {
         gs      = compileStage(GL_GEOMETRY_SHADER, "geometry",
-                               createInfo.assetsFolder,
-                               createInfo.geometryShaderPath);
+
+                               createInfo.geometryShader);
         program = linkProgram(vs, fs, gs);
     } else {
         program = linkProgram(vs, fs);
@@ -55,13 +52,13 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     glDetachShader(program, vs);
     glDetachShader(program, fs);
-    if (!createInfo.geometryShaderPath.empty()) {
+    if (!createInfo.geometryShader.empty()) {
         glDetachShader(program, gs);
     }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
-    if (!createInfo.geometryShaderPath.empty()) {
+    if (!createInfo.geometryShader.empty()) {
         glDeleteShader(gs);
     }
 }
@@ -176,11 +173,9 @@ uint32_t Shader::compileShader(const GLenum       type,
 
 uint32_t Shader::compileStage(const GLenum                      type,
                               [[maybe_unused]] std::string_view stageName,
-                              const std::string&                assetsFolder,
-                              const std::string&                path) const {
-    SPONGE_GL_INFO("Loading {} shader file: [{}, {}]", stageName, shaderName,
-                   path);
-    const std::string source = loadGlslSource(assetsFolder + path);
+                              const std::string&                name) const {
+    SPONGE_GL_INFO("Loading {} shader: [{}, {}]", stageName, shaderName, name);
+    const std::string source = loadGlslSource(name);
     assert(!source.empty());
     return compileShader(type, source);
 }

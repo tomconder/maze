@@ -84,10 +84,9 @@ else ()
     add_executable(game ${SOURCE_FILES} ${HEADER_FILES})
 endif ()
 
-include(${CMAKE_SOURCE_DIR}/cmake/CompileSlang.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/ConvertAssets.cmake)
 
-add_dependencies(game compile_shaders)
+add_dependencies(game convert_assets)
 
 # strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)
 if (NOT MSVC)
@@ -175,13 +174,12 @@ if (APPLE)
                 -D DST_DIR=$<TARGET_BUNDLE_CONTENT_DIR:game>/Resources
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
-                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
-    add_dependencies(copy_assets compile_shaders convert_assets)
+    add_dependencies(copy_assets convert_assets)
     add_dependencies(game copy_assets)
 
     install(TARGETS game BUNDLE DESTINATION .)
@@ -203,13 +201,12 @@ else ()
                 -D DST_DIR=$<TARGET_FILE_DIR:game>/assets
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
-                -D SRC_GLSL=${CMAKE_BINARY_DIR}/shaders/glsl
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
                 -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
-    add_dependencies(copy_assets compile_shaders convert_assets)
+    add_dependencies(copy_assets convert_assets)
     add_dependencies(game copy_assets)
 
     install(TARGETS game RUNTIME DESTINATION .)
@@ -221,6 +218,5 @@ else ()
             PATTERN "models" EXCLUDE
             PATTERN "slang" EXCLUDE
             PATTERN ".clang-format" EXCLUDE)
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/shaders/glsl" DESTINATION assets/shaders)
     install(DIRECTORY "${CMAKE_BINARY_DIR}/assets/" DESTINATION assets)
 endif ()
