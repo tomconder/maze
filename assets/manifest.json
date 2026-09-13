@@ -19,6 +19,13 @@
       "output": "textures/blackcoffee.ktx2"
     }
   ],
+  "fonts": [
+    {
+      "source": "fonts/inter.ttf",
+      "output": "fonts/inter.ktx2",
+      "sizes": [18, 24, 32, 48]
+    }
+  ],
   "atlases": [
     {
       "output": "textures/ui.ktx2",

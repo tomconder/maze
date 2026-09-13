@@ -1,13 +1,14 @@
 # assetconv
 
-Build-time asset converter. It reads source models and shaders and writes the
-`.spnga` files the engine loads.
+Build-time asset converter. It reads source models, images, fonts and shaders
+and writes the `.spnga` and `.ktx2` files the engine loads.
 
 The engine parses no third-party asset format at run time. Every importer
 lives here, along with cgltf, tinyobjloader, stb_image, bc7enc,
-stb_image_resize2, meshoptimizer and the Slang compiler; `Model::parse()`
-accepts `.spnga` and nothing else, `Texture` accepts `.ktx2` and nothing else,
-and `Shader` reads GLSL from `shaders/shaders.spnga` and nowhere else.
+stb_image_resize2, meshoptimizer, FreeType, HarfBuzz and the Slang compiler;
+`Model::parse()` accepts `.spnga` and nothing else, `Texture` accepts `.ktx2`
+and nothing else, `BitmapFont` reads a baked `.ktx2` font, and `Shader` reads
+GLSL from `shaders/shaders.spnga` and nowhere else.
 
 ## Usage
 
@@ -19,8 +20,8 @@ assetconv [--threads <n>] --verify <source> <output.spnga>
 `--threads` sets how many threads each image's BC7 blocks are split across.
 The default is one per hardware thread. The output bytes do not depend on it.
 
-`--manifest` bakes every asset the manifest lists: models, textures, atlases
-and the shader pack. Sources are relative to the manifest's folder, outputs to
+`--manifest` bakes every asset the manifest lists: models, textures, fonts,
+atlases and the shader pack. Sources are relative to the manifest's folder, outputs to
 the output directory. `--no-line-directives` applies to the shader pack.
 
 An output is skipped when it is newer than its sources, the manifest and
@@ -68,6 +69,7 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | `.png` (standalone, and into an atlas) | Supported |
 | `.obj` | Supported |
 | `.slang` (into the shader pack) | Supported |
+| `.ttf`, `.otf` (into a baked font) | Supported |
 
 ## Output format
 
@@ -148,6 +150,33 @@ BC5 stores two channels. `pbr.slang` reconstructs Z as
 `sqrt(1 - x² - y²)`, which is also correct for a three-channel normal map, so
 baked and unbaked models go through the same path.
 
+## Fonts
+
+```json
+"fonts": [
+  { "source": "fonts/inter.ttf", "output": "fonts/inter.ktx2", "sizes": [18, 24, 32, 48] }
+]
+```
+
+FreeType rasterizes each glyph at each size and at four subpixel phases as
+LCD coverage, and `stb_rect_pack` packs them into a 1024x1024 `R8G8B8_UNORM`
+atlas. The glyph set is printable ASCII, U+00D7 and the fixed-width (`tnum`)
+forms of `0-9 : % ~ space ×`.
+
+Shaping is baked too. HarfBuzz shapes with `liga`, `clig` and `calt` off, which
+leaves a glyph per codepoint, an advance per glyph and pair kerning. The
+converter records those in `font.hpp`'s tables under the key `spongeFont`,
+then shapes 256 random strings per size both ways and fails the bake if
+`font::shape()` differs from HarfBuzz in any glyph or advance. A font whose
+shaping needs more than the previous glyph cannot bake.
+
+Known gaps:
+
+- A codepoint outside the set draws nothing and advances by the missing
+  glyph. Add it to the set in `fontbake.cpp`.
+- Fifteen `tnum` forms are mapped but have no bitmaps, as before: `( ) * + ,
+  - . ; < = > [ ] { }` with tabular figures advance but draw nothing.
+
 ## Sprite atlases
 
 UI art is packed into one sheet with `stb_rect_pack`. The rect table lives in
@@ -187,9 +216,9 @@ Known gaps:
 - The header carries no data format descriptor. Our reader needs only
   `vkFormat`. External KTX tools want a DFD, so add one if these files ever
   leave the build.
-- Conversion is not fast. Sponza's 69 textures take about 130 s through the
-  CPU BC7 encoder. It only runs when a source, the manifest or
-  `assetformat.hpp` changes, so an incremental build does not pay it, but a
+- Conversion is not fast. Sponza's 69 textures take about 11 s through the
+  CPU BC7 encoder on 8 threads. It only runs when a source, the manifest or
+  the converter changes, so an incremental build does not pay it, but a
   clean build does. The manifest counts as an input to every output, so
   any manifest edit rebakes Sponza too.
 

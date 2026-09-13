@@ -17,14 +17,13 @@
 namespace {
 constexpr std::string_view cameraName = "loading";
 constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ttf";
+constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
 
 constexpr float barWidth  = 400.F;
 constexpr float barHeight = 24.F;
 
-// BitmapFont only bakes glyphs at {18, 24, 32, 48} (see
-// BitmapFont::BitmapFont); getGlyph() does an exact-size lookup with no
-// fallback, so this must be one of those.
+// The font holds only the sizes assets/manifest.json bakes, {18, 24, 32, 48},
+// and draws nothing at any other, so this must be one of those.
 constexpr uint32_t percentFontSize   = 18;
 constexpr float    percentTextMargin = 12.F;
 

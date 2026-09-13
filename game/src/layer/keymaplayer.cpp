@@ -36,7 +36,7 @@
 namespace {
 constexpr std::string_view cameraName = "intro";
 constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ttf";
+constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
 
 constexpr std::string_view resetMessage   = "Reset to Defaults";
 constexpr std::string_view returnMessage  = "Return";

@@ -17,8 +17,8 @@ add_custom_target(
 # by the install rules in game/CMakeLists.txt, both of which match a REGEX
 # against the whole path.
 #
-# - Images: every one is a bake input, and must not ship beside what it was
-#   baked into.
+# - Images and fonts: every one is a bake input, and must not ship beside what
+#   it was baked into.
 # - manifest.json: drives the bake, never read at run time.
 # - License files of third-party art and fonts: kept in the source tree, not
 #   in the built assets folder.
@@ -26,4 +26,4 @@ add_custom_target(
 # CMake regexes have no case-insensitive flag, and Linux does not fold the path
 # case, so each letter is spelled as a two-case class.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg])$|manifest\\.json$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.json$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")

@@ -36,12 +36,17 @@ target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 target_link_libraries(assetconv PRIVATE assetconv_deps)
 
-# stb_rect_pack packs the sprite atlas; the engine's copy serves both. It
-# builds clean at /W4.
+# stb_rect_pack packs the sprite and glyph atlases. It is vendored under
+# sponge/deps and builds clean at /W4.
 target_sources(assetconv PRIVATE
         ${CMAKE_SOURCE_DIR}/sponge/deps/stb/stb_rect_pack.cpp)
 target_include_directories(assetconv PRIVATE
         ${CMAKE_SOURCE_DIR}/sponge/deps/stb)
+
+# Fonts rasterize and shape at bake time; the engine reads the tables.
+find_package(Freetype REQUIRED)
+find_package(harfbuzz CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE Freetype::Freetype harfbuzz::harfbuzz)
 
 # Mesh optimization is a bake step now, so meshoptimizer links here.
 find_package(meshoptimizer CONFIG REQUIRED)

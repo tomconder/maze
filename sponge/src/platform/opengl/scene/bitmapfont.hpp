@@ -1,12 +1,12 @@
 #pragma once
 
 #include "core/file.hpp"
+#include "font.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
-#include "scene/fontatlas.hpp"
 
 #include <glm/glm.hpp>
 
@@ -27,7 +27,7 @@ class BitmapFont {
 public:
     explicit BitmapFont(const FontCreateInfo& createInfo);
 
-    // tabularFigures: see FontAtlas::shape()'s doc comment.
+    // tabularFigures: fixed-width digits, see font::shape().
     uint32_t getLength(std::string_view text, uint32_t size,
                        bool tabularFigures = false);
     uint32_t getHeight(uint32_t size) const;
@@ -45,7 +45,7 @@ private:
 
     uint32_t passTargetSize = 0;
 
-    sponge::scene::FontAtlas                atlas;
+    sponge::scene::font::Font               font;
     std::unique_ptr<renderer::Texture>      texture;
     std::shared_ptr<renderer::Shader>       shader;
     std::unique_ptr<renderer::VertexBuffer> vbo;

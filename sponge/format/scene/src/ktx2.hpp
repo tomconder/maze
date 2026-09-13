@@ -11,6 +11,7 @@ namespace sponge::scene::ktx2 {
 // Subset of VkFormat, the values KTX2 stores in its vkFormat field.
 enum Format : uint32_t {
     formatUndefined     = 0,
+    formatR8G8B8Unorm   = 23,
     formatR8G8B8A8Unorm = 37,
     formatBc5Unorm      = 141,
     formatBc7Unorm      = 145,

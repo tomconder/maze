@@ -39,14 +39,6 @@ file(
         src/platform/opengl/renderer/*.cpp src/platform/opengl/scene/*.cpp)
 list(APPEND SOURCE_FILES ${OPENGL_SOURCES})
 
-# stb
-message(STATUS "Including stb files")
-file(
-        GLOB STB_SOURCES
-        LIST_DIRECTORIES false
-        deps/stb/stb_rect_pack.cpp)
-list(APPEND SOURCE_FILES ${STB_SOURCES})
-
 # glfw
 message(STATUS "Including glfw platform files")
 file(
@@ -112,8 +104,6 @@ if (UNIX AND NOT APPLE)
     list(APPEND SOURCE_FILES ${LINUX_SOURCES})
 endif ()
 
-find_package(Freetype REQUIRED)
-find_package(harfbuzz CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -227,11 +217,8 @@ target_compile_definitions(sponge PUBLIC
 
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/glad2/include)
-target_include_directories(sponge PUBLIC deps/stb)
 target_include_directories(sponge PRIVATE deps/miniaudio)
 
-target_link_libraries(sponge PRIVATE Freetype::Freetype)
-target_link_libraries(sponge PRIVATE harfbuzz::harfbuzz)
 target_link_libraries(sponge PUBLIC glfw)
 target_link_libraries(sponge PUBLIC glm::glm-header-only)
 target_link_libraries(sponge PRIVATE nlohmann_json::nlohmann_json)

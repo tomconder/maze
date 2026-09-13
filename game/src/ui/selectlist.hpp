@@ -20,7 +20,7 @@ struct SelectListCreateInfo {
     glm::vec3 arrowDisabledColor;
     float     textMarginLeft;
     float     maxValueWidth = 0.F;
-    // fixed-width digits for the selected value; see FontAtlas::shape()
+    // fixed-width digits for the selected value; see font::shape()
     bool tabularFigures = false;
 };
 

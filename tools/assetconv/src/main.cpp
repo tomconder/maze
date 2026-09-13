@@ -7,6 +7,7 @@
 
 #include "assetformat.hpp"
 #include "atlas.hpp"
+#include "fontbake.hpp"
 #include "gltfimport.hpp"
 #include "ktx2.hpp"
 #include "meshopt.hpp"
@@ -253,6 +254,18 @@ int packShaders(const std::string&                         output,
     return 0;
 }
 
+int convertFont(const std::string& source, const std::string& output,
+                const std::vector<uint32_t>& sizes) {
+    const auto file = assetconv::bakeFont(source, sizes);
+    if (file.empty() || !writeFile(output, file)) {
+        return 1;
+    }
+
+    fmt::println("{} -> {} ({} sizes, {} bytes)", source, output, sizes.size(),
+                 file.size());
+    return 0;
+}
+
 int packAtlas(const std::vector<assetconv::AtlasEntry>& entries,
               const std::string&                        output) {
     const auto file = assetconv::packAtlas(entries);
@@ -334,6 +347,17 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
             if (!bake(texture.at("output").get<std::string>(), { from },
                       [&](const std::string& to) {
                           return convertTexture(from, to) == 0;
+                      })) {
+                return 1;
+            }
+        }
+
+        for (const auto& font : manifest.value("fonts", Json::array())) {
+            const auto from  = source(font.at("source").get<std::string>());
+            const auto sizes = font.at("sizes").get<std::vector<uint32_t>>();
+            if (!bake(font.at("output").get<std::string>(), { from },
+                      [&](const std::string& to) {
+                          return convertFont(from, to, sizes) == 0;
                       })) {
                 return 1;
             }

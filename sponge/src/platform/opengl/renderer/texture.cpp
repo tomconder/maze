@@ -23,6 +23,8 @@ struct GlFormat {
 GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
     namespace ktx2 = sponge::scene::ktx2;
     switch (format) {
+        case ktx2::formatR8G8B8Unorm:
+            return { GL_RGB8, GL_RGB, false };
         case ktx2::formatR8G8B8A8Unorm:
             return { GL_RGBA8, GL_RGBA, false };
         case ktx2::formatBc5Unorm:
