@@ -6,7 +6,6 @@
 #include "scene/modeldata.hpp"
 
 #include <glm/glm.hpp>
-#include <tiny_obj_loader.h>
 
 #include <cstddef>
 #include <functional>
@@ -43,8 +42,6 @@ public:
                            const std::function<void()>& onMeshParsed = {});
 
     // Structural mesh count without decoding data, for progress-bar sizing.
-    // Baked models and glTF count accurately; OBJ has no cheap count in
-    // tinyobjloader, so it always returns 1 (fine — no .obj assets today).
     static std::size_t countMeshes(const ModelCreateInfo& createInfo);
 
     // Builds one mesh's GL objects from CPU-parsed data. GL thread only —
@@ -67,16 +64,6 @@ protected:
 private:
     size_t numIndices  = 0;
     size_t numVertices = 0;
-
-    static ModelData parseObj(const std::string&           path,
-                              const std::function<void()>& onMeshParsed);
-    static ParsedMesh
-        parseObjMesh(tinyobj::attrib_t& attrib, tinyobj::mesh_t& mesh,
-                     const std::vector<tinyobj::material_t>& materials,
-                     const std::string&                      path);
-    static std::optional<ParsedImage>
-        decodeMaterialTexture(const tinyobj::material_t& material,
-                              const std::string&         path);
 };
 
 }  // namespace sponge::platform::opengl::scene

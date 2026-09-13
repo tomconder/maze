@@ -8,6 +8,7 @@
 
 #include "atlas.hpp"
 #include "logging/log.hpp"
+#include "objimport.hpp"
 #include "scene/assetformat.hpp"
 #include "scene/gltfimport.hpp"
 #include "scene/ktx2.hpp"
@@ -63,11 +64,14 @@ bool encodeTextures(ModelData& data) {
 
 ModelData import(const std::string& source) {
     const auto extension = std::filesystem::path(source).extension().string();
-    if (extension != ".glb" && extension != ".gltf") {
-        fmt::println(stderr, "assetconv: unsupported source format {}", source);
-        return {};
+    if (extension == ".glb" || extension == ".gltf") {
+        return sponge::scene::gltf::parse(source);
     }
-    return sponge::scene::gltf::parse(source);
+    if (extension == ".obj") {
+        return assetconv::obj::parse(source);
+    }
+    fmt::println(stderr, "assetconv: unsupported source format {}", source);
+    return {};
 }
 
 bool writeFile(const std::string& path, const std::span<const uint8_t> bytes) {

@@ -94,16 +94,6 @@ file(
         src/platform/audio/*.cpp)
 list(APPEND SOURCE_FILES ${AUDIO_SOURCES})
 
-# tinyobjloader
-message(STATUS "Including tinyobjloader files")
-file(
-        GLOB TINYOBJLOADER_SOURCES
-        LIST_DIRECTORIES false
-        deps/tinyobjloader/tiny_obj_loader.cpp)
-list(APPEND SOURCE_FILES ${TINYOBJLOADER_SOURCES})
-set_source_files_properties(${TINYOBJLOADER_SOURCES} PROPERTIES COMPILE_OPTIONS
-        "$<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>")
-
 if (ENABLE_IMGUI)
     message(STATUS "Including imgui platform files")
     file(
@@ -226,7 +216,6 @@ target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/cgltf)
 target_include_directories(sponge PUBLIC deps/glad2/include)
 target_include_directories(sponge PUBLIC deps/stb)
-target_include_directories(sponge PUBLIC deps/tinyobjloader)
 target_include_directories(sponge PRIVATE deps/miniaudio)
 
 target_link_libraries(sponge PRIVATE Freetype::Freetype)
