@@ -135,12 +135,17 @@ list(APPEND CONVERTED_ASSETS "${OUTPUT_PATH}")
 
 add_custom_target(convert_assets ALL DEPENDS ${CONVERTED_ASSETS})
 
-# Bake inputs must not ship beside what they were baked into. Every image
-# under assets/ is a bake input, so one extension pattern covers them all, and
-# manifest.json drives the bake and is never read at run time. Consumed by
-# CopyAssets.cmake and by the install rules in game/CMakeLists.txt, both of
-# which match a REGEX against the whole path.
+# Files under assets/ that must not deploy. Consumed by CopyAssets.cmake and
+# by the install rules in game/CMakeLists.txt, both of which match a REGEX
+# against the whole path.
+#
+# - Images: every one is a bake input, and must not ship beside what it was
+#   baked into.
+# - manifest.json: drives the bake, never read at run time.
+# - License files of third-party art and fonts: kept in the source tree, not
+#   in the built assets folder.
+#
 # CMake regexes have no case-insensitive flag, and Linux does not fold the path
 # case, so each letter is spelled as a two-case class.
-set(BAKED_SOURCE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg])$|manifest\\.json$")
+set(DEPLOY_EXCLUDE_REGEX
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg])$|manifest\\.json$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")

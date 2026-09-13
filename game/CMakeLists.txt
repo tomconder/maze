@@ -175,7 +175,7 @@ if (APPLE)
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
-                -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
+                -D EXCLUDE_REGEX=${DEPLOY_EXCLUDE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to bundle content folder"
             VERBATIM)
@@ -202,7 +202,7 @@ else ()
                 -D EXCLUDE_SUBDIR=slang
                 -D SRC_DIR=${CMAKE_SOURCE_DIR}/assets
                 -D SRC_BAKED=${CMAKE_BINARY_DIR}/assets
-                -D EXCLUDE_REGEX=${BAKED_SOURCE_REGEX}
+                -D EXCLUDE_REGEX=${DEPLOY_EXCLUDE_REGEX}
                 -P "${CMAKE_SOURCE_DIR}/cmake/CopyAssets.cmake"
             COMMENT "Copying assets to target folder"
             VERBATIM)
@@ -211,10 +211,9 @@ else ()
 
     install(TARGETS game RUNTIME DESTINATION .)
     install(FILES $<TARGET_RUNTIME_DLLS:game> DESTINATION .)
-    # Same exclusions as the copy above: baked sources are build inputs and
-    # must not ship beside what they were baked into.
+    # Same exclusions as the copy above: bake inputs and license files.
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets DESTINATION .
-            REGEX "${BAKED_SOURCE_REGEX}" EXCLUDE
+            REGEX "${DEPLOY_EXCLUDE_REGEX}" EXCLUDE
             PATTERN "models" EXCLUDE
             PATTERN "slang" EXCLUDE
             PATTERN ".clang-format" EXCLUDE)

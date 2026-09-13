@@ -1,10 +1,8 @@
 # copy_assets.cmake — copy source assets to destination, excluding Slang
-# sources and anything the manifest bakes, then overlay baked assets.
+# sources, bake inputs and license files, then overlay baked assets.
 #
-# EXCLUDE_REGEX drops the bake's own inputs: a source that was baked must not
-# ship next to the file it was baked into. It matches extensions rather than
-# directories so that licence files sitting beside the art they cover still
-# deploy.
+# EXCLUDE_REGEX is DEPLOY_EXCLUDE_REGEX from ConvertAssets.cmake, which lists
+# what it drops and why.
 #
 # assets/models is excluded wholesale instead, because it holds nothing but
 # source art. Every model the runtime loads comes from the bake, so a file
