@@ -142,15 +142,18 @@ bool LoadingLayer::onUpdate(const double elapsedTime) {
     }
 
     if (buildModelIndex < parsedData.size()) {
-        auto& meshes = parsedData[buildModelIndex].meshes;
+        auto& data = parsedData[buildModelIndex];
 
-        if (buildMeshIndex < meshes.size()) {
-            buildingMeshes.emplace_back(
-                Model::buildMesh(std::move(meshes[buildMeshIndex])));
+        if (buildMeshIndex < data.meshes.size()) {
+            buildingMeshes.emplace_back(Model::buildMesh(
+                std::move(data.meshes[buildMeshIndex]), data.images));
             completedSteps.fetch_add(1, std::memory_order_relaxed);
             buildMeshIndex++;
             return true;
         }
+
+        // The textures are on the GPU now, so the parsed copy can go.
+        data = {};
 
         auto model = std::make_shared<Model>(std::move(buildingMeshes));
         AssetManager::registerModel(requests[buildModelIndex].name, model);

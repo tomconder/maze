@@ -81,13 +81,13 @@ std::optional<ParsedImage> decodeImage(const cgltf_buffer_view& view,
     return decoded;
 }
 
-// Decoded images by name. Materials share images: sponza has 307 texture
-// slots over 69 images, and each slot would otherwise decode its own copy.
-using DecodeCache = std::map<std::string, std::optional<ParsedImage>>;
+// Index into ModelData::images by image name, so an image shared by several
+// materials decodes once. Empty when the decode failed.
+using ImageIndex = std::map<std::string, std::optional<uint32_t>>;
 
-std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
-                                         const std::string&        path,
-                                         DecodeCache&              cache) {
+std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
+                                      const std::string& path, ModelData& data,
+                                      ImageIndex& index) {
     const auto* texture = textureView.texture;
     if (texture == nullptr || texture->image == nullptr) {
         return std::nullopt;
@@ -102,13 +102,16 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
         return std::nullopt;
     }
 
-    // Path and byte range: the .spnga writer stores one copy per name.
+    // Path and byte range: one image per name.
     const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
                       "_" + std::to_string(image->buffer_view->size);
 
-    auto [entry, inserted] = cache.try_emplace(name);
+    auto [entry, inserted] = index.try_emplace(name);
     if (inserted) {
-        entry->second = decodeImage(*image->buffer_view, name);
+        if (auto decoded = decodeImage(*image->buffer_view, name)) {
+            entry->second = static_cast<uint32_t>(data.images.size());
+            data.images.push_back(std::move(*decoded));
+        }
     }
     return entry->second;
 }
@@ -116,7 +119,7 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
 std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                                          const glm::mat4&       transform,
                                          const std::string&     path,
-                                         DecodeCache&           cache) {
+                                         ModelData& data, ImageIndex& index) {
     if (primitive.type != cgltf_primitive_type_triangles) {
         return std::nullopt;
     }
@@ -203,9 +206,9 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
         if (material.has_pbr_metallic_roughness) {
             const auto& pbr = material.pbr_metallic_roughness;
             parsedMesh.albedo =
-                decodeTexture(pbr.base_color_texture, path, cache);
-            parsedMesh.metallicRoughness =
-                decodeTexture(pbr.metallic_roughness_texture, path, cache);
+                decodeTexture(pbr.base_color_texture, path, data, index);
+            parsedMesh.metallicRoughness = decodeTexture(
+                pbr.metallic_roughness_texture, path, data, index);
             parsedMesh.metallicFactor  = pbr.metallic_factor;
             parsedMesh.roughnessFactor = pbr.roughness_factor;
             parsedMesh.uvTransforms.albedo =
@@ -213,11 +216,12 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.uvTransforms.metallicRoughness =
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
-        parsedMesh.normal = decodeTexture(material.normal_texture, path, cache);
+        parsedMesh.normal =
+            decodeTexture(material.normal_texture, path, data, index);
         parsedMesh.occlusion =
-            decodeTexture(material.occlusion_texture, path, cache);
+            decodeTexture(material.occlusion_texture, path, data, index);
         parsedMesh.emissive =
-            decodeTexture(material.emissive_texture, path, cache);
+            decodeTexture(material.emissive_texture, path, data, index);
         parsedMesh.uvTransforms.normal = uvTransformOf(material.normal_texture);
         parsedMesh.uvTransforms.occlusion =
             uvTransformOf(material.occlusion_texture);
@@ -232,8 +236,8 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
 }  // namespace
 
 sponge::scene::ModelData parse(const std::string& path) {
-    ModelData   data;
-    DecodeCache cache;
+    ModelData  data;
+    ImageIndex index;
 
     constexpr cgltf_options options{};
     cgltf_data*             gltfData = nullptr;
@@ -265,7 +269,7 @@ sponge::scene::ModelData parse(const std::string& path) {
 
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
             auto parsedMesh = parsePrimitive(node.mesh->primitives[p],
-                                             transform, path, cache);
+                                             transform, path, data, index);
             if (!parsedMesh) {
                 continue;
             }

@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
-#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -84,11 +83,12 @@ const Header* validate(const std::vector<uint8_t>& bytes,
 
 namespace sponge::scene::asset {
 
-std::vector<uint8_t> write(const std::span<const ParsedMesh> meshes) {
-    // Dedup by image name so a texture shared across materials is stored
-    // once. Importer names come from the source byte range, so they are
-    // stable across bakes.
-    std::unordered_map<std::string, int32_t>       textureIds;
+std::vector<uint8_t> write(const ModelData& data) {
+    // File texture ids follow the order the meshes first use each image, not
+    // the order of data.images, so the file does not depend on the order an
+    // importer decoded in.
+    const auto&                                    meshes = data.meshes;
+    std::unordered_map<uint32_t, int32_t>          textureIds;
     std::vector<const std::vector<uint8_t>*>       textureBlobs;
     std::vector<std::array<int32_t, textureSlots>> meshSlots;
     meshSlots.reserve(meshes.size());
@@ -100,9 +100,9 @@ std::vector<uint8_t> write(const std::span<const ParsedMesh> meshes) {
         for (const auto* image : slotsOf(mesh)) {
             if (image->has_value()) {
                 const auto [id, inserted] = textureIds.try_emplace(
-                    (*image)->name, static_cast<int32_t>(textureBlobs.size()));
+                    **image, static_cast<int32_t>(textureBlobs.size()));
                 if (inserted) {
-                    textureBlobs.emplace_back(&(*image)->ktx2);
+                    textureBlobs.emplace_back(&data.images[**image].ktx2);
                 }
                 ids[slot] = id->second;
             }
@@ -191,8 +191,10 @@ ModelData read(const std::string& path, std::string& error) {
         bytes.data() + sizeof(Header) +
         (sizeof(MeshEntry) * header->meshCount));
 
+    ModelData data;
+
     // One copy per unique texture, shared by index across the meshes below.
-    std::vector<ParsedImage> textures(header->textureCount);
+    data.images.resize(header->textureCount);
     for (uint32_t i = 0; i < header->textureCount; i++) {
         const auto& entry = textureEntries[i];
         if (entry.offset + entry.size > bytes.size()) {
@@ -200,12 +202,11 @@ ModelData read(const std::string& path, std::string& error) {
                                 path);
             return {};
         }
-        textures[i].name = path + "#" + std::to_string(i);
-        textures[i].ktx2.assign(bytes.begin() + entry.offset,
-                                bytes.begin() + entry.offset + entry.size);
+        data.images[i].name = path + "#" + std::to_string(i);
+        data.images[i].ktx2.assign(bytes.begin() + entry.offset,
+                                   bytes.begin() + entry.offset + entry.size);
     }
 
-    ModelData data;
     data.meshes.resize(header->meshCount);
     for (uint32_t i = 0; i < header->meshCount; i++) {
         const auto& entry = meshEntries[i];
@@ -230,8 +231,8 @@ ModelData read(const std::string& path, std::string& error) {
         size_t slot = 0;
         for (auto* image : slotsOf(mesh)) {
             const auto id = entry.textureIndex[slot];
-            if (id >= 0 && id < static_cast<int32_t>(textures.size())) {
-                *image = textures[id];
+            if (id >= 0 && id < static_cast<int32_t>(data.images.size())) {
+                *image = static_cast<uint32_t>(id);
             }
             slot++;
         }

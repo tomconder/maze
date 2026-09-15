@@ -23,6 +23,7 @@
 #include <fmt/base.h>
 #include <nlohmann/json.hpp>
 
+#include <array>
 #include <charconv>
 #include <cstddef>
 #include <cstdint>
@@ -47,41 +48,48 @@ using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 namespace ktx2 = sponge::scene::ktx2;
 
-// Encoded KTX2 files by image name and kind.
-using EncodeCache =
-    std::map<std::pair<std::string, TextureKind>, std::vector<uint8_t>>;
-
-bool encode(std::optional<ParsedImage>& image, const TextureKind kind,
-            EncodeCache& cache) {
-    if (!image) {
-        return true;
-    }
-
-    auto [entry, inserted] = cache.try_emplace({ image->name, kind });
-    if (inserted) {
-        entry->second = assetconv::encode(*image, kind);
-    }
-    if (entry->second.empty()) {
-        return false;
-    }
-    image->ktx2 = entry->second;
-
-    image->pixels.clear();
-    image->pixels.shrink_to_fit();
-    return true;
+// A mesh's texture slots with the kind each wants, in the writer's slot order.
+std::array<std::pair<std::optional<uint32_t>, TextureKind>, 5>
+    slotsOf(const ParsedMesh& mesh) {
+    return { { { mesh.albedo, TextureKind::Color },
+               { mesh.normal, TextureKind::Normal },
+               { mesh.occlusion, TextureKind::Linear },
+               { mesh.emissive, TextureKind::Color },
+               { mesh.metallicRoughness, TextureKind::Linear } } };
 }
 
 bool encodeTextures(ModelData& data) {
-    // Materials share images: sponza has 307 texture slots over 69 images.
-    EncodeCache cache;
-    for (auto& mesh : data.meshes) {
-        if (!encode(mesh.albedo, TextureKind::Color, cache) ||
-            !encode(mesh.normal, TextureKind::Normal, cache) ||
-            !encode(mesh.occlusion, TextureKind::Linear, cache) ||
-            !encode(mesh.emissive, TextureKind::Color, cache) ||
-            !encode(mesh.metallicRoughness, TextureKind::Linear, cache)) {
+    // The file holds one encoding per image, so the first slot that uses an
+    // image picks its kind.
+    std::vector<std::optional<TextureKind>> kinds(data.images.size());
+    for (const auto& mesh : data.meshes) {
+        for (const auto& [image, kind] : slotsOf(mesh)) {
+            if (!image) {
+                continue;
+            }
+            auto& chosen = kinds[*image];
+            if (!chosen) {
+                chosen = kind;
+            } else if (*chosen != kind) {
+                fmt::println(stderr,
+                             "assetconv: {} is used as more than one kind of "
+                             "texture; encoding it for its first use",
+                             data.images[*image].name);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < data.images.size(); i++) {
+        if (!kinds[i]) {
+            continue;
+        }
+        auto& image = data.images[i];
+        image.ktx2  = assetconv::encode(image, *kinds[i]);
+        if (image.ktx2.empty()) {
             return false;
         }
+        image.pixels.clear();
+        image.pixels.shrink_to_fit();
     }
     return true;
 }
@@ -131,7 +139,7 @@ int convert(const std::string& source, const std::string& output) {
         return 1;
     }
 
-    const auto bytes = sponge::scene::asset::write(data.meshes);
+    const auto bytes = sponge::scene::asset::write(data);
     if (!writeFile(output, bytes)) {
         return 1;
     }
@@ -199,18 +207,19 @@ int verify(const std::string& source, const std::string& output) {
         }
 
         if (got.albedo) {
-            const auto image = ktx2::read(got.albedo->ktx2, error);
+            const auto& source = expected.images[*want.albedo];
+            const auto  image =
+                ktx2::read(actual.images[*got.albedo].ktx2, error);
             if (!error.empty()) {
                 fmt::println(stderr, "FAIL {} mesh {}: {}", output, i, error);
                 return 1;
             }
-            if (image.width != want.albedo->width ||
-                image.height != want.albedo->height) {
+            if (image.width != source.width || image.height != source.height) {
                 fmt::println(stderr,
                              "FAIL {} mesh {}: albedo is {}x{}, source is "
                              "{}x{}",
-                             output, i, image.width, image.height,
-                             want.albedo->width, want.albedo->height);
+                             output, i, image.width, image.height, source.width,
+                             source.height);
                 return 1;
             }
         }
