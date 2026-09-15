@@ -23,6 +23,7 @@
 #include <fmt/base.h>
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cstddef>
@@ -38,6 +39,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -251,8 +253,9 @@ int convertTexture(const std::string& source, const std::string& output) {
 
 int packShaders(const std::string&                         output,
                 const std::vector<assetconv::ShaderEntry>& entries,
-                const bool                                 lineDirectives) {
-    const auto sources = assetconv::compileShaders(entries, lineDirectives);
+                const bool lineDirectives, const unsigned threads) {
+    const auto sources =
+        assetconv::compileShaders(entries, lineDirectives, threads);
     if (!sources) {
         return 1;
     }
@@ -359,8 +362,9 @@ bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
 
 // Sources are relative to the manifest's folder, outputs to outputDir.
 int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
-                 const bool lineDirectives, const fs::path& converter,
-                 const std::string& notices, Licenses licenses) {
+                 const bool lineDirectives, const unsigned threads,
+                 const fs::path& converter, const std::string& notices,
+                 Licenses licenses) {
     const auto sourceRoot = fs::path(manifestPath).parent_path();
     const auto outputRoot = fs::path(outputDir);
     const auto source     = [&](const std::string& path) {
@@ -474,7 +478,8 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
             if (!bake(shaders.at("output").get<std::string>(), inputs,
                       [&](const std::string& to) {
-                          return packShaders(to, entries, lineDirectives) == 0;
+                          return packShaders(to, entries, lineDirectives,
+                                             threads) == 0;
                       })) {
                 return 1;
             }
@@ -518,6 +523,9 @@ int main(const int argc, char** argv) {
         }
         args.erase(args.begin(), args.begin() + 2);
     }
+    if (threads == 0) {
+        threads = std::max(std::thread::hardware_concurrency(), 1U);
+    }
     assetconv::initEncoder(threads);
 
     if (args.size() >= 3 && args[0] == "--manifest") {
@@ -541,7 +549,7 @@ int main(const int argc, char** argv) {
             }
         }
         return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
-                            lineDirectives, argv[0], notices,
+                            lineDirectives, threads, argv[0], notices,
                             std::move(licenses));
     }
     if (args.size() == 3 && args[0] == "--verify") {

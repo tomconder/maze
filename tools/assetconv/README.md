@@ -18,8 +18,9 @@ assetconv [--threads <n>] --manifest <manifest.json> <output dir> [--no-line-dir
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
 
-`--threads` sets how many threads each image's BC7 blocks are split across.
-The default is one per hardware thread. The output bytes do not depend on it.
+`--threads` sets how many threads each image's BC7 blocks are split across,
+and how many Slang sessions compile the shader pack, up to 3. The default is
+one per hardware thread. The output bytes do not depend on it.
 
 `--manifest` bakes every asset the manifest lists: models, textures, fonts,
 atlases and the shader pack. Sources are relative to the manifest's folder, outputs to
@@ -234,7 +235,7 @@ Known gaps:
 - The header carries no data format descriptor. Our reader needs only
   `vkFormat`. External KTX tools want a DFD, so add one if these files ever
   leave the build.
-- Conversion is not fast. Sponza's 69 textures take about 11 s through the
+- Conversion is not fast. Sponza's 69 textures take about 8.5 s through the
   CPU BC7 encoder on 8 threads. It only runs when a source, the manifest or
   the converter changes, so an incremental build does not pay it, but a
   clean build does. The manifest counts as an input to every output, so
