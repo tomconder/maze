@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <map>
 #include <optional>
 #include <string>
 #include <utility>
@@ -52,28 +53,10 @@ UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
     };
 }
 
-std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
-                                         const std::string&        path) {
-    const auto* texture = textureView.texture;
-    if (texture == nullptr || texture->image == nullptr) {
-        return std::nullopt;
-    }
-
-    const auto* image = texture->image;
-    if (image->buffer_view == nullptr) {
-        fmt::println(stderr,
-                     "assetconv: {}: unsupported gltf image source "
-                     "(expected buffer view)",
-                     path);
-        return std::nullopt;
-    }
-
-    const auto* bytes = cgltf_buffer_view_data(image->buffer_view);
-    const auto  size  = static_cast<int>(image->buffer_view->size);
-
-    // Path and byte range: the .spnga writer stores one copy per name.
-    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
-                      "_" + std::to_string(image->buffer_view->size);
+std::optional<ParsedImage> decodeImage(const cgltf_buffer_view& view,
+                                       const std::string&       name) {
+    const auto* bytes = cgltf_buffer_view_data(&view);
+    const auto  size  = static_cast<int>(view.size);
 
     int   width         = 0;
     int   height        = 0;
@@ -98,9 +81,46 @@ std::optional<ParsedImage> decodeTexture(const cgltf_texture_view& textureView,
     return decoded;
 }
 
+// Index into ModelData::images by image name, so an image shared by several
+// materials decodes once. Empty when the decode failed.
+using ImageIndex = std::map<std::string, std::optional<uint32_t>>;
+
+std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
+                                      const std::string& path, ModelData& data,
+                                      ImageIndex& imageIndex) {
+    const auto* texture = textureView.texture;
+    if (texture == nullptr || texture->image == nullptr) {
+        return std::nullopt;
+    }
+
+    const auto* image = texture->image;
+    if (image->buffer_view == nullptr) {
+        fmt::println(stderr,
+                     "assetconv: {}: unsupported gltf image source "
+                     "(expected buffer view)",
+                     path);
+        return std::nullopt;
+    }
+
+    // Path and byte range: one image per name.
+    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
+                      "_" + std::to_string(image->buffer_view->size);
+
+    auto [entry, inserted] = imageIndex.try_emplace(name);
+    if (inserted) {
+        if (auto decoded = decodeImage(*image->buffer_view, name)) {
+            entry->second = static_cast<uint32_t>(data.images.size());
+            data.images.push_back(std::move(*decoded));
+        }
+    }
+    return entry->second;
+}
+
 std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                                          const glm::mat4&       transform,
-                                         const std::string&     path) {
+                                         const std::string&     path,
+                                         ModelData&             data,
+                                         ImageIndex&            imageIndex) {
     if (primitive.type != cgltf_primitive_type_triangles) {
         return std::nullopt;
     }
@@ -185,10 +205,11 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
     if (primitive.material != nullptr) {
         const auto& material = *primitive.material;
         if (material.has_pbr_metallic_roughness) {
-            const auto& pbr   = material.pbr_metallic_roughness;
-            parsedMesh.albedo = decodeTexture(pbr.base_color_texture, path);
-            parsedMesh.metallicRoughness =
-                decodeTexture(pbr.metallic_roughness_texture, path);
+            const auto& pbr = material.pbr_metallic_roughness;
+            parsedMesh.albedo =
+                decodeTexture(pbr.base_color_texture, path, data, imageIndex);
+            parsedMesh.metallicRoughness = decodeTexture(
+                pbr.metallic_roughness_texture, path, data, imageIndex);
             parsedMesh.metallicFactor  = pbr.metallic_factor;
             parsedMesh.roughnessFactor = pbr.roughness_factor;
             parsedMesh.uvTransforms.albedo =
@@ -196,9 +217,12 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.uvTransforms.metallicRoughness =
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
-        parsedMesh.normal    = decodeTexture(material.normal_texture, path);
-        parsedMesh.occlusion = decodeTexture(material.occlusion_texture, path);
-        parsedMesh.emissive  = decodeTexture(material.emissive_texture, path);
+        parsedMesh.normal =
+            decodeTexture(material.normal_texture, path, data, imageIndex);
+        parsedMesh.occlusion =
+            decodeTexture(material.occlusion_texture, path, data, imageIndex);
+        parsedMesh.emissive =
+            decodeTexture(material.emissive_texture, path, data, imageIndex);
         parsedMesh.uvTransforms.normal = uvTransformOf(material.normal_texture);
         parsedMesh.uvTransforms.occlusion =
             uvTransformOf(material.occlusion_texture);
@@ -213,7 +237,8 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
 }  // namespace
 
 sponge::scene::ModelData parse(const std::string& path) {
-    ModelData data;
+    ModelData  data;
+    ImageIndex imageIndex;
 
     constexpr cgltf_options options{};
     cgltf_data*             gltfData = nullptr;
@@ -244,8 +269,8 @@ sponge::scene::ModelData parse(const std::string& path) {
         const auto transform = glm::make_mat4(worldMatrix.data());
 
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
-            auto parsedMesh =
-                parsePrimitive(node.mesh->primitives[p], transform, path);
+            auto parsedMesh = parsePrimitive(node.mesh->primitives[p],
+                                             transform, path, data, imageIndex);
             if (!parsedMesh) {
                 continue;
             }

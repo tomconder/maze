@@ -14,11 +14,13 @@
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
 
 namespace {
+using sponge::scene::ModelData;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 using sponge::scene::Vertex;
@@ -31,17 +33,17 @@ std::string baseName(const std::string& filepath) {
     return filepath;
 }
 
+// Index into ModelData::images by image name, so a texture shared by several
+// materials decodes once. Empty when the decode failed.
+using ImageIndex = std::map<std::string, std::optional<uint32_t>>;
+
 // OBJ materials only carry a diffuse map; the rest of the PBR slots stay
 // empty and the engine falls back to its material factors.
 std::optional<ParsedImage>
     decodeMaterialTexture(const tinyobj::material_t& material,
-                          const std::string&         path) {
+                          const std::string& path, const std::string& name) {
     const auto filename = std::filesystem::weakly_canonical(
         std::filesystem::path(path) / baseName(material.diffuse_texname));
-
-    auto name = baseName(material.diffuse_texname);
-    std::ranges::transform(name, name.begin(),
-                           [](const uint8_t c) { return std::tolower(c); });
 
     int   width         = 0;
     int   height        = 0;
@@ -67,10 +69,29 @@ std::optional<ParsedImage>
     return image;
 }
 
+std::optional<uint32_t> materialTexture(const tinyobj::material_t& material,
+                                        const std::string&         path,
+                                        ModelData&                 data,
+                                        ImageIndex&                imageIndex) {
+    auto name = baseName(material.diffuse_texname);
+    std::ranges::transform(name, name.begin(),
+                           [](const uint8_t c) { return std::tolower(c); });
+
+    auto [entry, inserted] = imageIndex.try_emplace(name);
+    if (inserted) {
+        if (auto decoded = decodeMaterialTexture(material, path, name)) {
+            entry->second = static_cast<uint32_t>(data.images.size());
+            data.images.push_back(std::move(*decoded));
+        }
+    }
+    return entry->second;
+}
+
 ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
                      const tinyobj::mesh_t&                  mesh,
                      const std::vector<tinyobj::material_t>& materials,
-                     const std::string&                      path) {
+                     const std::string& path, ModelData& data,
+                     ImageIndex& imageIndex) {
     std::vector<Vertex>   vertices;
     std::vector<uint32_t> indices;
 
@@ -126,7 +147,8 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
     if (!mesh.material_ids.empty()) {
         if (const auto id = mesh.material_ids[0];
             id != -1 && !materials[id].diffuse_texname.empty()) {
-            parsedMesh.albedo = decodeMaterialTexture(materials[id], path);
+            parsedMesh.albedo =
+                materialTexture(materials[id], path, data, imageIndex);
         }
     }
 
@@ -139,7 +161,8 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
 namespace assetconv::obj {
 
 sponge::scene::ModelData parse(const std::string& path) {
-    sponge::scene::ModelData data;
+    ModelData  data;
+    ImageIndex imageIndex;
 
     tinyobj::attrib_t                attrib;
     std::vector<tinyobj::shape_t>    shapes;
@@ -164,8 +187,9 @@ sponge::scene::ModelData parse(const std::string& path) {
     }
 
     for (const auto& shape : shapes) {
-        data.meshes.emplace_back(
-            parseMesh(attrib, shape.mesh, materials, parentPath));
+        auto mesh = parseMesh(attrib, shape.mesh, materials, parentPath, data,
+                              imageIndex);
+        data.meshes.emplace_back(std::move(mesh));
     }
 
     return data;

@@ -23,6 +23,8 @@
 #include <fmt/base.h>
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
+#include <array>
 #include <charconv>
 #include <cstddef>
 #include <cstdint>
@@ -37,6 +39,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -47,41 +50,48 @@ using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 namespace ktx2 = sponge::scene::ktx2;
 
-// Encoded KTX2 files by image name and kind.
-using EncodeCache =
-    std::map<std::pair<std::string, TextureKind>, std::vector<uint8_t>>;
-
-bool encode(std::optional<ParsedImage>& image, const TextureKind kind,
-            EncodeCache& cache) {
-    if (!image) {
-        return true;
-    }
-
-    auto [entry, inserted] = cache.try_emplace({ image->name, kind });
-    if (inserted) {
-        entry->second = assetconv::encode(*image, kind);
-    }
-    if (entry->second.empty()) {
-        return false;
-    }
-    image->ktx2 = entry->second;
-
-    image->pixels.clear();
-    image->pixels.shrink_to_fit();
-    return true;
+// A mesh's texture slots with the kind each wants, in the writer's slot order.
+std::array<std::pair<std::optional<uint32_t>, TextureKind>, 5>
+    slotsOf(const ParsedMesh& mesh) {
+    return { { { mesh.albedo, TextureKind::Color },
+               { mesh.normal, TextureKind::Normal },
+               { mesh.occlusion, TextureKind::Linear },
+               { mesh.emissive, TextureKind::Color },
+               { mesh.metallicRoughness, TextureKind::Linear } } };
 }
 
 bool encodeTextures(ModelData& data) {
-    // Materials share images: sponza has 307 texture slots over 69 images.
-    EncodeCache cache;
-    for (auto& mesh : data.meshes) {
-        if (!encode(mesh.albedo, TextureKind::Color, cache) ||
-            !encode(mesh.normal, TextureKind::Normal, cache) ||
-            !encode(mesh.occlusion, TextureKind::Linear, cache) ||
-            !encode(mesh.emissive, TextureKind::Color, cache) ||
-            !encode(mesh.metallicRoughness, TextureKind::Linear, cache)) {
+    // The file holds one encoding per image, so the first slot that uses an
+    // image picks its kind.
+    std::vector<std::optional<TextureKind>> kinds(data.images.size());
+    for (const auto& mesh : data.meshes) {
+        for (const auto& [image, kind] : slotsOf(mesh)) {
+            if (!image) {
+                continue;
+            }
+            auto& chosen = kinds[*image];
+            if (!chosen) {
+                chosen = kind;
+            } else if (*chosen != kind) {
+                fmt::println(stderr,
+                             "assetconv: {} is used as more than one kind of "
+                             "texture; encoding it for its first use",
+                             data.images[*image].name);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < data.images.size(); i++) {
+        if (!kinds[i]) {
+            continue;
+        }
+        auto& image = data.images[i];
+        image.ktx2  = assetconv::encode(image, *kinds[i]);
+        if (image.ktx2.empty()) {
             return false;
         }
+        image.pixels.clear();
+        image.pixels.shrink_to_fit();
     }
     return true;
 }
@@ -131,7 +141,7 @@ int convert(const std::string& source, const std::string& output) {
         return 1;
     }
 
-    const auto bytes = sponge::scene::asset::write(data.meshes);
+    const auto bytes = sponge::scene::asset::write(data);
     if (!writeFile(output, bytes)) {
         return 1;
     }
@@ -199,18 +209,20 @@ int verify(const std::string& source, const std::string& output) {
         }
 
         if (got.albedo) {
-            const auto image = ktx2::read(got.albedo->ktx2, error);
+            const auto& sourceImage = expected.images[*want.albedo];
+            const auto  image =
+                ktx2::read(actual.images[*got.albedo].ktx2, error);
             if (!error.empty()) {
                 fmt::println(stderr, "FAIL {} mesh {}: {}", output, i, error);
                 return 1;
             }
-            if (image.width != want.albedo->width ||
-                image.height != want.albedo->height) {
+            if (image.width != sourceImage.width ||
+                image.height != sourceImage.height) {
                 fmt::println(stderr,
                              "FAIL {} mesh {}: albedo is {}x{}, source is "
                              "{}x{}",
                              output, i, image.width, image.height,
-                             want.albedo->width, want.albedo->height);
+                             sourceImage.width, sourceImage.height);
                 return 1;
             }
         }
@@ -242,8 +254,9 @@ int convertTexture(const std::string& source, const std::string& output) {
 
 int packShaders(const std::string&                         output,
                 const std::vector<assetconv::ShaderEntry>& entries,
-                const bool                                 lineDirectives) {
-    const auto sources = assetconv::compileShaders(entries, lineDirectives);
+                const bool lineDirectives, const unsigned threads) {
+    const auto sources =
+        assetconv::compileShaders(entries, lineDirectives, threads);
     if (!sources) {
         return 1;
     }
@@ -350,8 +363,9 @@ bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
 
 // Sources are relative to the manifest's folder, outputs to outputDir.
 int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
-                 const bool lineDirectives, const fs::path& converter,
-                 const std::string& notices, Licenses licenses) {
+                 const bool lineDirectives, const unsigned threads,
+                 const fs::path& converter, const std::string& notices,
+                 Licenses licenses) {
     const auto sourceRoot = fs::path(manifestPath).parent_path();
     const auto outputRoot = fs::path(outputDir);
     const auto source     = [&](const std::string& path) {
@@ -465,7 +479,8 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
             if (!bake(shaders.at("output").get<std::string>(), inputs,
                       [&](const std::string& to) {
-                          return packShaders(to, entries, lineDirectives) == 0;
+                          return packShaders(to, entries, lineDirectives,
+                                             threads) == 0;
                       })) {
                 return 1;
             }
@@ -509,6 +524,9 @@ int main(const int argc, char** argv) {
         }
         args.erase(args.begin(), args.begin() + 2);
     }
+    if (threads == 0) {
+        threads = std::max(std::thread::hardware_concurrency(), 1U);
+    }
     assetconv::initEncoder(threads);
 
     if (args.size() >= 3 && args[0] == "--manifest") {
@@ -532,7 +550,7 @@ int main(const int argc, char** argv) {
             }
         }
         return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
-                            lineDirectives, argv[0], notices,
+                            lineDirectives, threads, argv[0], notices,
                             std::move(licenses));
     }
     if (args.size() == 3 && args[0] == "--verify") {

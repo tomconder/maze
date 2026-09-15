@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <span>
 #include <string>
 #include <vector>
 
@@ -57,12 +56,13 @@ struct TextureEntry {
     uint32_t size;
 };
 
-// Assembles the bytes of a .spnga file. Each mesh's images must carry KTX2
-// bytes; identical names are stored once.
-std::vector<uint8_t> write(std::span<const ParsedMesh> meshes);
+// Assembles the bytes of a .spnga file. Every image a mesh uses must carry
+// KTX2 bytes. Images are stored in the order the meshes first use them, and
+// an image no mesh uses is left out.
+std::vector<uint8_t> write(const ModelData& data);
 
-// Reads a .spnga file into the same ParsedMesh form the glTF importer
-// produces, so buildMesh() does not care which path a model came from.
+// Reads a .spnga file into the same ModelData form the importers produce, so
+// buildMesh() does not care which path a model came from.
 // On failure, returns an empty ModelData and sets error. error is left
 // alone on success, so pass an empty string.
 ModelData read(const std::string& path, std::string& error);

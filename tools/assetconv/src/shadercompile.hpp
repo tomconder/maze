@@ -14,10 +14,11 @@ struct ShaderEntry {
     std::string entryPoint;  // function tagged [shader("...")]
 };
 
-// Compiles every entry to GLSL 450 with column-major matrices. Returns
-// nothing, after printing Slang's diagnostics, if any entry fails.
+// Compiles every entry to GLSL 450 with column-major matrices, on up to
+// threads threads. Returns nothing, after printing Slang's diagnostics, if any
+// entry fails.
 std::optional<sponge::scene::shaderpack::Sources>
-    compileShaders(const std::vector<ShaderEntry>& entries,
-                   bool                            lineDirectives);
+    compileShaders(const std::vector<ShaderEntry>& entries, bool lineDirectives,
+                   unsigned threads);
 
 }  // namespace assetconv

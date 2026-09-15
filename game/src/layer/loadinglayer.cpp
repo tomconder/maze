@@ -12,7 +12,9 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <utility>
+#include <vector>
 
 namespace {
 constexpr std::string_view cameraName = "loading";
@@ -115,15 +117,22 @@ void LoadingLayer::setActive(const bool value) {
     completedSteps.store(0, std::memory_order_relaxed);
     parseDone.store(false, std::memory_order_relaxed);
 
+    // One thread per model: the files are independent, and reading them one
+    // after another left the disk and the cores idle.
     parseThread = std::thread([this] {
-        for (std::size_t i = 0; i < requests.size(); i++) {
-            parsedData[i] = Model::parse(requests[i]);
-            // Per model, not per mesh: a model's meshes all become available
-            // at once, when its file has been read.
-            completedSteps.fetch_add(
-                static_cast<uint32_t>(parsedData[i].meshes.size()),
-                std::memory_order_acq_rel);
-        }
+        {
+            std::vector<std::jthread> workers;
+            for (std::size_t i = 0; i < requests.size(); i++) {
+                workers.emplace_back([this, i] {
+                    parsedData[i] = Model::parse(requests[i]);
+                    // Per model, not per mesh: a model's meshes all become
+                    // available at once, when its file has been read.
+                    completedSteps.fetch_add(
+                        static_cast<uint32_t>(parsedData[i].meshes.size()),
+                        std::memory_order_acq_rel);
+                });
+            }
+        }  // joins
         parseDone.store(true, std::memory_order_release);
     });
 }
@@ -142,15 +151,18 @@ bool LoadingLayer::onUpdate(const double elapsedTime) {
     }
 
     if (buildModelIndex < parsedData.size()) {
-        auto& meshes = parsedData[buildModelIndex].meshes;
+        auto& data = parsedData[buildModelIndex];
 
-        if (buildMeshIndex < meshes.size()) {
-            buildingMeshes.emplace_back(
-                Model::buildMesh(std::move(meshes[buildMeshIndex])));
+        if (buildMeshIndex < data.meshes.size()) {
+            buildingMeshes.emplace_back(Model::buildMesh(
+                std::move(data.meshes[buildMeshIndex]), data.images));
             completedSteps.fetch_add(1, std::memory_order_relaxed);
             buildMeshIndex++;
             return true;
         }
+
+        // The textures are on the GPU now, so the parsed copy can go.
+        data = {};
 
         auto model = std::make_shared<Model>(std::move(buildingMeshes));
         AssetManager::registerModel(requests[buildModelIndex].name, model);

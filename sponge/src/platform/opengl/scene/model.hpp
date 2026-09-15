@@ -8,8 +8,10 @@
 #include <glm/glm.hpp>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -43,9 +45,12 @@ public:
 
     // Builds one mesh's GL objects from CPU-parsed data. GL thread only —
     // exposed so a caller can spread a many-mesh model's upload across frames.
-    static std::shared_ptr<Mesh> buildMesh(ParsedMesh&& parsedMesh);
+    // images is the ModelData::images the mesh's indices point into.
+    static std::shared_ptr<Mesh> buildMesh(ParsedMesh&& parsedMesh,
+                                           std::span<const ParsedImage> images);
     static std::shared_ptr<renderer::Texture>
-        buildTexture(std::optional<ParsedImage>&& image);
+        buildTexture(std::optional<uint32_t>      image,
+                     std::span<const ParsedImage> images);
 
     void   render(const std::shared_ptr<renderer::Shader>& shader) const;
     size_t getNumIndices() const {

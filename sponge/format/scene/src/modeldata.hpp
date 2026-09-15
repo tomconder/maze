@@ -39,24 +39,27 @@ struct ParsedImage {
 };
 
 // One mesh primitive's worth of CPU-parsed data: vertices/indices plus its
-// material images.
+// material images, as indices into ModelData::images.
 struct ParsedMesh {
-    std::vector<Vertex>        vertices;
-    std::vector<uint32_t>      indices;
-    std::optional<ParsedImage> albedo;
-    std::optional<ParsedImage> normal;
-    std::optional<ParsedImage> occlusion;
-    std::optional<ParsedImage> emissive;
-    std::optional<ParsedImage> metallicRoughness;
-    float                      metallicFactor{ 0.F };
-    float                      roughnessFactor{ .5F };
-    MeshUVTransforms           uvTransforms;
+    std::vector<Vertex>     vertices;
+    std::vector<uint32_t>   indices;
+    std::optional<uint32_t> albedo;
+    std::optional<uint32_t> normal;
+    std::optional<uint32_t> occlusion;
+    std::optional<uint32_t> emissive;
+    std::optional<uint32_t> metallicRoughness;
+    float                   metallicFactor{ 0.F };
+    float                   roughnessFactor{ .5F };
+    MeshUVTransforms        uvTransforms;
 };
 
-// CPU-only parse result for a whole model. Model::build() turns it into GL
-// objects on the GL thread.
+// CPU-only parse result for a whole model. Model::buildMesh() turns it into
+// GL objects on the GL thread. Materials share images, so each image is held
+// once and meshes refer to it by index: sponza has 307 texture slots over 69
+// images.
 struct ModelData {
-    std::vector<ParsedMesh> meshes;
+    std::vector<ParsedImage> images;
+    std::vector<ParsedMesh>  meshes;
 };
 
 }  // namespace sponge::scene
