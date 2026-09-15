@@ -209,19 +209,20 @@ int verify(const std::string& source, const std::string& output) {
         }
 
         if (got.albedo) {
-            const auto& source = expected.images[*want.albedo];
+            const auto& sourceImage = expected.images[*want.albedo];
             const auto  image =
                 ktx2::read(actual.images[*got.albedo].ktx2, error);
             if (!error.empty()) {
                 fmt::println(stderr, "FAIL {} mesh {}: {}", output, i, error);
                 return 1;
             }
-            if (image.width != source.width || image.height != source.height) {
+            if (image.width != sourceImage.width ||
+                image.height != sourceImage.height) {
                 fmt::println(stderr,
                              "FAIL {} mesh {}: albedo is {}x{}, source is "
                              "{}x{}",
-                             output, i, image.width, image.height, source.width,
-                             source.height);
+                             output, i, image.width, image.height,
+                             sourceImage.width, sourceImage.height);
                 return 1;
             }
         }

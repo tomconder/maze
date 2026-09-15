@@ -71,12 +71,13 @@ std::optional<ParsedImage>
 
 std::optional<uint32_t> materialTexture(const tinyobj::material_t& material,
                                         const std::string&         path,
-                                        ModelData& data, ImageIndex& index) {
+                                        ModelData&                 data,
+                                        ImageIndex&                imageIndex) {
     auto name = baseName(material.diffuse_texname);
     std::ranges::transform(name, name.begin(),
                            [](const uint8_t c) { return std::tolower(c); });
 
-    auto [entry, inserted] = index.try_emplace(name);
+    auto [entry, inserted] = imageIndex.try_emplace(name);
     if (inserted) {
         if (auto decoded = decodeMaterialTexture(material, path, name)) {
             entry->second = static_cast<uint32_t>(data.images.size());
@@ -90,7 +91,7 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
                      const tinyobj::mesh_t&                  mesh,
                      const std::vector<tinyobj::material_t>& materials,
                      const std::string& path, ModelData& data,
-                     ImageIndex& index) {
+                     ImageIndex& imageIndex) {
     std::vector<Vertex>   vertices;
     std::vector<uint32_t> indices;
 
@@ -147,7 +148,7 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
         if (const auto id = mesh.material_ids[0];
             id != -1 && !materials[id].diffuse_texname.empty()) {
             parsedMesh.albedo =
-                materialTexture(materials[id], path, data, index);
+                materialTexture(materials[id], path, data, imageIndex);
         }
     }
 
@@ -161,7 +162,7 @@ namespace assetconv::obj {
 
 sponge::scene::ModelData parse(const std::string& path) {
     ModelData  data;
-    ImageIndex index;
+    ImageIndex imageIndex;
 
     tinyobj::attrib_t                attrib;
     std::vector<tinyobj::shape_t>    shapes;
@@ -186,8 +187,8 @@ sponge::scene::ModelData parse(const std::string& path) {
     }
 
     for (const auto& shape : shapes) {
-        auto mesh =
-            parseMesh(attrib, shape.mesh, materials, parentPath, data, index);
+        auto mesh = parseMesh(attrib, shape.mesh, materials, parentPath, data,
+                              imageIndex);
         data.meshes.emplace_back(std::move(mesh));
     }
 
