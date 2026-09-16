@@ -1,8 +1,8 @@
 // Asset converter. Bakes the models, textures, fonts, atlases and shaders
-// listed in assets/manifest.json to the formats the engine loads, and joins
+// listed in assets/manifest.yaml to the formats the engine loads, and joins
 // the third-party licenses into one notices file.
 //
-// Usage: assetconv [--threads <n>] --manifest <manifest.json> <output dir>
+// Usage: assetconv [--threads <n>] --manifest <manifest.yaml> <output dir>
 //                  [--no-line-directives]
 //                  [--notices <file> [--license <name>=<path>]...]
 //        assetconv [--threads <n>] --verify <source> <output.spnga>
@@ -20,8 +20,8 @@
 #include "shaderpack.hpp"
 #include "texenc.hpp"
 
+#include <fkYAML/node.hpp>
 #include <fmt/base.h>
-#include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <array>
@@ -301,8 +301,22 @@ int packAtlas(const std::vector<assetconv::AtlasEntry>& entries,
     return 0;
 }
 
-using Json   = nlohmann::ordered_json;
+// ordered_map, not the default std::map: the atlas and the shader pack lay
+// their entries out in manifest order, so the file order has to survive the
+// parse.
+using Yaml   = fkyaml::basic_node<std::vector, fkyaml::ordered_map>;
 namespace fs = std::filesystem;
+
+// A section left out of the manifest is empty. A misspelled key inside one is
+// a build error, not a silently skipped asset, so everything below uses at().
+const Yaml& section(const Yaml& manifest, const char* key) {
+    static const Yaml none = Yaml::sequence();
+    return manifest.contains(key) ? manifest.at(key) : none;
+}
+
+std::string text(const Yaml& map, const char* key) {
+    return map.at(key).get_value<std::string>();
+}
 
 // License name to license files.
 using Licenses = std::map<std::string, std::vector<std::string>>;
@@ -390,11 +404,11 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
     try {
         std::ifstream file{ manifestPath };
-        const auto    manifest = Json::parse(file);
+        const auto    manifest = Yaml::deserialize(file);
 
-        for (const auto& model : manifest.value("models", Json::array())) {
-            const auto from = source(model.at("source").get<std::string>());
-            if (!bake(model.at("output").get<std::string>(), { from },
+        for (const auto& model : section(manifest, "models")) {
+            const auto from = source(text(model, "source"));
+            if (!bake(text(model, "output"), { from },
                       [&](const std::string& to) {
                           return convert(from, to) == 0;
                       })) {
@@ -402,9 +416,9 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
             }
         }
 
-        for (const auto& texture : manifest.value("textures", Json::array())) {
-            const auto from = source(texture.at("source").get<std::string>());
-            if (!bake(texture.at("output").get<std::string>(), { from },
+        for (const auto& texture : section(manifest, "textures")) {
+            const auto from = source(text(texture, "source"));
+            if (!bake(text(texture, "output"), { from },
                       [&](const std::string& to) {
                           return convertTexture(from, to) == 0;
                       })) {
@@ -412,10 +426,13 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
             }
         }
 
-        for (const auto& font : manifest.value("fonts", Json::array())) {
-            const auto from  = source(font.at("source").get<std::string>());
-            const auto sizes = font.at("sizes").get<std::vector<uint32_t>>();
-            if (!bake(font.at("output").get<std::string>(), { from },
+        for (const auto& font : section(manifest, "fonts")) {
+            const auto            from = source(text(font, "source"));
+            std::vector<uint32_t> sizes;
+            for (const auto& size : font.at("sizes")) {
+                sizes.push_back(size.get_value<uint32_t>());
+            }
+            if (!bake(text(font, "output"), { from },
                       [&](const std::string& to) {
                           return convertFont(from, to, sizes) == 0;
                       })) {
@@ -425,15 +442,17 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
         // The sprite name is what the engine looks up, so it stays stable if
         // the file moves.
-        for (const auto& atlas : manifest.value("atlases", Json::array())) {
+        for (const auto& atlas : section(manifest, "atlases")) {
             std::vector<assetconv::AtlasEntry> entries;
             std::vector<fs::path>              inputs;
-            for (const auto& [sprite, path] : atlas.at("sprites").items()) {
-                entries.push_back({ .name = sprite,
-                                    .path = source(path.get<std::string>()) });
+            for (const auto& sprite : atlas.at("sprites").map_items()) {
+                entries.push_back(
+                    { .name = sprite.key().get_value<std::string>(),
+                      .path =
+                          source(sprite.value().get_value<std::string>()) });
                 inputs.emplace_back(entries.back().path);
             }
-            if (!bake(atlas.at("output").get<std::string>(), inputs,
+            if (!bake(text(atlas, "output"), inputs,
                       [&](const std::string& to) {
                           return packAtlas(entries, to) == 0;
                       })) {
@@ -446,19 +465,20 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
         if (manifest.contains("shaders")) {
             const auto& shaders = manifest.at("shaders");
             std::vector<assetconv::ShaderEntry> entries;
-            for (const auto& [stage, value] : shaders.at("stages").items()) {
-                const auto text  = value.get<std::string>();
-                const auto colon = text.rfind(':');
+            for (const auto& stage : shaders.at("stages").map_items()) {
+                const auto name  = stage.key().get_value<std::string>();
+                const auto value = stage.value().get_value<std::string>();
+                const auto colon = value.rfind(':');
                 if (colon == std::string::npos) {
                     fmt::println(stderr,
                                  "assetconv: stage {} is not <slang>:<entry>, "
                                  "got {}",
-                                 stage, text);
+                                 name, value);
                     return 2;
                 }
-                entries.push_back({ .name       = stage,
-                                    .path       = source(text.substr(0, colon)),
-                                    .entryPoint = text.substr(colon + 1) });
+                entries.push_back({ .name = name,
+                                    .path = source(value.substr(0, colon)),
+                                    .entryPoint = value.substr(colon + 1) });
             }
 
             // Includes are not listed anywhere, so every file under a stage's
@@ -477,7 +497,7 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
                 }
             }
 
-            if (!bake(shaders.at("output").get<std::string>(), inputs,
+            if (!bake(text(shaders, "output"), inputs,
                       [&](const std::string& to) {
                           return packShaders(to, entries, lineDirectives,
                                              threads) == 0;
@@ -489,11 +509,10 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
         // Asset licenses come from the manifest, code licenses from the
         // command line: only the build knows what the game links.
         if (!notices.empty()) {
-            for (const auto& license :
-                 manifest.value("licenses", Json::array())) {
-                auto& files = licenses[license.at("name").get<std::string>()];
+            for (const auto& license : section(manifest, "licenses")) {
+                auto& files = licenses[text(license, "name")];
                 for (const auto& path : license.at("files")) {
-                    files.push_back(source(path.get<std::string>()));
+                    files.push_back(source(path.get_value<std::string>()));
                 }
             }
             if (!writeNotices(notices, licenses)) {
@@ -558,7 +577,7 @@ int main(const int argc, char** argv) {
     }
 
     fmt::println(stderr,
-                 "usage: assetconv [--threads <n>] --manifest <manifest.json> "
+                 "usage: assetconv [--threads <n>] --manifest <manifest.yaml> "
                  "<output dir> [--no-line-directives]\n"
                  "           [--notices <file> [--license <name>=<path>]...]\n"
                  "       assetconv [--threads <n>] --verify <source> "

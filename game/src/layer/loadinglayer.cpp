@@ -24,7 +24,7 @@ constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
 constexpr float barWidth  = 400.F;
 constexpr float barHeight = 24.F;
 
-// The font holds only the sizes assets/manifest.json bakes, {18, 24, 32, 48},
+// The font holds only the sizes assets/manifest.yaml bakes, {18, 24, 32, 48},
 // and draws nothing at any other, so this must be one of those.
 constexpr uint32_t percentFontSize   = 18;
 constexpr float    percentTextMargin = 12.F;

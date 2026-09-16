@@ -13,7 +13,7 @@ GLSL from `shaders/shaders.spnga` and nowhere else.
 ## Usage
 
 ```
-assetconv [--threads <n>] --manifest <manifest.json> <output dir> [--no-line-directives]
+assetconv [--threads <n>] --manifest <manifest.yaml> <output dir> [--no-line-directives]
           [--notices <file> [--license <name>=<path>]...]
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
@@ -38,10 +38,10 @@ several, each file follows its file name, as `vcpkg_install_copyright` does.
 The file is rewritten only when its text changes, and a missing license file
 fails the run.
 
-```json
-"licenses": [
-  { "name": "Inter", "files": ["fonts/LICENSE.txt"] }
-]
+```yaml
+licenses:
+  - name: Inter
+    files: [fonts/LICENSE.txt]
 ```
 
 CMake passes the licenses of the code compiled into the game
@@ -59,14 +59,12 @@ costs a fraction of a second. Nothing is converted by globbing.
 
 ## Adding an asset
 
-Add an entry to `assets/manifest.json`:
+Add an entry to `assets/manifest.yaml`:
 
-```json
-{
-  "models": [
-    { "source": "models/gltf/cube/cube-tex.glb", "output": "models/cube.spnga" }
-  ]
-}
+```yaml
+models:
+  - source: models/gltf/cube/cube-tex.glb
+    output: models/cube.spnga
 ```
 
 `source` is relative to `assets/`, `output` to the baked asset directory.
@@ -272,13 +270,11 @@ Every stage listed under `shaders.stages` in the manifest compiles into one
 `shaders/shaders.spnga`. Each stage is `<source>:<entry point>`, with the source
 relative to `assets/`:
 
-```json
-"shaders": {
-  "output": "shaders/shaders.spnga",
-  "stages": {
-    "pbr.vert": "shaders/slang/pbr.slang:vertMain"
-  }
-}
+```yaml
+shaders:
+  output: shaders/shaders.spnga
+  stages:
+    pbr.vert: shaders/slang/pbr.slang:vertMain
 ```
 
 The key is the name the engine asks for: `.vertexShader = "pbr.vert"`.

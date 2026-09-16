@@ -86,10 +86,11 @@ else ()
 endif ()
 
 # Licenses of the third-party code compiled into maze.exe. Asset licenses are
-# listed in assets/manifest.json. A missing file fails the configure, so a
+# listed in assets/manifest.yaml. A missing file fails the configure, so a
 # renamed port cannot drop a notice.
 set(VCPKG_SHARE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share")
 set(THIRD_PARTY_LICENSES
+        "fkYAML=${VCPKG_SHARE}/fkYAML/copyright"
         "fmt=${VCPKG_SHARE}/fmt/copyright"
         "glad=${CMAKE_SOURCE_DIR}/sponge/deps/glad2/copyright.txt"
         "glfw=${VCPKG_SHARE}/glfw3/copyright"

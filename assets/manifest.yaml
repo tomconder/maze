@@ -1,0 +1,85 @@
+# Build manifest for assetconv. Nothing is baked by globbing: an asset that is
+# not listed here is not converted and does not ship.
+#
+# source paths are relative to assets/, output paths to the baked asset
+# directory. Key order matters: the atlas and the shader pack lay their
+# entries out in the order they are listed here.
+
+models:
+  - source: models/gltf/cube/cube-tex.glb
+    output: models/cube.spnga
+  - source: models/gltf/helmet/DamagedHelmet.glb
+    output: models/helmet.spnga
+  - source: models/gltf/sponza/sponza.glb
+    output: models/sponza.spnga
+
+textures:
+  - source: textures/blackcoffee.png
+    output: textures/blackcoffee.ktx2
+
+fonts:
+  - source: fonts/inter.ttf
+    output: fonts/inter.ktx2
+    # Every size the game draws text at. The font holds only these.
+    sizes: [18, 24, 32, 48]
+
+atlases:
+  # The sprite name is what the engine looks up, so it stays stable if the
+  # file moves.
+  - output: textures/ui.ktx2
+    sprites:
+      keyboard_arrows_horizontal: textures/prompts/keyboard_arrows_horizontal.png
+      keyboard_arrows_vertical: textures/prompts/keyboard_arrows_vertical.png
+      keyboard_e: textures/prompts/keyboard_e.png
+      keyboard_enter: textures/prompts/keyboard_enter.png
+      keyboard_escape: textures/prompts/keyboard_escape.png
+      keyboard_q: textures/prompts/keyboard_q.png
+      xbox_button_a: textures/prompts/xbox_button_a.png
+      xbox_button_b: textures/prompts/xbox_button_b.png
+      xbox_dpad_horizontal: textures/prompts/xbox_dpad_horizontal.png
+      xbox_dpad_vertical: textures/prompts/xbox_dpad_vertical.png
+      xbox_lb: textures/prompts/xbox_lb.png
+      xbox_rb: textures/prompts/xbox_rb.png
+
+# Licenses of third-party art and fonts. Joined with the code licenses CMake
+# passes into the notices file next to the executable.
+licenses:
+  - name: Damaged Helmet
+    files: [models/gltf/helmet/LICENSE.md]
+  - name: Sponza
+    files: [models/gltf/sponza/LICENSE.md]
+  - name: Inter
+    files: [fonts/LICENSE.txt]
+  - name: Kenney Input Prompts
+    files: [textures/prompts/License.txt]
+
+# Each stage is <slang source>:<entry point>, keyed by the name the engine
+# asks for. All of them compile into one pack.
+shaders:
+  output: shaders/shaders.spnga
+  stages:
+    screenquad.vert: shaders/slang/fxaa.slang:vertMain
+    pbr.frag: shaders/slang/pbr.slang:fragMain
+    pbr.vert: shaders/slang/pbr.slang:vertMain
+    shadowmap.frag: shaders/slang/shadowmap.slang:fragMain
+    shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
+    shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
+    blur.frag: shaders/slang/blur.slang:downFragMain
+    blur_up.frag: shaders/slang/blur.slang:upFragMain
+    bloom_down.frag: shaders/slang/bloom.slang:downFragMain
+    bloom_extract.frag: shaders/slang/bloom.slang:extractFragMain
+    bloom_up.frag: shaders/slang/bloom.slang:upFragMain
+    fxaa.frag: shaders/slang/fxaa.slang:fragMain
+    tonemap.frag: shaders/slang/tonemap.slang:fragMain
+    taa_resolve.frag: shaders/slang/taa.slang:resolveFragMain
+    taa_present.frag: shaders/slang/taa.slang:presentFragMain
+    quad.frag: shaders/slang/rectangle.slang:fragMain
+    quad.vert: shaders/slang/rectangle.slang:vertMain
+    sprite.frag: shaders/slang/sprite.slang:fragMain
+    text.frag: shaders/slang/sprite.slang:textFragMain
+    sprite.vert: shaders/slang/sprite.slang:vertMain
+    cube.frag: shaders/slang/cube.slang:fragMain
+    cube.vert: shaders/slang/cube.slang:vertMain
+    depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
+    depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
+    cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain
