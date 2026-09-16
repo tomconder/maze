@@ -14,12 +14,7 @@ GameCamera::GameCamera(const GameCameraCreateInfo& createInfo) {
     SPONGE_INFO("Creating game camera: {}", createInfo.name);
     UNUSED(createInfo);
 
-    updateView();
-
-    const auto radYaw   = glm::radians(yaw);
-    const auto radPitch = glm::radians(pitch);
-    cameraFront = { glm::cos(radYaw) * glm::cos(radPitch), glm::sin(radPitch),
-                    glm::sin(radYaw) * glm::cos(radPitch) };
+    setOrientation(yaw, pitch);
 }
 
 void GameCamera::updateProjection() {
@@ -42,6 +37,20 @@ void GameCamera::setViewportSize(const uint32_t viewportWidth,
 
 void GameCamera::setPosition(const glm::vec3& position) {
     cameraPos = position;
+    updateView();
+}
+
+void GameCamera::setOrientation(const float yawDegrees,
+                                const float pitchDegrees) {
+    yaw   = glm::mod(yawDegrees, 360.F);
+    pitch = glm::clamp(pitchDegrees, -89.F, 89.F);
+
+    const auto radYaw   = glm::radians(yaw);
+    const auto radPitch = glm::radians(pitch);
+    cameraFront = normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),
+                                       glm::sin(radPitch),
+                                       glm::sin(radYaw) * glm::cos(radPitch) });
+
     updateView();
 }
 
@@ -73,19 +82,7 @@ void GameCamera::strafeRight(const double_t delta) {
 }
 
 void GameCamera::mouseMove(const glm::vec2& offset) {
-    yaw += offset.x;
-    pitch += offset.y;
-
-    yaw   = glm::mod(yaw, 360.F);
-    pitch = glm::clamp(pitch, -89.F, 89.F);
-
-    const auto radYaw   = glm::radians(yaw);
-    const auto radPitch = glm::radians(pitch);
-    cameraFront = normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),
-                                       glm::sin(radPitch),
-                                       glm::sin(radYaw) * glm::cos(radPitch) });
-
-    updateView();
+    setOrientation(yaw + offset.x, pitch + offset.y);
 }
 
 void GameCamera::mouseScroll(const glm::vec2& offset) {

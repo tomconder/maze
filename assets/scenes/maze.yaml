@@ -1,0 +1,71 @@
+# Scene description for the maze layer.
+#
+# Every key is optional; anything left out keeps the default compiled into
+# game/src/scene/scenefile.hpp. Angles are in degrees.
+
+camera:
+  position: [-16.0, 4.0, 0.0]
+  fov: 60.0
+  # Degrees. Yaw 0 looks down +X; pitch is clamped to +/-89.
+  yaw: 0.0
+  pitch: 0.0
+
+lighting:
+  ambient:
+    strength: 0.25
+    occlusion: 0.25
+
+  directional:
+    enabled: true
+    castShadow: true
+    color: [1.0, 1.0, 1.0]
+    direction: [0.0, -20.0, 1.333]
+    # The default only. A shadow resolution saved from the options screen
+    # (video.shadowRes) overrides this.
+    shadowMapRes: 1024
+
+  # Point lights are placed on a seeded spiral, not authored one by one, so
+  # the debug slider can change the count at run time. These are the
+  # generator's inputs.
+  point:
+    count: 0
+    radiusMin: 1.5
+    radiusSpan: 13.5
+    height: 10.0
+    jitterAngle: 0.4
+    jitterRadius: 0.5
+    color: [1.0, 1.0, 1.0]
+    # Index into the attenuation distance table in game/src/scene/light.cpp.
+    attenuationIndex: 4
+    # Size of the cube drawn at each light position.
+    debugCubeScale: 0.1
+
+objects:
+  # - name: floor
+  #   path: /models/gltf/floor/floor.glb
+  #   scale: [2.0, 2.0, 2.0]
+
+  - name: cube1
+    path: /models/cube.spnga
+    translation: [-1.5, 0.85, -0.5]
+
+  # - name: cube2
+  #   path: /models/gltf/cube/cube-tex.glb
+  #   scale: [0.5, 0.5, 0.5]
+  #   translation: [0.0, 0.0, 0.5]
+
+  # - name: cube3
+  #   path: /models/gltf/cube/cube-tex.glb
+  #   scale: [0.25, 0.25, 0.25]
+  #   rotation: { angle: 60.0, axis: [1.0, 0.0, 1.0] }
+  #   translation: [-1.0, 2.25, 1.0]
+  #   emissive: [1.5, 1.2, 0.5]
+
+  - name: helmet
+    path: /models/helmet.spnga
+    rotation: { angle: -75.0, axis: [0.0, 1.0, 0.0] }
+    translation: [2.0, 2.5, 0.0]
+
+  - name: sponza
+    path: /models/sponza.spnga
+    scale: [4.0, 4.0, 4.0]

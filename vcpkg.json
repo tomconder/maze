@@ -4,6 +4,10 @@
   "builtin-baseline": "a1cae005c39be7b18ba319fced856b68d7276271",
   "dependencies": [
     {
+      "name": "fkyaml",
+      "version>=": "0.4.4"
+    },
+    {
       "name": "fmt",
       "version>=": "12.2.0"
     },
