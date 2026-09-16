@@ -90,7 +90,10 @@ endif ()
 # renamed port cannot drop a notice.
 set(VCPKG_SHARE "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share")
 set(THIRD_PARTY_LICENSES
-        "fkYAML=${VCPKG_SHARE}/fkYAML/copyright"
+        # The fkYAML port spells its share directory fkYAML on Windows and
+        # fkyaml on Linux, so the path is taken from where find_package landed
+        # rather than spelled out. The copyright sits beside the config file.
+        "fkYAML=${fkYAML_DIR}/copyright"
         "fmt=${VCPKG_SHARE}/fmt/copyright"
         "glad=${CMAKE_SOURCE_DIR}/sponge/deps/glad2/copyright.txt"
         "glfw=${VCPKG_SHARE}/glfw3/copyright"
