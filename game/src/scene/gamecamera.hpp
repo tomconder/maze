@@ -24,6 +24,9 @@ public:
 
     void setPosition(const glm::vec3& position);
 
+    // Degrees. Yaw wraps, pitch clamps to the poles.
+    void setOrientation(float yawDegrees, float pitchDegrees);
+
     glm::vec3 getPosition() const {
         return cameraPos;
     }

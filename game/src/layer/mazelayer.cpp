@@ -15,6 +15,7 @@
 
 #include <glm/ext/matrix_transform.hpp>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <mutex>
@@ -22,63 +23,14 @@
 #include <string>
 
 namespace {
-constexpr auto cameraPosition = glm::vec3(-16.F, 4.F, 0.F);
-
-constexpr auto dirLightCastsShadow = true;
-constexpr auto dirLightColor       = glm::vec3(1.F, 1.F, 1.F);
-constexpr auto dirLightDirection   = glm::vec3(0.F, -20.F, 1.333F);
-constexpr auto dirLightEnabled     = true;
-constexpr auto defaultShadowMapRes = 1024U;
-
-constexpr auto cubeScale = glm::vec3(.1F);
-
 constexpr std::string_view cameraName = "maze";
+constexpr std::string_view scenePath  = "/scenes/maze.yaml";
 
 constexpr int32_t maxPointLights =
     sponge::platform::opengl::scene::ClusteredLights::maxLights;
 
 game::scene::DirectionalLight                       directionalLight;
 std::array<game::scene::PointLight, maxPointLights> pointLights;
-
-using game::layer::GameObject;
-
-std::array gameObjects = {
-    // GameObject{ .name  = "floor",
-    //             .path  = "/models/gltf/floor/floor.glb",
-    //             .scale = glm::vec3(2.F) },
-
-    GameObject{ .name        = "cube1",
-                .path        = "/models/cube.spnga",
-                .scale       = glm::vec3(1.F),
-                .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
-                .translation = glm::vec3(-1.5F, .85F, -.5F), },
-
-    // GameObject{ .name = "cube2",
-    //             .path = "/models/gltf/cube/cube-tex.glb",
-    //             .scale = glm::vec3(.5F),
-    //             .rotation    = { .angle = 0.F, .axis{ 0.F, 1.F, 0.F }, },
-    //             .translation = glm::vec3(0.F, 0.F, .5F), },
-
-    // GameObject{ .name        = "cube3",
-    //             .path        = "/models/gltf/cube/cube-tex.glb",
-    //             .scale       = glm::vec3(.25F),
-    //             .rotation    = { .angle = glm::radians(60.F),
-    //                              .axis  = glm::vec3(1.F, 0.F, 1.F), },
-    //             .translation = glm::vec3(-1.F, 2.25F, 1.F),
-    //             .emissive    = glm::vec3(1.5F, 1.2F, 0.5F), },
-
-    GameObject{ .name        = "helmet",
-                .path        = "/models/helmet.spnga",
-                .scale       = glm::vec3(1.F),
-                .rotation    = { .angle = glm::radians(-75.F),
-                                 .axis  = glm::vec3(0.F, 1.F, 0.F), },
-                .translation = glm::vec3(2.F, 2.5F, 0.F), },
-
-    GameObject{ .name        = "sponza",
-                .path        = "/models/sponza.spnga",
-                .scale       = glm::vec3(4.F),
-                .translation = glm::vec3(0.F, 0.F, 0.F), },
-};
 }  // namespace
 
 namespace game::layer {
@@ -105,28 +57,34 @@ using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::TAA;
 using thread::AntiAliasing;
 
-MazeLayer::MazeLayer() : Layer("maze") {}
+MazeLayer::MazeLayer() :
+    Layer("maze"), sceneDesc(scene::loadScene(std::string(scenePath))) {
+    ambientStrength  = sceneDesc.lighting.ambient.strength;
+    ao               = sceneDesc.lighting.ambient.occlusion;
+    attenuationIndex = sceneDesc.lighting.point.attenuationIndex;
+    numLights = std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
+}
 
 std::vector<ModelCreateInfo> MazeLayer::getModelLoadRequests() const {
     std::vector<ModelCreateInfo> requests;
-    requests.reserve(gameObjects.size());
-    for (auto& gameObject : gameObjects) {
+    requests.reserve(sceneDesc.objects.size());
+    for (const auto& object : sceneDesc.objects) {
         requests.push_back({
-            .name = std::string(gameObject.name),
-            .path = std::string(gameObject.path),
+            .name = object.name,
+            .path = object.path,
         });
     }
     return requests;
 }
 
 void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
-    for (auto& gameObject : gameObjects) {
+    for (const auto& object : sceneDesc.objects) {
         // model matrix never changes after this point
         objectModelMatrices.push_back(glm::scale(
-            glm::rotate(glm::translate(glm::mat4(1.0f), gameObject.translation),
-                        gameObject.rotation.angle, gameObject.rotation.axis),
-            gameObject.scale));
-        objectEmissives.push_back(gameObject.emissive);
+            glm::rotate(glm::translate(glm::mat4(1.0f), object.translation),
+                        object.rotation.angle, object.rotation.axis),
+            object.scale));
+        objectEmissives.push_back(object.emissive);
     }
     objectModels = std::move(builtModels);
 
@@ -135,7 +93,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     camera = ResourceManager::createGameCamera(gameCameraCreateInfo);
     camera->setViewportSize(Maze::get().getWindow()->getWidth(),
                             Maze::get().getWindow()->getHeight());
-    camera->setPosition(cameraPosition);
+    camera->setFov(sceneDesc.camera.fov);
+    camera->setOrientation(sceneDesc.camera.yaw, sceneDesc.camera.pitch);
+    camera->setPosition(sceneDesc.camera.position);
 
     const auto shader = Mesh::getShader();
     shader->bind();
@@ -144,14 +104,16 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     shader->setFloat("ambientStrength", ambientStrength);
 
+    // The scene file supplies the default; a resolution saved from the
+    // options screen overrides it.
     const auto savedShadowRes = sponge::core::Settings::getUInt32(
-        "video.shadowRes", defaultShadowMapRes);
+        "video.shadowRes", sceneDesc.lighting.directional.shadowMapRes);
 
     directionalLight = {
-        .enabled      = dirLightEnabled,
-        .castShadow   = dirLightCastsShadow,
-        .color        = dirLightColor,
-        .direction    = dirLightDirection,
+        .enabled      = sceneDesc.lighting.directional.enabled,
+        .castShadow   = sceneDesc.lighting.directional.castShadow,
+        .color        = sceneDesc.lighting.directional.color,
+        .direction    = sceneDesc.lighting.directional.direction,
         .shadowMapRes = savedShadowRes,
     };
 
@@ -640,22 +602,27 @@ void MazeLayer::setNumLights(const int32_t val) {
         std::scoped_lock lock(settingsMutex);
         numLights = std::clamp(val, 0, maxPointLights);
 
+        const auto& params = sceneDesc.lighting.point;
+
         // NOLINTNEXTLINE(bugprone-random-generator-seed) fixed layout
         std::mt19937                   rng(42U);
-        std::uniform_real_distribution jitterAngle(-0.4F, 0.4F);
-        std::uniform_real_distribution jitterRadius(-0.5F, 0.5F);
+        std::uniform_real_distribution jitterAngle(-params.jitterAngle,
+                                                   params.jitterAngle);
+        std::uniform_real_distribution jitterRadius(-params.jitterRadius,
+                                                    params.jitterRadius);
 
         for (int32_t i = 0; i < numLights; i++) {
             const float t =
                 numLights > 1 ? static_cast<float>(i) / (numLights - 1) : 0.F;
-            const float radius = 1.5F + t * 13.5F + jitterRadius(rng);
+            const float radius =
+                params.radiusMin + t * params.radiusSpan + jitterRadius(rng);
             const float angle =
                 glm::two_pi<float>() * i / numLights + jitterAngle(rng);
             auto& light    = pointLights.at(i);
-            light.color    = glm::vec3(1.F);
+            light.color    = params.color;
             light.position = glm::vec3(
                 rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
-                glm::vec4(0.F, 10.F, -radius, 1.F));
+                glm::vec4(0.F, params.height, -radius, 1.F));
         }
     }
 
@@ -838,6 +805,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // Light cubes go through the same shader: position-only geometry at
     // location 0, so they need no variant of their own. Including them here
     // is what gives them depth coverage and motion vectors.
+    const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     for (int32_t i = 0; i < frame.numLights; i++) {
         const auto model = scale(
             translate(glm::mat4(1.F), frame.lightPositions[i]), cubeScale);
@@ -877,6 +845,7 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     const auto shader = cube->getShader();
     shader->bind();
 
+    const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     for (int32_t i = 0; i < frame.numLights; i++) {
         shader->setFloat3("lightColor", frame.lightColors[i]);
         shader->setMat4(

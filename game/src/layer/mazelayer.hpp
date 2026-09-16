@@ -15,6 +15,7 @@
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/gamecamera.hpp"
+#include "scene/scenefile.hpp"
 #include "thread/mazeframe.hpp"
 
 #include <glm/glm.hpp>
@@ -24,22 +25,9 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <string_view>
 #include <vector>
 
 namespace game::layer {
-struct GameObject {
-    std::string_view name;
-    std::string_view path;
-    glm::vec3        scale{ 1.F };
-    struct {
-        float     angle{ 0.F };
-        glm::vec3 axis{ 0.F, 1.F, 0.F };
-    } rotation{};
-    glm::vec3 translation{ 0.F };
-    glm::vec3 emissive{ 0.F };
-};
-
 class MazeLayer final : public sponge::layer::Layer {
 public:
     MazeLayer();
@@ -134,6 +122,9 @@ public:
     void activate();
 
 private:
+    // Loaded in the constructor, before any other member reads it.
+    const scene::Scene sceneDesc;
+
     std::shared_ptr<scene::GameCamera> camera;
     std::vector<glm::mat4>             objectModelMatrices;
     std::vector<glm::vec3>             objectEmissives;
