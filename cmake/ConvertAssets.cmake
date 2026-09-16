@@ -1,4 +1,4 @@
-# Bakes the assets listed in assets/manifest.json to the engine format.
+# Bakes the assets listed in assets/manifest.yaml to the engine format.
 # Nothing is converted by globbing: the manifest is the only list.
 #
 # assetconv reads the manifest and converts everything in it. It skips an
@@ -14,11 +14,11 @@ endforeach ()
 
 add_custom_target(
         convert_assets ALL
-        COMMAND assetconv --manifest "${CMAKE_SOURCE_DIR}/assets/manifest.json"
+        COMMAND assetconv --manifest "${CMAKE_SOURCE_DIR}/assets/manifest.yaml"
                 "${CMAKE_BINARY_DIR}/assets"
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
-        COMMENT "Converting the assets in assets/manifest.json"
+        COMMENT "Converting the assets in assets/manifest.yaml"
         VERBATIM
         COMMAND_EXPAND_LISTS)
 
@@ -28,11 +28,12 @@ add_custom_target(
 #
 # - Images and fonts: every one is a bake input, and must not ship beside what
 #   it was baked into.
-# - manifest.json: drives the bake, never read at run time.
+# - manifest.yaml: drives the bake, never read at run time. Matched by name,
+#   not by extension: assets/scenes/*.yaml is read at run time and ships.
 # - License files of third-party art and fonts: joined into the notices file
 #   next to the executable instead.
 #
 # CMake regexes have no case-insensitive flag, and Linux does not fold the path
 # case, so each letter is spelled as a two-case class.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.json$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")

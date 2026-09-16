@@ -61,9 +61,9 @@ target_link_libraries(assetconv PRIVATE fmt::fmt)
 find_package(Threads REQUIRED)
 target_link_libraries(assetconv PRIVATE Threads::Threads)
 
-# Reads assets/manifest.json.
-find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(assetconv PRIVATE nlohmann_json::nlohmann_json)
+# Reads assets/manifest.yaml.
+find_package(fkYAML CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE fkYAML::fkYAML)
 
 # Slang compiles the shaders in-process. It loads its GLSL module and glslang
 # by name at run time, so those sit beside the exe along with the DLLs it
