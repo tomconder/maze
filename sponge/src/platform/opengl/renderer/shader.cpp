@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -22,10 +23,13 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
     if (!createInfo.computeShader.empty()) {
         const uint32_t cs = compileStage(GL_COMPUTE_SHADER, "compute",
                                          createInfo.computeShader);
-        program           = linkProgram(cs);
-        if (program != 0) {
-            glDetachShader(program, cs);
+        program           = cs != 0 ? linkProgram(cs) : 0;
+        if (program == 0) {
+            SPONGE_GL_CRITICAL("Shader '{}' failed to build; aborting",
+                               shaderName);
+            std::exit(EXIT_FAILURE);
         }
+        glDetachShader(program, cs);
         glDeleteShader(cs);
         return;
     }
@@ -40,12 +44,22 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
 
     uint32_t gs = 0;
     if (!createInfo.geometryShader.empty()) {
-        gs      = compileStage(GL_GEOMETRY_SHADER, "geometry",
+        gs = compileStage(GL_GEOMETRY_SHADER, "geometry",
+                          createInfo.geometryShader);
+    }
 
-                               createInfo.geometryShader);
-        program = linkProgram(vs, fs, gs);
-    } else {
-        program = linkProgram(vs, fs);
+    // A missing vs/fs/gs id means its compile already logged the error; don't
+    // link a partial program and limp on with glUseProgram(0) rendering
+    // nothing for the rest of the run.
+    const bool stagesOk =
+        vs != 0 && fs != 0 && (createInfo.geometryShader.empty() || gs != 0);
+    program = stagesOk ? (createInfo.geometryShader.empty() ?
+                              linkProgram(vs, fs) :
+                              linkProgram(vs, fs, gs)) :
+                         0;
+    if (program == 0) {
+        SPONGE_GL_CRITICAL("Shader '{}' failed to build; aborting", shaderName);
+        std::exit(EXIT_FAILURE);
     }
 
     initUBO();

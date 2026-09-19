@@ -46,12 +46,13 @@ void Diagnostics::log() {
     SPONGE_GL_INFO("  {:12} {}", "Extensions:", extensions);
 
     std::stringstream ss;
-    for (int i = 0; i < extensions / 3; i++) {
+    for (int i = 0; i < extensions; i += 3) {
         ss.str("");
         ss << "   ";
-        for (int j = 0; j < 3; j++) {
-            const auto* extPtr = reinterpret_cast<const char*>(
-                glGetStringi(GL_EXTENSIONS, (i * 3) + j));
+        const int groupEnd = i + 3 < extensions ? i + 3 : extensions;
+        for (int j = i; j < groupEnd; j++) {
+            const auto* extPtr =
+                reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, j));
             const std::string ext = extPtr ? extPtr : "";
             ss << fmt::format(" {:49}", ext);
         }
