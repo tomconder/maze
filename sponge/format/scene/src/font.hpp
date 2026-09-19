@@ -73,9 +73,10 @@ Font read(std::span<const uint8_t> bytes, std::string& error);
 // Returns nullptr when the font was not baked at this size.
 const Size* sizeOf(const Font& font, uint32_t pixels);
 
-// UTF-8 text to glyphs. tabularFigures selects fixed-width digits (OpenType
-// "tnum").
-std::vector<ShapedGlyph> shape(const Font& font, const Size& size,
-                               std::string_view text, bool tabularFigures);
+// UTF-8 text to glyphs, replacing the contents of glyphs. tabularFigures
+// selects fixed-width digits (OpenType "tnum"). Pass the same vector each call
+// so its capacity is reused and per-frame text does not allocate.
+void shape(const Font& font, const Size& size, std::string_view text,
+           bool tabularFigures, std::vector<ShapedGlyph>& glyphs);
 
 }  // namespace sponge::scene::font

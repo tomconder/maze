@@ -385,8 +385,9 @@ bool matchesHarfBuzz(hb_font_t* hbFont, FT_Face face, const font::Font& baked,
 
             for (const bool tabular : { false, true }) {
                 const auto want = shapeWithHarfBuzz(hbFont, utf8, tabular);
-                const auto got  = font::shape(baked, size, utf8, tabular);
-                bool       same = want.size() == got.size();
+                std::vector<font::ShapedGlyph> got;
+                font::shape(baked, size, utf8, tabular, got);
+                bool same = want.size() == got.size();
                 for (size_t g = 0; same && g < want.size(); g++) {
                     const auto slot = slotOfGlyph.find(want[g].glyphIndex);
                     same = slot != slotOfGlyph.end() &&

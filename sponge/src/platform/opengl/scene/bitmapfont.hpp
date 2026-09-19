@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace sponge::platform::opengl::scene {
 
@@ -44,6 +45,10 @@ private:
     static constexpr std::string_view shaderName = "text";
 
     uint32_t passTargetSize = 0;
+
+    // Reused by getLength and render so drawing text does not allocate. Not
+    // thread-safe: every layer that draws text does so on the render thread.
+    std::vector<sponge::scene::font::ShapedGlyph> shaped;
 
     sponge::scene::font::Font               font;
     std::unique_ptr<renderer::Texture>      texture;

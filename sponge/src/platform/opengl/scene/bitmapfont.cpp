@@ -45,6 +45,10 @@ using renderer::AssetManager;
 BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     assert(!createInfo.path.empty());
 
+    // A glyph takes at least one byte, so maxLength glyphs is the most any
+    // call can shape.
+    shaped.reserve(maxLength);
+
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName.data(),
         .vertexShader   = "sprite.vert",
@@ -129,9 +133,9 @@ uint32_t BitmapFont::getLength(const std::string_view text, const uint32_t size,
         return 0;
     }
 
+    sponge::scene::font::shape(font, *baked, str, tabularFigures, shaped);
     float penX = 0.0F;
-    for (const auto& shapedGlyph :
-         sponge::scene::font::shape(font, *baked, str, tabularFigures)) {
+    for (const auto& shapedGlyph : shaped) {
         penX += shapedGlyph.xAdvance;
     }
 
@@ -164,8 +168,7 @@ void BitmapFont::render(const std::string_view text, const glm::vec2& position,
     const float ascender   = baked->ascender;
     float       penX       = position.x;
     uint32_t    glyphCount = 0;
-    const auto  shaped =
-        sponge::scene::font::shape(font, *baked, str, tabularFigures);
+    sponge::scene::font::shape(font, *baked, str, tabularFigures, shaped);
 
     for (const auto& shapedGlyph : shaped) {
         // quad sits on the whole pixel; the fractional remainder picks the
