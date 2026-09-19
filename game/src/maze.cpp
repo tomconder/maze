@@ -9,7 +9,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <string>
 #include <utility>
 
 namespace game {
@@ -49,10 +48,10 @@ bool Maze::onUserCreate() {
                         thread::AntiAliasing::Taa);
     setBloomEnabled(
         sponge::core::Settings::getBool("video.bloomEnabled", true));
-    setBloomThreshold(std::stof(
-        sponge::core::Settings::getString("video.bloomThreshold", "0.8")));
-    setBloomIntensity(std::stof(
-        sponge::core::Settings::getString("video.bloomIntensity", "0.08")));
+    setBloomThreshold(
+        sponge::core::Settings::getFloat("video.bloomThreshold", 0.8F));
+    setBloomIntensity(
+        sponge::core::Settings::getFloat("video.bloomIntensity", 0.08F));
 
     return true;
 }

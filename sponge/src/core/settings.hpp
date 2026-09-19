@@ -13,6 +13,7 @@ public:
     static std::string getString(const std::string& key,
                                  const std::string& defaultValue = {});
     static bool     getBool(const std::string& key, bool defaultValue = false);
+    static float    getFloat(const std::string& key, float defaultValue = 0.0F);
     static uint32_t getUInt32(const std::string& key,
                               uint32_t           defaultValue = 0);
 

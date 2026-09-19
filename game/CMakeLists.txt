@@ -98,7 +98,6 @@ set(THIRD_PARTY_LICENSES
         "glfw=${VCPKG_SHARE}/glfw3/copyright"
         "glm=${VCPKG_SHARE}/glm/copyright"
         "miniaudio=${CMAKE_SOURCE_DIR}/sponge/deps/miniaudio/LICENSE"
-        "nlohmann-json=${VCPKG_SHARE}/nlohmann-json/copyright"
         "spdlog=${VCPKG_SHARE}/spdlog/copyright"
         "yoga=${VCPKG_SHARE}/yoga/copyright")
 if (ENABLE_IMGUI)
