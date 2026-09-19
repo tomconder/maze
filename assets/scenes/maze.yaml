@@ -24,13 +24,13 @@ lighting:
     # (video.shadowRes) overrides this.
     shadowMapRes: 1024
 
-  # Point lights are placed on a seeded spiral, not authored one by one, so
-  # the debug slider can change the count at run time. These are the
-  # generator's inputs.
+  # Point lights sit on a seeded ellipse, generated at runtime so the debug
+  # slider can change the count. radiusMin is the short (Z) semi-axis;
+  # radiusMin + radiusSpan is the long (X) one.
   point:
     count: 0
-    radiusMin: 1.5
-    radiusSpan: 13.5
+    radiusMin: 5.0
+    radiusSpan: 20.0
     height: 10.0
     jitterAngle: 0.4
     jitterRadius: 0.5

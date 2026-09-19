@@ -31,6 +31,11 @@ constexpr int32_t maxPointLights =
 
 game::scene::DirectionalLight                       directionalLight;
 std::array<game::scene::PointLight, maxPointLights> pointLights;
+
+glm::mat4 lightCubeModel(const glm::vec3& position,
+                         const glm::vec3& cubeScale) {
+    return glm::scale(glm::translate(glm::mat4(1.F), position), cubeScale);
+}
 }  // namespace
 
 namespace game::layer {
@@ -613,18 +618,20 @@ void MazeLayer::setNumLights(const int32_t val) {
         std::uniform_real_distribution jitterRadius(-params.jitterRadius,
                                                     params.jitterRadius);
 
+        // Lights sit on a fixed ellipse: radiusMin is the short (Z) semi-axis,
+        // radiusMin + radiusSpan the long (X) one — the same two knobs that
+        // used to bound the spiral now shape the oval.
+        const float radiusX = params.radiusMin + params.radiusSpan;
+        const float radiusZ = params.radiusMin;
+
         for (int32_t i = 0; i < numLights; i++) {
-            const float t =
-                numLights > 1 ? static_cast<float>(i) / (numLights - 1) : 0.F;
-            const float radius =
-                params.radiusMin + t * params.radiusSpan + jitterRadius(rng);
             const float angle =
                 glm::two_pi<float>() * i / numLights + jitterAngle(rng);
             auto& light    = pointLights.at(i);
             light.color    = params.color;
             light.position = glm::vec3(
-                rotate(glm::mat4(1.F), angle, glm::vec3(0.F, 1.F, 0.F)) *
-                glm::vec4(0.F, params.height, -radius, 1.F));
+                (radiusX + jitterRadius(rng)) * glm::sin(angle), params.height,
+                -(radiusZ + jitterRadius(rng)) * glm::cos(angle));
         }
     }
 
@@ -809,10 +816,9 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // is what gives them depth coverage and motion vectors.
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     for (int32_t i = 0; i < frame.numLights; i++) {
-        const auto model = scale(
-            translate(glm::mat4(1.F), frame.lightPositions[i]), cubeScale);
-        const auto prevModel = scale(
-            translate(glm::mat4(1.F), frame.prevLightPositions[i]), cubeScale);
+        const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
+        const auto prevModel =
+            lightCubeModel(frame.prevLightPositions[i], cubeScale);
         depthPrepassShader->setMat4("mvp", frame.cameraMVP * model);
         depthPrepassShader->setMat4("mvpNoJitter",
                                     frame.cameraViewProj * model);
@@ -850,9 +856,9 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     for (int32_t i = 0; i < frame.numLights; i++) {
         shader->setFloat3("lightColor", frame.lightColors[i]);
-        shader->setMat4(
-            "mvp", scale(translate(frame.cameraMVP, frame.lightPositions[i]),
-                         cubeScale));
+        shader->setMat4("mvp",
+                        frame.cameraMVP *
+                            lightCubeModel(frame.lightPositions[i], cubeScale));
         cube->render();
     }
 
