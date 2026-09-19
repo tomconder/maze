@@ -37,21 +37,29 @@ void Window::init(const sponge::core::WindowProps& props) {
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
     GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode           = glfwGetVideoMode(primaryMonitor);
+    const GLFWvidmode* mode =
+        primaryMonitor != nullptr ? glfwGetVideoMode(primaryMonitor) : nullptr;
+    if (mode == nullptr) {
+        SPONGE_CORE_ERROR("No primary monitor/video mode detected");
+    }
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    if (mode != nullptr) {
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    }
 
     auto width  = static_cast<int32_t>(props.width);
     auto height = static_cast<int32_t>(props.height);
 
     if (width == 0 && height == 0) {
-        width  = mode->width;
-        height = mode->height;
+        // Matches ApplicationSpecification's default when no monitor mode is
+        // available to size the window against.
+        width  = mode != nullptr ? mode->width : 1600;
+        height = mode != nullptr ? mode->height : 900;
     }
 
     if (props.fullscreen) {
@@ -79,7 +87,7 @@ void Window::init(const sponge::core::WindowProps& props) {
     data.width  = static_cast<uint32_t>(w);
     data.height = static_cast<uint32_t>(h);
 
-    if (!props.fullscreen) {
+    if (!props.fullscreen && mode != nullptr) {
         glfwSetWindowPos(window, (mode->width - w) / 2, (mode->height - h) / 2);
     }
 
