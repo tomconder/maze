@@ -88,22 +88,6 @@ public:
         mazeLayer->setBloomEnabled(val);
     }
 
-    float getBloomThreshold() const {
-        return mazeLayer->getBloomThreshold();
-    }
-
-    void setBloomThreshold(float val) {
-        mazeLayer->setBloomThreshold(val);
-    }
-
-    float getBloomIntensity() const {
-        return mazeLayer->getBloomIntensity();
-    }
-
-    void setBloomIntensity(float val) {
-        mazeLayer->setBloomIntensity(val);
-    }
-
     void exit() {
         isRunning = false;
     }

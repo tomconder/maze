@@ -186,6 +186,8 @@ void ImGuiLayer::showBloomControls() {
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("##bloomenabled", &bloomEnabled)) {
                 mazeLayer->setBloomEnabled(bloomEnabled);
+                sponge::core::Settings::set("video.bloomEnabled", bloomEnabled);
+                sponge::core::Settings::save();
             }
         });
 

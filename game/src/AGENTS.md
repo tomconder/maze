@@ -78,7 +78,9 @@ primitives, windowing, or platform backends itself — see
   `bloomIntensity` is roughly an order of magnitude smaller than it once was.
   `bloomThreshold` stays at 0.8, but it now cuts on radiance, not on a point
   of the tone curve, so useful values run past 1.0. Re-derive both from a
-  texture readback, never by scaling the old numbers.
+  texture readback, never by scaling the old numbers. Their defaults live in
+  the `bloom` section of `assets/scenes/maze.yaml`, not in settings; the
+  debug sliders change them for the current run only.
 
 ## Anti-patterns
 

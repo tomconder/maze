@@ -106,7 +106,7 @@ endif ()
 
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
+find_package(fkYAML CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
@@ -221,7 +221,7 @@ target_include_directories(sponge PRIVATE deps/miniaudio)
 
 target_link_libraries(sponge PUBLIC glfw)
 target_link_libraries(sponge PUBLIC glm::glm-header-only)
-target_link_libraries(sponge PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(sponge PRIVATE fkYAML::fkYAML)
 target_link_libraries(sponge PRIVATE OpenGL::GL)
 target_link_libraries(sponge PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
 if (APPLE)

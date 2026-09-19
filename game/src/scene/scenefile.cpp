@@ -115,6 +115,15 @@ void readLighting(const node& root, game::scene::SceneLighting& lighting) {
     }
 }
 
+void readBloom(const node& root, game::scene::SceneBloom& bloom) {
+    const auto* map = find(root, "bloom");
+    if (map == nullptr) {
+        return;
+    }
+    bloom.threshold = readFloat(*map, "threshold", bloom.threshold);
+    bloom.intensity = readFloat(*map, "intensity", bloom.intensity);
+}
+
 void readObjects(const node&                            root,
                  std::vector<game::scene::SceneObject>& objects) {
     const auto* sequence = find(root, "objects");
@@ -170,6 +179,7 @@ Scene loadScene(const std::string& path) {
         const auto root = node::deserialize(file);
         readCamera(root, scene.camera);
         readLighting(root, scene.lighting);
+        readBloom(root, scene.bloom);
         readObjects(root, scene.objects);
     } catch (const std::exception& e) {
         // Keep whatever parsed before the fault plus the defaults: a bad file

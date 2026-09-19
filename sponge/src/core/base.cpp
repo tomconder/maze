@@ -9,7 +9,7 @@
 
 namespace {
 inline const std::string spongeLogFile      = "log.txt";
-inline const std::string spongeSettingsFile = "settings.json";
+inline const std::string spongeSettingsFile = "settings.yaml";
 inline const std::string appFolder          = "ItsTom";
 }  // namespace
 
