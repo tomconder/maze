@@ -382,6 +382,13 @@ void Application::run() {
                             if (prevH <= 0) {
                                 prevH = static_cast<int>(appSpec.height);
                             }
+                            // A pristine settings file gives a 0x0 spec, and
+                            // GLFW rejects a 0x0 window without changing
+                            // mode. Keep the current size; a pending
+                            // resolution resizes it below.
+                            if (prevW <= 0 || prevH <= 0) {
+                                glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                            }
                             const int posX = (mode->width - prevW) / 2;
                             const int posY = (mode->height - prevH) / 2;
                             glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
