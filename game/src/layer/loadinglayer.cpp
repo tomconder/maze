@@ -13,6 +13,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -105,24 +106,40 @@ void LoadingLayer::setActive(const bool value) {
     buildModelIndex = 0;
     buildMeshIndex  = 0;
 
+    // Two objects sharing a path: only the first parses and builds it, the
+    // rest reuse its shared_ptr.
+    buildOwner.resize(requests.size());
+    {
+        std::unordered_map<std::string, std::size_t> firstSeen;
+        for (std::size_t i = 0; i < requests.size(); i++) {
+            buildOwner[i] =
+                firstSeen.try_emplace(requests[i].name, i).first->second;
+        }
+    }
+
     // Cheap structural pre-count (no vertex/image decode) so the bar can be
     // sized per-mesh up front instead of per-model — a model with many
     // meshes (sponza) would otherwise sit at one fixed value for its whole
     // parse/build instead of advancing continuously.
     std::size_t meshCount = 0;
-    for (const auto& request : requests) {
-        meshCount += Model::countMeshes(request);
+    for (std::size_t i = 0; i < requests.size(); i++) {
+        if (buildOwner[i] == i) {
+            meshCount += Model::countMeshes(requests[i]);
+        }
     }
     totalSteps = static_cast<uint32_t>(2 * meshCount + 1);
     completedSteps.store(0, std::memory_order_relaxed);
     parseDone.store(false, std::memory_order_relaxed);
 
     // One thread per model: the files are independent, and reading them one
-    // after another left the disk and the cores idle.
+    // after another left the disk and the cores idle. Skips duplicates.
     parseThread = std::thread([this] {
         {
             std::vector<std::jthread> workers;
             for (std::size_t i = 0; i < requests.size(); i++) {
+                if (buildOwner[i] != i) {
+                    continue;
+                }
                 workers.emplace_back([this, i] {
                     parsedData[i] = Model::parse(requests[i]);
                     // Per model, not per mesh: a model's meshes all become
@@ -151,6 +168,15 @@ bool LoadingLayer::onUpdate(const double elapsedTime) {
     }
 
     if (buildModelIndex < parsedData.size()) {
+        if (buildOwner[buildModelIndex] != buildModelIndex) {
+            // Duplicate path: the owner already built and registered this
+            // model (owner index < this one, so it ran first). Reuse it.
+            builtModels.emplace_back(builtModels[buildOwner[buildModelIndex]]);
+            buildModelIndex++;
+            buildMeshIndex = 0;
+            return true;
+        }
+
         auto& data = parsedData[buildModelIndex];
 
         if (buildMeshIndex < data.meshes.size()) {

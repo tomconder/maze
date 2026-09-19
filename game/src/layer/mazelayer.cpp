@@ -76,8 +76,10 @@ std::vector<ModelCreateInfo> MazeLayer::getModelLoadRequests() const {
     std::vector<ModelCreateInfo> requests;
     requests.reserve(sceneDesc.objects.size());
     for (const auto& object : sceneDesc.objects) {
+        // name = path, not object.name: AssetManager dedupes models on this
+        // field, so two objects sharing a path must share a key too.
         requests.push_back({
-            .name = object.name,
+            .name = object.path,
             .path = object.path,
         });
     }

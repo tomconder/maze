@@ -55,6 +55,11 @@ private:
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         builtModels;
 
+    // buildOwner[i] == i: requests[i] parses and builds its own model.
+    // buildOwner[i] < i: requests[i] shares requests[buildOwner[i]]'s path;
+    // it skips parse and build and reuses that model once built.
+    std::vector<std::size_t> buildOwner;
+
     // Upload cursor: builds one mesh of parsedData[buildModelIndex] per
     // frame; buildingMeshes accumulates that model's built meshes until all
     // of them are ready, then becomes a Model and moves to the next one.
