@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "a1cae005c39be7b18ba319fced856b68d7276271",
+  "builtin-baseline": "843a4456b84751ec93932df23312c8e43f85c3c8",
   "dependencies": [
     {
       "name": "fkyaml",
@@ -47,7 +47,7 @@
     },
     {
       "name": "mimalloc",
-      "version>=": "3.5.1",
+      "version>=": "3.5.3",
       "features": [
         "secure"
       ]
