@@ -105,7 +105,9 @@ if (ENABLE_IMGUI)
     list(APPEND THIRD_PARTY_LICENSES "imgui=${VCPKG_SHARE}/imgui/copyright")
 endif ()
 if (ENABLE_PROFILING)
-    list(APPEND THIRD_PARTY_LICENSES "tracy=${VCPKG_SHARE}/tracy/copyright")
+    # The Tracy port installs to share/Tracy, so take the path from
+    # find_package, as for fkYAML above.
+    list(APPEND THIRD_PARTY_LICENSES "tracy=${Tracy_DIR}/copyright")
 endif ()
 foreach (LICENSE IN LISTS THIRD_PARTY_LICENSES)
     string(REGEX REPLACE "^[^=]*=" "" LICENSE_FILE "${LICENSE}")
