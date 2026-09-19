@@ -60,6 +60,12 @@ bool Application::start() {
 
     SPONGE_CORE_INFO("Initializing glfw");
 
+    // GLFW otherwise fails silently, e.g. glfwSetWindowMonitor rejecting a
+    // 0x0 size. Set before glfwInit so init errors are logged too.
+    glfwSetErrorCallback([](const int code, const char* description) {
+        SPONGE_CORE_ERROR("GLFW error {:#x}: {}", code, description);
+    });
+
     if (glfwInit() == GLFW_FALSE) {
         const char* descCStr = nullptr;
         glfwGetError(&descCStr);
