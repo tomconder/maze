@@ -13,14 +13,19 @@ primitives, windowing, or platform backends itself — see
 * `layer/mazelayer.hpp` / `.cpp` - the core gameplay layer: camera, lighting,
   shadow map, bloom/FXAA/TAA post-processing, and the update/render split.
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
-  `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp` - other screens in the
-  layer stack. The options screen is two layers, one per tab: `OptionLayer` is
-  the Display tab and `KeyMapLayer` the Keyboard tab. Only one is ever active;
-  `ui/tabbar.hpp` draws the shared tab strip and owns the swap
-  (`showOptionTab`), so both layers reserve `tabBarHeight()` at the top of
+  `layer/audiolayer.hpp`, `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp`
+  - other screens in the layer stack. The options screen is one layer per tab:
+  `OptionLayer` is Display, `KeyMapLayer` is Keyboard, `AudioLayer` is Audio.
+  Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
+  the swap (`showOptionTab`) and the wraparound next/prev order
+  (`cycleTab`), so all three layers reserve `tabBarHeight()` at the top of
   their Yoga root. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
-  happen on the main thread, never in the layer.
+  happen on the main thread, never in the layer. `AudioLayer`'s volume rows
+  are `ui::Slider` (drag, click-to-jump, and keyboard/gamepad step), applied
+  live to `sponge::platform::audio::Audio` and written to `Settings` on every
+  change, but only flushed to disk on drag-release or a discrete step — not
+  on every mouse-move frame of a drag.
 * `layer/imgui/imguilayer.hpp` / `.cpp` - the debug UI, compiled only when
   `ENABLE_IMGUI`. `layer/imgui/noopimguilayer.hpp` defines an inert
   `ImGuiLayer` with the same name for release builds, picked by the single

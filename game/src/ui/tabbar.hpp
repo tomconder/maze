@@ -14,10 +14,18 @@ namespace game::ui {
 
 // The options screen is split into one layer per tab; the tab bar is the only
 // thing they share.
-enum class OptionTab : uint8_t { Display = 0, Keyboard, Count };
+enum class OptionTab : uint8_t { Display = 0, Keyboard, Audio, Count };
 
 constexpr std::array<std::string_view, static_cast<size_t>(OptionTab::Count)>
-    optionTabLabels{ "Display", "Keyboard" };
+    optionTabLabels{ "Display", "Keyboard", "Audio" };
+
+// Next (direction = 1) or previous (direction = -1) tab, wrapping at both
+// ends.
+constexpr OptionTab cycleTab(const OptionTab current, const int direction) {
+    constexpr auto count = static_cast<int>(OptionTab::Count);
+    const auto next = (static_cast<int>(current) + direction + count) % count;
+    return static_cast<OptionTab>(next);
+}
 
 // Vertical space the bar occupies; reserve it at the top of layouts.
 float tabBarHeight(float windowWidth);

@@ -27,6 +27,7 @@ bool Maze::onUserCreate() {
     pushOverlay(exitLayer);
     pushOverlay(optionLayer);
     pushOverlay(keyMapLayer);
+    pushOverlay(audioLayer);
 
     pushLayer(mazeLayer);
     pushLayer(loadingLayer);
@@ -38,6 +39,7 @@ bool Maze::onUserCreate() {
     mazeLayer->setActive(false);
     keyMapLayer->setActive(false);
     optionLayer->setActive(false);
+    audioLayer->setActive(false);
     splashScreenLayer->setActive(true);
 
     const auto savedAa = sponge::core::Settings::getUInt32(

@@ -10,8 +10,15 @@ than calling GLFW/OpenGL/OS APIs directly.
 * `glfw/core/` - `Application` (main loop, layer stack, window/vsync/mouse
   state), `Window`, `InputManager`. This is the only place that owns the GLFW
   window and drives the update/render worker threads.
-* `audio/` - miniaudio playback (`Audio::init` / `shutdown` / `play`). Init and
-  shutdown from `Application`; game code only calls `play`.
+* `audio/` - miniaudio playback (`Audio::init` / `shutdown` / `play` /
+  `setMasterVolume` / `setSfxVolume` / `setMusicVolume`). Init and shutdown
+  from `Application`; game code calls `play` and the volume setters.
+  `init` seeds all three volumes from `Settings` (`audio.masterVolume` /
+  `audio.sfxVolume` / `audio.musicVolume`, 0-100, default 100) — it runs after
+  `startupCore()` has loaded `Settings`, so the values are already on disk by
+  then. `play` routes through the sfx sound group, not the engine's master
+  sound directly, so sfx and music volume can be controlled independently of
+  each other and of master.
 * `glfw/imgui/` - `GLFWManager` (real ImGui backend, built when
   `ENABLE_IMGUI`) vs `NoopManager` (stub for release builds).
 * `opengl/renderer/` - GL primitives: `Context`, `RendererAPI`, buffers
