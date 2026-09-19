@@ -21,12 +21,32 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace {
 sponge::core::Timer mainTimer;
+
+struct MonitorMode {
+    GLFWmonitor*       monitor;
+    const GLFWvidmode* mode;
+};
+
+// Both null checks fail together in practice (no monitor -> no mode), but
+// GLFW's API exposes them as two separate calls.
+std::optional<MonitorMode> getPrimaryMonitorMode() {
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    if (monitor == nullptr) {
+        return std::nullopt;
+    }
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    if (mode == nullptr) {
+        return std::nullopt;
+    }
+    return MonitorMode{ monitor, mode };
+}
 }  // namespace
 
 namespace sponge::platform::glfw::core {
@@ -370,39 +390,34 @@ void Application::run() {
             auto* glfwWindow =
                 static_cast<GLFWwindow*>(window->getNativeWindow());
             if (glfwWindow != nullptr) {
-                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-                if (monitor != nullptr) {
-                    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                    if (mode != nullptr) {
-                        if (fullscreen) {
-                            glfwGetWindowPos(glfwWindow, &prevX, &prevY);
-                            glfwGetWindowSize(glfwWindow, &prevW, &prevH);
-                            glfwSetWindowMonitor(glfwWindow, monitor, 0, 0,
-                                                 prevW, prevH,
-                                                 mode->refreshRate);
-                        } else {
-                            if (prevW <= 0) {
-                                prevW = static_cast<int>(appSpec.width);
-                            }
-                            if (prevH <= 0) {
-                                prevH = static_cast<int>(appSpec.height);
-                            }
-                            // A pristine settings file gives a 0x0 spec, and
-                            // GLFW rejects a 0x0 window without changing
-                            // mode. Keep the current size; a pending
-                            // resolution resizes it below.
-                            if (prevW <= 0 || prevH <= 0) {
-                                glfwGetWindowSize(glfwWindow, &prevW, &prevH);
-                            }
-                            const int posX = (mode->width - prevW) / 2;
-                            const int posY = (mode->height - prevH) / 2;
-                            glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
-                                                GLFW_TRUE);
-                            glfwSetWindowMonitor(glfwWindow, nullptr, posX,
-                                                 posY, prevW, prevH,
-                                                 GLFW_DONT_CARE);
-                            glfwFocusWindow(glfwWindow);
+                if (const auto mm = getPrimaryMonitorMode()) {
+                    if (fullscreen) {
+                        glfwGetWindowPos(glfwWindow, &prevX, &prevY);
+                        glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                        glfwSetWindowMonitor(glfwWindow, mm->monitor, 0, 0,
+                                             prevW, prevH,
+                                             mm->mode->refreshRate);
+                    } else {
+                        if (prevW <= 0) {
+                            prevW = static_cast<int>(appSpec.width);
                         }
+                        if (prevH <= 0) {
+                            prevH = static_cast<int>(appSpec.height);
+                        }
+                        // A pristine settings file gives a 0x0 spec, and
+                        // GLFW rejects a 0x0 window without changing
+                        // mode. Keep the current size; a pending
+                        // resolution resizes it below.
+                        if (prevW <= 0 || prevH <= 0) {
+                            glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                        }
+                        const int posX = (mm->mode->width - prevW) / 2;
+                        const int posY = (mm->mode->height - prevH) / 2;
+                        glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
+                                            GLFW_TRUE);
+                        glfwSetWindowMonitor(glfwWindow, nullptr, posX, posY,
+                                             prevW, prevH, GLFW_DONT_CARE);
+                        glfwFocusWindow(glfwWindow);
                     }
                 }
             }
@@ -418,23 +433,19 @@ void Application::run() {
             auto* glfwWindow =
                 static_cast<GLFWwindow*>(window->getNativeWindow());
             if (glfwWindow != nullptr) {
-                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-                if (monitor != nullptr) {
-                    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                    if (mode != nullptr) {
-                        if (fullscreen) {
-                            glfwSetWindowMonitor(
-                                glfwWindow, monitor, 0, 0, static_cast<int>(w),
-                                static_cast<int>(h), mode->refreshRate);
-                        } else {
-                            glfwSetWindowSize(glfwWindow, static_cast<int>(w),
-                                              static_cast<int>(h));
-                            const int posX =
-                                (mode->width - static_cast<int>(w)) / 2;
-                            const int posY =
-                                (mode->height - static_cast<int>(h)) / 2;
-                            glfwSetWindowPos(glfwWindow, posX, posY);
-                        }
+                if (const auto mm = getPrimaryMonitorMode()) {
+                    if (fullscreen) {
+                        glfwSetWindowMonitor(
+                            glfwWindow, mm->monitor, 0, 0, static_cast<int>(w),
+                            static_cast<int>(h), mm->mode->refreshRate);
+                    } else {
+                        glfwSetWindowSize(glfwWindow, static_cast<int>(w),
+                                          static_cast<int>(h));
+                        const int posX =
+                            (mm->mode->width - static_cast<int>(w)) / 2;
+                        const int posY =
+                            (mm->mode->height - static_cast<int>(h)) / 2;
+                        glfwSetWindowPos(glfwWindow, posX, posY);
                     }
                 }
             }
