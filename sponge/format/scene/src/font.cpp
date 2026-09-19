@@ -253,12 +253,11 @@ const Size* sizeOf(const Font& font, const uint32_t pixels) {
     return nullptr;
 }
 
-std::vector<ShapedGlyph> shape(const Font& font, const Size& size,
-                               const std::string_view text,
-                               const bool             tabularFigures) {
+void shape(const Font& font, const Size& size, const std::string_view text,
+           const bool tabularFigures, std::vector<ShapedGlyph>& glyphs) {
     const auto& slots = tabularFigures ? font.tabularSlots : font.slots;
 
-    std::vector<ShapedGlyph> glyphs;
+    glyphs.clear();
     for (size_t at = 0; at < text.size();) {
         const auto found = slots.find(nextCodepoint(text, at));
         const auto slot  = found != slots.end() ? found->second : 0;
@@ -275,7 +274,6 @@ std::vector<ShapedGlyph> shape(const Font& font, const Size& size,
             { .slot     = slot,
               .xAdvance = static_cast<float>(size.advances[slot]) / 64.F });
     }
-    return glyphs;
 }
 
 }  // namespace sponge::scene::font
