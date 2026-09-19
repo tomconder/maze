@@ -36,7 +36,6 @@ find_package(yoga CONFIG REQUIRED)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/maze)
 
 find_package(glfw3 CONFIG REQUIRED)
-find_package(mimalloc CONFIG REQUIRED)
 if (ENABLE_IMGUI)
     find_package(imgui CONFIG REQUIRED)
 endif ()
@@ -99,7 +98,6 @@ set(THIRD_PARTY_LICENSES
         "glfw=${VCPKG_SHARE}/glfw3/copyright"
         "glm=${VCPKG_SHARE}/glm/copyright"
         "miniaudio=${CMAKE_SOURCE_DIR}/sponge/deps/miniaudio/LICENSE"
-        "mimalloc=${VCPKG_SHARE}/mimalloc/copyright"
         "nlohmann-json=${VCPKG_SHARE}/nlohmann-json/copyright"
         "spdlog=${VCPKG_SHARE}/spdlog/copyright"
         "yoga=${VCPKG_SHARE}/yoga/copyright")
@@ -197,7 +195,6 @@ target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 target_link_libraries(game PRIVATE fkYAML::fkYAML)
-target_link_libraries(game PRIVATE mimalloc-static)
 target_link_libraries(game PRIVATE sponge::sponge)
 target_link_libraries(game PRIVATE yoga::yogacore)
 
