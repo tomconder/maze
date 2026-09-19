@@ -114,7 +114,8 @@ void InputManager::update() {
     mousePrev = mouseDown;
 
     // 2. Poll keyboard and mouse button state
-    for (int key = 0; key <= GLFW_KEY_LAST; key++) {
+    // GLFW has no keys below space; asking for one is an invalid-enum error.
+    for (int key = GLFW_KEY_SPACE; key <= GLFW_KEY_LAST; key++) {
         keyDown[key] = glfwGetKey(window, key) == GLFW_PRESS;
     }
     for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; button++) {
