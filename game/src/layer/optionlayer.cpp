@@ -428,12 +428,15 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             if (input.isActive(GameAction::MenuRight)) {
                 cycleList(selectedItem, 1);
             }
-            if (input.isActive(GameAction::TabNext) ||
-                input.isActive(GameAction::TabPrev)) {
+            if (input.isActive(GameAction::TabNext)) {
                 mgr.consumeActive(GameAction::TabNext);
+                clearHoveredItems();
+                ui::showOptionTab(ui::cycleTab(ui::OptionTab::Display, 1));
+            }
+            if (input.isActive(GameAction::TabPrev)) {
                 mgr.consumeActive(GameAction::TabPrev);
                 clearHoveredItems();
-                ui::showOptionTab(ui::OptionTab::Keyboard);
+                ui::showOptionTab(ui::cycleTab(ui::OptionTab::Display, -1));
             }
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);

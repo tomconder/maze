@@ -177,5 +177,6 @@ std::optional<OptionTab> tabBarHitTest(const std::shared_ptr<BitmapFont>& font,
 void showOptionTab(const OptionTab tab) {
     Maze::get().getOptionLayer()->setActive(tab == OptionTab::Display);
     Maze::get().getKeyMapLayer()->setActive(tab == OptionTab::Keyboard);
+    Maze::get().getAudioLayer()->setActive(tab == OptionTab::Audio);
 }
 }  // namespace game::ui

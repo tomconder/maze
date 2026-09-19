@@ -2,6 +2,7 @@
 
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
+#include "layer/audiolayer.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
@@ -38,6 +39,10 @@ public:
         return static_cast<Maze&>(Application::get());
     }
 
+    std::shared_ptr<layer::AudioLayer> getAudioLayer() const {
+        return audioLayer;
+    }
+
     std::shared_ptr<layer::ExitLayer> getExitLayer() const {
         return exitLayer;
     }
@@ -54,10 +59,11 @@ public:
         return keyMapLayer;
     }
 
-    // The options screen is two layers, one per tab, and only one of them is
-    // ever active — ask this rather than any single layer.
+    // The options screen is one layer per tab, and only one of them is ever
+    // active — ask this rather than any single layer.
     bool isOptionsOpen() const {
-        return optionLayer->isActive() || keyMapLayer->isActive();
+        return optionLayer->isActive() || keyMapLayer->isActive() ||
+               audioLayer->isActive();
     }
 
     std::shared_ptr<layer::LoadingLayer> getLoadingLayer() const {
@@ -95,6 +101,8 @@ public:
 private:
     bool isRunning = true;
 
+    std::shared_ptr<layer::AudioLayer> audioLayer =
+        std::make_shared<layer::AudioLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =

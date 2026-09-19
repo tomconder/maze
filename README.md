@@ -23,6 +23,7 @@ A game engine featuring a nice walk through a maze.
 * LCD subpixel text with subpixel positioning, rasterized with FreeType and shaped with HarfBuzz at build time
 * Flexbox-based UI layout with Yoga
 * Audio playback with miniaudio
+* Draggable slider widget for Master/Sfx/Music volume, with mouse, keyboard and gamepad support
 * Performance profiling with Tracy
 * Gamepad support
 * Dear ImGui debug and options UI
