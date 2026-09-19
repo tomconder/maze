@@ -113,10 +113,6 @@ void Context::init(GLFWwindow* window) const {
     }
 
     if (window != nullptr) {
-        float xscale = 0.F;
-        float yscale = 0.F;
-        glfwGetWindowContentScale(window, &xscale, &yscale);
-
         int32_t width  = 0;
         int32_t height = 0;
         glfwGetFramebufferSize(window, &width, &height);
