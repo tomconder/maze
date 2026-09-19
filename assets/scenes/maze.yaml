@@ -40,6 +40,12 @@ lighting:
     # Size of the cube drawn at each light position.
     debugCubeScale: 0.1
 
+# Both act on linear radiance before tone mapping, so useful thresholds run
+# past 1.0. Re-derive them from a texture readback, never by scaling.
+bloom:
+  threshold: 0.8
+  intensity: 0.08
+
 objects:
   # - name: floor
   #   path: /models/gltf/floor/floor.glb

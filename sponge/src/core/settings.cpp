@@ -121,16 +121,6 @@ bool Settings::getBool(const std::string& key, const bool defaultValue) {
     return value->get_value<bool>();
 }
 
-float Settings::getFloat(const std::string& key, const float defaultValue) {
-    const auto* value = navigate(key);
-    // YAML reads 1 and 1.0 as different types; accept both.
-    if (value == nullptr ||
-        !(value->is_float_number() || value->is_integer())) {
-        return defaultValue;
-    }
-    return value->get_value<float>();
-}
-
 uint32_t Settings::getUInt32(const std::string& key,
                              const uint32_t     defaultValue) {
     const auto* value = navigate(key);

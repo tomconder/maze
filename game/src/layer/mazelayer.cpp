@@ -63,6 +63,8 @@ MazeLayer::MazeLayer() :
     ao               = sceneDesc.lighting.ambient.occlusion;
     attenuationIndex = sceneDesc.lighting.point.attenuationIndex;
     numLights = std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
+    bloomThreshold = sceneDesc.bloom.threshold;
+    bloomIntensity = sceneDesc.bloom.intensity;
 }
 
 std::vector<ModelCreateInfo> MazeLayer::getModelLoadRequests() const {

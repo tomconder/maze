@@ -65,9 +65,17 @@ struct SceneLighting {
     ScenePointLights      point;
 };
 
+// Both act on LINEAR radiance before tone mapping, so they are tuned to this
+// scene's lighting. The debug sliders change them for the current run only.
+struct SceneBloom {
+    float threshold{ .8F };
+    float intensity{ .08F };
+};
+
 struct Scene {
     SceneCamera              camera;
     SceneLighting            lighting;
+    SceneBloom               bloom;
     std::vector<SceneObject> objects;
 };
 

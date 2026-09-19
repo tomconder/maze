@@ -48,10 +48,6 @@ bool Maze::onUserCreate() {
                         thread::AntiAliasing::Taa);
     setBloomEnabled(
         sponge::core::Settings::getBool("video.bloomEnabled", true));
-    setBloomThreshold(
-        sponge::core::Settings::getFloat("video.bloomThreshold", 0.8F));
-    setBloomIntensity(
-        sponge::core::Settings::getFloat("video.bloomIntensity", 0.08F));
 
     return true;
 }
