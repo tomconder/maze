@@ -81,6 +81,14 @@ Use a configuration preset to compile `maze`. Possible values are:
 | `windows-msvc-debug`   | Windows MSVC debug build             |
 | `windows-msvc-release` | Windows MSVC release build           |
 
+These are configure presets. The only build presets are `windows-release`,
+`osx-release` and `linux-release`, which build the matching `ci-*-release`
+configuration. For any other configure preset, build its binary directory:
+
+```
+cmake --build out/build/ci-windows-debug
+```
+
 To use the preset on Windows:
 
 ```
