@@ -112,8 +112,6 @@ void Context::init(GLFWwindow* window) const {
         }
     }
 
-    SPONGE_PROFILE_GPU_CONTEXT;
-
     if (window != nullptr) {
         float xscale = 0.F;
         float yscale = 0.F;

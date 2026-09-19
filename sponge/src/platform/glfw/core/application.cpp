@@ -7,6 +7,7 @@
 #include "platform/audio/audio.hpp"
 #include "platform/glfw/logging/sink.hpp"
 #include "platform/opengl/debug/diagnostics.hpp"
+#include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/context.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 
@@ -270,6 +271,9 @@ void Application::run() {
                                               &renderContextAcquired] {
         if (!renderContextAcquired) {
             graphics->makeCurrent(glfwWin);
+            // Tracy keeps the GPU context per thread, so create it on the
+            // thread that owns the GL context and issues the GPU zones.
+            SPONGE_PROFILE_GPU_CONTEXT;
             renderContextAcquired = true;
         }
 
