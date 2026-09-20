@@ -48,21 +48,20 @@ OcclusionCuller::~OcclusionCuller() {
 
 void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
                             const glm::mat4&                        viewProj,
-                            const glm::vec3&                        cameraPos) {
+                            const glm::vec3&                        eyePos) {
     shader->bind();
     vao->bind();
 
     for (size_t i = 0; i < worldBounds.size(); i++) {
         const auto& box = worldBounds[i];
 
-        const bool cameraInside =
-            cameraPos.x >= box.min.x && cameraPos.x <= box.max.x &&
-            cameraPos.y >= box.min.y && cameraPos.y <= box.max.y &&
-            cameraPos.z >= box.min.z && cameraPos.z <= box.max.z;
-        if (cameraInside) {
+        const bool eyeInside = eyePos.x >= box.min.x && eyePos.x <= box.max.x &&
+                               eyePos.y >= box.min.y && eyePos.y <= box.max.y &&
+                               eyePos.z >= box.min.z && eyePos.z <= box.max.z;
+        if (eyeInside) {
             visible[i] = 1;
             // Leave unissued: pollResults() then skips it until a query
-            // fired after the camera leaves the box gives a real answer.
+            // fired after the eye leaves the box gives a real answer.
             issued[i] = 0;
             continue;
         }

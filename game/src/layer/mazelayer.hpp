@@ -166,18 +166,24 @@ private:
     // there rather than every frame like the visibility test that reads it.
     std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
     // Per-object union of objectMeshWorldBounds, index-locked with
-    // objectModels — the box occlusionCuller tests each object against.
-    // Same one-time computation, same reason: objects never move.
+    // objectModels — the box occlusionCuller and shadowOcclusionCuller test
+    // each object against. Same one-time computation, same reason: objects
+    // never move.
     std::vector<sponge::scene::AABB> objectWorldBounds;
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
     sponge::scene::AABB sceneBounds;
     // Hardware occlusion queries against the depth prepass, gating the
-    // camera-view passes (depth prepass, opaque) only — not the shadow pass,
-    // which has its own light-frustum visibility. One frame of latency; see
+    // camera-view passes (depth prepass, opaque). One frame of latency; see
     // occlusionculler.hpp.
     std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
         occlusionCuller;
+    // Same technique against the shadow map's own depth: an object can be
+    // light-occluded independently of camera-occluded, so this is a separate
+    // result from occlusionCuller, alongside the light-frustum mask
+    // (objectMeshVisibleLight).
+    std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
+        shadowOcclusionCuller;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>

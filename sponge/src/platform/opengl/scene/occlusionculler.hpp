@@ -32,16 +32,19 @@ public:
     // Caller must already have the target depth buffer bound, with depth
     // test on (GL_LEQUAL) and colour/depth writes off — this only reads
     // depth. worldBounds must be objectCount long, index-locked with the
-    // caller's own object list.
+    // caller's own object list. viewProj/eyePos are whatever's being tested
+    // against — a perspective camera or an orthographic light.
     //
-    // An object whose box contains cameraPos is skipped and left visible: a
-    // camera inside a convex box never sees its near face (it's behind the
-    // camera, clipped away), so only the far face rasterizes — always
-    // farther than the object's own nearby geometry already in the depth
-    // buffer, so the query would always "fail" against itself. True for any
-    // object large enough to enclose the camera (e.g. the whole level).
+    // An object whose box contains eyePos is skipped and left visible. This
+    // matters for a perspective eye inside a convex box: only the far face
+    // rasterizes (the near face is behind the eye, clipped away), and
+    // that's always farther than the object's own nearby geometry already
+    // in the depth buffer, so the query would always "fail" against itself
+    // — true for any object large enough to enclose the eye (e.g. the whole
+    // level). An orthographic eye (e.g. a directional light) doesn't clip
+    // this way, so there the guard is just a harmless no-op.
     void query(const std::vector<sponge::scene::AABB>& worldBounds,
-               const glm::mat4& viewProj, const glm::vec3& cameraPos);
+               const glm::mat4& viewProj, const glm::vec3& eyePos);
 
     // Non-blocking: pulls in whichever queries already have a result.
     // Objects with no result yet keep their last known visibility.

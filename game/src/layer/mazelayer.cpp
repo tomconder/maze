@@ -171,6 +171,8 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
     occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
+    shadowOcclusionCuller =
+        std::make_unique<OcclusionCuller>(objectModels.size());
 
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
@@ -497,6 +499,9 @@ void MazeLayer::onRender() {
     // any pass decides what's visible.
     if (occlusionCuller) {
         occlusionCuller->pollResults();
+    }
+    if (shadowOcclusionCuller) {
+        shadowOcclusionCuller->pollResults();
     }
 
     // Phase 1: shadow map
@@ -1018,11 +1023,32 @@ void MazeLayer::renderSceneToDepthMap(
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (shadowOcclusionCuller && !shadowOcclusionCuller->isVisible(i)) {
+            continue;
+        }
         shader->setMat4("model", frame.objectModelMatrices[i]);
         frame.objectModels[i]->render(shader, frame.objectMeshVisibleLight[i]);
     }
 
     shader->unbind();
+
+    // Test every object's AABB against the shadow depth just rasterized,
+    // same technique as renderOcclusionQueries() but against the light's own
+    // depth instead of the camera's — still bound, so no FBO switch needed.
+    if (shadowOcclusionCuller) {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_CULL_FACE);
+
+        shadowOcclusionCuller->query(objectWorldBounds, frame.lightSpaceMatrix,
+                                     shadowMap->getEyePosition());
+
+        glEnable(GL_CULL_FACE);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    }
 
     shadowMap->unbind();
 }

@@ -36,6 +36,12 @@ public:
 
     const glm::mat4& getLightSpaceMatrix() const;
 
+    // World-space eye used to build the light's view matrix, for occlusion
+    // queries run against this map's own depth (see OcclusionCuller).
+    const glm::vec3& getEyePosition() const {
+        return eyePosition;
+    }
+
     // Fits the ortho box and near/far to sceneBounds (world space) each call,
     // so the frustum always exactly covers the static scene regardless of
     // its size, instead of a fixed box sized for whatever scene existed when
@@ -66,6 +72,7 @@ private:
     uint32_t shadowWidth;
 
     glm::mat4 lightSpaceMatrix{ 1.0f };
+    glm::vec3 eyePosition{ 0.0f };
 
     void initialize();
     void applyBlur() const;
