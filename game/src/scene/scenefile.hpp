@@ -32,7 +32,10 @@ struct SceneCamera {
 
 struct SceneAmbient {
     float strength{ .25F };
-    float occlusion{ .25F };
+    // 1 = no extra attenuation. SSAO now supplies real per-pixel occlusion;
+    // this is a flat multiplier on top of it, for an artist to darken ambient
+    // further without touching SSAO's radius/bias.
+    float occlusion{ 1.F };
 };
 
 struct SceneDirectionalLight {

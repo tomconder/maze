@@ -14,6 +14,7 @@
 #include "platform/opengl/scene/occlusionculler.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
+#include "platform/opengl/scene/ssao.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/frustum.hpp"
 #include "scene/gamecamera.hpp"
@@ -53,10 +54,6 @@ public:
     // Main thread, both workers idle: publish the slot written by the last
     // completed onUpdate() so render[N] always reads update[N-1]'s frame.
     void onFrameSync() override;
-
-    float getAmbientOcclusion() const;
-
-    void setAmbientOcclusion(float val);
 
     float getAmbientStrength() const;
 
@@ -102,6 +99,11 @@ public:
     void  setBloomThreshold(float val);
     float getBloomIntensity() const;
     void  setBloomIntensity(float val);
+
+    bool  isSsaoEnabled() const;
+    void  setSsaoEnabled(bool val);
+    float getSsaoRadius() const;
+    void  setSsaoRadius(float val);
 
     bool isImguiActive() const;
 
@@ -192,11 +194,15 @@ private:
     uint32_t depthPrepassTexture{ 0 };
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
     // depth prepass and consumed by TAA. Shares the prepass FBO.
-    uint32_t                                               velocityTexture{ 0 };
-    std::unique_ptr<sponge::platform::opengl::scene::Cube> cube;
-    std::unique_ptr<sponge::platform::opengl::scene::FXAA> fxaa;
-    std::unique_ptr<sponge::platform::opengl::scene::TAA>  taa;
+    uint32_t velocityTexture{ 0 };
+    // View-space normal (RGB16F), written by the depth prepass and consumed
+    // by SSAO. Shares the prepass FBO.
+    uint32_t normalPrepassTexture{ 0 };
+    std::unique_ptr<sponge::platform::opengl::scene::Cube>        cube;
+    std::unique_ptr<sponge::platform::opengl::scene::FXAA>        fxaa;
+    std::unique_ptr<sponge::platform::opengl::scene::TAA>         taa;
     std::unique_ptr<sponge::platform::opengl::scene::Bloom>       bloom;
+    std::unique_ptr<sponge::platform::opengl::scene::Ssao>        ssao;
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget> sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>   shadowMap;
 
@@ -261,7 +267,7 @@ private:
     mutable std::atomic<uint32_t> occlusionVisibleCount{ 0 };
     mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
     float                         ambientStrength  = .25F;
-    float                         ao               = .25F;
+    float                         ao               = 1.F;
     int32_t                       attenuationIndex = 4;
     thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
     bool                          bloomEnabled     = true;
@@ -273,6 +279,8 @@ private:
     // for the same look. Re-derive it against a measurement, never by
     // scaling the old number.
     float   bloomIntensity     = 0.08F;
+    bool    ssaoEnabled        = true;
+    float   ssaoRadius         = 0.5F;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;

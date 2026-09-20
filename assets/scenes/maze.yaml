@@ -13,7 +13,8 @@ camera:
 lighting:
   ambient:
     strength: 0.25
-    occlusion: 0.25
+    # 1 = no extra attenuation; SSAO now supplies real per-pixel occlusion.
+    occlusion: 1.0
 
   directional:
     enabled: true

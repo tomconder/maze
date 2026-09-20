@@ -26,6 +26,7 @@ struct PbrParams {
     float    metallicFactor;
     float    roughnessFactor;
     float    ao;
+    bool     ssaoEnabled;
     float    ambientStrength;
     float    evsmBleedThreshold;
     bool     hasNoTexture;
