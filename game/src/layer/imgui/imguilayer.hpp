@@ -42,6 +42,7 @@ private:
     static void showMenu();  // App info window sections
     static void showLightsSection();
     static void showBloomControls();
+    static void showSsaoControls();
     static void showDirectionalLightControls();
     static void showPointLightControls();
     static void showAttenuationSlider(int32_t& attenuationIndex);

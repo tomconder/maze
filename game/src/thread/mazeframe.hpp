@@ -91,6 +91,9 @@ struct MazeRenderFrame {
     bool  bloomEnabled{ false };
     float bloomThreshold{ 0.8F };
     float bloomIntensity{ 0.08F };
+
+    bool  ssaoEnabled{ true };
+    float ssaoRadius{ 0.5F };
 };
 
 }  // namespace game::thread

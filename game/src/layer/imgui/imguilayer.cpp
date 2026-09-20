@@ -206,6 +206,10 @@ void ImGuiLayer::showLightsSection() {
             showBloomControls();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("SSAO##Tab")) {
+            showSsaoControls();
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
 }
@@ -248,6 +252,34 @@ void ImGuiLayer::showBloomControls() {
             if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 0.5F,
                                    "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setBloomIntensity(intensity);
+            }
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showSsaoControls() {
+    if (ImGui::BeginTable("Ssao##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
+        auto ssaoEnabled = mazeLayer->isSsaoEnabled();
+        showTableRow([&] {
+            ImGui::Text("Enabled");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##ssaoenabled", &ssaoEnabled)) {
+                mazeLayer->setSsaoEnabled(ssaoEnabled);
+            }
+        });
+
+        auto radius = mazeLayer->getSsaoRadius();
+        showTableRow([&] {
+            ImGui::Text("Radius");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderFloat("##ssaoradius", &radius, 0.05F, 2.F, "%.2f",
+                                   ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setSsaoRadius(radius);
             }
         });
 
@@ -364,20 +396,12 @@ void ImGuiLayer::showPointLightControls() {
     if (ImGui::BeginTable("PointLights##Table", 1,
                           ImGuiTableFlags_NoPadInnerX |
                               ImGuiTableFlags_NoPadOuterX)) {
-        auto ambientStrength  = mazeLayer->getAmbientStrength();
-        auto ambientOcclusion = mazeLayer->getAmbientOcclusion();
+        auto ambientStrength = mazeLayer->getAmbientStrength();
 
         showTableRow([&] {
             if (ImGui::SliderFloat("Ambient Strength", &ambientStrength, 0.F,
                                    1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setAmbientStrength(ambientStrength);
-            }
-        });
-
-        showTableRow([&] {
-            if (ImGui::SliderFloat("Ambient Occlusion", &ambientOcclusion, 0.F,
-                                   1.F, "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setAmbientOcclusion(ambientOcclusion);
             }
         });
 

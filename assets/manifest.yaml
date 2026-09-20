@@ -84,4 +84,6 @@ shaders:
     depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
     occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain
     occlusionbox.frag: shaders/slang/occlusionbox.slang:fragMain
+    ssao.frag: shaders/slang/ssao.slang:fragMain
+    ssao_blur.frag: shaders/slang/ssaoblur.slang:fragMain
     cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain
