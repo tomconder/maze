@@ -14,6 +14,7 @@
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
+#include "scene/frustum.hpp"
 #include "scene/gamecamera.hpp"
 #include "scene/scenefile.hpp"
 #include "thread/mazeframe.hpp"
@@ -103,6 +104,25 @@ public:
 
     bool isImguiActive() const;
 
+    // This frame's frustum-culling stats, for the debug UI. Updated on the
+    // update thread in captureRenderFrame(), read from the render thread.
+    uint32_t getVisibleMeshCount() const {
+        return visibleMeshCount.load(std::memory_order_relaxed);
+    }
+    uint32_t getTotalMeshCount() const {
+        return totalMeshCount.load(std::memory_order_relaxed);
+    }
+
+    // Wall-clock cost of the cull test itself (update thread) and of the
+    // per-object CPU submission loop it feeds (render thread) — what the
+    // culling spends vs. what it's saving on the meshes it drops.
+    uint32_t getCullMicros() const {
+        return cullMicros.load(std::memory_order_relaxed);
+    }
+    uint32_t getSubmitMicros() const {
+        return submitMicros.load(std::memory_order_relaxed);
+    }
+
     // True once finishLoading() has run; LoadingLayer skips reloading if set.
     bool isLoaded() const {
         return resourcesReady.load(std::memory_order_acquire);
@@ -130,6 +150,10 @@ private:
     std::vector<glm::vec3>             objectEmissives;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
+    // World-space per-mesh AABB, index-locked with objectModels/[mesh index].
+    // Objects never move after finishLoading(), so this is computed once
+    // there rather than every frame like the visibility test that reads it.
+    std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
@@ -195,12 +219,21 @@ private:
 
     std::atomic<int32_t> screenWidth{ 0 };
     std::atomic<int32_t> screenHeight{ 0 };
-    float                ambientStrength  = .25F;
-    float                ao               = .25F;
-    int32_t              attenuationIndex = 4;
-    thread::AntiAliasing antiAliasing     = thread::AntiAliasing::Taa;
-    bool                 bloomEnabled     = true;
-    float                bloomThreshold   = 0.8F;
+
+    // Frustum-cull stats from the last captureRenderFrame(), for the debug
+    // UI. Written on the update thread, read on the render thread.
+    std::atomic<uint32_t> visibleMeshCount{ 0 };
+    std::atomic<uint32_t> totalMeshCount{ 0 };
+    std::atomic<uint32_t> cullMicros{ 0 };
+    // Set from renderGameObjects(), which is const (render-thread methods
+    // are const throughout this class).
+    mutable std::atomic<uint32_t> submitMicros{ 0 };
+    float                         ambientStrength  = .25F;
+    float                         ao               = .25F;
+    int32_t                       attenuationIndex = 4;
+    thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
+    bool                          bloomEnabled     = true;
+    float                         bloomThreshold   = 0.8F;
     // Additive weight for the bloom texture, applied in LINEAR space before
     // tone mapping. The bloom texture holds radiance (measured peak ~2.6 in
     // this scene), not the [0,1] tone-mapped values it held when bloom

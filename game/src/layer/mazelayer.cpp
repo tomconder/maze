@@ -1,6 +1,7 @@
 #include "layer/mazelayer.hpp"
 
 #include "core/settings.hpp"
+#include "debug/profiler.hpp"
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/mousecode.hpp"
@@ -17,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -96,6 +98,20 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         objectEmissives.push_back(object.emissive);
     }
     objectModels = std::move(builtModels);
+
+    objectMeshWorldBounds.reserve(objectModels.size());
+    for (size_t i = 0; i < objectModels.size(); i++) {
+        const auto& model       = objectModels[i];
+        const auto& modelMatrix = objectModelMatrices[i];
+
+        std::vector<sponge::scene::AABB> meshBounds;
+        meshBounds.reserve(model->getMeshCount());
+        for (size_t m = 0; m < model->getMeshCount(); m++) {
+            meshBounds.push_back(
+                sponge::scene::transform(model->getMeshBounds(m), modelMatrix));
+        }
+        objectMeshWorldBounds.push_back(std::move(meshBounds));
+    }
 
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
@@ -187,6 +203,13 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         frame.prevObjectModelMatrices = objectModelMatrices;
         frame.objectEmissives         = objectEmissives;
         frame.objectModels            = objectModels;
+
+        // All visible until the first captureRenderFrame() runs its cull.
+        frame.objectMeshVisible.resize(objectMeshWorldBounds.size());
+        for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+            frame.objectMeshVisible[i].assign(objectMeshWorldBounds[i].size(),
+                                              1);
+        }
     }
 
     // must precede setActive(true) in activate(): onUpdate/onRender only run
@@ -326,6 +349,37 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.farPlane         = camera->getFar();
     frame.screenWidth      = screenWidth;
     frame.screenHeight     = screenHeight;
+
+    {
+        SPONGE_PROFILE_SECTION("frustum cull");
+        const auto cullStart = std::chrono::steady_clock::now();
+
+        // Unjittered: the frustum a jittered MVP implies is the same one, off
+        // by a sub-pixel translation not worth the extra matrix.
+        const sponge::scene::Frustum frustum(frame.cameraViewProj);
+
+        uint32_t visible = 0;
+        uint32_t total   = 0;
+        for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+            const auto& bounds  = objectMeshWorldBounds[i];
+            auto&       visMask = frame.objectMeshVisible[i];
+            for (size_t m = 0; m < bounds.size(); m++) {
+                const bool vis = frustum.intersects(bounds[m]);
+                visMask[m]     = vis ? 1 : 0;
+                visible += vis ? 1U : 0U;
+            }
+            total += static_cast<uint32_t>(bounds.size());
+        }
+        visibleMeshCount.store(visible, std::memory_order_relaxed);
+        totalMeshCount.store(total, std::memory_order_relaxed);
+
+        const auto cullUs =
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - cullStart)
+                .count();
+        cullMicros.store(static_cast<uint32_t>(cullUs),
+                         std::memory_order_relaxed);
+    }
 
     {
         // ImGui setters mutate these from the render thread.
@@ -718,6 +772,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shadowMap->activateAndBindShadowTexture(1);
     }
 
+    const auto submitStart = std::chrono::steady_clock::now();
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         const auto& modelMatrix = frame.objectModelMatrices[i];
 
@@ -728,8 +783,13 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shader->setMat4("normalMatrix", normalMatrix);
         shader->setFloat3("emissive", frame.objectEmissives[i]);
 
-        frame.objectModels[i]->render(shader);
+        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i]);
     }
+    const auto submitUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                              std::chrono::steady_clock::now() - submitStart)
+                              .count();
+    submitMicros.store(static_cast<uint32_t>(submitUs),
+                       std::memory_order_relaxed);
 
     shader->unbind();
 }
@@ -810,7 +870,8 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
         depthPrepassShader->setMat4("prevMvpNoJitter",
                                     frame.prevCameraViewProj *
                                         frame.prevObjectModelMatrices[i]);
-        frame.objectModels[i]->render(depthPrepassShader);
+        frame.objectModels[i]->render(depthPrepassShader,
+                                      frame.objectMeshVisible[i]);
     }
 
     // Light cubes go through the same shader: position-only geometry at

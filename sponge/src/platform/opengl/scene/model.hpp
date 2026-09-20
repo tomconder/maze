@@ -3,6 +3,7 @@
 #include "modeldata.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/mesh.hpp"
+#include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
 
 #include <glm/glm.hpp>
@@ -52,12 +53,29 @@ public:
         buildTexture(std::optional<uint32_t>      image,
                      std::span<const ParsedImage> images);
 
-    void   render(const std::shared_ptr<renderer::Shader>& shader) const;
+    void render(const std::shared_ptr<renderer::Shader>& shader) const;
+
+    // Renders only the meshes flagged visible (nonzero), same index order as
+    // getMeshBounds(). An empty span renders every mesh, same as the
+    // overload above — the shadow pass uses that: it needs the light
+    // frustum, not the camera one this mask is built from.
+    void render(const std::shared_ptr<renderer::Shader>& shader,
+                std::span<const uint8_t>                 meshVisible) const;
+
     size_t getNumIndices() const {
         return numIndices;
     }
     size_t getNumVertices() const {
         return numVertices;
+    }
+
+    size_t getMeshCount() const {
+        return meshes.size();
+    }
+
+    // Model-space; the caller transforms by its own model matrix.
+    const sponge::scene::AABB& getMeshBounds(size_t index) const {
+        return meshes[index]->getBounds();
     }
 
 protected:
