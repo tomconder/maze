@@ -52,6 +52,15 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
     shader->bind();
     vao->bind();
 
+    // A tight-fitting mesh's own AABB sits at almost exactly its rendered
+    // depth, so GL_LEQUAL against the depth just rasterized for that same
+    // object is a coin flip between the proxy's and the mesh's independently
+    // built matrices — worst up close, where depth precision stops rounding
+    // the noise away. Bias the proxy toward the camera so it reliably reads
+    // as visible against its own geometry without masking real occluders.
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1.F, -1.F);
+
     for (size_t i = 0; i < worldBounds.size(); i++) {
         const auto& box = worldBounds[i];
 
@@ -78,6 +87,7 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
         issued[i] = 1;
     }
 
+    glDisable(GL_POLYGON_OFFSET_FILL);
     vao->unbind();
     shader->unbind();
 }
