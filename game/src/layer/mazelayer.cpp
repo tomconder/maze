@@ -216,9 +216,12 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
         // All visible until the first captureRenderFrame() runs its cull.
         frame.objectMeshVisible.resize(objectMeshWorldBounds.size());
+        frame.objectMeshVisibleLight.resize(objectMeshWorldBounds.size());
         for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
             frame.objectMeshVisible[i].assign(objectMeshWorldBounds[i].size(),
                                               1);
+            frame.objectMeshVisibleLight[i].assign(
+                objectMeshWorldBounds[i].size(), 1);
         }
     }
 
@@ -404,6 +407,15 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
             shadowMap->updateLightSpaceMatrix(
                 glm::normalize(directionalLight.direction), sceneBounds);
             frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+
+            const sponge::scene::Frustum lightFrustum(frame.lightSpaceMatrix);
+            for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+                const auto& bounds  = objectMeshWorldBounds[i];
+                auto&       visMask = frame.objectMeshVisibleLight[i];
+                for (size_t m = 0; m < bounds.size(); m++) {
+                    visMask[m] = lightFrustum.intersects(bounds[m]) ? 1 : 0;
+                }
+            }
         }
 
         frame.numLights             = numLights;
@@ -948,7 +960,7 @@ void MazeLayer::renderSceneToDepthMap(
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         shader->setMat4("model", frame.objectModelMatrices[i]);
-        frame.objectModels[i]->render(shader);
+        frame.objectModels[i]->render(shader, frame.objectMeshVisibleLight[i]);
     }
 
     shader->unbind();
