@@ -75,9 +75,15 @@ struct MazeRenderFrame {
     // Per-mesh camera-frustum visibility, index-locked with objectModels:
     // objectMeshVisible[i][m] is mesh m of objectModels[i]. Rebuilt every
     // frame in captureRenderFrame() from this frame's camera; the shadow
-    // pass ignores it and renders every mesh, since it needs the light
-    // frustum, not the camera one this was built from.
+    // pass ignores it and uses objectMeshVisibleLight instead, since it
+    // needs the light frustum, not the camera one this was built from.
     std::vector<std::vector<uint8_t>> objectMeshVisible;
+
+    // Same shape as objectMeshVisible, but tested against the light's
+    // frustum (lightSpaceMatrix) instead of the camera's. Only rebuilt when
+    // the shadow pass will actually run; stale otherwise since it goes
+    // unread.
+    std::vector<std::vector<uint8_t>> objectMeshVisibleLight;
 
     // Post-processing
     AntiAliasing antiAliasing{ AntiAliasing::None };
