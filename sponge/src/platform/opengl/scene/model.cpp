@@ -113,4 +113,16 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {
         mesh->render(shader);
     }
 }
+
+void Model::render(const std::shared_ptr<renderer::Shader>& shader,
+                   const std::span<const uint8_t>           meshVisible) const {
+    SPONGE_PROFILE;
+    SPONGE_PROFILE_GPU("render model culled");
+
+    for (size_t i = 0; i < meshes.size(); i++) {
+        if (meshVisible.empty() || meshVisible[i] != 0) {
+            meshes[i]->render(shader);
+        }
+    }
+}
 }  // namespace sponge::platform::opengl::scene

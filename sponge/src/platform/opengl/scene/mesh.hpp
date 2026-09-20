@@ -6,6 +6,7 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
 
 #include <glm/glm.hpp>
@@ -38,6 +39,12 @@ public:
         return defaultShader;
     }
 
+    // Model-space AABB, computed once from the vertex positions at build
+    // time.
+    const sponge::scene::AABB& getBounds() const {
+        return bounds;
+    }
+
 private:
     static constexpr std::string_view        shaderName = "mesh";
     static uint32_t                          meshProgramId;
@@ -55,6 +62,7 @@ private:
     float                                           metallicFactor;
     float                                           roughnessFactor;
     MeshUVTransforms                                uvTransforms;
+    sponge::scene::AABB                             bounds;
 };
 
 }  // namespace sponge::platform::opengl::scene

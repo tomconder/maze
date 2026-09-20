@@ -72,6 +72,13 @@ struct MazeRenderFrame {
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 
+    // Per-mesh camera-frustum visibility, index-locked with objectModels:
+    // objectMeshVisible[i][m] is mesh m of objectModels[i]. Rebuilt every
+    // frame in captureRenderFrame() from this frame's camera; the shadow
+    // pass ignores it and renders every mesh, since it needs the light
+    // frustum, not the camera one this was built from.
+    std::vector<std::vector<uint8_t>> objectMeshVisible;
+
     // Post-processing
     AntiAliasing antiAliasing{ AntiAliasing::None };
 

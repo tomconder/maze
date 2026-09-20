@@ -130,6 +130,22 @@ void ImGuiLayer::showInfoSection() {
         ImGui::Text("Resolution");
         ImGui::TableNextColumn();
         ImGui::Text("%s", resolution.c_str());
+
+        const auto mazeLayer = Maze::get().getMazeLayer();
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Meshes");
+        ImGui::TableNextColumn();
+        ImGui::Text("%u / %u visible", mazeLayer->getVisibleMeshCount(),
+                    mazeLayer->getTotalMeshCount());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Cull / submit");
+        ImGui::TableNextColumn();
+        ImGui::Text("%u us / %u us", mazeLayer->getCullMicros(),
+                    mazeLayer->getSubmitMicros());
+
         ImGui::EndTable();
     }
 

@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -55,6 +56,14 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     this->numIndices  = numIndices;
     this->vertices    = std::move(vertices);
     this->numVertices = numVertices;
+
+    glm::vec3 boundsMin(std::numeric_limits<float>::max());
+    glm::vec3 boundsMax(std::numeric_limits<float>::lowest());
+    for (const auto& vertex : this->vertices) {
+        boundsMin = glm::min(boundsMin, vertex.position);
+        boundsMax = glm::max(boundsMax, vertex.position);
+    }
+    bounds = { boundsMin, boundsMax };
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName.data(),
