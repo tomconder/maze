@@ -812,11 +812,13 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shadowMap->activateAndBindShadowTexture(1);
     }
 
-    const auto submitStart = std::chrono::steady_clock::now();
+    const auto submitStart      = std::chrono::steady_clock::now();
+    uint32_t   occlusionVisible = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
             continue;
         }
+        occlusionVisible++;
 
         const auto& modelMatrix = frame.objectModelMatrices[i];
 
@@ -834,6 +836,9 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                               .count();
     submitMicros.store(static_cast<uint32_t>(submitUs),
                        std::memory_order_relaxed);
+    occlusionVisibleCount.store(occlusionVisible, std::memory_order_relaxed);
+    occlusionTotalCount.store(static_cast<uint32_t>(frame.objectModels.size()),
+                              std::memory_order_relaxed);
 
     shader->unbind();
 }

@@ -5,6 +5,7 @@
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <span>
@@ -28,6 +29,11 @@ private:
 
     static std::vector<const char*> levelNames;
     static std::vector<const char*> categoryNames;
+
+    // Rolling per-frame history for the Info section's Meshes graph.
+    static constexpr int                    historyLength = 100;
+    static std::array<float, historyLength> meshVisibleHistory;
+    static int                              historyOffset;
 
     // Main sections
     static void showInfoSection();

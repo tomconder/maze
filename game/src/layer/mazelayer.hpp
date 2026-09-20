@@ -124,6 +124,16 @@ public:
         return submitMicros.load(std::memory_order_relaxed);
     }
 
+    // This frame's occlusion-culling stats, for the debug UI. Written from
+    // renderGameObjects() (render thread), read from the render thread too —
+    // atomic only so the type matches the frustum counters above.
+    uint32_t getOcclusionVisibleCount() const {
+        return occlusionVisibleCount.load(std::memory_order_relaxed);
+    }
+    uint32_t getOcclusionTotalCount() const {
+        return occlusionTotalCount.load(std::memory_order_relaxed);
+    }
+
     // True once finishLoading() has run; LoadingLayer skips reloading if set.
     bool isLoaded() const {
         return resourcesReady.load(std::memory_order_acquire);
@@ -242,6 +252,8 @@ private:
     // Set from renderGameObjects(), which is const (render-thread methods
     // are const throughout this class).
     mutable std::atomic<uint32_t> submitMicros{ 0 };
+    mutable std::atomic<uint32_t> occlusionVisibleCount{ 0 };
+    mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
     float                         ambientStrength  = .25F;
     float                         ao               = .25F;
     int32_t                       attenuationIndex = 4;
