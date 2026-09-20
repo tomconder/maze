@@ -11,6 +11,7 @@
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/occlusionculler.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
@@ -154,9 +155,19 @@ private:
     // Objects never move after finishLoading(), so this is computed once
     // there rather than every frame like the visibility test that reads it.
     std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
+    // Per-object union of objectMeshWorldBounds, index-locked with
+    // objectModels — the box occlusionCuller tests each object against.
+    // Same one-time computation, same reason: objects never move.
+    std::vector<sponge::scene::AABB> objectWorldBounds;
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
     sponge::scene::AABB sceneBounds;
+    // Hardware occlusion queries against the depth prepass, gating the
+    // camera-view passes (depth prepass, opaque) only — not the shadow pass,
+    // which has its own light-frustum visibility. One frame of latency; see
+    // occlusionculler.hpp.
+    std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
+        occlusionCuller;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
@@ -263,6 +274,8 @@ private:
     void createDepthPrepassFbo(int w, int h);
 
     void renderDepthPrepass(const thread::MazeRenderFrame& frame) const;
+
+    void renderOcclusionQueries(const thread::MazeRenderFrame& frame) const;
 
     void blitDepthToCurrentFbo(int w, int h) const;
 
