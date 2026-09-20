@@ -57,6 +57,9 @@ bool                     ImGuiLayer::hasLogMenu     = true;
 std::vector<const char*> ImGuiLayer::levelNames;
 std::vector<const char*> ImGuiLayer::categoryNames;
 
+std::array<float, ImGuiLayer::historyLength> ImGuiLayer::meshVisibleHistory{};
+int                                          ImGuiLayer::historyOffset = 0;
+
 using sponge::layer::Layer;
 using sponge::layer::LayerStack;
 using sponge::platform::opengl::renderer::AssetManager;
@@ -132,19 +135,34 @@ void ImGuiLayer::showInfoSection() {
         ImGui::Text("%s", resolution.c_str());
 
         const auto mazeLayer = Maze::get().getMazeLayer();
+
+        const auto meshVisible = mazeLayer->getVisibleMeshCount();
+        const auto meshTotal   = mazeLayer->getTotalMeshCount();
+
+        // Ring buffer: write the current value, then advance so
+        // historyOffset points at the oldest sample — PlotLines' own
+        // values_offset scrolls the plot from there.
+        meshVisibleHistory[static_cast<size_t>(historyOffset)] =
+            static_cast<float>(meshVisible);
+        historyOffset = (historyOffset + 1) % historyLength;
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Meshes");
         ImGui::TableNextColumn();
-        ImGui::Text("%u / %u visible", mazeLayer->getVisibleMeshCount(),
-                    mazeLayer->getTotalMeshCount());
+        const auto meshOverlay = fmt::format("{} / {}", meshVisible, meshTotal);
+        ImGui::PlotLines("##MeshesGraph", meshVisibleHistory.data(),
+                         historyLength, historyOffset, meshOverlay.c_str(), 0.F,
+                         static_cast<float>(std::max(meshTotal, 1U)),
+                         ImVec2(0, 30));
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Cull / submit");
+        ImGui::Text("Objects");
         ImGui::TableNextColumn();
-        ImGui::Text("%u us / %u us", mazeLayer->getCullMicros(),
-                    mazeLayer->getSubmitMicros());
+        ImGui::Text("%u / %u occlusion-visible",
+                    mazeLayer->getOcclusionVisibleCount(),
+                    mazeLayer->getOcclusionTotalCount());
 
         ImGui::EndTable();
     }

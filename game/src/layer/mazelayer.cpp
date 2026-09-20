@@ -60,6 +60,7 @@ using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
+using sponge::platform::opengl::scene::OcclusionCuller;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::TAA;
@@ -107,20 +108,26 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
         std::vector<sponge::scene::AABB> meshBounds;
         meshBounds.reserve(model->getMeshCount());
+        sponge::scene::AABB objectBounds{
+            glm::vec3(std::numeric_limits<float>::max()),
+            glm::vec3(std::numeric_limits<float>::lowest())
+        };
         for (size_t m = 0; m < model->getMeshCount(); m++) {
-            meshBounds.push_back(
-                sponge::scene::transform(model->getMeshBounds(m), modelMatrix));
+            const auto worldBounds =
+                sponge::scene::transform(model->getMeshBounds(m), modelMatrix);
+            objectBounds.min = glm::min(objectBounds.min, worldBounds.min);
+            objectBounds.max = glm::max(objectBounds.max, worldBounds.max);
+            meshBounds.push_back(worldBounds);
         }
         objectMeshWorldBounds.push_back(std::move(meshBounds));
+        objectWorldBounds.push_back(objectBounds);
     }
 
     sceneBounds = { glm::vec3(std::numeric_limits<float>::max()),
                     glm::vec3(std::numeric_limits<float>::lowest()) };
-    for (const auto& bounds : objectMeshWorldBounds) {
-        for (const auto& box : bounds) {
-            sceneBounds.min = glm::min(sceneBounds.min, box.min);
-            sceneBounds.max = glm::max(sceneBounds.max, box.max);
-        }
+    for (const auto& box : objectWorldBounds) {
+        sceneBounds.min = glm::min(sceneBounds.min, box.min);
+        sceneBounds.max = glm::max(sceneBounds.max, box.max);
     }
 
     const auto gameCameraCreateInfo =
@@ -163,6 +170,9 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
+    occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
+    shadowOcclusionCuller =
+        std::make_unique<OcclusionCuller>(objectModels.size());
 
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
@@ -485,6 +495,15 @@ void MazeLayer::onRender() {
     const auto& frame =
         renderFrames[renderReadIndex.load(std::memory_order_acquire)];
 
+    // Pick up whichever occlusion queries resolved since last frame, before
+    // any pass decides what's visible.
+    if (occlusionCuller) {
+        occlusionCuller->pollResults();
+    }
+    if (shadowOcclusionCuller) {
+        shadowOcclusionCuller->pollResults();
+    }
+
     // Phase 1: shadow map
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         renderSceneToDepthMap(frame);
@@ -492,6 +511,10 @@ void MazeLayer::onRender() {
 
     // Phase 2: depth prepass
     renderDepthPrepass(frame);
+
+    // Phase 2.5: occlusion queries against the depth just rasterized —
+    // results feed next frame's occlusion skip, not this one's.
+    renderOcclusionQueries(frame);
 
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
@@ -794,8 +817,14 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shadowMap->activateAndBindShadowTexture(1);
     }
 
-    const auto submitStart = std::chrono::steady_clock::now();
+    const auto submitStart      = std::chrono::steady_clock::now();
+    uint32_t   occlusionVisible = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (occlusionCuller && !occlusionCuller->isVisible(i)) {
+            continue;
+        }
+        occlusionVisible++;
+
         const auto& modelMatrix = frame.objectModelMatrices[i];
 
         shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
@@ -812,6 +841,9 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                               .count();
     submitMicros.store(static_cast<uint32_t>(submitUs),
                        std::memory_order_relaxed);
+    occlusionVisibleCount.store(occlusionVisible, std::memory_order_relaxed);
+    occlusionTotalCount.store(static_cast<uint32_t>(frame.objectModels.size()),
+                              std::memory_order_relaxed);
 
     shader->unbind();
 }
@@ -882,6 +914,10 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
+        if (occlusionCuller && !occlusionCuller->isVisible(i)) {
+            continue;
+        }
+
         // Rasterization uses the jittered matrix so prepass depth lines up with
         // the scene pass; motion is measured unjittered, or the jitter itself
         // would read as movement.
@@ -917,6 +953,34 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     if (writeVelocity) {
         glEnable(GL_BLEND);
     }
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void MazeLayer::renderOcclusionQueries(
+    const thread::MazeRenderFrame& frame) const {
+    if (!occlusionCuller) {
+        return;
+    }
+
+    // Test every object's AABB against the depth prepass just rasterized.
+    // Depth-test only: no colour, no depth write, so this can't perturb the
+    // buffer the opaque pass is about to blit and depth-test against.
+    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_LEQUAL);
+    // Global back-face culling (RendererAPI) would cull every face of a box
+    // the camera is inside — true for any large object's AABB, e.g. sponza's
+    // — leaving the query with nothing to rasterize and the object stuck
+    // permanently "occluded". The proxy has no back faces to hide anyway.
+    glDisable(GL_CULL_FACE);
+
+    occlusionCuller->query(objectWorldBounds, frame.cameraMVP, frame.cameraPos);
+
+    glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -959,11 +1023,32 @@ void MazeLayer::renderSceneToDepthMap(
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (shadowOcclusionCuller && !shadowOcclusionCuller->isVisible(i)) {
+            continue;
+        }
         shader->setMat4("model", frame.objectModelMatrices[i]);
         frame.objectModels[i]->render(shader, frame.objectMeshVisibleLight[i]);
     }
 
     shader->unbind();
+
+    // Test every object's AABB against the shadow depth just rasterized,
+    // same technique as renderOcclusionQueries() but against the light's own
+    // depth instead of the camera's — still bound, so no FBO switch needed.
+    if (shadowOcclusionCuller) {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        glDisable(GL_CULL_FACE);
+
+        shadowOcclusionCuller->query(objectWorldBounds, frame.lightSpaceMatrix,
+                                     shadowMap->getEyePosition());
+
+        glEnable(GL_CULL_FACE);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    }
 
     shadowMap->unbind();
 }

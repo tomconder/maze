@@ -82,4 +82,6 @@ shaders:
     cube.vert: shaders/slang/cube.slang:vertMain
     depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
     depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
+    occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain
+    occlusionbox.frag: shaders/slang/occlusionbox.slang:fragMain
     cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain

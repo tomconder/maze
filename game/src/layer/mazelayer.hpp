@@ -11,6 +11,7 @@
 #include "platform/opengl/scene/cube.hpp"
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/occlusionculler.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/taa.hpp"
@@ -123,6 +124,16 @@ public:
         return submitMicros.load(std::memory_order_relaxed);
     }
 
+    // This frame's occlusion-culling stats, for the debug UI. Written from
+    // renderGameObjects() (render thread), read from the render thread too —
+    // atomic only so the type matches the frustum counters above.
+    uint32_t getOcclusionVisibleCount() const {
+        return occlusionVisibleCount.load(std::memory_order_relaxed);
+    }
+    uint32_t getOcclusionTotalCount() const {
+        return occlusionTotalCount.load(std::memory_order_relaxed);
+    }
+
     // True once finishLoading() has run; LoadingLayer skips reloading if set.
     bool isLoaded() const {
         return resourcesReady.load(std::memory_order_acquire);
@@ -154,9 +165,25 @@ private:
     // Objects never move after finishLoading(), so this is computed once
     // there rather than every frame like the visibility test that reads it.
     std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
+    // Per-object union of objectMeshWorldBounds, index-locked with
+    // objectModels — the box occlusionCuller and shadowOcclusionCuller test
+    // each object against. Same one-time computation, same reason: objects
+    // never move.
+    std::vector<sponge::scene::AABB> objectWorldBounds;
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
     sponge::scene::AABB sceneBounds;
+    // Hardware occlusion queries against the depth prepass, gating the
+    // camera-view passes (depth prepass, opaque). One frame of latency; see
+    // occlusionculler.hpp.
+    std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
+        occlusionCuller;
+    // Same technique against the shadow map's own depth: an object can be
+    // light-occluded independently of camera-occluded, so this is a separate
+    // result from occlusionCuller, alongside the light-frustum mask
+    // (objectMeshVisibleLight).
+    std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
+        shadowOcclusionCuller;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
@@ -231,6 +258,8 @@ private:
     // Set from renderGameObjects(), which is const (render-thread methods
     // are const throughout this class).
     mutable std::atomic<uint32_t> submitMicros{ 0 };
+    mutable std::atomic<uint32_t> occlusionVisibleCount{ 0 };
+    mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
     float                         ambientStrength  = .25F;
     float                         ao               = .25F;
     int32_t                       attenuationIndex = 4;
@@ -263,6 +292,8 @@ private:
     void createDepthPrepassFbo(int w, int h);
 
     void renderDepthPrepass(const thread::MazeRenderFrame& frame) const;
+
+    void renderOcclusionQueries(const thread::MazeRenderFrame& frame) const;
 
     void blitDepthToCurrentFbo(int w, int h) const;
 

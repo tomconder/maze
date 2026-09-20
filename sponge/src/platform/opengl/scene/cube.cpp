@@ -2,35 +2,11 @@
 
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
+#include "platform/opengl/scene/unitcube.hpp"
 
 #include <glm/glm.hpp>
-#include <array>
 #include <cstdint>
 #include <memory>
-
-namespace {
-constexpr std::array vertices = {
-    glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
-    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ -0.5, 0.5, -0.5 },
-    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, 0.5, -0.5 },
-    glm::vec3{ -0.5, 0.5, -0.5 },  glm::vec3{ -0.5, -0.5, -0.5 },
-    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, 0.5, -0.5 },
-    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, 0.5, 0.5 },
-    glm::vec3{ 0.5, 0.5, 0.5 },    glm::vec3{ 0.5, -0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, 0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, 0.5, -0.5 },
-    glm::vec3{ 0.5, 0.5, -0.5 },   glm::vec3{ 0.5, -0.5, -0.5 },
-    glm::vec3{ -0.5, -0.5, -0.5 }, glm::vec3{ 0.5, 0.5, -0.5 },
-    glm::vec3{ -0.5, -0.5, -0.5 }, glm::vec3{ -0.5, 0.5, -0.5 },
-    glm::vec3{ -0.5, 0.5, 0.5 },   glm::vec3{ -0.5, -0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, 0.5 },   glm::vec3{ -0.5, 0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, 0.5 },   glm::vec3{ 0.5, 0.5, 0.5 },
-    glm::vec3{ -0.5, -0.5, 0.5 },  glm::vec3{ -0.5, -0.5, -0.5 },
-    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ -0.5, -0.5, 0.5 },
-    glm::vec3{ 0.5, -0.5, -0.5 },  glm::vec3{ 0.5, -0.5, 0.5 },
-};
-constexpr uint32_t vertexCount = 36;
-}  // namespace
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
@@ -47,8 +23,8 @@ Cube::Cube() {
     vao = std::make_unique<renderer::VertexArray>();
     vao->bind();
 
-    vbo = std::make_unique<renderer::VertexBuffer>(vertices.data(),
-                                                   sizeof(vertices));
+    vbo = std::make_unique<renderer::VertexBuffer>(unitCubeVertices.data(),
+                                                   sizeof(unitCubeVertices));
     vbo->bind();
 
     constexpr uint32_t positionLoc = 0;
@@ -62,7 +38,7 @@ Cube::Cube() {
 
 void Cube::render() const {
     vao->bind();
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    glDrawArrays(GL_TRIANGLES, 0, unitCubeVertexCount);
     vao->unbind();
 }
 

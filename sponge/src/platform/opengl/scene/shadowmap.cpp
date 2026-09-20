@@ -213,6 +213,7 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection,
                                glm::vec3(0.F, 1.F, 0.F);
     const auto eye       = center - lightDirection * radius * 2.F;
     const auto lightView = glm::lookAt(eye, center, up);
+    eyePosition          = eye;
 
     // Fit the ortho box to the scene's bounds as seen from the light, so the
     // frustum always exactly covers the static scene, at whatever size it
