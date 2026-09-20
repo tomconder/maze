@@ -267,7 +267,7 @@ private:
     mutable std::atomic<uint32_t> occlusionVisibleCount{ 0 };
     mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
     float                         ambientStrength  = .25F;
-    float                         ao               = 1.F;
+    float                         ao               = .25F;
     int32_t                       attenuationIndex = 4;
     thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
     bool                          bloomEnabled     = true;

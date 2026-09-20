@@ -70,7 +70,7 @@ using thread::AntiAliasing;
 MazeLayer::MazeLayer() :
     Layer("maze"), sceneDesc(scene::loadScene(std::string(scenePath))) {
     ambientStrength  = sceneDesc.lighting.ambient.strength;
-    ao               = sceneDesc.lighting.ambient.occlusion;
+    ao               = sceneDesc.lighting.ambient.ambientOcclusion;
     attenuationIndex = sceneDesc.lighting.point.attenuationIndex;
     numLights = std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
     bloomThreshold = sceneDesc.bloom.threshold;
