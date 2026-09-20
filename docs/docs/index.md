@@ -15,6 +15,8 @@ A game engine featuring a nice walk through a maze.
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Reinhard tone mapping
 * Physically based bloom
+* Screen-space ambient occlusion (SSAO)
+* Camera frustum and hardware occlusion culling
 * Selectable anti-aliasing: FXAA or temporal (TAA)
 * Shaders written in Slang, compiled at build time into one shader pack
 * Build-time asset converter: glTF 2.0 and Wavefront OBJ models baked to an engine format, so the game links no asset parser
