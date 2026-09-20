@@ -14,13 +14,6 @@
 #include <memory>
 #include <string>
 
-namespace {
-constexpr float nearPlane     = 1.F;
-constexpr float farPlane      = 75.F;
-constexpr float orthoBoxSize  = 20.F;
-constexpr float lightDistance = 30.F;
-}  // namespace
-
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
@@ -206,17 +199,33 @@ const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
     return lightSpaceMatrix;
 }
 
-void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection) {
-    const auto lightProjection =
-        glm::ortho(-orthoBoxSize, orthoBoxSize, -orthoBoxSize, orthoBoxSize,
-                   nearPlane, farPlane);
+void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection,
+                                       const sponge::scene::AABB& sceneBounds) {
+    const auto center = (sceneBounds.min + sceneBounds.max) * 0.5F;
+    // Half the AABB's diagonal: the farthest any corner sits from center, so
+    // placing the eye two of these out along -lightDirection clears every
+    // corner with room to spare, however the scene is shaped.
+    const auto radius = glm::length(sceneBounds.max - sceneBounds.min) * 0.5F;
 
     // avoid lookAt degenerating when light direction nears vertical
-    const auto up = std::abs(lightDirection.y) > 0.99F ?
-                        glm::vec3(0.F, 0.F, 1.F) :
-                        glm::vec3(0.F, 1.F, 0.F);
-    const auto lightView =
-        glm::lookAt(lightDistance * -lightDirection, glm::vec3(0.0f), up);
+    const auto up        = std::abs(lightDirection.y) > 0.99F ?
+                               glm::vec3(0.F, 0.F, 1.F) :
+                               glm::vec3(0.F, 1.F, 0.F);
+    const auto eye       = center - lightDirection * radius * 2.F;
+    const auto lightView = glm::lookAt(eye, center, up);
+
+    // Fit the ortho box to the scene's bounds as seen from the light, so the
+    // frustum always exactly covers the static scene, at whatever size it
+    // is, instead of a fixed box sized for one particular scene.
+    const auto viewBounds = sponge::scene::transform(sceneBounds, lightView);
+
+    // Guards against grazing-angle edge clipping on geometry sitting exactly
+    // on the scene's boundary (e.g. a floor at the exact minimum Y).
+    constexpr float padding = 0.5F;
+    const auto      lightProjection =
+        glm::ortho(viewBounds.min.x - padding, viewBounds.max.x + padding,
+                   viewBounds.min.y - padding, viewBounds.max.y + padding,
+                   -viewBounds.max.z - padding, -viewBounds.min.z + padding);
 
     lightSpaceMatrix = lightProjection * lightView;
 }

@@ -154,6 +154,9 @@ private:
     // Objects never move after finishLoading(), so this is computed once
     // there rather than every frame like the visibility test that reads it.
     std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
+    // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
+    // scene. Same one-time computation as above, same reason.
+    sponge::scene::AABB sceneBounds;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>

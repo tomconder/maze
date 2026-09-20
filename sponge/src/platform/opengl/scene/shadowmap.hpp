@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
+#include "scene/frustum.hpp"
 
 #include <glm/glm.hpp>
 
@@ -34,7 +35,13 @@ public:
     uint32_t getWidth() const;
 
     const glm::mat4& getLightSpaceMatrix() const;
-    void             updateLightSpaceMatrix(const glm::vec3& lightDirection);
+
+    // Fits the ortho box and near/far to sceneBounds (world space) each call,
+    // so the frustum always exactly covers the static scene regardless of
+    // its size, instead of a fixed box sized for whatever scene existed when
+    // the constants were picked.
+    void updateLightSpaceMatrix(const glm::vec3&           lightDirection,
+                                const sponge::scene::AABB& sceneBounds);
 
 private:
     static const std::string          shaderName;

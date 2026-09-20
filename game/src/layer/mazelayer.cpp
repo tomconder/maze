@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <random>
@@ -111,6 +112,15 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
                 sponge::scene::transform(model->getMeshBounds(m), modelMatrix));
         }
         objectMeshWorldBounds.push_back(std::move(meshBounds));
+    }
+
+    sceneBounds = { glm::vec3(std::numeric_limits<float>::max()),
+                    glm::vec3(std::numeric_limits<float>::lowest()) };
+    for (const auto& bounds : objectMeshWorldBounds) {
+        for (const auto& box : bounds) {
+            sceneBounds.min = glm::min(sceneBounds.min, box.min);
+            sceneBounds.max = glm::max(sceneBounds.max, box.max);
+        }
     }
 
     const auto gameCameraCreateInfo =
@@ -392,7 +402,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
             // Update on update thread to avoid racing render thread
             // bind()/unbind().
             shadowMap->updateLightSpaceMatrix(
-                glm::normalize(directionalLight.direction));
+                glm::normalize(directionalLight.direction), sceneBounds);
             frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
         }
 
