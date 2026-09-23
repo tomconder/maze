@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "843a4456b84751ec93932df23312c8e43f85c3c8",
+  "builtin-baseline": "9e3427bc82738568947beb508e78231f99c04f4c",
   "dependencies": [
     {
       "name": "fkyaml",
@@ -47,7 +47,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2026.7.1"
+      "version>=": "2026.18"
     },
     {
       "name": "spdlog",
@@ -61,7 +61,7 @@
       "features": [
         "on-demand"
       ],
-      "version>=": "0.13.1"
+      "version>=": "0.14.1"
     },
     {
       "name": "yoga",
