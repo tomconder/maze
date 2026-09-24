@@ -308,7 +308,7 @@ The converter builds with the project and is never installed with the game.
 
 ```
 cmake.exe -B build --preset windows-msvc-release
-cmake.exe --build build --target assetconv --config Release
+cmake.exe --build build --target assetconv
 ```
 
 It links `sponge::format`, the KTX2 codec and the format readers and writers

@@ -103,7 +103,7 @@ To use the preset on Windows:
 
 ```
 cmake.exe -B build --preset windows-msvc-release
-cmake.exe --build build --target game --config Release
+cmake.exe --build build --target game
 ```
 
 ## Running
@@ -111,7 +111,7 @@ cmake.exe --build build --target game --config Release
 On Windows, you can find the maze executable will be found in the build directory.
 
 ```
-build\maze\Release\maze.exe
+build\maze\maze.exe
 ```
 
 Or, for MacOS, the app bundle will be found in the build directory.

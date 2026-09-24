@@ -11,7 +11,8 @@ primitives, windowing, or platform backends itself — see
   subclass. Owns the layer stack (intro, maze, options, exit, imgui) and
   exposes the anti-aliasing mode and bloom toggles the UI reads.
 * `layer/mazelayer.hpp` / `.cpp` - the core gameplay layer: camera, lighting,
-  shadow map, bloom/FXAA/TAA post-processing, and the update/render split.
+  shadow map, SSAO, occlusion culling, bloom/FXAA/TAA post-processing, and
+  the update/render split.
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
   `layer/audiolayer.hpp`, `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp`
   - other screens in the layer stack. The options screen is one layer per tab:
@@ -34,9 +35,9 @@ primitives, windowing, or platform backends itself — see
   Never link imgui into release: keep the `imgui::imgui` link and the
   `layer/imgui/*.cpp` glob behind `ENABLE_IMGUI`.
 * `scene/scenefile.hpp` / `.cpp` - reads `assets/scenes/maze.yaml` into a
-  `Scene`: camera, lighting and the object list `MazeLayer` used to hold as
-  a `constexpr` array. Parsed with fkYAML in the `MazeLayer` constructor,
-  which `startupCore()` guarantees runs after logging and settings are up.
+  `Scene`: camera, lighting and the object list. Parsed with fkYAML in the
+  `MazeLayer` constructor, which `startupCore()` guarantees runs after
+  logging and settings are up.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants
@@ -73,19 +74,16 @@ primitives, windowing, or platform backends itself — see
 * Point lights are placed by the seeded spiral in `setNumLights()`, not
   authored one by one, so the debug slider can change the count at run
   time. The scene file carries the generator's inputs, not positions.
-* Scene object paths are no longer compile-time constants, so a typo is now
-  possible. `loadScene()` drops entries with an empty name or path, which is
-  what keeps `objectModels`, `objectModelMatrices` and `objectEmissives`
+* Scene object paths come from YAML, so a typo reaches run time.
+  `loadScene()` drops entries with an empty name or path, which is what
+  keeps `objectModels`, `objectModelMatrices` and `objectEmissives`
   index-locked for `renderGameObjects()`.
-* `bloomThreshold` and `bloomIntensity` operate on LINEAR radiance and are
-  applied before tone mapping. The bloom texture holds unbounded values, not
-  the [0,1] ones it held when bloom composited after the curve, so
-  `bloomIntensity` is roughly an order of magnitude smaller than it once was.
-  `bloomThreshold` stays at 0.8, but it now cuts on radiance, not on a point
-  of the tone curve, so useful values run past 1.0. Re-derive both from a
-  texture readback, never by scaling the old numbers. Their defaults live in
-  the `bloom` section of `assets/scenes/maze.yaml`, not in settings; the
-  debug sliders change them for the current run only.
+* `bloomThreshold` and `bloomIntensity` operate on linear radiance and are
+  applied before tone mapping. The bloom texture holds unbounded values, so
+  useful threshold values run past 1.0 and intensity stays small. Tune both
+  from a texture readback. Their defaults live in the `bloom` section of
+  `assets/scenes/maze.yaml`, not in settings; the debug sliders change them
+  for the current run only.
 
 ## Anti-patterns
 

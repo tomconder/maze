@@ -7,7 +7,9 @@ vcpkg_installed/
 .slangbuild.log
 buildlog.txt
 
-.claude
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 .cache
 
 ### C++ ###
