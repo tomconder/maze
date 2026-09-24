@@ -19,21 +19,16 @@ Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other ag
 * Skip intermediate PR details. Only the final squash commit matters.
 * For large or high-risk changes, write it like a technical blog post.
 
-# When compacting, preserve:
+## Compaction
 
-* current task goal, files changed, commands run
-* failing tests and exact errors, decisions made
-
-# Drop: old exploration paths, repeated logs
-
-* Do not edit generated files in `out/`
-* Do not edit 3rd-party files in `sponge/deps`
-* App code: `game/` `sponge/`
+When compacting, keep the current task goal, files changed, commands run,
+failing builds and exact errors, and decisions made. Drop old exploration
+paths and repeated logs.
 
 ## Architecture
 
 * `game/` — maze application (layers, UI, cameras). CMake target `game`; Windows exe `maze.exe`.
-* `sponge/src/{core,event,input,layer,logging,scene,thread}` — platform-agnostic engine.
+* `sponge/src/{core,debug,event,input,layer,logging,scene,thread}` — platform-agnostic engine.
 * `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
 * `assets/shaders/slang/` — Slang sources. `assetconv --manifest` compiles every stage listed under `shaders` in `assets/manifest.yaml` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
 * C++23, vcpkg manifest (`vcpkg.json`). Optional CMake flags: `ENABLE_IMGUI`, `ENABLE_PROFILING` (Tracy).
@@ -51,20 +46,16 @@ Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other ag
 
 ### Global Invariants
 
-* `sponge/src/{core,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
+* `sponge/src/{core,debug,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
 * No tool or persona names in code comments (`ponytail:`, agent names, etc.) — tag deliberate simplifications in plain words.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling
 
-When running inside CLion with MCP, prefer the `mcp__clion__*` tools:
-
-* `mcp__clion__search_text` for project-wide text search.
-* `mcp__clion__read_file` for reading sources, including inside JARs and decompiled classes.
-* `mcp__clion__list_directory_tree` for directory exploration.
-* `mcp__clion__apply_patch` for applying diffs.
-* `mcp__clion__open_file_in_editor` to surface a file in the editor for the user.
+When the CLion MCP server is connected, prefer its tools for searching,
+reading and patching files, and use it to open a file in the editor when the
+user should see it.
 
 ## Building
 
@@ -93,7 +84,7 @@ To use the preset on Windows:
 
 ```
 cmake.exe -B build --preset windows-msvc-release
-cmake.exe --build build --target game --config Release
+cmake.exe --build build --target game
 ```
 
 `windows-msvc-debug`/`windows-msvc-release` use real `cl.exe` (`ci-windows-*`
@@ -106,7 +97,7 @@ are on `PATH`.
 On Windows, the maze executable is in the build directory:
 
 ```
-build\maze\Release\maze.exe
+build\maze\maze.exe
 ```
 
 Run it from its own directory. `File::getResourceDir()` returns the relative

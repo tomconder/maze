@@ -1,8 +1,8 @@
 # Platform Backends
 
 Everything that talks to the OS, the window, or the GPU directly. Game code
-(`game/src`) and the rest of the engine (`sponge/src/{core,event,layer,scene,
-thread}`) should stay platform-agnostic and go through these backends rather
+(`game/src`) and the rest of the engine (`sponge/src/{core,debug,event,input,
+layer,logging,scene,thread}`) should stay platform-agnostic and go through these backends rather
 than calling GLFW/OpenGL/OS APIs directly.
 
 ## Layout
@@ -26,7 +26,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
-  `Bloom`, `FXAA`, `TAA`.
+  `SceneTarget`, `Ssao`, `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
 * `opengl/debug/` - GL diagnostics/profiler, debug-build only.
 * `windows/`, `osx/`, `linux/` `core/*file.*` - the only OS-specific file I/O
   shims; everything else is GLFW-portable.
@@ -96,5 +96,5 @@ than calling GLFW/OpenGL/OS APIs directly.
 
 ## Related Context
 
-* Threading (Worker, double-buffered frame snapshots): `../../thread/`.
-* Game-side usage of these backends: `../../../../game/src/AGENTS.md`.
+* Threading (Worker, double-buffered frame snapshots): `../thread/`.
+* Game-side usage of these backends: `../../../game/src/AGENTS.md`.

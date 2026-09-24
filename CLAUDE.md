@@ -1,4 +1,4 @@
-See AGENTS.md.
+@AGENTS.md
 
 ## Intent Layer
 
