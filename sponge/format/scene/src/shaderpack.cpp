@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <string>
 #include <vector>
@@ -40,6 +41,10 @@ std::vector<uint8_t> write(const Sources& sources) {
         entry->sourceOffset = appendString(source);
         entry->sourceSize   = static_cast<uint32_t>(source.size());
         entry++;
+    }
+
+    if (out.size() > std::numeric_limits<uint32_t>::max()) {
+        return {};
     }
 
     std::memcpy(out.data(), &header, sizeof(Header));

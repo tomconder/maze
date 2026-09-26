@@ -30,8 +30,14 @@ struct Entry {
     uint32_t sourceSize;
 };
 
+// read() and write() index the file with these sizes.
+static_assert(sizeof(Header) == 16);
+static_assert(sizeof(Entry) == 16);
+
 using Sources = std::unordered_map<std::string, std::string>;
 
+// Returns an empty vector if the pack would pass 4 GiB, the limit of the u32
+// offsets.
 std::vector<uint8_t> write(const Sources& sources);
 
 // On failure, returns an empty map and sets error. error is left alone on

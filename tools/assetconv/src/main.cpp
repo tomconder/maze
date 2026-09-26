@@ -262,6 +262,11 @@ int packShaders(const std::string&                         output,
     }
 
     const auto bytes = sponge::scene::shaderpack::write(*sources);
+    if (bytes.empty()) {
+        fmt::println(stderr, "assetconv: shader pack {} would pass 4 GiB",
+                     output);
+        return 1;
+    }
     if (!writeFile(output, bytes)) {
         return 1;
     }
