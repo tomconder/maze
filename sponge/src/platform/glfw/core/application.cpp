@@ -486,7 +486,10 @@ void Application::run() {
         renderThread.kick(renderTask);
     }
 
-    // Drain in-flight render before stopping threads.
+    // The only exit is the break above, after this pass already waited for
+    // render and before it kicked render again, so render is idle and this
+    // returns at once. Kept so stop() stays safe if the loop gains an exit
+    // after the render kick.
     renderThread.waitForComplete();
 
     renderThread.stop();
