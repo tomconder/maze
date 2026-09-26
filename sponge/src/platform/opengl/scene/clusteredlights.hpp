@@ -15,8 +15,8 @@ namespace sponge::platform::opengl::scene {
 class ClusteredLights {
 public:
     // Cluster grid — must match TILES_X/Y/Z in clustered.slang.
-    // ponytail: fixed 16x9x24 grid (Doom 2016 shape); slices are less cubic
-    // at narrow FOV (already reachable via scroll zoom, gamecamera.cpp),
+    // Simplification: fixed 16x9x24 grid (Doom 2016 shape); slices are less
+    // cubic at narrow FOV (already reachable via scroll zoom, gamecamera.cpp),
     // which only coarsens culling, never causes artifacts. upgrade: derive
     // tilesX/Y/Z from FOV/aspect if profiling shows over-lit clusters at
     // min FOV (30 deg).

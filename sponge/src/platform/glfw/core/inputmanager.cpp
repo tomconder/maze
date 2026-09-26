@@ -274,9 +274,9 @@ bool InputManager::captureRebind() {
         if (!keyDown[key] || keyPrev[key]) {
             continue;
         }
-        // ponytail: no conflict check — the same key may end up on two
+        // Simplification: no conflict check — the same key may end up on two
         // actions; add a duplicate scan here if that proves confusing.
-        // ponytail: Escape cancels, so an action cannot be bound back to
+        // Simplification: Escape cancels, so an action cannot be bound back to
         // Escape by hand; Reset to Defaults restores the ones that had it.
         if (key != +input::KeyCode::SpongeKey_Escape) {
             const auto action = static_cast<input::GameAction>(pending);
