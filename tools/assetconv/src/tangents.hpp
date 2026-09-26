@@ -7,9 +7,12 @@
 
 namespace assetconv {
 
-// Per-triangle tangent accumulation (Lengyel's method), averaged per vertex
-// and Gram-Schmidt orthogonalized against the vertex normal.
+// MikkTSpace-compatible tangents, which glTF requires when a file has none
+// and which normal maps are usually baked against. Tangents are per corner,
+// so this unwelds the mesh: one vertex per index, indices 0..n-1.
+// optimizeMesh welds it again, leaving vertices split only where the
+// tangents differ, e.g. on UV mirror seams.
 void computeTangents(std::vector<sponge::scene::Vertex>& vertices,
-                     const std::vector<uint32_t>&        indices);
+                     std::vector<uint32_t>&              indices);
 
 }  // namespace assetconv

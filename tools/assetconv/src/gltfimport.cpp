@@ -125,10 +125,12 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
         return std::nullopt;
     }
 
-    const auto normalMatrix = glm::mat3(transpose(inverse(transform)));
+    const auto normalMatrix  = glm::mat3(transpose(inverse(transform)));
+    const auto tangentMatrix = glm::mat3(transform);
 
     const cgltf_accessor* positionAccessor = nullptr;
     const cgltf_accessor* normalAccessor   = nullptr;
+    const cgltf_accessor* tangentAccessor  = nullptr;
     const cgltf_accessor* texcoordAccessor = nullptr;
 
     for (size_t a = 0; a < primitive.attributes_count; a++) {
@@ -137,6 +139,8 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             positionAccessor = attribute.data;
         } else if (attribute.type == cgltf_attribute_type_normal) {
             normalAccessor = attribute.data;
+        } else if (attribute.type == cgltf_attribute_type_tangent) {
+            tangentAccessor = attribute.data;
         } else if (attribute.type == cgltf_attribute_type_texcoord &&
                    attribute.index == 0) {
             texcoordAccessor = attribute.data;
@@ -167,6 +171,13 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             normal             = normalize(normalMatrix * normal);
             vertices[i].normal = normal;
         }
+
+        if (tangentAccessor != nullptr) {
+            glm::vec4 tangent(0.F);
+            cgltf_accessor_read_float(tangentAccessor, i, &tangent.x, 4);
+            vertices[i].tangent = glm::vec4(
+                normalize(tangentMatrix * glm::vec3(tangent)), tangent.w);
+        }
     }
 
     std::vector<uint32_t> indices;
@@ -186,6 +197,12 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
 
     // calculate normals since they are missing
     if (normalAccessor == nullptr) {
+        // A vertex shared by several triangles keeps only the last face
+        // normal written, so shading is wrong wherever vertices are shared.
+        fmt::println(stderr,
+                     "assetconv: {}: primitive has no normals; generated "
+                     "normals are wrong on shared vertices",
+                     path);
         for (size_t i = 0; i + 2 < indices.size(); i += 3) {
             auto& v0 = vertices[indices[i]];
             auto& v1 = vertices[indices[i + 1]];
@@ -199,7 +216,11 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
         }
     }
 
-    computeTangents(vertices, indices);
+    // glTF ignores authored tangents when normals are missing, since they
+    // were built against normals the file does not have.
+    if (tangentAccessor == nullptr || normalAccessor == nullptr) {
+        computeTangents(vertices, indices);
+    }
 
     ParsedMesh parsedMesh;
     if (primitive.material != nullptr) {
