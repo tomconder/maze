@@ -39,12 +39,25 @@ struct TextFSOutput {
     [[vk::location(0)]] [[vk::index(1)]] float4 fragCoverage : SV_Target1;
 };
 
+// Coverage boost for light text. The UI blends gamma-encoded values, which
+// thins light text on a dark background, so edge coverage is raised by the
+// DirectWrite enhanced contrast curve. k grows with text luminance and is 0 for
+// black text, which that blending already makes heavier.
+static const float maxTextContrast = 1.0;
+
+float3 enhanceContrast(float3 coverage, float k) {
+    return coverage * (k + 1.0) / (coverage * k + 1.0);
+}
+
 // clang-format off
 [shader("fragment")]
 TextFSOutput textFragMain(VSOutput input) {
     // clang-format on
+    const float  luminance = dot(spriteParams.textColor, float3(0.2126, 0.7152, 0.0722));
+    const float3 coverage  = image.Sample(input.texCoord).rgb;
+
     TextFSOutput output;
     output.fragColor    = float4(spriteParams.textColor, 1.0);
-    output.fragCoverage = float4(image.Sample(input.texCoord).rgb, 1.0);
+    output.fragCoverage = float4(enhanceContrast(coverage, maxTextContrast * luminance), 1.0);
     return output;
 };
