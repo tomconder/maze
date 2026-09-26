@@ -4,6 +4,7 @@
 #include "platform/opengl/renderer/gl.hpp"
 
 #include <glm/glm.hpp>
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -107,13 +108,16 @@ void ClusteredLights::update(const glm::vec3* positions,
                              const int attenuationIndex, const int numLights,
                              const glm::mat4& view,
                              const glm::mat4& projection) {
+    // lightBuffer holds maxLights entries; a larger count would overrun it.
+    const int count = std::clamp(numLights, 0, maxLights);
+
     if (projection != lastProjection) {
         buildClusterAABBs(projection);
         lastProjection = projection;
     }
 
-    std::vector<PointLightGPU> gpuLights(static_cast<std::size_t>(numLights));
-    for (int i = 0; i < numLights; ++i) {
+    std::vector<PointLightGPU> gpuLights(static_cast<std::size_t>(count));
+    for (int i = 0; i < count; ++i) {
         gpuLights[static_cast<std::size_t>(i)] = {
             .color    = colors[i],
             .pad0     = 0.F,
@@ -121,8 +125,8 @@ void ClusteredLights::update(const glm::vec3* positions,
             .pad1     = 0.F,
         };
     }
-    lightBuffer.update(gpuLights.data(), static_cast<std::size_t>(numLights) *
-                                             sizeof(PointLightGPU));
+    lightBuffer.update(gpuLights.data(),
+                       static_cast<std::size_t>(count) * sizeof(PointLightGPU));
 
     // glm is column-major: row r of the view matrix is (view[c][r] for c 0..3).
     const ComputeParams params{
@@ -131,7 +135,7 @@ void ClusteredLights::update(const glm::vec3* positions,
         .viewRow2         = { view[0][2], view[1][2], view[2][2], view[3][2] },
         .near             = near,
         .far              = far,
-        .numLights        = numLights,
+        .numLights        = count,
         .numClusters      = maxClusters,
         .attenuationIndex = attenuationIndex,
         .pad              = {},
