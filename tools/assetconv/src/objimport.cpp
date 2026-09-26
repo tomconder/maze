@@ -114,9 +114,11 @@ ParsedMesh parseMesh(const tinyobj::attrib_t&                attrib,
         }
 
         if (!attrib.normals.empty()) {
-            i             = normalIndex * 3;
-            vertex.normal = glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
-                                       attrib.normals[i + 2] };
+            i = normalIndex * 3;
+            // OBJ does not require unit normals; tangent generation does.
+            vertex.normal =
+                normalize(glm::vec3{ attrib.normals[i], attrib.normals[i + 1],
+                                     attrib.normals[i + 2] });
         }
 
         vertices.emplace_back(vertex);
