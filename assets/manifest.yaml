@@ -58,32 +58,32 @@ licenses:
 shaders:
   output: shaders/shaders.spnga
   stages:
-    screenquad.vert: shaders/slang/fxaa.slang:vertMain
-    pbr.frag: shaders/slang/pbr.slang:fragMain
-    pbr.vert: shaders/slang/pbr.slang:vertMain
-    shadowmap.frag: shaders/slang/shadowmap.slang:fragMain
-    shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
-    shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
-    blur.frag: shaders/slang/blur.slang:downFragMain
-    blur_up.frag: shaders/slang/blur.slang:upFragMain
     bloom_down.frag: shaders/slang/bloom.slang:downFragMain
     bloom_extract.frag: shaders/slang/bloom.slang:extractFragMain
     bloom_up.frag: shaders/slang/bloom.slang:upFragMain
-    fxaa.frag: shaders/slang/fxaa.slang:fragMain
-    tonemap.frag: shaders/slang/tonemap.slang:fragMain
-    taa_resolve.frag: shaders/slang/taa.slang:resolveFragMain
-    taa_present.frag: shaders/slang/taa.slang:presentFragMain
-    quad.frag: shaders/slang/rectangle.slang:fragMain
-    quad.vert: shaders/slang/rectangle.slang:vertMain
-    sprite.frag: shaders/slang/sprite.slang:fragMain
-    text.frag: shaders/slang/sprite.slang:textFragMain
-    sprite.vert: shaders/slang/sprite.slang:vertMain
+    blur.frag: shaders/slang/blur.slang:downFragMain
+    blur_up.frag: shaders/slang/blur.slang:upFragMain
+    cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain
     cube.frag: shaders/slang/cube.slang:fragMain
     cube.vert: shaders/slang/cube.slang:vertMain
-    depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
     depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
-    occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain
+    depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
+    fxaa.frag: shaders/slang/fxaa.slang:fragMain
     occlusionbox.frag: shaders/slang/occlusionbox.slang:fragMain
+    occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain
+    pbr.frag: shaders/slang/pbr.slang:fragMain
+    pbr.vert: shaders/slang/pbr.slang:vertMain
+    quad.frag: shaders/slang/rectangle.slang:fragMain
+    quad.vert: shaders/slang/rectangle.slang:vertMain
+    screenquad.vert: shaders/slang/fxaa.slang:vertMain
+    shadowmap.frag: shaders/slang/shadowmap.slang:fragMain
+    shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
+    shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
+    sprite.frag: shaders/slang/sprite.slang:fragMain
+    sprite.vert: shaders/slang/sprite.slang:vertMain
     ssao.frag: shaders/slang/ssao.slang:fragMain
     ssao_blur.frag: shaders/slang/ssaoblur.slang:fragMain
-    cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain
+    taa_present.frag: shaders/slang/taa.slang:presentFragMain
+    taa_resolve.frag: shaders/slang/taa.slang:resolveFragMain
+    text.frag: shaders/slang/sprite.slang:textFragMain
+    tonemap.frag: shaders/slang/tonemap.slang:fragMain
