@@ -46,6 +46,13 @@ Metrics metricsFor(const float windowWidth) {
              windowWidth * 0.03F, iconSize * 0.3F };
 }
 
+// Single-key prompts fill 48 px of their 64 px sprite, the arrow clusters only
+// 30 px, so single keys draw smaller to match the arrows.
+float iconScale(const std::string_view icon) {
+    return icon == "keyboard_enter" || icon == "keyboard_escape" ? 30.F / 48.F :
+                                                                   1.F;
+}
+
 }  // namespace
 
 namespace game::ui {
@@ -98,18 +105,36 @@ void renderKeyHints(std::span<const KeyHint>           hints,
     shader->setMat4("projection", projection);
     shader->unbind();
 
-    auto x = marginX;
-    for (const auto& hint : hints) {
-        const auto icon = gamepad ? hint.padIcon : hint.keyIcon;
+    auto       x          = marginX;
+    const auto renderHint = [&](const KeyHint& hint) {
+        const auto icon      = gamepad ? hint.padIcon : hint.keyIcon;
+        const auto drawnSize = iconSize * iconScale(icon);
 
-        promptSprite(icon).render({ x, iconTop }, { iconSize, iconSize }, 1.F);
+        promptSprite(icon).render(
+            { x, iconTop + ((iconSize - drawnSize) / 2.F) },
+            { drawnSize, drawnSize }, 1.F);
 
         font->beginPass(size);
-        font->render(hint.label, { x + iconSize + gap, textTop }, labelColor);
+        font->render(hint.label, { x + drawnSize + gap, textTop }, labelColor);
         font->endPass();
 
-        x += iconSize + gap +
+        x += drawnSize + gap +
              static_cast<float>(font->getLength(hint.label, size)) + gap * 2.F;
+    };
+
+    // Back leads every row so it sits in the same place on every menu.
+    const auto isBack = [](const KeyHint& hint) {
+        return hint.keyIcon == "keyboard_escape";
+    };
+    for (const auto& hint : hints) {
+        if (isBack(hint)) {
+            renderHint(hint);
+        }
+    }
+    for (const auto& hint : hints) {
+        if (!isBack(hint)) {
+            renderHint(hint);
+        }
     }
 
     if (!rightText.empty()) {

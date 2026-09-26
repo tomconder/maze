@@ -34,6 +34,8 @@ float heightWithoutKeyHints(float windowWidth, float windowHeight);
 // Draws a row of input prompts along the bottom-left of the window. Positioned
 // from the window size, not the Yoga tree, so it survives resize without
 // relayout. Shows the gamepad prompt while the gamepad is the device in use.
+// The Back hint (keyboard_escape) is always drawn first; the rest keep their
+// order.
 // rightText, if given, is drawn on the same line against the right margin.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
