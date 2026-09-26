@@ -596,10 +596,10 @@ void MazeLayer::onRender() {
         fxaa->end();
         fxaa->apply();
     } else if (taaActive) {
-        // ponytail: TAA accumulates the tone-mapped image, which is where it
-        // already ran. Accumulating in linear with a reversible weighting curve
-        // resolves highlight edges better; that is a change to TAA, not to the
-        // pass order this commit is fixing.
+        // Simplification: TAA accumulates the tone-mapped image, which is where
+        // it already ran. Accumulating in linear with a reversible weighting
+        // curve resolves highlight edges better; that is a change to TAA, not
+        // to the pass order this commit is fixing.
         taa->end();
         taa->apply(depthPrepassTexture, velocityTexture, frame.invCameraMVP,
                    frame.prevCameraViewProj);
