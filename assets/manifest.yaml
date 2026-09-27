@@ -8,6 +8,8 @@
 models:
   - source: models/gltf/cube/cube-tex.glb
     output: models/cube.spnga
+  - source: models/gltf/mirror/mirror.glb
+    output: models/mirror.spnga
   - source: models/gltf/helmet/DamagedHelmet.glb
     output: models/helmet.spnga
   - source: models/gltf/sponza/sponza.glb
