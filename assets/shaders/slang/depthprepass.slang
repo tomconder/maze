@@ -1,10 +1,11 @@
 // depthprepass.slang: camera-space depth-only prepass, plus the screen-space
 // velocity buffer TAA resolves through and the view-space normal buffer SSAO
-// reads.
+// reads. The normal alpha holds the reflection strength SSR reads.
 uniform float4x4 mvp;              // jittered; must match the scene pass
 uniform float4x4 mvpNoJitter;      // this frame, unjittered
 uniform float4x4 prevMvpNoJitter;  // last frame, unjittered
 uniform float4x4 normalMatrix;     // transpose(inverse(view * model))
+uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
 
 // Same VSInput layout as pbr.slang (position/texCoord/normal/tangent), so
 // slangc assigns the same attribute locations the mesh VAO was built
@@ -57,6 +58,6 @@ FSOutput fragMain(VSOutput input) {
     // with no NORMAL attribute bound): 0/0 is NaN, and a NaN sentinel breaks
     // the "no surface here" length check ssao.slang relies on.
     float len = length(input.viewNormal);
-    o.normal  = float4(len > 1e-4 ? input.viewNormal / len : float3(0.0), 0.0);
+    o.normal  = len > 1e-4 ? float4(input.viewNormal / len, reflectivity) : float4(0.0);
     return o;
 };

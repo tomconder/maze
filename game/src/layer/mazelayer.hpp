@@ -199,8 +199,9 @@ private:
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
     // depth prepass and consumed by TAA. Shares the prepass FBO.
     uint32_t velocityTexture{ 0 };
-    // View-space normal (RGB16F), written by the depth prepass and consumed
-    // by SSAO. Shares the prepass FBO.
+    // View-space normal in xyz and reflection strength in w (RGBA16F),
+    // written by the depth prepass. SSAO reads xyz and SSR reads w. Shares
+    // the prepass FBO.
     uint32_t normalPrepassTexture{ 0 };
     std::unique_ptr<sponge::platform::opengl::scene::Cube>        cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>        fxaa;

@@ -1065,6 +1065,8 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
         depthPrepassShader->setMat4("prevMvpNoJitter",
                                     frame.prevCameraViewProj *
                                         frame.prevObjectModelMatrices[i]);
+        depthPrepassShader->setFloat("reflectivity",
+                                     frame.objectReflectivity[i]);
         frame.objectModels[i]->render(depthPrepassShader,
                                       frame.objectMeshVisible[i]);
     }
@@ -1073,6 +1075,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // location 0, so they need no variant of their own. Including them here
     // is what gives them depth coverage and motion vectors.
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
+    depthPrepassShader->setFloat("reflectivity", 0.F);
     for (int32_t i = 0; i < frame.numLights; i++) {
         const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
         const auto prevModel =
