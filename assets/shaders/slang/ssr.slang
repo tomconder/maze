@@ -17,13 +17,14 @@ uniform float4x4 invProjection;
 
 static const int maxSteps    = 64;
 static const int refineSteps = 5;
-// View-space units. The step length is maxDistance / maxSteps, about 1.56.
+// View-space units. The step length is maxDistance / maxSteps.
 static const float maxDistance = 100.0;
 // After the binary search, a hit this far or more behind the depth buffer is
-// behind an object, not on it, so the march goes on. The search runs on the
-// first step that lands behind the depth buffer, whatever the gap: one step
-// (maxDistance / maxSteps, about 1.56) can be longer than this, and testing
-// the raw gap would let the ray pass through a surface.
+// behind an object, not on it, so the march goes on. The search runs only on
+// the step where the ray crosses from in front of the depth buffer to behind
+// it: a step that is already behind at both ends has no crossing in
+// [prev, ray] to search, and searching it anyway would false-hit near prev
+// instead of at the real surface.
 static const float thickness = 0.3;
 
 float3 viewPositionFromDepth(float2 uv, float depth) {
@@ -50,14 +51,15 @@ bool onScreen(float2 uv) {
 [shader("fragment")]
 float4 fragMain(FSInput input) : SV_Target {
     // clang-format on
-    float4 normalStrength = normalTex.Sample(input.texCoords);
+    float4 normalStrength = normalTex.SampleLevel(input.texCoords, 0.0);
     float  strength       = normalStrength.w;
     if (strength <= 0.0) {
         discard;
     }
 
     float3 N = normalize(normalStrength.xyz);
-    float3 P = viewPositionFromDepth(input.texCoords, depthTex.Sample(input.texCoords));
+    float3 P = viewPositionFromDepth(input.texCoords,
+                                     depthTex.SampleLevel(input.texCoords, 0.0));
     float3 R = reflect(normalize(P), N);
 
     // The camera looks down -z. A ray toward the camera reaches surfaces the
@@ -67,11 +69,12 @@ float4 fragMain(FSInput input) : SV_Target {
         discard;
     }
 
-    float  stepLength = maxDistance / float(maxSteps);
-    float3 prev       = P;
-    float3 ray        = P + R * stepLength;
-    bool   hit        = false;
-    float3 hitPos     = float3(0.0);
+    float  stepLength  = maxDistance / float(maxSteps);
+    float3 prev        = P;
+    float3 ray         = P + R * stepLength;
+    bool   hit         = false;
+    float3 hitPos      = float3(0.0);
+    bool   prevInFront = true;
 
     for (int i = 0; i < maxSteps; i++) {
         if (ray.z >= 0.0) {
@@ -81,8 +84,12 @@ float4 fragMain(FSInput input) : SV_Target {
         if (!onScreen(uv)) {
             break;
         }
-        // Above 0 when the ray is behind the visible surface.
-        if (sceneViewZ(uv) - ray.z > 0.0) {
+        // True when the ray is behind the visible surface.
+        bool behind = sceneViewZ(uv) - ray.z > 0.0;
+        // Refine only the step that crosses from in front to behind: that is
+        // where the surface sits between prev and ray. A step that is still
+        // behind from the previous step already had its crossing searched.
+        if (behind && prevInFront) {
             float3 a = prev;
             float3 b = ray;
             for (int j = 0; j < refineSteps; j++) {
@@ -99,7 +106,8 @@ float4 fragMain(FSInput input) : SV_Target {
                 break;
             }
         }
-        prev = ray;
+        prevInFront = !behind;
+        prev        = ray;
         ray += R * stepLength;
     }
 

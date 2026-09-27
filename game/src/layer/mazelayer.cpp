@@ -999,8 +999,9 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
                            GL_RG16F, GL_RG, GL_FLOAT, GL_NEAREST);
 
-    // View-space normal, consumed by SSAO. RGB16F carries signed unit
-    // components directly, no [0,1] encode/decode needed.
+    // View-space normal, consumed by SSAO and SSR. RGBA16F: RGB carries
+    // signed unit components directly, no [0,1] encode/decode needed; alpha
+    // carries the SSR reflection strength.
     normalPrepassTexture =
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
                            GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST);
@@ -1033,8 +1034,8 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
     // Indexed mask: attachment 0 (velocity) follows writeVelocity, attachment
-    // 1 (normal) is always live — SSAO reads it every frame regardless of AA
-    // mode.
+    // 1 (normal) is always live — SSAO and SSR both read it every frame
+    // regardless of AA mode.
     glColorMaski(0, writeVelocity ? GL_TRUE : GL_FALSE,
                  writeVelocity ? GL_TRUE : GL_FALSE, GL_FALSE, GL_FALSE);
     glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

@@ -22,8 +22,9 @@ public:
     Ssr& operator=(const Ssr&) = delete;
 
     // Draws into the bound framebuffer with alpha blending. colorTexId must
-    // not be an attachment of that framebuffer. projection must be the one
-    // the prepass depth was rasterized with, as in Ssao::process().
+    // not be an attachment of that framebuffer. projection is the unjittered
+    // camera projection, not the jittered one the prepass depth was
+    // rasterized with under TAA; the sub-pixel jitter is ignored.
     void apply(uint32_t colorTexId, uint32_t depthTexId, uint32_t normalTexId,
                const glm::mat4& projection,
                const glm::mat4& invProjection) const;

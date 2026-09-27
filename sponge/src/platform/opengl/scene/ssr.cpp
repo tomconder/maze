@@ -22,6 +22,9 @@ void Ssr::apply(const uint32_t colorTexId, const uint32_t depthTexId,
     // reflection weight.
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    // The output alpha is the reflection weight, so this pass must not depend
+    // on whatever blend function an earlier pass left set.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     shader->bind();
     shader->setMat4("projection", projection);

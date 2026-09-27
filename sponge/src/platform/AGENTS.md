@@ -54,13 +54,14 @@ than calling GLFW/OpenGL/OS APIs directly.
 * The pipeline is: opaque scene to a linear HDR `SceneTarget`, then the
   full-screen `Ssr` pass blends reflections into that target, then refractive
   objects into that same target, then bloom extracts and blurs in linear ->
-  `SceneTarget::resolve()` composites bloom, tone maps, gamma encodes. Nothing
-  upstream of resolve() may tone map, or the bloom threshold stops being a
-  radiance value. Refractive objects stay out of the depth prepass, so the
-  color behind them exists to sample. The glass pass depth-tests against the
-  scene depth renderbuffer (the blitted opaque depth) and blits that depth
-  back to the prepass texture. Do not sample the prepass depth while it is
-  the bound depth attachment: that feedback is undefined.
+  `SceneTarget::resolve()` composites bloom, tone maps, gamma encodes. `Ssr`
+  runs only when SSR is on and at least one object has `reflective > 0`.
+  Nothing upstream of resolve() may tone map, or the bloom threshold stops
+  being a radiance value. Refractive objects stay out of the depth prepass,
+  so the color behind them exists to sample. The glass pass depth-tests
+  against the scene depth renderbuffer (the blitted opaque depth) and blits
+  that depth back to the prepass texture. Do not sample the prepass depth
+  while it is the bound depth attachment: that feedback is undefined.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the
   color attachment they draw into. The prepass normal alpha is the SSR
   strength mask.

@@ -12,7 +12,8 @@ uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
 // against. texCoord/tangent go unused here. Light cubes draw through this
 // shader too but their VAO only has position bound (see cube.cpp), so their
 // normal reads the GL default (0,0,0) — filtered out downstream by the
-// zero-length check in ssao.slang.
+// zero-length check in ssao.slang. That zero normal is written here as
+// float4(0), so its alpha is 0 too, and ssr.slang skips those pixels.
 struct VSInput {
     float3 position : POSITION;
     float2 texCoord : TEXCOORD0;
