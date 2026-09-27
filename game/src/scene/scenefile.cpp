@@ -148,6 +148,29 @@ void readObjects(const node&                            root,
         object.scale       = readVec3(entry, "scale", object.scale);
         object.translation = readVec3(entry, "translation", object.translation);
         object.emissive    = readVec3(entry, "emissive", object.emissive);
+        object.refractive  = readBool(entry, "refractive", object.refractive);
+        object.ior         = readFloat(entry, "ior", object.ior);
+        object.thickness   = readFloat(entry, "thickness", object.thickness);
+        object.tint        = readVec3(entry, "tint", object.tint);
+        // Air is outside and front faces are the only ones drawn, so an ior
+        // below 1 would invert the ray. Negative thickness steps backwards.
+        // Negative tint would put negative radiance into bloom.
+        if (object.ior < 1.F) {
+            SPONGE_WARN("Scene object '{}' ior {} clamped to 1", object.name,
+                        object.ior);
+            object.ior = 1.F;
+        }
+        if (object.thickness < 0.F) {
+            SPONGE_WARN("Scene object '{}' thickness {} clamped to 0",
+                        object.name, object.thickness);
+            object.thickness = 0.F;
+        }
+        if (object.tint.x < 0.F || object.tint.y < 0.F || object.tint.z < 0.F) {
+            SPONGE_WARN("Scene object '{}' tint clamped to 0", object.name);
+            object.tint.x = object.tint.x < 0.F ? 0.F : object.tint.x;
+            object.tint.y = object.tint.y < 0.F ? 0.F : object.tint.y;
+            object.tint.z = object.tint.z < 0.F ? 0.F : object.tint.z;
+        }
 
         if (const auto* rotation = find(entry, "rotation");
             rotation != nullptr) {

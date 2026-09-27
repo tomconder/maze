@@ -124,3 +124,24 @@ float3 evaluatePBR<L : ILight>(
     float3 kD       = (float3(1.0) - F) * (1.0 - metallic);
     return (kD * albedo / M_PI + specular) * radiance * NdotL;
 }
+
+// Specular lobe only. Glass adds this to a refracted background, so the
+// diffuse term in evaluatePBR would light the surface a second time.
+float3 evaluateSpecular<L : ILight>(
+    L      light,
+    float3 worldPos,
+    float3 N,
+    float3 V,
+    float3 F0,
+    float  roughness) {
+    float3 Ldir     = light.getDirection(worldPos);
+    float3 radiance = light.getRadiance(worldPos);
+    float3 H        = normalize(V + Ldir);
+    float  NdotV    = max(dot(N, V), 1e-5);
+    float  NdotL    = max(dot(N, Ldir), 1e-5);
+    float  NDF      = distributionGGX(N, H, roughness);
+    float  G        = geometrySmith(NdotV, NdotL, roughness);
+    float3 F        = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    float3 specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 1e-5);
+    return specular * radiance * NdotL;
+}

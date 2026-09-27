@@ -99,6 +99,12 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
                         object.rotation.angle, object.rotation.axis),
             object.scale));
         objectEmissives.push_back(object.emissive);
+        objectRefraction.push_back({
+            .refractive = static_cast<uint8_t>(object.refractive ? 1 : 0),
+            .ior        = object.ior,
+            .thickness  = object.thickness,
+            .tint       = object.tint,
+        });
     }
     objectModels = std::move(builtModels);
 
@@ -207,6 +213,11 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         .vertexShader   = "depthprepass.vert",
         .fragmentShader = "depthprepass.frag",
     });
+    refractionShader   = AssetManager::createShader({
+        .name           = "refraction",
+        .vertexShader   = "refraction.vert",
+        .fragmentShader = "refraction.frag",
+    });
     createDepthPrepassFbo(w, h);
 
     shader->bind();
@@ -227,6 +238,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         frame.objectModelMatrices     = objectModelMatrices;
         frame.prevObjectModelMatrices = objectModelMatrices;
         frame.objectEmissives         = objectEmissives;
+        frame.objectRefraction        = objectRefraction;
         frame.objectModels            = objectModels;
 
         // All visible until the first captureRenderFrame() runs its cull.
@@ -565,6 +577,32 @@ void MazeLayer::onRender() {
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
 
+    bool refractive = false;
+    for (const auto& item : frame.objectRefraction) {
+        if (item.refractive != 0) {
+            refractive = true;
+            break;
+        }
+    }
+    if (refractive) {
+        // The copy is a different texture from the scene color attachment.
+        // Sampling that attachment while drawing it is undefined.
+        const auto sceneCopy = sceneTarget->copyColor();
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+        if (sceneTarget->beginGlass(velocityTexture, taaActive)) {
+            renderRefractiveObjects(frame, sceneCopy);
+            // The shader sampled the prepass depth. The test wrote the
+            // renderbuffer. TAA reads the prepass texture, so copy the
+            // glass depth back onto it.
+            sceneTarget->blitDepthTo(depthPrepassFbo, frame.screenWidth,
+                                     frame.screenHeight);
+        }
+        sceneTarget->endGlass();
+        glEnable(GL_BLEND);
+    }
+
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LESS);
     sceneTarget->end();
@@ -834,6 +872,9 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     const auto submitStart      = std::chrono::steady_clock::now();
     uint32_t   occlusionVisible = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (frame.objectRefraction[i].refractive != 0) {
+            continue;
+        }
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
             continue;
         }
@@ -858,6 +899,71 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     occlusionVisibleCount.store(occlusionVisible, std::memory_order_relaxed);
     occlusionTotalCount.store(static_cast<uint32_t>(frame.objectModels.size()),
                               std::memory_order_relaxed);
+
+    shader->unbind();
+}
+
+void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
+                                        const uint32_t sceneCopy) const {
+    const auto shader = refractionShader;
+    shader->bind();
+    if (clusteredLights) {
+        clusteredLights->bindSSBOs();
+    }
+
+    shader->setMat4("cameraMVP", frame.cameraMVP);
+    shader->setFloat3("viewPos", frame.cameraPos);
+    shader->setFloat3("viewForward",
+                      -glm::vec3(frame.cameraView[0][2], frame.cameraView[1][2],
+                                 frame.cameraView[2][2]));
+    shader->setFloat2("screenSize",
+                      glm::vec2(static_cast<float>(frame.screenWidth),
+                                static_cast<float>(frame.screenHeight)));
+    shader->setFloat("clusterNear", ClusteredLights::clusterNear);
+    shader->setFloat("farPlane", frame.farPlane);
+    shader->setInteger("numLights", frame.numLights);
+    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
+    shader->setFloat("evsmBleedThreshold", 0.2F);
+    shader->setBoolean("directionalLight.enabled", frame.shadowEnabled);
+    shader->setBoolean("directionalLight.castShadow", frame.shadowCastShadow);
+    shader->setFloat3("directionalLight.direction", frame.lightDirection);
+    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        shadowMap->activateAndBindShadowTexture(1);
+    }
+
+    glActiveTexture(GL_TEXTURE11);
+    glBindTexture(GL_TEXTURE_2D, sceneCopy);
+    glActiveTexture(GL_TEXTURE12);
+    glBindTexture(GL_TEXTURE_2D, depthPrepassTexture);
+    glActiveTexture(GL_TEXTURE0);
+
+    for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (frame.objectRefraction[i].refractive == 0) {
+            continue;
+        }
+        if (occlusionCuller && !occlusionCuller->isVisible(i)) {
+            continue;
+        }
+
+        const auto& modelMatrix = frame.objectModelMatrices[i];
+        const auto& glass       = frame.objectRefraction[i];
+        shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
+        shader->setMat4("model", modelMatrix);
+        shader->setMat4(
+            "normalMatrix",
+            glm::mat4(glm::transpose(glm::inverse(glm::mat3(modelMatrix)))));
+        shader->setMat4("mvpNoJitter", frame.cameraViewProj * modelMatrix);
+        shader->setMat4("prevMvpNoJitter",
+                        frame.prevCameraViewProj *
+                            frame.prevObjectModelMatrices[i]);
+        shader->setFloat("ior", glass.ior);
+        shader->setFloat("thickness", glass.thickness);
+        shader->setFloat3("tint", glass.tint);
+        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i]);
+    }
 
     shader->unbind();
 }
@@ -948,6 +1054,9 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
+        if (frame.objectRefraction[i].refractive != 0) {
+            continue;
+        }
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
             continue;
         }
@@ -1058,6 +1167,9 @@ void MazeLayer::renderSceneToDepthMap(
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (frame.objectRefraction[i].refractive != 0) {
+            continue;
+        }
         if (shadowOcclusionCuller && !shadowOcclusionCuller->isVisible(i)) {
             continue;
         }

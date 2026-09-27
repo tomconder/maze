@@ -4,6 +4,7 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <array>
 #include <cstdint>
 
 namespace sponge::platform::opengl::scene {
@@ -33,6 +34,8 @@ void SceneTarget::createFramebuffer() {
     // 1.0 survives as far as the bloom extract and the tone map.
     colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
                                                 GL_RGB, GL_FLOAT, GL_LINEAR);
+    colorCopy = renderer::createRenderTarget(width, height, GL_RGB16F, GL_RGB,
+                                             GL_FLOAT, GL_LINEAR);
 
     // GL_DEPTH_COMPONENT24 to match the prepass FBO — blitDepthToCurrentFbo()
     // requires identical depth formats.
@@ -53,6 +56,8 @@ void SceneTarget::createFramebuffer() {
         SPONGE_GL_CRITICAL("Scene framebuffer is not complete!");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glGenFramebuffers(1, &glassFbo);
 }
 
 void SceneTarget::destroyFramebuffer() {
@@ -63,6 +68,14 @@ void SceneTarget::destroyFramebuffer() {
     if (colorTexture != 0) {
         glDeleteTextures(1, &colorTexture);
         colorTexture = 0;
+    }
+    if (colorCopy != 0) {
+        glDeleteTextures(1, &colorCopy);
+        colorCopy = 0;
+    }
+    if (glassFbo != 0) {
+        glDeleteFramebuffers(1, &glassFbo);
+        glassFbo = 0;
     }
     if (depthRbo != 0) {
         glDeleteRenderbuffers(1, &depthRbo);
@@ -76,6 +89,51 @@ void SceneTarget::begin() const {
 
 void SceneTarget::end() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+uint32_t SceneTarget::copyColor() const {
+    glCopyImageSubData(colorTexture, GL_TEXTURE_2D, 0, 0, 0, 0, colorCopy,
+                       GL_TEXTURE_2D, 0, 0, 0, 0, static_cast<GLsizei>(width),
+                       static_cast<GLsizei>(height), 1);
+    return colorCopy;
+}
+
+bool SceneTarget::beginGlass(const uint32_t velocityTex,
+                             const bool     writeVelocity) const {
+    glBindFramebuffer(GL_FRAMEBUFFER, glassFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           colorTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                           velocityTex, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, depthRbo);
+    constexpr std::array<GLenum, 2> drawBuffers = { GL_COLOR_ATTACHMENT0,
+                                                    GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, drawBuffers.data());
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glColorMaski(1, writeVelocity ? GL_TRUE : GL_FALSE,
+                 writeVelocity ? GL_TRUE : GL_FALSE, GL_FALSE, GL_FALSE);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        SPONGE_GL_CRITICAL("Glass framebuffer is not complete!");
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return false;
+    }
+    return true;
+}
+
+void SceneTarget::endGlass() const {
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SceneTarget::blitDepthTo(const uint32_t destFbo, const int w,
+                              const int h) const {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, glassFbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destFbo);
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void SceneTarget::resolve(const uint32_t bloomTexId, const float bloomIntensity,

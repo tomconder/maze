@@ -51,10 +51,15 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
-* The pipeline is: scene to a linear HDR `SceneTarget` -> bloom extracts and
-  blurs in linear -> `SceneTarget::resolve()` composites bloom, tone maps,
-  gamma encodes. Nothing upstream of resolve() may tone map, or the bloom
-  threshold stops being a radiance value.
+* The pipeline is: opaque scene to a linear HDR `SceneTarget`, then refractive
+  objects into that same target, then bloom extracts and blurs in linear ->
+  `SceneTarget::resolve()` composites bloom, tone maps, gamma encodes. Nothing
+  upstream of resolve() may tone map, or the bloom threshold stops being a
+  radiance value. Refractive objects stay out of the depth prepass, so the
+  color behind them exists to sample. The glass pass depth-tests against the
+  scene depth renderbuffer (the blitted opaque depth) and blits that depth
+  back to the prepass texture. Do not sample the prepass depth while it is
+  the bound depth attachment: that feedback is undefined.
 * Dither exactly once, at the final 8-bit write, and keep every intermediate
   target float (`GL_RGB16F`). An 8-bit intermediate quantises undithered and
   then quantises again at the real output — the banding `dither8` exists to

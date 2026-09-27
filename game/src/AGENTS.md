@@ -84,6 +84,10 @@ primitives, windowing, or platform backends itself — see
   from a texture readback. Their defaults live in the `bloom` section of
   `assets/scenes/maze.yaml`, not in settings; the debug sliders change them
   for the current run only.
+* A refractive object is left out of the shadow map and the depth prepass.
+  The glass pass runs after the opaque color and the light cubes, and before
+  bloom, still in linear radiance. It samples a copy of the scene color.
+  Moving it back into the prepass deletes the image behind the glass.
 
 ## Anti-patterns
 
