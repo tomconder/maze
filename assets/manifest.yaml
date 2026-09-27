@@ -85,6 +85,7 @@ shaders:
     sprite.vert: shaders/slang/sprite.slang:vertMain
     ssao.frag: shaders/slang/ssao.slang:fragMain
     ssao_blur.frag: shaders/slang/ssaoblur.slang:fragMain
+    ssr.frag: shaders/slang/ssr.slang:fragMain
     taa_present.frag: shaders/slang/taa.slang:presentFragMain
     taa_resolve.frag: shaders/slang/taa.slang:resolveFragMain
     text.frag: shaders/slang/sprite.slang:textFragMain

@@ -1,0 +1,42 @@
+#include "platform/opengl/scene/ssr.hpp"
+
+#include "platform/opengl/renderer/assetmanager.hpp"
+#include "platform/opengl/renderer/gl.hpp"
+
+namespace sponge::platform::opengl::scene {
+using renderer::AssetManager;
+
+Ssr::Ssr() {
+    shader = AssetManager::createShader(renderer::ShaderCreateInfo{
+        .name           = "ssr",
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "ssr.frag",
+    });
+}
+
+void Ssr::apply(const uint32_t colorTexId, const uint32_t depthTexId,
+                const uint32_t normalTexId, const glm::mat4& projection,
+                const glm::mat4& invProjection) const {
+    // The shader samples the scene depth, so the depth test would only reject
+    // the full-screen quad. Blending stays on: the output alpha is the
+    // reflection weight.
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+
+    shader->bind();
+    shader->setMat4("projection", projection);
+    shader->setMat4("invProjection", invProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colorTexId);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, depthTexId);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, normalTexId);
+    quad.draw();
+    shader->unbind();
+
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_DEPTH_TEST);
+}
+
+}  // namespace sponge::platform::opengl::scene
