@@ -99,12 +99,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
                         object.rotation.angle, object.rotation.axis),
             object.scale));
         objectEmissives.push_back(object.emissive);
-        objectRefraction.push_back({
-            .refractive = static_cast<uint8_t>(object.refractive ? 1 : 0),
-            .ior        = object.ior,
-            .thickness  = object.thickness,
-            .tint       = object.tint,
-        });
+        objectRefraction.push_back(object.refraction);
     }
     objectModels = std::move(builtModels);
 
@@ -577,14 +572,8 @@ void MazeLayer::onRender() {
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
 
-    bool refractive = false;
-    for (const auto& item : frame.objectRefraction) {
-        if (item.refractive != 0) {
-            refractive = true;
-            break;
-        }
-    }
-    if (refractive) {
+    if (std::ranges::any_of(frame.objectRefraction,
+                            &scene::SceneRefraction::refractive)) {
         // The copy is a different texture from the scene color attachment.
         // Sampling that attachment while drawing it is undefined.
         const auto sceneCopy = sceneTarget->copyColor();
@@ -872,7 +861,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     const auto submitStart      = std::chrono::steady_clock::now();
     uint32_t   occlusionVisible = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
-        if (frame.objectRefraction[i].refractive != 0) {
+        if (frame.objectRefraction[i].refractive) {
             continue;
         }
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
@@ -941,7 +930,7 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     glActiveTexture(GL_TEXTURE0);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
-        if (frame.objectRefraction[i].refractive == 0) {
+        if (!frame.objectRefraction[i].refractive) {
             continue;
         }
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
@@ -1054,7 +1043,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
-        if (frame.objectRefraction[i].refractive != 0) {
+        if (frame.objectRefraction[i].refractive) {
             continue;
         }
         if (occlusionCuller && !occlusionCuller->isVisible(i)) {
@@ -1167,7 +1156,7 @@ void MazeLayer::renderSceneToDepthMap(
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
-        if (frame.objectRefraction[i].refractive != 0) {
+        if (frame.objectRefraction[i].refractive) {
             continue;
         }
         if (shadowOcclusionCuller && !shadowOcclusionCuller->isVisible(i)) {

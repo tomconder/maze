@@ -158,10 +158,10 @@ private:
     // Loaded in the constructor, before any other member reads it.
     const scene::Scene sceneDesc;
 
-    std::shared_ptr<scene::GameCamera>                     camera;
-    std::vector<glm::mat4>                                 objectModelMatrices;
-    std::vector<glm::vec3>                                 objectEmissives;
-    std::vector<thread::MazeRenderFrame::ObjectRefraction> objectRefraction;
+    std::shared_ptr<scene::GameCamera>  camera;
+    std::vector<glm::mat4>              objectModelMatrices;
+    std::vector<glm::vec3>              objectEmissives;
+    std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
     // World-space per-mesh AABB, index-locked with objectModels/[mesh index].

@@ -38,6 +38,9 @@ primitives, windowing, or platform backends itself — see
   `Scene`: camera, lighting and the object list. Parsed with fkYAML in the
   `MazeLayer` constructor, which `startupCore()` guarantees runs after
   logging and settings are up.
+* `scene/refraction.hpp` - `SceneRefraction`, a scene object's glass values.
+  It has its own header so the render frame does not include the scene
+  loader.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants
@@ -64,9 +67,9 @@ primitives, windowing, or platform backends itself — see
   payload and consumed in `onRender()` on the GL thread; don't apply it inline
   where it's requested.
 * Every key in `assets/scenes/maze.yaml` is optional and falls back to the
-  defaults in `scene/scenefile.hpp`, so a partial file still yields a
-  complete scene. A missing or malformed file logs and leaves the defaults
-  standing; it must never take startup down.
+  defaults in `scene/scenefile.hpp` and `scene/refraction.hpp`, so a partial
+  file still yields a complete scene. A missing or malformed file logs and
+  leaves the defaults standing; it must never take startup down.
 * The scene file supplies the shadow map resolution *default* only. A
   `video.shadowRes` saved from the options screen overrides it — keep the
   scene value as the fallback argument to `Settings::getUInt32()`, or a
