@@ -168,7 +168,9 @@ float4 fragMain(FSInput input) : SV_Target {
             hit    = true;
             break;
         }
-        if (!behindFound && rayZ < sceneZ) {
+        // Skip the first stride: behind there can be the edge of the
+        // reflecting surface itself.
+        if (i > 0 && !behindFound && rayZ < sceneZ) {
             behindFound = true;
             behindPos   = Qn / kn;
             behindUV    = uv;
