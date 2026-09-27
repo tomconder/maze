@@ -15,14 +15,14 @@ struct FSInput {
 uniform float4x4 projection;
 uniform float4x4 invProjection;
 
-static const int maxSteps    = 48;
+static const int maxSteps    = 64;
 static const int refineSteps = 5;
-// View-space units. The step length is maxDistance / maxSteps.
-static const float maxDistance = 20.0;
+// View-space units. The step length is maxDistance / maxSteps, about 1.56.
+static const float maxDistance = 100.0;
 // After the binary search, a hit this far or more behind the depth buffer is
 // behind an object, not on it, so the march goes on. The search runs on the
 // first step that lands behind the depth buffer, whatever the gap: one step
-// (maxDistance / maxSteps, about 0.42) can be longer than this, and testing
+// (maxDistance / maxSteps, about 1.56) can be longer than this, and testing
 // the raw gap would let the ray pass through a surface.
 static const float thickness = 0.3;
 
@@ -110,7 +110,7 @@ float4 fragMain(FSInput input) : SV_Target {
     float2 hitUV        = projectToUV(hitPos);
     float2 edge         = smoothstep(float2(0.0), float2(0.05), hitUV) *
                           smoothstep(float2(0.0), float2(0.05), 1.0 - hitUV);
-    float  distanceFade = 1.0 - saturate(length(hitPos - P) / maxDistance);
+    float  distanceFade = 1.0 - smoothstep(0.75 * maxDistance, maxDistance, length(hitPos - P));
     float  weight       = strength * edge.x * edge.y * distanceFade * towardCamera;
 
     return float4(sceneColor.SampleLevel(hitUV, 0.0).rgb, weight);
