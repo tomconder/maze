@@ -1,6 +1,6 @@
 // ssr.slang: screen-space reflection. The prepass normal alpha holds each
 // pixel's reflection strength. For a pixel above 0, march the reflected view
-// ray across the screen in pixel-sized steps (McGuire and Mara's DDA march)
+// ray across the screen in fixed pixel strides (McGuire and Mara's DDA march)
 // against the prepass depth, refine the hit with a binary search, and return
 // the scene color there with the weight in alpha. The caller alpha-blends
 // the result over the lit surface, so a miss leaves the surface as it is.
@@ -17,17 +17,17 @@ uniform float4x4 invProjection;
 
 // Longest march before giving up, in screen-space strides.
 static const int maxSteps = 256;
-// Screen-space step size, in pixels. Stepping in pixels visits every stride
-// of the screen along the ray, so thin objects can't fall entirely between
-// two samples the way a fixed view-space step could skip over them.
+// Screen-space step size, in pixels. Stepping in pixels spreads samples
+// evenly across the screen, unlike a fixed view-space step.
 static const float stride = 4.0;
 // Binary-search steps used to refine a hit inside one stride.
 static const int refineSteps = 5;
 // Ray length clip and fade-out distance, view-space units.
 static const float maxDistance = 100.0;
-// A stride hits when the depth range it covers reaches the visible surface
-// and stays within this many view-space units behind it. Past that, the ray
-// has gone behind an object rather than landing on it, so the march goes on.
+// A stride hits when its far end has passed behind the visible surface and
+// its near end is at most this many view-space units behind it. Past that,
+// the ray has gone behind an object rather than landing on it, so the march
+// goes on.
 static const float thickness = 0.3;
 
 float3 viewPositionFromDepth(float2 uv, float depth) {
@@ -74,7 +74,7 @@ float4 fragMain(FSInput input) : SV_Target {
     // front of the camera. View z is negative in front of the camera.
     float nearZ     = viewPositionFromDepth(float2(0.5), 0.0).z;
     float rayLength = maxDistance;
-    if (P.z + R.z * maxDistance > nearZ - 1e-3) {
+    if (R.z > 0.0 && P.z + R.z * maxDistance > nearZ - 1e-3) {
         rayLength = (nearZ - 1e-3 - P.z) / R.z;
     }
 
@@ -127,8 +127,8 @@ float4 fragMain(FSInput input) : SV_Target {
         if (!onScreen(uv)) {
             break;
         }
-        // The step covers view depths from prevZ to rayZ. It hits when that
-        // range overlaps the visible surface and at most thickness behind it.
+        // It hits when the step's far end has passed behind the surface and
+        // its near end, max(prevZ, rayZ), is at most thickness behind it.
         float rayZ   = Qn.z / kn;
         float sceneZ = sceneViewZ(uv);
         if (min(prevZ, rayZ) <= sceneZ && max(prevZ, rayZ) >= sceneZ - thickness) {
