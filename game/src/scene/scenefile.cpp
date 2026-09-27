@@ -172,6 +172,28 @@ void readObjects(const node&                            root,
             glass.tint = glm::max(glass.tint, glm::vec3(0.F));
         }
 
+        // readFloat() falls back silently on a wrong type, and the sibling
+        // key refractive is a boolean, so "reflective: true" is an easy slip.
+        if (const auto* value = find(entry, "reflective");
+            value != nullptr && !value->is_float_number() &&
+            !value->is_integer()) {
+            SPONGE_WARN("Scene object '{}' reflective is not a number, ignored",
+                        object.name);
+        }
+        object.reflective = readFloat(entry, "reflective", object.reflective);
+        if (object.reflective < 0.F || object.reflective > 1.F) {
+            SPONGE_WARN("Scene object '{}' reflective {} clamped to [0, 1]",
+                        object.name, object.reflective);
+            object.reflective = glm::clamp(object.reflective, 0.F, 1.F);
+        }
+        // Glass is not drawn in the depth prepass, so its reflection mask
+        // would never be written.
+        if (glass.refractive && object.reflective > 0.F) {
+            SPONGE_WARN("Scene object '{}' is refractive, reflective ignored",
+                        object.name);
+            object.reflective = 0.F;
+        }
+
         if (const auto* rotation = find(entry, "rotation");
             rotation != nullptr) {
             object.rotation.angle =

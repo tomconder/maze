@@ -71,6 +71,10 @@ struct MazeRenderFrame {
     std::vector<glm::mat4> prevObjectModelMatrices;
     std::vector<glm::vec3> objectEmissives;
 
+    // Static after load. Index-locked with objectModels. 0 means no
+    // reflection; the depth prepass writes it into the normal alpha.
+    std::vector<float> objectReflectivity;
+
     // Static after load. Index-locked with objectModels. A non-refractive
     // object stays in the opaque passes.
     std::vector<scene::SceneRefraction> objectRefraction;

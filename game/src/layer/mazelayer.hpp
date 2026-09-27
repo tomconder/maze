@@ -161,6 +161,7 @@ private:
     std::shared_ptr<scene::GameCamera>  camera;
     std::vector<glm::mat4>              objectModelMatrices;
     std::vector<glm::vec3>              objectEmissives;
+    std::vector<float>                  objectReflectivity;
     std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;

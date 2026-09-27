@@ -22,6 +22,9 @@ struct SceneObject {
     glm::vec3       translation{ 0.F };
     glm::vec3       emissive{ 0.F };
     SceneRefraction refraction;
+    // Screen-space mirror strength: 0 is off, 1 is a full mirror. Only what
+    // is on screen can be reflected.
+    float reflective{ 0.F };
 };
 
 struct SceneCamera {

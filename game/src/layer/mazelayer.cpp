@@ -100,6 +100,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
             object.scale));
         objectEmissives.push_back(object.emissive);
         objectRefraction.push_back(object.refraction);
+        objectReflectivity.push_back(object.reflective);
     }
     objectModels = std::move(builtModels);
 
@@ -234,6 +235,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         frame.prevObjectModelMatrices = objectModelMatrices;
         frame.objectEmissives         = objectEmissives;
         frame.objectRefraction        = objectRefraction;
+        frame.objectReflectivity      = objectReflectivity;
         frame.objectModels            = objectModels;
 
         // All visible until the first captureRenderFrame() runs its cull.
