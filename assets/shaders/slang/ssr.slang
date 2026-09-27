@@ -1,9 +1,9 @@
 // ssr.slang: screen-space reflection. The prepass normal alpha holds each
 // pixel's reflection strength. For a pixel above 0, march the reflected view
-// ray in view space against the prepass depth, refine the hit with a binary
-// search, and return the scene color there with the weight in alpha. The
-// caller alpha-blends the result over the lit surface, so a miss leaves the
-// surface as it is.
+// ray across the screen in pixel-sized steps (McGuire and Mara's DDA march)
+// against the prepass depth, refine the hit with a binary search, and return
+// the scene color there with the weight in alpha. The caller alpha-blends
+// the result over the lit surface, so a miss leaves the surface as it is.
 struct FSInput {
     float2 texCoords : TEXCOORD0;
 };
@@ -15,27 +15,25 @@ struct FSInput {
 uniform float4x4 projection;
 uniform float4x4 invProjection;
 
-static const int maxSteps    = 64;
+// Longest march before giving up, in screen-space strides.
+static const int maxSteps = 256;
+// Screen-space step size, in pixels. Stepping in pixels visits every stride
+// of the screen along the ray, so thin objects can't fall entirely between
+// two samples the way a fixed view-space step could skip over them.
+static const float stride = 4.0;
+// Binary-search steps used to refine a hit inside one stride.
 static const int refineSteps = 5;
-// View-space units. The step length is maxDistance / maxSteps.
+// Ray length clip and fade-out distance, view-space units.
 static const float maxDistance = 100.0;
-// After the binary search, a hit this far or more behind the depth buffer is
-// behind an object, not on it, so the march goes on. The search runs only on
-// the step where the ray crosses from in front of the depth buffer to behind
-// it: a step that is already behind at both ends has no crossing in
-// [prev, ray] to search, and searching it anyway would false-hit near prev
-// instead of at the real surface.
+// A stride hits when the depth range it covers reaches the visible surface
+// and stays within this many view-space units behind it. Past that, the ray
+// has gone behind an object rather than landing on it, so the march goes on.
 static const float thickness = 0.3;
 
 float3 viewPositionFromDepth(float2 uv, float depth) {
     float4 clip = float4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
     float4 view = mul(invProjection, clip);
     return view.xyz / view.w;
-}
-
-float2 projectToUV(float3 viewPos) {
-    float4 clip = mul(projection, float4(viewPos, 1.0));
-    return clip.xy / clip.w * 0.5 + 0.5;
 }
 
 // Level 0 explicitly: the march loop has no usable derivatives.
@@ -69,53 +67,109 @@ float4 fragMain(FSInput input) : SV_Target {
         discard;
     }
 
-    float  stepLength  = maxDistance / float(maxSteps);
-    float3 prev        = P;
-    float3 ray         = P + R * stepLength;
-    bool   hit         = false;
-    float3 hitPos      = float3(0.0);
-    bool   prevInFront = true;
+    float2 size;
+    depthTex.GetDimensions(size.x, size.y);
+
+    // Clip the ray just in front of the near plane, so its end projects in
+    // front of the camera. View z is negative in front of the camera.
+    float nearZ     = viewPositionFromDepth(float2(0.5), 0.0).z;
+    float rayLength = maxDistance;
+    if (P.z + R.z * maxDistance > nearZ - 1e-3) {
+        rayLength = (nearZ - 1e-3 - P.z) / R.z;
+    }
+
+    // Project both ends. Q / k and k = 1/w interpolate linearly in screen
+    // space, so the view position is correct at every pixel on the way.
+    float4 H0 = mul(projection, float4(P, 1.0));
+    float4 H1 = mul(projection, float4(P + R * rayLength, 1.0));
+    float  k0 = 1.0 / H0.w;
+    float  k1 = 1.0 / H1.w;
+    float3 Q0 = P * k0;
+    float3 Q1 = (P + R * rayLength) * k1;
+    float2 P0 = (H0.xy * k0 * 0.5 + 0.5) * size;
+    float2 P1 = (H1.xy * k1 * 0.5 + 0.5) * size;
+    // A ray that stays on one pixel still needs a direction.
+    if (dot(P1 - P0, P1 - P0) < 1e-4) {
+        P1 += 0.01;
+    }
+
+    // Step along the longer screen axis, one stride at a time.
+    float2 delta   = P1 - P0;
+    bool   permute = abs(delta.x) < abs(delta.y);
+    if (permute) {
+        delta = delta.yx;
+        P0    = P0.yx;
+        P1    = P1.yx;
+    }
+    float  stepDir = sign(delta.x);
+    float  invdx   = stepDir / delta.x;
+    float2 dP      = float2(stepDir, delta.y * invdx) * stride;
+    float3 dQ      = (Q1 - Q0) * invdx * stride;
+    float  dk      = (k1 - k0) * invdx * stride;
+    float  endX    = P1.x * stepDir;
+
+    float2 Pc     = P0;
+    float3 Qc     = Q0;
+    float  kc     = k0;
+    float  prevZ  = P.z;
+    bool   hit    = false;
+    float3 hitPos = float3(0.0);
+    float2 hitUV  = float2(0.0);
 
     for (int i = 0; i < maxSteps; i++) {
-        if (ray.z >= 0.0) {
+        float2 Pnext = Pc + dP;
+        float3 Qn    = Qc + dQ;
+        float  kn    = kc + dk;
+        if (Pnext.x * stepDir > endX) {
             break;
         }
-        float2 uv = projectToUV(ray);
+        float2 uv = (permute ? Pnext.yx : Pnext) / size;
         if (!onScreen(uv)) {
             break;
         }
-        // True when the ray is behind the visible surface.
-        bool behind = sceneViewZ(uv) - ray.z > 0.0;
-        // Refine only the step that crosses from in front to behind: that is
-        // where the surface sits between prev and ray. A step that is still
-        // behind from the previous step already had its crossing searched.
-        if (behind && prevInFront) {
-            float3 a = prev;
-            float3 b = ray;
+        // The step covers view depths from prevZ to rayZ. It hits when that
+        // range overlaps the visible surface and at most thickness behind it.
+        float rayZ   = Qn.z / kn;
+        float sceneZ = sceneViewZ(uv);
+        if (min(prevZ, rayZ) <= sceneZ && max(prevZ, rayZ) >= sceneZ - thickness) {
+            // Binary search inside this step for the first point behind the
+            // surface.
+            float2 Pa = Pc;
+            float3 Qa = Qc;
+            float  ka = kc;
+            float2 Pb = Pnext;
+            float3 Qb = Qn;
+            float  kb = kn;
             for (int j = 0; j < refineSteps; j++) {
-                float3 mid = (a + b) * 0.5;
-                if (sceneViewZ(projectToUV(mid)) - mid.z > 0.0) {
-                    b = mid;
+                float2 Pm = (Pa + Pb) * 0.5;
+                float3 Qm = (Qa + Qb) * 0.5;
+                float  km = (ka + kb) * 0.5;
+                float2 m  = (permute ? Pm.yx : Pm) / size;
+                if (sceneViewZ(m) > Qm.z / km) {
+                    Pb = Pm;
+                    Qb = Qm;
+                    kb = km;
                 } else {
-                    a = mid;
+                    Pa = Pm;
+                    Qa = Qm;
+                    ka = km;
                 }
             }
-            if (sceneViewZ(projectToUV(b)) - b.z < thickness) {
-                hitPos = b;
-                hit    = true;
-                break;
-            }
+            hitUV  = (permute ? Pb.yx : Pb) / size;
+            hitPos = Qb / kb;
+            hit    = true;
+            break;
         }
-        prevInFront = !behind;
-        prev        = ray;
-        ray += R * stepLength;
+        prevZ = rayZ;
+        Pc    = Pnext;
+        Qc    = Qn;
+        kc    = kn;
     }
 
     if (!hit) {
         discard;
     }
 
-    float2 hitUV        = projectToUV(hitPos);
     float2 edge         = smoothstep(float2(0.0), float2(0.05), hitUV) *
                           smoothstep(float2(0.0), float2(0.05), 1.0 - hitUV);
     float  distanceFade = 1.0 - smoothstep(0.75 * maxDistance, maxDistance, length(hitPos - P));
