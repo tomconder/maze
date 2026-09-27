@@ -43,6 +43,7 @@ private:
     static void showLightsSection();
     static void showBloomControls();
     static void showSsaoControls();
+    static void showSsrControls();
     static void showDirectionalLightControls();
     static void showPointLightControls();
     static void showAttenuationSlider(int32_t& attenuationIndex);

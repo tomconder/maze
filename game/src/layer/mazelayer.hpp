@@ -15,6 +15,7 @@
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/ssao.hpp"
+#include "platform/opengl/scene/ssr.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/frustum.hpp"
 #include "scene/gamecamera.hpp"
@@ -104,6 +105,9 @@ public:
     void  setSsaoEnabled(bool val);
     float getSsaoRadius() const;
     void  setSsaoRadius(float val);
+
+    bool isSsrEnabled() const;
+    void setSsrEnabled(bool val);
 
     bool isImguiActive() const;
 
@@ -208,6 +212,7 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::TAA>         taa;
     std::unique_ptr<sponge::platform::opengl::scene::Bloom>       bloom;
     std::unique_ptr<sponge::platform::opengl::scene::Ssao>        ssao;
+    std::unique_ptr<sponge::platform::opengl::scene::Ssr>         ssr;
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget> sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>   shadowMap;
 
@@ -286,6 +291,7 @@ private:
     float   bloomIntensity     = 0.08F;
     bool    ssaoEnabled        = true;
     float   ssaoRadius         = 0.5F;
+    bool    ssrEnabled         = true;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;

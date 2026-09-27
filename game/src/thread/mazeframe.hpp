@@ -103,6 +103,8 @@ struct MazeRenderFrame {
 
     bool  ssaoEnabled{ true };
     float ssaoRadius{ 0.5F };
+
+    bool ssrEnabled{ true };
 };
 
 }  // namespace game::thread

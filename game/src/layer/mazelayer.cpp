@@ -64,6 +64,7 @@ using sponge::platform::opengl::scene::OcclusionCuller;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::Ssao;
+using sponge::platform::opengl::scene::Ssr;
 using sponge::platform::opengl::scene::TAA;
 using thread::AntiAliasing;
 
@@ -189,6 +190,8 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     ssao = std::make_unique<Ssao>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
+
+    ssr = std::make_unique<Ssr>();
 
     sceneTarget =
         std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
@@ -458,6 +461,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
         frame.ssaoEnabled = ssaoEnabled;
         frame.ssaoRadius  = ssaoRadius;
+        frame.ssrEnabled  = ssrEnabled;
     }
 
     // Publication happens in onFrameSync() on the main thread, while both
@@ -573,6 +577,17 @@ void MazeLayer::onRender() {
     // buffer — GL_LESS would reject every one of their fragments. They stay
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
+
+    // Before glass, so glass refracts the reflections. The copy is a
+    // different texture from the scene color attachment; the glass pass makes
+    // its own copy after this one.
+    if (frame.ssrEnabled && ssr &&
+        std::ranges::any_of(frame.objectReflectivity,
+                            [](const float r) { return r > 0.F; })) {
+        ssr->apply(sceneTarget->copyColor(), depthPrepassTexture,
+                   normalPrepassTexture, frame.cameraProjection,
+                   glm::inverse(frame.cameraProjection));
+    }
 
     if (std::ranges::any_of(frame.objectRefraction,
                             &scene::SceneRefraction::refractive)) {
@@ -1287,6 +1302,15 @@ float MazeLayer::getSsaoRadius() const {
 void MazeLayer::setSsaoRadius(const float val) {
     std::scoped_lock lock(settingsMutex);
     ssaoRadius = val;
+}
+
+bool MazeLayer::isSsrEnabled() const {
+    return ssrEnabled;
+}
+
+void MazeLayer::setSsrEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
+    ssrEnabled = val;
 }
 
 bool MazeLayer::isImguiActive() const {
