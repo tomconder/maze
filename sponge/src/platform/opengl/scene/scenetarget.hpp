@@ -33,6 +33,25 @@ public:
         return colorTexture;
     }
 
+    // Copy the scene color into a texture the glass pass can sample. The
+    // copy is not an attachment of the framebuffer being drawn.
+    uint32_t copyColor() const;
+
+    // Bind the glass framebuffer: scene color, the caller's velocity
+    // texture, and this target's depth renderbuffer. The renderbuffer
+    // already holds the blitted opaque depth. Returns false when the
+    // framebuffer is incomplete; the caller skips the draw.
+    //
+    // The prepass depth texture is sampled by the shader and is not
+    // attached here. Sampling a texture that is also the bound depth
+    // attachment is undefined.
+    bool beginGlass(uint32_t velocityTex, bool writeVelocity) const;
+
+    void endGlass() const;
+
+    // Blit this target's depth renderbuffer onto destFbo's depth attachment.
+    void blitDepthTo(uint32_t destFbo, int width, int height) const;
+
     // Composites bloom in linear light, then tone maps and gamma encodes into
     // whichever framebuffer is currently bound. `bloomTexId` may be 0 when
     // `bloomIntensity` is 0. Set `ditherOutput` only when this pass writes the
@@ -52,8 +71,10 @@ private:
     // Raw GL handles, as in the other post-processing classes: the Texture
     // class has no colour-buffer creation path and these are rebuilt on resize.
     uint32_t colorTexture = 0;
+    uint32_t colorCopy    = 0;
     uint32_t depthRbo     = 0;
     uint32_t fbo          = 0;
+    uint32_t glassFbo     = 0;
 
     uint32_t width  = 0;
     uint32_t height = 0;

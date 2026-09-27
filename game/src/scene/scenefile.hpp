@@ -1,5 +1,7 @@
 #pragma once
 
+#include "scene/refraction.hpp"
+
 #include <glm/glm.hpp>
 
 #include <cstdint>
@@ -17,8 +19,9 @@ struct SceneObject {
         float     angle{ 0.F };
         glm::vec3 axis{ 0.F, 1.F, 0.F };
     } rotation{};
-    glm::vec3 translation{ 0.F };
-    glm::vec3 emissive{ 0.F };
+    glm::vec3       translation{ 0.F };
+    glm::vec3       emissive{ 0.F };
+    SceneRefraction refraction;
 };
 
 struct SceneCamera {

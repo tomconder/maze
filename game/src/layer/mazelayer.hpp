@@ -158,9 +158,10 @@ private:
     // Loaded in the constructor, before any other member reads it.
     const scene::Scene sceneDesc;
 
-    std::shared_ptr<scene::GameCamera> camera;
-    std::vector<glm::mat4>             objectModelMatrices;
-    std::vector<glm::vec3>             objectEmissives;
+    std::shared_ptr<scene::GameCamera>  camera;
+    std::vector<glm::mat4>              objectModelMatrices;
+    std::vector<glm::vec3>              objectEmissives;
+    std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
     // World-space per-mesh AABB, index-locked with objectModels/[mesh index].
@@ -189,7 +190,9 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
-             depthPrepassShader;
+        depthPrepassShader;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader>
+             refractionShader;
     uint32_t depthPrepassFbo{ 0 };
     uint32_t depthPrepassTexture{ 0 };
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
@@ -306,6 +309,9 @@ private:
     void blitDepthToCurrentFbo(int w, int h) const;
 
     void renderGameObjects(const thread::MazeRenderFrame& frame) const;
+
+    void renderRefractiveObjects(const thread::MazeRenderFrame& frame,
+                                 uint32_t sceneCopy) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
 

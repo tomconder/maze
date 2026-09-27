@@ -2,6 +2,7 @@
 
 #include "platform/opengl/scene/clusteredlights.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "scene/refraction.hpp"
 
 #include <glm/glm.hpp>
 
@@ -69,6 +70,10 @@ struct MazeRenderFrame {
     std::vector<glm::mat4> objectModelMatrices;
     std::vector<glm::mat4> prevObjectModelMatrices;
     std::vector<glm::vec3> objectEmissives;
+
+    // Static after load. Index-locked with objectModels. A non-refractive
+    // object stays in the opaque passes.
+    std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 
