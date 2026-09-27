@@ -3,9 +3,7 @@
 // ray across the screen in fixed pixel strides (McGuire and Mara's DDA march)
 // against the prepass depth, refine the hit with a binary search, and return
 // the scene color there with the weight in alpha. The caller alpha-blends
-// the result over the lit surface. A ray that only passed behind objects
-// shows the first one it passed; a ray that found nothing leaves the surface
-// as it is.
+// the result over the lit surface, so a miss leaves the surface as it is.
 struct FSInput {
     float2 texCoords : TEXCOORD0;
 };
@@ -117,12 +115,6 @@ float4 fragMain(FSInput input) : SV_Target {
     bool   hit    = false;
     float3 hitPos = float3(0.0);
     float2 hitUV  = float2(0.0);
-    // The first point where the ray passed behind an object by more than
-    // thickness. If the march finds no real hit, the reflection shows that
-    // object instead of a hole.
-    bool   behindFound = false;
-    float3 behindPos   = float3(0.0);
-    float2 behindUV    = float2(0.0);
 
     for (int i = 0; i < maxSteps; i++) {
         float2 Pnext = Pc + dP;
@@ -168,11 +160,6 @@ float4 fragMain(FSInput input) : SV_Target {
             hit    = true;
             break;
         }
-        if (!behindFound && rayZ < sceneZ) {
-            behindFound = true;
-            behindPos   = Qn / kn;
-            behindUV    = uv;
-        }
         prevZ = rayZ;
         Pc    = Pnext;
         Qc    = Qn;
@@ -180,11 +167,7 @@ float4 fragMain(FSInput input) : SV_Target {
     }
 
     if (!hit) {
-        if (!behindFound) {
-            discard;
-        }
-        hitPos = behindPos;
-        hitUV  = behindUV;
+        discard;
     }
 
     float2 edge         = smoothstep(float2(0.0), float2(0.05), hitUV) *
