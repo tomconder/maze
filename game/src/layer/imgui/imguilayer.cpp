@@ -304,6 +304,15 @@ void ImGuiLayer::showSsrControls() {
             }
         });
 
+        auto planarEnabled = mazeLayer->isPlanarEnabled();
+        showTableRow([&] {
+            ImGui::Text("Planar");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##planarenabled", &planarEnabled)) {
+                mazeLayer->setPlanarEnabled(planarEnabled);
+            }
+        });
+
         ImGui::EndTable();
     }
 }
@@ -395,6 +404,15 @@ void ImGuiLayer::showDirectionalLightControls() {
                 mazeLayer->setShadowMapRes(res);
                 sponge::core::Settings::set("video.shadowRes", res);
                 sponge::core::Settings::save();
+            }
+        });
+
+        auto probeEnabled = mazeLayer->isProbeEnabled();
+        showTableRow([&] {
+            ImGui::Text("Probe");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##probeenabled", &probeEnabled)) {
+                mazeLayer->setProbeEnabled(probeEnabled);
             }
         });
 

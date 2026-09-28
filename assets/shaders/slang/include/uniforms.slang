@@ -48,6 +48,11 @@ struct PbrParams {
     float            clusterNear;       // near bound of the cluster grid
     float            farPlane;
     float2           screenSize;
-    float3           viewForward;  // world-space camera forward, normalized
+    float3           viewForward;    // world-space camera forward, normalized
+    bool             probeEnabled;   // sample probeMap for the ambient specular term
+    float3           probePosition;  // world-space capture point
+    float3           probeBoxMin;    // world-space box the probe is projected against
+    float3           probeBoxMax;
+    float            probeMaxMip;  // last mip of probeMap; roughness 1 samples it
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;

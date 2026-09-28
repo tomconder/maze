@@ -17,6 +17,8 @@ A game engine featuring a nice walk through a maze.
 * Physically based bloom
 * Screen-space ambient occlusion (SSAO)
 * Screen-space reflection (SSR) for objects marked `reflective` in the scene file
+* Planar reflection for flat mirrors
+* Reflection probe with box-projected specular reflections
 * Screen-space refraction for glass objects, with index of refraction, thickness and tint
 * Camera frustum and hardware occlusion culling
 * Selectable anti-aliasing: FXAA or temporal (TAA)

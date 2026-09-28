@@ -6,6 +6,7 @@
 #include <fkYAML/node.hpp>
 #include <glm/common.hpp>
 #include <glm/trigonometric.hpp>
+#include <glm/vector_relational.hpp>
 
 #include <fstream>
 #include <string>
@@ -126,6 +127,29 @@ void readBloom(const node& root, game::scene::SceneBloom& bloom) {
     bloom.intensity = readFloat(*map, "intensity", bloom.intensity);
 }
 
+void readProbe(const node&                             root,
+               std::optional<game::scene::SceneProbe>& probe) {
+    const auto* map = find(root, "probe");
+    if (map == nullptr) {
+        return;
+    }
+    game::scene::SceneProbe p;
+    p.position = readVec3(*map, "position", p.position);
+    p.boxMin   = readVec3(*map, "boxMin", p.boxMin);
+    p.boxMax   = readVec3(*map, "boxMax", p.boxMax);
+    if (!glm::all(glm::lessThan(p.boxMin, p.boxMax))) {
+        SPONGE_WARN("Scene probe box needs boxMin below boxMax on every axis; "
+                    "no probe");
+        return;
+    }
+    if (glm::any(glm::lessThan(p.position, p.boxMin)) ||
+        glm::any(glm::greaterThan(p.position, p.boxMax))) {
+        SPONGE_WARN("Scene probe position is outside its box; no probe");
+        return;
+    }
+    probe = p;
+}
+
 void readObjects(const node&                            root,
                  std::vector<game::scene::SceneObject>& objects) {
     const auto* sequence = find(root, "objects");
@@ -194,6 +218,19 @@ void readObjects(const node&                            root,
             object.reflective = 0.F;
         }
 
+        if (const auto* value = find(entry, "planar");
+            value != nullptr && !value->is_boolean()) {
+            SPONGE_WARN("Scene object '{}' planar is not a boolean, ignored",
+                        object.name);
+        }
+        object.planar = readBool(entry, "planar", object.planar);
+        if (object.planar && object.reflective <= 0.F) {
+            SPONGE_WARN("Scene object '{}' is planar but not reflective, "
+                        "planar ignored",
+                        object.name);
+            object.planar = false;
+        }
+
         if (const auto* rotation = find(entry, "rotation");
             rotation != nullptr) {
             object.rotation.angle =
@@ -226,6 +263,7 @@ Scene loadScene(const std::string& path) {
         readCamera(root, scene.camera);
         readLighting(root, scene.lighting);
         readBloom(root, scene.bloom);
+        readProbe(root, scene.probe);
         readObjects(root, scene.objects);
     } catch (const std::exception& e) {
         // Keep whatever parsed before the fault plus the defaults: a bad file

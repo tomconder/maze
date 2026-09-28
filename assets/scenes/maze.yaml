@@ -48,6 +48,14 @@ bloom:
   threshold: 0.8
   intensity: 0.08
 
+# Reflection probe: the scene captured once at load into a cubemap. Metals
+# and SSR misses reflect it, box-projected against the room [boxMin, boxMax].
+# Leave the block out for flat ambient.
+probe:
+  position: [-1.94, 4.0, -1.24]
+  boxMin: [-37.66, -0.08, -12.22]
+  boxMax: [33.78, 25.83, 9.75]
+
 objects:
   # - name: floor
   #   path: /models/gltf/floor/floor.glb
@@ -62,6 +70,7 @@ objects:
   #   scale: [3.0, 0.02, 3.0]
   #   translation: [0.0, 0.05, 0.0]
   #   reflective: 0.8
+  #   planar: true
 
   # - name: cube2
   #   path: /models/gltf/cube/cube-tex.glb

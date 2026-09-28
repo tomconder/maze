@@ -12,6 +12,8 @@
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/occlusionculler.hpp"
+#include "platform/opengl/scene/planarreflection.hpp"
+#include "platform/opengl/scene/reflectionprobe.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/ssao.hpp"
@@ -29,6 +31,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 namespace game::layer {
@@ -109,6 +112,12 @@ public:
     bool isSsrEnabled() const;
     void setSsrEnabled(bool val);
 
+    bool isPlanarEnabled() const;
+    void setPlanarEnabled(bool val);
+
+    bool isProbeEnabled() const;
+    void setProbeEnabled(bool val);
+
     bool isImguiActive() const;
 
     // This frame's frustum-culling stats, for the debug UI. Updated on the
@@ -162,10 +171,12 @@ private:
     // Loaded in the constructor, before any other member reads it.
     const scene::Scene sceneDesc;
 
-    std::shared_ptr<scene::GameCamera>  camera;
-    std::vector<glm::mat4>              objectModelMatrices;
-    std::vector<glm::vec3>              objectEmissives;
-    std::vector<float>                  objectReflectivity;
+    std::shared_ptr<scene::GameCamera> camera;
+    std::vector<glm::mat4>             objectModelMatrices;
+    std::vector<glm::vec3>             objectEmissives;
+    std::vector<float>                 objectReflectivity;
+    // Index of the one object drawn with planar reflection, if any.
+    std::optional<size_t>               planarObject;
     std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
@@ -197,9 +208,19 @@ private:
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         depthPrepassShader;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
-             refractionShader;
-    uint32_t depthPrepassFbo{ 0 };
-    uint32_t depthPrepassTexture{ 0 };
+        refractionShader;
+    // The scene seen in the planar mirror, and the shader that draws it on
+    // the mirror.
+    std::unique_ptr<sponge::platform::opengl::scene::PlanarReflection>
+        planarReflection;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader> planarShader;
+    // The scene captured once from the scene file's probe position; empty
+    // when the scene has no probe.
+    std::unique_ptr<sponge::platform::opengl::scene::ReflectionProbe> probe;
+    // Render thread only: set after the first capture.
+    mutable bool probeCaptured{ false };
+    uint32_t     depthPrepassFbo{ 0 };
+    uint32_t     depthPrepassTexture{ 0 };
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
     // depth prepass and consumed by TAA. Shares the prepass FBO.
     uint32_t velocityTexture{ 0 };
@@ -292,6 +313,8 @@ private:
     bool    ssaoEnabled        = true;
     float   ssaoRadius         = 0.5F;
     bool    ssrEnabled         = true;
+    bool    planarEnabled      = true;
+    bool    probeEnabled       = true;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;
@@ -322,6 +345,12 @@ private:
                                  uint32_t sceneCopy) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
+
+    void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
+
+    void captureProbe(const thread::MazeRenderFrame& frame) const;
+
+    void renderPlanarComposite(const thread::MazeRenderFrame& frame) const;
 
     void renderSceneToDepthMap(const thread::MazeRenderFrame& frame) const;
 

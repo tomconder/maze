@@ -45,13 +45,14 @@ VSOutput vertMain(VSInput input) {
     return output;
 };
 
-[[vk::binding(0)]] Sampler2D<float4> texture_diffuse1;
-[[vk::binding(1)]] Sampler2D<float2> shadowMap;
-[[vk::binding(6)]] Sampler2D<float4> normalMap;
-[[vk::binding(7)]] Sampler2D<float4> occlusionMap;
-[[vk::binding(8)]] Sampler2D<float4> emissiveMap;
-[[vk::binding(9)]] Sampler2D<float4> metallicRoughnessMap;
-[[vk::binding(10)]] Sampler2D<float> ssaoTexture;
+[[vk::binding(0)]] Sampler2D<float4>    texture_diffuse1;
+[[vk::binding(1)]] Sampler2D<float2>    shadowMap;
+[[vk::binding(6)]] Sampler2D<float4>    normalMap;
+[[vk::binding(7)]] Sampler2D<float4>    occlusionMap;
+[[vk::binding(8)]] Sampler2D<float4>    emissiveMap;
+[[vk::binding(9)]] Sampler2D<float4>    metallicRoughnessMap;
+[[vk::binding(10)]] Sampler2D<float>    ssaoTexture;
+[[vk::binding(12)]] SamplerCube<float4> probeMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -67,9 +68,13 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
 
     float3 N = normalize(input.worldNormal);
-    if (params.hasNormalMap) {
+    // Gram-Schmidt leaves nothing to normalize where a mesh's tangent is
+    // parallel to its normal (or zero), and normalize(0) is NaN, which bloom
+    // then spreads into a dark blob. Keep the geometric normal there.
+    float3 tangentOrtho = input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz);
+    if (params.hasNormalMap && dot(tangentOrtho, tangentOrtho) > 1e-12) {
         float2 normalUV = applyUVTransform(input.texCoords, params.normalUVTransform);
-        float3 T        = normalize(input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz));
+        float3 T        = normalize(tangentOrtho);
         float3 B        = cross(N, T) * input.worldTangent.w;
         // Z is reconstructed rather than sampled: baked normal maps are BC5,
         // which stores XY only. A tangent-space normal always points out of
@@ -81,14 +86,18 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         N                = normalize(T * sampledXY.x + B * sampledXY.y + N * sampledZ);
     }
 
-    float ao = params.ao;
+    // Per-pixel occlusion only (AO map x SSAO), kept apart from params.ao's
+    // flat multiplier: the probe term below wants real geometric occlusion,
+    // not the scene's flat ambient darkening.
+    float aoTex = 1.0;
     if (params.hasAOMap) {
         float2 occlusionUV = applyUVTransform(input.texCoords, params.occlusionUVTransform);
-        ao *= occlusionMap.Sample(occlusionUV).r;
+        aoTex *= occlusionMap.Sample(occlusionUV).r;
     }
     if (params.ssaoEnabled) {
-        ao *= ssaoTexture.Sample(fragCoord.xy / params.screenSize).r;
+        aoTex *= ssaoTexture.Sample(fragCoord.xy / params.screenSize).r;
     }
+    float ao = params.ao * aoTex;
 
     float3 emissiveTexColor = float3(0.0);
     if (params.hasEmissiveMap) {
@@ -140,7 +149,22 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
 
     float3 ambient = float3(params.ambientStrength) * albedo * ao;
-    float3 color   = ambient + Lo + params.emissive + emissiveTexColor;
+    if (params.probeEnabled) {
+        // Split-sum image-based specular from the probe. Diffuse ambient
+        // keeps the flat term, weighted for the light the surface reflects
+        // as specular and removed for metals.
+        float  NdotV = max(dot(N, V), 1e-5);
+        float3 F0    = lerp(float3(0.04), albedo, metallic);
+        float3 F     = fresnelSchlickRoughness(NdotV, F0, roughness);
+        float2 AB    = envBRDFApprox(NdotV, roughness);
+        float3 R     = boxProject(reflect(-V, N), input.worldPosition,
+                                  params.probePosition, params.probeBoxMin,
+                                  params.probeBoxMax);
+        float3 probe = probeMap.SampleLevel(R, roughness * params.probeMaxMip).rgb;
+        ambient      = ambient * (1.0 - F) * (1.0 - metallic) +
+                       probe * (F0 * AB.x + AB.y) * aoTex;
+    }
+    float3 color = ambient + Lo + params.emissive + emissiveTexColor;
 
     // Linear HDR out. Tone mapping, gamma and dither happen once in
     // tonemap.slang, after bloom has extracted from this unbounded radiance.

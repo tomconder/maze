@@ -30,6 +30,13 @@ enum class AntiAliasing : uint8_t {
 // synchronization ensures the writer and reader are always in different
 // slots at any given moment.
 struct MazeRenderFrame {
+    // True once captureRenderFrame() has filled this slot with real
+    // per-frame state at least once. finishLoading() pre-seeds objectModels
+    // (and the other per-object arrays) into both slots before any capture
+    // runs, so a non-empty objectModels alone does not mean this slot holds
+    // a real frame — check this instead.
+    bool populated{ false };
+
     // Camera
     // Jittered when TAA is on — this is what the geometry passes use.
     glm::mat4 cameraMVP{ 1.F };
@@ -105,6 +112,26 @@ struct MazeRenderFrame {
     float ssaoRadius{ 0.5F };
 
     bool ssrEnabled{ true };
+
+    // Sample the reflection probe for ambient specular. False when the
+    // toggle is off or the scene has no probe; the render thread also waits
+    // for probeCaptured before it actually samples.
+    bool probeEnabled{ false };
+
+    // True when the planar mirror is drawn this frame.
+    bool planarActive{ false };
+    // Index of the planar mirror object; valid when planarActive.
+    size_t planarIndex{ 0 };
+    // Oblique projection times the view reflected in the mirror plane.
+    glm::mat4 planarViewProj{ 1.F };
+    // Camera position reflected in the mirror plane.
+    glm::vec3 planarViewPos{ 0.F };
+    // World-space mirror plane normal, for the composite pass to discard the
+    // mirror mesh's side faces.
+    glm::vec3 planarNormal{ 0.F, 1.F, 0.F };
+    // Per-object visibility in the mirrored view, index-locked with
+    // objectModels.
+    std::vector<uint8_t> planarObjectVisible;
 };
 
 }  // namespace game::thread

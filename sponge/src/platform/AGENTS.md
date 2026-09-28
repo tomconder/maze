@@ -26,7 +26,8 @@ than calling GLFW/OpenGL/OS APIs directly.
   `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
-  `SceneTarget`, `Ssao`, `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
+  `SceneTarget`, `Ssao`, `Ssr`, `PlanarReflection`, `ReflectionProbe`,
+  `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
 * `opengl/debug/` - GL diagnostics/profiler, debug-build only.
 * `windows/`, `osx/`, `linux/` `core/*file.*` - the only OS-specific file I/O
   shims; everything else is GLFW-portable.
@@ -51,15 +52,27 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
-* The pipeline is: opaque scene to a linear HDR `SceneTarget`, then the
-  full-screen `Ssr` pass blends reflections into that target, then refractive
-  objects into that same target, then bloom extracts and blurs in linear ->
+* The pipeline is: the reflection probe capture (first frame only, after the
+  shadow map), depth prepass, then the mirrored scene render for the
+  planar mirror (if any), then opaque scene to a linear HDR `SceneTarget`,
+  then the light cubes, then the planar composite draws the mirror over them
+  from its mirrored render, then the full-screen `Ssr` pass blends
+  reflections into that target, then refractive objects into that same
+  target, then bloom extracts and blurs in linear ->
   `SceneTarget::resolve()` composites bloom, tone maps, gamma encodes. `Ssr`
-  runs only when SSR is on and at least one object has `reflective > 0`.
-  Nothing upstream of resolve() may tone map, or the bloom threshold stops
-  being a radiance value. Refractive objects stay out of the depth prepass,
-  so the color behind them exists to sample. The glass pass depth-tests
-  against the scene depth renderbuffer (the blitted opaque depth) and blits
+  runs only when SSR is on and at least one object other than the active
+  planar mirror has `reflective > 0`. SSR takes the mirror over when the
+  planar path is inactive: the Planar toggle is off, the mirror is culled,
+  or the camera is on or behind its plane. The probe is bound on unit 12 and
+  feeds the PBR ambient specular term; the mirrored render and the capture
+  itself run with it off. Unit 12 holds the probe cube map (PBR) and the
+  depth prepass 2D texture (refraction); never call
+  `glBindTextureUnit(12, 0)` between the two passes. Nothing upstream of
+  resolve() may tone map, or the bloom threshold stops being a radiance
+  value. Refractive objects stay out of the depth prepass, so the color
+  behind them exists to sample. The glass pass depth-tests against the
+  scene depth renderbuffer (the blitted
+  opaque depth) and blits
   that depth back to the prepass texture. Do not sample the prepass depth
   while it is the bound depth attachment: that feedback is undefined.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the
