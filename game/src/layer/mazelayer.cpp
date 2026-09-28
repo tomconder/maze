@@ -1386,9 +1386,11 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
 
     probeCaptured = true;
 
-    const auto ms = std::chrono::duration<double, std::milli>(
-                        std::chrono::steady_clock::now() - start)
-                        .count();
+    // Unused when the log level compiles SPONGE_INFO out (release).
+    [[maybe_unused]] const auto ms =
+        std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start)
+            .count();
     SPONGE_INFO("Reflection probe captured in {:.1f} ms", ms);
 }
 
