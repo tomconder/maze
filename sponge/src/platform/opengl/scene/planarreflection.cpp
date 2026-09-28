@@ -15,9 +15,10 @@ PlanarReflection::~PlanarReflection() {
     destroy();
 }
 
-void PlanarReflection::resize(const uint32_t width, const uint32_t height) {
-    this->width  = width;
-    this->height = height;
+void PlanarReflection::resize(const uint32_t newWidth,
+                              const uint32_t newHeight) {
+    width  = newWidth;
+    height = newHeight;
     destroy();
     create();
 }

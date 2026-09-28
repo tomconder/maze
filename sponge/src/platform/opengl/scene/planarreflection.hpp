@@ -18,7 +18,7 @@ public:
     PlanarReflection(const PlanarReflection&)            = delete;
     PlanarReflection& operator=(const PlanarReflection&) = delete;
 
-    void resize(uint32_t width, uint32_t height);
+    void resize(uint32_t newWidth, uint32_t newHeight);
 
     // Binds and clears the target, saves the caller's viewport and sets this
     // target's own, and flips the front face: a reflection reverses the
