@@ -30,6 +30,13 @@ enum class AntiAliasing : uint8_t {
 // synchronization ensures the writer and reader are always in different
 // slots at any given moment.
 struct MazeRenderFrame {
+    // True once captureRenderFrame() has filled this slot with real
+    // per-frame state at least once. finishLoading() pre-seeds objectModels
+    // (and the other per-object arrays) into both slots before any capture
+    // runs, so a non-empty objectModels alone does not mean this slot holds
+    // a real frame — check this instead.
+    bool populated{ false };
+
     // Camera
     // Jittered when TAA is on — this is what the geometry passes use.
     glm::mat4 cameraMVP{ 1.F };
@@ -106,8 +113,9 @@ struct MazeRenderFrame {
 
     bool ssrEnabled{ true };
 
-    // Sample the reflection probe for ambient specular. False when the scene
-    // has no probe or it is not captured yet.
+    // Sample the reflection probe for ambient specular. False when the
+    // toggle is off or the scene has no probe; the render thread also waits
+    // for probeCaptured before it actually samples.
     bool probeEnabled{ false };
 
     // True when the planar mirror is drawn this frame.

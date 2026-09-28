@@ -65,11 +65,14 @@ than calling GLFW/OpenGL/OS APIs directly.
   planar path is inactive: the Planar toggle is off, the mirror is culled,
   or the camera is on or behind its plane. The probe is bound on unit 12 and
   feeds the PBR ambient specular term; the mirrored render and the capture
-  itself run with it off. Nothing upstream of resolve() may
-  tone map, or the bloom threshold stops being a radiance value. Refractive
-  objects stay out of the depth prepass, so the color behind them exists to
-  sample. The glass pass depth-tests
-  against the scene depth renderbuffer (the blitted opaque depth) and blits
+  itself run with it off. Unit 12 holds the probe cube map (PBR) and the
+  depth prepass 2D texture (refraction); never call
+  `glBindTextureUnit(12, 0)` between the two passes. Nothing upstream of
+  resolve() may tone map, or the bloom threshold stops being a radiance
+  value. Refractive objects stay out of the depth prepass, so the color
+  behind them exists to sample. The glass pass depth-tests against the
+  scene depth renderbuffer (the blitted
+  opaque depth) and blits
   that depth back to the prepass texture. Do not sample the prepass depth
   while it is the bound depth attachment: that feedback is undefined.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the

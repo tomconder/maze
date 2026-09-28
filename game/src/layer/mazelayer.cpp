@@ -542,6 +542,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.probeEnabled = probeEnabled && probe != nullptr;
     }
 
+    // Last: everything above is real per-frame state now, not finishLoading()'s
+    // pre-seeded defaults.
+    frame.populated = true;
+
     // Publication happens in onFrameSync() on the main thread, while both
     // workers are idle — publishing here would race the in-flight render and
     // make the frame pairing nondeterministic.
@@ -622,8 +626,12 @@ void MazeLayer::onRender() {
     }
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights
-    // with. Waits for a frame that carries the objects.
-    if (probe && !probeCaptured && !frame.objectModels.empty()) {
+    // with. Waits for the first fully populated frame: finishLoading()
+    // pre-seeds objectModels into both slots before any real
+    // captureRenderFrame() runs, so checking objectModels alone would
+    // capture from the slot's untouched defaults instead — shadow pass
+    // skipped, lightSpaceMatrix never written, numLights 0, ssaoEnabled true.
+    if (probe && !probeCaptured && frame.populated) {
         captureProbe(frame);
     }
 

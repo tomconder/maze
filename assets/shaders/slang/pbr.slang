@@ -82,14 +82,18 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         N                = normalize(T * sampledXY.x + B * sampledXY.y + N * sampledZ);
     }
 
-    float ao = params.ao;
+    // Per-pixel occlusion only (AO map x SSAO), kept apart from params.ao's
+    // flat multiplier: the probe term below wants real geometric occlusion,
+    // not the scene's flat ambient darkening.
+    float aoTex = 1.0;
     if (params.hasAOMap) {
         float2 occlusionUV = applyUVTransform(input.texCoords, params.occlusionUVTransform);
-        ao *= occlusionMap.Sample(occlusionUV).r;
+        aoTex *= occlusionMap.Sample(occlusionUV).r;
     }
     if (params.ssaoEnabled) {
-        ao *= ssaoTexture.Sample(fragCoord.xy / params.screenSize).r;
+        aoTex *= ssaoTexture.Sample(fragCoord.xy / params.screenSize).r;
     }
+    float ao = params.ao * aoTex;
 
     float3 emissiveTexColor = float3(0.0);
     if (params.hasEmissiveMap) {
@@ -154,7 +158,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
                                   params.probeBoxMax);
         float3 probe = probeMap.SampleLevel(R, roughness * params.probeMaxMip).rgb;
         ambient      = ambient * (1.0 - F) * (1.0 - metallic) +
-                       probe * (F0 * AB.x + AB.y) * ao;
+                       probe * (F0 * AB.x + AB.y) * aoTex;
     }
     float3 color = ambient + Lo + params.emissive + emissiveTexColor;
 

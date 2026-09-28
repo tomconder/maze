@@ -104,6 +104,10 @@ float2 envBRDFApprox(float NdotV, float rough) {
 float3 boxProject(float3 R, float3 P, float3 center, float3 boxMin, float3 boxMax) {
     float3 tFar = max((boxMax - P) / R, (boxMin - P) / R);
     float  t    = min(min(tFar.x, tFar.y), tFar.z);
+    // P is outside the box: t < 0 would point the lookup behind the probe.
+    if (t < 0.0) {
+        return R;
+    }
     return P + R * t - center;
 }
 
