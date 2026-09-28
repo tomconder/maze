@@ -24,8 +24,9 @@ public:
     Ssao& operator=(const Ssao&) = delete;
 
     // depthTexId/normalTexId are the depth prepass's targets; projection and
-    // its inverse must be the same camera projection the prepass rasterized
-    // with, or the reconstructed positions won't line up with the depth.
+    // its inverse are the unjittered camera projection, not the jittered one
+    // the prepass depth was rasterized with under TAA. The sub-pixel jitter
+    // is ignored.
     void process(uint32_t depthTexId, uint32_t normalTexId,
                  const glm::mat4& projection, const glm::mat4& invProjection,
                  float radius) const;

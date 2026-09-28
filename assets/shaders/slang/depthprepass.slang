@@ -1,17 +1,19 @@
 // depthprepass.slang: camera-space depth-only prepass, plus the screen-space
 // velocity buffer TAA resolves through and the view-space normal buffer SSAO
-// reads.
+// reads. The normal alpha holds the reflection strength SSR reads.
 uniform float4x4 mvp;              // jittered; must match the scene pass
 uniform float4x4 mvpNoJitter;      // this frame, unjittered
 uniform float4x4 prevMvpNoJitter;  // last frame, unjittered
 uniform float4x4 normalMatrix;     // transpose(inverse(view * model))
+uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
 
 // Same VSInput layout as pbr.slang (position/texCoord/normal/tangent), so
 // slangc assigns the same attribute locations the mesh VAO was built
 // against. texCoord/tangent go unused here. Light cubes draw through this
 // shader too but their VAO only has position bound (see cube.cpp), so their
 // normal reads the GL default (0,0,0) — filtered out downstream by the
-// zero-length check in ssao.slang.
+// zero-length check in ssao.slang. That zero normal is written here as
+// float4(0), so its alpha is 0 too, and ssr.slang skips those pixels.
 struct VSInput {
     float3 position : POSITION;
     float2 texCoord : TEXCOORD0;
@@ -57,6 +59,6 @@ FSOutput fragMain(VSOutput input) {
     // with no NORMAL attribute bound): 0/0 is NaN, and a NaN sentinel breaks
     // the "no surface here" length check ssao.slang relies on.
     float len = length(input.viewNormal);
-    o.normal  = float4(len > 1e-4 ? input.viewNormal / len : float3(0.0), 0.0);
+    o.normal  = len > 1e-4 ? float4(input.viewNormal / len, reflectivity) : float4(0.0);
     return o;
 };

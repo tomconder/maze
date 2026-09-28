@@ -64,6 +64,7 @@ using sponge::platform::opengl::scene::OcclusionCuller;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::Ssao;
+using sponge::platform::opengl::scene::Ssr;
 using sponge::platform::opengl::scene::TAA;
 using thread::AntiAliasing;
 
@@ -100,6 +101,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
             object.scale));
         objectEmissives.push_back(object.emissive);
         objectRefraction.push_back(object.refraction);
+        objectReflectivity.push_back(object.reflective);
     }
     objectModels = std::move(builtModels);
 
@@ -189,6 +191,8 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     ssao = std::make_unique<Ssao>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
 
+    ssr = std::make_unique<Ssr>();
+
     sceneTarget =
         std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
                                       Maze::get().getWindow()->getHeight());
@@ -234,6 +238,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         frame.prevObjectModelMatrices = objectModelMatrices;
         frame.objectEmissives         = objectEmissives;
         frame.objectRefraction        = objectRefraction;
+        frame.objectReflectivity      = objectReflectivity;
         frame.objectModels            = objectModels;
 
         // All visible until the first captureRenderFrame() runs its cull.
@@ -456,6 +461,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
         frame.ssaoEnabled = ssaoEnabled;
         frame.ssaoRadius  = ssaoRadius;
+        frame.ssrEnabled  = ssrEnabled;
     }
 
     // Publication happens in onFrameSync() on the main thread, while both
@@ -571,6 +577,17 @@ void MazeLayer::onRender() {
     // buffer — GL_LESS would reject every one of their fragments. They stay
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
+
+    // Before glass, so glass refracts the reflections. The copy is a
+    // different texture from the scene color attachment; the glass pass makes
+    // its own copy after this one.
+    if (frame.ssrEnabled && ssr &&
+        std::ranges::any_of(frame.objectReflectivity,
+                            [](const float r) { return r > 0.F; })) {
+        ssr->apply(sceneTarget->copyColor(), depthPrepassTexture,
+                   normalPrepassTexture, frame.cameraProjection,
+                   glm::inverse(frame.cameraProjection));
+    }
 
     if (std::ranges::any_of(frame.objectRefraction,
                             &scene::SceneRefraction::refractive)) {
@@ -982,8 +999,9 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
                            GL_RG16F, GL_RG, GL_FLOAT, GL_NEAREST);
 
-    // View-space normal, consumed by SSAO. RGB16F carries signed unit
-    // components directly, no [0,1] encode/decode needed.
+    // View-space normal, consumed by SSAO and SSR. RGBA16F: RGB carries
+    // signed unit components directly, no [0,1] encode/decode needed; alpha
+    // carries the SSR reflection strength.
     normalPrepassTexture =
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
                            GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST);
@@ -1016,8 +1034,8 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
     // Indexed mask: attachment 0 (velocity) follows writeVelocity, attachment
-    // 1 (normal) is always live — SSAO reads it every frame regardless of AA
-    // mode.
+    // 1 (normal) is always live — SSAO and SSR both read it every frame
+    // regardless of AA mode.
     glColorMaski(0, writeVelocity ? GL_TRUE : GL_FALSE,
                  writeVelocity ? GL_TRUE : GL_FALSE, GL_FALSE, GL_FALSE);
     glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -1063,6 +1081,8 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
         depthPrepassShader->setMat4("prevMvpNoJitter",
                                     frame.prevCameraViewProj *
                                         frame.prevObjectModelMatrices[i]);
+        depthPrepassShader->setFloat("reflectivity",
+                                     frame.objectReflectivity[i]);
         frame.objectModels[i]->render(depthPrepassShader,
                                       frame.objectMeshVisible[i]);
     }
@@ -1071,6 +1091,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // location 0, so they need no variant of their own. Including them here
     // is what gives them depth coverage and motion vectors.
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
+    depthPrepassShader->setFloat("reflectivity", 0.F);
     for (int32_t i = 0; i < frame.numLights; i++) {
         const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
         const auto prevModel =
@@ -1282,6 +1303,15 @@ float MazeLayer::getSsaoRadius() const {
 void MazeLayer::setSsaoRadius(const float val) {
     std::scoped_lock lock(settingsMutex);
     ssaoRadius = val;
+}
+
+bool MazeLayer::isSsrEnabled() const {
+    return ssrEnabled;
+}
+
+void MazeLayer::setSsrEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
+    ssrEnabled = val;
 }
 
 bool MazeLayer::isImguiActive() const {

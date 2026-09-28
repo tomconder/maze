@@ -16,6 +16,8 @@ A game engine featuring a nice walk through a maze.
 * Reinhard tone mapping
 * Physically based bloom
 * Screen-space ambient occlusion (SSAO)
+* Screen-space reflection (SSR) for objects marked `reflective` in the scene file
+* Screen-space refraction for glass objects, with index of refraction, thickness and tint
 * Camera frustum and hardware occlusion culling
 * Selectable anti-aliasing: FXAA or temporal (TAA)
 * Shaders written in Slang, compiled at build time into one shader pack

@@ -210,6 +210,10 @@ void ImGuiLayer::showLightsSection() {
             showSsaoControls();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("SSR##Tab")) {
+            showSsrControls();
+            ImGui::EndTabItem();
+        }
         ImGui::EndTabBar();
     }
 }
@@ -280,6 +284,23 @@ void ImGuiLayer::showSsaoControls() {
             if (ImGui::SliderFloat("##ssaoradius", &radius, 0.05F, 2.F, "%.2f",
                                    ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setSsaoRadius(radius);
+            }
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showSsrControls() {
+    if (ImGui::BeginTable("Ssr##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
+        auto ssrEnabled = mazeLayer->isSsrEnabled();
+        showTableRow([&] {
+            ImGui::Text("Enabled");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##ssrenabled", &ssrEnabled)) {
+                mazeLayer->setSsrEnabled(ssrEnabled);
             }
         });
 

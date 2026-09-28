@@ -41,6 +41,9 @@ primitives, windowing, or platform backends itself — see
 * `scene/refraction.hpp` - `SceneRefraction`, a scene object's glass values.
   It has its own header so the render frame does not include the scene
   loader.
+* A scene object's `reflective` (0 to 1) turns on screen-space reflection
+  for it. The loader clamps it, and sets it to 0 on a `refractive` object,
+  because glass is not in the depth prepass that carries the mask.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants

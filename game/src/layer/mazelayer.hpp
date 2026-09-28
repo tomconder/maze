@@ -15,6 +15,7 @@
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/ssao.hpp"
+#include "platform/opengl/scene/ssr.hpp"
 #include "platform/opengl/scene/taa.hpp"
 #include "scene/frustum.hpp"
 #include "scene/gamecamera.hpp"
@@ -105,6 +106,9 @@ public:
     float getSsaoRadius() const;
     void  setSsaoRadius(float val);
 
+    bool isSsrEnabled() const;
+    void setSsrEnabled(bool val);
+
     bool isImguiActive() const;
 
     // This frame's frustum-culling stats, for the debug UI. Updated on the
@@ -161,6 +165,7 @@ private:
     std::shared_ptr<scene::GameCamera>  camera;
     std::vector<glm::mat4>              objectModelMatrices;
     std::vector<glm::vec3>              objectEmissives;
+    std::vector<float>                  objectReflectivity;
     std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
@@ -198,14 +203,16 @@ private:
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
     // depth prepass and consumed by TAA. Shares the prepass FBO.
     uint32_t velocityTexture{ 0 };
-    // View-space normal (RGB16F), written by the depth prepass and consumed
-    // by SSAO. Shares the prepass FBO.
+    // View-space normal in xyz and reflection strength in w (RGBA16F),
+    // written by the depth prepass. SSAO reads xyz and SSR reads w. Shares
+    // the prepass FBO.
     uint32_t normalPrepassTexture{ 0 };
     std::unique_ptr<sponge::platform::opengl::scene::Cube>        cube;
     std::unique_ptr<sponge::platform::opengl::scene::FXAA>        fxaa;
     std::unique_ptr<sponge::platform::opengl::scene::TAA>         taa;
     std::unique_ptr<sponge::platform::opengl::scene::Bloom>       bloom;
     std::unique_ptr<sponge::platform::opengl::scene::Ssao>        ssao;
+    std::unique_ptr<sponge::platform::opengl::scene::Ssr>         ssr;
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget> sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>   shadowMap;
 
@@ -284,6 +291,7 @@ private:
     float   bloomIntensity     = 0.08F;
     bool    ssaoEnabled        = true;
     float   ssaoRadius         = 0.5F;
+    bool    ssrEnabled         = true;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;
