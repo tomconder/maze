@@ -61,8 +61,20 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1.F, -1.F);
 
+    const sponge::scene::Frustum frustum(viewProj);
+
     for (size_t i = 0; i < worldBounds.size(); i++) {
         const auto& box = worldBounds[i];
+
+        // Off screen, the proxy draws no samples, and a "hidden" result would
+        // outlive the frustum: the object would pop in a frame or more late
+        // when the camera turns back to it. Frustum culling already skips it,
+        // so occlusion only answers for boxes in view.
+        if (!frustum.intersects(box)) {
+            visible[i] = 1;
+            issued[i]  = 0;
+            continue;
+        }
 
         const bool eyeInside = eyePos.x >= box.min.x && eyePos.x <= box.max.x &&
                                eyePos.y >= box.min.y && eyePos.y <= box.max.y &&
