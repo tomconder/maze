@@ -7,32 +7,14 @@
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
 
-#include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <stdexcept>
 #include <string>
-#include <utility>
 
-#ifndef __APPLE__
 namespace {
-constexpr std::array<std::pair<int, int>, 13> glVersions = {
-    { { 4, 6 },
-      { 4, 5 },
-      { 4, 4 },
-      { 4, 3 },
-      { 4, 2 },
-      { 4, 1 },
-      { 4, 0 },
-      { 3, 3 },
-      { 3, 2 },
-      { 3, 1 },
-      { 3, 0 },
-      { 2, 1 },
-      { 2, 0 } },
-};
+constexpr int minGLMajor = 4;
+constexpr int minGLMinor = 5;
 }  // namespace
-#endif
 
 namespace sponge::platform::opengl::renderer {
 Context::Context() {
@@ -42,25 +24,11 @@ Context::Context() {
     // dpi scaling
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, 1);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#else
-    // create window trying different versions
-    for (const auto& [major, minor] : glVersions) {
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, minGLMajor);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minGLMinor);
 
-        GLFWwindow* window =
-            glfwCreateWindow(640, 480, "GL Version Test", nullptr, nullptr);
-        if (window) {
-            glfwDestroyWindow(window);
-            break;
-        }
-    }
-#endif
+    // Hidden until the application has finished onUserCreate().
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 #ifdef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
@@ -85,31 +53,15 @@ void Context::init(GLFWwindow* window) const {
         return;
     }
 
-    {
-        constexpr float minGLSL = 4.5F;
-
-        const auto* glslStr = reinterpret_cast<const char*>(
-            glGetString(GL_SHADING_LANGUAGE_VERSION));
-        float glslVer = 0.F;
-        try {
-            if (glslStr) {
-                glslVer = std::stof(glslStr);
-            }
-        } catch (const std::exception& e) {
-            SPONGE_GL_ERROR("Failed to parse GLSL version '{}': {}", glslStr,
-                            e.what());
-        }
-        if (glslVer < minGLSL) {
-            constexpr auto minGLSLStr = "4.50";
-            const char*    found      = glslStr ? glslStr : "Unknown";
-            SPONGE_GL_CRITICAL("GLSL {} or later is required (found {})",
-                               minGLSLStr, found);
-            fmt::print(
-                stderr,
-                "Error: OpenGL GLSL {} or later is required (found {})\n",
-                minGLSLStr, found);
-            std::exit(EXIT_FAILURE);
-        }
+    const int major = GLAD_VERSION_MAJOR(version);
+    const int minor = GLAD_VERSION_MINOR(version);
+    if (major < minGLMajor || (major == minGLMajor && minor < minGLMinor)) {
+        SPONGE_GL_CRITICAL("OpenGL {}.{} or later is required (found {}.{})",
+                           minGLMajor, minGLMinor, major, minor);
+        fmt::print(stderr,
+                   "Error: OpenGL {}.{} or later is required (found {}.{})\n",
+                   minGLMajor, minGLMinor, major, minor);
+        std::exit(EXIT_FAILURE);
     }
 
     if (window != nullptr) {
