@@ -68,9 +68,13 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
 
     float3 N = normalize(input.worldNormal);
-    if (params.hasNormalMap) {
+    // Gram-Schmidt leaves nothing to normalize where a mesh's tangent is
+    // parallel to its normal (or zero), and normalize(0) is NaN, which bloom
+    // then spreads into a dark blob. Keep the geometric normal there.
+    float3 tangentOrtho = input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz);
+    if (params.hasNormalMap && dot(tangentOrtho, tangentOrtho) > 1e-12) {
         float2 normalUV = applyUVTransform(input.texCoords, params.normalUVTransform);
-        float3 T        = normalize(input.worldTangent.xyz - N * dot(N, input.worldTangent.xyz));
+        float3 T        = normalize(tangentOrtho);
         float3 B        = cross(N, T) * input.worldTangent.w;
         // Z is reconstructed rather than sampled: baked normal maps are BC5,
         // which stores XY only. A tangent-space normal always points out of
