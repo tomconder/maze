@@ -29,6 +29,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 namespace game::layer {
@@ -162,10 +163,12 @@ private:
     // Loaded in the constructor, before any other member reads it.
     const scene::Scene sceneDesc;
 
-    std::shared_ptr<scene::GameCamera>  camera;
-    std::vector<glm::mat4>              objectModelMatrices;
-    std::vector<glm::vec3>              objectEmissives;
-    std::vector<float>                  objectReflectivity;
+    std::shared_ptr<scene::GameCamera> camera;
+    std::vector<glm::mat4>             objectModelMatrices;
+    std::vector<glm::vec3>             objectEmissives;
+    std::vector<float>                 objectReflectivity;
+    // Index of the one object drawn with planar reflection, if any.
+    std::optional<size_t>               planarObject;
     std::vector<scene::SceneRefraction> objectRefraction;
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;

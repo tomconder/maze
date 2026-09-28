@@ -194,6 +194,19 @@ void readObjects(const node&                            root,
             object.reflective = 0.F;
         }
 
+        if (const auto* value = find(entry, "planar");
+            value != nullptr && !value->is_boolean()) {
+            SPONGE_WARN("Scene object '{}' planar is not a boolean, ignored",
+                        object.name);
+        }
+        object.planar = readBool(entry, "planar", object.planar);
+        if (object.planar && object.reflective <= 0.F) {
+            SPONGE_WARN("Scene object '{}' is planar but not reflective, "
+                        "planar ignored",
+                        object.name);
+            object.planar = false;
+        }
+
         if (const auto* rotation = find(entry, "rotation");
             rotation != nullptr) {
             object.rotation.angle =

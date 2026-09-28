@@ -25,6 +25,9 @@ struct SceneObject {
     // Screen-space mirror strength: 0 is off, 1 is a full mirror. Only what
     // is on screen can be reflected.
     float reflective{ 0.F };
+    // Reflect with a mirrored scene render instead of SSR. The plane is the
+    // object's top face (local y = 1). Needs reflective > 0.
+    bool planar{ false };
 };
 
 struct SceneCamera {

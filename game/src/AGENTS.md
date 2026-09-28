@@ -44,6 +44,10 @@ primitives, windowing, or platform backends itself — see
 * A scene object's `reflective` (0 to 1) turns on screen-space reflection
   for it. The loader clamps it, and sets it to 0 on a `refractive` object,
   because glass is not in the depth prepass that carries the mask.
+* `planar` (bool, default false) draws the object with a mirrored scene
+  render instead of SSR. It needs `reflective > 0`. The plane is the
+  object's top face (local y = 1). Only the first planar object in a scene
+  is used; the others fall back to SSR with a warning.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants

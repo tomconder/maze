@@ -102,6 +102,15 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         objectEmissives.push_back(object.emissive);
         objectRefraction.push_back(object.refraction);
         objectReflectivity.push_back(object.reflective);
+        if (object.planar) {
+            if (planarObject) {
+                SPONGE_WARN("Scene object '{}' is a second planar mirror, it "
+                            "uses SSR",
+                            object.name);
+            } else {
+                planarObject = objectReflectivity.size() - 1;
+            }
+        }
     }
     objectModels = std::move(builtModels);
 
