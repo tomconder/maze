@@ -23,6 +23,7 @@
 #include <memory>
 #include <mutex>
 #include <random>
+#include <span>
 #include <string>
 
 namespace {
@@ -61,6 +62,7 @@ using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::OcclusionCuller;
+using sponge::platform::opengl::scene::PlanarReflection;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::Ssao;
@@ -201,6 +203,15 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
                                   Maze::get().getWindow()->getHeight());
 
     ssr = std::make_unique<Ssr>();
+
+    planarReflection = std::make_unique<PlanarReflection>(
+        Maze::get().getWindow()->getWidth(),
+        Maze::get().getWindow()->getHeight());
+    planarShader = AssetManager::createShader({
+        .name           = "planar",
+        .vertexShader   = "planar.vert",
+        .fragmentShader = "planar.frag",
+    });
 
     sceneTarget =
         std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
@@ -399,6 +410,44 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     frame.screenWidth      = screenWidth;
     frame.screenHeight     = screenHeight;
 
+    // Planar mirror: the camera reflected in the mirror's top face, with its
+    // near plane moved onto the mirror so nothing below it is drawn.
+    frame.planarActive  = false;
+    const bool planarOn = [this] {
+        std::scoped_lock lock(settingsMutex);
+        return planarEnabled;
+    }();
+    if (planarOn && planarObject) {
+        const auto&     model = objectModelMatrices[*planarObject];
+        const glm::vec3 point(model * glm::vec4(0.F, 1.F, 0.F, 1.F));
+        const glm::vec3 normal =
+            glm::normalize(glm::transpose(glm::inverse(glm::mat3(model))) *
+                           glm::vec3(0.F, 1.F, 0.F));
+        const glm::vec4 plane(normal, -glm::dot(normal, point));
+
+        // From behind, the top face is not visible, so there is nothing to
+        // reflect.
+        if (glm::dot(glm::vec4(frame.cameraPos, 1.F), plane) > 0.F) {
+            const auto reflection = PlanarReflection::reflectionMatrix(plane);
+            const auto view       = frame.cameraView * reflection;
+            const auto viewPlane  = glm::transpose(glm::inverse(view)) * plane;
+            frame.planarViewProj  = PlanarReflection::obliqueProjection(
+                                        frame.cameraProjection, viewPlane) *
+                                    view;
+            frame.planarViewPos =
+                glm::vec3(reflection * glm::vec4(frame.cameraPos, 1.F));
+            frame.planarIndex  = *planarObject;
+            frame.planarActive = true;
+
+            const sponge::scene::Frustum frustum(frame.cameraProjection * view);
+            frame.planarObjectVisible.resize(objectWorldBounds.size());
+            for (size_t i = 0; i < objectWorldBounds.size(); i++) {
+                frame.planarObjectVisible[i] =
+                    frustum.intersects(objectWorldBounds[i]) ? 1 : 0;
+            }
+        }
+    }
+
     {
         SPONGE_PROFILE_SECTION("frustum cull");
         const auto cullStart = std::chrono::steady_clock::now();
@@ -511,6 +560,9 @@ void MazeLayer::onRender() {
         if (ssao) {
             ssao->resize(w, h);
         }
+        if (planarReflection) {
+            planarReflection->resize(w, h);
+        }
         sceneTarget->resize(w, h);
         screenWidth  = static_cast<int32_t>(w);
         screenHeight = static_cast<int32_t>(h);
@@ -549,6 +601,11 @@ void MazeLayer::onRender() {
     // results feed next frame's occlusion skip, not this one's.
     renderOcclusionQueries(frame);
 
+    // Phase 2.6: the scene seen in the planar mirror.
+    if (frame.planarActive && planarReflection) {
+        renderPlanarReflection(frame);
+    }
+
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
         clusteredLights->update(frame.lightPositions.data(),
@@ -586,6 +643,10 @@ void MazeLayer::onRender() {
     // buffer — GL_LESS would reject every one of their fragments. They stay
     // on the opaque pass's GL_LEQUAL / depth-write-off state.
     renderLightCubes(frame);
+
+    if (frame.planarActive && planarReflection) {
+        renderPlanarComposite(frame);
+    }
 
     // Before glass, so glass refracts the reflections. The copy is a
     // different texture from the scene color attachment; the glass pass makes
@@ -1175,6 +1236,71 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     }
 
     shader->unbind();
+}
+
+void MazeLayer::renderPlanarReflection(
+    const thread::MazeRenderFrame& frame) const {
+    planarReflection->begin();
+
+    const auto shader = Mesh::getShader();
+    shader->bind();
+    // The clustered light grid and the SSAO texture are built for the game
+    // camera, so the mirrored view uses neither.
+    shader->setInteger("numLights", 0);
+    shader->setBoolean("ssaoEnabled", false);
+    shader->setFloat3("viewPos", frame.planarViewPos);
+    shader->setFloat2("screenSize",
+                      glm::vec2(static_cast<float>(frame.screenWidth),
+                                static_cast<float>(frame.screenHeight)));
+    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+        shadowMap->activateAndBindShadowTexture(1);
+    }
+
+    for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        if (i == frame.planarIndex || frame.objectRefraction[i].refractive ||
+            frame.planarObjectVisible[i] == 0) {
+            continue;
+        }
+        const auto& modelMatrix = frame.objectModelMatrices[i];
+        shader->setMat4("mvp", frame.planarViewProj * modelMatrix);
+        shader->setMat4("model", modelMatrix);
+        shader->setMat4(
+            "normalMatrix",
+            glm::mat4(glm::transpose(glm::inverse(glm::mat3(modelMatrix)))));
+        shader->setFloat3("emissive", frame.objectEmissives[i]);
+        // An empty span draws every mesh: the per-mesh masks are for the
+        // game camera.
+        frame.objectModels[i]->render(shader, std::span<const uint8_t>{});
+    }
+
+    shader->setInteger("numLights", frame.numLights);
+    shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
+    shader->unbind();
+
+    planarReflection->end();
+    glViewport(0, 0, frame.screenWidth, frame.screenHeight);
+}
+
+void MazeLayer::renderPlanarComposite(
+    const thread::MazeRenderFrame& frame) const {
+    const auto i = frame.planarIndex;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    planarShader->bind();
+    planarShader->setMat4("mvp",
+                          frame.cameraMVP * frame.objectModelMatrices[i]);
+    planarShader->setFloat2("screenSize",
+                            glm::vec2(static_cast<float>(frame.screenWidth),
+                                      static_cast<float>(frame.screenHeight)));
+    planarShader->setFloat("strength", frame.objectReflectivity[i]);
+    glActiveTexture(GL_TEXTURE11);
+    glBindTexture(GL_TEXTURE_2D, planarReflection->getTexture());
+    glActiveTexture(GL_TEXTURE0);
+    frame.objectModels[i]->render(planarShader, frame.objectMeshVisible[i]);
+    planarShader->unbind();
 }
 
 void MazeLayer::renderSceneToDepthMap(

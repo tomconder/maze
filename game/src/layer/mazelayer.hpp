@@ -12,6 +12,7 @@
 #include "platform/opengl/scene/fxaa.hpp"
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/occlusionculler.hpp"
+#include "platform/opengl/scene/planarreflection.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/ssao.hpp"
@@ -200,7 +201,12 @@ private:
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         depthPrepassShader;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
-             refractionShader;
+        refractionShader;
+    // The scene seen in the planar mirror, and the shader that draws it on
+    // the mirror.
+    std::unique_ptr<sponge::platform::opengl::scene::PlanarReflection>
+        planarReflection;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader> planarShader;
     uint32_t depthPrepassFbo{ 0 };
     uint32_t depthPrepassTexture{ 0 };
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
@@ -295,6 +301,7 @@ private:
     bool    ssaoEnabled        = true;
     float   ssaoRadius         = 0.5F;
     bool    ssrEnabled         = true;
+    bool    planarEnabled      = true;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;
@@ -325,6 +332,10 @@ private:
                                  uint32_t sceneCopy) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
+
+    void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
+
+    void renderPlanarComposite(const thread::MazeRenderFrame& frame) const;
 
     void renderSceneToDepthMap(const thread::MazeRenderFrame& frame) const;
 

@@ -105,6 +105,18 @@ struct MazeRenderFrame {
     float ssaoRadius{ 0.5F };
 
     bool ssrEnabled{ true };
+
+    // True when the planar mirror is drawn this frame.
+    bool planarActive{ false };
+    // Index of the planar mirror object; valid when planarActive.
+    size_t planarIndex{ 0 };
+    // Oblique projection times the view reflected in the mirror plane.
+    glm::mat4 planarViewProj{ 1.F };
+    // Camera position reflected in the mirror plane.
+    glm::vec3 planarViewPos{ 0.F };
+    // Per-object visibility in the mirrored view, index-locked with
+    // objectModels.
+    std::vector<uint8_t> planarObjectVisible;
 };
 
 }  // namespace game::thread

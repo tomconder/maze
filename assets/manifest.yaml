@@ -75,6 +75,8 @@ shaders:
     occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain
     pbr.frag: shaders/slang/pbr.slang:fragMain
     pbr.vert: shaders/slang/pbr.slang:vertMain
+    planar.frag: shaders/slang/planar.slang:fragMain
+    planar.vert: shaders/slang/planar.slang:vertMain
     refraction.frag: shaders/slang/refraction.slang:fragMain
     refraction.vert: shaders/slang/refraction.slang:vertMain
     quad.frag: shaders/slang/rectangle.slang:fragMain
