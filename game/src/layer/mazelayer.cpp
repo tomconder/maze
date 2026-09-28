@@ -536,9 +536,10 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.bloomThreshold = bloomThreshold;
         frame.bloomIntensity = bloomIntensity;
 
-        frame.ssaoEnabled = ssaoEnabled;
-        frame.ssaoRadius  = ssaoRadius;
-        frame.ssrEnabled  = ssrEnabled;
+        frame.ssaoEnabled  = ssaoEnabled;
+        frame.ssaoRadius   = ssaoRadius;
+        frame.ssrEnabled   = ssrEnabled;
+        frame.probeEnabled = probeEnabled && probe != nullptr;
     }
 
     // Publication happens in onFrameSync() on the main thread, while both
@@ -982,6 +983,12 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         glActiveTexture(GL_TEXTURE0);
     }
 
+    const bool useProbe = frame.probeEnabled && probeCaptured;
+    shader->setBoolean("probeEnabled", useProbe);
+    if (useProbe) {
+        glBindTextureUnit(12, probe->getTexture());
+    }
+
     const auto submitStart      = std::chrono::steady_clock::now();
     uint32_t   occlusionVisible = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
@@ -1287,6 +1294,7 @@ void MazeLayer::renderPlanarReflection(
     // camera, so the mirrored view uses neither.
     shader->setInteger("numLights", 0);
     shader->setBoolean("ssaoEnabled", false);
+    shader->setBoolean("probeEnabled", false);
     shader->setFloat3("viewPos", frame.planarViewPos);
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
@@ -1327,6 +1335,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     // camera. The probe must not sample itself while it is being drawn.
     shader->setInteger("numLights", 0);
     shader->setBoolean("ssaoEnabled", false);
+    shader->setBoolean("probeEnabled", false);
     shader->setFloat3("viewPos", desc.position);
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
@@ -1358,6 +1367,15 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     shader->unbind();
 
     probe->prefilter();
+
+    shader->bind();
+    shader->setFloat3("probePosition", desc.position);
+    shader->setFloat3("probeBoxMin", desc.boxMin);
+    shader->setFloat3("probeBoxMax", desc.boxMax);
+    shader->setFloat("probeMaxMip",
+                     static_cast<float>(ReflectionProbe::mipLevels - 1));
+    shader->unbind();
+
     probeCaptured = true;
 
     const auto ms = std::chrono::duration<double, std::milli>(
@@ -1547,6 +1565,15 @@ bool MazeLayer::isPlanarEnabled() const {
 void MazeLayer::setPlanarEnabled(const bool val) {
     std::scoped_lock lock(settingsMutex);
     planarEnabled = val;
+}
+
+bool MazeLayer::isProbeEnabled() const {
+    return probeEnabled;
+}
+
+void MazeLayer::setProbeEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
+    probeEnabled = val;
 }
 
 bool MazeLayer::isImguiActive() const {

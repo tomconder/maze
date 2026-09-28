@@ -106,6 +106,10 @@ struct MazeRenderFrame {
 
     bool ssrEnabled{ true };
 
+    // Sample the reflection probe for ambient specular. False when the scene
+    // has no probe or it is not captured yet.
+    bool probeEnabled{ false };
+
     // True when the planar mirror is drawn this frame.
     bool planarActive{ false };
     // Index of the planar mirror object; valid when planarActive.

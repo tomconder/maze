@@ -45,13 +45,14 @@ VSOutput vertMain(VSInput input) {
     return output;
 };
 
-[[vk::binding(0)]] Sampler2D<float4> texture_diffuse1;
-[[vk::binding(1)]] Sampler2D<float2> shadowMap;
-[[vk::binding(6)]] Sampler2D<float4> normalMap;
-[[vk::binding(7)]] Sampler2D<float4> occlusionMap;
-[[vk::binding(8)]] Sampler2D<float4> emissiveMap;
-[[vk::binding(9)]] Sampler2D<float4> metallicRoughnessMap;
-[[vk::binding(10)]] Sampler2D<float> ssaoTexture;
+[[vk::binding(0)]] Sampler2D<float4>    texture_diffuse1;
+[[vk::binding(1)]] Sampler2D<float2>    shadowMap;
+[[vk::binding(6)]] Sampler2D<float4>    normalMap;
+[[vk::binding(7)]] Sampler2D<float4>    occlusionMap;
+[[vk::binding(8)]] Sampler2D<float4>    emissiveMap;
+[[vk::binding(9)]] Sampler2D<float4>    metallicRoughnessMap;
+[[vk::binding(10)]] Sampler2D<float>    ssaoTexture;
+[[vk::binding(12)]] SamplerCube<float4> probeMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -140,7 +141,22 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
 
     float3 ambient = float3(params.ambientStrength) * albedo * ao;
-    float3 color   = ambient + Lo + params.emissive + emissiveTexColor;
+    if (params.probeEnabled) {
+        // Split-sum image-based specular from the probe. Diffuse ambient
+        // keeps the flat term, weighted for the light the surface reflects
+        // as specular and removed for metals.
+        float  NdotV = max(dot(N, V), 1e-5);
+        float3 F0    = lerp(float3(0.04), albedo, metallic);
+        float3 F     = fresnelSchlickRoughness(NdotV, F0, roughness);
+        float2 AB    = envBRDFApprox(NdotV, roughness);
+        float3 R     = boxProject(reflect(-V, N), input.worldPosition,
+                                  params.probePosition, params.probeBoxMin,
+                                  params.probeBoxMax);
+        float3 probe = probeMap.SampleLevel(R, roughness * params.probeMaxMip).rgb;
+        ambient      = ambient * (1.0 - F) * (1.0 - metallic) +
+                       probe * (F0 * AB.x + AB.y) * ao;
+    }
+    float3 color = ambient + Lo + params.emissive + emissiveTexColor;
 
     // Linear HDR out. Tone mapping, gamma and dither happen once in
     // tonemap.slang, after bloom has extracted from this unbounded radiance.

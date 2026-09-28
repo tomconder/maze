@@ -407,6 +407,15 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
+        auto probeEnabled = mazeLayer->isProbeEnabled();
+        showTableRow([&] {
+            ImGui::Text("Probe");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##probeenabled", &probeEnabled)) {
+                mazeLayer->setProbeEnabled(probeEnabled);
+            }
+        });
+
         ImGui::EndTable();
     }
 }

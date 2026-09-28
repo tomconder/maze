@@ -115,6 +115,9 @@ public:
     bool isPlanarEnabled() const;
     void setPlanarEnabled(bool val);
 
+    bool isProbeEnabled() const;
+    void setProbeEnabled(bool val);
+
     bool isImguiActive() const;
 
     // This frame's frustum-culling stats, for the debug UI. Updated on the
@@ -311,6 +314,7 @@ private:
     float   ssaoRadius         = 0.5F;
     bool    ssrEnabled         = true;
     bool    planarEnabled      = true;
+    bool    probeEnabled       = true;
     bool    mouseButtonPressed = false;
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;

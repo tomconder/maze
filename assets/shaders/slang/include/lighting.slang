@@ -82,6 +82,31 @@ float3 fresnelSchlick(float cosTheta, float3 F0) {
     return F0 + (1.0 - F0) * pow(2.0, (-5.55473 * cosTheta - 6.98316) * cosTheta);
 }
 
+// Fresnel for ambient light, which arrives from every direction: rough
+// surfaces get less edge brightening (Lagarde).
+float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float rough) {
+    return F0 + (max(float3(1.0 - rough), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+// Scale and bias for F0 in the split-sum environment BRDF, fitted
+// analytically (Karis, "Physically Based Shading on Mobile", 2014), so no
+// lookup texture is needed. Returns (A, B) for F0 * A + B.
+float2 envBRDFApprox(float NdotV, float rough) {
+    const float4 c0   = float4(-1.0, -0.0275, -0.572, 0.022);
+    const float4 c1   = float4(1.0, 0.0425, 1.04, -0.04);
+    float4       r    = rough * c0 + c1;
+    float        a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    return float2(-1.04, 1.04) * a004 + r.zw;
+}
+
+// Box projection: the direction from the probe center to where the ray from
+// P along R leaves the box, so a probe lookup lands on the right wall.
+float3 boxProject(float3 R, float3 P, float3 center, float3 boxMin, float3 boxMax) {
+    float3 tFar = max((boxMax - P) / R, (boxMin - P) / R);
+    float  t    = min(min(tFar.x, tFar.y), tFar.z);
+    return P + R * t - center;
+}
+
 float distributionGGX(float3 N, float3 H, float rough) {
     float a     = rough * rough;
     float a2    = a * a;
