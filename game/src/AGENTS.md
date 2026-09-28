@@ -48,6 +48,10 @@ primitives, windowing, or platform backends itself — see
   render instead of SSR. It needs `reflective > 0`. The plane is the
   object's top face (local y = 1). Only the first planar object in a scene
   is used; the others fall back to SSR with a warning.
+* `probe` (top-level, optional) sets one reflection probe: `position`,
+  `boxMin`, `boxMax`. The loader drops it with a warning unless boxMin is
+  below boxMax on every axis and the position is inside the box. With no
+  probe, ambient is the flat `ambientStrength` term.
 * `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants

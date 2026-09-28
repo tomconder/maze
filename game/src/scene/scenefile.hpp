@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -84,11 +85,22 @@ struct SceneBloom {
     float intensity{ .08F };
 };
 
+// A reflection probe: the scene captured once into a cubemap at position,
+// and box-projected against [boxMin, boxMax] when surfaces sample it. The box
+// is the room the probe stands in.
+struct SceneProbe {
+    glm::vec3 position{ 0.F };
+    glm::vec3 boxMin{ 0.F };
+    glm::vec3 boxMax{ 0.F };
+};
+
 struct Scene {
-    SceneCamera              camera;
-    SceneLighting            lighting;
-    SceneBloom               bloom;
-    std::vector<SceneObject> objects;
+    SceneCamera   camera;
+    SceneLighting lighting;
+    SceneBloom    bloom;
+    // Empty when the file has no valid probe block: ambient stays flat.
+    std::optional<SceneProbe> probe;
+    std::vector<SceneObject>  objects;
 };
 
 // Reads a YAML scene description, with path taken relative to the resource
