@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include <array>
 #include <cstdint>
 
 namespace sponge::platform::opengl::scene {
@@ -18,8 +19,9 @@ public:
 
     void resize(uint32_t width, uint32_t height);
 
-    // Binds and clears the target, sets the viewport, and flips the front
-    // face: a reflection reverses the triangle winding. end() undoes both and
+    // Binds and clears the target, saves the caller's viewport and sets this
+    // target's own, and flips the front face: a reflection reverses the
+    // triangle winding. end() restores the saved viewport and front face, and
     // binds framebuffer 0.
     void begin() const;
     void end() const;
@@ -47,6 +49,10 @@ private:
     uint32_t fbo          = 0;
     uint32_t colorTexture = 0;
     uint32_t depthRbo     = 0;
+    // Caller's viewport, saved in begin() and restored in end() — resizing
+    // through the pending-resize path lags a frame if this target instead
+    // restores frame.screenWidth/Height directly.
+    mutable std::array<int32_t, 4> savedViewport{};
 };
 
 }  // namespace sponge::platform::opengl::scene

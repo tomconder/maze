@@ -114,6 +114,9 @@ struct MazeRenderFrame {
     glm::mat4 planarViewProj{ 1.F };
     // Camera position reflected in the mirror plane.
     glm::vec3 planarViewPos{ 0.F };
+    // World-space mirror plane normal, for the composite pass to discard the
+    // mirror mesh's side faces.
+    glm::vec3 planarNormal{ 0.F, 1.F, 0.F };
     // Per-object visibility in the mirrored view, index-locked with
     // objectModels.
     std::vector<uint8_t> planarObjectVisible;

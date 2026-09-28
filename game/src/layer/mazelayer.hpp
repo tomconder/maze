@@ -111,6 +111,9 @@ public:
     bool isSsrEnabled() const;
     void setSsrEnabled(bool val);
 
+    bool isPlanarEnabled() const;
+    void setPlanarEnabled(bool val);
+
     bool isImguiActive() const;
 
     // This frame's frustum-culling stats, for the debug UI. Updated on the

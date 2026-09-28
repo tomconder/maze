@@ -304,6 +304,15 @@ void ImGuiLayer::showSsrControls() {
             }
         });
 
+        auto planarEnabled = mazeLayer->isPlanarEnabled();
+        showTableRow([&] {
+            ImGui::Text("Planar");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##planarenabled", &planarEnabled)) {
+                mazeLayer->setPlanarEnabled(planarEnabled);
+            }
+        });
+
         ImGui::EndTable();
     }
 }

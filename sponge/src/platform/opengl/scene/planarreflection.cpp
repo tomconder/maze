@@ -61,6 +61,7 @@ void PlanarReflection::destroy() {
 }
 
 void PlanarReflection::begin() const {
+    glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     glDepthMask(GL_TRUE);
@@ -71,6 +72,8 @@ void PlanarReflection::begin() const {
 void PlanarReflection::end() const {
     glFrontFace(GL_CCW);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(savedViewport[0], savedViewport[1], savedViewport[2],
+               savedViewport[3]);
 }
 
 glm::mat4 PlanarReflection::reflectionMatrix(const glm::vec4& plane) {
