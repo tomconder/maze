@@ -113,6 +113,14 @@ float3 boxProject(float3 R, float3 P, float3 center, float3 boxMin, float3 boxMa
     return P + R * t - center;
 }
 
+// Where the view points exactly against the light, V + L is zero and
+// normalize() gives NaN. H is left zero there instead. The light then adds
+// almost nothing, since N.V and N.L can't both be positive.
+float3 halfVector(float3 V, float3 L) {
+    float3 h = V + L;
+    return h * rsqrt(max(dot(h, h), 1e-12));
+}
+
 float distributionGGX(float3 N, float3 H, float rough) {
     float a     = rough * rough;
     float a2    = a * a;
@@ -144,7 +152,7 @@ float3 evaluatePBR<L : ILight>(
     float  roughness) {
     float3 Ldir     = light.getDirection(worldPos);
     float3 radiance = light.getRadiance(worldPos);
-    float3 H        = normalize(V + Ldir);
+    float3 H        = halfVector(V, Ldir);
     float  NdotV    = max(dot(N, V), 1e-5);
     float  NdotL    = max(dot(N, Ldir), 1e-5);
     float3 F0       = lerp(float3(0.04), albedo, metallic);
@@ -167,7 +175,7 @@ float3 evaluateSpecular<L : ILight>(
     float  roughness) {
     float3 Ldir     = light.getDirection(worldPos);
     float3 radiance = light.getRadiance(worldPos);
-    float3 H        = normalize(V + Ldir);
+    float3 H        = halfVector(V, Ldir);
     float  NdotV    = max(dot(N, V), 1e-5);
     float  NdotL    = max(dot(N, Ldir), 1e-5);
     float  NDF      = distributionGGX(N, H, roughness);
