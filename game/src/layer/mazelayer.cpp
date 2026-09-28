@@ -14,6 +14,7 @@
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
 
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 #include <algorithm>
@@ -63,6 +64,7 @@ using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::OcclusionCuller;
 using sponge::platform::opengl::scene::PlanarReflection;
+using sponge::platform::opengl::scene::ReflectionProbe;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::Ssao;
@@ -213,6 +215,10 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
             .vertexShader   = "planar.vert",
             .fragmentShader = "planar.frag",
         });
+    }
+
+    if (sceneDesc.probe) {
+        probe = std::make_unique<ReflectionProbe>();
     }
 
     sceneTarget =
@@ -612,6 +618,12 @@ void MazeLayer::onRender() {
     // Phase 1: shadow map
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         renderSceneToDepthMap(frame);
+    }
+
+    // Phase 1.5: the reflection probe, once, after the shadow map it lights
+    // with. Waits for a frame that carries the objects.
+    if (probe && !probeCaptured && !frame.objectModels.empty()) {
+        captureProbe(frame);
     }
 
     // Phase 2: depth prepass
@@ -1301,6 +1313,57 @@ void MazeLayer::renderPlanarReflection(
     shader->unbind();
 
     planarReflection->end();
+}
+
+void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
+    const auto  start      = std::chrono::steady_clock::now();
+    const auto& desc       = *sceneDesc.probe;
+    const auto  projection = glm::perspective(glm::radians(90.F), 1.F,
+                                              frame.nearPlane, frame.farPlane);
+
+    const auto shader = Mesh::getShader();
+    shader->bind();
+    // Like the mirrored render: the light grid and SSAO belong to the game
+    // camera. The probe must not sample itself while it is being drawn.
+    shader->setInteger("numLights", 0);
+    shader->setBoolean("ssaoEnabled", false);
+    shader->setFloat3("viewPos", desc.position);
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+        shadowMap->activateAndBindShadowTexture(1);
+    }
+
+    for (int face = 0; face < 6; face++) {
+        probe->beginFace(face);
+        const auto viewProj =
+            projection * ReflectionProbe::faceView(desc.position, face);
+        for (size_t i = 0; i < frame.objectModels.size(); i++) {
+            if (frame.objectRefraction[i].refractive) {
+                continue;
+            }
+            const auto& modelMatrix = frame.objectModelMatrices[i];
+            shader->setMat4("mvp", viewProj * modelMatrix);
+            shader->setMat4("model", modelMatrix);
+            shader->setMat4("normalMatrix",
+                            glm::mat4(glm::transpose(
+                                glm::inverse(glm::mat3(modelMatrix)))));
+            shader->setFloat3("emissive", frame.objectEmissives[i]);
+            frame.objectModels[i]->render(shader);
+        }
+        probe->end();
+    }
+
+    shader->setInteger("numLights", frame.numLights);
+    shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
+    shader->unbind();
+
+    probe->prefilter();
+    probeCaptured = true;
+
+    const auto ms = std::chrono::duration<double, std::milli>(
+                        std::chrono::steady_clock::now() - start)
+                        .count();
+    SPONGE_INFO("Reflection probe captured in {:.1f} ms", ms);
 }
 
 void MazeLayer::renderPlanarComposite(

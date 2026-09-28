@@ -13,6 +13,7 @@
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/occlusionculler.hpp"
 #include "platform/opengl/scene/planarreflection.hpp"
+#include "platform/opengl/scene/reflectionprobe.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "platform/opengl/scene/ssao.hpp"
@@ -210,8 +211,13 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::PlanarReflection>
         planarReflection;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader> planarShader;
-    uint32_t depthPrepassFbo{ 0 };
-    uint32_t depthPrepassTexture{ 0 };
+    // The scene captured once from the scene file's probe position; empty
+    // when the scene has no probe.
+    std::unique_ptr<sponge::platform::opengl::scene::ReflectionProbe> probe;
+    // Render thread only: set after the first capture.
+    mutable bool probeCaptured{ false };
+    uint32_t     depthPrepassFbo{ 0 };
+    uint32_t     depthPrepassTexture{ 0 };
     // Screen-space motion (RG16F, current UV minus previous UV) written by the
     // depth prepass and consumed by TAA. Shares the prepass FBO.
     uint32_t velocityTexture{ 0 };
@@ -337,6 +343,8 @@ private:
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
 
     void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
+
+    void captureProbe(const thread::MazeRenderFrame& frame) const;
 
     void renderPlanarComposite(const thread::MazeRenderFrame& frame) const;
 
