@@ -22,8 +22,8 @@ struct SceneObject {
     glm::vec3       translation{ 0.F };
     glm::vec3       emissive{ 0.F };
     SceneRefraction refraction;
-    // Screen-space mirror strength: 0 is off, 1 is a full mirror. Only what
-    // is on screen can be reflected.
+    // Mirror strength: 0 is off, 1 is a full mirror. With SSR, only what is
+    // on screen can be reflected. A planar mirror reflects the whole scene.
     float reflective{ 0.F };
     // Reflect with a mirrored scene render instead of SSR. The plane is the
     // object's top face (local y = 1). Needs reflective > 0.

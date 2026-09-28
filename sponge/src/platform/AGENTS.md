@@ -26,7 +26,8 @@ than calling GLFW/OpenGL/OS APIs directly.
   `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
-  `SceneTarget`, `Ssao`, `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
+  `SceneTarget`, `Ssao`, `Ssr`, `PlanarReflection`, `OcclusionCuller`,
+  `Bloom`, `FXAA`, `TAA`.
 * `opengl/debug/` - GL diagnostics/profiler, debug-build only.
 * `windows/`, `osx/`, `linux/` `core/*file.*` - the only OS-specific file I/O
   shims; everything else is GLFW-portable.
@@ -62,8 +63,9 @@ than calling GLFW/OpenGL/OS APIs directly.
   planar mirror has `reflective > 0`. SSR takes the mirror over when the
   planar path is inactive: the Planar toggle is off, the mirror is culled,
   or the camera is on or behind its plane. Nothing upstream of resolve() may
-  tone map, or the bloom threshold stops being a radiance value. Refractive objects stay out of the depth prepass,
-  so the color behind them exists to sample. The glass pass depth-tests
+  tone map, or the bloom threshold stops being a radiance value. Refractive
+  objects stay out of the depth prepass, so the color behind them exists to
+  sample. The glass pass depth-tests
   against the scene depth renderbuffer (the blitted opaque depth) and blits
   that depth back to the prepass texture. Do not sample the prepass depth
   while it is the bound depth attachment: that feedback is undefined.

@@ -204,14 +204,16 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     ssr = std::make_unique<Ssr>();
 
-    planarReflection = std::make_unique<PlanarReflection>(
-        Maze::get().getWindow()->getWidth(),
-        Maze::get().getWindow()->getHeight());
-    planarShader = AssetManager::createShader({
-        .name           = "planar",
-        .vertexShader   = "planar.vert",
-        .fragmentShader = "planar.frag",
-    });
+    if (planarObject) {
+        planarReflection = std::make_unique<PlanarReflection>(
+            Maze::get().getWindow()->getWidth(),
+            Maze::get().getWindow()->getHeight());
+        planarShader = AssetManager::createShader({
+            .name           = "planar",
+            .vertexShader   = "planar.vert",
+            .fragmentShader = "planar.frag",
+        });
+    }
 
     sceneTarget =
         std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
@@ -467,20 +469,25 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
             const auto reflection = PlanarReflection::reflectionMatrix(plane);
             const auto view       = frame.cameraView * reflection;
             const auto viewPlane  = glm::transpose(glm::inverse(view)) * plane;
-            frame.planarViewProj  = PlanarReflection::obliqueProjection(
-                                        frame.cameraProjection, viewPlane) *
-                                    view;
-            frame.planarViewPos =
-                glm::vec3(reflection * glm::vec4(frame.cameraPos, 1.F));
-            frame.planarNormal = normal;
-            frame.planarIndex  = *planarObject;
-            frame.planarActive = true;
+            const auto projection = PlanarReflection::obliqueProjection(
+                frame.cameraProjection, viewPlane);
+            // Empty when the whole view is past the plane, e.g. a mirror that
+            // passes the conservative cull from just outside a corner.
+            if (projection) {
+                frame.planarViewProj = *projection * view;
+                frame.planarViewPos =
+                    glm::vec3(reflection * glm::vec4(frame.cameraPos, 1.F));
+                frame.planarNormal = normal;
+                frame.planarIndex  = *planarObject;
+                frame.planarActive = true;
 
-            const sponge::scene::Frustum frustum(frame.cameraProjection * view);
-            frame.planarObjectVisible.resize(objectWorldBounds.size());
-            for (size_t i = 0; i < objectWorldBounds.size(); i++) {
-                frame.planarObjectVisible[i] =
-                    frustum.intersects(objectWorldBounds[i]) ? 1 : 0;
+                const sponge::scene::Frustum frustum(frame.cameraProjection *
+                                                     view);
+                frame.planarObjectVisible.resize(objectWorldBounds.size());
+                for (size_t i = 0; i < objectWorldBounds.size(); i++) {
+                    frame.planarObjectVisible[i] =
+                        frustum.intersects(objectWorldBounds[i]) ? 1 : 0;
+                }
             }
         }
     }
@@ -1269,10 +1276,6 @@ void MazeLayer::renderPlanarReflection(
     shader->setInteger("numLights", 0);
     shader->setBoolean("ssaoEnabled", false);
     shader->setFloat3("viewPos", frame.planarViewPos);
-    shader->setFloat2("screenSize",
-                      glm::vec2(static_cast<float>(frame.screenWidth),
-                                static_cast<float>(frame.screenHeight)));
-    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
         shadowMap->activateAndBindShadowTexture(1);
@@ -1303,6 +1306,8 @@ void MazeLayer::renderPlanarReflection(
 void MazeLayer::renderPlanarComposite(
     const thread::MazeRenderFrame& frame) const {
     const auto i = frame.planarIndex;
+    // The global default, set here like Ssr does, so the blend does not
+    // depend on the passes before it.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

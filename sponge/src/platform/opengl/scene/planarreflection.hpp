@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 
 namespace sponge::platform::opengl::scene {
 
@@ -36,9 +37,11 @@ public:
 
     // Moves the near plane of an OpenGL projection onto viewPlane (Lengyel,
     // "Oblique View Frustum Depth Projection and Clipping"). viewPlane is in
-    // view space, with the kept side positive.
-    static glm::mat4 obliqueProjection(const glm::mat4& projection,
-                                       const glm::vec4& viewPlane);
+    // view space, with the kept side positive. Empty when the frustum corner
+    // opposite the plane is not on its kept side.
+    static std::optional<glm::mat4>
+        obliqueProjection(const glm::mat4& projection,
+                          const glm::vec4& viewPlane);
 
 private:
     void create();
@@ -49,9 +52,7 @@ private:
     uint32_t fbo          = 0;
     uint32_t colorTexture = 0;
     uint32_t depthRbo     = 0;
-    // Caller's viewport, saved in begin() and restored in end() — resizing
-    // through the pending-resize path lags a frame if this target instead
-    // restores frame.screenWidth/Height directly.
+    // Caller's viewport, saved in begin() and restored in end().
     mutable std::array<int32_t, 4> savedViewport{};
 };
 

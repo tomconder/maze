@@ -90,15 +90,20 @@ glm::mat4 PlanarReflection::reflectionMatrix(const glm::vec4& plane) {
     return r;
 }
 
-glm::mat4 PlanarReflection::obliqueProjection(const glm::mat4& projection,
-                                              const glm::vec4& viewPlane) {
+std::optional<glm::mat4>
+    PlanarReflection::obliqueProjection(const glm::mat4& projection,
+                                        const glm::vec4& viewPlane) {
     // Lengyel's method with m[column][row]: q is the frustum corner opposite
     // the plane in clip space, and the third row becomes the scaled plane.
     glm::mat4       m = projection;
     const glm::vec4 q((glm::sign(viewPlane.x) + m[2][0]) / m[0][0],
                       (glm::sign(viewPlane.y) + m[2][1]) / m[1][1], -1.F,
                       (1.F + m[2][2]) / m[3][2]);
-    const glm::vec4 c = viewPlane * (2.F / glm::dot(viewPlane, q));
+    const float     dq = glm::dot(viewPlane, q);
+    if (dq <= 1e-6F) {
+        return std::nullopt;
+    }
+    const glm::vec4 c = viewPlane * (2.F / dq);
     m[0][2]           = c.x;
     m[1][2]           = c.y;
     m[2][2]           = c.z + 1.F;
