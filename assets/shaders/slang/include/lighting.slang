@@ -83,9 +83,11 @@ float3 fresnelSchlick(float cosTheta, float3 F0) {
 }
 
 // Fresnel for ambient light, which arrives from every direction: rough
-// surfaces get less edge brightening (Lagarde).
+// surfaces get less edge brightening (Lagarde). Rounding can put a dot
+// product of unit vectors just above 1, and pow() of a negative base is NaN,
+// so the base is clamped.
 float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float rough) {
-    return F0 + (max(float3(1.0 - rough), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (max(float3(1.0 - rough), F0) - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 }
 
 // Scale and bias for F0 in the split-sum environment BRDF, fitted
