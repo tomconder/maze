@@ -9,7 +9,7 @@
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
-#include "platform/opengl/renderer/gl.hpp"
+#include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "resourcemanager.hpp"
 #include "scene/light.hpp"
@@ -54,10 +54,12 @@ using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::renderer::createRenderTarget;
+using sponge::platform::opengl::renderer::DepthFunc;
+using sponge::platform::opengl::renderer::RendererAPI;
 using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
+using sponge::platform::opengl::scene::DepthPrepass;
 using sponge::platform::opengl::scene::FXAA;
 using sponge::platform::opengl::scene::Mesh;
 using sponge::platform::opengl::scene::Model;
@@ -245,7 +247,8 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         .vertexShader   = "refraction.vert",
         .fragmentShader = "refraction.frag",
     });
-    createDepthPrepassFbo(w, h);
+    depthPrepass = std::make_unique<DepthPrepass>(static_cast<uint32_t>(w),
+                                                  static_cast<uint32_t>(h));
 
     shader->bind();
     shader->setFloat("clusterNear", ClusteredLights::clusterNear);
@@ -294,18 +297,7 @@ void MazeLayer::activate() {
 }
 
 void MazeLayer::onDetach() {
-    if (depthPrepassTexture != 0) {
-        glDeleteTextures(1, &depthPrepassTexture);
-        depthPrepassTexture = 0;
-    }
-    if (velocityTexture != 0) {
-        glDeleteTextures(1, &velocityTexture);
-        velocityTexture = 0;
-    }
-    if (depthPrepassFbo != 0) {
-        glDeleteFramebuffers(1, &depthPrepassFbo);
-        depthPrepassFbo = 0;
-    }
+    depthPrepass.reset();
 }
 
 void MazeLayer::onEvent(Event& event) {
@@ -571,7 +563,8 @@ void MazeLayer::onRender() {
             pendingResizeDimensions.load(std::memory_order_relaxed);
         const auto w = static_cast<uint32_t>(dims >> 32U);
         const auto h = static_cast<uint32_t>(dims & 0xFFFFFFFFU);
-        glViewport(0, 0, static_cast<GLsizei>(w), static_cast<GLsizei>(h));
+        RendererAPI::setViewport(0, 0, static_cast<int32_t>(w),
+                                 static_cast<int32_t>(h));
         if (fxaa) {
             fxaa->resize(w, h);
         }
@@ -590,7 +583,7 @@ void MazeLayer::onRender() {
         sceneTarget->resize(w, h);
         screenWidth  = static_cast<int32_t>(w);
         screenHeight = static_cast<int32_t>(h);
-        createDepthPrepassFbo(static_cast<int>(w), static_cast<int>(h));
+        depthPrepass->resize(w, h);
 
         const auto shader = Mesh::getShader();
         shader->bind();
@@ -660,8 +653,8 @@ void MazeLayer::onRender() {
     // of the texture on frame.ssaoEnabled, so a stale/unrun texture is never
     // sampled.
     if (frame.ssaoEnabled && ssao) {
-        ssao->process(depthPrepassTexture, normalPrepassTexture,
-                      frame.cameraProjection,
+        ssao->process(depthPrepass->getDepthTexture(),
+                      depthPrepass->getNormalTexture(), frame.cameraProjection,
                       glm::inverse(frame.cameraProjection), frame.ssaoRadius);
     }
 
@@ -673,10 +666,9 @@ void MazeLayer::onRender() {
 
     // Blit prepass depth in so the opaque pass can use GL_LEQUAL (zero
     // overdraw). Both FBOs use GL_DEPTH_COMPONENT24.
-    blitDepthToCurrentFbo(frame.screenWidth, frame.screenHeight);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_FALSE);
+    depthPrepass->blitDepthToBound();
+    RendererAPI::clearColor();
+    RendererAPI::setDepth(DepthFunc::LessEqual, false);
 
     renderGameObjects(frame);
 
@@ -700,8 +692,8 @@ void MazeLayer::onRender() {
         std::ranges::any_of(
             std::views::iota(size_t{ 0 }, frame.objectReflectivity.size()),
             usesSsr)) {
-        ssr->apply(sceneTarget->copyColor(), depthPrepassTexture,
-                   normalPrepassTexture, frame.cameraProjection,
+        ssr->apply(sceneTarget->copyColor(), depthPrepass->getDepthTexture(),
+                   depthPrepass->getNormalTexture(), frame.cameraProjection,
                    glm::inverse(frame.cameraProjection));
     }
 
@@ -710,23 +702,22 @@ void MazeLayer::onRender() {
         // The copy is a different texture from the scene color attachment.
         // Sampling that attachment while drawing it is undefined.
         const auto sceneCopy = sceneTarget->copyColor();
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        if (sceneTarget->beginGlass(velocityTexture, taaActive)) {
+        RendererAPI::setAlphaBlend(false);
+        RendererAPI::setDepth(DepthFunc::Less, true);
+        if (sceneTarget->beginGlass(depthPrepass->getVelocityTexture(),
+                                    taaActive)) {
             renderRefractiveObjects(frame, sceneCopy);
             // The shader sampled the prepass depth. The test wrote the
             // renderbuffer. TAA reads the prepass texture, so copy the
             // glass depth back onto it.
-            sceneTarget->blitDepthTo(depthPrepassFbo, frame.screenWidth,
-                                     frame.screenHeight);
+            sceneTarget->blitDepthTo(depthPrepass->getFramebuffer(),
+                                     frame.screenWidth, frame.screenHeight);
         }
         sceneTarget->endGlass();
-        glEnable(GL_BLEND);
+        RendererAPI::setAlphaBlend(true);
     }
 
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
+    RendererAPI::setDepth(DepthFunc::Less, true);
     sceneTarget->end();
 
     // Phase 5: bloom, extracted from linear radiance rather than from an
@@ -761,11 +752,12 @@ void MazeLayer::onRender() {
         // curve resolves highlight edges better, but that change belongs inside
         // TAA, not in this pass order.
         taa->end();
-        taa->apply(depthPrepassTexture, velocityTexture, frame.invCameraMVP,
+        taa->apply(depthPrepass->getDepthTexture(),
+                   depthPrepass->getVelocityTexture(), frame.invCameraMVP,
                    frame.prevCameraViewProj);
     }
 
-    glDepthFunc(GL_LEQUAL);
+    RendererAPI::setDepth(DepthFunc::LessEqual, true);
 }
 
 float MazeLayer::getAmbientStrength() const {
@@ -986,13 +978,13 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     }
 
     if (ssao) {
-        glBindTextureUnit(10, ssao->getTexture());
+        RendererAPI::bindTexture(10, ssao->getTexture());
     }
 
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
     if (useProbe) {
-        glBindTextureUnit(12, probe->getTexture());
+        RendererAPI::bindTexture(12, probe->getTexture());
     }
 
     const auto submitStart      = std::chrono::steady_clock::now();
@@ -1060,8 +1052,8 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
         shadowMap->activateAndBindShadowTexture(1);
     }
 
-    glBindTextureUnit(11, sceneCopy);
-    glBindTextureUnit(12, depthPrepassTexture);
+    RendererAPI::bindTexture(11, sceneCopy);
+    RendererAPI::bindTexture(12, depthPrepass->getDepthTexture());
 
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
@@ -1072,7 +1064,7 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
         shader->setFloat3("probeBoxMax", desc.boxMax);
         shader->setFloat("probeMaxMip",
                          static_cast<float>(ReflectionProbe::mipLevels - 1));
-        glBindTextureUnit(13, probe->getTexture());
+        RendererAPI::bindTexture(13, probe->getTexture());
     }
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
@@ -1103,55 +1095,6 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     shader->unbind();
 }
 
-void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
-    if (depthPrepassTexture != 0) {
-        glDeleteTextures(1, &depthPrepassTexture);
-    }
-    if (velocityTexture != 0) {
-        glDeleteTextures(1, &velocityTexture);
-    }
-    if (normalPrepassTexture != 0) {
-        glDeleteTextures(1, &normalPrepassTexture);
-    }
-    if (depthPrepassFbo != 0) {
-        glDeleteFramebuffers(1, &depthPrepassFbo);
-    }
-
-    depthPrepassTexture =
-        createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-                           GL_DEPTH_COMPONENT24, GL_NEAREST);
-
-    // RG16F holds a UV delta, not an absolute UV: at 1920 wide a one-pixel
-    // motion is ~5e-4, which a half float carries accurately as a delta and
-    // would quantise to worse than a pixel as an absolute coordinate.
-    velocityTexture =
-        createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-                           GL_RG16F, GL_NEAREST);
-
-    // View-space normal, consumed by SSAO and SSR. RGBA16F: RGB carries
-    // signed unit components directly, no [0,1] encode/decode needed; alpha
-    // carries the SSR reflection strength.
-    normalPrepassTexture =
-        createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-                           GL_RGBA16F, GL_NEAREST);
-
-    glCreateFramebuffers(1, &depthPrepassFbo);
-    glNamedFramebufferTexture(depthPrepassFbo, GL_DEPTH_ATTACHMENT,
-                              depthPrepassTexture, 0);
-    glNamedFramebufferTexture(depthPrepassFbo, GL_COLOR_ATTACHMENT0,
-                              velocityTexture, 0);
-    glNamedFramebufferTexture(depthPrepassFbo, GL_COLOR_ATTACHMENT1,
-                              normalPrepassTexture, 0);
-    constexpr std::array<GLenum, 2> drawBuffers = { GL_COLOR_ATTACHMENT0,
-                                                    GL_COLOR_ATTACHMENT1 };
-    glNamedFramebufferDrawBuffers(depthPrepassFbo, 2, drawBuffers.data());
-    glNamedFramebufferReadBuffer(depthPrepassFbo, GL_NONE);
-    if (glCheckNamedFramebufferStatus(depthPrepassFbo, GL_FRAMEBUFFER) !=
-        GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("Depth prepass framebuffer is not complete!");
-    }
-}
-
 void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // Only TAA reads the velocity target, so the other modes mask the writes
     // off. They still carry the plumbing: the RG16F attachment stays
@@ -1160,33 +1103,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     // old depth-only pass.
     const bool writeVelocity = frame.antiAliasing == AntiAliasing::Taa;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
-    // Indexed mask: attachment 0 (velocity) follows writeVelocity, attachment
-    // 1 (normal) is always live — SSAO and SSR both read it every frame
-    // regardless of AA mode.
-    glColorMaski(0, writeVelocity ? GL_TRUE : GL_FALSE,
-                 writeVelocity ? GL_TRUE : GL_FALSE, GL_FALSE, GL_FALSE);
-    glColorMaski(1, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    // Blending is enabled globally (RendererAPI) and never turned off, so the
-    // restore below is unconditional. Without this, the shader's writes blend
-    // against the clear colour instead of landing untouched — wrong for
-    // motion vectors and for normals alike.
-    glDisable(GL_BLEND);
-    if (writeVelocity) {
-        // Explicit zero rather than glClear, which would use the global grey
-        // clear colour and read back as ~22 pixels of bogus motion.
-        constexpr std::array noMotion = { 0.F, 0.F, 0.F, 0.F };
-        glClearNamedFramebufferfv(depthPrepassFbo, GL_COLOR, 0,
-                                  noMotion.data());
-    }
-    // Zero normal reads as "no surface here" (see ssao.slang), which is
-    // exactly right for pixels the loop below never draws to.
-    constexpr std::array noNormal = { 0.F, 0.F, 0.F, 0.F };
-    glClearNamedFramebufferfv(depthPrepassFbo, GL_COLOR, 1, noNormal.data());
+    depthPrepass->begin(writeVelocity);
 
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
@@ -1237,9 +1154,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepassShader->unbind();
 
-    glEnable(GL_BLEND);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    depthPrepass->end();
 }
 
 void MazeLayer::renderOcclusionQueries(
@@ -1249,32 +1164,11 @@ void MazeLayer::renderOcclusionQueries(
     }
 
     // Test every object's AABB against the depth prepass just rasterized.
-    // Depth-test only: no colour, no depth write, so this can't perturb the
-    // buffer the opaque pass is about to blit and depth-test against.
-    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_LEQUAL);
-    // Global back-face culling (RendererAPI) would cull every face of a box
-    // the camera is inside — true for any large object's AABB, e.g. sponza's
-    // — leaving the query with nothing to rasterize and the object stuck
-    // permanently "occluded". The proxy has no back faces to hide anyway.
-    glDisable(GL_CULL_FACE);
-
+    // The query writes no depth, so it can't perturb the buffer the opaque
+    // pass is about to blit and depth-test against.
+    depthPrepass->bind();
     occlusionCuller->query(objectWorldBounds, frame.cameraMVP, frame.cameraPos);
-
-    glEnable(GL_CULL_FACE);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void MazeLayer::blitDepthToCurrentFbo(const int w, const int h) const {
-    GLint drawFbo = 0;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFbo);
-    glBlitNamedFramebuffer(depthPrepassFbo, static_cast<GLuint>(drawFbo), 0, 0,
-                           w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    depthPrepass->unbind();
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
@@ -1404,8 +1298,7 @@ void MazeLayer::renderPlanarComposite(
     const auto i = frame.planarIndex;
     // The global default, set here like Ssr does, so the blend does not
     // depend on the passes before it.
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    RendererAPI::setAlphaBlend(true);
 
     const auto& modelMatrix = frame.objectModelMatrices[i];
     planarShader->bind();
@@ -1420,7 +1313,7 @@ void MazeLayer::renderPlanarComposite(
                             glm::vec2(static_cast<float>(screenWidth.load()),
                                       static_cast<float>(screenHeight.load())));
     planarShader->setFloat("strength", frame.objectReflectivity[i]);
-    glBindTextureUnit(11, planarReflection->getTexture());
+    RendererAPI::bindTexture(11, planarReflection->getTexture());
     frame.objectModels[i]->render(planarShader, frame.objectMeshVisible[i]);
     planarShader->unbind();
 }
@@ -1450,18 +1343,8 @@ void MazeLayer::renderSceneToDepthMap(
     // same technique as renderOcclusionQueries() but against the light's own
     // depth instead of the camera's — still bound, so no FBO switch needed.
     if (shadowOcclusionCuller) {
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        glDepthMask(GL_FALSE);
-        glDepthFunc(GL_LEQUAL);
-        glDisable(GL_CULL_FACE);
-
         shadowOcclusionCuller->query(objectWorldBounds, frame.lightSpaceMatrix,
                                      shadowMap->getEyePosition());
-
-        glEnable(GL_CULL_FACE);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     }
 
     shadowMap->unbind();

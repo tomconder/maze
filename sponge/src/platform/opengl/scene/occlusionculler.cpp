@@ -41,6 +41,17 @@ OcclusionCuller::~OcclusionCuller() {
 void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
                             const glm::mat4&                        viewProj,
                             const glm::vec3&                        eyePos) {
+    // Depth-test only: no colour, no depth write, so this can't perturb the
+    // depth buffer it tests against.
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_FALSE);
+    glDepthFunc(GL_LEQUAL);
+    // Global back-face culling (RendererAPI) would cull every face of a box
+    // the camera is inside — true for any large object's AABB, e.g. sponza's
+    // — leaving the query with nothing to rasterize and the object stuck
+    // permanently "occluded". The proxy has no back faces to hide anyway.
+    glDisable(GL_CULL_FACE);
+
     shader->bind();
     vao->bind();
 
@@ -82,6 +93,11 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
     glDisable(GL_POLYGON_OFFSET_FILL);
     vao->unbind();
     shader->unbind();
+
+    glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
 void OcclusionCuller::pollResults() {

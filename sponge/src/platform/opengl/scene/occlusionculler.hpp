@@ -29,11 +29,12 @@ public:
     OcclusionCuller(const OcclusionCuller&)            = delete;
     OcclusionCuller& operator=(const OcclusionCuller&) = delete;
 
-    // Caller must already have the target depth buffer bound, with depth
-    // test on (GL_LEQUAL) and colour/depth writes off — this only reads
-    // depth. worldBounds must be objectCount long, index-locked with the
-    // caller's own object list. viewProj/eyePos are whatever's being tested
-    // against — a perspective camera or an orthographic light.
+    // Caller must already have the target depth buffer bound. This tests
+    // depth only (GL_LEQUAL, colour/depth writes and culling off) and leaves
+    // depth writes on under GL_LESS, colour writes and culling on. worldBounds
+    // must be objectCount long, index-locked with the caller's own object list.
+    // viewProj/eyePos are whatever's being tested against — a perspective
+    // camera or an orthographic light.
     //
     // An object whose box contains eyePos is skipped and left visible. This
     // matters for a perspective eye inside a convex box: only the far face

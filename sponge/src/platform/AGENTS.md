@@ -26,8 +26,10 @@ than calling GLFW/OpenGL/OS APIs directly.
   `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
-  `SceneTarget`, `Ssao`, `Ssr`, `PlanarReflection`, `ReflectionProbe`,
-  `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
+  `SceneTarget`, `DepthPrepass`, `Ssao`, `Ssr`, `PlanarReflection`,
+  `ReflectionProbe`, `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
+  `RendererAPI` also has the static state calls game code needs between
+  passes (`setDepth`, `setAlphaBlend`, `clearColor`, `bindTexture`).
 * `opengl/debug/` - GL diagnostics/profiler, debug-build only.
 * `windows/`, `osx/`, `linux/` `core/*file.*` - the only OS-specific file I/O
   shims; everything else is GLFW-portable.
