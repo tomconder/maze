@@ -46,26 +46,12 @@ void SceneTarget::createFramebuffer() {
 }
 
 void SceneTarget::destroyFramebuffer() {
-    if (fbo != 0) {
-        glDeleteFramebuffers(1, &fbo);
-        fbo = 0;
-    }
-    if (colorTexture != 0) {
-        glDeleteTextures(1, &colorTexture);
-        colorTexture = 0;
-    }
-    if (colorCopy != 0) {
-        glDeleteTextures(1, &colorCopy);
-        colorCopy = 0;
-    }
-    if (glassFbo != 0) {
-        glDeleteFramebuffers(1, &glassFbo);
-        glassFbo = 0;
-    }
-    if (depthRbo != 0) {
-        glDeleteRenderbuffers(1, &depthRbo);
-        depthRbo = 0;
-    }
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteTextures(1, &colorTexture);
+    glDeleteTextures(1, &colorCopy);
+    glDeleteFramebuffers(1, &glassFbo);
+    glDeleteRenderbuffers(1, &depthRbo);
+    fbo = colorTexture = colorCopy = glassFbo = depthRbo = 0;
 }
 
 void SceneTarget::begin() const {

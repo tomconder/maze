@@ -24,21 +24,11 @@ ShadowMap::ShadowMap(const uint32_t res) : shadowHeight(res), shadowWidth(res) {
 }
 
 ShadowMap::~ShadowMap() {
-    if (blurFbo != 0) {
-        glDeleteFramebuffers(1, &blurFbo);
-    }
-    if (momentFbo != 0) {
-        glDeleteFramebuffers(1, &momentFbo);
-    }
-    if (blurTexture != 0) {
-        glDeleteTextures(1, &blurTexture);
-    }
-    if (momentTexture != 0) {
-        glDeleteTextures(1, &momentTexture);
-    }
-    if (depthRbo != 0) {
-        glDeleteRenderbuffers(1, &depthRbo);
-    }
+    glDeleteFramebuffers(1, &blurFbo);
+    glDeleteFramebuffers(1, &momentFbo);
+    glDeleteTextures(1, &blurTexture);
+    glDeleteTextures(1, &momentTexture);
+    glDeleteRenderbuffers(1, &depthRbo);
 }
 
 void ShadowMap::initialize() {

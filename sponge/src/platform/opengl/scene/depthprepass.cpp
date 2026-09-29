@@ -49,7 +49,6 @@ void DepthPrepass::destroyFramebuffer() {
     glDeleteTextures(1, &depthTexture);
     glDeleteTextures(1, &velocityTexture);
     glDeleteTextures(1, &normalTexture);
-    fbo = depthTexture = velocityTexture = normalTexture = 0;
 }
 
 void DepthPrepass::begin(const bool writeVelocity) const {
