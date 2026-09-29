@@ -974,7 +974,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->activateAndBindShadowTexture(1);
+        shadowMap->bindTexture(1);
     }
 
     if (ssao) {
@@ -1049,7 +1049,7 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
     if (frame.shadowEnabled && frame.shadowCastShadow) {
-        shadowMap->activateAndBindShadowTexture(1);
+        shadowMap->bindTexture(1);
     }
 
     RendererAPI::bindTexture(11, sceneCopy);
@@ -1205,7 +1205,7 @@ void MazeLayer::renderPlanarReflection(
     shader->setFloat3("viewPos", frame.planarViewPos);
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->activateAndBindShadowTexture(1);
+        shadowMap->bindTexture(1);
     }
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
@@ -1246,7 +1246,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     shader->setFloat3("viewPos", desc.position);
     if (frame.shadowEnabled && frame.shadowCastShadow) {
         shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->activateAndBindShadowTexture(1);
+        shadowMap->bindTexture(1);
     }
 
     for (int face = 0; face < 6; face++) {

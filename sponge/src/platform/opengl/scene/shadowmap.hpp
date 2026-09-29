@@ -24,7 +24,7 @@ public:
     void bind() const;
     void unbind() const;
 
-    void activateAndBindShadowTexture(uint8_t unit) const;
+    void bindTexture(uint8_t unit) const;
 
     std::shared_ptr<renderer::Shader> getShader() const {
         return shader;

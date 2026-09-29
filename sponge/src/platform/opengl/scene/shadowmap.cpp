@@ -156,7 +156,7 @@ void ShadowMap::unbind() const {
                static_cast<GLsizei>(savedViewport[3]));
 }
 
-void ShadowMap::activateAndBindShadowTexture(const uint8_t unit) const {
+void ShadowMap::bindTexture(const uint8_t unit) const {
     glBindTextureUnit(unit, momentTexture);
 }
 
