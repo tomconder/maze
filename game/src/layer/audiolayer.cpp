@@ -170,9 +170,7 @@ void AudioLayer::onAttach() {
         100.F);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     // no spacer above: the rows start under the tab bar
@@ -277,9 +275,7 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());

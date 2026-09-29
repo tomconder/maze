@@ -143,9 +143,7 @@ void renderTabBar(const OptionTab                    active,
 
     // every prompt shares the one sprite shader
     const auto& shader = promptSprite(prevIcon).getShader();
-    shader->bind();
     shader->setMat4("projection", projection);
-    shader->unbind();
 
     const auto size = glm::vec2{ metrics.iconSize, metrics.iconSize };
     promptSprite(prevIcon).render(

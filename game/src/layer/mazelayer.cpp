@@ -159,8 +159,6 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     camera->setPosition(sceneDesc.camera.position);
 
     const auto shader = Mesh::getShader();
-    shader->bind();
-
     shader->setFloat("ao", ao);
     shader->setBoolean("ssaoEnabled", ssaoEnabled);
 
@@ -185,8 +183,6 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
     shader->setFloat3("directionalLight.color", directionalLight.color);
     shader->setFloat("evsmBleedThreshold", 0.2F);
-
-    shader->unbind();
 
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
@@ -250,12 +246,10 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     depthPrepass = std::make_unique<DepthPrepass>(static_cast<uint32_t>(w),
                                                   static_cast<uint32_t>(h));
 
-    shader->bind();
     shader->setFloat("clusterNear", ClusteredLights::clusterNear);
     shader->setFloat("farPlane", camera->getFar());
     shader->setFloat2("screenSize",
                       glm::vec2(static_cast<float>(w), static_cast<float>(h)));
-    shader->unbind();
 
     setNumLights(numLights);
 
@@ -586,10 +580,8 @@ void MazeLayer::onRender() {
         depthPrepass->resize(w, h);
 
         const auto shader = Mesh::getShader();
-        shader->bind();
         shader->setFloat2("screenSize", glm::vec2(static_cast<float>(w),
                                                   static_cast<float>(h)));
-        shader->unbind();
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
@@ -768,9 +760,7 @@ void MazeLayer::setAmbientStrength(const float val) {
     ambientStrength = val;
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->unbind();
 }
 
 int32_t MazeLayer::getAttenuationIndex() const {
@@ -800,10 +790,8 @@ void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
     }
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setBoolean("directionalLight.castShadow",
                        directionalLight.castShadow);
-    shader->unbind();
 }
 
 glm::vec3 MazeLayer::getDirectionalLightColor() const {
@@ -814,9 +802,7 @@ void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
     directionalLight.color = color;
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setFloat3("directionalLight.color", directionalLight.color);
-    shader->unbind();
 }
 
 glm::vec3 MazeLayer::getDirectionalLightDirection() const {
@@ -830,9 +816,7 @@ void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
     }
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
-    shader->unbind();
 }
 
 bool MazeLayer::getDirectionalLightEnabled() const {
@@ -846,9 +830,7 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
     }
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
-    shader->unbind();
 }
 
 uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
@@ -897,9 +879,7 @@ void MazeLayer::setNumLights(const int32_t val) {
     }
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setInteger("numLights", numLights);
-    shader->unbind();
 }
 
 void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
@@ -1275,13 +1255,11 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
 
     probe->prefilter();
 
-    shader->bind();
     shader->setFloat3("probePosition", desc.position);
     shader->setFloat3("probeBoxMin", desc.boxMin);
     shader->setFloat3("probeBoxMax", desc.boxMax);
     shader->setFloat("probeMaxMip",
                      static_cast<float>(ReflectionProbe::mipLevels - 1));
-    shader->unbind();
 
     probeCaptured = true;
 
@@ -1431,9 +1409,7 @@ void MazeLayer::setSsaoEnabled(const bool val) {
     }
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     shader->setBoolean("ssaoEnabled", val);
-    shader->unbind();
 }
 
 float MazeLayer::getSsaoRadius() const {
