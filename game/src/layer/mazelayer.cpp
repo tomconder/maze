@@ -1068,6 +1068,18 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     glBindTexture(GL_TEXTURE_2D, depthPrepassTexture);
     glActiveTexture(GL_TEXTURE0);
 
+    const bool useProbe = frame.probeEnabled && probeCaptured;
+    shader->setBoolean("probeEnabled", useProbe);
+    if (useProbe) {
+        const auto& desc = *sceneDesc.probe;
+        shader->setFloat3("probePosition", desc.position);
+        shader->setFloat3("probeBoxMin", desc.boxMin);
+        shader->setFloat3("probeBoxMax", desc.boxMax);
+        shader->setFloat("probeMaxMip",
+                         static_cast<float>(ReflectionProbe::mipLevels - 1));
+        glBindTextureUnit(13, probe->getTexture());
+    }
+
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         if (!frame.objectRefraction[i].refractive) {
             continue;
