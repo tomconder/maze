@@ -38,6 +38,11 @@ struct RefractionParams {
     float3           tint;
     float            evsmBleedThreshold;
     DirectionalLight directionalLight;
+    bool             probeEnabled;
+    float3           probePosition;
+    float3           probeBoxMin;
+    float3           probeBoxMax;
+    float            probeMaxMip;
 };
 [[vk::binding(2)]] ConstantBuffer<RefractionParams> params;
 
@@ -64,9 +69,10 @@ struct FSOutput {
     float2 velocity : SV_Target1;
 };
 
-[[vk::binding(1)]] Sampler2D<float2>  shadowMap;
-[[vk::binding(11)]] Sampler2D<float4> sceneColor;
-[[vk::binding(12)]] Sampler2D<float>  opaqueDepth;
+[[vk::binding(1)]] Sampler2D<float2>    shadowMap;
+[[vk::binding(11)]] Sampler2D<float4>   sceneColor;
+[[vk::binding(12)]] Sampler2D<float>    opaqueDepth;
+[[vk::binding(13)]] SamplerCube<float4> probeMap;
 
 static const float glassRoughness = 0.089;
 
@@ -160,9 +166,20 @@ FSOutput fragMain(VSOutput input, float4 fragCoord : SV_Position) {
         }
     }
 
-    // View Fresnel is not applied to the refraction. There is no environment
-    // image, so that factor went to black at a grazing angle. The highlight
-    // still uses Fresnel inside the specular lobe.
+    // View Fresnel splits the surface between the probe reflection and the
+    // refraction, as pbr.slang splits ambient. With no probe there is nothing
+    // to reflect, and the factor would only darken the edges, so it is not
+    // applied.
+    if (params.probeEnabled) {
+        float  NdotV = max(dot(N, V), 1e-5);
+        float3 F     = fresnelSchlickRoughness(NdotV, F0, glassRoughness);
+        float2 AB    = envBRDFApprox(NdotV, glassRoughness);
+        float3 Rv    = boxProject(reflect(-V, N), input.worldPosition,
+                                  params.probePosition, params.probeBoxMin,
+                                  params.probeBoxMax);
+        float3 probe = probeMap.SampleLevel(Rv, glassRoughness * params.probeMaxMip).rgb;
+        refraction   = refraction * (1.0 - F) + probe * (F0 * AB.x + AB.y);
+    }
     o.color = float4(refraction + spec, 1.0);
     return o;
 };
