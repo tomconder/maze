@@ -4,6 +4,9 @@
 
 namespace sponge::platform::opengl::renderer {
 
+class IndexBuffer;
+class VertexBuffer;
+
 class VertexArray final {
 public:
     VertexArray();
@@ -15,6 +18,12 @@ public:
     VertexArray& operator=(VertexArray&& other) noexcept;
 
     ~VertexArray();
+
+    // Setup uses one vertex buffer binding point, 0, and float attributes.
+    void setVertexBuffer(const VertexBuffer& vertexBuffer,
+                         uint32_t            stride) const;
+    void setIndexBuffer(const IndexBuffer& indexBuffer) const;
+    void addAttribute(uint32_t location, int32_t count, uint32_t offset) const;
 
     void bind() const;
     void unbind() const;

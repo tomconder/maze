@@ -23,22 +23,14 @@ namespace sponge::platform::opengl::scene {
 
 ScreenQuad::ScreenQuad() {
     vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
     vbo = std::make_unique<renderer::VertexBuffer>(vertices.data(),
                                                    sizeof(vertices));
-    vbo->bind();
+    vao->setVertexBuffer(*vbo, stride);
 
     constexpr uint32_t positionLoc = 0;
     constexpr uint32_t texCoordLoc = 1;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE, stride,
-                          reinterpret_cast<const void*>(0));
-    glEnableVertexAttribArray(texCoordLoc);
-    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, stride,
-                          reinterpret_cast<const void*>(2 * sizeof(float)));
-
-    vao->unbind();
+    vao->addAttribute(positionLoc, 2, 0);
+    vao->addAttribute(texCoordLoc, 2, 2 * sizeof(float));
 }
 
 void ScreenQuad::draw() const {

@@ -38,11 +38,8 @@ void Bloom::initialize() {
 
 void Bloom::createFramebuffers() {
     // Mip-chain FBOs: level i at (width >> (i+1)) x (height >> (i+1))
-    glGenFramebuffers(numLevels, downFbos.data());
-    glGenFramebuffers(numLevels, upFbos.data());
     auto makeMipTex = [](uint32_t w, uint32_t h) {
-        return renderer::createRenderTarget(w, h, GL_RGB16F, GL_RGB, GL_FLOAT,
-                                            GL_LINEAR);
+        return renderer::createRenderTarget(w, h, GL_RGB16F, GL_LINEAR);
     };
 
     for (int i = 0; i < numLevels; i++) {
@@ -50,25 +47,12 @@ void Bloom::createFramebuffers() {
         const auto h = height >> (i + 1);
 
         downTextures[i] = makeMipTex(w, h);
-        glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, downTextures[i], 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-            GL_FRAMEBUFFER_COMPLETE) {
-            SPONGE_GL_CRITICAL("Bloom down framebuffer {} is not complete!", i);
-        }
+        downFbos[i] =
+            renderer::createFramebuffer("Bloom down", downTextures[i]);
 
         upTextures[i] = makeMipTex(w, h);
-        glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, upTextures[i], 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-            GL_FRAMEBUFFER_COMPLETE) {
-            SPONGE_GL_CRITICAL("Bloom up framebuffer {} is not complete!", i);
-        }
+        upFbos[i]     = renderer::createFramebuffer("Bloom up", upTextures[i]);
     }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Bloom::destroyFramebuffers() {
@@ -84,7 +68,6 @@ void Bloom::destroyFramebuffers() {
 
 void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     glDisable(GL_DEPTH_TEST);
-    glActiveTexture(GL_TEXTURE0);
 
     // Extract bright pixels → down[0] at (w/2, h/2)
     glBindFramebuffer(GL_FRAMEBUFFER, downFbos[0]);
@@ -92,7 +75,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
                static_cast<GLsizei>(height >> 1));
     extractShader->bind();
     extractShader->setFloat("threshold", threshold);
-    glBindTexture(GL_TEXTURE_2D, sceneTexId);
+    glBindTextureUnit(0, sceneTexId);
     quad.draw();
     extractShader->unbind();
 
@@ -103,7 +86,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
         glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
-        glBindTexture(GL_TEXTURE_2D, downTextures[i - 1]);
+        glBindTextureUnit(0, downTextures[i - 1]);
         quad.draw();
     }
     downShader->unbind();
@@ -117,16 +100,13 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
         upShader->setFloat("accumulate", i == numLevels - 1 ? 0.F : 1.F);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, downTextures[i]);
-        glActiveTexture(GL_TEXTURE0);
+        glBindTextureUnit(1, downTextures[i]);
         const uint32_t src =
             (i == numLevels - 1) ? downTextures[i] : upTextures[i + 1];
-        glBindTexture(GL_TEXTURE_2D, src);
+        glBindTextureUnit(0, src);
         quad.draw();
     }
     upShader->unbind();
-    glActiveTexture(GL_TEXTURE0);
 
     glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

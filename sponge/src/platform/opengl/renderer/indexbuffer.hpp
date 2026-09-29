@@ -18,10 +18,9 @@ public:
 
     ~IndexBuffer();
 
-    void update(const uint32_t* indices, std::size_t size) const;
-
-    void bind() const;
-    void unbind() const;
+    uint32_t getId() const {
+        return id;
+    }
 
 private:
     mutable uint32_t id = 0;

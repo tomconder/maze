@@ -101,21 +101,21 @@ void Shader::unbind() const {
 void Shader::dispatch(const uint32_t groupsX, const uint32_t groupsY,
                       const uint32_t groupsZ) const {
     assert(program != 0);
-    glUseProgram(program);
+    bind();
     glDispatchCompute(groupsX, groupsY, groupsZ);
-    glUseProgram(0);
+    unbind();
 }
 
 void Shader::setBoolean(const std::string_view name, const bool value) const {
     uint32_t v = value ? 1u : 0u;
     if (!trySetInUBO(name, &v, sizeof(v), sizeof(v))) {
-        glUniform1ui(getUniformLocation(name), v);
+        glProgramUniform1ui(program, getUniformLocation(name), v);
     }
 }
 
 void Shader::setFloat(const std::string_view name, const float value) const {
     if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
-        glUniform1f(getUniformLocation(name), value);
+        glProgramUniform1f(program, getUniformLocation(name), value);
     }
 }
 
@@ -123,7 +123,7 @@ void Shader::setFloat2(const std::string_view name,
                        const glm::vec2&       value) const {
     if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
                      sizeof(value))) {
-        glUniform2f(getUniformLocation(name), value.x, value.y);
+        glProgramUniform2f(program, getUniformLocation(name), value.x, value.y);
     }
 }
 
@@ -131,7 +131,8 @@ void Shader::setFloat3(const std::string_view name,
                        const glm::vec3&       value) const {
     if (!trySetInUBO(name, glm::value_ptr(value), sizeof(float) * 3,
                      sizeof(float) * 3)) {
-        glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+        glProgramUniform3f(program, getUniformLocation(name), value.x, value.y,
+                           value.z);
     }
 }
 
@@ -139,14 +140,14 @@ void Shader::setFloat4(const std::string_view name,
                        const glm::vec4&       value) const {
     if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
                      sizeof(value))) {
-        glUniform4f(getUniformLocation(name), value.x, value.y, value.z,
-                    value.a);
+        glProgramUniform4f(program, getUniformLocation(name), value.x, value.y,
+                           value.z, value.a);
     }
 }
 
 void Shader::setInteger(const std::string_view name, const int value) const {
     if (!trySetInUBO(name, &value, sizeof(value), sizeof(value))) {
-        glUniform1i(getUniformLocation(name), value);
+        glProgramUniform1i(program, getUniformLocation(name), value);
     }
 }
 
@@ -154,8 +155,8 @@ void Shader::setMat4(const std::string_view name,
                      const glm::mat4&       value) const {
     if (!trySetInUBO(name, glm::value_ptr(value), sizeof(value),
                      sizeof(value))) {
-        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE,
-                           value_ptr(value));
+        glProgramUniformMatrix4fv(program, getUniformLocation(name), 1,
+                                  GL_FALSE, value_ptr(value));
     }
 }
 
@@ -268,11 +269,10 @@ void Shader::initUBO() {
         block.binding   = static_cast<uint32_t>(b);
         block.size      = blockSize;
 
-        glGenBuffers(1, &block.buffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
-        glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+        glCreateBuffers(1, &block.buffer);
+        glNamedBufferStorage(block.buffer, blockSize, nullptr,
+                             GL_DYNAMIC_STORAGE_BIT);
         glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         block.staging.assign(static_cast<size_t>(blockSize), 0);
     }
@@ -332,9 +332,7 @@ void Shader::uploadUBO() const {
         if (!block.dirty) {
             continue;
         }
-        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, block.size, block.staging.data());
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glNamedBufferSubData(block.buffer, 0, block.size, block.staging.data());
         block.dirty = false;
     }
 }

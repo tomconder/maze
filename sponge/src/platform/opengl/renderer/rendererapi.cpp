@@ -33,7 +33,7 @@ void RendererAPI::init() const {
 }
 
 void RendererAPI::setViewport(const int32_t x, const int32_t y,
-                              const int32_t width, const int32_t height) const {
+                              const int32_t width, const int32_t height) {
     glViewport(x, y, width, height);
 }
 
@@ -43,6 +43,28 @@ void RendererAPI::setClearColor(const glm::vec4& color) const {
 
 void RendererAPI::clear() const {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void RendererAPI::clearColor() {
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void RendererAPI::setDepth(const DepthFunc func, const bool write) {
+    glDepthFunc(func == DepthFunc::Less ? GL_LESS : GL_LEQUAL);
+    glDepthMask(write ? GL_TRUE : GL_FALSE);
+}
+
+void RendererAPI::setAlphaBlend(const bool enabled) {
+    if (enabled) {
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
+    } else {
+        glDisable(GL_BLEND);
+    }
+}
+
+void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
+    glBindTextureUnit(unit, texture);
 }
 
 }  // namespace sponge::platform::opengl::renderer

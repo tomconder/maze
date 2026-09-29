@@ -111,9 +111,7 @@ void IntroLayer::onAttach() {
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto skeleton = ui::buildMenuSkeleton(30.F);
@@ -194,9 +192,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto [width, height] =

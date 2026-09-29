@@ -49,8 +49,7 @@ public:
         return id;
     }
 
-    void activateAndBind(uint8_t unit) const;
-    void bind() const;
+    void bind(uint8_t unit) const;
 
 private:
     uint32_t id     = 0;

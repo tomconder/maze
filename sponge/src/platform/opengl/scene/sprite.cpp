@@ -28,15 +28,12 @@ Sprite::Sprite(const std::string& name, const std::string& texturePath) {
         .path = texturePath,
     };
     tex = AssetManager::createTexture(textureCreateInfo);
-
-    shader->unbind();
 }
 
 Sprite::Sprite(std::shared_ptr<renderer::Texture> texture,
                const glm::vec2& uvOffset, const glm::vec2& uvScale) :
     tex(std::move(texture)), uvOffset(uvOffset), uvScale(uvScale) {
     createBuffers();
-    shader->unbind();
 }
 
 void Sprite::createBuffers() {
@@ -46,26 +43,17 @@ void Sprite::createBuffers() {
         .fragmentShader = "sprite.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
 
     vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
     vbo = std::make_unique<renderer::VertexBuffer>(
         nullptr, vertexCount * sizeof(glm::vec2));
-    vbo->bind();
-
     ebo = std::make_unique<renderer::IndexBuffer>(indices.data(),
                                                   sizeof(indices));
-    ebo->bind();
+    vao->setVertexBuffer(*vbo, 4 * sizeof(float));
+    vao->setIndexBuffer(*ebo);
 
     constexpr uint32_t position = 0;
-    glEnableVertexAttribArray(position);
-    glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          nullptr);
-
-    vbo->unbind();
-    vao->unbind();
+    vao->addAttribute(position, 4, 0);
 }
 
 void Sprite::render(const glm::vec2& position, const glm::vec2& size,
@@ -93,7 +81,7 @@ void Sprite::render(const glm::vec2& position, const glm::vec2& size,
     shader->bind();
     shader->setFloat("alpha", alpha.value_or(1.0F));
 
-    tex->bind();
+    tex->bind(0);
 
     vbo->update(vertices.data(), vertexCount * sizeof(glm::vec2));
 

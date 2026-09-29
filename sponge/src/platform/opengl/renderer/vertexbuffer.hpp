@@ -20,8 +20,9 @@ public:
 
     void update(const void* vertices, std::size_t size) const;
 
-    void bind() const;
-    void unbind() const;
+    uint32_t getId() const {
+        return id;
+    }
 
 private:
     mutable uint32_t id = 0;

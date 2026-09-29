@@ -170,9 +170,7 @@ void KeyMapLayer::onAttach() {
                                       buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     // no spacer above: the rows start under the tab bar
@@ -263,9 +261,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());

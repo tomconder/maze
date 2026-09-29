@@ -67,9 +67,7 @@ void LoadingLayer::onAttach() {
     font = AssetManager::createFont(fontCreateInfo);
 
     for (const auto& shader : { Quad::getShader(), font->getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 }
 
@@ -206,9 +204,7 @@ bool LoadingLayer::onUpdate(const double elapsedTime) {
 
 void LoadingLayer::renderProgress() const {
     for (const auto& shader : { Quad::getShader(), font->getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());

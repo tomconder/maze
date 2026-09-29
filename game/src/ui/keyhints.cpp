@@ -101,9 +101,7 @@ void renderKeyHints(std::span<const KeyHint>           hints,
 
     // every prompt shares the one sprite shader
     const auto& shader = promptSprite(hints.front().keyIcon).getShader();
-    shader->bind();
     shader->setMat4("projection", projection);
-    shader->unbind();
 
     auto       x          = marginX;
     const auto renderHint = [&](const KeyHint& hint) {

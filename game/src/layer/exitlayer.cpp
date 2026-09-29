@@ -102,9 +102,7 @@ void ExitLayer::onAttach() {
     }
 
     for (const auto& shader : { Quad::getShader(), menuFont->getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     const auto skeleton = ui::buildMenuSkeleton(45.F);
@@ -188,9 +186,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
     }
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     auto [rootNodeX, rootNodeY, rootNodeW, rootNodeH] =

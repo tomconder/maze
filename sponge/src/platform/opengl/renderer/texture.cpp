@@ -5,6 +5,8 @@
 #include "platform/opengl/renderer/gl.hpp"
 #include "readbytes.hpp"
 
+#include <algorithm>
+#include <bit>
 #include <cstdint>
 #include <filesystem>
 #include <span>
@@ -39,7 +41,7 @@ GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
 
 namespace sponge::platform::opengl::renderer {
 Texture::Texture(const TextureCreateInfo& createInfo) {
-    glGenTextures(1, &id);
+    glCreateTextures(GL_TEXTURE_2D, 1, &id);
 
     if (!createInfo.ktx2.empty()) {
         SPONGE_GL_INFO("Loading baked texture: [{}]", createInfo.name);
@@ -99,27 +101,29 @@ void Texture::generate(const uint32_t textureWidth,
         format         = GL_RGBA;
     }
 
-    glBindTexture(GL_TEXTURE_2D, id);
+    // Storage is immutable, so the full mip chain is allocated up front.
+    const auto levels =
+        pixelated ? 1 : std::bit_width(std::max({ width, height, 1U }));
+    glTextureStorage2D(id, static_cast<GLsizei>(levels), internalFormat,
+                       static_cast<GLsizei>(width),
+                       static_cast<GLsizei>(height));
     // Rows are tightly packed. The default alignment of 4 skews any upload
     // whose width times bytesPerPixel is not a multiple of it.
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(id, 0, 0, 0, static_cast<GLsizei>(width),
+                        static_cast<GLsizei>(height), format, GL_UNSIGNED_BYTE,
+                        data);
 
     if (pixelated) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else {
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glGenerateTextureMipmap(id);
+        glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE0);
 }
 
 void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
@@ -153,56 +157,47 @@ void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
     width  = image.width;
     height = image.height;
 
-    glBindTexture(GL_TEXTURE_2D, id);
+    glTextureStorage2D(id, static_cast<GLsizei>(image.levels.size()),
+                       glFormat.internalFormat, static_cast<GLsizei>(width),
+                       static_cast<GLsizei>(height));
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     for (uint32_t level = 0; level < image.levels.size(); level++) {
         const auto& source = image.levels[level];
         if (glFormat.compressed) {
-            glCompressedTexImage2D(
-                GL_TEXTURE_2D, static_cast<int32_t>(level),
-                glFormat.internalFormat, static_cast<int32_t>(source.width),
-                static_cast<int32_t>(source.height), 0,
-                static_cast<int32_t>(source.bytes.size()), source.bytes.data());
+            glCompressedTextureSubImage2D(
+                id, static_cast<GLint>(level), 0, 0,
+                static_cast<GLsizei>(source.width),
+                static_cast<GLsizei>(source.height), glFormat.internalFormat,
+                static_cast<GLsizei>(source.bytes.size()), source.bytes.data());
         } else {
-            glTexImage2D(GL_TEXTURE_2D, static_cast<int32_t>(level),
-                         static_cast<int32_t>(glFormat.internalFormat),
-                         static_cast<int32_t>(source.width),
-                         static_cast<int32_t>(source.height), 0,
-                         glFormat.format, GL_UNSIGNED_BYTE,
-                         source.bytes.data());
+            glTextureSubImage2D(id, static_cast<GLint>(level), 0, 0,
+                                static_cast<GLsizei>(source.width),
+                                static_cast<GLsizei>(source.height),
+                                glFormat.format, GL_UNSIGNED_BYTE,
+                                source.bytes.data());
         }
     }
 
     const auto pixelated = (flag & Pixelated) == Pixelated;
     if (pixelated) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else {
         // The file decides the mip chain; the driver is never asked to
         // invent one. A sprite atlas ships a single level on purpose,
         // because generated mips blend neighbouring sprites together.
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,
-                        static_cast<int32_t>(image.levels.size()) - 1);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        image.levels.size() == 1 ? GL_LINEAR :
-                                                   GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(id, GL_TEXTURE_MIN_FILTER,
+                            image.levels.size() == 1 ? GL_LINEAR :
+                                                       GL_LINEAR_MIPMAP_LINEAR);
+        glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE0);
 }
 
-void Texture::activateAndBind(const uint8_t unit) const {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, id);
-}
-
-void Texture::bind() const {
-    glBindTexture(GL_TEXTURE_2D, id);
+void Texture::bind(const uint8_t unit) const {
+    glBindTextureUnit(unit, id);
 }
 
 }  // namespace sponge::platform::opengl::renderer

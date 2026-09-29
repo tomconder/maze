@@ -54,9 +54,7 @@ void SplashScreenLayer::onAttach() {
     backgroundQuad = std::make_unique<Quad>();
 
     for (const auto& shader : { logoSprite->getShader(), Quad::getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 }
 
@@ -84,9 +82,7 @@ void SplashScreenLayer::onEvent(Event& event) {
 
 bool SplashScreenLayer::onUpdate(const double elapsedTime) {
     for (const auto& shader : { Quad::getShader(), logoSprite->getShader() }) {
-        shader->bind();
         shader->setMat4("projection", orthoCamera->getProjection());
-        shader->unbind();
     }
 
     auto& mgr = Application::get().getInputManager();

@@ -34,6 +34,8 @@ public:
     void dispatch(uint32_t groupsX, uint32_t groupsY = 1,
                   uint32_t groupsZ = 1) const;
 
+    // The setters need no bound program. A value in a uniform block is
+    // staged and uploaded at the next bind(), or at once if already bound.
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
     void setFloat2(std::string_view name, const glm::vec2& value) const;

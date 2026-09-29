@@ -24,26 +24,12 @@ void PlanarReflection::resize(const uint32_t newWidth,
 }
 
 void PlanarReflection::create() {
-    colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
-                                                GL_RGB, GL_FLOAT, GL_LINEAR);
+    colorTexture =
+        renderer::createRenderTarget(width, height, GL_RGB16F, GL_LINEAR);
 
-    glGenRenderbuffers(1, &depthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(width),
-                          static_cast<GLsizei>(height));
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           colorTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, depthRbo);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("Planar reflection framebuffer is not complete!");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    depthRbo = renderer::createDepthRenderbuffer(width, height);
+    fbo      = renderer::createFramebuffer("Planar reflection", colorTexture,
+                                           depthRbo);
 }
 
 void PlanarReflection::destroy() {

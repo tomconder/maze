@@ -50,34 +50,24 @@ void Ssao::createNoiseTexture() {
         v = dist(rng);
     }
 
-    glGenTextures(1, &noiseTexture);
-    glBindTexture(GL_TEXTURE_2D, noiseTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 4, 4, 0, GL_RG, GL_FLOAT,
-                 noise.data());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glCreateTextures(GL_TEXTURE_2D, 1, &noiseTexture);
+    glTextureStorage2D(noiseTexture, 1, GL_RG16F, 4, 4);
+    glTextureSubImage2D(noiseTexture, 0, 0, 0, 4, 4, GL_RG, GL_FLOAT,
+                        noise.data());
+    glTextureParameteri(noiseTexture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void Ssao::createFramebuffers() {
     auto makeAoFbo = [this](uint32_t& fbo, uint32_t& tex) {
-        tex = renderer::createRenderTarget(width, height, GL_R16F, GL_RED,
-                                           GL_FLOAT, GL_LINEAR);
-        glGenFramebuffers(1, &fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, tex, 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-            GL_FRAMEBUFFER_COMPLETE) {
-            SPONGE_GL_CRITICAL("SSAO framebuffer is not complete!");
-        }
+        tex = renderer::createRenderTarget(width, height, GL_R16F, GL_LINEAR);
+        fbo = renderer::createFramebuffer("SSAO", tex);
     };
 
     makeAoFbo(rawFbo, rawTexture);
     makeAoFbo(blurFbo, blurTexture);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Ssao::destroyFramebuffers() {
@@ -107,12 +97,9 @@ void Ssao::process(const uint32_t depthTexId, const uint32_t normalTexId,
         "noiseScale",
         glm::vec2(static_cast<float>(width), static_cast<float>(height)) / 4.F);
     ssaoShader->setFloat("radius", radius);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthTexId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, normalTexId);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, noiseTexture);
+    glBindTextureUnit(0, depthTexId);
+    glBindTextureUnit(1, normalTexId);
+    glBindTextureUnit(2, noiseTexture);
     quad.draw();
     ssaoShader->unbind();
 
@@ -121,14 +108,11 @@ void Ssao::process(const uint32_t depthTexId, const uint32_t normalTexId,
     blurShader->setFloat2(
         "texelSize",
         1.F / glm::vec2(static_cast<float>(width), static_cast<float>(height)));
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, rawTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthTexId);
+    glBindTextureUnit(0, rawTexture);
+    glBindTextureUnit(1, depthTexId);
     quad.draw();
     blurShader->unbind();
 
-    glActiveTexture(GL_TEXTURE0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
