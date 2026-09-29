@@ -24,12 +24,6 @@ ShadowMap::ShadowMap(const uint32_t res) : shadowHeight(res), shadowWidth(res) {
 }
 
 ShadowMap::~ShadowMap() {
-    if (blurVao != 0) {
-        glDeleteVertexArrays(1, &blurVao);
-    }
-    if (blurVbo != 0) {
-        glDeleteBuffers(1, &blurVbo);
-    }
     if (blurFbo != 0) {
         glDeleteFramebuffers(1, &blurFbo);
     }
@@ -73,23 +67,6 @@ void ShadowMap::initialize() {
     // Blur FBO: colour = blurTexture (no depth needed)
     blurFbo = renderer::createFramebuffer("EVSM blur", blurTexture);
 
-    // Fullscreen quad VAO/VBO for blur pass
-    constexpr std::array quadVerts = {
-        -1.F, 1.F, 0.F, 1.F, -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
-        -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F,
-    };
-    glCreateBuffers(1, &blurVbo);
-    glNamedBufferStorage(blurVbo, sizeof(quadVerts), quadVerts.data(), 0);
-    glCreateVertexArrays(1, &blurVao);
-    glVertexArrayVertexBuffer(blurVao, 0, blurVbo, 0, 4 * sizeof(float));
-    glEnableVertexArrayAttrib(blurVao, 0);
-    glVertexArrayAttribFormat(blurVao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(blurVao, 0, 0);
-    glEnableVertexArrayAttrib(blurVao, 1);
-    glVertexArrayAttribFormat(blurVao, 1, 2, GL_FLOAT, GL_FALSE,
-                              2 * sizeof(float));
-    glVertexArrayAttribBinding(blurVao, 1, 0);
-
     // EVSM moment-writing shader (reuses shadowmap.vert)
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName,
@@ -117,14 +94,13 @@ void ShadowMap::initialize() {
 
 void ShadowMap::applyBlur() const {
     glDisable(GL_DEPTH_TEST);
-    glBindVertexArray(blurVao);
 
     // Downsample pass: read momentTexture → write blurTexture
     blurDownShader->bind();
     blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
     glBindTextureUnit(0, momentTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    quad.draw();
     blurDownShader->unbind();
 
     // Upsample pass: read blurTexture → write momentTexture
@@ -132,10 +108,9 @@ void ShadowMap::applyBlur() const {
     blurUpShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
     glBindTextureUnit(0, blurTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    quad.draw();
     blurUpShader->unbind();
 
-    glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
 }

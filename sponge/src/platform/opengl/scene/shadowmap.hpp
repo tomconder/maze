@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
+#include "platform/opengl/scene/screenquad.hpp"
 #include "scene/frustum.hpp"
 
 #include <glm/glm.hpp>
@@ -57,14 +58,13 @@ private:
     std::shared_ptr<renderer::Shader> shader;
     std::shared_ptr<renderer::Shader> blurDownShader;
     std::shared_ptr<renderer::Shader> blurUpShader;
+    ScreenQuad                        quad;
 
     uint32_t momentTexture = 0;
     uint32_t blurTexture   = 0;
     uint32_t depthRbo      = 0;
     uint32_t momentFbo     = 0;
     uint32_t blurFbo       = 0;
-    uint32_t blurVao       = 0;
-    uint32_t blurVbo       = 0;
 
     mutable std::array<int, 4> savedViewport{};
 
