@@ -29,16 +29,12 @@ void Ssr::apply(const uint32_t colorTexId, const uint32_t depthTexId,
     shader->bind();
     shader->setMat4("projection", projection);
     shader->setMat4("invProjection", invProjection);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorTexId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, depthTexId);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, normalTexId);
+    glBindTextureUnit(0, colorTexId);
+    glBindTextureUnit(1, depthTexId);
+    glBindTextureUnit(2, normalTexId);
     quad.draw();
     shader->unbind();
 
-    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_DEPTH_TEST);
 }
 

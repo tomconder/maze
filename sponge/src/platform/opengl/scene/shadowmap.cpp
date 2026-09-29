@@ -49,67 +49,46 @@ ShadowMap::~ShadowMap() {
 
 void ShadowMap::initialize() {
     // Moment texture (RG32F): R = depth, G = depth²
-    momentTexture = renderer::createRenderTarget(
-        shadowWidth, shadowHeight, GL_RG32F, GL_RG, GL_FLOAT, GL_LINEAR);
+    momentTexture = renderer::createRenderTarget(shadowWidth, shadowHeight,
+                                                 GL_RG32F, GL_LINEAR);
     // Overrides the helper's CLAMP_TO_EDGE: outside the light frustum the
     // moments must read as fully lit, which is what the border colour encodes.
-    glBindTexture(GL_TEXTURE_2D, momentTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(momentTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(momentTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     constexpr std::array borderColor = { 1.F, 1.F, 0.F, 0.F };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR,
-                     borderColor.data());
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glTextureParameterfv(momentTexture, GL_TEXTURE_BORDER_COLOR,
+                         borderColor.data());
 
     // Blur ping-pong texture (same format)
-    blurTexture = renderer::createRenderTarget(
-        shadowWidth, shadowHeight, GL_RG32F, GL_RG, GL_FLOAT, GL_LINEAR);
+    blurTexture = renderer::createRenderTarget(shadowWidth, shadowHeight,
+                                               GL_RG32F, GL_LINEAR);
 
     // Depth renderbuffer for depth testing during the moment-writing pass
-    glGenRenderbuffers(1, &depthRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24,
-                          static_cast<GLsizei>(shadowWidth),
-                          static_cast<GLsizei>(shadowHeight));
+    depthRbo = renderer::createDepthRenderbuffer(shadowWidth, shadowHeight);
 
     // Moment FBO: colour = momentTexture, depth = depthRbo
-    glGenFramebuffers(1, &momentFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           momentTexture, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                              GL_RENDERBUFFER, depthRbo);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("EVSM moment framebuffer is not complete!");
-    }
+    momentFbo =
+        renderer::createFramebuffer("EVSM moment", momentTexture, depthRbo);
 
     // Blur FBO: colour = blurTexture (no depth needed)
-    glGenFramebuffers(1, &blurFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           blurTexture, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("EVSM blur framebuffer is not complete!");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    blurFbo = renderer::createFramebuffer("EVSM blur", blurTexture);
 
     // Fullscreen quad VAO/VBO for blur pass
     constexpr std::array quadVerts = {
         -1.F, 1.F, 0.F, 1.F, -1.F, -1.F, 0.F, 0.F, 1.F, -1.F, 1.F, 0.F,
         -1.F, 1.F, 0.F, 1.F, 1.F,  -1.F, 1.F, 0.F, 1.F, 1.F,  1.F, 1.F,
     };
-    glGenVertexArrays(1, &blurVao);
-    glGenBuffers(1, &blurVbo);
-    glBindVertexArray(blurVao);
-    glBindBuffer(GL_ARRAY_BUFFER, blurVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts.data(),
-                 GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          reinterpret_cast<void*>(2 * sizeof(float)));
-    glBindVertexArray(0);
+    glCreateBuffers(1, &blurVbo);
+    glNamedBufferStorage(blurVbo, sizeof(quadVerts), quadVerts.data(), 0);
+    glCreateVertexArrays(1, &blurVao);
+    glVertexArrayVertexBuffer(blurVao, 0, blurVbo, 0, 4 * sizeof(float));
+    glEnableVertexArrayAttrib(blurVao, 0);
+    glVertexArrayAttribFormat(blurVao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(blurVao, 0, 0);
+    glEnableVertexArrayAttrib(blurVao, 1);
+    glVertexArrayAttribFormat(blurVao, 1, 2, GL_FLOAT, GL_FALSE,
+                              2 * sizeof(float));
+    glVertexArrayAttribBinding(blurVao, 1, 0);
 
     // EVSM moment-writing shader (reuses shadowmap.vert)
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
@@ -139,13 +118,12 @@ void ShadowMap::initialize() {
 void ShadowMap::applyBlur() const {
     glDisable(GL_DEPTH_TEST);
     glBindVertexArray(blurVao);
-    glActiveTexture(GL_TEXTURE0);
 
     // Downsample pass: read momentTexture → write blurTexture
     blurDownShader->bind();
     blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
-    glBindTexture(GL_TEXTURE_2D, momentTexture);
+    glBindTextureUnit(0, momentTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     blurDownShader->unbind();
 
@@ -153,7 +131,7 @@ void ShadowMap::applyBlur() const {
     blurUpShader->bind();
     blurUpShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbo);
-    glBindTexture(GL_TEXTURE_2D, blurTexture);
+    glBindTextureUnit(0, blurTexture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     blurUpShader->unbind();
 
@@ -179,8 +157,7 @@ void ShadowMap::unbind() const {
 }
 
 void ShadowMap::activateAndBindShadowTexture(const uint8_t unit) const {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, momentTexture);
+    glBindTextureUnit(unit, momentTexture);
 }
 
 uint32_t ShadowMap::getDepthMapTextureId() const {

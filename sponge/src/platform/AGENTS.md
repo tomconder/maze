@@ -34,6 +34,14 @@ than calling GLFW/OpenGL/OS APIs directly.
 
 ## Contracts & Invariants
 
+* The context is OpenGL 4.5 core. Create GL objects with `glCreate*` and
+  set them up with the named (direct state access) calls:
+  `glTextureStorage2D`, `glNamedFramebufferTexture`, `glNamedBufferStorage`,
+  `glVertexArrayVertexBuffer` and so on. Bind only to draw: a framebuffer
+  as the target, a VAO, and textures with `glBindTextureUnit`. Never mix in
+  `glGen*` + bind-to-edit: a DSA call on a name from `glGen*` that was never
+  bound is `GL_INVALID_OPERATION`. Texture storage is immutable, so a resize
+  deletes and recreates the texture (`renderer::createRenderTarget`).
 * `Application` owns the GLFW window and the GL context. Anything that must
   run on the thread owning the window/context (vsync, mouse visibility,
   fullscreen toggle, resolution change, viewport resize) is requested via an
@@ -100,7 +108,7 @@ than calling GLFW/OpenGL/OS APIs directly.
 * The velocity pass must run with `GL_BLEND` disabled. Blending is enabled
   globally in `RendererAPI` and the prepass shader writes no alpha, so motion
   vectors get blended against the clear colour and never reach the texture.
-  Clear that attachment with `glClearBufferfv` to zero, never `glClear` — the
+  Clear that attachment with `glClearNamedFramebufferfv` to zero, never `glClear` — the
   global clear colour is grey and reads back as ~22 pixels of bogus motion.
 * Motion is measured with unjittered matrices while rasterization uses the
   jittered one; mixing them makes the TAA jitter itself read as movement.

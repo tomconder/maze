@@ -268,11 +268,10 @@ void Shader::initUBO() {
         block.binding   = static_cast<uint32_t>(b);
         block.size      = blockSize;
 
-        glGenBuffers(1, &block.buffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
-        glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+        glCreateBuffers(1, &block.buffer);
+        glNamedBufferStorage(block.buffer, blockSize, nullptr,
+                             GL_DYNAMIC_STORAGE_BIT);
         glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         block.staging.assign(static_cast<size_t>(blockSize), 0);
     }
@@ -332,9 +331,7 @@ void Shader::uploadUBO() const {
         if (!block.dirty) {
             continue;
         }
-        glBindBuffer(GL_UNIFORM_BUFFER, block.buffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, block.size, block.staging.data());
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glNamedBufferSubData(block.buffer, 0, block.size, block.staging.data());
         block.dirty = false;
     }
 }

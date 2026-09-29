@@ -27,29 +27,16 @@ Quad::Quad() {
         .fragmentShader = "quad.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(
+    vao    = std::make_unique<renderer::VertexArray>();
+    vbo    = std::make_unique<renderer::VertexBuffer>(
         nullptr, vertexCount * sizeof(glm::vec2));
-    vbo->bind();
-
     ebo = std::make_unique<renderer::IndexBuffer>(indices.data(),
                                                   sizeof(indices));
-    ebo->bind();
+    vao->setVertexBuffer(*vbo, 2 * sizeof(GLfloat));
+    vao->setIndexBuffer(*ebo);
 
     constexpr uint32_t positionLoc = 0;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE,
-                          2 * sizeof(GLfloat),
-                          reinterpret_cast<const void*>(0));
-
-    vbo->unbind();
-    vao->unbind();
-
-    shader->unbind();
+    vao->addAttribute(positionLoc, 2, 0);
 }
 
 void Quad::render(const glm::vec2& top, const glm::vec2& bottom,

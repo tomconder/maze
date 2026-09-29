@@ -15,29 +15,21 @@ OcclusionCuller::OcclusionCuller(const size_t objectCount) :
         return;
     }
 
-    glGenQueries(static_cast<GLsizei>(objectCount), queries.data());
+    glCreateQueries(GL_ANY_SAMPLES_PASSED, static_cast<GLsizei>(objectCount),
+                    queries.data());
 
     shader = AssetManager::createShader({
         .name           = "occlusionbox",
         .vertexShader   = "occlusionbox.vert",
         .fragmentShader = "occlusionbox.frag",
     });
-    shader->bind();
-
-    vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(unitCubeVertices.data(),
-                                                   sizeof(unitCubeVertices));
-    vbo->bind();
+    vao    = std::make_unique<renderer::VertexArray>();
+    vbo    = std::make_unique<renderer::VertexBuffer>(unitCubeVertices.data(),
+                                                      sizeof(unitCubeVertices));
+    vao->setVertexBuffer(*vbo, sizeof(glm::vec3));
 
     constexpr uint32_t positionLoc = 0;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
-                          reinterpret_cast<const void*>(0));
-
-    shader->unbind();
-    vao->unbind();
+    vao->addAttribute(positionLoc, 3, 0);
 }
 
 OcclusionCuller::~OcclusionCuller() {

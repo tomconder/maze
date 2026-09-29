@@ -5,11 +5,9 @@
 namespace sponge::platform::opengl::renderer {
 
 SSBO::SSBO(const std::size_t bytes) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, id);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(bytes),
-                 nullptr, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    glCreateBuffers(1, &id);
+    glNamedBufferStorage(id, static_cast<GLsizeiptr>(bytes), nullptr,
+                         GL_DYNAMIC_STORAGE_BIT);
 }
 
 SSBO::SSBO(SSBO&& other) noexcept {
@@ -35,10 +33,7 @@ SSBO::~SSBO() {
 }
 
 void SSBO::update(const void* data, const std::size_t bytes) const {
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, id);
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, static_cast<GLsizeiptr>(bytes),
-                    data);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    glNamedBufferSubData(id, 0, static_cast<GLsizeiptr>(bytes), data);
 }
 
 void SSBO::bindBase(const uint32_t binding) const {

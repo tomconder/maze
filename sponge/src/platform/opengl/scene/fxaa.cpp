@@ -39,19 +39,10 @@ void FXAA::createFramebuffer() {
     //
     // Linear filtering is required — FXAA samples between texels when blending
     // across detected edges, so nearest-neighbor would negate the entire pass.
-    colorTexture = renderer::createRenderTarget(width, height, GL_RGB16F,
-                                                GL_RGB, GL_FLOAT, GL_LINEAR);
+    colorTexture =
+        renderer::createRenderTarget(width, height, GL_RGB16F, GL_LINEAR);
 
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           colorTexture, 0);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("FXAA framebuffer is not complete!");
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    fbo = renderer::createFramebuffer("FXAA", colorTexture);
 }
 
 void FXAA::destroyFramebuffer() {
@@ -82,8 +73,7 @@ void FXAA::apply() const {
     shader->setFloat2("rcpFrame", glm::vec2(1.0f / static_cast<float>(width),
                                             1.0f / static_cast<float>(height)));
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glBindTextureUnit(0, colorTexture);
 
     quad.draw();
 

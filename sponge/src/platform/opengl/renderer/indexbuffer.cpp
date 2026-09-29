@@ -5,9 +5,8 @@
 namespace sponge::platform::opengl::renderer {
 
 IndexBuffer::IndexBuffer(const uint32_t* indices, const std::size_t size) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_DYNAMIC_DRAW);
+    glCreateBuffers(1, &id);
+    glNamedBufferStorage(id, static_cast<GLsizeiptr>(size), indices, 0);
 }
 
 IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept {
@@ -27,23 +26,7 @@ IndexBuffer& IndexBuffer::operator=(IndexBuffer&& other) noexcept {
 }
 
 IndexBuffer::~IndexBuffer() {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &id);
-}
-
-void IndexBuffer::update(const uint32_t*   indices,
-                         const std::size_t size) const {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size * sizeof(uint32_t),
-                    indices);
-}
-
-void IndexBuffer::bind() const {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-}
-
-void IndexBuffer::unbind() const {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 }  // namespace sponge::platform::opengl::renderer

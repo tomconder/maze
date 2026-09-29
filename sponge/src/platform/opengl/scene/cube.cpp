@@ -18,22 +18,13 @@ Cube::Cube() {
         .fragmentShader = "cube.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(unitCubeVertices.data(),
-                                                   sizeof(unitCubeVertices));
-    vbo->bind();
+    vao    = std::make_unique<renderer::VertexArray>();
+    vbo    = std::make_unique<renderer::VertexBuffer>(unitCubeVertices.data(),
+                                                      sizeof(unitCubeVertices));
+    vao->setVertexBuffer(*vbo, sizeof(glm::vec3));
 
     constexpr uint32_t positionLoc = 0;
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
-                          reinterpret_cast<const void*>(0));
-
-    shader->unbind();
-    vao->unbind();
+    vao->addAttribute(positionLoc, 3, 0);
 }
 
 void Cube::render() const {

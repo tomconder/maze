@@ -60,9 +60,7 @@ private:
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::vector<uint32_t>                   queries;
     std::vector<uint8_t>                    visible;
-    // A name from glGenQueries isn't a valid query object until it's been
-    // through one glBeginQuery/glEndQuery pair — polling it before that is a
-    // GL_INVALID_OPERATION ("query object not found"), so pollResults()
+    // A query that has never run has no result to read, so pollResults()
     // skips any index query() hasn't issued yet.
     std::vector<uint8_t> issued;
 };

@@ -55,28 +55,17 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
         .fragmentShader = "text.frag",
     };
     shader = AssetManager::createShader(shaderCreateInfo);
-    shader->bind();
-
-    vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(
+    vao    = std::make_unique<renderer::VertexArray>();
+    vbo    = std::make_unique<renderer::VertexBuffer>(
         nullptr, maxLength * vertexCount * sizeof(glm::vec2));
-    vbo->bind();
-
     const auto quadIndices = makeQuadIndices();
     ebo                    = std::make_unique<renderer::IndexBuffer>(
         quadIndices.data(), quadIndices.size() * sizeof(uint32_t));
-    ebo->bind();
+    vao->setVertexBuffer(*vbo, 4 * sizeof(GLfloat));
+    vao->setIndexBuffer(*ebo);
 
     constexpr uint32_t pos = 0;
-    glEnableVertexAttribArray(pos);
-    glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
-                          nullptr);
-
-    vbo->unbind();
-    vao->unbind();
-    shader->unbind();
+    vao->addAttribute(pos, 4, 0);
 
     const auto path  = createInfo.assetsFolder + createInfo.path;
     const auto bytes = sponge::scene::readBytes(path);
@@ -149,7 +138,7 @@ void BitmapFont::beginPass(const uint32_t size) {
     }
     vao->bind();
     shader->bind();
-    texture->activateAndBind(0);
+    texture->bind(0);
     glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
 }
 

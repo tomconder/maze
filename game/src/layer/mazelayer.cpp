@@ -986,9 +986,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     }
 
     if (ssao) {
-        glActiveTexture(GL_TEXTURE10);
-        glBindTexture(GL_TEXTURE_2D, ssao->getTexture());
-        glActiveTexture(GL_TEXTURE0);
+        glBindTextureUnit(10, ssao->getTexture());
     }
 
     const bool useProbe = frame.probeEnabled && probeCaptured;
@@ -1062,11 +1060,8 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
         shadowMap->activateAndBindShadowTexture(1);
     }
 
-    glActiveTexture(GL_TEXTURE11);
-    glBindTexture(GL_TEXTURE_2D, sceneCopy);
-    glActiveTexture(GL_TEXTURE12);
-    glBindTexture(GL_TEXTURE_2D, depthPrepassTexture);
-    glActiveTexture(GL_TEXTURE0);
+    glBindTextureUnit(11, sceneCopy);
+    glBindTextureUnit(12, depthPrepassTexture);
 
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
@@ -1122,40 +1117,39 @@ void MazeLayer::createDepthPrepassFbo(const int w, const int h) {
         glDeleteFramebuffers(1, &depthPrepassFbo);
     }
 
-    depthPrepassTexture = createRenderTarget(
-        static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-        GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, GL_NEAREST);
+    depthPrepassTexture =
+        createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
+                           GL_DEPTH_COMPONENT24, GL_NEAREST);
 
     // RG16F holds a UV delta, not an absolute UV: at 1920 wide a one-pixel
     // motion is ~5e-4, which a half float carries accurately as a delta and
     // would quantise to worse than a pixel as an absolute coordinate.
     velocityTexture =
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-                           GL_RG16F, GL_RG, GL_FLOAT, GL_NEAREST);
+                           GL_RG16F, GL_NEAREST);
 
     // View-space normal, consumed by SSAO and SSR. RGBA16F: RGB carries
     // signed unit components directly, no [0,1] encode/decode needed; alpha
     // carries the SSR reflection strength.
     normalPrepassTexture =
         createRenderTarget(static_cast<uint32_t>(w), static_cast<uint32_t>(h),
-                           GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST);
+                           GL_RGBA16F, GL_NEAREST);
 
-    glGenFramebuffers(1, &depthPrepassFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthPrepassFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                           depthPrepassTexture, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           velocityTexture, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                           normalPrepassTexture, 0);
+    glCreateFramebuffers(1, &depthPrepassFbo);
+    glNamedFramebufferTexture(depthPrepassFbo, GL_DEPTH_ATTACHMENT,
+                              depthPrepassTexture, 0);
+    glNamedFramebufferTexture(depthPrepassFbo, GL_COLOR_ATTACHMENT0,
+                              velocityTexture, 0);
+    glNamedFramebufferTexture(depthPrepassFbo, GL_COLOR_ATTACHMENT1,
+                              normalPrepassTexture, 0);
     constexpr std::array<GLenum, 2> drawBuffers = { GL_COLOR_ATTACHMENT0,
                                                     GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, drawBuffers.data());
-    glReadBuffer(GL_NONE);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    glNamedFramebufferDrawBuffers(depthPrepassFbo, 2, drawBuffers.data());
+    glNamedFramebufferReadBuffer(depthPrepassFbo, GL_NONE);
+    if (glCheckNamedFramebufferStatus(depthPrepassFbo, GL_FRAMEBUFFER) !=
+        GL_FRAMEBUFFER_COMPLETE) {
         SPONGE_GL_CRITICAL("Depth prepass framebuffer is not complete!");
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
@@ -1186,12 +1180,13 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
         // Explicit zero rather than glClear, which would use the global grey
         // clear colour and read back as ~22 pixels of bogus motion.
         constexpr std::array noMotion = { 0.F, 0.F, 0.F, 0.F };
-        glClearBufferfv(GL_COLOR, 0, noMotion.data());
+        glClearNamedFramebufferfv(depthPrepassFbo, GL_COLOR, 0,
+                                  noMotion.data());
     }
     // Zero normal reads as "no surface here" (see ssao.slang), which is
     // exactly right for pixels the loop below never draws to.
     constexpr std::array noNormal = { 0.F, 0.F, 0.F, 0.F };
-    glClearBufferfv(GL_COLOR, 1, noNormal.data());
+    glClearNamedFramebufferfv(depthPrepassFbo, GL_COLOR, 1, noNormal.data());
 
     depthPrepassShader->bind();
     for (size_t i = 0; i < frame.objectModels.size(); ++i) {
@@ -1278,10 +1273,8 @@ void MazeLayer::renderOcclusionQueries(
 void MazeLayer::blitDepthToCurrentFbo(const int w, const int h) const {
     GLint drawFbo = 0;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFbo);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, depthPrepassFbo);
-    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, static_cast<GLuint>(drawFbo));
+    glBlitNamedFramebuffer(depthPrepassFbo, static_cast<GLuint>(drawFbo), 0, 0,
+                           w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
@@ -1427,9 +1420,7 @@ void MazeLayer::renderPlanarComposite(
                             glm::vec2(static_cast<float>(screenWidth.load()),
                                       static_cast<float>(screenHeight.load())));
     planarShader->setFloat("strength", frame.objectReflectivity[i]);
-    glActiveTexture(GL_TEXTURE11);
-    glBindTexture(GL_TEXTURE_2D, planarReflection->getTexture());
-    glActiveTexture(GL_TEXTURE0);
+    glBindTextureUnit(11, planarReflection->getTexture());
     frame.objectModels[i]->render(planarShader, frame.objectMeshVisible[i]);
     planarShader->unbind();
 }

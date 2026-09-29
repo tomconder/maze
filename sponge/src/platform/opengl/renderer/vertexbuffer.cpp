@@ -5,9 +5,9 @@
 namespace sponge::platform::opengl::renderer {
 
 VertexBuffer::VertexBuffer(const void* vertices, const std::size_t size) {
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
+    glCreateBuffers(1, &id);
+    glNamedBufferStorage(id, static_cast<GLsizeiptr>(size), vertices,
+                         GL_DYNAMIC_STORAGE_BIT);
 }
 
 VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept {
@@ -27,21 +27,11 @@ VertexBuffer& VertexBuffer::operator=(VertexBuffer&& other) noexcept {
 }
 
 VertexBuffer::~VertexBuffer() {
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &id);
 }
 
 void VertexBuffer::update(const void* vertices, const std::size_t size) const {
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);
-}
-
-void VertexBuffer::bind() const {
-    glBindBuffer(GL_ARRAY_BUFFER, id);
-}
-
-void VertexBuffer::unbind() const {
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glNamedBufferSubData(id, 0, static_cast<GLsizeiptr>(size), vertices);
 }
 
 }  // namespace sponge::platform::opengl::renderer

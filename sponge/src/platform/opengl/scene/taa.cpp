@@ -77,34 +77,20 @@ void TAA::createFramebuffers() {
     // Receives the tone-mapped image from SceneTarget::resolve(). RGB16F
     // rather than 8-bit so the history accumulates without requantising the
     // input every frame.
-    sceneColorTexture = renderer::createRenderTarget(
-        width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
+    sceneColorTexture =
+        renderer::createRenderTarget(width, height, GL_RGB16F, GL_LINEAR);
 
-    glGenFramebuffers(1, &sceneFbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           sceneColorTexture, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        SPONGE_GL_CRITICAL("TAA scene framebuffer is not complete!");
-    }
+    sceneFbo = renderer::createFramebuffer("TAA scene", sceneColorTexture);
 
     // Float history: with a 0.1 blend factor an 8-bit target quantises every
     // increment below 1/255 to zero and the image never converges.
     for (uint32_t i = 0; i < historyTextures.size(); i++) {
-        historyTextures[i] = renderer::createRenderTarget(
-            width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
-
-        glGenFramebuffers(1, &historyFbos[i]);
-        glBindFramebuffer(GL_FRAMEBUFFER, historyFbos[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_2D, historyTextures[i], 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-            GL_FRAMEBUFFER_COMPLETE) {
-            SPONGE_GL_CRITICAL("TAA history framebuffer is not complete!");
-        }
+        historyTextures[i] =
+            renderer::createRenderTarget(width, height, GL_RGB16F, GL_LINEAR);
+        historyFbos[i] =
+            renderer::createFramebuffer("TAA history", historyTextures[i]);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     historyValid = false;
 }
 
@@ -158,14 +144,10 @@ void TAA::apply(const uint32_t depthTexId, const uint32_t velocityTexId,
     resolveShader->setMat4("invViewProj", invViewProj);
     resolveShader->setMat4("prevViewProj", prevViewProj);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneColorTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, historyTextures[readIndex]);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, depthTexId);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, velocityTexId);
+    glBindTextureUnit(0, sceneColorTexture);
+    glBindTextureUnit(1, historyTextures[readIndex]);
+    glBindTextureUnit(2, depthTexId);
+    glBindTextureUnit(4, velocityTexId);
 
     quad.draw();
     resolveShader->unbind();
@@ -176,11 +158,9 @@ void TAA::apply(const uint32_t depthTexId, const uint32_t velocityTexId,
 
     presentShader->bind();
     // Unit 1: the present pass shares historyTex with the resolve pass.
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, historyTextures[historyIndex]);
+    glBindTextureUnit(1, historyTextures[historyIndex]);
     quad.draw();
     presentShader->unbind();
-    glActiveTexture(GL_TEXTURE0);
 
     historyValid = true;
 

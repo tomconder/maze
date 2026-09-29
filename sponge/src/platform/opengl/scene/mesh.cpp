@@ -72,41 +72,19 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     };
     defaultShader = AssetManager::createShader(shaderCreateInfo);
     meshProgramId = defaultShader->getId();
-    defaultShader->bind();
-
-    vao = std::make_unique<renderer::VertexArray>();
-    vao->bind();
-
-    vbo = std::make_unique<renderer::VertexBuffer>(
+    vao           = std::make_unique<renderer::VertexArray>();
+    vbo           = std::make_unique<renderer::VertexBuffer>(
         this->vertices.data(), numVertices * sizeof(Vertex));
-    vbo->bind();
-
-    glEnableVertexAttribArray(positionLoc);
-    glVertexAttribPointer(positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(
-                              offsetof(sponge::scene::Vertex, position)));
-
-    glEnableVertexAttribArray(texCoordLoc);
-    glVertexAttribPointer(texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(
-                              offsetof(sponge::scene::Vertex, texCoords)));
-
-    glEnableVertexAttribArray(normalLoc);
-    glVertexAttribPointer(
-        normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-        reinterpret_cast<const void*>(offsetof(sponge::scene::Vertex, normal)));
-
-    glEnableVertexAttribArray(tangentLoc);
-    glVertexAttribPointer(tangentLoc, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          reinterpret_cast<const void*>(
-                              offsetof(sponge::scene::Vertex, tangent)));
-
     ebo = std::make_unique<renderer::IndexBuffer>(
         this->indices.data(), numIndices * sizeof(uint32_t));
-    ebo->bind();
-
-    defaultShader->unbind();
-    vao->unbind();
+    vao->setVertexBuffer(*vbo, sizeof(Vertex));
+    vao->setIndexBuffer(*ebo);
+    vao->addAttribute(positionLoc, 3,
+                      offsetof(sponge::scene::Vertex, position));
+    vao->addAttribute(texCoordLoc, 2,
+                      offsetof(sponge::scene::Vertex, texCoords));
+    vao->addAttribute(normalLoc, 3, offsetof(sponge::scene::Vertex, normal));
+    vao->addAttribute(tangentLoc, 4, offsetof(sponge::scene::Vertex, tangent));
 }
 
 void Mesh::render(const std::shared_ptr<Shader>& shader) const {
@@ -122,7 +100,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
         if (!textures.empty()) {
             shader->setBoolean("hasNoTexture", false);
-            textures.at(0)->activateAndBind(0);
+            textures.at(0)->bind(0);
         } else {
             shader->setBoolean("hasNoTexture", true);
         }
@@ -130,7 +108,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
         if (normalTexture) {
             shader->setBoolean("hasNormalMap", true);
-            normalTexture->activateAndBind(normalTextureUnit);
+            normalTexture->bind(normalTextureUnit);
         } else {
             shader->setBoolean("hasNormalMap", false);
         }
@@ -138,7 +116,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
         if (occlusionTexture) {
             shader->setBoolean("hasAOMap", true);
-            occlusionTexture->activateAndBind(occlusionTextureUnit);
+            occlusionTexture->bind(occlusionTextureUnit);
         } else {
             shader->setBoolean("hasAOMap", false);
         }
@@ -146,7 +124,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
         if (emissiveTexture) {
             shader->setBoolean("hasEmissiveMap", true);
-            emissiveTexture->activateAndBind(emissiveTextureUnit);
+            emissiveTexture->bind(emissiveTextureUnit);
         } else {
             shader->setBoolean("hasEmissiveMap", false);
         }
@@ -156,8 +134,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
         shader->setFloat("roughnessFactor", roughnessFactor);
         if (metallicRoughnessTexture) {
             shader->setBoolean("hasMetallicRoughnessMap", true);
-            metallicRoughnessTexture->activateAndBind(
-                metallicRoughnessTextureUnit);
+            metallicRoughnessTexture->bind(metallicRoughnessTextureUnit);
         } else {
             shader->setBoolean("hasMetallicRoughnessMap", false);
         }
