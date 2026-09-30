@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "ee6a47dac031930715bea2e6dfb9ad60caaa5d83",
+  "builtin-baseline": "4cb050be2cfa7a947cdd2dd1a70e24b17774c979",
   "dependencies": [
     {
       "name": "fkyaml",
