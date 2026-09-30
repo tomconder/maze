@@ -112,6 +112,11 @@ than calling GLFW/OpenGL/OS APIs directly.
   vectors get blended against the clear colour and never reach the texture.
   Clear that attachment with `glClearNamedFramebufferfv` to zero, never `glClear` — the
   global clear colour is grey and reads back as ~22 pixels of bogus motion.
+* Clear a framebuffer before you bind a shader program, not after. On NVIDIA,
+  a `glClear` with a program bound recompiles that program's vertex shader
+  and logs `API PERFORMANCE [131218] ... is being recompiled based on GL
+  state`. `captureProbe()` binds the PBR program only after
+  `ReflectionProbe::beginFace()` has cleared the face.
 * Motion is measured with unjittered matrices while rasterization uses the
   jittered one; mixing them makes the TAA jitter itself read as movement.
 * The TAA history is resampled with a Catmull-Rom filter, not the bilinear

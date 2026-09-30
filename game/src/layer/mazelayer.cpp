@@ -1217,7 +1217,6 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
                                               frame.nearPlane, frame.farPlane);
 
     const auto shader = Mesh::getShader();
-    shader->bind();
     // Like the mirrored render: the light grid and SSAO belong to the game
     // camera. The probe must not sample itself while it is being drawn.
     shader->setInteger("numLights", 0);
@@ -1230,7 +1229,10 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     }
 
     for (int face = 0; face < 6; face++) {
+        // beginFace() clears the face. On NVIDIA, a clear with this program
+        // bound recompiles its vertex shader, so bind after the clear.
         probe->beginFace(face);
+        shader->bind();
         const auto viewProj =
             projection * ReflectionProbe::faceView(desc.position, face);
         for (size_t i = 0; i < frame.objectModels.size(); i++) {
@@ -1246,12 +1248,12 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
             shader->setFloat3("emissive", frame.objectEmissives[i]);
             frame.objectModels[i]->render(shader);
         }
+        shader->unbind();
         probe->end();
     }
 
     shader->setInteger("numLights", frame.numLights);
     shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
-    shader->unbind();
 
     probe->prefilter();
 
