@@ -115,3 +115,10 @@ Before you commit changes run the pre-commit script:
 ```
 pre-commit.exe run --all-files
 ```
+
+## vcpkg port updates
+- When bumping a port, update the version, SHA512, port-version, and versions/ database, AND raise the `version>=` floors in the consuming project's vcpkg.json.
+- Run `vcpkg x-add-version <port>` for a single port only. Never use `--all`, because it has truncated baseline.json before. Check `git diff versions/baseline.json` afterward.
+- Open upstream PRs against microsoft/vcpkg (`--repo microsoft/vcpkg`), not against my fork.
+- If a fix applies to every platform, remove stale baseline/ci entries for all triplets, not just Windows.
+- Don't declare a dependent build failure out of scope without asking. Find the root cause first.
