@@ -114,7 +114,9 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         metallic *= mr.b;
         roughness *= mr.g;
     }
-    roughness = clamp(roughness, 0.089, 1.0);
+    // Below about 0.15 a point light's GGX peak is far above 1 and lands on a
+    // single pixel, a speck that bloom spreads and TAA cannot remove.
+    roughness = clamp(roughness, 0.15, 1.0);
 
     float3 V  = normalize(params.viewPos - input.worldPosition);
     float3 Lo = float3(0.0);
