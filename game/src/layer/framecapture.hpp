@@ -3,6 +3,7 @@
 #include "platform/opengl/renderer/readback.hpp"
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -24,6 +25,12 @@ public:
 
     // Call once per rendered frame, before the stage reads.
     void beginFrame() {
+        const auto now = std::chrono::steady_clock::now();
+        if (frame > 0) {
+            frameMs.push_back(
+                std::chrono::duration<double, std::milli>(now - last).count());
+        }
+        last = now;
         frame++;
     }
 
@@ -40,7 +47,8 @@ public:
         return stats;
     }
 
-    // Writes one line per stage to capture_stats.txt.
+    // Writes one line per stage to capture_stats.txt and the frame-time
+    // summary to capture_timing.txt.
     void report() const;
 
 private:
@@ -63,6 +71,10 @@ private:
     uint32_t frames = 0;
     bool     stats  = false;
     uint32_t frame  = 0;
+
+    // Wall time between consecutive beginFrame() calls.
+    std::chrono::steady_clock::time_point last;
+    std::vector<double>                   frameMs;
 
     std::vector<Stage> stages;
 

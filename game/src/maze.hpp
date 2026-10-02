@@ -22,6 +22,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace game {
 class Maze final : public sponge::platform::glfw::core::Application {
@@ -29,7 +30,8 @@ public:
     // A non-zero `captureFrames` skips the splash and intro screens, loads
     // the maze and renders that many frames, then exits. See FrameCapture.
     Maze(sponge::platform::glfw::core::ApplicationSpecification specification,
-         uint32_t captureFrames = 0, bool nanStats = false);
+         uint32_t captureFrames = 0, bool nanStats = false,
+         std::string captureOff = {});
 
     bool onUserCreate() override;
 
@@ -106,8 +108,9 @@ private:
     // The render thread clears it when a capture run ends.
     std::atomic<bool> isRunning{ true };
 
-    uint32_t captureFrames;
-    bool     nanStats;
+    uint32_t    captureFrames;
+    bool        nanStats;
+    std::string captureOff;
 
     std::shared_ptr<layer::AudioLayer> audioLayer =
         std::make_shared<layer::AudioLayer>();

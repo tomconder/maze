@@ -158,6 +158,25 @@ void FrameCapture::report() const {
             s.maxFinite, s.firstFrame, s.firstX, s.firstY, s.firstLuma);
     }
 
+    // Without stats only the last frame stalls on a readback, so drop it. The
+    // first frames hold shader warm-up and the probe capture.
+    constexpr size_t warmupFrames = 60;
+    if (!stats && frameMs.size() > warmupFrames + 1) {
+        std::vector<double> ms(frameMs.begin() + warmupFrames,
+                               frameMs.end() - 1);
+        std::ranges::sort(ms);
+        double sum = 0.;
+        for (const double v : ms) {
+            sum += v;
+        }
+        std::ofstream timing("capture_timing.txt");
+        timing << std::format("frames={} mean={:.2f}ms p50={:.2f}ms "
+                              "p95={:.2f}ms fps={:.1f}\n",
+                              ms.size(), sum / static_cast<double>(ms.size()),
+                              ms[ms.size() / 2], ms[ms.size() * 95 / 100],
+                              1000. * static_cast<double>(ms.size()) / sum);
+    }
+
     std::ofstream specksOut("capture_specks.txt");
     for (const auto& [f, x, y] : specks) {
         specksOut << f << ' ' << x << ' ' << y << '\n';

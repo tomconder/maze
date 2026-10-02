@@ -34,6 +34,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace game::layer {
@@ -171,7 +172,9 @@ public:
 
     // Debug capture run: renders `frames` frames while the camera turns once,
     // then the app exits. See FrameCapture. Call before the app runs.
-    void enableCapture(uint32_t frames, bool stats);
+    // `off` is a comma list of passes to disable for the run, to find which
+    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar.
+    void enableCapture(uint32_t frames, bool stats, std::string off = {});
 
 private:
     // Loaded in the constructor, before any other member reads it.
@@ -327,6 +330,7 @@ private:
     bool    isImguiOpen        = true;
 
     std::optional<FrameCapture> capture;
+    std::string                 captureOff;
     // Degrees of yaw per update while capturing; 0 leaves the camera alone.
     float captureYawStep = 0.F;
 

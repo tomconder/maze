@@ -10,6 +10,7 @@
 #include <charconv>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -18,10 +19,11 @@ namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze::Maze(ApplicationSpecification specification, const uint32_t captureFrames,
-           const bool nanStats) :
+           const bool nanStats, std::string captureOff) :
     Application(std::move(specification)),
     captureFrames(captureFrames),
-    nanStats(nanStats) {
+    nanStats(nanStats),
+    captureOff(std::move(captureOff)) {
     // Base class handles singleton pattern
 }
 
@@ -51,7 +53,7 @@ bool Maze::onUserCreate() {
     // timeout is also what starts the intro.
     splashScreenLayer->setActive(captureFrames == 0);
     if (captureFrames > 0) {
-        mazeLayer->enableCapture(captureFrames, nanStats);
+        mazeLayer->enableCapture(captureFrames, nanStats, captureOff);
     }
 
     const auto savedAa = sponge::core::Settings::getUInt32(
@@ -106,15 +108,17 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                                                     char**    argv) {
     using sponge::core::Settings;
 
-    uint32_t captureFrames = 0;
-    bool     nanStats      = false;
+    uint32_t    captureFrames = 0;
+    bool        nanStats      = false;
+    std::string captureOff;
 
 #ifndef NDEBUG
-    // Debug builds only; a release build ignores both flags.
+    // Debug builds only; a release build ignores these flags.
     // --capture-frames N or --capture-frames=N: skip the menus, render N
     // frames, write the last one as float maps and exit. --dump-nan-stats:
     // also scan every frame (N defaults to 600). A missing or non-numeric N
-    // leaves the normal start.
+    // leaves the normal start. --capture-off=a,b: turn passes off for the run
+    // (see MazeLayer::enableCapture).
     constexpr std::string_view          captureFlag = "--capture-frames";
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&captureFrames](const std::string_view value) {
@@ -130,6 +134,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             parseCount(args[i].substr(captureFlag.size() + 1));
         } else if (args[i] == "--dump-nan-stats") {
             nanStats = true;
+        } else if (args[i].starts_with("--capture-off=")) {
+            captureOff = std::string(args[i].substr(14));
         }
     }
     if (nanStats && captureFrames == 0) {
@@ -150,5 +156,6 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         .vsync      = !capturing && Settings::getBool("video.vsync", true),
     };
 
-    return std::make_unique<game::Maze>(spec, captureFrames, nanStats);
+    return std::make_unique<game::Maze>(spec, captureFrames, nanStats,
+                                        captureOff);
 }
