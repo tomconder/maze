@@ -209,6 +209,8 @@ private:
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         depthPrepassShader;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
+        depthPrepassCubeShader;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         refractionShader;
     // The scene seen in the planar mirror, and the shader that draws it on
     // the mirror.

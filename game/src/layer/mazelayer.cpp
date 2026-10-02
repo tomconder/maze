@@ -238,7 +238,15 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         .vertexShader   = "depthprepass.vert",
         .fragmentShader = "depthprepass.frag",
     });
-    refractionShader   = AssetManager::createShader({
+    // Same stages, own program: the cube VAO enables only position, the
+    // mesh VAOs enable four attributes, and NVIDIA recompiles the vertex
+    // shader whenever one program sees both (API PERFORMANCE 131218).
+    depthPrepassCubeShader = AssetManager::createShader({
+        .name           = "depthprepass_cube",
+        .vertexShader   = "depthprepass.vert",
+        .fragmentShader = "depthprepass.frag",
+    });
+    refractionShader       = AssetManager::createShader({
         .name           = "refraction",
         .vertexShader   = "refraction.vert",
         .fragmentShader = "refraction.frag",
@@ -1115,24 +1123,26 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
                                       frame.objectMeshVisible[i]);
     }
 
-    // Light cubes go through the same shader: position-only geometry at
-    // location 0, so they need no variant of their own. Including them here
-    // is what gives them depth coverage and motion vectors.
+    // Light cubes use a second instance of the same shader: position-only
+    // geometry at location 0. Including them here is what gives them depth
+    // coverage and motion vectors.
+    depthPrepassShader->unbind();
+    depthPrepassCubeShader->bind();
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
-    depthPrepassShader->setFloat("reflectivity", 0.F);
+    depthPrepassCubeShader->setFloat("reflectivity", 0.F);
     for (int32_t i = 0; i < frame.numLights; i++) {
         const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
         const auto prevModel =
             lightCubeModel(frame.prevLightPositions[i], cubeScale);
-        depthPrepassShader->setMat4("mvp", frame.cameraMVP * model);
-        depthPrepassShader->setMat4("mvpNoJitter",
-                                    frame.cameraViewProj * model);
-        depthPrepassShader->setMat4("prevMvpNoJitter",
-                                    frame.prevCameraViewProj * prevModel);
+        depthPrepassCubeShader->setMat4("mvp", frame.cameraMVP * model);
+        depthPrepassCubeShader->setMat4("mvpNoJitter",
+                                        frame.cameraViewProj * model);
+        depthPrepassCubeShader->setMat4("prevMvpNoJitter",
+                                        frame.prevCameraViewProj * prevModel);
         cube->render();
     }
 
-    depthPrepassShader->unbind();
+    depthPrepassCubeShader->unbind();
 
     depthPrepass->end();
 }
