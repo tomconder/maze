@@ -22,6 +22,11 @@ public:
     void end() const;
     void apply() const;
 
+    // The tone-mapped image FXAA reads. For debug readback only.
+    uint32_t getInputTexture() const {
+        return colorTexture;
+    }
+
     void resize(uint32_t newWidth, uint32_t newHeight);
 
 private:

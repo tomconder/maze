@@ -42,6 +42,15 @@ public:
     void resize(uint32_t newWidth, uint32_t newHeight);
 
     // Drops the accumulated history; the next resolve starts from scratch.
+    // The tone-mapped image TAA reads, and the latest resolved history. For
+    // debug readback only.
+    uint32_t getInputTexture() const {
+        return sceneColorTexture;
+    }
+    uint32_t getResolvedTexture() const {
+        return historyTextures[historyIndex];
+    }
+
     void invalidateHistory() {
         historyValid = false;
     }

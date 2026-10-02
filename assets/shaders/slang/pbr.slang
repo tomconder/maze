@@ -116,6 +116,19 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
     roughness = clamp(roughness, 0.089, 1.0);
 
+    // Specular anti-aliasing (Tokuyoshi and Kaplanyan 2019): widen the lobe by
+    // the variance of the normal across the pixel. Without it a point light's
+    // GGX peak at low roughness is far above 1 and lands on a single pixel, a
+    // speck that bloom spreads and TAA cannot remove. A flat surface has no
+    // normal variance, so it gets no widening from this.
+    static const float saaSigma2 = 0.25;
+    static const float saaKappa  = 0.18;
+    float3             dNdx      = ddx(N);
+    float3             dNdy      = ddy(N);
+    float              nVariance = saaSigma2 * (dot(dNdx, dNdx) + dot(dNdy, dNdy));
+    float              a2        = pow(roughness, 4.0) + min(2.0 * nVariance, saaKappa);
+    roughness                    = sqrt(sqrt(min(a2, 1.0)));
+
     float3 V  = normalize(params.viewPos - input.worldPosition);
     float3 Lo = float3(0.0);
 

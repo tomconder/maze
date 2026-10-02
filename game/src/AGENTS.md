@@ -13,6 +13,12 @@ primitives, windowing, or platform backends itself — see
 * `layer/mazelayer.hpp` / `.cpp` - the core gameplay layer: camera, lighting,
   shadow map, SSAO, occlusion culling, bloom/FXAA/TAA post-processing, and
   the update/render split.
+* `layer/framecapture.hpp` / `.cpp` - the `--capture-frames` and
+  `--dump-nan-stats` debug scan (see the root `AGENTS.md`). Parsed in
+  `createApplication()` under `#ifndef NDEBUG`; `MazeLayer::recordCapture()`
+  feeds it float readbacks on the render thread. Test NaN and Inf by bits,
+  through a pointer: the build uses fast math, so `std::isnan`, `std::isinf`
+  and a bit test on a float passed by value all fold to false.
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
   `layer/audiolayer.hpp`, `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp`
   - other screens in the layer stack. The options screen is one layer per tab:
