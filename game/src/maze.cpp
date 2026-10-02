@@ -47,10 +47,11 @@ bool Maze::onUserCreate() {
     optionLayer->setActive(false);
     audioLayer->setActive(false);
 
+    // A layer starts active, so the splash has to be turned off explicitly. Its
+    // timeout is also what starts the intro.
+    splashScreenLayer->setActive(captureFrames == 0);
     if (captureFrames > 0) {
         mazeLayer->enableCapture(captureFrames, nanStats);
-    } else {
-        splashScreenLayer->setActive(true);
     }
 
     const auto savedAa = sponge::core::Settings::getUInt32(
