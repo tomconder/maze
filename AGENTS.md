@@ -16,7 +16,6 @@ Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other ag
 * Use bullet points, code snippets, and Mermaid diagrams.
 * For visual changes, show a before/after table with images.
 * For benchmarks, show before/after tables (baseline from target branch).
-* Skip intermediate PR details. Only the final squash commit matters.
 * For large or high-risk changes, write it like a technical blog post.
 
 ## Compaction
