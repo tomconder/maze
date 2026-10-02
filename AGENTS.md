@@ -109,6 +109,33 @@ Or, for MacOS, the app bundle is in the build directory:
 build/maze/maze.app
 ```
 
+### Capture flags (debug builds only)
+
+Two flags exist only when `NDEBUG` is not defined. A release build ignores
+them and starts normally. Use them to check the render pipeline for NaN, Inf
+and isolated bright pixels without a screen capture, which quantizes to 8 bits.
+
+```
+maze.exe --capture-frames 600
+maze.exe --capture-frames=600 --dump-nan-stats
+```
+
+* `--capture-frames N` (or `=N`): skips the splash and intro screens, loads the
+  maze, turns the camera once over N frames in a fixed 1600x900 window with
+  vsync off, writes the last frame of each stage as a float `capture_<stage>_last.pfm`
+  and exits. A missing, zero or non-numeric N leaves the normal start.
+* `--dump-nan-stats`: scans every stage on every frame and writes
+  `capture_stats.txt` (NaN, Inf, values over 1000, bright and dark specks,
+  highest finite value, first hit), `capture_specks.txt` (frame and pixel of
+  each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
+  600 when `--capture-frames` is not given.
+* Stages: `scene` and `bloom` (RGB16F, linear radiance), `tonemap` and `taa`
+  or `fxaa` input (0 to 1), `backbuffer` (8-bit). Files go to the working
+  directory, so run from the build directory as above.
+* The back buffer cannot show NaN: it reads as black. Trust the float stages.
+* Each stage read stalls the GPU. Debug builds also run slower, so a 600-frame
+  stats run takes minutes.
+
 Before you commit changes run the pre-commit script:
 
 ```
