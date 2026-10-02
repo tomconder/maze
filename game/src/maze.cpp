@@ -7,15 +7,21 @@
 #include "event/event.hpp"
 #include "version.hpp"
 
+#include <charconv>
 #include <cstdint>
 #include <memory>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;
 
-Maze::Maze(ApplicationSpecification specification) :
-    Application(std::move(specification)) {
+Maze::Maze(ApplicationSpecification specification, const uint32_t captureFrames,
+           const bool nanStats) :
+    Application(std::move(specification)),
+    captureFrames(captureFrames),
+    nanStats(nanStats) {
     // Base class handles singleton pattern
 }
 
@@ -40,7 +46,12 @@ bool Maze::onUserCreate() {
     keyMapLayer->setActive(false);
     optionLayer->setActive(false);
     audioLayer->setActive(false);
-    splashScreenLayer->setActive(true);
+
+    if (captureFrames > 0) {
+        mazeLayer->enableCapture(captureFrames, nanStats);
+    } else {
+        splashScreenLayer->setActive(true);
+    }
 
     const auto savedAa = sponge::core::Settings::getUInt32(
         "video.aa", static_cast<uint32_t>(thread::AntiAliasing::Taa));
@@ -50,6 +61,11 @@ bool Maze::onUserCreate() {
                         thread::AntiAliasing::Taa);
     setBloomEnabled(
         sponge::core::Settings::getBool("video.bloomEnabled", true));
+
+    // After the settings above, so the maze is configured when it loads.
+    if (captureFrames > 0) {
+        loadingLayer->setActive(true);
+    }
 
     return true;
 }
@@ -87,18 +103,36 @@ bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
 std::unique_ptr<sponge::platform::glfw::core::Application>
     sponge::platform::glfw::core::createApplication(const int argc,
                                                     char**    argv) {
-    UNUSED(argc);
-    UNUSED(argv);
-
     using sponge::core::Settings;
 
+    // --capture-frames N: skip the menus, render N frames, write the last one
+    // as float maps and exit. --dump-nan-stats: also scan every frame (N
+    // defaults to 600).
+    uint32_t                            captureFrames = 0;
+    bool                                nanStats      = false;
+    const std::vector<std::string_view> args{ argv + 1, argv + argc };
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i] == "--capture-frames" && i + 1 < args.size()) {
+            std::from_chars(args[i + 1].data(),
+                            args[i + 1].data() + args[i + 1].size(),
+                            captureFrames);
+        } else if (args[i] == "--dump-nan-stats") {
+            nanStats = true;
+        }
+    }
+    if (nanStats && captureFrames == 0) {
+        captureFrames = 600;
+    }
+    const bool capturing = captureFrames > 0;
+
+    // A capture run uses a fixed window and no vsync, so runs compare.
     const auto spec = ApplicationSpecification{
         .name       = game::project_name,
-        .width      = Settings::getUInt32("video.width", 0),
-        .height     = Settings::getUInt32("video.height", 0),
-        .fullscreen = Settings::getBool("video.fullscreen", true),
-        .vsync      = Settings::getBool("video.vsync", true),
+        .width      = capturing ? 1600 : Settings::getUInt32("video.width", 0),
+        .height     = capturing ? 900 : Settings::getUInt32("video.height", 0),
+        .fullscreen = !capturing && Settings::getBool("video.fullscreen", true),
+        .vsync      = !capturing && Settings::getBool("video.vsync", true),
     };
 
-    return std::make_unique<game::Maze>(spec);
+    return std::make_unique<game::Maze>(spec, captureFrames, nanStats);
 }

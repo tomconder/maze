@@ -9,6 +9,7 @@
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
+#include "platform/opengl/renderer/readback.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "resourcemanager.hpp"
@@ -55,6 +56,8 @@ using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::renderer::DepthFunc;
+using sponge::platform::opengl::renderer::readBackBuffer;
+using sponge::platform::opengl::renderer::readTexture;
 using sponge::platform::opengl::renderer::RendererAPI;
 using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::ClusteredLights;
@@ -757,7 +760,51 @@ void MazeLayer::onRender() {
                    frame.prevCameraViewProj);
     }
 
+    // Before the first populated frame the scene is the untouched defaults.
+    if (capture && frame.populated) {
+        recordCapture(fxaaActive, taaActive, bloomTexId);
+    }
+
     RendererAPI::setDepth(DepthFunc::LessEqual, true);
+}
+
+void MazeLayer::enableCapture(const uint32_t frames, const bool stats) {
+    capture.emplace(frames, stats);
+    captureYawStep = 360.F / static_cast<float>(std::max(frames, 1U));
+}
+
+void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
+                              const uint32_t bloomTexId) {
+    if (capture->done()) {
+        return;
+    }
+    capture->beginFrame();
+
+    // Reading a stage costs a GPU stall, so without stats only the last frame
+    // is read.
+    if (capture->wantsStats() || capture->isLastFrame()) {
+        // RGB16F stages, before anything quantizes them to 8 bits.
+        capture->record("scene", readTexture(sceneTarget->getTexture()), true);
+        if (bloomTexId != 0) {
+            capture->record("bloom", readTexture(bloomTexId), true);
+        }
+        if (fxaaActive) {
+            capture->record("tonemap", readTexture(fxaa->getInputTexture()),
+                            false);
+        } else if (taaActive) {
+            capture->record("tonemap", readTexture(taa->getInputTexture()),
+                            false);
+            capture->record("taa", readTexture(taa->getResolvedTexture()),
+                            false);
+        }
+        // What a screen capture sees: 8 bits, dithered.
+        capture->record("backbuffer", readBackBuffer(), false);
+    }
+
+    if (capture->done()) {
+        capture->report();
+        Maze::get().exit();
+    }
 }
 
 float MazeLayer::getAmbientStrength() const {
@@ -1350,6 +1397,10 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
                        static_cast<double>(snap.getAxis(GameAction::MoveLeft)));
     camera->strafeRight(
         elapsedTime * static_cast<double>(snap.getAxis(GameAction::MoveRight)));
+
+    if (captureYawStep != 0.F) {
+        camera->mouseMove({ captureYawStep, 0.F });
+    }
 
     // Apply mouse look only when the mouse is captured (left button held),
     // or always for gamepad look (right stick).

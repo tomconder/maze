@@ -4,6 +4,7 @@
 #include "event/event.hpp"
 #include "event/mouseevent.hpp"
 #include "input/inputsnapshot.hpp"
+#include "layer/framecapture.hpp"
 #include "layer/layer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/scene/bloom.hpp"
@@ -168,6 +169,10 @@ public:
     // Re-activates an already-loaded layer without going through LoadingLayer.
     void activate();
 
+    // Debug capture run: renders `frames` frames while the camera turns once,
+    // then the app exits. See FrameCapture. Call before the app runs.
+    void enableCapture(uint32_t frames, bool stats);
+
 private:
     // Loaded in the constructor, before any other member reads it.
     const scene::Scene sceneDesc;
@@ -314,6 +319,10 @@ private:
     int32_t numLights          = 0;
     bool    isImguiOpen        = true;
 
+    std::optional<FrameCapture> capture;
+    // Degrees of yaw per update while capturing; 0 leaves the camera alone.
+    float captureYawStep = 0.F;
+
     void onWindowFocus(const sponge::event::WindowFocusEvent& event);
 
     bool onMouseButtonPressed(
@@ -336,6 +345,7 @@ private:
                                  uint32_t sceneCopy) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
+    void recordCapture(bool fxaaActive, bool taaActive, uint32_t bloomTexId);
 
     void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
 
