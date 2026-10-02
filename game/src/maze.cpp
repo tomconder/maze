@@ -106,17 +106,26 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                                                     char**    argv) {
     using sponge::core::Settings;
 
-    // --capture-frames N: skip the menus, render N frames, write the last one
-    // as float maps and exit. --dump-nan-stats: also scan every frame (N
-    // defaults to 600).
-    uint32_t                            captureFrames = 0;
-    bool                                nanStats      = false;
+    uint32_t captureFrames = 0;
+    bool     nanStats      = false;
+
+    // --capture-frames N or --capture-frames=N: skip the menus, render N
+    // frames, write the last one as float maps and exit. --dump-nan-stats:
+    // also scan every frame (N defaults to 600). A missing or non-numeric N
+    // leaves the normal start.
+    constexpr std::string_view          captureFlag = "--capture-frames";
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
+    const auto parseCount = [&captureFrames](const std::string_view value) {
+        std::from_chars(value.data(), value.data() + value.size(),
+                        captureFrames);
+    };
     for (size_t i = 0; i < args.size(); i++) {
-        if (args[i] == "--capture-frames" && i + 1 < args.size()) {
-            std::from_chars(args[i + 1].data(),
-                            args[i + 1].data() + args[i + 1].size(),
-                            captureFrames);
+        if (args[i] == captureFlag && i + 1 < args.size()) {
+            parseCount(args[i + 1]);
+        } else if (args[i].starts_with(captureFlag) &&
+                   args[i].size() > captureFlag.size() &&
+                   args[i][captureFlag.size()] == '=') {
+            parseCount(args[i].substr(captureFlag.size() + 1));
         } else if (args[i] == "--dump-nan-stats") {
             nanStats = true;
         }
