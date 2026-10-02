@@ -559,7 +559,8 @@ void MazeLayer::onRender() {
     if (pendingShadowRebuild.load(std::memory_order_acquire)) {
         const auto res =
             pendingShadowRebuildRes.load(std::memory_order_relaxed);
-        shadowMap = std::make_unique<ShadowMap>(res);
+        shadowMap    = std::make_unique<ShadowMap>(res);
+        shadowCached = false;
         pendingShadowRebuild.store(false, std::memory_order_relaxed);
     }
 
@@ -617,8 +618,11 @@ void MazeLayer::onRender() {
         !(occlusionCuller && !occlusionCuller->isVisible(frame.planarIndex));
 
     // Phase 1: shadow map
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
+    if (frame.shadowEnabled && frame.shadowCastShadow &&
+        (!shadowCached || frame.lightSpaceMatrix != shadowCachedMatrix)) {
         renderSceneToDepthMap(frame);
+        shadowCachedMatrix = frame.lightSpaceMatrix;
+        shadowCached       = true;
     }
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights

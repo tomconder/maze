@@ -237,6 +237,13 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget>  sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
 
+    // Render thread only. The shadow map is drawn again only when the light
+    // moves or the map is rebuilt. This assumes the shadow casters never move,
+    // which holds while objectModelMatrices is static after load; animated
+    // casters must invalidate it too.
+    glm::mat4 shadowCachedMatrix{ 1.F };
+    bool      shadowCached = false;
+
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
     std::atomic<uint32_t>                  renderReadIndex{ 0 };

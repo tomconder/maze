@@ -104,6 +104,10 @@ primitives, windowing, or platform backends itself — see
   from a texture readback. Their defaults live in the `bloom` section of
   `assets/scenes/maze.yaml`, not in settings; the debug sliders change them
   for the current run only.
+* The shadow map is drawn again only when `lightSpaceMatrix` changes or the
+  map is rebuilt (`shadowCached`). This holds only while shadow casters are
+  static. An object that moves must also invalidate the cache, or its shadow
+  freezes.
 * A refractive object is left out of the shadow map and the depth prepass.
   The glass pass runs after the opaque color and the light cubes, and before
   bloom, still in linear radiance. It samples a copy of the scene color.
