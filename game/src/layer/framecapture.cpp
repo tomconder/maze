@@ -3,7 +3,8 @@
 #include "platform/opengl/renderer/readback.hpp"
 
 #include <algorithm>
-#include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <format>
 #include <fstream>
 #include <limits>
@@ -21,6 +22,29 @@ constexpr float bigRadiance = 1000.F;
 constexpr float  speckRatio      = 3.F;
 constexpr float  darkRatio       = 0.1F;
 constexpr size_t maxSpecksLogged = 5000;
+
+// The build uses fast math, so the compiler may assume there is no NaN or Inf
+// and fold std::isnan and std::isinf to false. Test the bits instead, and read
+// them through a pointer: a float passed by value is assumed finite too, which
+// folds a bit test on it away.
+constexpr uint32_t exponentMask = 0x7F800000U;
+constexpr uint32_t mantissaMask = 0x007FFFFFU;
+
+uint32_t bitsOf(const float* v) {
+    uint32_t bits = 0;
+    std::memcpy(&bits, v, sizeof(bits));
+    return bits;
+}
+
+bool isNaN(const float* v) {
+    const auto bits = bitsOf(v);
+    return (bits & exponentMask) == exponentMask && (bits & mantissaMask) != 0;
+}
+
+bool isInf(const float* v) {
+    const auto bits = bitsOf(v);
+    return (bits & exponentMask) == exponentMask && (bits & mantissaMask) == 0;
+}
 
 float luma(const float* p) {
     return 0.2126F * p[0] + 0.7152F * p[1] + 0.0722F * p[2];
@@ -54,12 +78,11 @@ void FrameCapture::record(const std::string& stage, const Image& image,
         for (size_t y = 0; y < h; y++) {
             for (size_t x = 0; x < w; x++) {
                 const float* p = &image.rgb[(y * w + x) * 3];
-                if (std::isnan(p[0]) || std::isnan(p[1]) || std::isnan(p[2])) {
+                if (isNaN(p) || isNaN(p + 1) || isNaN(p + 2)) {
                     s.nan++;
                     noteFirst(x, y);
                     hit = true;
-                } else if (std::isinf(p[0]) || std::isinf(p[1]) ||
-                           std::isinf(p[2])) {
+                } else if (isInf(p) || isInf(p + 1) || isInf(p + 2)) {
                     s.inf++;
                     noteFirst(x, y);
                     hit = true;
