@@ -9,6 +9,7 @@ A game engine featuring a nice walk through a maze.
 * Platform portability: OpenGL and C++ for Windows and Linux
 * Physically based rendering (PBR)
 * Cook-Torrance microfacet specular BRDF
+* Specular anti-aliasing: the highlight widens with the screen-space variance of the normal, so sub-pixel highlights do not sparkle
 * glTF 2.0 materials: albedo, normal, occlusion, emissive and metallic-roughness maps, with KHR_texture_transform
 * Point lights and directional light
 * Clustered (volume-tiled) light culling
