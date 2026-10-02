@@ -7,7 +7,26 @@
 
 namespace sponge::platform::opengl::renderer {
 
+namespace {
+// A readback is a deliberate sync point, so the driver's warning that the
+// pixel transfer waits for rendering is expected. The driver reports it after
+// the read call returns, so muting around the call does not work: the message
+// stays muted from the first readback on. Only the capture modes read back.
+// A pixel pack buffer does not avoid the warning.
+constexpr GLuint pixelTransferSyncWarning = 131154;
+
+void mutePixelTransferWarning() {
+    if (glDebugMessageControl != nullptr) {
+        glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_PERFORMANCE,
+                              GL_DONT_CARE, 1, &pixelTransferSyncWarning,
+                              GL_FALSE);
+    }
+}
+}  // namespace
+
 Image readTexture(const uint32_t texture) {
+    mutePixelTransferWarning();
+
     GLint width  = 0;
     GLint height = 0;
     glGetTextureLevelParameteriv(texture, 0, GL_TEXTURE_WIDTH, &width);
@@ -24,6 +43,8 @@ Image readTexture(const uint32_t texture) {
 }
 
 Image readBackBuffer() {
+    mutePixelTransferWarning();
+
     std::array<GLint, 4> viewport{};
     glGetIntegerv(GL_VIEWPORT, viewport.data());
     const auto width  = static_cast<uint32_t>(viewport[2]);
