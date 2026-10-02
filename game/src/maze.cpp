@@ -109,6 +109,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     uint32_t captureFrames = 0;
     bool     nanStats      = false;
 
+#ifndef NDEBUG
+    // Debug builds only; a release build ignores both flags.
     // --capture-frames N or --capture-frames=N: skip the menus, render N
     // frames, write the last one as float maps and exit. --dump-nan-stats:
     // also scan every frame (N defaults to 600). A missing or non-numeric N
@@ -133,6 +135,10 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     if (nanStats && captureFrames == 0) {
         captureFrames = 600;
     }
+#else
+    UNUSED(argc);
+    UNUSED(argv);
+#endif
     const bool capturing = captureFrames > 0;
 
     // A capture run uses a fixed window and no vsync, so runs compare.
