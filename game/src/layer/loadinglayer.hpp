@@ -19,7 +19,7 @@
 namespace game::layer {
 
 // Shown between IntroLayer and MazeLayer while the maze's models load.
-// Kicks a background thread to parse models (CPU-only: file I/O, glTF/obj
+// Kicks a background thread to parse models (CPU-only: file I/O, glTF
 // parsing, image decode — see Model::parse()), then uploads them to the GPU
 // one mesh per frame on the render thread (Model::buildMesh()) so the
 // loading screen keeps animating instead of one big stall. Progress is

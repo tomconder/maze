@@ -18,7 +18,7 @@ add_executable(assetconv ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(assetconv PRIVATE src)
 
 # Every asset format lives here, not in the engine: cgltf for glTF,
-# tinyobjloader for OBJ, stb_image to decode source images, bc7enc for BC7
+# stb_image to decode source images, bc7enc for BC7
 # blocks, stb_image_resize2 for the mip chain.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
 # cgltf, stb @ vendored with the engine originally, see git history
@@ -26,11 +26,10 @@ target_include_directories(assetconv PRIVATE src)
 add_library(assetconv_deps OBJECT
         deps/bc7enc/bc7enc.cpp
         deps/cgltf/cgltf.cpp
-        deps/stb/stb_image.cpp
-        deps/tinyobjloader/tiny_obj_loader.cpp)
+        deps/stb/stb_image.cpp)
 set_target_properties(assetconv_deps PROPERTIES CXX_STANDARD 23)
 target_include_directories(assetconv_deps PUBLIC
-        deps/bc7enc deps/cgltf deps/stb deps/tinyobjloader)
+        deps/bc7enc deps/cgltf deps/stb)
 target_link_libraries(assetconv_deps PRIVATE sponge::options)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)

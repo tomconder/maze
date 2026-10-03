@@ -4,7 +4,7 @@ Build-time asset converter. It reads source models, images, fonts and shaders
 and writes the `.spnga` and `.ktx2` files the engine loads.
 
 The engine parses no third-party asset format at run time. Every importer
-lives here, along with cgltf, tinyobjloader, stb_image, bc7enc,
+lives here, along with cgltf, stb_image, bc7enc,
 stb_image_resize2, meshoptimizer, FreeType, HarfBuzz and the Slang compiler;
 `Model::parse()` accepts `.spnga` and nothing else, `Texture` accepts `.ktx2`
 and nothing else, `BitmapFont` reads a baked `.ktx2` font, and `Shader` reads
@@ -84,7 +84,6 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | --- | --- |
 | `.glb`, `.gltf` | Supported |
 | `.png` (standalone, and into an atlas) | Supported |
-| `.obj` | Supported |
 | `.slang` (into the shader pack) | Supported |
 | `.ttf`, `.otf` (into a baked font) | Supported |
 

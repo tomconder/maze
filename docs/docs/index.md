@@ -24,7 +24,7 @@ A game engine featuring a nice walk through a maze.
 * Camera frustum and hardware occlusion culling
 * Selectable anti-aliasing: FXAA or temporal (TAA)
 * Shaders written in Slang, compiled at build time into one shader pack
-* Build-time asset converter: glTF 2.0 and Wavefront OBJ models baked to an engine format, so the game links no asset parser
+* Build-time asset converter: glTF 2.0 models baked to an engine format, so the game links no asset parser
 * BC7 and BC5 texture compression with mipmaps in KTX2, encoded on every core
 * UI icons packed into a sprite atlas
 * LCD subpixel text with subpixel positioning, rasterized with FreeType and shaped with HarfBuzz at build time
