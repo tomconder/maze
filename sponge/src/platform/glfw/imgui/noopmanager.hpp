@@ -1,16 +1,12 @@
 #pragma once
 
-#include "core/base.hpp"
-
 struct GLFWwindow;
 
 namespace sponge::platform::glfw::imgui {
 
 class NoopManager final {
 public:
-    void onAttach(GLFWwindow* window) {
-        UNUSED(window);
-    }
+    void onAttach(GLFWwindow*) {}
 
     void onDetach() { /* nothing */ }
 

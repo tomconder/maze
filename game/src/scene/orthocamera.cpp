@@ -1,6 +1,5 @@
 #include "scene/orthocamera.hpp"
 
-#include "core/base.hpp"
 #include "logging/log.hpp"
 
 #include <glm/ext/matrix_clip_space.hpp>
@@ -9,9 +8,9 @@
 #include <memory>
 
 namespace game::scene {
-OrthoCamera::OrthoCamera(const OrthoCameraCreateInfo& createInfo) {
+OrthoCamera::OrthoCamera(
+    [[maybe_unused]] const OrthoCameraCreateInfo& createInfo) {
     SPONGE_INFO("Creating ortho camera: {}", createInfo.name);
-    UNUSED(createInfo);
 }
 
 void OrthoCamera::setWidthAndHeight(const uint32_t width,

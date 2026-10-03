@@ -2,8 +2,7 @@
 
 #include <type_traits>
 
-#define BIT(x)    (1 << (x))
-#define UNUSED(x) (void)(x)
+#define BIT(x) (1 << (x))
 
 // Unary + converts a scoped enum to its underlying integer,
 // e.g. array[+GameAction::Jump] instead of a static_cast.

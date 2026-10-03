@@ -1,6 +1,5 @@
 #include "ui/button.hpp"
 
-#include "core/base.hpp"
 #include "core/file.hpp"
 #include "platform/audio/audio.hpp"
 
@@ -31,9 +30,7 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
 }
 
-bool Button::onUpdate(const double elapsedTime) const {
-    UNUSED(elapsedTime);
-
+bool Button::onUpdate(const double) const {
     quad->render(top, bottom, color, cornerRadius, borderWidth, borderColor);
     font->beginPass(textSize);
     font->render(text, textPosition, textColor);

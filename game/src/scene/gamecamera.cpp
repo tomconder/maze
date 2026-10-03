@@ -1,6 +1,5 @@
 #include "scene/gamecamera.hpp"
 
-#include "core/base.hpp"
 #include "logging/log.hpp"
 
 #include <glm/ext/matrix_clip_space.hpp>
@@ -10,9 +9,9 @@
 #include <cstdint>
 
 namespace game::scene {
-GameCamera::GameCamera(const GameCameraCreateInfo& createInfo) {
+GameCamera::GameCamera(
+    [[maybe_unused]] const GameCameraCreateInfo& createInfo) {
     SPONGE_INFO("Creating game camera: {}", createInfo.name);
-    UNUSED(createInfo);
 
     setOrientation(yaw, pitch);
 }

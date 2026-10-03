@@ -289,7 +289,7 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
     ui::updateMenuButtonVisuals(returnButton.get(),
                                 selectedItem == AudioMenuItem::Return,
                                 textHoverColor);
-    UNUSED(returnButton->onUpdate(elapsedTime));
+    returnButton->onUpdate(elapsedTime);
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] =
