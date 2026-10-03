@@ -188,7 +188,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
                        directionalLight.castShadow);
     shader->setFloat3("directionalLight.direction", directionalLight.direction);
     shader->setFloat3("directionalLight.color", directionalLight.color);
-    shader->setFloat("evsmBleedThreshold", 0.2F);
+    shader->setFloat("evsmBleedThreshold", 0.7F);
 
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
@@ -1191,7 +1191,7 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     shader->setFloat("farPlane", frame.farPlane);
     shader->setInteger("numLights", frame.numLights);
     shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
-    shader->setFloat("evsmBleedThreshold", 0.2F);
+    shader->setFloat("evsmBleedThreshold", 0.7F);
     shader->setBoolean("directionalLight.enabled", frame.shadowEnabled);
     shader->setBoolean("directionalLight.castShadow", frame.shadowCastShadow);
     shader->setFloat3("directionalLight.direction", frame.lightDirection);
