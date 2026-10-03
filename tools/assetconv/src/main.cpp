@@ -14,7 +14,6 @@
 #include "ktx2.hpp"
 #include "meshopt.hpp"
 #include "modeldata.hpp"
-#include "objimport.hpp"
 #include "readbytes.hpp"
 #include "shadercompile.hpp"
 #include "shaderpack.hpp"
@@ -100,9 +99,6 @@ ModelData import(const std::string& source) {
     const auto extension = std::filesystem::path(source).extension().string();
     if (extension == ".glb" || extension == ".gltf") {
         return assetconv::gltf::parse(source);
-    }
-    if (extension == ".obj") {
-        return assetconv::obj::parse(source);
     }
     fmt::println(stderr, "assetconv: unsupported source format {}", source);
     return {};
