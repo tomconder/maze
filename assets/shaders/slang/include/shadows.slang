@@ -1,7 +1,7 @@
 #pragma once
 
 // Must match ShadowMap::maxCascades in shadowmap.hpp.
-static const int maxCascades = 2;
+static const int maxCascades = 4;
 
 // Fraction of a cascade's width, at its edge, over which it blends into the
 // next one.

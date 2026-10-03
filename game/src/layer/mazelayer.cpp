@@ -528,7 +528,8 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
                   .farPlane    = frame.farPlane,
                   .tanHalfFovY = 1.F / proj[1][1],
                   .aspect      = proj[1][1] / proj[0][0] },
-                frame.cascadeCount, directionalLight.shadowMapRes);
+                frame.cascadeCount, directionalLight.shadowMapRes,
+                shadowSplitLambda.load(std::memory_order_relaxed));
 
             for (uint32_t c = 0; c < frame.cascadeCount; c++) {
                 const sponge::scene::Frustum lightFrustum(
@@ -840,11 +841,15 @@ void MazeLayer::onRender() {
 }
 
 void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
-                              std::string off, const float walk) {
+                              std::string off, const float walk,
+                              const uint32_t cascades) {
     capture.emplace(frames, stats);
     captureOff      = std::move(off);
     gpuTimerOff     = ("," + captureOff + ",").contains(",gputimer,");
     captureWalkStep = walk;
+    if (cascades != 0) {
+        setShadowCascades(cascades);
+    }
     captureYawStep =
         walk != 0.F ? 0.F : 360.F / static_cast<float>(std::max(frames, 1U));
 }
@@ -861,9 +866,6 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         };
         if (has("shadowcache")) {
             shadowCacheOff = true;
-        }
-        if (has("csm")) {
-            shadowCascades.store(1, std::memory_order_relaxed);
         }
         if (has("aa")) {
             setAntiAliasing(AntiAliasing::None);

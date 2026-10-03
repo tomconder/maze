@@ -20,7 +20,9 @@ using renderer::AssetManager;
 
 inline const std::string ShadowMap::shaderName = "shadowmap_evsm";
 
-ShadowMap::ShadowMap(const uint32_t res) : shadowHeight(res), shadowWidth(res) {
+ShadowMap::ShadowMap(const uint32_t res) :
+    shadowHeight(std::min(res, maxResolution)),
+    shadowWidth(std::min(res, maxResolution)) {
     initialize();
 }
 
@@ -170,9 +172,11 @@ uint32_t ShadowMap::getWidth() const {
     return shadowWidth;
 }
 
-ShadowMap::Matrices ShadowMap::fitLightSpace(
-    const glm::vec3& lightDirection, const sponge::scene::AABB& sceneBounds,
-    const Camera& camera, const uint32_t count, const uint32_t res) {
+ShadowMap::Matrices
+    ShadowMap::fitLightSpace(const glm::vec3&           lightDirection,
+                             const sponge::scene::AABB& sceneBounds,
+                             const Camera& camera, const uint32_t count,
+                             const uint32_t res, const float splitLambda) {
     const auto center = (sceneBounds.min + sceneBounds.max) * 0.5F;
     // Half the AABB's diagonal: the farthest any corner sits from center, so
     // placing the eye two of these out along -lightDirection clears every
@@ -208,9 +212,7 @@ ShadowMap::Matrices ShadowMap::fitLightSpace(
     // over [near, shadowFar]. Shadows past the scene would be wasted, so the
     // far end stops at the scene's diagonal. It does not depend on the camera
     // position, so a cascade's size never changes while the camera moves.
-    // Fixed blend for now; make it a debug slider if tuning needs it.
-    constexpr float splitLambda = 0.7F;
-    const float     shadowFar   = std::min(
+    const float shadowFar = std::min(
         camera.farPlane, glm::length(sceneBounds.max - sceneBounds.min));
 
     // Eye-centred sphere around the far corners of the camera frustum slice.
@@ -230,9 +232,10 @@ ShadowMap::Matrices ShadowMap::fitLightSpace(
         // Snap the centre so the texel grid stays fixed in the light's space.
         // Half the width is a whole number of texels for an even resolution,
         // so the box edges land on the grid too.
-        const float texel = 2.F * r / static_cast<float>(res);
-        const float cx    = std::floor(eyeLs.x / texel) * texel;
-        const float cy    = std::floor(eyeLs.y / texel) * texel;
+        const float texel =
+            2.F * r / static_cast<float>(std::min(res, maxResolution));
+        const float cx = std::floor(eyeLs.x / texel) * texel;
+        const float cy = std::floor(eyeLs.y / texel) * texel;
         matrices[i] =
             glm::ortho(cx - r, cx + r, cy - r, cy + r, zNear, zFar) * lightView;
     }

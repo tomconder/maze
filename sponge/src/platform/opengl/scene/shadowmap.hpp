@@ -18,7 +18,12 @@ namespace sponge::platform::opengl::scene {
 class ShadowMap {
 public:
     // Must match maxCascades in shaders/slang/include/shadows.slang.
-    static constexpr uint32_t maxCascades = 2;
+    static constexpr uint32_t maxCascades = 4;
+
+    // Largest side of one cascade, whatever resolution is asked for. All
+    // maxCascades layers are allocated, so this bounds the map at four layers
+    // of RG32F plus the blur target and the depth buffer, about 176 MB.
+    static constexpr uint32_t maxResolution = 2048;
 
     using Matrices = std::array<glm::mat4, maxCascades>;
 
@@ -55,7 +60,8 @@ public:
     // Light-space matrices for `count` cascades (1 to maxCascades). The last
     // one fits sceneBounds exactly, so the frustum always covers the static
     // scene whatever its size. The nearer ones are boxes around the camera
-    // eye, sized by the PSSM split distances and snapped to whole texels of a
+    // eye, sized by the PSSM split distances (`splitLambda` blends the log
+    // split, 1, with the uniform one, 0) and snapped to whole texels of a
     // `res` map, so they change only when the camera moves a texel. Anchoring
     // at the eye, not at the middle of the camera frustum slice, keeps them
     // fixed while the camera only turns. All cascades share one light view
@@ -65,7 +71,7 @@ public:
     static Matrices fitLightSpace(const glm::vec3&           lightDirection,
                                   const sponge::scene::AABB& sceneBounds,
                                   const Camera& camera, uint32_t count,
-                                  uint32_t res);
+                                  uint32_t res, float splitLambda);
 
 private:
     static const std::string          shaderName;

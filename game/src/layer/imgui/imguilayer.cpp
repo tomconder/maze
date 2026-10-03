@@ -407,6 +407,33 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
+        showTableRow([&] {
+            ImGui::Text("Shadow Cascades");
+            ImGui::TableNextColumn();
+
+            auto cascades = static_cast<int>(mazeLayer->getShadowCascades());
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderInt(
+                    "##shadowcascades", &cascades, 1,
+                    static_cast<int>(sponge::platform::opengl::scene::
+                                         ShadowMap::maxCascades),
+                    "%d", ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setShadowCascades(static_cast<uint32_t>(cascades));
+            }
+        });
+
+        showTableRow([&] {
+            ImGui::Text("Cascade Split");
+            ImGui::TableNextColumn();
+
+            auto lambda = mazeLayer->getShadowSplitLambda();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::SliderFloat("##shadowsplit", &lambda, 0.F, 1.F, "%.2f",
+                                   ImGuiSliderFlags_AlwaysClamp)) {
+                mazeLayer->setShadowSplitLambda(lambda);
+            }
+        });
+
         auto probeEnabled = mazeLayer->isProbeEnabled();
         showTableRow([&] {
             ImGui::Text("Probe");

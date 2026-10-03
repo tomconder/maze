@@ -68,8 +68,10 @@ than calling GLFW/OpenGL/OS APIs directly.
   light is still. The lit shaders sample the array and pick the finest cascade
   whose light-space box holds the point (`shadowCascaded()`), blending into
   the next near its edge. They pick by position, not by camera depth, so the
-  mirrored view and the reflection probe stay correct. The blur reads a 2D
-  view per layer. A view does not inherit the parent's sampler state, so set
+  mirrored view and the reflection probe stay correct. All
+  `maxCascades` (4) layers are always allocated, and one cascade is at most
+  `ShadowMap::maxResolution` (2048) on a side, so the 4096 quality setting
+  builds a 2048 map. The blur reads a 2D view per layer. A view does not inherit the parent's sampler state, so set
   the filter, wrap and border colour on the view. Its name must come from
   `glGenTextures`, because `glTextureView` rejects a name that already has a
   target.

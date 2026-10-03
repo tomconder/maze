@@ -19,13 +19,14 @@ namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze::Maze(ApplicationSpecification specification, const uint32_t captureFrames,
-           const bool nanStats, std::string captureOff,
-           const float captureWalk) :
+           const bool nanStats, std::string captureOff, const float captureWalk,
+           const uint32_t captureCascades) :
     Application(std::move(specification)),
     captureFrames(captureFrames),
     nanStats(nanStats),
     captureOff(std::move(captureOff)),
-    captureWalk(captureWalk) {
+    captureWalk(captureWalk),
+    captureCascades(captureCascades) {
     // Base class handles singleton pattern
 }
 
@@ -56,7 +57,7 @@ bool Maze::onUserCreate() {
     splashScreenLayer->setActive(captureFrames == 0);
     if (captureFrames > 0) {
         mazeLayer->enableCapture(captureFrames, nanStats, captureOff,
-                                 captureWalk);
+                                 captureWalk, captureCascades);
     }
 
     const auto savedAa = sponge::core::Settings::getUInt32(
@@ -114,7 +115,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     uint32_t    captureFrames = 0;
     bool        nanStats      = false;
     std::string captureOff;
-    float       captureWalk = 0.F;
+    float       captureWalk     = 0.F;
+    uint32_t    captureCascades = 0;
 
 #ifndef NDEBUG
     // Debug builds only; a release build ignores these flags.
@@ -123,7 +125,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // also scan every frame (N defaults to 600). A missing or non-numeric N
     // leaves the normal start. --capture-off=a,b: turn passes off for the run
     // (see MazeLayer::enableCapture). --capture-walk=D: walk D world units
-    // per frame along +X instead of turning.
+    // per frame along +X instead of turning. --capture-cascades=N: use N
+    // shadow cascades.
     constexpr std::string_view          captureFlag = "--capture-frames";
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&captureFrames](const std::string_view value) {
@@ -145,6 +148,10 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             const auto value = args[i].substr(15);
             std::from_chars(value.data(), value.data() + value.size(),
                             captureWalk);
+        } else if (args[i].starts_with("--capture-cascades=")) {
+            const auto value = args[i].substr(19);
+            std::from_chars(value.data(), value.data() + value.size(),
+                            captureCascades);
         }
     }
     if (nanStats && captureFrames == 0) {
@@ -166,5 +173,6 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     };
 
     return std::make_unique<game::Maze>(spec, captureFrames, nanStats,
-                                        captureOff, captureWalk);
+                                        captureOff, captureWalk,
+                                        captureCascades);
 }

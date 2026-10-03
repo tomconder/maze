@@ -135,10 +135,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   never redraws a shadow cascade, so a walk is the way to count redraws:
   `gpu shadow calls` in `capture_timing.txt` is one per cascade redraw. A
   near cascade redraws when the camera has moved one texel of its map.
+* `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
+  the whole-scene map alone, for an A/B against the cascades.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `planar`. `csm` keeps one shadow cascade,
-  the whole-scene map, for an A/B against the cascades. Two more names change
-  the measurement: `shadowcache` draws the shadow map every frame (the cache would
+  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
+  measurement: `shadowcache` draws the shadow map every frame (the cache would
   otherwise draw it once and hide its cost), and `gputimer` turns the GPU timer
   off. Without `--dump-nan-stats`, the run also writes `capture_timing.txt`
   (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass

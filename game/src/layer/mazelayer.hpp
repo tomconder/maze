@@ -29,6 +29,7 @@
 
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -93,6 +94,23 @@ public:
     uint32_t getDirectionalLightShadowMapRes() const;
 
     void setShadowMapRes(uint32_t res);
+
+    uint32_t getShadowCascades() const {
+        return shadowCascades.load(std::memory_order_relaxed);
+    }
+    void setShadowCascades(const uint32_t count) {
+        shadowCascades.store(
+            std::clamp(count, 1U,
+                       sponge::platform::opengl::scene::ShadowMap::maxCascades),
+            std::memory_order_relaxed);
+    }
+    float getShadowSplitLambda() const {
+        return shadowSplitLambda.load(std::memory_order_relaxed);
+    }
+    void setShadowSplitLambda(const float lambda) {
+        shadowSplitLambda.store(std::clamp(lambda, 0.F, 1.F),
+                                std::memory_order_relaxed);
+    }
 
     int32_t getNumLights() const;
 
@@ -181,8 +199,9 @@ public:
     // moves the camera that many world units per update along +X and keeps its
     // yaw fixed, instead of turning it: a walk shows how often a cascade
     // redraws, which a turn cannot.
+    // A non-zero `cascades` sets the shadow cascade count for the run.
     void enableCapture(uint32_t frames, bool stats, std::string off = {},
-                       float walk = 0.F);
+                       float walk = 0.F, uint32_t cascades = 0);
 
 private:
     // Loaded in the constructor, before any other member reads it.
@@ -241,11 +260,11 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget>  sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
 
-    // Cascades in use, 1 to ShadowMap::maxCascades. Read on the update thread;
-    // the debug capture lowers it from the render thread.
-    std::atomic<uint32_t> shadowCascades{
-        sponge::platform::opengl::scene::ShadowMap::maxCascades
-    };
+    // Cascades in use, 1 to ShadowMap::maxCascades, and the log/uniform blend
+    // of their split distances. Read on the update thread; ImGui and the debug
+    // capture set them from the render thread.
+    std::atomic<uint32_t> shadowCascades{ 2 };
+    std::atomic<float>    shadowSplitLambda{ 0.7F };
 
     // Render thread only. A cascade is drawn again only when its matrix
     // changes or the map is rebuilt. This assumes the shadow casters never
