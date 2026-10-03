@@ -22,8 +22,13 @@ public:
 
     // Largest side of one cascade, whatever resolution is asked for. All
     // maxCascades layers are allocated, so this bounds the map at four layers
-    // of RG32F plus the blur target and the depth buffer, about 176 MB.
+    // of RGBA32F plus the blur target and the depth buffer, about 350 MB.
     static constexpr uint32_t maxResolution = 2048;
+
+    // Must match evsmExponent in shaders/slang/include/shadows.slang. The map
+    // holds exp(c * depth) and exp(2 * c * depth), so 2 * c is at most
+    // about 88.
+    static constexpr float evsmExponent = 40.F;
 
     using Matrices = std::array<glm::mat4, maxCascades>;
 
@@ -93,6 +98,7 @@ private:
     uint32_t                          blurFbo     = 0;
 
     mutable std::array<int, 4> savedViewport{};
+    mutable bool               savedBlend = false;
 
     uint32_t shadowHeight;
     uint32_t shadowWidth;

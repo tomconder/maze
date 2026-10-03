@@ -69,7 +69,7 @@ struct FSOutput {
     float2 velocity : SV_Target1;
 };
 
-[[vk::binding(1)]] Sampler2DArray<float2> shadowMap;
+[[vk::binding(1)]] Sampler2DArray<float4> shadowMap;
 [[vk::binding(11)]] Sampler2D<float4>     sceneColor;
 [[vk::binding(12)]] Sampler2D<float>      opaqueDepth;
 [[vk::binding(13)]] SamplerCube<float4>   probeMap;
