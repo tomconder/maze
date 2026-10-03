@@ -2,6 +2,7 @@
 
 #include "platform/opengl/scene/clusteredlights.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/refraction.hpp"
 
 #include <glm/glm.hpp>
@@ -60,7 +61,11 @@ struct MazeRenderFrame {
     bool      shadowEnabled{ false };
     bool      shadowCastShadow{ false };
     glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
-    glm::mat4 lightSpaceMatrix{ 1.F };
+    // One matrix per cascade in use; the last one covers the whole scene.
+    std::array<glm::mat4,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+             lightSpaceMatrices{};
+    uint32_t cascadeCount{ 1 };
 
     static constexpr size_t maxLights = static_cast<size_t>(
         sponge::platform::opengl::scene::ClusteredLights::maxLights);
@@ -95,11 +100,13 @@ struct MazeRenderFrame {
     // needs the light frustum, not the camera one this was built from.
     std::vector<std::vector<uint8_t>> objectMeshVisible;
 
-    // Same shape as objectMeshVisible, but tested against the light's
-    // frustum (lightSpaceMatrix) instead of the camera's. Only rebuilt when
+    // Same shape as objectMeshVisible, but tested against each cascade's
+    // frustum (lightSpaceMatrices) instead of the camera's. Only rebuilt when
     // the shadow pass will actually run; stale otherwise since it goes
     // unread.
-    std::vector<std::vector<uint8_t>> objectMeshVisibleLight;
+    std::array<std::vector<std::vector<uint8_t>>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        objectMeshVisibleLight;
 
     // Post-processing
     AntiAliasing antiAliasing{ AntiAliasing::None };

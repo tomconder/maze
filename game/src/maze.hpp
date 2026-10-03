@@ -31,7 +31,8 @@ public:
     // the maze and renders that many frames, then exits. See FrameCapture.
     Maze(sponge::platform::glfw::core::ApplicationSpecification specification,
          uint32_t captureFrames = 0, bool nanStats = false,
-         std::string captureOff = {});
+         std::string captureOff = {}, float captureWalk = 0.F,
+         uint32_t captureCascades = 0);
 
     bool onUserCreate() override;
 
@@ -111,6 +112,8 @@ private:
     uint32_t    captureFrames;
     bool        nanStats;
     std::string captureOff;
+    float       captureWalk;
+    uint32_t    captureCascades;
 
     std::shared_ptr<layer::AudioLayer> audioLayer =
         std::make_shared<layer::AudioLayer>();

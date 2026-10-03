@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <optional>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -43,6 +44,10 @@ public:
     void setFloat4(std::string_view name, const glm::vec4& value) const;
     void setInteger(std::string_view name, int value) const;
     void setMat4(std::string_view name, const glm::mat4& value) const;
+    // Writes the first values.size() elements of a mat4 array. A block lists
+    // an array only as "name[0]", so a single setMat4("name[1]") finds nothing.
+    void setMat4Array(std::string_view           name,
+                      std::span<const glm::mat4> values) const;
 
     uint32_t getId() const {
         return program;

@@ -160,6 +160,17 @@ void Shader::setMat4(const std::string_view name,
     }
 }
 
+void Shader::setMat4Array(const std::string_view           name,
+                          const std::span<const glm::mat4> values) const {
+    const auto first = std::string(name) + "[0]";
+    if (!trySetInUBO(first, values.data(), values.size_bytes(),
+                     sizeof(glm::mat4))) {
+        glProgramUniformMatrix4fv(program, getUniformLocation(name),
+                                  static_cast<GLsizei>(values.size()), GL_FALSE,
+                                  glm::value_ptr(values[0]));
+    }
+}
+
 uint32_t Shader::compileShader(const GLenum       type,
                                const std::string& source) const {
     const uint32_t id = glCreateShader(type);

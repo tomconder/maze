@@ -22,7 +22,8 @@ struct RefractionParams {
     float4x4         mvp;
     float4x4         model;
     float4x4         normalMatrix;
-    float4x4         lightSpaceMatrix;
+    float4x4         lightSpaceMatrices[maxCascades];
+    int              cascadeCount;
     float4x4         mvpNoJitter;
     float4x4         prevMvpNoJitter;
     float4x4         cameraMVP;
@@ -59,7 +60,6 @@ struct VSOutput {
     float4 pos : SV_Position;
     float3 worldPosition : TEXCOORD0;
     float3 worldNormal : TEXCOORD1;
-    float4 fragPosLightSpace : TEXCOORD2;
     float4 currClip : TEXCOORD3;
     float4 prevClip : TEXCOORD4;
 };
@@ -69,10 +69,10 @@ struct FSOutput {
     float2 velocity : SV_Target1;
 };
 
-[[vk::binding(1)]] Sampler2D<float2>    shadowMap;
-[[vk::binding(11)]] Sampler2D<float4>   sceneColor;
-[[vk::binding(12)]] Sampler2D<float>    opaqueDepth;
-[[vk::binding(13)]] SamplerCube<float4> probeMap;
+[[vk::binding(1)]] Sampler2DArray<float2> shadowMap;
+[[vk::binding(11)]] Sampler2D<float4>     sceneColor;
+[[vk::binding(12)]] Sampler2D<float>      opaqueDepth;
+[[vk::binding(13)]] SamplerCube<float4>   probeMap;
 
 static const float glassRoughness = 0.089;
 
@@ -81,14 +81,13 @@ static const float glassRoughness = 0.089;
 VSOutput vertMain(VSInput input) {
     // clang-format on
     VSOutput o;
-    float4   localPos   = float4(input.position, 1.0);
-    float4   worldPos4  = mul(params.model, localPos);
-    o.pos               = mul(params.mvp, localPos);
-    o.worldPosition     = worldPos4.xyz;
-    o.worldNormal       = mul((float3x3)params.normalMatrix, input.normal);
-    o.fragPosLightSpace = mul(params.lightSpaceMatrix, worldPos4);
-    o.currClip          = mul(params.mvpNoJitter, localPos);
-    o.prevClip          = mul(params.prevMvpNoJitter, localPos);
+    float4   localPos  = float4(input.position, 1.0);
+    float4   worldPos4 = mul(params.model, localPos);
+    o.pos              = mul(params.mvp, localPos);
+    o.worldPosition    = worldPos4.xyz;
+    o.worldNormal      = mul((float3x3)params.normalMatrix, input.normal);
+    o.currClip         = mul(params.mvpNoJitter, localPos);
+    o.prevClip         = mul(params.prevMvpNoJitter, localPos);
     return o;
 };
 
@@ -142,8 +141,9 @@ FSOutput fragMain(VSOutput input, float4 fragCoord : SV_Position) {
                                       N, V, F0, glassRoughness);
     float  shadow  = 0.0;
     if (params.directionalLight.castShadow) {
-        shadow = shadowEVSM(shadowMap, input.fragPosLightSpace,
-                            params.evsmBleedThreshold);
+        shadow = shadowCascaded(shadowMap, params.lightSpaceMatrices,
+                                params.cascadeCount, input.worldPosition,
+                                params.evsmBleedThreshold);
     }
     spec += dirSpec * (1.0 - shadow) * float(params.directionalLight.enabled);
 

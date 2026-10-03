@@ -48,6 +48,7 @@ paths and repeated logs.
 * `sponge/src/{core,debug,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
 * No tool or persona names in code comments (`ponytail:`, agent names, etc.) — tag deliberate simplifications in plain words.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
+* `maxCascades` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::maxCascades` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling
@@ -129,6 +130,13 @@ maze.exe --capture-frames=600 --dump-nan-stats
   highest finite value, first hit), `capture_specks.txt` (frame and pixel of
   each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
   600 when `--capture-frames` is not given.
+* `--capture-walk=D`: with `--capture-frames`, move the camera D world units
+  per update along +X and keep its yaw fixed, instead of turning it. A turn
+  never redraws a shadow cascade, so a walk is the way to count redraws:
+  `gpu shadow calls` in `capture_timing.txt` is one per cascade redraw. A
+  near cascade redraws when the camera has moved one texel of its map.
+* `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
+  the whole-scene map alone, for an A/B against the cascades.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
   measurement: `shadowcache` draws the shadow map every frame (the cache would

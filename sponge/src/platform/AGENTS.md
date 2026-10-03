@@ -62,6 +62,30 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
+* `ShadowMap` is a stack of cascades, one layer each of a
+  `GL_TEXTURE_2D_ARRAY`. Cascade 0 is the finest; the last cascade in use
+  covers the whole scene, so it is the fallback and never changes while the
+  light is still. The lit shaders sample the array and pick the finest cascade
+  whose light-space box holds the point (`shadowCascaded()`), blending into
+  the next near its edge. They pick by position, not by camera depth, so the
+  mirrored view and the reflection probe stay correct. All
+  `maxCascades` (4) layers are always allocated, and one cascade is at most
+  `ShadowMap::maxResolution` (2048) on a side, so the 4096 quality setting
+  builds a 2048 map. The blur reads a 2D view per layer. A view does not inherit the parent's sampler state, so set
+  the filter, wrap and border colour on the view. Its name must come from
+  `glGenTextures`, because `glTextureView` rejects a name that already has a
+  target.
+* A near cascade is a box around the camera eye, not around the middle of the
+  frustum slice: a centre in front of the camera moves when the camera
+  turns, and that would redraw the cascade on every turn. Its size comes from
+  the split distances only, and its centre snaps to whole texels, so it
+  changes only when the camera moves a texel. All cascades share one light
+  view and one light-space depth range; keep that, or the depths stop
+  comparing and the VSM variance floor needs a scale per cascade.
+* `ShadowMap::fitLightSpace()` is static and touches no GL state: the update
+  thread calls it while the render thread may be replacing the `ShadowMap`.
+  The shadow pass has no object-level occlusion query: only per-mesh frustum
+  culling per cascade.
 * The pipeline is: the reflection probe capture (first frame only, after the
   shadow map), depth prepass, then the mirrored scene render for the
   planar mirror (if any), then opaque scene to a linear HDR `SceneTarget`,
