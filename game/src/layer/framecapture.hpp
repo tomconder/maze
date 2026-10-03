@@ -17,6 +17,9 @@ namespace game::layer {
 // black pixel. Render thread only.
 class FrameCapture {
 public:
+    // Render task, flip, update task, wait for render, wait for update.
+    static constexpr size_t loopFields = 5;
+
     FrameCapture(uint32_t frames, bool stats) : frames(frames), stats(stats) {}
 
     // True once `frames` frames have been recorded.
@@ -33,6 +36,15 @@ public:
         }
         last = now;
         frame++;
+    }
+
+    // The loop times of the last frame, in microseconds: render task, flip,
+    // update task, wait for render, wait for update. Call once per frame,
+    // before beginFrame().
+    void recordLoop(const std::array<uint32_t, loopFields>& us) {
+        for (size_t i = 0; i < loopFields; i++) {
+            loopMs[i].push_back(static_cast<double>(us[i]) / 1000.);
+        }
     }
 
     // `hdr` stages hold unbounded radiance, the rest hold 0..1 display values.
@@ -77,6 +89,8 @@ private:
     // Wall time between consecutive beginFrame() calls.
     std::chrono::steady_clock::time_point last;
     std::vector<double>                   frameMs;
+
+    std::array<std::vector<double>, loopFields> loopMs;
 
     std::vector<Stage> stages;
 

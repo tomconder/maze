@@ -140,7 +140,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   side is slower there. `gpu frame` has two GPU clock times: the span, from
   the start of `onRender()` to its last pass, and the period, from one frame
   start to the next. Period minus span is the time the GPU spends idle, in
-  the swap, or in work outside `onRender()`.
+  the swap, or in work outside `onRender()`. The `cpu` line gives the median
+  wall time of each part of the frame loop (`Application::loopTimes`): the
+  render task, the buffer swap inside it, the update task, and the time the
+  main thread waits for the render and for the update. The task that the main
+  thread waits on longest sets the frame rate.
 * Stages: `scene` and `bloom` (RGB16F, linear radiance), `tonemap` and `taa`
   or `fxaa` input (0 to 1), `backbuffer` (8-bit). Files go to the working
   directory, so run from the build directory as above.

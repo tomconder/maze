@@ -123,6 +123,21 @@ public:
         return imguiManager.isEventHandled();
     }
 
+    // Wall time of each part of the frame loop, in microseconds, for the last
+    // frame that finished it. Each field has one writer thread. For finding
+    // which thread sets the frame rate.
+    struct LoopTimes {
+        // Render thread: the whole render task, and the buffer swap in it.
+        std::atomic<uint32_t> renderTaskUs{ 0 };
+        std::atomic<uint32_t> flipUs{ 0 };
+        // Update thread: the whole update task.
+        std::atomic<uint32_t> updateTaskUs{ 0 };
+        // Main thread: time blocked waiting for the render and update tasks.
+        std::atomic<uint32_t> waitRenderUs{ 0 };
+        std::atomic<uint32_t> waitUpdateUs{ 0 };
+    };
+    LoopTimes loopTimes;
+
 private:
     std::string_view                               appName = "undefined";
     std::unique_ptr<opengl::renderer::Context>     graphics;

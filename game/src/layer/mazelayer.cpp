@@ -855,6 +855,12 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         }
         captureOff.clear();
     }
+    const auto& loop = Maze::get().loopTimes;
+    capture->recordLoop({ loop.renderTaskUs.load(std::memory_order_relaxed),
+                          loop.flipUs.load(std::memory_order_relaxed),
+                          loop.updateTaskUs.load(std::memory_order_relaxed),
+                          loop.waitRenderUs.load(std::memory_order_relaxed),
+                          loop.waitUpdateUs.load(std::memory_order_relaxed) });
     capture->beginFrame();
 
     // Reading a stage costs a GPU stall, so without stats only the last frame
