@@ -49,6 +49,7 @@ paths and repeated logs.
 * No tool or persona names in code comments (`ponytail:`, agent names, etc.) — tag deliberate simplifications in plain words.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * `maxCascades` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::maxCascades` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
+* `evsmExponent` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::evsmExponent` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling

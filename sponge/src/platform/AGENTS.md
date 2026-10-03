@@ -57,7 +57,8 @@ than calling GLFW/OpenGL/OS APIs directly.
 * `ClusteredLights::maxLightsPerCluster` is defined as `= maxLights`
   (currently 128) so per-cluster truncation can never occur; don't split it
   back into its own literal or it silently truncates instead of erroring.
-* `ShadowMap` uses EVSM with a Dual Kawase blur; shadow resolution is a
+* `ShadowMap` uses EVSM (exponentially warped depth, positive and negative
+  warp, so four moments in an RGBA32F layer) with a Dual Kawase blur; shadow resolution is a
   discrete quality setting (`video.shadowRes`), not a continuous slider, and
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
@@ -81,7 +82,13 @@ than calling GLFW/OpenGL/OS APIs directly.
   the split distances only, and its centre snaps to whole texels, so it
   changes only when the camera moves a texel. All cascades share one light
   view and one light-space depth range; keep that, or the depths stop
-  comparing and the VSM variance floor needs a scale per cascade.
+  comparing and the EVSM minimum spread needs a scale per cascade.
+* The warp exponent `c` is at most about 44: the map holds `exp(2c * depth)`,
+  which overflows float32 past about 88. The moments are data, so the shadow
+  draw and the blur run with `GL_BLEND` off, and the map is cleared to the
+  far-plane moments (`farMoments`), never to the global clear colour. The
+  bleed threshold (`evsmBleedThreshold`) trims the low end of the lit factor;
+  raise it only if a lit outline shows where two occluders overlap.
 * `ShadowMap::fitLightSpace()` is static and touches no GL state: the update
   thread calls it while the render thread may be replacing the `ShadowMap`.
   The shadow pass has no object-level occlusion query: only per-mesh frustum

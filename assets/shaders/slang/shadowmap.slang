@@ -1,4 +1,6 @@
 // shadowmap.slang: shadow depth vertex + fragment entry points
+#include "include/shadows.slang"
+
 uniform float4x4 lightSpaceMatrix;
 uniform float4x4 model;
 
@@ -26,11 +28,14 @@ void fragMain() {
     // clang-format on
 };
 
-// EVSM: store depth moments (depth, depth²) for variance shadow mapping.
+// EVSM: store the first two moments of the exponentially warped depth, one
+// pair for each warp sign (see shadows.slang).
 // clang-format off
 [shader("fragment")]
 float4 fragMainEVSM(VSOutput input) : SV_Target {
     // clang-format on
     float depth = input.pos.z;
-    return float4(depth, depth * depth, 0.0, 1.0);
+    float pos   = exp(evsmExponent * depth);
+    float neg   = -exp(-evsmExponent * depth);
+    return float4(pos, pos * pos, neg, neg * neg);
 };

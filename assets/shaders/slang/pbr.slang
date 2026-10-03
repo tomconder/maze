@@ -44,7 +44,7 @@ VSOutput vertMain(VSInput input) {
 };
 
 [[vk::binding(0)]] Sampler2D<float4>      texture_diffuse1;
-[[vk::binding(1)]] Sampler2DArray<float2> shadowMap;
+[[vk::binding(1)]] Sampler2DArray<float4> shadowMap;
 [[vk::binding(6)]] Sampler2D<float4>      normalMap;
 [[vk::binding(7)]] Sampler2D<float4>      occlusionMap;
 [[vk::binding(8)]] Sampler2D<float4>      emissiveMap;

@@ -20,6 +20,14 @@ using renderer::AssetManager;
 
 inline const std::string ShadowMap::shaderName = "shadowmap_evsm";
 
+// Moments of a caster at the far plane (depth 1): nothing in front of any
+// receiver, so every lookup reads as lit.
+static const std::array<float, 4> farMoments = {
+    std::exp(ShadowMap::evsmExponent), std::exp(2.F * ShadowMap::evsmExponent),
+    -std::exp(-ShadowMap::evsmExponent),
+    std::exp(-2.F * ShadowMap::evsmExponent)
+};
+
 ShadowMap::ShadowMap(const uint32_t res) :
     shadowHeight(std::min(res, maxResolution)),
     shadowWidth(std::min(res, maxResolution)) {
@@ -36,31 +44,32 @@ ShadowMap::~ShadowMap() {
 }
 
 void ShadowMap::initialize() {
-    // Moment array (RG32F): R = depth, G = depth². One layer per cascade.
+    // Moment array (RGBA32F): the first two moments of exp(c * depth) in the
+    // red and green channels and of -exp(-c * depth) in the blue and alpha
+    // channels. One layer per cascade.
     glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &momentArray);
     glTextureStorage3D(
-        momentArray, 1, GL_RG32F, static_cast<GLsizei>(shadowWidth),
+        momentArray, 1, GL_RGBA32F, static_cast<GLsizei>(shadowWidth),
         static_cast<GLsizei>(shadowHeight), static_cast<GLsizei>(maxCascades));
 
     // glTextureView needs a name that has no target yet, so these come from
     // glGenTextures; glCreateTextures would fix the target to 2D too soon.
     glGenTextures(static_cast<GLsizei>(maxCascades), momentViews.data());
     for (uint32_t i = 0; i < maxCascades; i++) {
-        glTextureView(momentViews[i], GL_TEXTURE_2D, momentArray, GL_RG32F, 0,
+        glTextureView(momentViews[i], GL_TEXTURE_2D, momentArray, GL_RGBA32F, 0,
                       1, i, 1);
     }
 
     // A view does not inherit the parent's sampler state, so the array and
     // each view get the same one. Outside a cascade's frustum the moments
     // must read as fully lit, which is what the border colour encodes.
-    constexpr std::array borderColor = { 1.F, 1.F, 0.F, 0.F };
-    const auto           setSampler  = [&borderColor](const uint32_t texture) {
+    const auto setSampler = [](const uint32_t texture) {
         glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTextureParameterfv(texture, GL_TEXTURE_BORDER_COLOR,
-                             borderColor.data());
+                             farMoments.data());
     };
     setSampler(momentArray);
     for (const auto view : momentViews) {
@@ -69,7 +78,7 @@ void ShadowMap::initialize() {
 
     // Blur ping-pong texture (same format)
     blurTexture = renderer::createRenderTarget(shadowWidth, shadowHeight,
-                                               GL_RG32F, GL_LINEAR);
+                                               GL_RGBA32F, GL_LINEAR);
 
     // Depth renderbuffer for depth testing during the moment-writing pass,
     // shared by every cascade because only one is drawn at a time
@@ -145,12 +154,22 @@ void ShadowMap::bind(const uint32_t cascade) const {
     glViewport(0, 0, static_cast<GLsizei>(shadowWidth),
                static_cast<GLsizei>(shadowHeight));
     glBindFramebuffer(GL_FRAMEBUFFER, momentFbos[cascade]);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // The moments are data, not colour: blending would mix them with the
+    // clear value and the alpha channel is a moment too.
+    savedBlend = glIsEnabled(GL_BLEND) != 0;
+    glDisable(GL_BLEND);
+    constexpr float farDepth = 1.F;
+    glClearNamedFramebufferfv(momentFbos[cascade], GL_COLOR, 0,
+                              farMoments.data());
+    glClearNamedFramebufferfv(momentFbos[cascade], GL_DEPTH, 0, &farDepth);
 }
 
 void ShadowMap::unbind(const uint32_t cascade) const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     applyBlur(cascade);
+    if (savedBlend) {
+        glEnable(GL_BLEND);
+    }
     glViewport(savedViewport[0], savedViewport[1],
                static_cast<GLsizei>(savedViewport[2]),
                static_cast<GLsizei>(savedViewport[3]));
