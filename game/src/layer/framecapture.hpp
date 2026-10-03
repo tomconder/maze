@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform/opengl/debug/gputimer.hpp"
 #include "platform/opengl/renderer/readback.hpp"
 
 #include <array>
@@ -47,9 +48,10 @@ public:
         return stats;
     }
 
-    // Writes one line per stage to capture_stats.txt and the frame-time
-    // summary to capture_timing.txt.
-    void report() const;
+    // Writes one line per stage to capture_stats.txt, and the frame-time
+    // summary with one line per timed pass to capture_timing.txt.
+    void report(
+        const sponge::platform::opengl::debug::GpuTimer::Summary& gpu) const;
 
 private:
     struct Stage {

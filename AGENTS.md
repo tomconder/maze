@@ -130,10 +130,17 @@ maze.exe --capture-frames=600 --dump-nan-stats
   each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
   600 when `--capture-frames` is not given.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Without `--dump-nan-stats`, the
-  run also writes `capture_timing.txt` (mean, p50, p95 frame time) from the
-  frames after a 60 frame warm-up. Debug builds are slower and CPU heavy, so
-  compare passes against each other, not against a release build.
+  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
+  measurement: `shadowcache` draws the shadow map every frame (the cache would
+  otherwise draw it once and hide its cost), and `gputimer` turns the GPU timer
+  off. Without `--dump-nan-stats`, the run also writes `capture_timing.txt`
+  (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
+  with its GPU time) from the frames after a 60 frame warm-up. Pass times come
+  from `GL_TIME_ELAPSED` queries, so they hold in a debug build; only the CPU
+  side is slower there. `gpu frame` has two GPU clock times: the span, from
+  the start of `onRender()` to its last pass, and the period, from one frame
+  start to the next. Period minus span is the time the GPU spends idle, in
+  the swap, or in work outside `onRender()`.
 * Stages: `scene` and `bloom` (RGB16F, linear radiance), `tonemap` and `taa`
   or `fxaa` input (0 to 1), `backbuffer` (8-bit). Files go to the working
   directory, so run from the build directory as above.
