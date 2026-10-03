@@ -110,10 +110,12 @@ primitives, windowing, or platform backends itself — see
   release capture run showed 24% lower frame time with them, in a windowed
   window. Keep them when reordering passes, and re-measure with the `cpu` line
   of `capture_timing.txt`.
-* The shadow map is drawn again only when `lightSpaceMatrix` changes or the
-  map is rebuilt (`shadowCached`). This holds only while shadow casters are
-  static. An object that moves must also invalidate the cache, or its shadow
-  freezes.
+* The shadow map is drawn again only when `lightSpaceMatrix` changes, the
+  map is rebuilt (`shadowCached`), or a shadow occlusion result changes which
+  objects the draw skips (`shadowCachedVisible`). The last case fixes a skip
+  that came from the old light's query. This holds only while shadow casters
+  are static. An object that moves must also invalidate the cache, or its
+  shadow freezes.
 * A refractive object is left out of the shadow map and the depth prepass.
   The glass pass runs after the opaque color and the light cubes, and before
   bloom, still in linear radiance. It samples a copy of the scene color.

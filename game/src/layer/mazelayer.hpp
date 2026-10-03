@@ -245,11 +245,13 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
 
     // Render thread only. The shadow map is drawn again only when the light
-    // moves or the map is rebuilt. This assumes the shadow casters never move,
-    // which holds while objectModelMatrices is static after load; animated
-    // casters must invalidate it too.
-    glm::mat4 shadowCachedMatrix{ 1.F };
-    bool      shadowCached = false;
+    // moves, the map is rebuilt, or an occlusion result changes which objects
+    // the draw skips. This assumes the shadow casters never move, which holds
+    // while objectModelMatrices is static after load; animated casters must
+    // invalidate it too.
+    glm::mat4            shadowCachedMatrix{ 1.F };
+    bool                 shadowCached = false;
+    std::vector<uint8_t> shadowCachedVisible;
     // Debug capture only: draw the shadow map every frame, to time it.
     bool shadowCacheOff = false;
     // Debug capture only: skip the GPU timer, to measure its own cost.
