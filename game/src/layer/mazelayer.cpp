@@ -625,15 +625,25 @@ void MazeLayer::onRender() {
         frame.planarActive && planarReflection &&
         !(occlusionCuller && !occlusionCuller->isVisible(frame.planarIndex));
 
-    // Phase 1: shadow map
+    // Phase 1: shadow map. The draw skips objects the last light's query found
+    // hidden, and that answer is for the old light. The query of this draw
+    // arrives a frame or more later, so draw again once it changes the skips.
+    std::vector<uint8_t> shadowVisible(frame.objectModels.size(), 1);
+    if (shadowOcclusionCuller) {
+        for (size_t i = 0; i < shadowVisible.size(); i++) {
+            shadowVisible[i] = shadowOcclusionCuller->isVisible(i) ? 1 : 0;
+        }
+    }
     if (frame.shadowEnabled && frame.shadowCastShadow &&
         (shadowCacheOff || !shadowCached ||
-         frame.lightSpaceMatrix != shadowCachedMatrix)) {
+         frame.lightSpaceMatrix != shadowCachedMatrix ||
+         shadowVisible != shadowCachedVisible)) {
         gpuBegin("shadow");
         renderSceneToDepthMap(frame);
         gpuEnd();
-        shadowCachedMatrix = frame.lightSpaceMatrix;
-        shadowCached       = true;
+        shadowCachedMatrix  = frame.lightSpaceMatrix;
+        shadowCachedVisible = std::move(shadowVisible);
+        shadowCached        = true;
     }
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights
