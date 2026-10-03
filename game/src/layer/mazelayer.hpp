@@ -198,9 +198,8 @@ private:
     // there rather than every frame like the visibility test that reads it.
     std::vector<std::vector<sponge::scene::AABB>> objectMeshWorldBounds;
     // Per-object union of objectMeshWorldBounds, index-locked with
-    // objectModels — the box occlusionCuller and shadowOcclusionCuller test
-    // each object against. Same one-time computation, same reason: objects
-    // never move.
+    // objectModels — the box occlusionCuller tests each object against. Same
+    // one-time computation, same reason: objects never move.
     std::vector<sponge::scene::AABB> objectWorldBounds;
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
@@ -210,12 +209,6 @@ private:
     // occlusionculler.hpp.
     std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
         occlusionCuller;
-    // Same technique against the shadow map's own depth: an object can be
-    // light-occluded independently of camera-occluded, so this is a separate
-    // result from occlusionCuller, alongside the light-frustum mask
-    // (objectMeshVisibleLight).
-    std::unique_ptr<sponge::platform::opengl::scene::OcclusionCuller>
-        shadowOcclusionCuller;
     std::unique_ptr<sponge::platform::opengl::scene::ClusteredLights>
         clusteredLights;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
@@ -244,14 +237,19 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget>  sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
 
-    // Render thread only. The shadow map is drawn again only when the light
-    // moves, the map is rebuilt, or an occlusion result changes which objects
-    // the draw skips. This assumes the shadow casters never move, which holds
-    // while objectModelMatrices is static after load; animated casters must
-    // invalidate it too.
-    glm::mat4            shadowCachedMatrix{ 1.F };
-    bool                 shadowCached = false;
-    std::vector<uint8_t> shadowCachedVisible;
+    // Cascades in use, 1 to ShadowMap::maxCascades. Read on the update thread;
+    // the debug capture lowers it from the render thread.
+    std::atomic<uint32_t> shadowCascades{
+        sponge::platform::opengl::scene::ShadowMap::maxCascades
+    };
+
+    // Render thread only. A cascade is drawn again only when its matrix
+    // changes or the map is rebuilt. This assumes the shadow casters never
+    // move, which holds while objectModelMatrices is static after load;
+    // animated casters must invalidate it too.
+    sponge::platform::opengl::scene::ShadowMap::Matrices shadowCachedMatrices{};
+    std::array<bool, sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCached{};
     // Debug capture only: draw the shadow map every frame, to time it.
     bool shadowCacheOff = false;
     // Debug capture only: skip the GPU timer, to measure its own cost.
@@ -387,7 +385,14 @@ private:
 
     void renderPlanarComposite(const thread::MazeRenderFrame& frame) const;
 
-    void renderSceneToDepthMap(const thread::MazeRenderFrame& frame) const;
+    // Draws one cascade into the shadow map, then blurs it.
+    void renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
+                               uint32_t                       cascade) const;
+
+    // Sets the cascade matrices and count on a lit shader and binds the
+    // shadow array on unit 1.
+    void bindShadow(const sponge::platform::opengl::renderer::Shader& shader,
+                    const thread::MazeRenderFrame& frame) const;
 
     void updateCamera(const sponge::input::InputSnapshot& snap,
                       double                              elapsedTime) const;

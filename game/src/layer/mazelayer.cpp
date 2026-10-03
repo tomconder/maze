@@ -26,6 +26,7 @@
 #include <mutex>
 #include <random>
 #include <ranges>
+#include <span>
 #include <string>
 
 namespace {
@@ -60,6 +61,7 @@ using sponge::platform::opengl::renderer::DepthFunc;
 using sponge::platform::opengl::renderer::readBackBuffer;
 using sponge::platform::opengl::renderer::readTexture;
 using sponge::platform::opengl::renderer::RendererAPI;
+using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
@@ -191,8 +193,6 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
     cube      = std::make_unique<Cube>();
     occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
-    shadowOcclusionCuller =
-        std::make_unique<OcclusionCuller>(objectModels.size());
 
     fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
                                   Maze::get().getWindow()->getHeight());
@@ -280,12 +280,15 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
         // All visible until the first captureRenderFrame() runs its cull.
         frame.objectMeshVisible.resize(objectMeshWorldBounds.size());
-        frame.objectMeshVisibleLight.resize(objectMeshWorldBounds.size());
+        for (auto& masks : frame.objectMeshVisibleLight) {
+            masks.resize(objectMeshWorldBounds.size());
+        }
         for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
             frame.objectMeshVisible[i].assign(objectMeshWorldBounds[i].size(),
                                               1);
-            frame.objectMeshVisibleLight[i].assign(
-                objectMeshWorldBounds[i].size(), 1);
+            for (auto& masks : frame.objectMeshVisibleLight) {
+                masks[i].assign(objectMeshWorldBounds[i].size(), 1);
+            }
         }
     }
 
@@ -504,18 +507,27 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.shadowCastShadow = directionalLight.castShadow;
         frame.lightDirection   = directionalLight.direction;
         if (directionalLight.enabled && directionalLight.castShadow) {
+            frame.cascadeCount = shadowCascades.load(std::memory_order_relaxed);
+            const auto& proj   = frame.cameraProjection;
             // Pure function: onRender() may be replacing shadowMap.
-            const auto fit = ShadowMap::fitLightSpace(
-                glm::normalize(directionalLight.direction), sceneBounds);
-            frame.lightSpaceMatrix = fit.matrix;
-            frame.lightEye         = fit.eye;
+            frame.lightSpaceMatrices = ShadowMap::fitLightSpace(
+                glm::normalize(directionalLight.direction), sceneBounds,
+                { .position    = frame.cameraPos,
+                  .nearPlane   = frame.nearPlane,
+                  .farPlane    = frame.farPlane,
+                  .tanHalfFovY = 1.F / proj[1][1],
+                  .aspect      = proj[1][1] / proj[0][0] },
+                frame.cascadeCount, directionalLight.shadowMapRes);
 
-            const sponge::scene::Frustum lightFrustum(frame.lightSpaceMatrix);
-            for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
-                const auto& bounds  = objectMeshWorldBounds[i];
-                auto&       visMask = frame.objectMeshVisibleLight[i];
-                for (size_t m = 0; m < bounds.size(); m++) {
-                    visMask[m] = lightFrustum.intersects(bounds[m]) ? 1 : 0;
+            for (uint32_t c = 0; c < frame.cascadeCount; c++) {
+                const sponge::scene::Frustum lightFrustum(
+                    frame.lightSpaceMatrices[c]);
+                for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+                    const auto& bounds  = objectMeshWorldBounds[i];
+                    auto&       visMask = frame.objectMeshVisibleLight[c][i];
+                    for (size_t m = 0; m < bounds.size(); m++) {
+                        visMask[m] = lightFrustum.intersects(bounds[m]) ? 1 : 0;
+                    }
                 }
             }
         }
@@ -560,8 +572,8 @@ void MazeLayer::onRender() {
     if (pendingShadowRebuild.load(std::memory_order_acquire)) {
         const auto res =
             pendingShadowRebuildRes.load(std::memory_order_relaxed);
-        shadowMap    = std::make_unique<ShadowMap>(res);
-        shadowCached = false;
+        shadowMap = std::make_unique<ShadowMap>(res);
+        shadowCached.fill(false);
         pendingShadowRebuild.store(false, std::memory_order_relaxed);
     }
 
@@ -614,9 +626,6 @@ void MazeLayer::onRender() {
     if (occlusionCuller) {
         occlusionCuller->pollResults();
     }
-    if (shadowOcclusionCuller) {
-        shadowOcclusionCuller->pollResults();
-    }
 
     // Decided once, after occlusion results are in: the mirrored render and
     // the composite that draws it must agree, or the composite can draw a
@@ -625,25 +634,19 @@ void MazeLayer::onRender() {
         frame.planarActive && planarReflection &&
         !(occlusionCuller && !occlusionCuller->isVisible(frame.planarIndex));
 
-    // Phase 1: shadow map. The draw skips objects the last light's query found
-    // hidden, and that answer is for the old light. The query of this draw
-    // arrives a frame or more later, so draw again once it changes the skips.
-    std::vector<uint8_t> shadowVisible(frame.objectModels.size(), 1);
-    if (shadowOcclusionCuller) {
-        for (size_t i = 0; i < shadowVisible.size(); i++) {
-            shadowVisible[i] = shadowOcclusionCuller->isVisible(i) ? 1 : 0;
+    // Phase 1: shadow map. Each cascade is drawn again only when its own
+    // matrix changed, so a camera that only turns redraws nothing.
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        for (uint32_t c = 0; c < frame.cascadeCount; c++) {
+            if (shadowCacheOff || !shadowCached[c] ||
+                frame.lightSpaceMatrices[c] != shadowCachedMatrices[c]) {
+                gpuBegin("shadow");
+                renderSceneToDepthMap(frame, c);
+                gpuEnd();
+                shadowCachedMatrices[c] = frame.lightSpaceMatrices[c];
+                shadowCached[c]         = true;
+            }
         }
-    }
-    if (frame.shadowEnabled && frame.shadowCastShadow &&
-        (shadowCacheOff || !shadowCached ||
-         frame.lightSpaceMatrix != shadowCachedMatrix ||
-         shadowVisible != shadowCachedVisible)) {
-        gpuBegin("shadow");
-        renderSceneToDepthMap(frame);
-        gpuEnd();
-        shadowCachedMatrix  = frame.lightSpaceMatrix;
-        shadowCachedVisible = std::move(shadowVisible);
-        shadowCached        = true;
     }
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights
@@ -845,6 +848,9 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         };
         if (has("shadowcache")) {
             shadowCacheOff = true;
+        }
+        if (has("csm")) {
+            shadowCascades.store(1, std::memory_order_relaxed);
         }
         if (has("aa")) {
             setAntiAliasing(AntiAliasing::None);
@@ -1104,10 +1110,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                                  frame.cameraView[2][2]));
     shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
 
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
-        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->bindTexture(1);
-    }
+    bindShadow(*shader, frame);
 
     if (ssao) {
         RendererAPI::bindTexture(10, ssao->getTexture());
@@ -1178,11 +1181,8 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
     shader->setBoolean("directionalLight.castShadow", frame.shadowCastShadow);
     shader->setFloat3("directionalLight.direction", frame.lightDirection);
     shader->setFloat3("directionalLight.color", directionalLight.color);
-    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
 
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
-        shadowMap->bindTexture(1);
-    }
+    bindShadow(*shader, frame);
 
     RendererAPI::bindTexture(11, sceneCopy);
     RendererAPI::bindTexture(12, depthPrepass->getDepthTexture());
@@ -1337,10 +1337,7 @@ void MazeLayer::renderPlanarReflection(
     shader->setBoolean("ssaoEnabled", false);
     shader->setBoolean("probeEnabled", false);
     shader->setFloat3("viewPos", frame.planarViewPos);
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
-        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->bindTexture(1);
-    }
+    bindShadow(*shader, frame);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         if (i == frame.planarIndex || frame.objectRefraction[i].refractive ||
@@ -1377,10 +1374,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     shader->setBoolean("ssaoEnabled", false);
     shader->setBoolean("probeEnabled", false);
     shader->setFloat3("viewPos", desc.position);
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
-        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
-        shadowMap->bindTexture(1);
-    }
+    bindShadow(*shader, frame);
 
     for (int face = 0; face < 6; face++) {
         // beginFace() clears the face. On NVIDIA, a clear with this program
@@ -1452,39 +1446,40 @@ void MazeLayer::renderPlanarComposite(
     planarShader->unbind();
 }
 
-void MazeLayer::renderSceneToDepthMap(
-    const thread::MazeRenderFrame& frame) const {
-    shadowMap->bind();
+void MazeLayer::bindShadow(const Shader&                  shader,
+                           const thread::MazeRenderFrame& frame) const {
+    shader.setMat4Array(
+        "lightSpaceMatrices",
+        std::span(frame.lightSpaceMatrices).first(frame.cascadeCount));
+    shader.setInteger("cascadeCount", static_cast<int>(frame.cascadeCount));
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        shadowMap->bindTexture(1);
+    }
+}
+
+void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
+                                      const uint32_t cascade) const {
+    shadowMap->bind(cascade);
 
     const auto shader = shadowMap->getShader();
     shader->bind();
-    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrix);
+    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrices[cascade]);
 
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         if (frame.objectRefraction[i].refractive) {
             continue;
         }
-        if (shadowOcclusionCuller && !shadowOcclusionCuller->isVisible(i)) {
-            continue;
-        }
         shader->setMat4("model", frame.objectModelMatrices[i]);
-        frame.objectModels[i]->render(shader, frame.objectMeshVisibleLight[i]);
+        frame.objectModels[i]->render(shader,
+                                      frame.objectMeshVisibleLight[cascade][i]);
     }
 
     shader->unbind();
 
-    // Test every object's AABB against the shadow depth just rasterized,
-    // same technique as renderOcclusionQueries() but against the light's own
-    // depth instead of the camera's — still bound, so no FBO switch needed.
-    if (shadowOcclusionCuller) {
-        shadowOcclusionCuller->query(objectWorldBounds, frame.lightSpaceMatrix,
-                                     frame.lightEye);
-    }
-
     // The blur runs inside unbind(); time it apart from the draw.
     gpuEnd();
     gpuBegin("shadowblur");
-    shadowMap->unbind();
+    shadowMap->unbind(cascade);
 }
 
 void MazeLayer::updateCamera(const InputSnapshot& snap,

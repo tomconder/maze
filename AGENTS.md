@@ -48,6 +48,7 @@ paths and repeated logs.
 * `sponge/src/{core,debug,event,input,layer,logging,scene,thread}` must not call GLFW/GL/OS APIs — those go through `sponge/src/platform/`.
 * No tool or persona names in code comments (`ponytail:`, agent names, etc.) — tag deliberate simplifications in plain words.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
+* `maxCascades` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::maxCascades` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling
@@ -130,8 +131,9 @@ maze.exe --capture-frames=600 --dump-nan-stats
   each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
   600 when `--capture-frames` is not given.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
-  measurement: `shadowcache` draws the shadow map every frame (the cache would
+  `ssao`, `ssr`, `shadow`, `probe`, `planar`. `csm` keeps one shadow cascade,
+  the whole-scene map, for an A/B against the cascades. Two more names change
+  the measurement: `shadowcache` draws the shadow map every frame (the cache would
   otherwise draw it once and hide its cost), and `gputimer` turns the GPU timer
   off. Without `--dump-nan-stats`, the run also writes `capture_timing.txt`
   (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass

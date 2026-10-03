@@ -1,5 +1,6 @@
 #pragma once
 #include "lighting.slang"
+#include "shadows.slang"
 
 // Per-program uniform blocks shared by both the vertex and fragment stage.
 //
@@ -19,10 +20,11 @@
 // slangc, so a shader only emits the block it actually uses.
 
 struct PbrParams {
-    float4x4 mvp;               // vertex
-    float4x4 model;             // vertex
-    float4x4 normalMatrix;      // vertex; precomputed transpose(inverse(model)) on CPU
-    float4x4 lightSpaceMatrix;  // vertex
+    float4x4 mvp;           // vertex
+    float4x4 model;         // vertex
+    float4x4 normalMatrix;  // vertex; precomputed transpose(inverse(model)) on CPU
+    float4x4 lightSpaceMatrices[maxCascades];
+    int      cascadeCount;
     float    metallicFactor;
     float    roughnessFactor;
     float    ao;

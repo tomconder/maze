@@ -26,7 +26,6 @@ struct VSOutput {
     float3 worldPosition : TEXCOORD0;
     float3 worldNormal : TEXCOORD1;
     float2 texCoords : TEXCOORD2;
-    float4 fragPosLightSpace : TEXCOORD3;
     float4 worldTangent : TEXCOORD4;
 };
 
@@ -35,24 +34,23 @@ struct VSOutput {
 VSOutput vertMain(VSInput input) {
     // clang-format on
     VSOutput output;
-    float4   worldPos4       = mul(params.model, float4(input.position, 1.0));
-    output.pos               = mul(params.mvp, float4(input.position, 1.0));
-    output.worldPosition     = worldPos4.xyz;
-    output.worldNormal       = mul((float3x3)params.normalMatrix, input.normal);
-    output.texCoords         = input.texCoord;
-    output.fragPosLightSpace = mul(params.lightSpaceMatrix, worldPos4);
-    output.worldTangent      = float4(mul((float3x3)params.model, input.tangent.xyz), input.tangent.w);
+    float4   worldPos4   = mul(params.model, float4(input.position, 1.0));
+    output.pos           = mul(params.mvp, float4(input.position, 1.0));
+    output.worldPosition = worldPos4.xyz;
+    output.worldNormal   = mul((float3x3)params.normalMatrix, input.normal);
+    output.texCoords     = input.texCoord;
+    output.worldTangent  = float4(mul((float3x3)params.model, input.tangent.xyz), input.tangent.w);
     return output;
 };
 
-[[vk::binding(0)]] Sampler2D<float4>    texture_diffuse1;
-[[vk::binding(1)]] Sampler2D<float2>    shadowMap;
-[[vk::binding(6)]] Sampler2D<float4>    normalMap;
-[[vk::binding(7)]] Sampler2D<float4>    occlusionMap;
-[[vk::binding(8)]] Sampler2D<float4>    emissiveMap;
-[[vk::binding(9)]] Sampler2D<float4>    metallicRoughnessMap;
-[[vk::binding(10)]] Sampler2D<float>    ssaoTexture;
-[[vk::binding(12)]] SamplerCube<float4> probeMap;
+[[vk::binding(0)]] Sampler2D<float4>      texture_diffuse1;
+[[vk::binding(1)]] Sampler2DArray<float2> shadowMap;
+[[vk::binding(6)]] Sampler2D<float4>      normalMap;
+[[vk::binding(7)]] Sampler2D<float4>      occlusionMap;
+[[vk::binding(8)]] Sampler2D<float4>      emissiveMap;
+[[vk::binding(9)]] Sampler2D<float4>      metallicRoughnessMap;
+[[vk::binding(10)]] Sampler2D<float>      ssaoTexture;
+[[vk::binding(12)]] SamplerCube<float4>   probeMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -136,7 +134,8 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness);
     float  shadow     = 0.0;
     if (params.directionalLight.castShadow) {
-        shadow = shadowEVSM(shadowMap, input.fragPosLightSpace, params.evsmBleedThreshold);
+        shadow = shadowCascaded(shadowMap, params.lightSpaceMatrices, params.cascadeCount,
+                                input.worldPosition, params.evsmBleedThreshold);
     }
     Lo += dirContrib * (1.0 - shadow) * float(params.directionalLight.enabled);
 
