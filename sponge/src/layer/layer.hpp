@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/base.hpp"
 #include "event/event.hpp"
 
 #include <string>
@@ -15,14 +14,11 @@ public:
 
     virtual void onDetach() {}
 
-    virtual void onEvent(event::Event& event) {
-        UNUSED(event);
-    }
+    virtual void onEvent([[maybe_unused]] event::Event& event) {}
 
     virtual void onImGuiRender() {}
 
-    virtual bool onUpdate(const double elapsedTime) {
-        UNUSED(elapsedTime);
+    virtual bool onUpdate([[maybe_unused]] const double elapsedTime) {
         return true;
     }
 

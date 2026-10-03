@@ -72,8 +72,7 @@ void Context::init(GLFWwindow* window) const {
     }
 }
 
-void Context::release(void* window) const {
-    UNUSED(window);
+void Context::release(void*) const {
     glfwMakeContextCurrent(nullptr);
 }
 

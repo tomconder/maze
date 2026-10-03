@@ -390,8 +390,6 @@ void OptionLayer::onEvent(Event& event) {
 }
 
 bool OptionLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
-
     {
         using sponge::input::GameAction;
         auto& mgr =
@@ -524,7 +522,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                                 selectedItem == OptionMenuItem::Return,
                                 textHoverColor);
 
-    UNUSED(returnButton->onUpdate(elapsedTime));
+    returnButton->onUpdate(elapsedTime);
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] =

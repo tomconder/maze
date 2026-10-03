@@ -291,7 +291,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
         button->setPosition({ x, y }, { x + w, y + h });
         ui::updateMenuButtonVisuals(button, selectedItem == item,
                                     textHoverColor);
-        UNUSED(button->onUpdate(elapsedTime));
+        button->onUpdate(elapsedTime);
     }
 
     // the strip lines up with the rows, so it starts at the first row's edge

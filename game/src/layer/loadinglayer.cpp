@@ -1,6 +1,5 @@
 #include "layer/loadinglayer.hpp"
 
-#include "core/base.hpp"
 #include "maze.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 
@@ -151,9 +150,7 @@ void LoadingLayer::setActive(const bool value) {
     });
 }
 
-bool LoadingLayer::onUpdate(const double elapsedTime) {
-    UNUSED(elapsedTime);
-
+bool LoadingLayer::onUpdate(const double) {
     renderProgress();
 
     if (!parseDone.load(std::memory_order_acquire)) {

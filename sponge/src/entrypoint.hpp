@@ -33,12 +33,7 @@ int main(const int argc, char* argv[]) {
 }
 
 #ifdef _WIN32
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine, int nShowCmd) {
-    UNUSED(hInstance);
-    UNUSED(hPrevInstance);
-    UNUSED(lpCmdLine);
-    UNUSED(nShowCmd);
+int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     return sponge::core::main(__argc, __argv);
 }
 #endif

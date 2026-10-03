@@ -1,6 +1,5 @@
 #include "layer/exitlayer.hpp"
 
-#include "core/base.hpp"
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/mousecode.hpp"
@@ -208,7 +207,7 @@ bool ExitLayer::onUpdate(const double elapsedTime) {
         ui::updateMenuButtonVisuals(menuButtons[i].get(),
                                     static_cast<size_t>(selectedItem) == i,
                                     textHoverColor);
-        UNUSED(menuButtons[i]->onUpdate(elapsedTime));
+        menuButtons[i]->onUpdate(elapsedTime);
     }
 
     if (!isActive()) {

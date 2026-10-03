@@ -1,6 +1,5 @@
 #include "platform/opengl/renderer/errorhandler.hpp"
 
-#include "core/base.hpp"
 #include "glad/gl.h"
 #include "logging/log.hpp"
 
@@ -8,15 +7,10 @@
 #include <string>
 
 void GLAPIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
-                             GLenum severity, GLsizei length,
-                             const char* message, const void* userParam) {
+                             GLenum severity, GLsizei, const char* message,
+                             const void*) {
     std::string sourceStr;
     std::string typeStr;
-
-    UNUSED(id);
-    UNUSED(length);
-    UNUSED(message);
-    UNUSED(userParam);
 
     switch (source) {
         case GL_DEBUG_SOURCE_API:

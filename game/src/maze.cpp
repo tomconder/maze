@@ -1,6 +1,5 @@
 #include "maze.hpp"
 
-#include "core/base.hpp"
 #include "core/settings.hpp"
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
@@ -100,16 +99,15 @@ void Maze::onEvent(sponge::event::Event& event) {
     Application::onEvent(event);
 }
 
-bool Maze::onWindowClose(const sponge::event::WindowCloseEvent& event) {
-    UNUSED(event);
+bool Maze::onWindowClose(const sponge::event::WindowCloseEvent&) {
     isRunning = false;
     return true;
 }
 }  // namespace game
 
 std::unique_ptr<sponge::platform::glfw::core::Application>
-    sponge::platform::glfw::core::createApplication(const int argc,
-                                                    char**    argv) {
+    sponge::platform::glfw::core::createApplication(
+        [[maybe_unused]] const int argc, [[maybe_unused]] char** argv) {
     using sponge::core::Settings;
 
     uint32_t    captureFrames = 0;
@@ -157,9 +155,6 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     if (nanStats && captureFrames == 0) {
         captureFrames = 600;
     }
-#else
-    UNUSED(argc);
-    UNUSED(argv);
 #endif
     const bool capturing = captureFrames > 0;
 

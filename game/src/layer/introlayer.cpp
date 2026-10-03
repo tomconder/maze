@@ -1,6 +1,5 @@
 #include "layer/introlayer.hpp"
 
-#include "core/base.hpp"
 #include "input/gameaction.hpp"
 #include "input/inputcontext.hpp"
 #include "input/mousecode.hpp"
@@ -213,7 +212,7 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         ui::updateMenuButtonVisuals(menuButtons[i].get(),
                                     static_cast<size_t>(selectedItem) == i,
                                     textHoverColor);
-        UNUSED(menuButtons[i]->onUpdate(elapsedTime));
+        menuButtons[i]->onUpdate(elapsedTime);
     }
 
     static const std::string versionText = project_version + "-" + git_sha;

@@ -125,9 +125,7 @@ void Window::init(const sponge::core::WindowProps& props) {
     });
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, const int button,
-                                          const int action, const int mods) {
-        UNUSED(mods);
-
+                                          const int action, const int) {
         if (Application::get().isEventHandledByImGui()) {
             return;
         }
