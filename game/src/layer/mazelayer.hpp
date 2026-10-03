@@ -6,6 +6,7 @@
 #include "input/inputsnapshot.hpp"
 #include "layer/framecapture.hpp"
 #include "layer/layer.hpp"
+#include "platform/opengl/debug/gputimer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/scene/bloom.hpp"
 #include "platform/opengl/scene/clusteredlights.hpp"
@@ -35,6 +36,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace game::layer {
@@ -173,7 +175,9 @@ public:
     // Debug capture run: renders `frames` frames while the camera turns once,
     // then the app exits. See FrameCapture. Call before the app runs.
     // `off` is a comma list of passes to disable for the run, to find which
-    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar.
+    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar. Two
+    // more change how the run measures: shadowcache draws the shadow map every
+    // frame, and gputimer turns the per-pass GPU timer off.
     void enableCapture(uint32_t frames, bool stats, std::string off = {});
 
 private:
@@ -246,6 +250,10 @@ private:
     // casters must invalidate it too.
     glm::mat4 shadowCachedMatrix{ 1.F };
     bool      shadowCached = false;
+    // Debug capture only: draw the shadow map every frame, to time it.
+    bool shadowCacheOff = false;
+    // Debug capture only: skip the GPU timer, to measure its own cost.
+    bool gpuTimerOff = false;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
@@ -331,6 +339,9 @@ private:
 
     std::optional<FrameCapture> capture;
     std::string                 captureOff;
+    // Capture runs only; null otherwise, which turns gpuBegin and gpuEnd into
+    // no-ops.
+    mutable std::optional<sponge::platform::opengl::debug::GpuTimer> gpuTimer;
     // Degrees of yaw per update while capturing; 0 leaves the camera alone.
     float captureYawStep = 0.F;
 
@@ -357,6 +368,16 @@ private:
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
     void recordCapture(bool fxaaActive, bool taaActive, uint32_t bloomTexId);
+    void gpuBegin(std::string_view name) const {
+        if (gpuTimer) {
+            gpuTimer->begin(name);
+        }
+    }
+    void gpuEnd() const {
+        if (gpuTimer) {
+            gpuTimer->end();
+        }
+    }
 
     void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
 

@@ -54,6 +54,7 @@ using sponge::event::WindowResizeEvent;
 using sponge::input::GameAction;
 using sponge::input::InputSnapshot;
 using sponge::platform::glfw::core::Application;
+using sponge::platform::opengl::debug::GpuTimer;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::renderer::DepthFunc;
 using sponge::platform::opengl::renderer::readBackBuffer;
@@ -597,6 +598,13 @@ void MazeLayer::onRender() {
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
+    if (capture && !capture->wantsStats() && !gpuTimerOff) {
+        if (!gpuTimer) {
+            gpuTimer.emplace();
+        }
+        gpuTimer->nextFrame();
+    }
+
     // Read the latest snapshot from the update thread.
     const auto& frame =
         renderFrames[renderReadIndex.load(std::memory_order_acquire)];
@@ -619,8 +627,11 @@ void MazeLayer::onRender() {
 
     // Phase 1: shadow map
     if (frame.shadowEnabled && frame.shadowCastShadow &&
-        (!shadowCached || frame.lightSpaceMatrix != shadowCachedMatrix)) {
+        (shadowCacheOff || !shadowCached ||
+         frame.lightSpaceMatrix != shadowCachedMatrix)) {
+        gpuBegin("shadow");
         renderSceneToDepthMap(frame);
+        gpuEnd();
         shadowCachedMatrix = frame.lightSpaceMatrix;
         shadowCached       = true;
     }
@@ -636,23 +647,31 @@ void MazeLayer::onRender() {
     }
 
     // Phase 2: depth prepass
+    gpuBegin("prepass");
     renderDepthPrepass(frame);
+    gpuEnd();
 
     // Phase 2.5: occlusion queries against the depth just rasterized —
     // results feed next frame's occlusion skip, not this one's.
+    gpuBegin("occlusion");
     renderOcclusionQueries(frame);
+    gpuEnd();
 
     // Phase 2.6: the scene seen in the planar mirror.
     if (planarDrawn) {
+        gpuBegin("planar");
         renderPlanarReflection(frame);
+        gpuEnd();
     }
 
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
+        gpuBegin("lightcull");
         clusteredLights->update(frame.lightPositions.data(),
                                 frame.lightColors.data(),
                                 frame.lightAttenuationIndex, frame.numLights,
                                 frame.cameraView, frame.cameraProjection);
+        gpuEnd();
     }
 
     // Phase 3.5: SSAO, against the depth prepass's depth + view-space normal.
@@ -660,15 +679,18 @@ void MazeLayer::onRender() {
     // of the texture on frame.ssaoEnabled, so a stale/unrun texture is never
     // sampled.
     if (frame.ssaoEnabled && ssao) {
+        gpuBegin("ssao");
         ssao->process(depthPrepass->getDepthTexture(),
                       depthPrepass->getNormalTexture(), frame.cameraProjection,
                       glm::inverse(frame.cameraProjection), frame.ssaoRadius);
+        gpuEnd();
     }
 
     // Phase 4: opaque pass, into the linear HDR scene target.
     const bool fxaaActive = frame.antiAliasing == AntiAliasing::Fxaa && fxaa;
     const bool taaActive  = frame.antiAliasing == AntiAliasing::Taa && taa;
 
+    gpuBegin("opaque");
     sceneTarget->begin();
 
     // Blit prepass depth in so the opaque pass can use GL_LEQUAL (zero
@@ -687,6 +709,7 @@ void MazeLayer::onRender() {
     if (planarDrawn) {
         renderPlanarComposite(frame);
     }
+    gpuEnd();
 
     // Before glass, so glass refracts the reflections. The copy is a
     // different texture from the scene color attachment; the glass pass makes
@@ -699,13 +722,16 @@ void MazeLayer::onRender() {
         std::ranges::any_of(
             std::views::iota(size_t{ 0 }, frame.objectReflectivity.size()),
             usesSsr)) {
+        gpuBegin("ssr");
         ssr->apply(sceneTarget->copyColor(), depthPrepass->getDepthTexture(),
                    depthPrepass->getNormalTexture(), frame.cameraProjection,
                    glm::inverse(frame.cameraProjection));
+        gpuEnd();
     }
 
     if (std::ranges::any_of(frame.objectRefraction,
                             &scene::SceneRefraction::refractive)) {
+        gpuBegin("glass");
         // The copy is a different texture from the scene color attachment.
         // Sampling that attachment while drawing it is undefined.
         const auto sceneCopy = sceneTarget->copyColor();
@@ -722,6 +748,7 @@ void MazeLayer::onRender() {
         }
         sceneTarget->endGlass();
         RendererAPI::setAlphaBlend(true);
+        gpuEnd();
     }
 
     RendererAPI::setDepth(DepthFunc::Less, true);
@@ -735,13 +762,16 @@ void MazeLayer::onRender() {
     uint32_t bloomTexId  = 0;
     float    bloomWeight = 0.F;
     if (frame.bloomEnabled && bloom) {
+        gpuBegin("bloom");
         bloom->process(sceneTarget->getTexture(), frame.bloomThreshold);
+        gpuEnd();
         bloomTexId  = bloom->getBloomTexture();
         bloomWeight = frame.bloomIntensity;
     }
 
     // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
     // resolved image and does its own dithered write to the back buffer.
+    gpuBegin("resolve");
     if (fxaaActive) {
         fxaa->begin();
     } else if (taaActive) {
@@ -749,19 +779,28 @@ void MazeLayer::onRender() {
     }
 
     sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive);
+    gpuEnd();
 
     if (fxaaActive) {
+        gpuBegin("aa");
         fxaa->end();
         fxaa->apply();
+        gpuEnd();
     } else if (taaActive) {
         // Simplification: TAA accumulates the tone-mapped image, which is where
         // it already ran. Accumulating in linear with a reversible weighting
         // curve resolves highlight edges better, but that change belongs inside
         // TAA, not in this pass order.
+        gpuBegin("aa");
         taa->end();
         taa->apply(depthPrepass->getDepthTexture(),
                    depthPrepass->getVelocityTexture(), frame.invCameraMVP,
                    frame.prevCameraViewProj);
+        gpuEnd();
+    }
+
+    if (gpuTimer) {
+        gpuTimer->endFrame();
     }
 
     // Before the first populated frame the scene is the untouched defaults.
@@ -776,6 +815,7 @@ void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
                               std::string off) {
     capture.emplace(frames, stats);
     captureOff     = std::move(off);
+    gpuTimerOff    = ("," + captureOff + ",").contains(",gputimer,");
     captureYawStep = 360.F / static_cast<float>(std::max(frames, 1U));
 }
 
@@ -789,6 +829,9 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         const auto has  = [&list](const std::string& name) {
             return list.contains("," + name + ",");
         };
+        if (has("shadowcache")) {
+            shadowCacheOff = true;
+        }
         if (has("aa")) {
             setAntiAliasing(AntiAliasing::None);
         }
@@ -836,7 +879,7 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
     }
 
     if (capture->done()) {
-        capture->report();
+        capture->report(gpuTimer ? gpuTimer->summary(60) : GpuTimer::Summary{});
         Maze::get().exit();
     }
 }
@@ -1418,6 +1461,9 @@ void MazeLayer::renderSceneToDepthMap(
                                      shadowMap->getEyePosition());
     }
 
+    // The blur runs inside unbind(); time it apart from the draw.
+    gpuEnd();
+    gpuBegin("shadowblur");
     shadowMap->unbind();
 }
 

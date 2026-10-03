@@ -146,7 +146,8 @@ void FrameCapture::record(const std::string& stage, const Image& image,
     }
 }
 
-void FrameCapture::report() const {
+void FrameCapture::report(
+    const sponge::platform::opengl::debug::GpuTimer::Summary& gpu) const {
     // A file, not the log: release builds compile SPONGE_INFO out.
     std::ofstream out("capture_stats.txt");
     out << std::format("frames={}\n", std::min(frame, frames));
@@ -175,6 +176,18 @@ void FrameCapture::report() const {
                               ms.size(), sum / static_cast<double>(ms.size()),
                               ms[ms.size() / 2], ms[ms.size() * 95 / 100],
                               1000. * static_cast<double>(ms.size()) / sum);
+        const auto& f = gpu.frame;
+        if (f.frames > 0) {
+            timing << std::format(
+                "gpu frame      span p50={:.3f}ms mean={:.3f}ms  period "
+                "p50={:.3f}ms mean={:.3f}ms\n",
+                f.spanMedian, f.spanMean, f.periodMedian, f.periodMean);
+        }
+        for (const auto& s : gpu.passes) {
+            timing << std::format(
+                "gpu {:<10} calls={} p50={:.3f}ms perFrame={:.3f}ms\n", s.name,
+                s.calls, s.medianMs, s.perFrameMs);
+        }
     }
 
     std::ofstream specksOut("capture_specks.txt");
