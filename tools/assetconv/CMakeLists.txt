@@ -18,29 +18,24 @@ add_executable(assetconv ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(assetconv PRIVATE src)
 
 # Every asset format lives here, not in the engine: cgltf for glTF,
-# stb_image to decode source images, bc7enc for BC7
-# blocks, stb_image_resize2 for the mip chain.
+# stb_image to decode source images, bc7enc for BC7 blocks, stb_image_resize2
+# for the mip chain, stb_rect_pack for the atlases.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
-# cgltf, stb @ vendored with the engine originally, see git history
+# cgltf and stb come from vcpkg. stb_image_resize2 stays vendored in deps/stb
+# because the port's copy (v2.10) is older than ours (v2.18).
 # Own target so they take the engine's options but not its warnings.
+find_package(Stb REQUIRED)
+find_path(CGLTF_INCLUDE_DIR cgltf.h REQUIRED)
 add_library(assetconv_deps OBJECT
         deps/bc7enc/bc7enc.cpp
-        deps/cgltf/cgltf.cpp
-        deps/stb/stb_image.cpp)
+        deps/headeronly.cpp)
 set_target_properties(assetconv_deps PROPERTIES CXX_STANDARD 23)
 target_include_directories(assetconv_deps PUBLIC
-        deps/bc7enc deps/cgltf deps/stb)
+        deps/bc7enc ${CGLTF_INCLUDE_DIR} ${Stb_INCLUDE_DIR})
 target_link_libraries(assetconv_deps PRIVATE sponge::options)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 target_link_libraries(assetconv PRIVATE assetconv_deps)
-
-# stb_rect_pack packs the sprite and glyph atlases. It is vendored under
-# sponge/deps and builds clean at /W4.
-target_sources(assetconv PRIVATE
-        ${CMAKE_SOURCE_DIR}/sponge/deps/stb/stb_rect_pack.cpp)
-target_include_directories(assetconv PRIVATE
-        ${CMAKE_SOURCE_DIR}/sponge/deps/stb)
 
 # Fonts rasterize and shape at bake time; the engine reads the tables.
 find_package(Freetype REQUIRED)
