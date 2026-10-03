@@ -26,6 +26,11 @@ public:
     static void setAlphaBlend(bool enabled);
 
     static void bindTexture(uint32_t unit, uint32_t texture);
+
+    // Hands the queued commands to the GPU now. The driver otherwise holds
+    // them until the swap, so the GPU starts only after the CPU has recorded
+    // the whole frame.
+    static void flush();
 };
 
 }  // namespace sponge::platform::opengl::renderer

@@ -104,6 +104,12 @@ primitives, windowing, or platform backends itself — see
   from a texture readback. Their defaults live in the `bloom` section of
   `assets/scenes/maze.yaml`, not in settings; the debug sliders change them
   for the current run only.
+* `onRender()` calls `RendererAPI::flush()` after the prepass and after the
+  opaque pass. The driver holds queued commands until the swap, so without
+  them the GPU starts only after the CPU has recorded the whole frame. A
+  release capture run showed 24% lower frame time with them, in a windowed
+  window. Keep them when reordering passes, and re-measure with the `cpu` line
+  of `capture_timing.txt`.
 * The shadow map is drawn again only when `lightSpaceMatrix` changes or the
   map is rebuilt (`shadowCached`). This holds only while shadow casters are
   static. An object that moves must also invalidate the cache, or its shadow
