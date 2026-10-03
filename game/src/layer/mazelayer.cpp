@@ -343,6 +343,17 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         return true;
     }
 
+    // A capture run moves the camera whatever the UI holds: an ImGui window
+    // under the pointer, or an overlay, would otherwise freeze the turn or the
+    // walk and the run would measure a still camera.
+    if (captureYawStep != 0.F) {
+        camera->mouseMove({ captureYawStep, 0.F });
+    }
+    if (captureWalkStep != 0.F) {
+        camera->setPosition(camera->getPosition() +
+                            glm::vec3(captureWalkStep, 0.F, 0.F));
+    }
+
     auto&      inputManager = Application::get().getInputManager();
     const bool overlayActive =
         Maze::get().getExitLayer()->isActive() || Maze::get().isOptionsOpen();
@@ -829,11 +840,13 @@ void MazeLayer::onRender() {
 }
 
 void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
-                              std::string off) {
+                              std::string off, const float walk) {
     capture.emplace(frames, stats);
-    captureOff     = std::move(off);
-    gpuTimerOff    = ("," + captureOff + ",").contains(",gputimer,");
-    captureYawStep = 360.F / static_cast<float>(std::max(frames, 1U));
+    captureOff      = std::move(off);
+    gpuTimerOff     = ("," + captureOff + ",").contains(",gputimer,");
+    captureWalkStep = walk;
+    captureYawStep =
+        walk != 0.F ? 0.F : 360.F / static_cast<float>(std::max(frames, 1U));
 }
 
 void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
@@ -1492,10 +1505,6 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
                        static_cast<double>(snap.getAxis(GameAction::MoveLeft)));
     camera->strafeRight(
         elapsedTime * static_cast<double>(snap.getAxis(GameAction::MoveRight)));
-
-    if (captureYawStep != 0.F) {
-        camera->mouseMove({ captureYawStep, 0.F });
-    }
 
     // Apply mouse look only when the mouse is captured (left button held),
     // or always for gamepad look (right stick).

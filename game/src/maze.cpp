@@ -19,11 +19,13 @@ namespace game {
 using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze::Maze(ApplicationSpecification specification, const uint32_t captureFrames,
-           const bool nanStats, std::string captureOff) :
+           const bool nanStats, std::string captureOff,
+           const float captureWalk) :
     Application(std::move(specification)),
     captureFrames(captureFrames),
     nanStats(nanStats),
-    captureOff(std::move(captureOff)) {
+    captureOff(std::move(captureOff)),
+    captureWalk(captureWalk) {
     // Base class handles singleton pattern
 }
 
@@ -53,7 +55,8 @@ bool Maze::onUserCreate() {
     // timeout is also what starts the intro.
     splashScreenLayer->setActive(captureFrames == 0);
     if (captureFrames > 0) {
-        mazeLayer->enableCapture(captureFrames, nanStats, captureOff);
+        mazeLayer->enableCapture(captureFrames, nanStats, captureOff,
+                                 captureWalk);
     }
 
     const auto savedAa = sponge::core::Settings::getUInt32(
@@ -111,6 +114,7 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     uint32_t    captureFrames = 0;
     bool        nanStats      = false;
     std::string captureOff;
+    float       captureWalk = 0.F;
 
 #ifndef NDEBUG
     // Debug builds only; a release build ignores these flags.
@@ -118,7 +122,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // frames, write the last one as float maps and exit. --dump-nan-stats:
     // also scan every frame (N defaults to 600). A missing or non-numeric N
     // leaves the normal start. --capture-off=a,b: turn passes off for the run
-    // (see MazeLayer::enableCapture).
+    // (see MazeLayer::enableCapture). --capture-walk=D: walk D world units
+    // per frame along +X instead of turning.
     constexpr std::string_view          captureFlag = "--capture-frames";
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&captureFrames](const std::string_view value) {
@@ -136,6 +141,10 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             nanStats = true;
         } else if (args[i].starts_with("--capture-off=")) {
             captureOff = std::string(args[i].substr(14));
+        } else if (args[i].starts_with("--capture-walk=")) {
+            const auto value = args[i].substr(15);
+            std::from_chars(value.data(), value.data() + value.size(),
+                            captureWalk);
         }
     }
     if (nanStats && captureFrames == 0) {
@@ -157,5 +166,5 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     };
 
     return std::make_unique<game::Maze>(spec, captureFrames, nanStats,
-                                        captureOff);
+                                        captureOff, captureWalk);
 }

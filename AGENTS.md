@@ -130,6 +130,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   highest finite value, first hit), `capture_specks.txt` (frame and pixel of
   each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
   600 when `--capture-frames` is not given.
+* `--capture-walk=D`: with `--capture-frames`, move the camera D world units
+  per update along +X and keep its yaw fixed, instead of turning it. A turn
+  never redraws a shadow cascade, so a walk is the way to count redraws:
+  `gpu shadow calls` in `capture_timing.txt` is one per cascade redraw. A
+  near cascade redraws when the camera has moved one texel of its map.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`. `csm` keeps one shadow cascade,
   the whole-scene map, for an A/B against the cascades. Two more names change

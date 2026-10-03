@@ -177,8 +177,12 @@ public:
     // `off` is a comma list of passes to disable for the run, to find which
     // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar. Two
     // more change how the run measures: shadowcache draws the shadow map every
-    // frame, and gputimer turns the per-pass GPU timer off.
-    void enableCapture(uint32_t frames, bool stats, std::string off = {});
+    // frame, and gputimer turns the per-pass GPU timer off. A non-zero `walk`
+    // moves the camera that many world units per update along +X and keeps its
+    // yaw fixed, instead of turning it: a walk shows how often a cascade
+    // redraws, which a turn cannot.
+    void enableCapture(uint32_t frames, bool stats, std::string off = {},
+                       float walk = 0.F);
 
 private:
     // Loaded in the constructor, before any other member reads it.
@@ -344,6 +348,9 @@ private:
     mutable std::optional<sponge::platform::opengl::debug::GpuTimer> gpuTimer;
     // Degrees of yaw per update while capturing; 0 leaves the camera alone.
     float captureYawStep = 0.F;
+    // World units per update along +X while capturing; 0 leaves the camera
+    // alone.
+    float captureWalkStep = 0.F;
 
     void onWindowFocus(const sponge::event::WindowFocusEvent& event);
 
