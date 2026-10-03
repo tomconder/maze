@@ -62,6 +62,13 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
+* `ShadowMap` stores its moments in a `GL_TEXTURE_2D_ARRAY` and the shaders and
+  the blur read a 2D view of layer 0. A view does not inherit the parent's
+  sampler state, so set the filter, wrap and border colour on the view. Its
+  name must come from `glGenTextures`, because `glTextureView` rejects a name
+  that already has a target. `ShadowMap::fitLightSpace()` is static and
+  touches no GL state: the update thread calls it while the render thread may
+  be replacing the `ShadowMap`.
 * The pipeline is: the reflection probe capture (first frame only, after the
   shadow map), depth prepass, then the mirrored scene render for the
   planar mirror (if any), then opaque scene to a linear HDR `SceneTarget`,

@@ -27,20 +27,32 @@ ShadowMap::~ShadowMap() {
     glDeleteFramebuffers(1, &blurFbo);
     glDeleteFramebuffers(1, &momentFbo);
     glDeleteTextures(1, &blurTexture);
-    glDeleteTextures(1, &momentTexture);
+    glDeleteTextures(1, &momentView);
+    glDeleteTextures(1, &momentArray);
     glDeleteRenderbuffers(1, &depthRbo);
 }
 
 void ShadowMap::initialize() {
-    // Moment texture (RG32F): R = depth, G = depth²
-    momentTexture = renderer::createRenderTarget(shadowWidth, shadowHeight,
-                                                 GL_RG32F, GL_LINEAR);
-    // Overrides the helper's CLAMP_TO_EDGE: outside the light frustum the
-    // moments must read as fully lit, which is what the border colour encodes.
-    glTextureParameteri(momentTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTextureParameteri(momentTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    // Moment array (RG32F): R = depth, G = depth². One layer for now.
+    glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &momentArray);
+    glTextureStorage3D(momentArray, 1, GL_RG32F,
+                       static_cast<GLsizei>(shadowWidth),
+                       static_cast<GLsizei>(shadowHeight), 1);
+
+    // glTextureView needs a name that has no target yet, so this one comes
+    // from glGenTextures; glCreateTextures would fix the target to 2D too soon.
+    glGenTextures(1, &momentView);
+    glTextureView(momentView, GL_TEXTURE_2D, momentArray, GL_RG32F, 0, 1, 0, 1);
+
+    // A view does not inherit the parent's sampler state. Outside the light
+    // frustum the moments must read as fully lit, which is what the border
+    // colour encodes.
+    glTextureParameteri(momentView, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(momentView, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(momentView, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(momentView, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     constexpr std::array borderColor = { 1.F, 1.F, 0.F, 0.F };
-    glTextureParameterfv(momentTexture, GL_TEXTURE_BORDER_COLOR,
+    glTextureParameterfv(momentView, GL_TEXTURE_BORDER_COLOR,
                          borderColor.data());
 
     // Blur ping-pong texture (same format)
@@ -50,9 +62,16 @@ void ShadowMap::initialize() {
     // Depth renderbuffer for depth testing during the moment-writing pass
     depthRbo = renderer::createDepthRenderbuffer(shadowWidth, shadowHeight);
 
-    // Moment FBO: colour = momentTexture, depth = depthRbo
-    momentFbo =
-        renderer::createFramebuffer("EVSM moment", momentTexture, depthRbo);
+    // Moment FBO: colour = layer 0 of momentArray, depth = depthRbo
+    glCreateFramebuffers(1, &momentFbo);
+    glNamedFramebufferTextureLayer(momentFbo, GL_COLOR_ATTACHMENT0, momentArray,
+                                   0, 0);
+    glNamedFramebufferRenderbuffer(momentFbo, GL_DEPTH_ATTACHMENT,
+                                   GL_RENDERBUFFER, depthRbo);
+    if (glCheckNamedFramebufferStatus(momentFbo, GL_FRAMEBUFFER) !=
+        GL_FRAMEBUFFER_COMPLETE) {
+        SPONGE_GL_CRITICAL("EVSM moment framebuffer is not complete!");
+    }
 
     // Blur FBO: colour = blurTexture (no depth needed)
     blurFbo = renderer::createFramebuffer("EVSM blur", blurTexture);
@@ -89,7 +108,7 @@ void ShadowMap::applyBlur() const {
     blurDownShader->bind();
     blurDownShader->setFloat("offset", 1.F);
     glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
-    glBindTextureUnit(0, momentTexture);
+    glBindTextureUnit(0, momentView);
     quad.draw();
     blurDownShader->unbind();
 
@@ -122,11 +141,11 @@ void ShadowMap::unbind() const {
 }
 
 void ShadowMap::bindTexture(const uint8_t unit) const {
-    glBindTextureUnit(unit, momentTexture);
+    glBindTextureUnit(unit, momentView);
 }
 
 uint32_t ShadowMap::getDepthMapTextureId() const {
-    return momentTexture;
+    return momentView;
 }
 
 uint32_t ShadowMap::getHeight() const {
@@ -137,12 +156,9 @@ uint32_t ShadowMap::getWidth() const {
     return shadowWidth;
 }
 
-const glm::mat4& ShadowMap::getLightSpaceMatrix() const {
-    return lightSpaceMatrix;
-}
-
-void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection,
-                                       const sponge::scene::AABB& sceneBounds) {
+ShadowMap::LightFit
+    ShadowMap::fitLightSpace(const glm::vec3&           lightDirection,
+                             const sponge::scene::AABB& sceneBounds) {
     const auto center = (sceneBounds.min + sceneBounds.max) * 0.5F;
     // Half the AABB's diagonal: the farthest any corner sits from center, so
     // placing the eye two of these out along -lightDirection clears every
@@ -155,7 +171,6 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection,
                                glm::vec3(0.F, 1.F, 0.F);
     const auto eye       = center - lightDirection * radius * 2.F;
     const auto lightView = glm::lookAt(eye, center, up);
-    eyePosition          = eye;
 
     // Fit the ortho box to the scene's bounds as seen from the light, so the
     // frustum always exactly covers the static scene, at whatever size it
@@ -170,6 +185,6 @@ void ShadowMap::updateLightSpaceMatrix(const glm::vec3& lightDirection,
                    viewBounds.min.y - padding, viewBounds.max.y + padding,
                    -viewBounds.max.z - padding, -viewBounds.min.z + padding);
 
-    lightSpaceMatrix = lightProjection * lightView;
+    return { .matrix = lightProjection * lightView, .eye = eye };
 }
 }  // namespace sponge::platform::opengl::scene

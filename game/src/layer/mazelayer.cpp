@@ -504,11 +504,11 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.shadowCastShadow = directionalLight.castShadow;
         frame.lightDirection   = directionalLight.direction;
         if (directionalLight.enabled && directionalLight.castShadow) {
-            // Update on update thread to avoid racing render thread
-            // bind()/unbind().
-            shadowMap->updateLightSpaceMatrix(
+            // Pure function: onRender() may be replacing shadowMap.
+            const auto fit = ShadowMap::fitLightSpace(
                 glm::normalize(directionalLight.direction), sceneBounds);
-            frame.lightSpaceMatrix = shadowMap->getLightSpaceMatrix();
+            frame.lightSpaceMatrix = fit.matrix;
+            frame.lightEye         = fit.eye;
 
             const sponge::scene::Frustum lightFrustum(frame.lightSpaceMatrix);
             for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
@@ -1478,7 +1478,7 @@ void MazeLayer::renderSceneToDepthMap(
     // depth instead of the camera's — still bound, so no FBO switch needed.
     if (shadowOcclusionCuller) {
         shadowOcclusionCuller->query(objectWorldBounds, frame.lightSpaceMatrix,
-                                     shadowMap->getEyePosition());
+                                     frame.lightEye);
     }
 
     // The blur runs inside unbind(); time it apart from the draw.

@@ -35,20 +35,20 @@ public:
     uint32_t getHeight() const;
     uint32_t getWidth() const;
 
-    const glm::mat4& getLightSpaceMatrix() const;
+    struct LightFit {
+        glm::mat4 matrix{ 1.0F };
+        // World-space eye of the light's view matrix, for occlusion queries
+        // run against this map's own depth (see OcclusionCuller).
+        glm::vec3 eye{ 0.0F };
+    };
 
-    // World-space eye used to build the light's view matrix, for occlusion
-    // queries run against this map's own depth (see OcclusionCuller).
-    const glm::vec3& getEyePosition() const {
-        return eyePosition;
-    }
-
-    // Fits the ortho box and near/far to sceneBounds (world space) each call,
-    // so the frustum always exactly covers the static scene regardless of
-    // its size, instead of a fixed box sized for whatever scene existed when
-    // the constants were picked.
-    void updateLightSpaceMatrix(const glm::vec3&           lightDirection,
-                                const sponge::scene::AABB& sceneBounds);
+    // Fits the ortho box and near/far to sceneBounds (world space), so the
+    // frustum always exactly covers the static scene regardless of its size,
+    // instead of a fixed box sized for whatever scene existed when the
+    // constants were picked. Static and free of GL state: the update thread
+    // calls it while the render thread may be rebuilding the map.
+    static LightFit fitLightSpace(const glm::vec3&           lightDirection,
+                                  const sponge::scene::AABB& sceneBounds);
 
 private:
     static const std::string          shaderName;
@@ -60,19 +60,20 @@ private:
     std::shared_ptr<renderer::Shader> blurUpShader;
     ScreenQuad                        quad;
 
-    uint32_t momentTexture = 0;
-    uint32_t blurTexture   = 0;
-    uint32_t depthRbo      = 0;
-    uint32_t momentFbo     = 0;
-    uint32_t blurFbo       = 0;
+    // Moments live in a 2D array so cascades can be added as layers.
+    // momentView is a 2D view of layer 0: it is what the shaders and the blur
+    // read, so they stay on a plain sampler2D until a second layer exists.
+    uint32_t momentArray = 0;
+    uint32_t momentView  = 0;
+    uint32_t blurTexture = 0;
+    uint32_t depthRbo    = 0;
+    uint32_t momentFbo   = 0;
+    uint32_t blurFbo     = 0;
 
     mutable std::array<int, 4> savedViewport{};
 
     uint32_t shadowHeight;
     uint32_t shadowWidth;
-
-    glm::mat4 lightSpaceMatrix{ 1.0f };
-    glm::vec3 eyePosition{ 0.0f };
 
     void initialize();
     void applyBlur() const;

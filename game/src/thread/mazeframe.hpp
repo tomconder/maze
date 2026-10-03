@@ -61,6 +61,8 @@ struct MazeRenderFrame {
     bool      shadowCastShadow{ false };
     glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
     glm::mat4 lightSpaceMatrix{ 1.F };
+    // Eye of lightSpaceMatrix's view, for the shadow occlusion queries.
+    glm::vec3 lightEye{ 0.F };
 
     static constexpr size_t maxLights = static_cast<size_t>(
         sponge::platform::opengl::scene::ClusteredLights::maxLights);
