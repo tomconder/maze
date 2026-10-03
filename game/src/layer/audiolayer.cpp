@@ -25,7 +25,6 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
-#include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 #include "ui/keyhints.hpp"
@@ -36,9 +35,8 @@
 #include "ui/tabbar.hpp"
 
 namespace {
-constexpr std::string_view cameraName = "intro";
-constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
+constexpr std::string_view fontName = "inter";
+constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
 constexpr std::string_view returnMessage = "Return";
 
@@ -136,9 +134,7 @@ void AudioLayer::onAttach() {
     };
     menuFont = AssetManager::createFont(fontCreateInfo);
 
-    const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = scene::menuOrthoCamera();
 
     quad = std::make_unique<Quad>();
 

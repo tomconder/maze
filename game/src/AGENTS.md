@@ -58,7 +58,6 @@ primitives, windowing, or platform backends itself — see
   `boxMin`, `boxMax`. The loader drops it with a warning unless boxMin is
   below boxMax on every axis and the position is inside the box. With no
   probe, ambient is the flat `ambientStrength` term.
-* `resourcemanager.hpp` / `.cpp` - asset path resolution.
 
 ## Contracts & Invariants
 

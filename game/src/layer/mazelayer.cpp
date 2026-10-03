@@ -12,7 +12,7 @@
 #include "platform/opengl/renderer/readback.hpp"
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/mesh.hpp"
-#include "resourcemanager.hpp"
+#include "scene/gamecamera.hpp"
 #include "scene/light.hpp"
 
 #include <glm/ext/matrix_clip_space.hpp>
@@ -157,7 +157,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
-    camera = ResourceManager::createGameCamera(gameCameraCreateInfo);
+    camera = std::make_shared<scene::GameCamera>(gameCameraCreateInfo);
     camera->setViewportSize(Maze::get().getWindow()->getWidth(),
                             Maze::get().getWindow()->getHeight());
     camera->setFov(sceneDesc.camera.fov);

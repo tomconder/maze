@@ -9,7 +9,6 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
-#include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 #include "ui/keyhints.hpp"
@@ -41,9 +40,8 @@ constexpr std::array<std::string_view, menuItemCount> menuLabels = {
     "Quit",
 };
 
-constexpr std::string_view cameraName = "intro";
-constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
+constexpr std::string_view fontName = "inter";
+constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
 constexpr glm::vec4 backgroundColor = { 0.12F, 0.19F, 0.29F, 1.F };
 constexpr glm::vec4 buttonColor     = { 0.F, 0.F, 0.F, 0.F };
@@ -98,9 +96,7 @@ void IntroLayer::onAttach() {
     };
     menuFont = AssetManager::createFont(fontCreateInfo);
 
-    const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = scene::menuOrthoCamera();
 
     quad = std::make_unique<Quad>();
 
