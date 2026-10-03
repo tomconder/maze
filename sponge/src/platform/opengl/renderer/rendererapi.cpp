@@ -67,4 +67,8 @@ void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
     glBindTextureUnit(unit, texture);
 }
 
+void RendererAPI::flush() {
+    glFlush();
+}
+
 }  // namespace sponge::platform::opengl::renderer

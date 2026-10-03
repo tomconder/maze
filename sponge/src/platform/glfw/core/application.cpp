@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -28,6 +29,13 @@
 
 namespace {
 sponge::core::Timer mainTimer;
+
+uint32_t microsSince(const std::chrono::steady_clock::time_point start) {
+    return static_cast<uint32_t>(
+        std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - start)
+            .count());
+}
 
 struct MonitorMode {
     GLFWmonitor*       monitor;
@@ -302,6 +310,8 @@ void Application::run() {
             renderContextAcquired = true;
         }
 
+        const auto taskStart = std::chrono::steady_clock::now();
+
         // Visible via cond-var acquire fence; main thread stored before kick().
         const double elapsed = renderElapsedTime;
 
@@ -338,7 +348,12 @@ void Application::run() {
             }
         }
         imguiManager.end();
+        const auto flipStart = std::chrono::steady_clock::now();
         graphics->flip(window->getNativeWindow());
+        loopTimes.flipUs.store(microsSince(flipStart),
+                               std::memory_order_relaxed);
+        loopTimes.renderTaskUs.store(microsSince(taskStart),
+                                     std::memory_order_relaxed);
         return true;
     };
 
@@ -378,7 +393,10 @@ void Application::run() {
         mainTimer.tick();
         // Must finish before poll: GLFW callbacks write ImGui's
         // InputEventsQueue; render thread reads it.
+        const auto renderWaitStart = std::chrono::steady_clock::now();
         renderThread.waitForComplete();
+        loopTimes.waitRenderUs.store(microsSince(renderWaitStart),
+                                     std::memory_order_relaxed);
         inputManager.recenterCursor();
         glfwPollEvents();
 
@@ -459,7 +477,10 @@ void Application::run() {
         }
 
         // Wait for update thread before writing new snapshot data.
-        const bool updateResult = updateThread.waitForComplete();
+        const auto updateWaitStart = std::chrono::steady_clock::now();
+        const bool updateResult    = updateThread.waitForComplete();
+        loopTimes.waitUpdateUs.store(microsSince(updateWaitStart),
+                                     std::memory_order_relaxed);
 
         // Now safe: all previous-frame reads of the snapshot are complete.
         inputManager.update();
@@ -480,7 +501,13 @@ void Application::run() {
         frameSync();
 
         // Game logic for frame N into the free snapshot slot.
-        updateThread.kick([this, elapsed] { return onUserUpdate(elapsed); });
+        updateThread.kick([this, elapsed] {
+            const auto start  = std::chrono::steady_clock::now();
+            const bool result = onUserUpdate(elapsed);
+            loopTimes.updateTaskUs.store(microsSince(start),
+                                         std::memory_order_relaxed);
+            return result;
+        });
 
         // GPU work for frame N; overlaps with update[N].
         renderThread.kick(renderTask);

@@ -656,6 +656,8 @@ void MazeLayer::onRender() {
     gpuBegin("occlusion");
     renderOcclusionQueries(frame);
     gpuEnd();
+    // Start the GPU on the prepass while the CPU records the opaque pass.
+    RendererAPI::flush();
 
     // Phase 2.6: the scene seen in the planar mirror.
     if (planarDrawn) {
@@ -710,6 +712,8 @@ void MazeLayer::onRender() {
         renderPlanarComposite(frame);
     }
     gpuEnd();
+    // Same for the opaque pass, while the CPU records bloom and the resolve.
+    RendererAPI::flush();
 
     // Before glass, so glass refracts the reflections. The copy is a
     // different texture from the scene color attachment; the glass pass makes
@@ -855,6 +859,12 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         }
         captureOff.clear();
     }
+    const auto& loop = Maze::get().loopTimes;
+    capture->recordLoop({ loop.renderTaskUs.load(std::memory_order_relaxed),
+                          loop.flipUs.load(std::memory_order_relaxed),
+                          loop.updateTaskUs.load(std::memory_order_relaxed),
+                          loop.waitRenderUs.load(std::memory_order_relaxed),
+                          loop.waitUpdateUs.load(std::memory_order_relaxed) });
     capture->beginFrame();
 
     // Reading a stage costs a GPU stall, so without stats only the last frame

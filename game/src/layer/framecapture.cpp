@@ -176,6 +176,21 @@ void FrameCapture::report(
                               ms.size(), sum / static_cast<double>(ms.size()),
                               ms[ms.size() / 2], ms[ms.size() * 95 / 100],
                               1000. * static_cast<double>(ms.size()) / sum);
+        // Same window as the frame times: one entry per frame, the first
+        // warm-up frames and the last one left out.
+        constexpr std::array loopNames = { "renderTask", "flip", "update",
+                                           "waitRender", "waitUpdate" };
+        if (loopMs[0].size() > warmupFrames + 1) {
+            timing << "cpu";
+            for (size_t i = 0; i < loopFields; i++) {
+                std::vector<double> v(loopMs[i].begin() + warmupFrames,
+                                      loopMs[i].end() - 1);
+                std::ranges::sort(v);
+                timing << std::format(" {} p50={:.3f}ms", loopNames[i],
+                                      v[v.size() / 2]);
+            }
+            timing << '\n';
+        }
         const auto& f = gpu.frame;
         if (f.frames > 0) {
             timing << std::format(
