@@ -4,6 +4,10 @@
   "builtin-baseline": "4cb050be2cfa7a947cdd2dd1a70e24b17774c979",
   "dependencies": [
     {
+      "name": "cgltf",
+      "version>=": "1.15"
+    },
+    {
       "name": "fkyaml",
       "version>=": "0.4.4"
     },
@@ -55,6 +59,10 @@
       "features": [
         "fmt"
       ]
+    },
+    {
+      "name": "stb",
+      "version>=": "2024-07-29#1"
     },
     {
       "name": "tracy",
