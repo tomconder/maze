@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <memory>
 
 #include <string>
 
@@ -37,5 +38,9 @@ private:
     uint32_t w = 0;
     uint32_t h = 0;
 };
+
+// One camera shared by the menu layers, so a layer attached later starts with
+// the size the earlier ones already received.
+std::shared_ptr<OrthoCamera> menuOrthoCamera();
 
 }  // namespace game::scene

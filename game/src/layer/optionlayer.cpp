@@ -30,7 +30,6 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
-#include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "thread/mazeframe.hpp"
 #include "ui/button.hpp"
@@ -70,9 +69,8 @@ constexpr std::string_view applyMessage  = "Apply";
 
 constexpr std::array<uint32_t, 4> shadowResolutions = { 512, 1024, 2048, 4096 };
 
-constexpr std::string_view cameraName = "intro";
-constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
+constexpr std::string_view fontName = "inter";
+constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
 constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
 constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
@@ -285,9 +283,7 @@ void OptionLayer::onAttach() {
     };
     menuFont = AssetManager::createFont(fontCreateInfo);
 
-    const auto orthoCameraCreateInfo =
-        scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = scene::menuOrthoCamera();
 
     quad = std::make_unique<Quad>();
 

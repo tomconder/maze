@@ -4,7 +4,6 @@
 #include "input/inputcontext.hpp"
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
-#include "resourcemanager.hpp"
 
 #include <glm/glm.hpp>
 
@@ -46,7 +45,7 @@ SplashScreenLayer::SplashScreenLayer() : Layer("splash-screen") {}
 void SplashScreenLayer::onAttach() {
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = std::make_shared<scene::OrthoCamera>(orthoCameraCreateInfo);
 
     logoSprite = std::make_unique<Sprite>(std::string(spriteName),
                                           std::string(texturePath));

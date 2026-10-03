@@ -9,7 +9,6 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
-#include "resourcemanager.hpp"
 #include "scene/orthocamera.hpp"
 #include "ui/button.hpp"
 #include "ui/keyhints.hpp"
@@ -93,7 +92,7 @@ void ExitLayer::onAttach() {
 
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = std::make_shared<scene::OrthoCamera>(orthoCameraCreateInfo);
 
     for (size_t i = 0; i < menuButtons.size(); i++) {
         menuButtons[i] = ui::makeMenuButton(

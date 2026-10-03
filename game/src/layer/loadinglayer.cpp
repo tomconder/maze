@@ -3,7 +3,6 @@
 #include "core/base.hpp"
 #include "maze.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
-#include "resourcemanager.hpp"
 
 #include <glm/glm.hpp>
 
@@ -56,7 +55,7 @@ LoadingLayer::~LoadingLayer() {
 void LoadingLayer::onAttach() {
     const auto orthoCameraCreateInfo =
         scene::OrthoCameraCreateInfo{ .name = std::string(cameraName) };
-    orthoCamera = ResourceManager::createOrthoCamera(orthoCameraCreateInfo);
+    orthoCamera = std::make_shared<scene::OrthoCamera>(orthoCameraCreateInfo);
 
     quad = std::make_unique<Quad>();
 
