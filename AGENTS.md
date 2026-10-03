@@ -129,6 +129,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   highest finite value, first hit), `capture_specks.txt` (frame and pixel of
   each scene-stage speck) and `capture_<stage>_first_hit.pfm`. N defaults to
   600 when `--capture-frames` is not given.
+* `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
+  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Without `--dump-nan-stats`, the
+  run also writes `capture_timing.txt` (mean, p50, p95 frame time) from the
+  frames after a 60 frame warm-up. Debug builds are slower and CPU heavy, so
+  compare passes against each other, not against a release build.
 * Stages: `scene` and `bloom` (RGB16F, linear radiance), `tonemap` and `taa`
   or `fxaa` input (0 to 1), `backbuffer` (8-bit). Files go to the working
   directory, so run from the build directory as above.

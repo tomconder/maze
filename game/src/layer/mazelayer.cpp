@@ -559,7 +559,8 @@ void MazeLayer::onRender() {
     if (pendingShadowRebuild.load(std::memory_order_acquire)) {
         const auto res =
             pendingShadowRebuildRes.load(std::memory_order_relaxed);
-        shadowMap = std::make_unique<ShadowMap>(res);
+        shadowMap    = std::make_unique<ShadowMap>(res);
+        shadowCached = false;
         pendingShadowRebuild.store(false, std::memory_order_relaxed);
     }
 
@@ -617,8 +618,11 @@ void MazeLayer::onRender() {
         !(occlusionCuller && !occlusionCuller->isVisible(frame.planarIndex));
 
     // Phase 1: shadow map
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
+    if (frame.shadowEnabled && frame.shadowCastShadow &&
+        (!shadowCached || frame.lightSpaceMatrix != shadowCachedMatrix)) {
         renderSceneToDepthMap(frame);
+        shadowCachedMatrix = frame.lightSpaceMatrix;
+        shadowCached       = true;
     }
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights
@@ -768,8 +772,10 @@ void MazeLayer::onRender() {
     RendererAPI::setDepth(DepthFunc::LessEqual, true);
 }
 
-void MazeLayer::enableCapture(const uint32_t frames, const bool stats) {
+void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
+                              std::string off) {
     capture.emplace(frames, stats);
+    captureOff     = std::move(off);
     captureYawStep = 360.F / static_cast<float>(std::max(frames, 1U));
 }
 
@@ -777,6 +783,34 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
                               const uint32_t bloomTexId) {
     if (capture->done()) {
         return;
+    }
+    if (!captureOff.empty()) {
+        const auto list = "," + captureOff + ",";
+        const auto has  = [&list](const std::string& name) {
+            return list.contains("," + name + ",");
+        };
+        if (has("aa")) {
+            setAntiAliasing(AntiAliasing::None);
+        }
+        if (has("bloom")) {
+            setBloomEnabled(false);
+        }
+        if (has("ssao")) {
+            setSsaoEnabled(false);
+        }
+        if (has("ssr")) {
+            setSsrEnabled(false);
+        }
+        if (has("shadow")) {
+            setDirectionalLightCastsShadow(false);
+        }
+        if (has("probe")) {
+            setProbeEnabled(false);
+        }
+        if (has("planar")) {
+            setPlanarEnabled(false);
+        }
+        captureOff.clear();
     }
     capture->beginFrame();
 
