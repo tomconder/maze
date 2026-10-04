@@ -45,6 +45,24 @@ public:
     }
     void endBatch() const;
 
+    // A uniform block member found by name once. The handle overloads below
+    // skip the name lookup that each by-name setter repeats, for a uniform set
+    // on every draw. A handle only fits the shader that made it.
+    struct UniformHandle {
+        int32_t block  = -1;
+        GLint   offset = 0;
+
+        bool valid() const {
+            return block >= 0;
+        }
+    };
+    // Logs a warning and returns an invalid handle if no block has the name.
+    // A setter given an invalid handle does nothing.
+    UniformHandle findUniform(std::string_view name) const;
+    void          setBoolean(UniformHandle handle, bool value) const;
+    void          setFloat(UniformHandle handle, float value) const;
+    void          setFloat4(UniformHandle handle, const glm::vec4& value) const;
+
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
     void setFloat2(std::string_view name, const glm::vec2& value) const;
@@ -97,6 +115,8 @@ private:
 
     void initUBO();
     void uploadUBO() const;
+    void writeUBO(const UBOBlock& block, GLint offset, const void* data,
+                  size_t bytes) const;
     bool trySetInUBO(std::string_view name, const void* data, size_t bytes,
                      size_t typeSize) const;
 };
