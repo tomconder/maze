@@ -1,7 +1,10 @@
 #pragma once
 
 #include "modeldata.hpp"
+#include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "platform/opengl/renderer/vertexarray.hpp"
+#include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
@@ -82,6 +85,15 @@ protected:
     std::vector<std::shared_ptr<Mesh>> meshes;
 
 private:
+    // Packs every mesh's vertices and indices into one buffer pair and one
+    // VAO, so drawing the model binds a VAO once, not once per mesh. Frees
+    // the meshes' CPU copies.
+    void packMeshes();
+
+    std::unique_ptr<renderer::VertexBuffer> vbo;
+    std::unique_ptr<renderer::IndexBuffer>  ebo;
+    std::unique_ptr<renderer::VertexArray>  vao;
+
     size_t numIndices  = 0;
     size_t numVertices = 0;
 };
