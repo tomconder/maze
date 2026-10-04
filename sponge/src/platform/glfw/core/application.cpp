@@ -531,6 +531,15 @@ void Application::run() {
     // after the render kick.
     renderThread.waitForComplete();
 
+    // Only the thread that owns the context can release it. A context left
+    // current in a finished thread makes the reclaim below fail with
+    // BadAccess on Mesa GLX.
+    renderThread.kick([this, glfwWin] {
+        graphics->release(glfwWin);
+        return true;
+    });
+    renderThread.waitForComplete();
+
     renderThread.stop();
     updateThread.stop();
 
