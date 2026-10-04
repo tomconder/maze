@@ -119,6 +119,10 @@ than calling GLFW/OpenGL/OS APIs directly.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the
   color attachment they draw into. The prepass normal alpha is the SSR
   strength mask.
+* resolve() takes a `ToneMapper` (Reinhard, Filmic, ACES, AgX). Every
+  operator outputs linear display light and shares the one gamma encode, so
+  AgX includes its own inverse transfer step. Keep `ToneMapper` in
+  `scenetarget.hpp` in step with the `tone*` constants in `tonemap.slang`.
 * Dither exactly once, at the final 8-bit write, and keep every intermediate
   target float (`GL_RGB16F`). An 8-bit intermediate quantises undithered and
   then quantises again at the real output — the banding `dither8` exists to

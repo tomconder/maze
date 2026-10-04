@@ -9,6 +9,15 @@
 
 namespace sponge::platform::opengl::scene {
 
+// Order must match the `tone*` constants in tonemap.slang.
+enum class ToneMapper : uint8_t {
+    Reinhard = 0,
+    Filmic,
+    Aces,
+    Agx,
+    Count,
+};
+
 // The linear HDR buffer the scene renders into, and the pass that turns it
 // into a display image.
 //
@@ -57,8 +66,8 @@ public:
     // `bloomIntensity` is 0. Set `ditherOutput` only when this pass writes the
     // final 8-bit target — anti-aliasing, when enabled, runs afterwards and
     // dithers on its own write.
-    void resolve(uint32_t bloomTexId, float bloomIntensity,
-                 bool ditherOutput) const;
+    void resolve(uint32_t bloomTexId, float bloomIntensity, bool ditherOutput,
+                 ToneMapper toneMapper) const;
 
     void resize(uint32_t newWidth, uint32_t newHeight);
 

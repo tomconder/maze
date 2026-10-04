@@ -2,6 +2,7 @@
 
 #include "platform/opengl/scene/clusteredlights.hpp"
 #include "platform/opengl/scene/model.hpp"
+#include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/refraction.hpp"
 
@@ -114,6 +115,10 @@ struct MazeRenderFrame {
     bool  bloomEnabled{ false };
     float bloomThreshold{ 0.8F };
     float bloomIntensity{ 0.08F };
+
+    sponge::platform::opengl::scene::ToneMapper toneMapper{
+        sponge::platform::opengl::scene::ToneMapper::Reinhard
+    };
 
     bool  ssaoEnabled{ true };
     float ssaoRadius{ 0.5F };
