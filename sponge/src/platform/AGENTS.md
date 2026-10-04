@@ -123,6 +123,13 @@ than calling GLFW/OpenGL/OS APIs directly.
   operator outputs linear display light and shares the one gamma encode, so
   AgX includes its own inverse transfer step. Keep `ToneMapper` in
   `scenetarget.hpp` in step with the `tone*` constants in `tonemap.slang`.
+* Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
+  three coat textures are not read, so `textureSlots` stays 5. The coat uses
+  the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off
+  the base light and the base ambient. It adds its own probe reflection,
+  because that is most of what a coat looks like. A factor of 0 skips all of
+  it. The factors are in the baked mesh entry, so changing them changes
+  `asset::version`.
 * Dither exactly once, at the final 8-bit write, and keep every intermediate
   target float (`GL_RGB16F`). An 8-bit intermediate quantises undithered and
   then quantises again at the real output — the banding `dither8` exists to

@@ -57,6 +57,21 @@ float2 applyUVTransform(float2 uv, float4 t) {
     return uv * t.zw + t.xy;
 }
 
+// Specular anti-aliasing (Tokuyoshi and Kaplanyan 2019): widen the lobe by
+// the variance of the normal across the pixel. Without it a point light's
+// GGX peak at low roughness is far above 1 and lands on a single pixel, a
+// speck that bloom spreads and TAA cannot remove. A flat surface has no
+// normal variance, so it gets no widening from this.
+float widenRoughness(float roughness, float3 n) {
+    static const float saaSigma2 = 0.25;
+    static const float saaKappa  = 0.18;
+    float3             dNdx      = ddx(n);
+    float3             dNdy      = ddy(n);
+    float              nVariance = saaSigma2 * (dot(dNdx, dNdx) + dot(dNdy, dNdy));
+    float              a2        = pow(roughness, 4.0) + min(2.0 * nVariance, saaKappa);
+    return sqrt(sqrt(min(a2, 1.0)));
+}
+
 // clang-format off
 [shader("fragment")]
 float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
@@ -66,6 +81,9 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
 
     float3 N = normalize(input.worldNormal);
+    // The coat has no normal map of its own here, so it keeps the surface
+    // normal and does not follow the base layer's.
+    float3 Nc = N;
     // Gram-Schmidt leaves nothing to normalize where a mesh's tangent is
     // parallel to its normal (or zero), and normalize(0) is NaN, which bloom
     // then spreads into a dark blob. Keep the geometric normal there.
@@ -114,24 +132,17 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
     roughness = clamp(roughness, 0.089, 1.0);
 
-    // Specular anti-aliasing (Tokuyoshi and Kaplanyan 2019): widen the lobe by
-    // the variance of the normal across the pixel. Without it a point light's
-    // GGX peak at low roughness is far above 1 and lands on a single pixel, a
-    // speck that bloom spreads and TAA cannot remove. A flat surface has no
-    // normal variance, so it gets no widening from this.
-    static const float saaSigma2 = 0.25;
-    static const float saaKappa  = 0.18;
-    float3             dNdx      = ddx(N);
-    float3             dNdy      = ddy(N);
-    float              nVariance = saaSigma2 * (dot(dNdx, dNdx) + dot(dNdy, dNdy));
-    float              a2        = pow(roughness, 4.0) + min(2.0 * nVariance, saaKappa);
-    roughness                    = sqrt(sqrt(min(a2, 1.0)));
+    roughness = widenRoughness(roughness, N);
+
+    // A coat is usually near mirror smooth, the case the widening exists for.
+    float coatRoughness = widenRoughness(clamp(params.clearcoatRoughnessFactor, 0.089, 1.0), Nc);
 
     float3 V  = normalize(params.viewPos - input.worldPosition);
     float3 Lo = float3(0.0);
 
     // Directional light
-    float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness);
+    float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness,
+                                    Nc, params.clearcoatFactor, coatRoughness);
     float  shadow     = 0.0;
     if (params.directionalLight.castShadow) {
         shadow = shadowCascaded(shadowMap, params.lightSpaceMatrices, params.cascadeCount,
@@ -156,7 +167,8 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
             pl.position         = gpu.position;
             pl.attenuationIndex = params.attenuationIndex;
             Lo += evaluatePBR(pl, input.worldPosition, albedo, N, V,
-                              metallic, roughness);
+                              metallic, roughness,
+                              Nc, params.clearcoatFactor, coatRoughness);
         }
     }
 
@@ -175,6 +187,22 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         float3 probe = probeMap.SampleLevel(R, roughness * params.probeMaxMip).rgb;
         ambient      = ambient * (1.0 - F) * (1.0 - metallic) +
                        probe * (F0 * AB.x + AB.y) * aoTex;
+    }
+    if (params.clearcoatFactor > 0.0) {
+        // The coat takes its share of the ambient light off the base, and
+        // reflects the probe on its own. Most of what a viewer sees of a coat
+        // is this reflection, since a point light only gives a small highlight.
+        float NdotVc = max(dot(Nc, V), 1e-5);
+        float Fc     = params.clearcoatFactor * fresnelSchlickRoughness(NdotVc, float3(0.04), coatRoughness).x;
+        ambient *= 1.0 - Fc;
+        if (params.probeEnabled) {
+            float2 AB    = envBRDFApprox(NdotVc, coatRoughness);
+            float3 Rc    = boxProject(reflect(-V, Nc), input.worldPosition,
+                                      params.probePosition, params.probeBoxMin,
+                                      params.probeBoxMax);
+            float3 probe = probeMap.SampleLevel(Rc, coatRoughness * params.probeMaxMip).rgb;
+            ambient += probe * (0.04 * AB.x + AB.y) * params.clearcoatFactor * aoTex;
+        }
     }
     float3 color = ambient + Lo + params.emissive + emissiveTexColor;
 

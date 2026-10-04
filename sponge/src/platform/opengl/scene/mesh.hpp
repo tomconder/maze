@@ -30,6 +30,7 @@ public:
          std::shared_ptr<renderer::Texture> emissiveTexture          = nullptr,
          std::shared_ptr<renderer::Texture> metallicRoughnessTexture = nullptr,
          float metallicFactor = 0.F, float roughnessFactor = .5F,
+         float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
          const MeshUVTransforms& uvTransforms = {});
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first.
@@ -88,6 +89,8 @@ private:
         Handle emissiveUV;
         Handle metallicFactor;
         Handle roughnessFactor;
+        Handle clearcoatFactor;
+        Handle clearcoatRoughnessFactor;
         Handle hasMetallicRoughnessMap;
         Handle metallicRoughnessUV;
     };
@@ -103,6 +106,8 @@ private:
     std::shared_ptr<renderer::Texture>              metallicRoughnessTexture;
     float                                           metallicFactor;
     float                                           roughnessFactor;
+    float                                           clearcoatFactor;
+    float                                           clearcoatRoughnessFactor;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
 };

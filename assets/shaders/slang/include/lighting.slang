@@ -149,7 +149,10 @@ float3 evaluatePBR<L : ILight>(
     float3 N,
     float3 V,
     float  metallic,
-    float  roughness) {
+    float  roughness,
+    float3 Nc,  // coat normal: the geometric normal, no normal map
+    float  clearcoat,
+    float  coatRoughness) {
     float3 Ldir     = light.getDirection(worldPos);
     float3 radiance = light.getRadiance(worldPos);
     float3 H        = halfVector(V, Ldir);
@@ -161,7 +164,20 @@ float3 evaluatePBR<L : ILight>(
     float3 F        = fresnelSchlick(max(dot(H, V), 0.0), F0);
     float3 specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 1e-5);
     float3 kD       = (float3(1.0) - F) * (1.0 - metallic);
-    return (kD * albedo / M_PI + specular) * radiance * NdotL;
+    float3 base     = (kD * albedo / M_PI + specular) * radiance * NdotL;
+    if (clearcoat <= 0.0) {
+        return base;
+    }
+
+    // Clear coat: a second GGX lobe at a fixed F0 of 0.04 over the base. The
+    // base loses what the coat reflects.
+    float NdotVc = max(dot(Nc, V), 1e-5);
+    float NdotLc = max(dot(Nc, Ldir), 1e-5);
+    float Fc     = clearcoat * fresnelSchlick(max(dot(H, V), 0.0), float3(0.04)).x;
+    float coat   = distributionGGX(Nc, H, coatRoughness) *
+                   geometrySmith(NdotVc, NdotLc, coatRoughness) * Fc /
+                   (4.0 * NdotVc * NdotLc + 1e-5);
+    return base * (1.0 - Fc) + coat * radiance * NdotLc;
 }
 
 // Specular lobe only. Glass adds this to a refracted background, so the
