@@ -389,9 +389,11 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
     // Every output also depends on the manifest and on the converter, which
     // stands in for the format headers compiled into it.
+    std::set<fs::path> outputs;
     const auto bake = [&](const std::string& name, std::vector<fs::path> inputs,
                           const auto& run) {
         const auto output = (outputRoot / name).generic_string();
+        outputs.insert(fs::path(output).lexically_normal());
         inputs.emplace_back(manifestPath);
         inputs.emplace_back(converter);
         if (upToDate(output, inputs) || run(output)) {
@@ -504,6 +506,25 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
                                              threads) == 0;
                       })) {
                 return 1;
+            }
+        }
+
+        // An output dropped from the manifest would otherwise stay here and
+        // ship. Only after every bake succeeded, so a failed run keeps them.
+        // The output folder holds nothing but bake outputs.
+        if (fs::is_directory(outputRoot)) {
+            std::vector<fs::path> orphans;
+            for (const auto& item :
+                 fs::recursive_directory_iterator(outputRoot)) {
+                if (item.is_regular_file() &&
+                    !outputs.contains(item.path().lexically_normal())) {
+                    orphans.push_back(item.path());
+                }
+            }
+            for (const auto& orphan : orphans) {
+                std::error_code ec;
+                fs::remove(orphan, ec);
+                fmt::println("removed orphan {}", orphan.generic_string());
             }
         }
 

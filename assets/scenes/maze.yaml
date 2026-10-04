@@ -57,6 +57,8 @@ probe:
   boxMax: [33.78, 25.83, 9.75]
 
 objects:
+  # The commented cube and mirror entries need their models/gltf sources
+  # added back to assets/manifest.yaml, or the baked .spnga does not exist.
   # - name: floor
   #   path: /models/gltf/floor/floor.glb
   #   scale: [2.0, 2.0, 2.0]
