@@ -30,7 +30,7 @@ Context::Context() {
     // Hidden until the application has finished onUserCreate().
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-#ifdef NDEBUG
+#ifndef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
 }
