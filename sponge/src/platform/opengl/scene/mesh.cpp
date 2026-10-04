@@ -93,6 +93,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
     vao->bind();
 
     if (shader->getId() == meshProgramId) {
+        shader->beginBatch();
         const auto setUV = [&shader](const std::string_view name,
                                      const UVTransform&     uv) {
             shader->setFloat4(name, glm::vec4(uv.offset, uv.scale));
@@ -139,6 +140,7 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
             shader->setBoolean("hasMetallicRoughnessMap", false);
         }
         setUV("metallicRoughnessUVTransform", uvTransforms.metallicRoughness);
+        shader->endBatch();
     }
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numIndices),

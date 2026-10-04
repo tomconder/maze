@@ -1,5 +1,6 @@
 #include "platform/opengl/renderer/shader.hpp"
 
+#include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/shaderutils.hpp"
@@ -85,12 +86,20 @@ Shader::~Shader() {
 }
 
 void Shader::bind() const {
+    SPONGE_PROFILE_SECTION("Shader::bind");
     glUseProgram(program);
     for (const auto& block : uboBlocks) {
         glBindBufferBase(GL_UNIFORM_BUFFER, block.binding, block.buffer);
     }
     isBound = true;
     uploadUBO();
+}
+
+void Shader::endBatch() const {
+    batching = false;
+    if (isBound) {
+        uploadUBO();
+    }
 }
 
 void Shader::unbind() const {
@@ -241,6 +250,7 @@ uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
 }
 
 GLint Shader::getUniformLocation(const std::string_view name) const {
+    SPONGE_PROFILE_SECTION("Shader::getUniformLocation");
     assert(!name.empty());
 
     if (const auto it = uniformLocations.find(name);
@@ -339,6 +349,7 @@ void Shader::initUBO() {
 }
 
 void Shader::uploadUBO() const {
+    SPONGE_PROFILE_SECTION("Shader::uploadUBO");
     for (const auto& block : uboBlocks) {
         if (!block.dirty) {
             continue;
@@ -350,15 +361,16 @@ void Shader::uploadUBO() const {
 
 bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
                          size_t /*typeSize*/) const {
+    SPONGE_PROFILE_SECTION("Shader::trySetInUBO");
     for (const auto& block : uboBlocks) {
-        auto it = block.offsets.find(std::string(name));
+        auto it = block.offsets.find(name);
         if (it == block.offsets.end()) {
             continue;
         }
         assert(static_cast<size_t>(it->second) + bytes <= block.staging.size());
         std::memcpy(block.staging.data() + it->second, data, bytes);
         block.dirty = true;
-        if (isBound) {
+        if (isBound && !batching) {
             uploadUBO();
         }
         return true;

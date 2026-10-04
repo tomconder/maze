@@ -37,6 +37,14 @@ public:
 
     // The setters need no bound program. A value in a uniform block is
     // staged and uploaded at the next bind(), or at once if already bound.
+    // Between beginBatch() and endBatch() a bound shader holds the upload, so
+    // a run of setters before one draw costs one upload, not one per setter.
+    // Nothing may draw with this shader inside the pair.
+    void beginBatch() const {
+        batching = true;
+    }
+    void endBatch() const;
+
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
     void setFloat2(std::string_view name, const glm::vec2& value) const;
@@ -74,15 +82,18 @@ private:
 
     // UBO support for Slang-generated shaders
     struct UBOBlock {
-        uint32_t                               buffer  = 0;
-        uint32_t                               binding = 0;
-        GLsizei                                size    = 0;
-        std::unordered_map<std::string, GLint> offsets;
-        mutable std::vector<uint8_t>           staging;
-        mutable bool                           dirty = false;
+        uint32_t buffer  = 0;
+        uint32_t binding = 0;
+        GLsizei  size    = 0;
+        std::unordered_map<std::string, GLint, core::TransparentStringHash,
+                           std::equal_to<>>
+                                     offsets;
+        mutable std::vector<uint8_t> staging;
+        mutable bool                 dirty = false;
     };
     std::vector<UBOBlock> uboBlocks;
-    mutable bool          isBound = false;
+    mutable bool          isBound  = false;
+    mutable bool          batching = false;
 
     void initUBO();
     void uploadUBO() const;
