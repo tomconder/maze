@@ -332,9 +332,15 @@ void Application::run() {
             pendingVerticalSync.store(false, std::memory_order_relaxed);
         }
 
-        renderer->clear();
-        imguiManager.begin();
-        onImGuiRender();
+        {
+            SPONGE_PROFILE_SECTION("clear");
+            renderer->clear();
+        }
+        {
+            SPONGE_PROFILE_SECTION("imgui build");
+            imguiManager.begin();
+            onImGuiRender();
+        }
         for (const auto& layer : *layerStack) {
             if (!layer->isActive()) {
                 continue;
@@ -347,9 +353,15 @@ void Application::run() {
                 }
             }
         }
-        imguiManager.end();
+        {
+            SPONGE_PROFILE_SECTION("imgui render");
+            imguiManager.end();
+        }
         const auto flipStart = std::chrono::steady_clock::now();
-        graphics->flip(window->getNativeWindow());
+        {
+            SPONGE_PROFILE_SECTION("flip");
+            graphics->flip(window->getNativeWindow());
+        }
         loopTimes.flipUs.store(microsSince(flipStart),
                                std::memory_order_relaxed);
         loopTimes.renderTaskUs.store(microsSince(taskStart),
