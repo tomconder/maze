@@ -62,6 +62,14 @@
             }
         },
         {
+            "name": "sanitize",
+            "description": "Enable AddressSanitizer, LeakSanitizer and UBSan",
+            "hidden": true,
+            "cacheVariables": {
+                "ENABLE_SANITIZERS": "ON"
+            }
+        },
+        {
             "name": "vcpkg",
             "hidden": true,
             "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
@@ -199,6 +207,12 @@
             "displayName": "Linux - Debug",
             "description": "Sets debug build type and linux arch, and uses sccache",
             "inherits": ["base-linux", "debug", "imgui", "ninja", "sccache", "vcpkg"]
+        },
+        {
+            "name": "linux-sanitize",
+            "displayName": "Linux - Debug with sanitizers",
+            "description": "Debug build with AddressSanitizer, LeakSanitizer and UBSan",
+            "inherits": ["base-linux", "debug", "imgui", "ninja", "sanitize", "vcpkg"]
         },
         {
             "name": "ci-linux-release",

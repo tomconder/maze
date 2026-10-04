@@ -161,6 +161,22 @@ maze.exe --capture-frames=600 --dump-nan-stats
 * Each stage read stalls the GPU. Debug builds also run slower, so a 600-frame
   stats run takes minutes.
 
+### Leak checking (Linux)
+
+The `linux-sanitize` preset builds Debug with AddressSanitizer, LeakSanitizer
+and UBSan (`ENABLE_SANITIZERS`). Run the game from its build directory and
+quit normally; leaks print at exit. Windows has no leak checker, and
+`ENABLE_SANITIZERS` stops the configure on MSVC and clang-cl.
+
+```
+cmake --preset linux-sanitize
+cmake --build out/build/linux-sanitize --target game
+cd out/build/linux-sanitize/maze && ASAN_OPTIONS=detect_leaks=1 ./maze
+```
+
+Driver and GLFW leaks can show up as noise; suppress them with
+`LSAN_OPTIONS=suppressions=<file>` once seen.
+
 Before you commit changes run the pre-commit script:
 
 ```

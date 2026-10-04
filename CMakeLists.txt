@@ -58,6 +58,9 @@ if (ENABLE_PROFILING)
     option(TRACY_ON_DEMAND "" ON)
 endif (ENABLE_PROFILING)
 
+option(ENABLE_SANITIZERS
+        "Builds with AddressSanitizer, LeakSanitizer and UBSan (Linux and macOS)" OFF)
+
 option(ENABLE_IMGUI "Enables compilation with the imgui user interface library"
         OFF)
 if (ENABLE_IMGUI)
