@@ -231,6 +231,7 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                 decodeTexture(pbr.base_color_texture, path, data, imageIndex);
             parsedMesh.metallicRoughness = decodeTexture(
                 pbr.metallic_roughness_texture, path, data, imageIndex);
+            parsedMesh.baseColorFactor = glm::make_vec4(pbr.base_color_factor);
             parsedMesh.metallicFactor  = pbr.metallic_factor;
             parsedMesh.roughnessFactor = pbr.roughness_factor;
             parsedMesh.uvTransforms.albedo =

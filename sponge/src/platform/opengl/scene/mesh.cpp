@@ -44,6 +44,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            const float metallicFactor, const float roughnessFactor,
            const float clearcoatFactor, const float clearcoatRoughnessFactor,
            const glm::vec4&        diffuseTransmission,
+           const glm::vec4&        baseColorFactor,
            const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
@@ -56,6 +57,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     clearcoatFactor(clearcoatFactor),
     clearcoatRoughnessFactor(clearcoatRoughnessFactor),
     diffuseTransmission(diffuseTransmission),
+    baseColorFactor(baseColorFactor),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
     this->numIndices  = numIndices;
@@ -91,6 +93,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .clearcoatFactor = defaultShader->findUniform("clearcoatFactor"),
         .clearcoatRoughnessFactor =
             defaultShader->findUniform("clearcoatRoughnessFactor"),
+        .baseColorFactor = defaultShader->findUniform("baseColorFactor"),
         .diffuseTransmission =
             defaultShader->findUniform("diffuseTransmission"),
         .hasDiffuseTransmissionMap =
@@ -151,6 +154,7 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
         shader->setFloat(u.roughnessFactor, roughnessFactor);
         shader->setFloat(u.clearcoatFactor, clearcoatFactor);
         shader->setFloat(u.clearcoatRoughnessFactor, clearcoatRoughnessFactor);
+        shader->setFloat4(u.baseColorFactor, baseColorFactor);
         shader->setFloat4(u.diffuseTransmission, diffuseTransmission);
         if (diffuseTransmissionTexture) {
             shader->setBoolean(u.hasDiffuseTransmissionMap, true);

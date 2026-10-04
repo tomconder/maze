@@ -123,6 +123,9 @@ than calling GLFW/OpenGL/OS APIs directly.
   operator outputs linear display light and shares the one gamma encode, so
   AgX includes its own inverse transfer step. Keep `ToneMapper` in
   `scenetarget.hpp` in step with the `tone*` constants in `tonemap.slang`.
+* The glTF `baseColorFactor` is in the baked mesh entry as a linear `float4`
+  and multiplies the albedo in `pbr.slang`. With no albedo texture it is the
+  albedo. Alpha is carried, not used.
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off

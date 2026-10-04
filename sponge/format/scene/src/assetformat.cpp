@@ -154,6 +154,7 @@ std::vector<uint8_t> write(const ModelData& data) {
                     mesh.indices.size() * sizeof(uint32_t));
 
         std::ranges::copy(meshSlots[i], std::begin(entry.textureIndex));
+        entry.baseColorFactor          = mesh.baseColorFactor;
         entry.metallicFactor           = mesh.metallicFactor;
         entry.roughnessFactor          = mesh.roughnessFactor;
         entry.clearcoatFactor          = mesh.clearcoatFactor;
@@ -244,6 +245,7 @@ ModelData read(const std::string& path, std::string& error) {
             slot++;
         }
 
+        mesh.baseColorFactor          = entry.baseColorFactor;
         mesh.metallicFactor           = entry.metallicFactor;
         mesh.roughnessFactor          = entry.roughnessFactor;
         mesh.clearcoatFactor          = entry.clearcoatFactor;
