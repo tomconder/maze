@@ -580,6 +580,7 @@ void MazeLayer::onFrameSync() {
 }
 
 void MazeLayer::onRender() {
+    SPONGE_PROFILE_SECTION("onRender");
     // Render thread only — all GL calls here.
     if (pendingShadowRebuild.load(std::memory_order_acquire)) {
         const auto res =
@@ -626,6 +627,7 @@ void MazeLayer::onRender() {
         if (!gpuTimer) {
             gpuTimer.emplace();
         }
+        SPONGE_PROFILE_SECTION("gpu timer begin");
         gpuTimer->nextFrame();
     }
 
@@ -636,6 +638,7 @@ void MazeLayer::onRender() {
     // Pick up whichever occlusion queries resolved since last frame, before
     // any pass decides what's visible.
     if (occlusionCuller) {
+        SPONGE_PROFILE_SECTION("occlusion poll");
         occlusionCuller->pollResults();
     }
 
@@ -720,13 +723,16 @@ void MazeLayer::onRender() {
     const bool taaActive  = frame.antiAliasing == AntiAliasing::Taa && taa;
 
     gpuBegin("opaque");
-    sceneTarget->begin();
+    {
+        SPONGE_PROFILE_SECTION("opaque setup");
+        sceneTarget->begin();
 
-    // Blit prepass depth in so the opaque pass can use GL_LEQUAL (zero
-    // overdraw). Both FBOs use GL_DEPTH_COMPONENT24.
-    depthPrepass->blitDepthToBound();
-    RendererAPI::clearColor();
-    RendererAPI::setDepth(DepthFunc::LessEqual, false);
+        // Blit prepass depth in so the opaque pass can use GL_LEQUAL (zero
+        // overdraw). Both FBOs use GL_DEPTH_COMPONENT24.
+        depthPrepass->blitDepthToBound();
+        RendererAPI::clearColor();
+        RendererAPI::setDepth(DepthFunc::LessEqual, false);
+    }
 
     renderGameObjects(frame);
 
@@ -785,7 +791,10 @@ void MazeLayer::onRender() {
     }
 
     RendererAPI::setDepth(DepthFunc::Less, true);
-    sceneTarget->end();
+    {
+        SPONGE_PROFILE_SECTION("scene end");
+        sceneTarget->end();
+    }
 
     // Phase 5: bloom, extracted from linear radiance rather than from an
     // already tone-mapped image.
@@ -805,15 +814,19 @@ void MazeLayer::onRender() {
 
     // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
     // resolved image and does its own dithered write to the back buffer.
-    gpuBegin("resolve");
-    if (fxaaActive) {
-        fxaa->begin();
-    } else if (taaActive) {
-        taa->begin();
-    }
+    {
+        SPONGE_PROFILE_SECTION("resolve");
+        gpuBegin("resolve");
+        if (fxaaActive) {
+            fxaa->begin();
+        } else if (taaActive) {
+            taa->begin();
+        }
 
-    sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive);
-    gpuEnd();
+        sceneTarget->resolve(bloomTexId, bloomWeight,
+                             !fxaaActive && !taaActive);
+        gpuEnd();
+    }
 
     if (fxaaActive) {
         SPONGE_PROFILE_SECTION("aa");
@@ -836,11 +849,13 @@ void MazeLayer::onRender() {
     }
 
     if (gpuTimer) {
+        SPONGE_PROFILE_SECTION("gpu timer end");
         gpuTimer->endFrame();
     }
 
     // Before the first populated frame the scene is the untouched defaults.
     if (capture && frame.populated) {
+        SPONGE_PROFILE_SECTION("recordCapture");
         recordCapture(fxaaActive, taaActive, bloomTexId);
     }
 
