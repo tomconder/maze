@@ -1,5 +1,6 @@
 #include "platform/opengl/renderer/rendererapi.hpp"
 
+#include "debug/profiler.hpp"
 #include "platform/opengl/renderer/errorhandler.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
@@ -68,6 +69,7 @@ void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
 }
 
 void RendererAPI::flush() {
+    SPONGE_PROFILE_SECTION("glFlush");
     glFlush();
 }
 

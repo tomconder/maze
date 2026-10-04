@@ -693,6 +693,7 @@ void MazeLayer::onRender() {
 
     // Phase 3: light culling
     if (clusteredLights && frame.numLights > 0) {
+        SPONGE_PROFILE_SECTION("lightcull");
         gpuBegin("lightcull");
         clusteredLights->update(frame.lightPositions.data(),
                                 frame.lightColors.data(),
@@ -706,6 +707,7 @@ void MazeLayer::onRender() {
     // of the texture on frame.ssaoEnabled, so a stale/unrun texture is never
     // sampled.
     if (frame.ssaoEnabled && ssao) {
+        SPONGE_PROFILE_SECTION("ssao");
         gpuBegin("ssao");
         ssao->process(depthPrepass->getDepthTexture(),
                       depthPrepass->getNormalTexture(), frame.cameraProjection,
@@ -751,6 +753,7 @@ void MazeLayer::onRender() {
         std::ranges::any_of(
             std::views::iota(size_t{ 0 }, frame.objectReflectivity.size()),
             usesSsr)) {
+        SPONGE_PROFILE_SECTION("ssr");
         gpuBegin("ssr");
         ssr->apply(sceneTarget->copyColor(), depthPrepass->getDepthTexture(),
                    depthPrepass->getNormalTexture(), frame.cameraProjection,
@@ -760,6 +763,7 @@ void MazeLayer::onRender() {
 
     if (std::ranges::any_of(frame.objectRefraction,
                             &scene::SceneRefraction::refractive)) {
+        SPONGE_PROFILE_SECTION("glass");
         gpuBegin("glass");
         // The copy is a different texture from the scene color attachment.
         // Sampling that attachment while drawing it is undefined.
@@ -791,6 +795,7 @@ void MazeLayer::onRender() {
     uint32_t bloomTexId  = 0;
     float    bloomWeight = 0.F;
     if (frame.bloomEnabled && bloom) {
+        SPONGE_PROFILE_SECTION("bloom");
         gpuBegin("bloom");
         bloom->process(sceneTarget->getTexture(), frame.bloomThreshold);
         gpuEnd();
@@ -811,6 +816,7 @@ void MazeLayer::onRender() {
     gpuEnd();
 
     if (fxaaActive) {
+        SPONGE_PROFILE_SECTION("aa");
         gpuBegin("aa");
         fxaa->end();
         fxaa->apply();
@@ -820,6 +826,7 @@ void MazeLayer::onRender() {
         // it already ran. Accumulating in linear with a reversible weighting
         // curve resolves highlight edges better, but that change belongs inside
         // TAA, not in this pass order.
+        SPONGE_PROFILE_SECTION("aa");
         gpuBegin("aa");
         taa->end();
         taa->apply(depthPrepass->getDepthTexture(),
@@ -1110,6 +1117,7 @@ void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
 }
 
 void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderGameObjects");
     const auto shader = Mesh::getShader();
     shader->bind();
     if (clusteredLights) {
@@ -1173,6 +1181,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
 void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
                                         const uint32_t sceneCopy) const {
+    SPONGE_PROFILE_SECTION("renderRefractiveObjects");
     const auto shader = refractionShader;
     shader->bind();
     if (clusteredLights) {
@@ -1243,6 +1252,7 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
 }
 
 void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderDepthPrepass");
     // Only TAA reads the velocity target, so the other modes mask the writes
     // off. They still carry the plumbing: the RG16F attachment stays
     // allocated and the prepass shader still computes both clip-space
@@ -1308,6 +1318,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
 void MazeLayer::renderOcclusionQueries(
     const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderOcclusionQueries");
     if (!occlusionCuller) {
         return;
     }
@@ -1321,6 +1332,7 @@ void MazeLayer::renderOcclusionQueries(
 }
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderLightCubes");
     if (frame.numLights == 0) {
         return;
     }
@@ -1342,6 +1354,7 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
 
 void MazeLayer::renderPlanarReflection(
     const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderPlanarReflection");
     planarReflection->begin();
 
     const auto shader = Mesh::getShader();
@@ -1438,6 +1451,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
 
 void MazeLayer::renderPlanarComposite(
     const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderPlanarComposite");
     const auto i = frame.planarIndex;
     // The global default, set here like Ssr does, so the blend does not
     // depend on the passes before it.
@@ -1474,6 +1488,7 @@ void MazeLayer::bindShadow(const Shader&                  shader,
 
 void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
                                       const uint32_t cascade) const {
+    SPONGE_PROFILE_SECTION("renderSceneToDepthMap");
     shadowMap->bind(cascade);
 
     const auto shader = shadowMap->getShader();
