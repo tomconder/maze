@@ -124,12 +124,20 @@ than calling GLFW/OpenGL/OS APIs directly.
   AgX includes its own inverse transfer step. Keep `ToneMapper` in
   `scenetarget.hpp` in step with the `tone*` constants in `tonemap.slang`.
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
-  three coat textures are not read, so `textureSlots` stays 5. The coat uses
+  three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off
   the base light and the base ambient. It adds its own probe reflection,
   because that is most of what a coat looks like. A factor of 0 skips all of
   it. The factors are in the baked mesh entry, so changing them changes
   `asset::version`.
+* Diffuse transmission (`KHR_materials_diffuse_transmission`) carries the
+  color and factor, packed in one `float4` (`rgb` color, `w` factor), and the
+  strength texture (alpha channel, slot 6, texture unit 14, linear BC7). The
+  color texture is not read. The factor, times that alpha, moves that share
+  of the Lambert lobe from the front to the back of the surface
+  (`evaluateTransmission`). The back term is not shadowed, since a back-lit pixel is in its own shadow, so
+  objects in between do not block it. Fixing that needs a thickness
+  (`KHR_materials_volume`). A factor of 0 skips all of it.
 * Dither exactly once, at the final 8-bit write, and keep every intermediate
   target float (`GL_RGB16F`). An 8-bit intermediate quantises undithered and
   then quantises again at the real output — the banding `dither8` exists to

@@ -152,7 +152,8 @@ float3 evaluatePBR<L : ILight>(
     float  roughness,
     float3 Nc,  // coat normal: the geometric normal, no normal map
     float  clearcoat,
-    float  coatRoughness) {
+    float  coatRoughness,
+    float  transmission) {  // share of the diffuse that goes through; see evaluateTransmission
     float3 Ldir     = light.getDirection(worldPos);
     float3 radiance = light.getRadiance(worldPos);
     float3 H        = halfVector(V, Ldir);
@@ -164,7 +165,7 @@ float3 evaluatePBR<L : ILight>(
     float3 F        = fresnelSchlick(max(dot(H, V), 0.0), F0);
     float3 specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 1e-5);
     float3 kD       = (float3(1.0) - F) * (1.0 - metallic);
-    float3 base     = (kD * albedo / M_PI + specular) * radiance * NdotL;
+    float3 base     = (kD * albedo * (1.0 - transmission) / M_PI + specular) * radiance * NdotL;
     if (clearcoat <= 0.0) {
         return base;
     }
@@ -178,6 +179,23 @@ float3 evaluatePBR<L : ILight>(
                    geometrySmith(NdotVc, NdotLc, coatRoughness) * Fc /
                    (4.0 * NdotVc * NdotLc + 1e-5);
     return base * (1.0 - Fc) + coat * radiance * NdotLc;
+}
+
+// Diffuse light that passes through a thin surface: the Lambert lobe on the
+// back side. It is separate from evaluatePBR because the caller must not
+// shadow it. A back-lit pixel sits in its own shadow, so the shadow map would
+// zero the term this exists to add.
+float3 evaluateTransmission<L : ILight>(
+    L      light,
+    float3 worldPos,
+    float3 albedo,
+    float3 N,
+    float3 tint,
+    float  transmission) {
+    float3 Ldir     = light.getDirection(worldPos);
+    float3 radiance = light.getRadiance(worldPos);
+    float  NdotL    = max(dot(-N, Ldir), 0.0);
+    return transmission * tint * albedo / M_PI * radiance * NdotL;
 }
 
 // Specular lobe only. Glass adds this to a refracted background, so the

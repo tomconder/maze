@@ -243,6 +243,18 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.clearcoatRoughnessFactor =
                 material.clearcoat.clearcoat_roughness_factor;
         }
+        if (material.has_diffuse_transmission) {
+            const auto& dt = material.diffuse_transmission;
+            parsedMesh.diffuseTransmission =
+                glm::vec4(dt.diffuse_transmission_color_factor[0],
+                          dt.diffuse_transmission_color_factor[1],
+                          dt.diffuse_transmission_color_factor[2],
+                          dt.diffuse_transmission_factor);
+            parsedMesh.diffuseTransmissionMap = decodeTexture(
+                dt.diffuse_transmission_texture, path, data, imageIndex);
+            parsedMesh.uvTransforms.diffuseTransmission =
+                uvTransformOf(dt.diffuse_transmission_texture);
+        }
         parsedMesh.normal =
             decodeTexture(material.normal_texture, path, data, imageIndex);
         parsedMesh.occlusion =

@@ -50,13 +50,14 @@ using sponge::scene::ParsedMesh;
 namespace ktx2 = sponge::scene::ktx2;
 
 // A mesh's texture slots with the kind each wants, in the writer's slot order.
-std::array<std::pair<std::optional<uint32_t>, TextureKind>, 5>
+std::array<std::pair<std::optional<uint32_t>, TextureKind>, 6>
     slotsOf(const ParsedMesh& mesh) {
     return { { { mesh.albedo, TextureKind::Color },
                { mesh.normal, TextureKind::Normal },
                { mesh.occlusion, TextureKind::Linear },
                { mesh.emissive, TextureKind::Color },
-               { mesh.metallicRoughness, TextureKind::Linear } } };
+               { mesh.metallicRoughness, TextureKind::Linear },
+               { mesh.diffuseTransmissionMap, TextureKind::Linear } } };
 }
 
 bool encodeTextures(ModelData& data) {

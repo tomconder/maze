@@ -24,6 +24,7 @@ struct MeshUVTransforms {
     UVTransform occlusion;
     UVTransform emissive;
     UVTransform metallicRoughness;
+    UVTransform diffuseTransmission;
 };
 
 // A CPU-side texture, no GL object yet. Exactly one of pixels or ktx2 is
@@ -48,12 +49,18 @@ struct ParsedMesh {
     std::optional<uint32_t> occlusion;
     std::optional<uint32_t> emissive;
     std::optional<uint32_t> metallicRoughness;
+    // KHR_materials_diffuse_transmission strength map; its alpha scales the
+    // factor below.
+    std::optional<uint32_t> diffuseTransmissionMap;
     float                   metallicFactor{ 0.F };
     float                   roughnessFactor{ .5F };
     // KHR_materials_clearcoat factors; both default to 0 (no coat). The coat
     // textures are not carried.
-    float            clearcoatFactor{ 0.F };
-    float            clearcoatRoughnessFactor{ 0.F };
+    float clearcoatFactor{ 0.F };
+    float clearcoatRoughnessFactor{ 0.F };
+    // KHR_materials_diffuse_transmission: rgb = color, w = factor. A factor of
+    // 0 means opaque. The color texture is not carried.
+    glm::vec4        diffuseTransmission{ 1.F, 1.F, 1.F, 0.F };
     MeshUVTransforms uvTransforms;
 };
 
