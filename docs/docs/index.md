@@ -11,10 +11,12 @@ A game engine featuring a nice walk through a maze.
 * Cook-Torrance microfacet specular BRDF
 * Specular anti-aliasing: the highlight widens with the screen-space variance of the normal, so sub-pixel highlights do not sparkle
 * glTF 2.0 materials: albedo, normal, occlusion, emissive and metallic-roughness maps, with KHR_texture_transform
+* Clear coat (KHR_materials_clearcoat): a second specular lobe over the base, with its own probe reflection (factors only, no textures)
+* Diffuse transmission (KHR_materials_diffuse_transmission): thin translucent surfaces such as leaves, paper and ceramic glow when lit from behind (strength map supported, no color map, no shadow on the transmitted light)
 * Point lights and directional light
 * Clustered (volume-tiled) light culling
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
-* Reinhard tone mapping
+* Selectable tone mapping: AgX (default), ACES, Filmic or Reinhard
 * Physically based bloom
 * Screen-space ambient occlusion (SSAO)
 * Screen-space reflection (SSR) for objects marked `reflective` in the scene file

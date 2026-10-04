@@ -49,8 +49,12 @@ void appendBytes(std::vector<uint8_t>& out, const void* data,
 // non-const meshes.
 template <typename M>
 auto slotsOf(M& mesh) {
-    return std::array{ &mesh.albedo, &mesh.normal, &mesh.occlusion,
-                       &mesh.emissive, &mesh.metallicRoughness };
+    return std::array{ &mesh.albedo,
+                       &mesh.normal,
+                       &mesh.occlusion,
+                       &mesh.emissive,
+                       &mesh.metallicRoughness,
+                       &mesh.diffuseTransmissionMap };
 }
 
 // Checks magic, version and vertex layout. Returns nullptr on rejection.
@@ -154,6 +158,7 @@ std::vector<uint8_t> write(const ModelData& data) {
         entry.roughnessFactor          = mesh.roughnessFactor;
         entry.clearcoatFactor          = mesh.clearcoatFactor;
         entry.clearcoatRoughnessFactor = mesh.clearcoatRoughnessFactor;
+        entry.diffuseTransmission      = mesh.diffuseTransmission;
         entry.uvTransforms             = mesh.uvTransforms;
     }
 
@@ -243,6 +248,7 @@ ModelData read(const std::string& path, std::string& error) {
         mesh.roughnessFactor          = entry.roughnessFactor;
         mesh.clearcoatFactor          = entry.clearcoatFactor;
         mesh.clearcoatRoughnessFactor = entry.clearcoatRoughnessFactor;
+        mesh.diffuseTransmission      = entry.diffuseTransmission;
         mesh.uvTransforms             = entry.uvTransforms;
     }
 

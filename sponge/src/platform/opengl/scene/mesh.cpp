@@ -18,6 +18,8 @@ constexpr uint8_t normalTextureUnit            = 6;
 constexpr uint8_t occlusionTextureUnit         = 7;
 constexpr uint8_t emissiveTextureUnit          = 8;
 constexpr uint8_t metallicRoughnessTextureUnit = 9;
+// 10 to 13 are the SSAO, scene copy, probe and depth units mazelayer binds.
+constexpr uint8_t diffuseTransmissionTextureUnit = 14;
 }  // namespace
 
 namespace sponge::platform::opengl::scene {
@@ -38,18 +40,22 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::shared_ptr<renderer::Texture>                occlusionTexture,
            std::shared_ptr<renderer::Texture>                emissiveTexture,
            std::shared_ptr<renderer::Texture> metallicRoughnessTexture,
+           std::shared_ptr<renderer::Texture> diffuseTransmissionTexture,
            const float metallicFactor, const float roughnessFactor,
            const float clearcoatFactor, const float clearcoatRoughnessFactor,
+           const glm::vec4&        diffuseTransmission,
            const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
     occlusionTexture(std::move(occlusionTexture)),
     emissiveTexture(std::move(emissiveTexture)),
     metallicRoughnessTexture(std::move(metallicRoughnessTexture)),
+    diffuseTransmissionTexture(std::move(diffuseTransmissionTexture)),
     metallicFactor(metallicFactor),
     roughnessFactor(roughnessFactor),
     clearcoatFactor(clearcoatFactor),
     clearcoatRoughnessFactor(clearcoatRoughnessFactor),
+    diffuseTransmission(diffuseTransmission),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
     this->numIndices  = numIndices;
@@ -85,6 +91,12 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .clearcoatFactor = defaultShader->findUniform("clearcoatFactor"),
         .clearcoatRoughnessFactor =
             defaultShader->findUniform("clearcoatRoughnessFactor"),
+        .diffuseTransmission =
+            defaultShader->findUniform("diffuseTransmission"),
+        .hasDiffuseTransmissionMap =
+            defaultShader->findUniform("hasDiffuseTransmissionMap"),
+        .diffuseTransmissionUV =
+            defaultShader->findUniform("diffuseTransmissionUVTransform"),
         .hasMetallicRoughnessMap =
             defaultShader->findUniform("hasMetallicRoughnessMap"),
         .metallicRoughnessUV =
@@ -139,6 +151,14 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
         shader->setFloat(u.roughnessFactor, roughnessFactor);
         shader->setFloat(u.clearcoatFactor, clearcoatFactor);
         shader->setFloat(u.clearcoatRoughnessFactor, clearcoatRoughnessFactor);
+        shader->setFloat4(u.diffuseTransmission, diffuseTransmission);
+        if (diffuseTransmissionTexture) {
+            shader->setBoolean(u.hasDiffuseTransmissionMap, true);
+            diffuseTransmissionTexture->bind(diffuseTransmissionTextureUnit);
+        } else {
+            shader->setBoolean(u.hasDiffuseTransmissionMap, false);
+        }
+        setUV(u.diffuseTransmissionUV, uvTransforms.diffuseTransmission);
         if (metallicRoughnessTexture) {
             shader->setBoolean(u.hasMetallicRoughnessMap, true);
             metallicRoughnessTexture->bind(metallicRoughnessTextureUnit);

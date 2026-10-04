@@ -22,16 +22,19 @@ using sponge::scene::UVTransform;
 
 class Mesh : public sponge::scene::Mesh {
 public:
-    Mesh(std::vector<sponge::scene::Vertex>&& vertices, std::size_t numVertices,
-         std::vector<uint32_t>&& indices, std::size_t numIndices,
-         std::vector<std::shared_ptr<renderer::Texture>>&& textures,
-         std::shared_ptr<renderer::Texture> normalTexture            = nullptr,
-         std::shared_ptr<renderer::Texture> occlusionTexture         = nullptr,
-         std::shared_ptr<renderer::Texture> emissiveTexture          = nullptr,
-         std::shared_ptr<renderer::Texture> metallicRoughnessTexture = nullptr,
-         float metallicFactor = 0.F, float roughnessFactor = .5F,
-         float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
-         const MeshUVTransforms& uvTransforms = {});
+    Mesh(
+        std::vector<sponge::scene::Vertex>&& vertices, std::size_t numVertices,
+        std::vector<uint32_t>&& indices, std::size_t numIndices,
+        std::vector<std::shared_ptr<renderer::Texture>>&& textures,
+        std::shared_ptr<renderer::Texture> normalTexture              = nullptr,
+        std::shared_ptr<renderer::Texture> occlusionTexture           = nullptr,
+        std::shared_ptr<renderer::Texture> emissiveTexture            = nullptr,
+        std::shared_ptr<renderer::Texture> metallicRoughnessTexture   = nullptr,
+        std::shared_ptr<renderer::Texture> diffuseTransmissionTexture = nullptr,
+        float metallicFactor = 0.F, float roughnessFactor = .5F,
+        float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
+        const glm::vec4&        diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
+        const MeshUVTransforms& uvTransforms        = {});
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first.
     void draw(const std::shared_ptr<renderer::Shader>& shader) const;
@@ -91,6 +94,9 @@ private:
         Handle roughnessFactor;
         Handle clearcoatFactor;
         Handle clearcoatRoughnessFactor;
+        Handle diffuseTransmission;
+        Handle hasDiffuseTransmissionMap;
+        Handle diffuseTransmissionUV;
         Handle hasMetallicRoughnessMap;
         Handle metallicRoughnessUV;
     };
@@ -104,10 +110,12 @@ private:
     std::shared_ptr<renderer::Texture>              occlusionTexture;
     std::shared_ptr<renderer::Texture>              emissiveTexture;
     std::shared_ptr<renderer::Texture>              metallicRoughnessTexture;
+    std::shared_ptr<renderer::Texture>              diffuseTransmissionTexture;
     float                                           metallicFactor;
     float                                           roughnessFactor;
     float                                           clearcoatFactor;
     float                                           clearcoatRoughnessFactor;
+    glm::vec4                                       diffuseTransmission;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
 };

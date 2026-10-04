@@ -51,6 +51,7 @@ VSOutput vertMain(VSInput input) {
 [[vk::binding(9)]] Sampler2D<float4>      metallicRoughnessMap;
 [[vk::binding(10)]] Sampler2D<float>      ssaoTexture;
 [[vk::binding(12)]] SamplerCube<float4>   probeMap;
+[[vk::binding(14)]] Sampler2D<float4>     diffuseTransmissionMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -137,18 +138,33 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     // A coat is usually near mirror smooth, the case the widening exists for.
     float coatRoughness = widenRoughness(clamp(params.clearcoatRoughnessFactor, 0.089, 1.0), Nc);
 
+    float3 transmissionTint = params.diffuseTransmission.rgb;
+    float  transmission     = params.diffuseTransmission.w;
+    if (params.hasDiffuseTransmissionMap) {
+        // KHR_materials_diffuse_transmission: the strength is in alpha.
+        float2 transmissionUV = applyUVTransform(input.texCoords, params.diffuseTransmissionUVTransform);
+        transmission *= diffuseTransmissionMap.Sample(transmissionUV).a;
+    }
+
     float3 V  = normalize(params.viewPos - input.worldPosition);
     float3 Lo = float3(0.0);
 
     // Directional light
     float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness,
-                                    Nc, params.clearcoatFactor, coatRoughness);
+                                    Nc, params.clearcoatFactor, coatRoughness, transmission);
     float  shadow     = 0.0;
     if (params.directionalLight.castShadow) {
         shadow = shadowCascaded(shadowMap, params.lightSpaceMatrices, params.cascadeCount,
                                 input.worldPosition, params.evsmBleedThreshold);
     }
     Lo += dirContrib * (1.0 - shadow) * float(params.directionalLight.enabled);
+    if (transmission > 0.0) {
+        // Unshadowed: the surface would shadow its own back light. Objects
+        // between the light and the surface do not block it.
+        Lo += evaluateTransmission(params.directionalLight, input.worldPosition, albedo, N,
+                                   transmissionTint, transmission) *
+              float(params.directionalLight.enabled);
+    }
 
     // Clustered point lights
     if (params.numLights > 0) {
@@ -168,7 +184,11 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
             pl.attenuationIndex = params.attenuationIndex;
             Lo += evaluatePBR(pl, input.worldPosition, albedo, N, V,
                               metallic, roughness,
-                              Nc, params.clearcoatFactor, coatRoughness);
+                              Nc, params.clearcoatFactor, coatRoughness, transmission);
+            if (transmission > 0.0) {
+                Lo += evaluateTransmission(pl, input.worldPosition, albedo, N,
+                                           transmissionTint, transmission);
+            }
         }
     }
 

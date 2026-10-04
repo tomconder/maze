@@ -29,6 +29,7 @@ struct PbrParams {
     float    roughnessFactor;
     float    clearcoatFactor;  // 0 = no coat
     float    clearcoatRoughnessFactor;
+    float4   diffuseTransmission;  // rgb = color, w = factor; 0 = opaque
     float    ao;
     bool     ssaoEnabled;
     float    ambientStrength;
@@ -38,12 +39,14 @@ struct PbrParams {
     bool     hasAOMap;
     bool     hasEmissiveMap;
     bool     hasMetallicRoughnessMap;
+    bool     hasDiffuseTransmissionMap;
     // xy = offset, zw = scale (KHR_texture_transform; no rotation support)
     float4           albedoUVTransform;
     float4           normalUVTransform;
     float4           occlusionUVTransform;
     float4           emissiveUVTransform;
     float4           metallicRoughnessUVTransform;
+    float4           diffuseTransmissionUVTransform;
     float3           viewPos;
     float3           emissive;
     DirectionalLight directionalLight;
