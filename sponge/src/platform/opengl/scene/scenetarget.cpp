@@ -104,7 +104,8 @@ void SceneTarget::blitDepthTo(const uint32_t destFbo, const int w,
 }
 
 void SceneTarget::resolve(const uint32_t bloomTexId, const float bloomIntensity,
-                          const bool ditherOutput) const {
+                          const bool       ditherOutput,
+                          const ToneMapper toneMapper) const {
     // Depth testing would discard the full-screen quad behind whatever the
     // scene pass left in the depth buffer.
     glDisable(GL_DEPTH_TEST);
@@ -112,6 +113,7 @@ void SceneTarget::resolve(const uint32_t bloomTexId, const float bloomIntensity,
     shader->bind();
     shader->setFloat("bloomIntensity", bloomIntensity);
     shader->setBoolean("ditherOutput", ditherOutput);
+    shader->setInteger("toneMapper", static_cast<int>(toneMapper));
 
     glBindTextureUnit(0, colorTexture);
     glBindTextureUnit(1, bloomTexId);

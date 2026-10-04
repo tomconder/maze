@@ -206,6 +206,10 @@ void ImGuiLayer::showLightsSection() {
             showBloomControls();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Tone Map##Tab")) {
+            showToneMapControls();
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("SSAO##Tab")) {
             showSsaoControls();
             ImGui::EndTabItem();
@@ -256,6 +260,33 @@ void ImGuiLayer::showBloomControls() {
             if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 0.5F,
                                    "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setBloomIntensity(intensity);
+            }
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showToneMapControls() {
+    // Order must match ToneMapper.
+    static constexpr std::array<const char*, 4> names = { "Reinhard", "Filmic",
+                                                          "ACES", "AgX" };
+    if (ImGui::BeginTable("ToneMap##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
+        auto current = static_cast<int>(mazeLayer->getToneMapper());
+        showTableRow([&] {
+            ImGui::Text("Operator");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::Combo("##tonemapper", &current, names.data(),
+                             static_cast<int>(names.size()))) {
+                mazeLayer->setToneMapper(
+                    static_cast<sponge::platform::opengl::scene::ToneMapper>(
+                        current));
+                sponge::core::Settings::set("video.toneMapper",
+                                            static_cast<uint32_t>(current));
+                sponge::core::Settings::save();
             }
         });
 

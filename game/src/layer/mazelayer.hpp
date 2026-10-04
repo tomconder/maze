@@ -120,12 +120,14 @@ public:
 
     void setAntiAliasing(thread::AntiAliasing val);
 
-    bool  isBloomEnabled() const;
-    void  setBloomEnabled(bool val);
-    float getBloomThreshold() const;
-    void  setBloomThreshold(float val);
-    float getBloomIntensity() const;
-    void  setBloomIntensity(float val);
+    bool                                        isBloomEnabled() const;
+    void                                        setBloomEnabled(bool val);
+    float                                       getBloomThreshold() const;
+    void                                        setBloomThreshold(float val);
+    float                                       getBloomIntensity() const;
+    void                                        setBloomIntensity(float val);
+    sponge::platform::opengl::scene::ToneMapper getToneMapper() const;
+    void setToneMapper(sponge::platform::opengl::scene::ToneMapper val);
 
     bool  isSsaoEnabled() const;
     void  setSsaoEnabled(bool val);
@@ -342,8 +344,10 @@ private:
     float                         ao               = .25F;
     int32_t                       attenuationIndex = 4;
     thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
-    bool                          bloomEnabled     = true;
-    float                         bloomThreshold   = 0.8F;
+    sponge::platform::opengl::scene::ToneMapper toneMapper =
+        sponge::platform::opengl::scene::ToneMapper::Reinhard;
+    bool  bloomEnabled   = true;
+    float bloomThreshold = 0.8F;
     // Additive weight for the bloom texture, applied in LINEAR space before
     // tone mapping. The bloom texture holds radiance (measured peak ~2.6 in
     // this scene), not the [0,1] tone-mapped values it held when bloom

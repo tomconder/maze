@@ -42,6 +42,7 @@ private:
     static void showMenu();  // App info window sections
     static void showLightsSection();
     static void showBloomControls();
+    static void showToneMapControls();
     static void showSsaoControls();
     static void showSsrControls();
     static void showDirectionalLightControls();

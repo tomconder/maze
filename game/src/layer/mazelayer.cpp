@@ -78,6 +78,7 @@ using sponge::platform::opengl::scene::ShadowMap;
 using sponge::platform::opengl::scene::Ssao;
 using sponge::platform::opengl::scene::Ssr;
 using sponge::platform::opengl::scene::TAA;
+using sponge::platform::opengl::scene::ToneMapper;
 using thread::AntiAliasing;
 
 MazeLayer::MazeLayer() :
@@ -557,6 +558,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.bloomEnabled   = bloomEnabled;
         frame.bloomThreshold = bloomThreshold;
         frame.bloomIntensity = bloomIntensity;
+        frame.toneMapper     = toneMapper;
 
         frame.ssaoEnabled  = ssaoEnabled;
         frame.ssaoRadius   = ssaoRadius;
@@ -823,8 +825,8 @@ void MazeLayer::onRender() {
             taa->begin();
         }
 
-        sceneTarget->resolve(bloomTexId, bloomWeight,
-                             !fxaaActive && !taaActive);
+        sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive,
+                             frame.toneMapper);
         gpuEnd();
     }
 
@@ -1595,6 +1597,15 @@ float MazeLayer::getBloomIntensity() const {
 void MazeLayer::setBloomIntensity(const float val) {
     std::scoped_lock lock(settingsMutex);
     bloomIntensity = val;
+}
+
+ToneMapper MazeLayer::getToneMapper() const {
+    return toneMapper;
+}
+
+void MazeLayer::setToneMapper(const ToneMapper val) {
+    std::scoped_lock lock(settingsMutex);
+    toneMapper = val;
 }
 
 bool MazeLayer::isSsaoEnabled() const {
