@@ -345,7 +345,7 @@ private:
     int32_t                       attenuationIndex = 4;
     thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
     sponge::platform::opengl::scene::ToneMapper toneMapper =
-        sponge::platform::opengl::scene::ToneMapper::Reinhard;
+        sponge::platform::opengl::scene::ToneMapper::Agx;
     bool  bloomEnabled   = true;
     float bloomThreshold = 0.8F;
     // Additive weight for the bloom texture, applied in LINEAR space before
