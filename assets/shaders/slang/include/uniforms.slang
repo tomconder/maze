@@ -27,6 +27,8 @@ struct PbrParams {
     int      cascadeCount;
     float    metallicFactor;
     float    roughnessFactor;
+    float    clearcoatFactor;  // 0 = no coat
+    float    clearcoatRoughnessFactor;
     float    ao;
     bool     ssaoEnabled;
     float    ambientStrength;

@@ -101,7 +101,9 @@ holds a `vec4`.
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
 MeshEntry[]     vertex/index offsets and counts, 5 texture indices (-1 = empty),
-                metallic and roughness factors, per-slot UV transforms
+                metallic and roughness factors, clear coat factor and
+                roughness (KHR_materials_clearcoat, factors only), per-slot
+                UV transforms
 TextureEntry[]  offset, size
 blobs           vertices, indices, KTX2 files
 ```

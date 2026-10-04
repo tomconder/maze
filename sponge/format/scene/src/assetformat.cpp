@@ -150,9 +150,11 @@ std::vector<uint8_t> write(const ModelData& data) {
                     mesh.indices.size() * sizeof(uint32_t));
 
         std::ranges::copy(meshSlots[i], std::begin(entry.textureIndex));
-        entry.metallicFactor  = mesh.metallicFactor;
-        entry.roughnessFactor = mesh.roughnessFactor;
-        entry.uvTransforms    = mesh.uvTransforms;
+        entry.metallicFactor           = mesh.metallicFactor;
+        entry.roughnessFactor          = mesh.roughnessFactor;
+        entry.clearcoatFactor          = mesh.clearcoatFactor;
+        entry.clearcoatRoughnessFactor = mesh.clearcoatRoughnessFactor;
+        entry.uvTransforms             = mesh.uvTransforms;
     }
 
     for (size_t i = 0; i < textureBlobs.size(); i++) {
@@ -237,9 +239,11 @@ ModelData read(const std::string& path, std::string& error) {
             slot++;
         }
 
-        mesh.metallicFactor  = entry.metallicFactor;
-        mesh.roughnessFactor = entry.roughnessFactor;
-        mesh.uvTransforms    = entry.uvTransforms;
+        mesh.metallicFactor           = entry.metallicFactor;
+        mesh.roughnessFactor          = entry.roughnessFactor;
+        mesh.clearcoatFactor          = entry.clearcoatFactor;
+        mesh.clearcoatRoughnessFactor = entry.clearcoatRoughnessFactor;
+        mesh.uvTransforms             = entry.uvTransforms;
     }
 
     return data;

@@ -39,6 +39,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::shared_ptr<renderer::Texture>                emissiveTexture,
            std::shared_ptr<renderer::Texture> metallicRoughnessTexture,
            const float metallicFactor, const float roughnessFactor,
+           const float clearcoatFactor, const float clearcoatRoughnessFactor,
            const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
@@ -47,6 +48,8 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     metallicRoughnessTexture(std::move(metallicRoughnessTexture)),
     metallicFactor(metallicFactor),
     roughnessFactor(roughnessFactor),
+    clearcoatFactor(clearcoatFactor),
+    clearcoatRoughnessFactor(clearcoatRoughnessFactor),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
     this->numIndices  = numIndices;
@@ -79,6 +82,9 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .emissiveUV      = defaultShader->findUniform("emissiveUVTransform"),
         .metallicFactor  = defaultShader->findUniform("metallicFactor"),
         .roughnessFactor = defaultShader->findUniform("roughnessFactor"),
+        .clearcoatFactor = defaultShader->findUniform("clearcoatFactor"),
+        .clearcoatRoughnessFactor =
+            defaultShader->findUniform("clearcoatRoughnessFactor"),
         .hasMetallicRoughnessMap =
             defaultShader->findUniform("hasMetallicRoughnessMap"),
         .metallicRoughnessUV =
@@ -131,6 +137,8 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
 
         shader->setFloat(u.metallicFactor, metallicFactor);
         shader->setFloat(u.roughnessFactor, roughnessFactor);
+        shader->setFloat(u.clearcoatFactor, clearcoatFactor);
+        shader->setFloat(u.clearcoatRoughnessFactor, clearcoatRoughnessFactor);
         if (metallicRoughnessTexture) {
             shader->setBoolean(u.hasMetallicRoughnessMap, true);
             metallicRoughnessTexture->bind(metallicRoughnessTextureUnit);

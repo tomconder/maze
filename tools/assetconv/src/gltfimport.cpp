@@ -238,6 +238,11 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.uvTransforms.metallicRoughness =
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
+        if (material.has_clearcoat) {
+            parsedMesh.clearcoatFactor = material.clearcoat.clearcoat_factor;
+            parsedMesh.clearcoatRoughnessFactor =
+                material.clearcoat.clearcoat_roughness_factor;
+        }
         parsedMesh.normal =
             decodeTexture(material.normal_texture, path, data, imageIndex);
         parsedMesh.occlusion =

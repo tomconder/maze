@@ -50,7 +50,11 @@ struct ParsedMesh {
     std::optional<uint32_t> metallicRoughness;
     float                   metallicFactor{ 0.F };
     float                   roughnessFactor{ .5F };
-    MeshUVTransforms        uvTransforms;
+    // KHR_materials_clearcoat factors; both default to 0 (no coat). The coat
+    // textures are not carried.
+    float            clearcoatFactor{ 0.F };
+    float            clearcoatRoughnessFactor{ 0.F };
+    MeshUVTransforms uvTransforms;
 };
 
 // CPU-only parse result for a whole model. Model::buildMesh() turns it into

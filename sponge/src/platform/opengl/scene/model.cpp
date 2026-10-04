@@ -127,6 +127,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
         buildTexture(parsedMesh.emissive, images),
         buildTexture(parsedMesh.metallicRoughness, images),
         parsedMesh.metallicFactor, parsedMesh.roughnessFactor,
+        parsedMesh.clearcoatFactor, parsedMesh.clearcoatRoughnessFactor,
         parsedMesh.uvTransforms);
     return mesh;
 }
