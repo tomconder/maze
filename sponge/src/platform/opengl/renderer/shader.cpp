@@ -359,6 +359,16 @@ void Shader::uploadUBO() const {
     }
 }
 
+void Shader::writeUBO(const UBOBlock& block, const GLint offset,
+                      const void* data, const size_t bytes) const {
+    assert(static_cast<size_t>(offset) + bytes <= block.staging.size());
+    std::memcpy(block.staging.data() + offset, data, bytes);
+    block.dirty = true;
+    if (isBound && !batching) {
+        uploadUBO();
+    }
+}
+
 bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
                          size_t /*typeSize*/) const {
     SPONGE_PROFILE_SECTION("Shader::trySetInUBO");
@@ -367,15 +377,44 @@ bool Shader::trySetInUBO(std::string_view name, const void* data, size_t bytes,
         if (it == block.offsets.end()) {
             continue;
         }
-        assert(static_cast<size_t>(it->second) + bytes <= block.staging.size());
-        std::memcpy(block.staging.data() + it->second, data, bytes);
-        block.dirty = true;
-        if (isBound && !batching) {
-            uploadUBO();
-        }
+        writeUBO(block, it->second, data, bytes);
         return true;
     }
     return false;
+}
+
+Shader::UniformHandle Shader::findUniform(const std::string_view name) const {
+    for (size_t i = 0; i < uboBlocks.size(); i++) {
+        if (const auto it = uboBlocks[i].offsets.find(name);
+            it != uboBlocks[i].offsets.end()) {
+            return { static_cast<int32_t>(i), it->second };
+        }
+    }
+    SPONGE_GL_WARN("Uniform block member not found: [{}, {}]", name, program);
+    return {};
+}
+
+void Shader::setBoolean(const UniformHandle handle, const bool value) const {
+    if (handle.valid()) {
+        const uint32_t v = value ? 1u : 0u;
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 &v, sizeof(v));
+    }
+}
+
+void Shader::setFloat(const UniformHandle handle, const float value) const {
+    if (handle.valid()) {
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 &value, sizeof(value));
+    }
+}
+
+void Shader::setFloat4(const UniformHandle handle,
+                       const glm::vec4&    value) const {
+    if (handle.valid()) {
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 glm::value_ptr(value), sizeof(value));
+    }
 }
 
 }  // namespace sponge::platform::opengl::renderer

@@ -35,6 +35,8 @@ uint32_t Mesh::meshProgramId = 0;
 
 std::shared_ptr<Shader> Mesh::defaultShader;
 
+Mesh::MaterialUniforms Mesh::materialUniforms;
+
 Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
            std::vector<std::shared_ptr<renderer::Texture>>&& textures,
@@ -70,10 +72,26 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .vertexShader   = "pbr.vert",
         .fragmentShader = "pbr.frag",
     };
-    defaultShader = AssetManager::createShader(shaderCreateInfo);
-    meshProgramId = defaultShader->getId();
-    vao           = std::make_unique<renderer::VertexArray>();
-    vbo           = std::make_unique<renderer::VertexBuffer>(
+    defaultShader    = AssetManager::createShader(shaderCreateInfo);
+    meshProgramId    = defaultShader->getId();
+    materialUniforms = {
+        .hasNoTexture    = defaultShader->findUniform("hasNoTexture"),
+        .albedoUV        = defaultShader->findUniform("albedoUVTransform"),
+        .hasNormalMap    = defaultShader->findUniform("hasNormalMap"),
+        .normalUV        = defaultShader->findUniform("normalUVTransform"),
+        .hasAOMap        = defaultShader->findUniform("hasAOMap"),
+        .occlusionUV     = defaultShader->findUniform("occlusionUVTransform"),
+        .hasEmissiveMap  = defaultShader->findUniform("hasEmissiveMap"),
+        .emissiveUV      = defaultShader->findUniform("emissiveUVTransform"),
+        .metallicFactor  = defaultShader->findUniform("metallicFactor"),
+        .roughnessFactor = defaultShader->findUniform("roughnessFactor"),
+        .hasMetallicRoughnessMap =
+            defaultShader->findUniform("hasMetallicRoughnessMap"),
+        .metallicRoughnessUV =
+            defaultShader->findUniform("metallicRoughnessUVTransform"),
+    };
+    vao = std::make_unique<renderer::VertexArray>();
+    vbo = std::make_unique<renderer::VertexBuffer>(
         this->vertices.data(), numVertices * sizeof(Vertex));
     ebo = std::make_unique<renderer::IndexBuffer>(
         this->indices.data(), numIndices * sizeof(uint32_t));
@@ -94,58 +112,57 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
 
     if (shader->getId() == meshProgramId) {
         shader->beginBatch();
-        const auto setUV = [&shader](const std::string_view name,
-                                     const UVTransform&     uv) {
-            shader->setFloat4(name, glm::vec4(uv.offset, uv.scale));
+        const auto& u     = materialUniforms;
+        const auto  setUV = [&shader](const Shader::UniformHandle handle,
+                                      const UVTransform&          uv) {
+            shader->setFloat4(handle, glm::vec4(uv.offset, uv.scale));
         };
 
         if (!textures.empty()) {
-            shader->setBoolean("hasNoTexture", false);
+            shader->setBoolean(u.hasNoTexture, false);
             textures.at(0)->bind(0);
         } else {
-            shader->setBoolean("hasNoTexture", true);
+            shader->setBoolean(u.hasNoTexture, true);
         }
-        setUV("albedoUVTransform", uvTransforms.albedo);
+        setUV(u.albedoUV, uvTransforms.albedo);
 
         if (normalTexture) {
-            shader->setBoolean("hasNormalMap", true);
+            shader->setBoolean(u.hasNormalMap, true);
             normalTexture->bind(normalTextureUnit);
         } else {
-            shader->setBoolean("hasNormalMap", false);
+            shader->setBoolean(u.hasNormalMap, false);
         }
-        setUV("normalUVTransform", uvTransforms.normal);
+        setUV(u.normalUV, uvTransforms.normal);
 
         if (occlusionTexture) {
-            shader->setBoolean("hasAOMap", true);
+            shader->setBoolean(u.hasAOMap, true);
             occlusionTexture->bind(occlusionTextureUnit);
         } else {
-            shader->setBoolean("hasAOMap", false);
+            shader->setBoolean(u.hasAOMap, false);
         }
-        setUV("occlusionUVTransform", uvTransforms.occlusion);
+        setUV(u.occlusionUV, uvTransforms.occlusion);
 
         if (emissiveTexture) {
-            shader->setBoolean("hasEmissiveMap", true);
+            shader->setBoolean(u.hasEmissiveMap, true);
             emissiveTexture->bind(emissiveTextureUnit);
         } else {
-            shader->setBoolean("hasEmissiveMap", false);
+            shader->setBoolean(u.hasEmissiveMap, false);
         }
-        setUV("emissiveUVTransform", uvTransforms.emissive);
+        setUV(u.emissiveUV, uvTransforms.emissive);
 
-        shader->setFloat("metallicFactor", metallicFactor);
-        shader->setFloat("roughnessFactor", roughnessFactor);
+        shader->setFloat(u.metallicFactor, metallicFactor);
+        shader->setFloat(u.roughnessFactor, roughnessFactor);
         if (metallicRoughnessTexture) {
-            shader->setBoolean("hasMetallicRoughnessMap", true);
+            shader->setBoolean(u.hasMetallicRoughnessMap, true);
             metallicRoughnessTexture->bind(metallicRoughnessTextureUnit);
         } else {
-            shader->setBoolean("hasMetallicRoughnessMap", false);
+            shader->setBoolean(u.hasMetallicRoughnessMap, false);
         }
-        setUV("metallicRoughnessUVTransform", uvTransforms.metallicRoughness);
+        setUV(u.metallicRoughnessUV, uvTransforms.metallicRoughness);
         shader->endBatch();
     }
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numIndices),
                    GL_UNSIGNED_INT, nullptr);
-
-    vao->unbind();
 }
 }  // namespace sponge::platform::opengl::scene

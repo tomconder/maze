@@ -50,6 +50,24 @@ private:
     static uint32_t                          meshProgramId;
     static std::shared_ptr<renderer::Shader> defaultShader;
 
+    // The material uniforms render() sets on every draw, found once.
+    struct MaterialUniforms {
+        using Handle = renderer::Shader::UniformHandle;
+        Handle hasNoTexture;
+        Handle albedoUV;
+        Handle hasNormalMap;
+        Handle normalUV;
+        Handle hasAOMap;
+        Handle occlusionUV;
+        Handle hasEmissiveMap;
+        Handle emissiveUV;
+        Handle metallicFactor;
+        Handle roughnessFactor;
+        Handle hasMetallicRoughnessMap;
+        Handle metallicRoughnessUV;
+    };
+    static MaterialUniforms materialUniforms;
+
     std::unique_ptr<renderer::VertexBuffer> vbo;
     std::unique_ptr<renderer::IndexBuffer>  ebo;
     std::unique_ptr<renderer::VertexArray>  vao;
