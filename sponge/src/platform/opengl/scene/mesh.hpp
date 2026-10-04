@@ -1,11 +1,8 @@
 #pragma once
 
 #include "modeldata.hpp"
-#include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
-#include "platform/opengl/renderer/vertexarray.hpp"
-#include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
 
@@ -14,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -33,7 +31,34 @@ public:
          std::shared_ptr<renderer::Texture> metallicRoughnessTexture = nullptr,
          float metallicFactor = 0.F, float roughnessFactor = .5F,
          const MeshUVTransforms& uvTransforms = {});
-    void render(const std::shared_ptr<renderer::Shader>& shader) const;
+    // Sets the material and draws this mesh's range of the model's shared
+    // vertex and index buffers. The caller binds the model's VAO first.
+    void draw(const std::shared_ptr<renderer::Shader>& shader) const;
+
+    // The geometry Model packs into its shared buffers, then frees.
+    std::span<const sponge::scene::Vertex> getVertices() const {
+        return vertices;
+    }
+    std::span<const uint32_t> getIndices() const {
+        return indices;
+    }
+    void freeGeometry() {
+        std::vector<sponge::scene::Vertex>().swap(vertices);
+        std::vector<uint32_t>().swap(indices);
+    }
+
+    // Where Model put this mesh in its shared buffers: the vertex offset
+    // added to every index, and the first index in elements.
+    void setDrawRange(const int32_t vertexOffset, const uint32_t firstElement) {
+        baseVertex = vertexOffset;
+        firstIndex = firstElement;
+    }
+    int32_t getBaseVertex() const {
+        return baseVertex;
+    }
+    uint32_t getFirstIndex() const {
+        return firstIndex;
+    }
 
     static std::shared_ptr<renderer::Shader> getShader() {
         return defaultShader;
@@ -50,7 +75,7 @@ private:
     static uint32_t                          meshProgramId;
     static std::shared_ptr<renderer::Shader> defaultShader;
 
-    // The material uniforms render() sets on every draw, found once.
+    // The material uniforms draw() sets on every draw, found once.
     struct MaterialUniforms {
         using Handle = renderer::Shader::UniformHandle;
         Handle hasNoTexture;
@@ -68,9 +93,8 @@ private:
     };
     static MaterialUniforms materialUniforms;
 
-    std::unique_ptr<renderer::VertexBuffer> vbo;
-    std::unique_ptr<renderer::IndexBuffer>  ebo;
-    std::unique_ptr<renderer::VertexArray>  vao;
+    int32_t  baseVertex = 0;
+    uint32_t firstIndex = 0;
 
     std::vector<std::shared_ptr<renderer::Texture>> textures;
     std::shared_ptr<renderer::Texture>              normalTexture;

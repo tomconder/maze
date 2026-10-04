@@ -16,6 +16,14 @@
 #include <utility>
 #include <vector>
 
+namespace {
+// Slang-generated layout locations for pbr.vert.slang
+constexpr uint32_t positionLoc = 0;
+constexpr uint32_t texCoordLoc = 1;
+constexpr uint32_t normalLoc   = 2;
+constexpr uint32_t tangentLoc  = 3;
+}  // namespace
+
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
@@ -29,6 +37,7 @@ Model::Model(const ModelCreateInfo& createInfo) {
         numVertices += mesh->getNumVertices();
         meshes.emplace_back(std::move(mesh));
     }
+    packMeshes();
 }
 
 Model::Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes) {
@@ -37,6 +46,42 @@ Model::Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes) {
         numVertices += mesh->getNumVertices();
     }
     meshes = std::move(builtMeshes);
+    packMeshes();
+}
+
+void Model::packMeshes() {
+    if (meshes.empty()) {
+        return;
+    }
+
+    std::vector<sponge::scene::Vertex> vertices;
+    std::vector<uint32_t>              indices;
+    vertices.reserve(numVertices);
+    indices.reserve(numIndices);
+    for (const auto& mesh : meshes) {
+        mesh->setDrawRange(static_cast<int32_t>(vertices.size()),
+                           static_cast<uint32_t>(indices.size()));
+        const auto meshVertices = mesh->getVertices();
+        const auto meshIndices  = mesh->getIndices();
+        vertices.insert(vertices.end(), meshVertices.begin(),
+                        meshVertices.end());
+        indices.insert(indices.end(), meshIndices.begin(), meshIndices.end());
+        mesh->freeGeometry();
+    }
+
+    vbo = std::make_unique<renderer::VertexBuffer>(
+        vertices.data(), vertices.size() * sizeof(sponge::scene::Vertex));
+    ebo = std::make_unique<renderer::IndexBuffer>(
+        indices.data(), indices.size() * sizeof(uint32_t));
+    vao = std::make_unique<renderer::VertexArray>();
+    vao->setVertexBuffer(*vbo, sizeof(sponge::scene::Vertex));
+    vao->setIndexBuffer(*ebo);
+    vao->addAttribute(positionLoc, 3,
+                      offsetof(sponge::scene::Vertex, position));
+    vao->addAttribute(texCoordLoc, 2,
+                      offsetof(sponge::scene::Vertex, texCoords));
+    vao->addAttribute(normalLoc, 3, offsetof(sponge::scene::Vertex, normal));
+    vao->addAttribute(tangentLoc, 4, offsetof(sponge::scene::Vertex, tangent));
 }
 
 ModelData Model::parse(const ModelCreateInfo& createInfo) {
@@ -109,8 +154,12 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model");
 
+    if (!vao) {
+        return;
+    }
+    vao->bind();
     for (auto&& mesh : meshes) {
-        mesh->render(shader);
+        mesh->draw(shader);
     }
 }
 
@@ -119,9 +168,13 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader,
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model culled");
 
+    if (!vao) {
+        return;
+    }
+    vao->bind();
     for (size_t i = 0; i < meshes.size(); i++) {
         if (meshVisible.empty() || meshVisible[i] != 0) {
-            meshes[i]->render(shader);
+            meshes[i]->draw(shader);
         }
     }
 }

@@ -13,12 +13,6 @@
 #include <vector>
 
 namespace {
-// Slang-generated layout locations for pbr.vert.slang
-constexpr uint32_t positionLoc = 0;
-constexpr uint32_t texCoordLoc = 1;
-constexpr uint32_t normalLoc   = 2;
-constexpr uint32_t tangentLoc  = 3;
-
 // Texture units; 0/1 are reserved for albedo/shadow map, bound elsewhere.
 constexpr uint8_t normalTextureUnit            = 6;
 constexpr uint8_t occlusionTextureUnit         = 7;
@@ -90,25 +84,10 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .metallicRoughnessUV =
             defaultShader->findUniform("metallicRoughnessUVTransform"),
     };
-    vao = std::make_unique<renderer::VertexArray>();
-    vbo = std::make_unique<renderer::VertexBuffer>(
-        this->vertices.data(), numVertices * sizeof(Vertex));
-    ebo = std::make_unique<renderer::IndexBuffer>(
-        this->indices.data(), numIndices * sizeof(uint32_t));
-    vao->setVertexBuffer(*vbo, sizeof(Vertex));
-    vao->setIndexBuffer(*ebo);
-    vao->addAttribute(positionLoc, 3,
-                      offsetof(sponge::scene::Vertex, position));
-    vao->addAttribute(texCoordLoc, 2,
-                      offsetof(sponge::scene::Vertex, texCoords));
-    vao->addAttribute(normalLoc, 3, offsetof(sponge::scene::Vertex, normal));
-    vao->addAttribute(tangentLoc, 4, offsetof(sponge::scene::Vertex, tangent));
 }
 
-void Mesh::render(const std::shared_ptr<Shader>& shader) const {
+void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
     SPONGE_PROFILE;
-
-    vao->bind();
 
     if (shader->getId() == meshProgramId) {
         shader->beginBatch();
@@ -162,7 +141,10 @@ void Mesh::render(const std::shared_ptr<Shader>& shader) const {
         shader->endBatch();
     }
 
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(numIndices),
-                   GL_UNSIGNED_INT, nullptr);
+    glDrawElementsBaseVertex(
+        GL_TRIANGLES, static_cast<GLsizei>(numIndices), GL_UNSIGNED_INT,
+        reinterpret_cast<const void*>(static_cast<std::uintptr_t>(firstIndex) *
+                                      sizeof(uint32_t)),
+        baseVertex);
 }
 }  // namespace sponge::platform::opengl::scene
