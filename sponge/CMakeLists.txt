@@ -179,7 +179,18 @@ if (MSVC)
 
     # disable RTTI
     target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
+
+    if (ENABLE_SANITIZERS)
+        # MSVC ASan cannot detect leaks and conflicts with /INCREMENTAL and /RTC
+        message(FATAL_ERROR "ENABLE_SANITIZERS is not supported with MSVC or clang-cl")
+    endif ()
 else ()
+    # leak checking comes with AddressSanitizer on Linux
+    if (ENABLE_SANITIZERS)
+        target_compile_options(sponge_options INTERFACE -fsanitize=address,undefined)
+        target_link_options(sponge_options INTERFACE -fsanitize=address,undefined)
+    endif ()
+
     # see the implications here: https://stackoverflow.com/q/45685487
     target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
