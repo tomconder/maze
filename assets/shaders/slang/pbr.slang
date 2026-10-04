@@ -79,7 +79,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     // clang-format on
     float2 albedoUV = applyUVTransform(input.texCoords, params.albedoUVTransform);
     float3 texColor = pow(texture_diffuse1.Sample(albedoUV).rgb, float3(2.2));
-    float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture));
+    float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture)) * params.baseColorFactor.rgb;
 
     float3 N = normalize(input.worldNormal);
     // The coat has no normal map of its own here, so it keeps the surface

@@ -101,7 +101,8 @@ holds a `vec4`.
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
 MeshEntry[]     vertex/index offsets and counts, 6 texture indices (-1 = empty),
-                metallic and roughness factors, clear coat factor and
+                base color factor (rgba, linear), metallic and roughness
+                factors, clear coat factor and
                 roughness (KHR_materials_clearcoat, factors only), diffuse
                 transmission color and factor
                 (KHR_materials_diffuse_transmission, strength texture but no

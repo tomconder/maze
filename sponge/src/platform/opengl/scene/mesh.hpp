@@ -34,6 +34,7 @@ public:
         float metallicFactor = 0.F, float roughnessFactor = .5F,
         float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
         const glm::vec4&        diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
+        const glm::vec4&        baseColorFactor     = glm::vec4(1.F),
         const MeshUVTransforms& uvTransforms        = {});
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first.
@@ -94,6 +95,7 @@ private:
         Handle roughnessFactor;
         Handle clearcoatFactor;
         Handle clearcoatRoughnessFactor;
+        Handle baseColorFactor;
         Handle diffuseTransmission;
         Handle hasDiffuseTransmissionMap;
         Handle diffuseTransmissionUV;
@@ -116,6 +118,7 @@ private:
     float                                           clearcoatFactor;
     float                                           clearcoatRoughnessFactor;
     glm::vec4                                       diffuseTransmission;
+    glm::vec4                                       baseColorFactor;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
 };
