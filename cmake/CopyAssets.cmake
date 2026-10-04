@@ -22,6 +22,15 @@ file(COPY "${SRC_DIR}/"
 file(COPY "${SRC_BAKED}/"
      DESTINATION "${DST_DIR}")
 
+# file(COPY) never deletes. Drop what an earlier run copied and neither the
+# sources nor the bake holds now, such as a model removed from the manifest.
+file(GLOB_RECURSE DEPLOYED_FILES RELATIVE "${DST_DIR}" "${DST_DIR}/*")
+foreach (FILE IN LISTS DEPLOYED_FILES)
+    if (NOT EXISTS "${SRC_BAKED}/${FILE}" AND NOT EXISTS "${SRC_DIR}/${FILE}")
+        file(REMOVE "${DST_DIR}/${FILE}")
+    endif ()
+endforeach ()
+
 # file(COPY) still creates a folder whose files were all excluded, such as
 # textures/prompts/ once its atlas images are dropped. Remove those, deepest
 # first.

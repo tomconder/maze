@@ -31,6 +31,10 @@ An output is skipped when it is newer than its sources, the manifest and
 into it, so a format change rebakes everything. A failed conversion deletes
 its output, so a partial file never looks current.
 
+After every bake succeeds, `assetconv` deletes the files in the output
+directory that the manifest does not list, so an entry removed from the
+manifest does not ship. Keep nothing else in that directory.
+
 `--notices` joins third-party licenses into one file: the manifest's
 `licenses` entries plus each `--license`. A name given more than once gets all
 its files in one section. A section with one file holds that file; with
