@@ -3,13 +3,15 @@
 > These arguments exist only in debug builds. A release build ignores them and starts normally.
 
 A capture run skips the splash and intro screens and loads the maze. It uses a fixed 1600x900 window with vsync off, so
-runs compare. The camera turns once over the run. The run writes its results to the working directory and then exits.
+runs compare. The camera turns once over the run, unless `--capture-walk` moves it. The run writes its results to the working directory and then exits.
 
 | Argument                  | Description                                                                                                                                                     |
 |---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--capture-frames N`      | Render `N` frames and exit. `--capture-frames=N` also works. A missing, zero or non-numeric `N` gives the normal start.                                         |
 | `--dump-nan-stats`        | Scan every stage on every frame for NaN, Inf and isolated bright or dark pixels. `N` defaults to 600 when `--capture-frames` is not given.                      |
 | `--capture-off=a,b`       | Turn passes off for the run. Use a comma-separated list of: `aa`, `bloom`, `ssao`, `ssr`, `shadow`, `probe`, `planar`. Also `shadowcache` (draw the shadow map every frame, so its cost shows in the timing) and `gputimer` (turn the GPU timer off). |
+| `--capture-walk=D`        | Move the camera `D` world units per update along +X and keep its yaw fixed, instead of turning it. A turn never redraws a shadow cascade, so a walk is how to count redraws: `gpu shadow calls` in `capture_timing.txt` is one per cascade redraw. A near cascade redraws when the camera has moved one texel of its map. |
+| `--capture-cascades=N`    | Use `N` shadow cascades, 1 to 4. The default is 2. One is the whole-scene map alone, for an A/B against the cascades. |
 
 Examples:
 
@@ -17,6 +19,7 @@ Examples:
 maze.exe --capture-frames 600
 maze.exe --capture-frames=600 --dump-nan-stats
 maze.exe --capture-frames 1500 --capture-off=ssao,bloom
+maze.exe --capture-frames 600 --capture-walk=0.05 --capture-cascades=3
 ```
 
 ## Output files
