@@ -117,7 +117,7 @@ struct MazeRenderFrame {
     float bloomIntensity{ 0.08F };
 
     sponge::platform::opengl::scene::ToneMapper toneMapper{
-        sponge::platform::opengl::scene::ToneMapper::Reinhard
+        sponge::platform::opengl::scene::ToneMapper::Agx
     };
 
     bool  ssaoEnabled{ true };
