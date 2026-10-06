@@ -86,16 +86,6 @@ objects:
   #   translation: [-1.0, 2.25, 1.0]
   #   emissive: [1.5, 1.2, 0.5]
 
-  # Khronos alpha mode test: OPAQUE, BLEND and three MASK cutoffs. Add it to
-  # assets/manifest.yaml (models/gltf/alphablendmodetest/AlphaBlendModeTest.glb
-  # -> models/alphablendmodetest.spnga) to see it. OPAQUE shows no red X and
-  # BLEND shows its check mark through a fading bar when the modes work.
-  # - name: alphablend
-  #   path: /models/alphablendmodetest.spnga
-  #   scale: [1.5, 1.5, 1.5]
-  #   rotation: { angle: -90.0, axis: [0.0, 1.0, 0.0] }
-  #   translation: [-8.0, 2.5, 0.0]
-
   - name: helmet
     path: /models/helmet.spnga
     rotation: { angle: -75.0, axis: [0.0, 1.0, 0.0] }
