@@ -240,6 +240,8 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.uvTransforms.metallicRoughness =
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
+        parsedMesh.doubleSided = material.double_sided != 0;
+        parsedMesh.doubleSided = material.double_sided != 0;
         if (material.alpha_mode == cgltf_alpha_mode_mask) {
             parsedMesh.alphaMode   = AlphaMode::Mask;
             parsedMesh.alphaCutoff = material.alpha_cutoff;

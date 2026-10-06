@@ -43,7 +43,8 @@ public:
         const glm::vec4&         diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
         const glm::vec4&         baseColorFactor     = glm::vec4(1.F),
         sponge::scene::AlphaMode alphaMode = sponge::scene::AlphaMode::Opaque,
-        float alphaCutoff = 0.F, const MeshUVTransforms& uvTransforms = {});
+        float alphaCutoff = 0.F, bool doubleSided = false,
+        const MeshUVTransforms& uvTransforms = {});
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first. The
     // PBR program always gets its full material. Any other program gets only
@@ -52,6 +53,10 @@ public:
     // pass.
     void draw(const std::shared_ptr<renderer::Shader>& shader,
               bool                                     alphaTest = false) const;
+
+    bool isDoubleSided() const {
+        return doubleSided;
+    }
 
     // Opaque, Masked (glTF MASK with a cutoff) or Blended.
     AlphaPass alphaPass() const {
@@ -160,6 +165,7 @@ private:
     glm::vec4                                       baseColorFactor;
     sponge::scene::AlphaMode                        alphaMode;
     float                                           alphaCutoff;
+    bool                                            doubleSided;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
 };
