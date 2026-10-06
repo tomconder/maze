@@ -81,12 +81,10 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     float4 texSample = texture_diffuse1.Sample(albedoUV);
     float3 texColor  = pow(texSample.rgb, float3(2.2));
     float3 albedo    = lerp(texColor, float3(1.0), float(params.hasNoTexture)) * params.baseColorFactor.rgb;
+    float  alpha     = (params.hasNoTexture ? 1.0 : texSample.a) * params.baseColorFactor.a;
     // glTF MASK. The depth prepass and the shadow pass run the same test.
-    if (params.alphaCutoff > 0.0) {
-        float alpha = (params.hasNoTexture ? 1.0 : texSample.a) * params.baseColorFactor.a;
-        if (alpha < params.alphaCutoff) {
-            discard;
-        }
+    if (params.alphaCutoff > 0.0 && alpha < params.alphaCutoff) {
+        discard;
     }
 
     float3 N = normalize(input.worldNormal);
@@ -119,7 +117,9 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         float2 occlusionUV = applyUVTransform(input.texCoords, params.occlusionUVTransform);
         aoTex *= occlusionMap.Sample(occlusionUV).r;
     }
-    if (params.ssaoEnabled) {
+    // SSAO is built from the prepass, which has no blended surface in it, so
+    // for one it would read the occlusion of whatever is behind.
+    if (params.ssaoEnabled && !params.alphaBlend) {
         aoTex *= ssaoTexture.Sample(fragCoord.xy / params.screenSize).r;
     }
     float ao = params.ao * aoTex;
@@ -239,9 +239,15 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
             ambientSpecular += probe * (0.04 * AB.x + AB.y) * params.clearcoatFactor * aoTex;
         }
     }
-    float3 color = (ambientDiffuse + Ld) + (ambientSpecular + Ls) + params.emissive + emissiveTexColor;
+    float3 emission = params.emissive + emissiveTexColor;
 
     // Linear HDR out. Tone mapping, gamma and dither happen once in
     // tonemap.slang, after bloom has extracted from this unbounded radiance.
-    return float4(color, 1.0);
+    if (params.alphaBlend) {
+        // Premultiplied alpha, blended with (ONE, ONE_MINUS_SRC_ALPHA): the
+        // diffuse light fades with alpha, a specular reflection does not get
+        // fainter as the surface gets clearer, and emission is added as it is.
+        return float4((ambientDiffuse + Ld) * alpha + (ambientSpecular + Ls) + emission, alpha);
+    }
+    return float4((ambientDiffuse + Ld) + (ambientSpecular + Ls) + emission, 1.0);
 };

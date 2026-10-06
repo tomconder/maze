@@ -31,11 +31,6 @@ struct ModelCreateInfo {
     std::string assetsFolder = core::File::getResourceDir();
 };
 
-// Which meshes a render call draws. The depth-only passes draw the opaque and
-// the masked (alpha-tested) meshes with different programs, so a discard does
-// not turn off early-Z for the opaque ones.
-enum class AlphaPass : uint8_t { All, Opaque, Masked };
-
 class Model {
 public:
     // Eager, synchronous load: parse() + buildMesh() per mesh, on the
@@ -61,7 +56,8 @@ public:
         buildTexture(std::optional<uint32_t>      image,
                      std::span<const ParsedImage> images);
 
-    void render(const std::shared_ptr<renderer::Shader>& shader) const;
+    void render(const std::shared_ptr<renderer::Shader>& shader,
+                AlphaPass pass = AlphaPass::All) const;
 
     // Renders only the meshes flagged visible (nonzero), same index order as
     // getMeshBounds(). An empty span renders every mesh, same as the
@@ -75,6 +71,18 @@ public:
 
     bool hasMaskedMeshes() const {
         return maskedMeshes;
+    }
+    bool hasBlendedMeshes() const {
+        return blendedMeshes;
+    }
+
+    // Draws one mesh, for a caller that orders meshes across models. Binds
+    // the model's VAO, so the caller sets the model's uniforms first.
+    void renderMesh(const std::shared_ptr<renderer::Shader>& shader,
+                    size_t                                   index) const;
+
+    bool isMeshBlended(const size_t index) const {
+        return meshes[index]->alphaPass() == AlphaPass::Blended;
     }
 
     size_t getNumIndices() const {
@@ -106,9 +114,10 @@ private:
     std::unique_ptr<renderer::IndexBuffer>  ebo;
     std::unique_ptr<renderer::VertexArray>  vao;
 
-    size_t numIndices   = 0;
-    size_t numVertices  = 0;
-    bool   maskedMeshes = false;
+    size_t numIndices    = 0;
+    size_t numVertices   = 0;
+    bool   maskedMeshes  = false;
+    bool   blendedMeshes = false;
 };
 
 }  // namespace sponge::platform::opengl::scene

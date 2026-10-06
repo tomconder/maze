@@ -20,6 +20,13 @@ namespace sponge::platform::opengl::scene {
 using sponge::scene::MeshUVTransforms;
 using sponge::scene::UVTransform;
 
+// Which meshes a pass draws. A mesh belongs to Opaque, Masked or Blended; the
+// other values select a group. Solid is Opaque and Masked together: what the
+// opaque colour pass draws. The depth-only passes draw Opaque and Masked with
+// different programs, so a discard does not turn off early-Z for the opaque
+// meshes. Blended meshes are drawn last, sorted, and cast no shadow.
+enum class AlphaPass : uint8_t { All, Opaque, Masked, Solid, Blended };
+
 class Mesh : public sponge::scene::Mesh {
 public:
     Mesh(
@@ -33,8 +40,9 @@ public:
         std::shared_ptr<renderer::Texture> diffuseTransmissionTexture = nullptr,
         float metallicFactor = 0.F, float roughnessFactor = .5F,
         float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
-        const glm::vec4& diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
-        const glm::vec4& baseColorFactor     = glm::vec4(1.F),
+        const glm::vec4&         diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
+        const glm::vec4&         baseColorFactor     = glm::vec4(1.F),
+        sponge::scene::AlphaMode alphaMode = sponge::scene::AlphaMode::Opaque,
         float alphaCutoff = 0.F, const MeshUVTransforms& uvTransforms = {});
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first. The
@@ -45,9 +53,28 @@ public:
     void draw(const std::shared_ptr<renderer::Shader>& shader,
               bool                                     alphaTest = false) const;
 
-    // glTF MASK: the mesh needs the alpha test.
-    bool isMasked() const {
-        return alphaCutoff > 0.F;
+    // Opaque, Masked (glTF MASK with a cutoff) or Blended.
+    AlphaPass alphaPass() const {
+        if (alphaMode == sponge::scene::AlphaMode::Blend) {
+            return AlphaPass::Blended;
+        }
+        return alphaMode == sponge::scene::AlphaMode::Mask &&
+                       alphaCutoff > 0.F ?
+                   AlphaPass::Masked :
+                   AlphaPass::Opaque;
+    }
+
+    // True if a pass that selects `selected` draws this mesh.
+    bool drawnIn(const AlphaPass selected) const {
+        const auto own = alphaPass();
+        switch (selected) {
+            case AlphaPass::All:
+                return true;
+            case AlphaPass::Solid:
+                return own != AlphaPass::Blended;
+            default:
+                return own == selected;
+        }
     }
 
     // The geometry Model packs into its shared buffers, then frees.
@@ -107,6 +134,7 @@ private:
         Handle clearcoatRoughnessFactor;
         Handle baseColorFactor;
         Handle alphaCutoff;
+        Handle alphaBlend;
         Handle diffuseTransmission;
         Handle hasDiffuseTransmissionMap;
         Handle diffuseTransmissionUV;
@@ -130,6 +158,7 @@ private:
     float                                           clearcoatRoughnessFactor;
     glm::vec4                                       diffuseTransmission;
     glm::vec4                                       baseColorFactor;
+    sponge::scene::AlphaMode                        alphaMode;
     float                                           alphaCutoff;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;

@@ -800,6 +800,17 @@ void MazeLayer::onRender() {
         gpuEnd();
     }
 
+    if (std::ranges::any_of(frame.objectModels, [](const auto& model) {
+            return model && model->hasBlendedMeshes();
+        })) {
+        SPONGE_PROFILE_SECTION("blend");
+        gpuBegin("blend");
+        // The glass pass leaves the default framebuffer bound.
+        sceneTarget->begin();
+        renderBlendedObjects(frame);
+        gpuEnd();
+    }
+
     RendererAPI::setDepth(DepthFunc::Less, true);
     {
         SPONGE_PROFILE_SECTION("scene end");
@@ -1141,10 +1152,8 @@ void MazeLayer::queueResize(const uint32_t w, const uint32_t h) const {
     pendingResize.store(true, std::memory_order_release);
 }
 
-void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
-    SPONGE_PROFILE_SECTION("renderGameObjects");
-    const auto shader = Mesh::getShader();
-    shader->bind();
+void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
+                              const thread::MazeRenderFrame& frame) const {
     if (clusteredLights) {
         clusteredLights->bindSSBOs();
     }
@@ -1164,11 +1173,20 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         RendererAPI::bindTexture(10, ssao->getTexture());
     }
 
+    // Unit 12 is also the glass pass's depth texture, so the probe is bound
+    // again here for every pass that follows it.
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
     if (useProbe) {
         RendererAPI::bindTexture(12, probe->getTexture());
     }
+}
+
+void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderGameObjects");
+    const auto shader = Mesh::getShader();
+    shader->bind();
+    bindLitShader(shader, frame);
 
     const auto submitStart      = std::chrono::steady_clock::now();
     uint32_t   occlusionVisible = 0;
@@ -1190,7 +1208,8 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shader->setMat4("normalMatrix", normalMatrix);
         shader->setFloat3("emissive", frame.objectEmissives[i]);
 
-        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i]);
+        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i],
+                                      AlphaPass::Solid);
     }
     const auto submitUs = std::chrono::duration_cast<std::chrono::microseconds>(
                               std::chrono::steady_clock::now() - submitStart)
@@ -1202,6 +1221,74 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                               std::memory_order_relaxed);
 
     shader->unbind();
+}
+
+void MazeLayer::renderBlendedObjects(
+    const thread::MazeRenderFrame& frame) const {
+    SPONGE_PROFILE_SECTION("renderBlendedObjects");
+
+    // One entry per blended mesh that can be seen. The order is by mesh, not by
+    // model, because one model can hold meshes on both sides of another.
+    struct Blended {
+        float  distance;
+        size_t object;
+        size_t mesh;
+    };
+    std::vector<Blended> blended;
+    for (size_t i = 0; i < frame.objectModels.size(); i++) {
+        const auto& model = frame.objectModels[i];
+        if (!model || !model->hasBlendedMeshes() ||
+            frame.objectRefraction[i].refractive ||
+            (occlusionCuller && !occlusionCuller->isVisible(i))) {
+            continue;
+        }
+        const auto& visible = frame.objectMeshVisible[i];
+        for (size_t m = 0; m < model->getMeshCount(); m++) {
+            if (!model->isMeshBlended(m) ||
+                (!visible.empty() && visible[m] == 0)) {
+                continue;
+            }
+            const auto& bounds = model->getMeshBounds(m);
+            const auto  centre =
+                frame.objectModelMatrices[i] *
+                glm::vec4((bounds.min + bounds.max) * 0.5F, 1.F);
+            blended.push_back(
+                { glm::distance(glm::vec3(centre), frame.cameraPos), i, m });
+        }
+    }
+    if (blended.empty()) {
+        return;
+    }
+    // Far to near. Stable, so meshes at the same distance keep their order
+    // and do not flicker from frame to frame.
+    std::ranges::stable_sort(blended, std::ranges::greater{},
+                             &Blended::distance);
+
+    const auto shader = Mesh::getShader();
+    shader->bind();
+    bindLitShader(shader, frame);
+    // Behind opaque surfaces and glass, in front of what is behind. Not
+    // written, or a nearer blended mesh would hide a farther one.
+    RendererAPI::setDepth(DepthFunc::Less, false);
+    RendererAPI::setPremultipliedAlphaBlend();
+
+    size_t current = frame.objectModels.size();
+    for (const auto& [distance, object, mesh] : blended) {
+        if (object != current) {
+            current                 = object;
+            const auto& modelMatrix = frame.objectModelMatrices[object];
+            shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
+            shader->setMat4("model", modelMatrix);
+            shader->setMat4("normalMatrix",
+                            glm::mat4(glm::transpose(
+                                glm::inverse(glm::mat3(modelMatrix)))));
+            shader->setFloat3("emissive", frame.objectEmissives[object]);
+        }
+        frame.objectModels[object]->renderMesh(shader, mesh);
+    }
+
+    shader->unbind();
+    RendererAPI::setAlphaBlend(true);
 }
 
 void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
@@ -1411,7 +1498,7 @@ void MazeLayer::renderPlanarReflection(
             "normalMatrix",
             glm::mat4(glm::transpose(glm::inverse(glm::mat3(modelMatrix)))));
         shader->setFloat3("emissive", frame.objectEmissives[i]);
-        frame.objectModels[i]->render(shader);
+        frame.objectModels[i]->render(shader, AlphaPass::Solid);
     }
 
     shader->setInteger("numLights", frame.numLights);
@@ -1454,7 +1541,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
                             glm::mat4(glm::transpose(
                                 glm::inverse(glm::mat3(modelMatrix)))));
             shader->setFloat3("emissive", frame.objectEmissives[i]);
-            frame.objectModels[i]->render(shader);
+            frame.objectModels[i]->render(shader, AlphaPass::Solid);
         }
         shader->unbind();
         probe->end();

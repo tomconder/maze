@@ -31,6 +31,7 @@ struct PbrParams {
     float    clearcoatRoughnessFactor;
     float4   baseColorFactor;      // linear; multiplies the albedo texture, or is the albedo with none
     float    alphaCutoff;          // 0 = opaque; else discard where albedo alpha is below it
+    bool     alphaBlend;           // glTF BLEND: output premultiplied alpha
     float4   diffuseTransmission;  // rgb = color, w = factor; 0 = opaque
     float    ao;
     bool     ssaoEnabled;
