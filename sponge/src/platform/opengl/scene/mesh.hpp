@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modeldata.hpp"
+#include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "scene/frustum.hpp"
@@ -11,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -89,10 +91,18 @@ public:
     std::span<const uint32_t> getIndices() const {
         return indices;
     }
-    void freeGeometry() {
-        std::vector<sponge::scene::Vertex>().swap(vertices);
-        std::vector<uint32_t>().swap(indices);
-    }
+    // Frees the CPU geometry. A blended mesh first keeps what sortTriangles
+    // needs: its triangles and their centres.
+    void freeGeometry();
+
+    // Rewrites this mesh's range of `ebo` so its triangles run far to near
+    // from `eye`, a point in model space, with the stable order of the
+    // original triangles for ties. One draw cannot sort per pixel, so
+    // triangles that cross each other still blend in the wrong order. Does
+    // nothing for a mesh that is not blended, or when `eye` is the one the
+    // range was last sorted for.
+    void sortTriangles(const renderer::IndexBuffer& ebo,
+                       const glm::vec3&             eye) const;
 
     // Where Model put this mesh in its shared buffers: the vertex offset
     // added to every index, and the first index in elements.
@@ -168,6 +178,12 @@ private:
     bool                                            doubleSided;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
+
+    // Blended meshes only, see sortTriangles.
+    std::vector<uint32_t>            triangleIndices;
+    std::vector<glm::vec3>           triangleCentres;
+    mutable std::vector<uint32_t>    sortedIndices;
+    mutable std::optional<glm::vec3> sortedEye;
 };
 
 }  // namespace sponge::platform::opengl::scene

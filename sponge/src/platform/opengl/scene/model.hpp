@@ -78,8 +78,10 @@ public:
 
     // Draws one mesh, for a caller that orders meshes across models. Binds
     // the model's VAO, so the caller sets the model's uniforms first.
+    // A blended mesh first sorts its triangles far to near from `eye`, the
+    // camera in this object's model space.
     void renderMesh(const std::shared_ptr<renderer::Shader>& shader,
-                    size_t                                   index) const;
+                    size_t index, const glm::vec3& eye) const;
 
     bool isMeshBlended(const size_t index) const {
         return meshes[index]->alphaPass() == AlphaPass::Blended;

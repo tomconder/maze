@@ -147,8 +147,14 @@ than calling GLFW/OpenGL/OS APIs directly.
   leaves specular and emission whole. A blended mesh is not in the depth
   prepass, shadow pass, mirror or probe capture (`AlphaPass::Solid` leaves it
   out), so it casts no shadow, gets no SSAO and no SSR, and TAA has no
-  velocity for it. Glass does not refract it. Triangles inside one mesh are
-  not sorted.
+  velocity for it. Glass does not refract it. Inside one mesh, triangles are
+  sorted far to near by centre from the camera (`Mesh::sortTriangles`), because
+  the bake reorders indices and the author's order does not survive. The sort
+  rewrites the mesh's range of the model's index buffer (`GL_DYNAMIC_STORAGE_BIT`)
+  on the CPU, once per camera position in model space. It costs O(n log n) per
+  blended mesh per frame, so a blended mesh of hundreds of thousands of
+  triangles needs a different method. Triangles that cross each other still
+  blend in the wrong order.
 * glTF `doubleSided` is baked per mesh. Face culling is on by default; `Model`
   turns it off for a double-sided mesh and back on after, and the PBR and
   depth prepass fragment programs flip the normal when `SV_IsFrontFace` is

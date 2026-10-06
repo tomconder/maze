@@ -6,7 +6,14 @@ namespace sponge::platform::opengl::renderer {
 
 IndexBuffer::IndexBuffer(const uint32_t* indices, const std::size_t size) {
     glCreateBuffers(1, &id);
-    glNamedBufferStorage(id, static_cast<GLsizeiptr>(size), indices, 0);
+    glNamedBufferStorage(id, static_cast<GLsizeiptr>(size), indices,
+                         GL_DYNAMIC_STORAGE_BIT);
+}
+
+void IndexBuffer::update(const std::size_t offset, const uint32_t* indices,
+                         const std::size_t size) const {
+    glNamedBufferSubData(id, static_cast<GLintptr>(offset),
+                         static_cast<GLsizeiptr>(size), indices);
 }
 
 IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept {

@@ -202,11 +202,12 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader,
 }
 
 void Model::renderMesh(const std::shared_ptr<renderer::Shader>& shader,
-                       const size_t                             index) const {
+                       const size_t index, const glm::vec3& eye) const {
     if (!vao) {
         return;
     }
     vao->bind();
+    meshes[index]->sortTriangles(*ebo, eye);
     bool culling = true;
     setCulling(culling, !meshes[index]->isDoubleSided());
     meshes[index]->draw(shader);

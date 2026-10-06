@@ -4,10 +4,12 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 
 #include <glm/glm.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <numeric>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -200,5 +202,48 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader,
         reinterpret_cast<const void*>(static_cast<std::uintptr_t>(firstIndex) *
                                       sizeof(uint32_t)),
         baseVertex);
+}
+
+void Mesh::freeGeometry() {
+    if (alphaPass() == AlphaPass::Blended) {
+        triangleIndices = indices;
+        triangleCentres.reserve(indices.size() / 3);
+        for (size_t i = 0; i + 2 < indices.size(); i += 3) {
+            triangleCentres.push_back((vertices[indices[i]].position +
+                                       vertices[indices[i + 1]].position +
+                                       vertices[indices[i + 2]].position) /
+                                      3.F);
+        }
+    }
+    std::vector<sponge::scene::Vertex>().swap(vertices);
+    std::vector<uint32_t>().swap(indices);
+}
+
+void Mesh::sortTriangles(const renderer::IndexBuffer& ebo,
+                         const glm::vec3&             eye) const {
+    if (triangleCentres.empty() || sortedEye == eye) {
+        return;
+    }
+
+    std::vector<float> distance(triangleCentres.size());
+    for (size_t t = 0; t < distance.size(); t++) {
+        const auto toEye = triangleCentres[t] - eye;
+        distance[t]      = glm::dot(toEye, toEye);
+    }
+    std::vector<uint32_t> order(distance.size());
+    std::iota(order.begin(), order.end(), 0U);
+    std::ranges::stable_sort(order,
+                             [&distance](const uint32_t a, const uint32_t b) {
+                                 return distance[a] > distance[b];
+                             });
+
+    sortedIndices.resize(triangleIndices.size());
+    for (size_t t = 0; t < order.size(); t++) {
+        std::copy_n(triangleIndices.begin() + (order[t] * 3), 3,
+                    sortedIndices.begin() + (t * 3));
+    }
+    ebo.update(static_cast<size_t>(firstIndex) * sizeof(uint32_t),
+               sortedIndices.data(), sortedIndices.size() * sizeof(uint32_t));
+    sortedEye = eye;
 }
 }  // namespace sponge::platform::opengl::scene

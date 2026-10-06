@@ -1284,7 +1284,10 @@ void MazeLayer::renderBlendedObjects(
                                 glm::inverse(glm::mat3(modelMatrix)))));
             shader->setFloat3("emissive", frame.objectEmissives[object]);
         }
-        frame.objectModels[object]->renderMesh(shader, mesh);
+        const auto eye =
+            glm::vec3(glm::inverse(frame.objectModelMatrices[object]) *
+                      glm::vec4(frame.cameraPos, 1.F));
+        frame.objectModels[object]->renderMesh(shader, mesh, eye);
     }
 
     shader->unbind();
