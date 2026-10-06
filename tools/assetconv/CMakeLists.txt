@@ -18,11 +18,10 @@ add_executable(assetconv ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(assetconv PRIVATE src)
 
 # Every asset format lives here, not in the engine: cgltf for glTF,
-# stb_image to decode source images, bc7enc for BC7 blocks, stb_image_resize2
-# for the mip chain, stb_rect_pack for the atlases.
+# stb_image to decode source images, bc7enc for BC7 blocks, stb_rect_pack for
+# the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
-# cgltf and stb come from vcpkg. stb_image_resize2 stays vendored in deps/stb
-# because the port's copy (v2.10) is older than ours (v2.18).
+# cgltf and stb come from vcpkg.
 # Own target so they take the engine's options but not its warnings.
 find_package(Stb REQUIRED)
 find_path(CGLTF_INCLUDE_DIR cgltf.h REQUIRED)
@@ -45,6 +44,11 @@ target_link_libraries(assetconv PRIVATE Freetype::Freetype harfbuzz::harfbuzz)
 # Mesh optimization is a bake step now, so meshoptimizer links here.
 find_package(meshoptimizer CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
+
+# SIMD for the mip filter. Header-only, so the converter builds for the
+# baseline instruction set of whatever it runs on.
+find_package(xsimd CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE xsimd)
 
 target_link_libraries(assetconv PRIVATE sponge::format)
 

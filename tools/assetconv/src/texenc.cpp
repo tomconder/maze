@@ -1,13 +1,12 @@
 #include "texenc.hpp"
 
 #include "ktx2.hpp"
+#include "mipfilter.hpp"
 #include "modeldata.hpp"
 
 #include <fmt/base.h>
 #include <bc7enc.h>
 #include <stb_image.h>
-
-#include "../deps/stb/stb_image_resize2.h"
 
 #include <algorithm>
 #include <array>
@@ -173,29 +172,16 @@ std::vector<uint8_t> compress(const Surface&               surface,
     return out;
 }
 
-// Half-size resample. Colour is filtered in sRGB space; everything else is
-// data and must be filtered linearly, or the mips shift in brightness.
+// Half-size resample. Colour is filtered as sRGB; everything else is data and
+// must be filtered as it is, or the mips shift in brightness.
 Surface halve(const Surface& surface, const assetconv::TextureKind kind) {
-    Surface next{ .width  = std::max(surface.width / 2, 1U),
-                  .height = std::max(surface.height / 2, 1U),
-                  .pixels = {} };
-    next.pixels.resize(static_cast<size_t>(next.width) * next.height *
-                       rgbaChannels);
-
-    if (kind == assetconv::TextureKind::Color) {
-        stbir_resize_uint8_srgb(
-            surface.pixels.data(), static_cast<int>(surface.width),
-            static_cast<int>(surface.height), 0, next.pixels.data(),
-            static_cast<int>(next.width), static_cast<int>(next.height), 0,
-            STBIR_RGBA);
-    } else {
-        stbir_resize_uint8_linear(
-            surface.pixels.data(), static_cast<int>(surface.width),
-            static_cast<int>(surface.height), 0, next.pixels.data(),
-            static_cast<int>(next.width), static_cast<int>(next.height), 0,
-            STBIR_RGBA);
-    }
-    return next;
+    return { .width  = std::max(surface.width / 2, 1U),
+             .height = std::max(surface.height / 2, 1U),
+             .pixels = assetconv::halveMip(
+                 surface.pixels, surface.width, surface.height,
+                 kind == assetconv::TextureKind::Color ?
+                     assetconv::MipSpace::Srgb :
+                     assetconv::MipSpace::Linear) };
 }
 
 ktx2::Format formatFor(const assetconv::TextureKind kind) {
