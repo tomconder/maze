@@ -346,4 +346,48 @@ std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
     return halve<singleFloats>(pixels, width, height, space);
 }
 
+double alphaCoverage(const std::span<const uint8_t> pixels,
+                     const uint8_t                  threshold) {
+    size_t passing = 0;
+    for (size_t i = 3; i < pixels.size(); i += channels) {
+        passing += pixels[i] >= threshold ? 1 : 0;
+    }
+    const auto texels = pixels.size() / channels;
+    return texels == 0 ?
+               0.0 :
+               static_cast<double>(passing) / static_cast<double>(texels);
+}
+
+void scaleAlphaCoverage(const std::span<uint8_t> pixels,
+                        const uint8_t threshold, const double target) {
+    const auto texels = pixels.size() / channels;
+    if (texels == 0 || target <= 0.0 || target >= 1.0) {
+        return;
+    }
+
+    std::array<size_t, 256> histogram{};
+    for (size_t i = 3; i < pixels.size(); i += channels) {
+        histogram[pixels[i]]++;
+    }
+
+    // The largest alpha that, taken as the new cutoff, still leaves enough
+    // texels passing. Scaling it up to the real threshold does the same to
+    // every alpha.
+    const auto need =
+        static_cast<size_t>(std::ceil(target * static_cast<double>(texels)));
+    size_t passing = 0;
+    size_t t       = 255;
+    for (; t > 1; t--) {
+        passing += histogram[t];
+        if (passing >= need) {
+            break;
+        }
+    }
+    const auto scale = static_cast<double>(threshold) / static_cast<double>(t);
+    for (size_t i = 3; i < pixels.size(); i += channels) {
+        pixels[i] = static_cast<uint8_t>(std::min(
+            255.0, std::round(static_cast<double>(pixels[i]) * scale)));
+    }
+}
+
 }  // namespace assetconv

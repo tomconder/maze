@@ -22,7 +22,7 @@ namespace sponge::scene::asset {
 // Eight bytes rather than a packed integer: the tag is five characters, and
 // it reads as itself in a hex dump.
 constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'A', 0, 0, 0 };
-constexpr uint32_t version  = 4;
+constexpr uint32_t version  = 5;
 
 // Bumping either of these changes the on-disk vertex layout. The asserts
 // fire on a size change or a field reorder; bump version in the same edit.
@@ -50,6 +50,7 @@ struct MeshEntry {
     float            roughnessFactor;
     float            clearcoatFactor;
     float            clearcoatRoughnessFactor;
+    float            alphaCutoff;  // 0 = opaque; else glTF MASK cutoff
     glm::vec4        baseColorFactor;
     glm::vec4        diffuseTransmission;  // rgb = color, w = factor
     MeshUVTransforms uvTransforms;

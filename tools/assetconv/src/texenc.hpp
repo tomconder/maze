@@ -29,7 +29,11 @@ sponge::scene::ParsedImage loadImage(const std::string& path);
 
 // Compresses an image and returns the whole KTX2 file, mip chain included.
 // Returns an empty vector if the image is unusable.
+//
+// alphaCutoff is the alpha a texel needs to pass a glTF MASK test, 0 for none.
+// Each mip then has its alpha scaled so the share of passing texels matches
+// level 0, which keeps foliage from thinning with distance. Colour only.
 std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,
-                            TextureKind                       kind);
+                            TextureKind kind, float alphaCutoff = 0.F);
 
 }  // namespace assetconv

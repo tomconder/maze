@@ -59,6 +59,7 @@ void Model::packMeshes() {
     vertices.reserve(numVertices);
     indices.reserve(numIndices);
     for (const auto& mesh : meshes) {
+        maskedMeshes = maskedMeshes || mesh->isMasked();
         mesh->setDrawRange(static_cast<int32_t>(vertices.size()),
                            static_cast<uint32_t>(indices.size()));
         const auto meshVertices = mesh->getVertices();
@@ -130,7 +131,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
         parsedMesh.metallicFactor, parsedMesh.roughnessFactor,
         parsedMesh.clearcoatFactor, parsedMesh.clearcoatRoughnessFactor,
         parsedMesh.diffuseTransmission, parsedMesh.baseColorFactor,
-        parsedMesh.uvTransforms);
+        parsedMesh.alphaCutoff, parsedMesh.uvTransforms);
     return mesh;
 }
 
@@ -167,7 +168,8 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader) const {
 }
 
 void Model::render(const std::shared_ptr<renderer::Shader>& shader,
-                   const std::span<const uint8_t>           meshVisible) const {
+                   const std::span<const uint8_t>           meshVisible,
+                   const AlphaPass                          pass) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model culled");
 
@@ -176,8 +178,13 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader,
     }
     vao->bind();
     for (size_t i = 0; i < meshes.size(); i++) {
+        const bool masked = meshes[i]->isMasked();
+        if ((pass == AlphaPass::Opaque && masked) ||
+            (pass == AlphaPass::Masked && !masked)) {
+            continue;
+        }
         if (meshVisible.empty() || meshVisible[i] != 0) {
-            meshes[i]->draw(shader);
+            meshes[i]->draw(shader, pass == AlphaPass::Masked);
         }
     }
 }

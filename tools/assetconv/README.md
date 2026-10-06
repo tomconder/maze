@@ -165,6 +165,13 @@ Filtering the mip chain in the wrong space is the classic bug here and shows
 up as a brightness shift in the distance, not a crash. Colour is resampled in
 sRGB; everything the shader reads as data is resampled linearly.
 
+An albedo that a glTF `MASK` material uses keeps its alpha coverage: each mip
+has its alpha scaled so the share of texels at or above the cutoff matches
+level 0. Without it, averaging thins the alpha and foliage fades away with
+distance. The cutoff is `alphaCutoff` over the material's `baseColorFactor`
+alpha, and a shared image uses its first masked material. The scale is
+computed per level from the unscaled chain, so it does not compound.
+
 BC7 is UNORM rather than SRGB because that matches the `GL_RGBA8` the engine
 uploaded before baking existed, so compression is the only change. Moving
 albedo to sRGB is a separate, visible change.

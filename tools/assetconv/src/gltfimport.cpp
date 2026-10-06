@@ -239,6 +239,9 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
             parsedMesh.uvTransforms.metallicRoughness =
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
+        if (material.alpha_mode == cgltf_alpha_mode_mask) {
+            parsedMesh.alphaCutoff = material.alpha_cutoff;
+        }
         if (material.has_clearcoat) {
             parsedMesh.clearcoatFactor = material.clearcoat.clearcoat_factor;
             parsedMesh.clearcoatRoughnessFactor =

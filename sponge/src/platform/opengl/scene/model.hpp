@@ -31,6 +31,11 @@ struct ModelCreateInfo {
     std::string assetsFolder = core::File::getResourceDir();
 };
 
+// Which meshes a render call draws. The depth-only passes draw the opaque and
+// the masked (alpha-tested) meshes with different programs, so a discard does
+// not turn off early-Z for the opaque ones.
+enum class AlphaPass : uint8_t { All, Opaque, Masked };
+
 class Model {
 public:
     // Eager, synchronous load: parse() + buildMesh() per mesh, on the
@@ -62,8 +67,15 @@ public:
     // getMeshBounds(). An empty span renders every mesh, same as the
     // overload above — the shadow pass uses that: it needs the light
     // frustum, not the camera one this mask is built from.
+    // pass selects the opaque or the masked meshes. Masked meshes pass their
+    // alpha test inputs to a non-PBR shader (see Mesh::draw).
     void render(const std::shared_ptr<renderer::Shader>& shader,
-                std::span<const uint8_t>                 meshVisible) const;
+                std::span<const uint8_t>                 meshVisible,
+                AlphaPass pass = AlphaPass::All) const;
+
+    bool hasMaskedMeshes() const {
+        return maskedMeshes;
+    }
 
     size_t getNumIndices() const {
         return numIndices;
@@ -94,8 +106,9 @@ private:
     std::unique_ptr<renderer::IndexBuffer>  ebo;
     std::unique_ptr<renderer::VertexArray>  vao;
 
-    size_t numIndices  = 0;
-    size_t numVertices = 0;
+    size_t numIndices   = 0;
+    size_t numVertices  = 0;
+    bool   maskedMeshes = false;
 };
 
 }  // namespace sponge::platform::opengl::scene

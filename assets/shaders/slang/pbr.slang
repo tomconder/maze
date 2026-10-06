@@ -77,9 +77,17 @@ float widenRoughness(float roughness, float3 n) {
 [shader("fragment")]
 float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     // clang-format on
-    float2 albedoUV = applyUVTransform(input.texCoords, params.albedoUVTransform);
-    float3 texColor = pow(texture_diffuse1.Sample(albedoUV).rgb, float3(2.2));
-    float3 albedo   = lerp(texColor, float3(1.0), float(params.hasNoTexture)) * params.baseColorFactor.rgb;
+    float2 albedoUV  = applyUVTransform(input.texCoords, params.albedoUVTransform);
+    float4 texSample = texture_diffuse1.Sample(albedoUV);
+    float3 texColor  = pow(texSample.rgb, float3(2.2));
+    float3 albedo    = lerp(texColor, float3(1.0), float(params.hasNoTexture)) * params.baseColorFactor.rgb;
+    // glTF MASK. The depth prepass and the shadow pass run the same test.
+    if (params.alphaCutoff > 0.0) {
+        float alpha = (params.hasNoTexture ? 1.0 : texSample.a) * params.baseColorFactor.a;
+        if (alpha < params.alphaCutoff) {
+            discard;
+        }
+    }
 
     float3 N = normalize(input.worldNormal);
     // The coat has no normal map of its own here, so it keeps the surface
