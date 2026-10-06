@@ -177,19 +177,14 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader,
         shader->endBatch();
     } else if (alphaTest) {
         // The same albedo sampler, UV transform and alpha as pbr.slang reads.
-        // The program keeps its uniforms between meshes, so a mesh with no
-        // test must reset the cutoff.
         shader->beginBatch();
         shader->setFloat("alphaCutoff", alphaCutoff);
-        if (alphaCutoff > 0.F) {
-            shader->setFloat("baseColorAlpha", baseColorFactor.a);
-            shader->setBoolean("hasNoTexture", textures.empty());
-            const auto& uv = uvTransforms.albedo;
-            shader->setFloat4("albedoUVTransform",
-                              glm::vec4(uv.offset, uv.scale));
-            if (!textures.empty()) {
-                textures.at(0)->bind(0);
-            }
+        shader->setFloat("baseColorAlpha", baseColorFactor.a);
+        shader->setBoolean("hasNoTexture", textures.empty());
+        const auto& uv = uvTransforms.albedo;
+        shader->setFloat4("albedoUVTransform", glm::vec4(uv.offset, uv.scale));
+        if (!textures.empty()) {
+            textures.at(0)->bind(0);
         }
         shader->endBatch();
     }

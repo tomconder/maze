@@ -62,6 +62,7 @@ using sponge::platform::opengl::renderer::readBackBuffer;
 using sponge::platform::opengl::renderer::readTexture;
 using sponge::platform::opengl::renderer::RendererAPI;
 using sponge::platform::opengl::renderer::Shader;
+using sponge::platform::opengl::scene::AlphaPass;
 using sponge::platform::opengl::scene::Bloom;
 using sponge::platform::opengl::scene::ClusteredLights;
 using sponge::platform::opengl::scene::Cube;
@@ -242,6 +243,13 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         .name           = "depthprepass",
         .vertexShader   = "depthprepass.vert",
         .fragmentShader = "depthprepass.frag",
+    });
+    // Alpha-tested meshes: the discard stays out of the opaque program, which
+    // keeps early-Z.
+    depthPrepassMaskedShader = AssetManager::createShader({
+        .name           = "depthprepass_masked",
+        .vertexShader   = "depthprepass.vert",
+        .fragmentShader = "depthprepass_masked.frag",
     });
     // Same stages, own program: the cube VAO enables only position, the
     // mesh VAOs enable four attributes, and NVIDIA recompiles the vertex
@@ -1279,40 +1287,47 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepass->begin(writeVelocity);
 
-    depthPrepassShader->bind();
-    for (size_t i = 0; i < frame.objectModels.size(); ++i) {
-        if (frame.objectRefraction[i].refractive) {
-            continue;
-        }
-        if (occlusionCuller && !occlusionCuller->isVisible(i)) {
-            continue;
-        }
+    const auto drawObjects = [&](const auto& shader, const AlphaPass pass) {
+        shader->bind();
+        for (size_t i = 0; i < frame.objectModels.size(); ++i) {
+            if (frame.objectRefraction[i].refractive) {
+                continue;
+            }
+            if (pass == AlphaPass::Masked &&
+                !frame.objectModels[i]->hasMaskedMeshes()) {
+                continue;
+            }
+            if (occlusionCuller && !occlusionCuller->isVisible(i)) {
+                continue;
+            }
 
-        // Rasterization uses the jittered matrix so prepass depth lines up with
-        // the scene pass; motion is measured unjittered, or the jitter itself
-        // would read as movement.
-        const auto& modelMatrix = frame.objectModelMatrices[i];
-        depthPrepassShader->setMat4("mvp", frame.cameraMVP * modelMatrix);
-        depthPrepassShader->setMat4(
-            "normalMatrix", glm::mat4(glm::transpose(glm::inverse(
+            // Rasterization uses the jittered matrix so prepass depth lines up
+            // with the scene pass; motion is measured unjittered, or the
+            // jitter itself would read as movement.
+            const auto& modelMatrix = frame.objectModelMatrices[i];
+            shader->setMat4("mvp", frame.cameraMVP * modelMatrix);
+            shader->setMat4("normalMatrix",
+                            glm::mat4(glm::transpose(glm::inverse(
                                 glm::mat3(frame.cameraView * modelMatrix)))));
-        depthPrepassShader->setMat4("mvpNoJitter",
-                                    frame.cameraViewProj * modelMatrix);
-        depthPrepassShader->setMat4("prevMvpNoJitter",
-                                    frame.prevCameraViewProj *
-                                        frame.prevObjectModelMatrices[i]);
-        // The planar mirror has its own reflection; SSR must skip it.
-        const bool planar = frame.planarActive && i == frame.planarIndex;
-        depthPrepassShader->setFloat(
-            "reflectivity", planar ? 0.F : frame.objectReflectivity[i]);
-        frame.objectModels[i]->render(depthPrepassShader,
-                                      frame.objectMeshVisible[i], true);
-    }
+            shader->setMat4("mvpNoJitter", frame.cameraViewProj * modelMatrix);
+            shader->setMat4("prevMvpNoJitter",
+                            frame.prevCameraViewProj *
+                                frame.prevObjectModelMatrices[i]);
+            // The planar mirror has its own reflection; SSR must skip it.
+            const bool planar = frame.planarActive && i == frame.planarIndex;
+            shader->setFloat("reflectivity",
+                             planar ? 0.F : frame.objectReflectivity[i]);
+            frame.objectModels[i]->render(shader, frame.objectMeshVisible[i],
+                                          pass);
+        }
+        shader->unbind();
+    };
+    drawObjects(depthPrepassShader, AlphaPass::Opaque);
+    drawObjects(depthPrepassMaskedShader, AlphaPass::Masked);
 
     // Light cubes use a second instance of the same shader: position-only
     // geometry at location 0. Including them here is what gives them depth
     // coverage and motion vectors.
-    depthPrepassShader->unbind();
     depthPrepassCubeShader->bind();
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     depthPrepassCubeShader->setFloat("reflectivity", 0.F);
@@ -1508,20 +1523,23 @@ void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
     SPONGE_PROFILE_SECTION("renderSceneToDepthMap");
     shadowMap->bind(cascade);
 
-    const auto shader = shadowMap->getShader();
-    shader->bind();
-    shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrices[cascade]);
-
-    for (size_t i = 0; i < frame.objectModels.size(); i++) {
-        if (frame.objectRefraction[i].refractive) {
-            continue;
+    const auto drawObjects = [&](const auto& shader, const AlphaPass pass) {
+        shader->bind();
+        shader->setMat4("lightSpaceMatrix", frame.lightSpaceMatrices[cascade]);
+        for (size_t i = 0; i < frame.objectModels.size(); i++) {
+            if (frame.objectRefraction[i].refractive ||
+                (pass == AlphaPass::Masked &&
+                 !frame.objectModels[i]->hasMaskedMeshes())) {
+                continue;
+            }
+            shader->setMat4("model", frame.objectModelMatrices[i]);
+            frame.objectModels[i]->render(
+                shader, frame.objectMeshVisibleLight[cascade][i], pass);
         }
-        shader->setMat4("model", frame.objectModelMatrices[i]);
-        frame.objectModels[i]->render(
-            shader, frame.objectMeshVisibleLight[cascade][i], true);
-    }
-
-    shader->unbind();
+        shader->unbind();
+    };
+    drawObjects(shadowMap->getShader(), AlphaPass::Opaque);
+    drawObjects(shadowMap->getMaskedShader(), AlphaPass::Masked);
 
     // The blur runs inside unbind(); time it apart from the draw.
     gpuEnd();

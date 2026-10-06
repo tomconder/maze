@@ -7,7 +7,9 @@ uniform float4x4 prevMvpNoJitter;  // last frame, unjittered
 uniform float4x4 normalMatrix;     // transpose(inverse(view * model))
 uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
 // glTF MASK, the same test as pbr.slang so the prepass depth matches the scene
-// pass. The albedo texture is on unit 0.
+// pass. Only fragMainMasked reads these; it is its own program because a
+// discard turns off early-Z for every draw of the program. The albedo texture
+// is on unit 0.
 uniform float                        alphaCutoff;     // 0 = opaque, no test
 uniform float                        baseColorAlpha;  // baseColorFactor.a
 uniform bool                         hasNoTexture;
@@ -55,17 +57,7 @@ VSOutput vertMain(VSInput input) {
     return o;
 };
 
-// clang-format off
-[shader("fragment")]
-FSOutput fragMain(VSOutput input) {
-    // clang-format on
-    if (alphaCutoff > 0.0) {
-        float2 uv    = input.texCoord * albedoUVTransform.zw + albedoUVTransform.xy;
-        float  alpha = (hasNoTexture ? 1.0 : albedoMap.Sample(uv).a) * baseColorAlpha;
-        if (alpha < alphaCutoff) {
-            discard;
-        }
-    }
+FSOutput shade(VSOutput input) {
     FSOutput o;
     float2   currUV = input.currClip.xy / input.currClip.w * 0.5 + 0.5;
     float2   prevUV = input.prevClip.xy / input.prevClip.w * 0.5 + 0.5;
@@ -77,4 +69,23 @@ FSOutput fragMain(VSOutput input) {
     float len = length(input.viewNormal);
     o.normal  = len > 1e-4 ? float4(input.viewNormal / len, reflectivity) : float4(0.0);
     return o;
+};
+
+// clang-format off
+[shader("fragment")]
+FSOutput fragMain(VSOutput input) {
+    // clang-format on
+    return shade(input);
+};
+
+// clang-format off
+[shader("fragment")]
+FSOutput fragMainMasked(VSOutput input) {
+    // clang-format on
+    float2 uv    = input.texCoord * albedoUVTransform.zw + albedoUVTransform.xy;
+    float  alpha = (hasNoTexture ? 1.0 : albedoMap.Sample(uv).a) * baseColorAlpha;
+    if (alpha < alphaCutoff) {
+        discard;
+    }
+    return shade(input);
 };

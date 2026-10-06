@@ -39,11 +39,16 @@ public:
     // Sets the material and draws this mesh's range of the model's shared
     // vertex and index buffers. The caller binds the model's VAO first. The
     // PBR program always gets its full material. Any other program gets only
-    // the alpha test inputs, and only when alphaTest is set: the depth
-    // prepass and the shadow pass use it, so their discards match the PBR
+    // the alpha test inputs, and only when alphaTest is set: the masked depth
+    // prepass and shadow programs use it, so their discards match the PBR
     // pass.
     void draw(const std::shared_ptr<renderer::Shader>& shader,
               bool                                     alphaTest = false) const;
+
+    // glTF MASK: the mesh needs the alpha test.
+    bool isMasked() const {
+        return alphaCutoff > 0.F;
+    }
 
     // The geometry Model packs into its shared buffers, then frees.
     std::span<const sponge::scene::Vertex> getVertices() const {

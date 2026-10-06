@@ -109,6 +109,14 @@ void ShadowMap::initialize() {
     };
     shader = AssetManager::createShader(shaderCreateInfo);
 
+    // Same vertex stage; the alpha test is its own program so the discard
+    // does not turn off early-Z for the opaque meshes.
+    maskedShader = AssetManager::createShader({
+        .name           = std::string(maskedShaderName),
+        .vertexShader   = "shadowmap.vert",
+        .fragmentShader = "shadowmap_evsm_masked.frag",
+    });
+
     // Dual Kawase downsample shader
     const auto blurDownShaderInfo = renderer::ShaderCreateInfo{
         .name           = std::string(blurDownShaderName),

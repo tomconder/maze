@@ -239,6 +239,8 @@ private:
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         depthPrepassShader;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
+        depthPrepassMaskedShader;
+    std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         depthPrepassCubeShader;
     std::shared_ptr<sponge::platform::opengl::renderer::Shader>
         refractionShader;

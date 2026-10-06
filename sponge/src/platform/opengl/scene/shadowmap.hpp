@@ -54,6 +54,9 @@ public:
     // Binds the whole array, for the sampler2DArray in the lit shaders.
     void bindTexture(uint8_t unit) const;
 
+    std::shared_ptr<renderer::Shader> getMaskedShader() const {
+        return maskedShader;
+    }
     std::shared_ptr<renderer::Shader> getShader() const {
         return shader;
     }
@@ -80,10 +83,13 @@ public:
 
 private:
     static const std::string          shaderName;
+    static constexpr std::string_view maskedShaderName =
+        "shadowmap_evsm_masked";
     static constexpr std::string_view blurDownShaderName = "blur_down";
     static constexpr std::string_view blurUpShaderName   = "blur_up";
 
     std::shared_ptr<renderer::Shader> shader;
+    std::shared_ptr<renderer::Shader> maskedShader;  // alpha-tested meshes
     std::shared_ptr<renderer::Shader> blurDownShader;
     std::shared_ptr<renderer::Shader> blurUpShader;
     ScreenQuad                        quad;

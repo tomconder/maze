@@ -65,6 +65,7 @@ shaders:
     cube.frag: shaders/slang/cube.slang:fragMain
     cube.vert: shaders/slang/cube.slang:vertMain
     depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
+    depthprepass_masked.frag: shaders/slang/depthprepass.slang:fragMainMasked
     depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
     fxaa.frag: shaders/slang/fxaa.slang:fragMain
     occlusionbox.frag: shaders/slang/occlusionbox.slang:fragMain
@@ -82,6 +83,7 @@ shaders:
     shadowmap.frag: shaders/slang/shadowmap.slang:fragMain
     shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
     shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
+    shadowmap_evsm_masked.frag: shaders/slang/shadowmap.slang:fragMainEVSMMasked
     sprite.frag: shaders/slang/sprite.slang:fragMain
     sprite.vert: shaders/slang/sprite.slang:vertMain
     ssao.frag: shaders/slang/ssao.slang:fragMain

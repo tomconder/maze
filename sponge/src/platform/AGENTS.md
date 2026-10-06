@@ -131,11 +131,13 @@ than calling GLFW/OpenGL/OS APIs directly.
   (`texture.a * baseColorFactor.a`) is below it is discarded. `pbr.slang`, the
   depth prepass and the shadow pass run the same test, so their depth agrees;
   a mismatch leaves holes or z-fighting in the scene pass. The prepass and
-  shadow programs read the albedo on unit 0, and `Model::render(..., true)`
-  sets their inputs. BLEND loads as OPAQUE. Known ceilings: the discard turns
-  off early-Z for every draw in those two programs, and mip levels average
-  alpha, so foliage thins with distance (alpha-coverage scaling per mip would
-  fix it).
+  shadow passes each have an opaque and a masked program (`*_masked.frag`), so
+  a discard does not turn off early-Z for opaque meshes: `Model::render` draws
+  `AlphaPass::Opaque` with one and `AlphaPass::Masked` with the other. The
+  masked program reads the albedo on unit 0, and `Mesh::draw` sets its inputs.
+  BLEND loads as OPAQUE. Known ceilings: `pbr.slang` still has the discard in
+  its one program, and mip levels average alpha, so foliage thins with
+  distance (alpha-coverage scaling per mip would fix it).
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off
