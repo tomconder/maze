@@ -64,6 +64,11 @@ void RendererAPI::setAlphaBlend(const bool enabled) {
     }
 }
 
+void RendererAPI::setPremultipliedAlphaBlend() {
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+}
+
 void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
     glBindTextureUnit(unit, texture);
 }

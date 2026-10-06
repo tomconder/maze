@@ -395,6 +395,17 @@ private:
 
     void renderGameObjects(const thread::MazeRenderFrame& frame) const;
 
+    // glTF BLEND meshes, sorted back to front across every model, over the
+    // finished opaque and glass passes. Depth is tested, not written.
+    void renderBlendedObjects(const thread::MazeRenderFrame& frame) const;
+
+    // What a draw with the lit (PBR) program reads that is the same for the
+    // whole frame: light grid, camera, shadow map, SSAO and probe. The program
+    // must be bound.
+    void bindLitShader(const std::shared_ptr<
+                           sponge::platform::opengl::renderer::Shader>& shader,
+                       const thread::MazeRenderFrame& frame) const;
+
     void renderRefractiveObjects(const thread::MazeRenderFrame& frame,
                                  uint32_t sceneCopy) const;
 

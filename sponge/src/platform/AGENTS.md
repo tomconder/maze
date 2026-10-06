@@ -99,7 +99,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   then the light cubes, then the planar composite draws the mirror over them
   from its mirrored render, then the full-screen `Ssr` pass blends
   reflections into that target, then refractive objects into that same
-  target, then bloom extracts and blurs in linear ->
+  target, then blended meshes into it, then bloom extracts and blurs in linear ->
   `SceneTarget::resolve()` composites bloom, tone maps, gamma encodes. `Ssr`
   runs only when SSR is on and at least one object other than the active
   planar mirror has `reflective > 0`. SSR takes the mirror over when the
@@ -135,10 +135,21 @@ than calling GLFW/OpenGL/OS APIs directly.
   a discard does not turn off early-Z for opaque meshes: `Model::render` draws
   `AlphaPass::Opaque` with one and `AlphaPass::Masked` with the other. The
   masked program reads the albedo on unit 0, and `Mesh::draw` sets its inputs.
-  BLEND is in the baked entry but draws as OPAQUE. `assetconv` scales each mip's alpha of a masked
+  `assetconv` scales each mip's alpha of a masked
   albedo so the share of texels passing the cutoff matches level 0; the
   cutoff is part of the baked pixels, so changing a material's cutoff needs a
   rebake.
+* glTF `alphaMode` BLEND draws after the glass pass, in
+  `MazeLayer::renderBlendedObjects`: premultiplied alpha
+  (`GL_ONE, GL_ONE_MINUS_SRC_ALPHA`), depth tested and not written, meshes
+  sorted far to near by the world-space centre of their bounds, across every
+  model, with a stable sort. `pbr.slang` fades the diffuse light by alpha and
+  leaves specular and emission whole. A blended mesh is not in the depth
+  prepass, shadow pass, mirror or probe capture (`AlphaPass::Solid` leaves it
+  out), so it casts no shadow, gets no SSAO and no SSR, and TAA has no
+  velocity for it. Glass does not refract it. Triangles inside one mesh are
+  not sorted. Face culling is always on, so a one-sided blended mesh shows
+  only its front.
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off

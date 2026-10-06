@@ -43,8 +43,9 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::shared_ptr<renderer::Texture> diffuseTransmissionTexture,
            const float metallicFactor, const float roughnessFactor,
            const float clearcoatFactor, const float clearcoatRoughnessFactor,
-           const glm::vec4& diffuseTransmission,
-           const glm::vec4& baseColorFactor, const float alphaCutoff,
+           const glm::vec4&               diffuseTransmission,
+           const glm::vec4&               baseColorFactor,
+           const sponge::scene::AlphaMode alphaMode, const float alphaCutoff,
            const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
@@ -58,6 +59,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     clearcoatRoughnessFactor(clearcoatRoughnessFactor),
     diffuseTransmission(diffuseTransmission),
     baseColorFactor(baseColorFactor),
+    alphaMode(alphaMode),
     alphaCutoff(alphaCutoff),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
@@ -96,6 +98,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
             defaultShader->findUniform("clearcoatRoughnessFactor"),
         .baseColorFactor = defaultShader->findUniform("baseColorFactor"),
         .alphaCutoff     = defaultShader->findUniform("alphaCutoff"),
+        .alphaBlend      = defaultShader->findUniform("alphaBlend"),
         .diffuseTransmission =
             defaultShader->findUniform("diffuseTransmission"),
         .hasDiffuseTransmissionMap =
@@ -159,6 +162,8 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader,
         shader->setFloat(u.clearcoatRoughnessFactor, clearcoatRoughnessFactor);
         shader->setFloat4(u.baseColorFactor, baseColorFactor);
         shader->setFloat(u.alphaCutoff, alphaCutoff);
+        shader->setBoolean(u.alphaBlend,
+                           alphaMode == sponge::scene::AlphaMode::Blend);
         shader->setFloat4(u.diffuseTransmission, diffuseTransmission);
         if (diffuseTransmissionTexture) {
             shader->setBoolean(u.hasDiffuseTransmissionMap, true);

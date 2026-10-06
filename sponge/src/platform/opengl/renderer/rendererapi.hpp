@@ -25,6 +25,11 @@ public:
     // On: blend with the global default, source alpha over the destination.
     static void setAlphaBlend(bool enabled);
 
+    // On: blend a colour that already has its alpha multiplied in, source
+    // plus the destination faded by source alpha. setAlphaBlend() restores the
+    // global default.
+    static void setPremultipliedAlphaBlend();
+
     static void bindTexture(uint32_t unit, uint32_t texture);
 
     // Hands the queued commands to the GPU now. The driver otherwise holds
