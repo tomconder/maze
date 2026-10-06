@@ -64,7 +64,16 @@ bool encodeTextures(ModelData& data) {
     // The file holds one encoding per image, so the first slot that uses an
     // image picks its kind.
     std::vector<std::optional<TextureKind>> kinds(data.images.size());
+    // The alpha a texel of an image needs to pass its MASK material's test:
+    // the cutoff over the base colour alpha that scales it. A shared image
+    // keeps the first masked use.
+    std::vector<float> cutoffs(data.images.size(), 0.F);
     for (const auto& mesh : data.meshes) {
+        if (mesh.albedo && mesh.alphaCutoff > 0.F &&
+            cutoffs[*mesh.albedo] == 0.F) {
+            cutoffs[*mesh.albedo] =
+                mesh.alphaCutoff / std::max(mesh.baseColorFactor.a, 1.0e-6F);
+        }
         for (const auto& [image, kind] : slotsOf(mesh)) {
             if (!image) {
                 continue;
@@ -86,7 +95,7 @@ bool encodeTextures(ModelData& data) {
             continue;
         }
         auto& image = data.images[i];
-        image.ktx2  = assetconv::encode(image, *kinds[i]);
+        image.ktx2  = assetconv::encode(image, *kinds[i], cutoffs[i]);
         if (image.ktx2.empty()) {
             return false;
         }

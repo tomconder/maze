@@ -135,9 +135,11 @@ than calling GLFW/OpenGL/OS APIs directly.
   a discard does not turn off early-Z for opaque meshes: `Model::render` draws
   `AlphaPass::Opaque` with one and `AlphaPass::Masked` with the other. The
   masked program reads the albedo on unit 0, and `Mesh::draw` sets its inputs.
-  BLEND loads as OPAQUE. Known ceilings: `pbr.slang` still has the discard in
-  its one program, and mip levels average alpha, so foliage thins with
-  distance (alpha-coverage scaling per mip would fix it).
+  BLEND loads as OPAQUE. `assetconv` scales each mip's alpha of a masked
+  albedo so the share of texels passing the cutoff matches level 0; the
+  cutoff is part of the baked pixels, so changing a material's cutoff needs a
+  rebake. Known ceiling: `pbr.slang` still has the discard in its one
+  program.
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off

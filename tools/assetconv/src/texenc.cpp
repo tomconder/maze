@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -228,7 +229,7 @@ sponge::scene::ParsedImage loadImage(const std::string& path) {
 }
 
 std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,
-                            const TextureKind                 kind) {
+                            const TextureKind kind, const float alphaCutoff) {
     if (image.width == 0 || image.height == 0 || image.pixels.empty()) {
         fmt::println(stderr, "assetconv: cannot encode empty image {}",
                      image.name);
@@ -239,9 +240,27 @@ std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,
 
     // Full chain down to 1x1. Compressed levels smaller than a block still
     // occupy one block, which is what glCompressedTexImage2D expects.
+    //
+    // The next level is always filtered from the unscaled one, so the alpha
+    // scale does not compound down the chain.
+    const auto threshold = std::ceil(alphaCutoff * 255.F);
+    const bool keepCoverage =
+        kind == TextureKind::Color && threshold >= 1.F && threshold <= 255.F;
+    const auto coverage =
+        keepCoverage ?
+            alphaCoverage(surface.pixels, static_cast<uint8_t>(threshold)) :
+            0.0;
+
     std::vector<std::vector<uint8_t>> levels;
     while (true) {
-        levels.emplace_back(compress(surface, kind));
+        if (keepCoverage && !levels.empty()) {
+            auto scaled = surface;
+            scaleAlphaCoverage(scaled.pixels, static_cast<uint8_t>(threshold),
+                               coverage);
+            levels.emplace_back(compress(scaled, kind));
+        } else {
+            levels.emplace_back(compress(surface, kind));
+        }
         if (surface.width == 1 && surface.height == 1) {
             break;
         }
