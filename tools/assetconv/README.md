@@ -198,8 +198,8 @@ baked and unbaked models go through the same path.
 ```
 
 FreeType rasterizes each glyph at each size and at four subpixel phases as
-LCD coverage, and `stb_rect_pack` packs them into a 1024x1024 `R8G8B8_UNORM`
-atlas. The glyph set is printable ASCII, U+00D7 and the fixed-width (`tnum`)
+LCD coverage, and rectpack2D packs them into a `R8G8B8_UNORM`
+atlas of at most 1024x1024, cut to the packed size. The glyph set is printable ASCII, U+00D7 and the fixed-width (`tnum`)
 forms of `0-9 : % ~ space ×`.
 
 Shaping is baked too. HarfBuzz shapes with `liga`, `clig` and `calt` off, which
@@ -218,7 +218,7 @@ Known gaps:
 
 ## Sprite atlases
 
-UI art is packed into one sheet with `stb_rect_pack`. The rect table lives in
+UI art is packed into one sheet with rectpack2D, up to 2048x2048, cut to the packed size. The rect table lives in
 the container's own key/value data under the key `spongeAtlas`, one
 `name x y w h` line per sprite, so an atlas is still a single file:
 

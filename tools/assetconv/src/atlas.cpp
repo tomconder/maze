@@ -2,13 +2,12 @@
 
 #include "ktx2.hpp"
 #include "modeldata.hpp"
+#include "rectpack.hpp"
 #include "texenc.hpp"
 
 #include <fmt/base.h>
-#include <stb_rect_pack.h>
 
 #include <algorithm>
-#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <string>
@@ -26,22 +25,10 @@ constexpr uint32_t channels = 4;
 // instead of the neighbouring sprite.
 constexpr uint32_t gutter = 1;
 
-// Sizes to try, smallest area first. Oblong shapes are included because a
-// square that fits by area often does not fit by packing, and the next
-// square up wastes three quarters of itself. If none of these fit, the atlas
-// is being asked to hold something that should be its own texture.
-struct Size {
-    uint32_t width;
-    uint32_t height;
-};
-
-constexpr std::array<Size, 7> candidateSizes = { { { 256, 256 },
-                                                   { 256, 512 },
-                                                   { 512, 512 },
-                                                   { 512, 1024 },
-                                                   { 1024, 1024 },
-                                                   { 1024, 2048 },
-                                                   { 2048, 2048 } } };
+// The atlas is as small as the packer can make it, up to this side. If the
+// sprites do not fit, the atlas is being asked to hold something that should
+// be its own texture.
+constexpr int maxSide = 2048;
 
 // Copies a sprite in at (x, y) and extends its edge pixels into the gutter.
 void blit(std::vector<uint8_t>& atlas, const uint32_t atlasWidth,
@@ -69,8 +56,9 @@ void blit(std::vector<uint8_t>& atlas, const uint32_t atlasWidth,
 
 // "name x y w h" per line. Text because it is inspectable in a hex dump of
 // the container, and the table is fourteen lines long.
-std::vector<uint8_t> rectTable(const std::vector<ParsedImage>& sources,
-                               const std::vector<stbrp_rect>&  rects) {
+std::vector<uint8_t>
+    rectTable(const std::vector<ParsedImage>&           sources,
+              const std::vector<rectpack2D::rect_xywh>& rects) {
     std::string table;
     for (size_t i = 0; i < sources.size(); i++) {
         table += sources[i].name + " " + std::to_string(rects[i].x + gutter) +
@@ -94,39 +82,25 @@ std::vector<uint8_t> packAtlas(const std::vector<AtlasEntry>& entries) {
         sources.back().name = entry.name;
     }
 
-    std::vector<stbrp_rect> rects(sources.size());
+    std::vector<rectpack2D::rect_xywh> rects(sources.size());
     for (size_t i = 0; i < sources.size(); i++) {
-        rects[i].id = static_cast<int>(i);
-        rects[i].w  = static_cast<stbrp_coord>(sources[i].width + (gutter * 2));
-        rects[i].h = static_cast<stbrp_coord>(sources[i].height + (gutter * 2));
+        rects[i].w = static_cast<int>(sources[i].width + (gutter * 2));
+        rects[i].h = static_cast<int>(sources[i].height + (gutter * 2));
     }
 
-    Size size{ 0, 0 };
-    for (const auto candidate : candidateSizes) {
-        stbrp_context           context{};
-        std::vector<stbrp_node> nodes(candidate.width);
-        stbrp_init_target(&context, static_cast<int>(candidate.width),
-                          static_cast<int>(candidate.height), nodes.data(),
-                          static_cast<int>(nodes.size()));
-        if (stbrp_pack_rects(&context, rects.data(),
-                             static_cast<int>(rects.size())) != 0) {
-            size = candidate;
-            break;
-        }
-    }
-
-    if (size.width == 0) {
+    const auto packed = packRects(rects, maxSide);
+    if (packed.w == 0) {
         fmt::println(stderr,
                      "assetconv: {} sprites do not fit in a {}x{} atlas",
-                     entries.size(), candidateSizes.back().width,
-                     candidateSizes.back().height);
+                     entries.size(), maxSide, maxSide);
         return {};
     }
+    const auto width  = static_cast<uint32_t>(packed.w);
+    const auto height = static_cast<uint32_t>(packed.h);
 
-    std::vector<uint8_t> pixels(static_cast<size_t>(size.width) * size.height *
-                                channels);
+    std::vector<uint8_t> pixels(static_cast<size_t>(width) * height * channels);
     for (size_t i = 0; i < sources.size(); i++) {
-        blit(pixels, size.width, sources[i],
+        blit(pixels, width, sources[i],
              static_cast<uint32_t>(rects[i].x) + gutter,
              static_cast<uint32_t>(rects[i].y) + gutter);
     }
@@ -137,7 +111,7 @@ std::vector<uint8_t> packAtlas(const std::vector<AtlasEntry>& entries) {
     const std::vector<ktx2::KeyValue> keyValues{
         { "spongeAtlas", rectTable(sources, rects) }
     };
-    return ktx2::write(ktx2::formatR8G8B8A8Unorm, size.width, size.height,
+    return ktx2::write(ktx2::formatR8G8B8A8Unorm, width, height,
                        std::vector<std::vector<uint8_t>>{ std::move(pixels) },
                        keyValues);
 }
