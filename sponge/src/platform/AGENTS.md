@@ -125,7 +125,17 @@ than calling GLFW/OpenGL/OS APIs directly.
   `scenetarget.hpp` in step with the `tone*` constants in `tonemap.slang`.
 * The glTF `baseColorFactor` is in the baked mesh entry as a linear `float4`
   and multiplies the albedo in `pbr.slang`. With no albedo texture it is the
-  albedo. Alpha is carried, not used.
+  albedo.
+* glTF `alphaMode` MASK is supported: the baked mesh entry carries
+  `alphaCutoff` (0 = OPAQUE), and a fragment whose albedo alpha
+  (`texture.a * baseColorFactor.a`) is below it is discarded. `pbr.slang`, the
+  depth prepass and the shadow pass run the same test, so their depth agrees;
+  a mismatch leaves holes or z-fighting in the scene pass. The prepass and
+  shadow programs read the albedo on unit 0, and `Model::render(..., true)`
+  sets their inputs. BLEND loads as OPAQUE. Known ceilings: the discard turns
+  off early-Z for every draw in those two programs, and mip levels average
+  alpha, so foliage thins with distance (alpha-coverage scaling per mip would
+  fix it).
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off

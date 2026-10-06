@@ -52,11 +52,16 @@ struct ParsedMesh {
     // KHR_materials_diffuse_transmission strength map; its alpha scales the
     // factor below.
     std::optional<uint32_t> diffuseTransmissionMap;
-    // glTF baseColorFactor, linear, multiplied into the albedo texture. Alpha
-    // is carried but not used. Without a texture it is the albedo.
+    // glTF baseColorFactor, linear, multiplied into the albedo texture. Its
+    // alpha scales the albedo alpha for the MASK test below. Without a
+    // texture it is the albedo.
     glm::vec4 baseColorFactor{ 1.F };
     float     metallicFactor{ 0.F };
     float     roughnessFactor{ .5F };
+    // glTF alphaMode MASK: a fragment whose albedo alpha is below this is
+    // discarded. 0 means OPAQUE (alpha ignored). BLEND is not supported and
+    // loads as OPAQUE.
+    float alphaCutoff{ 0.F };
     // KHR_materials_clearcoat factors; both default to 0 (no coat). The coat
     // textures are not carried.
     float clearcoatFactor{ 0.F };

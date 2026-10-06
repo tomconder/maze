@@ -43,8 +43,8 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            std::shared_ptr<renderer::Texture> diffuseTransmissionTexture,
            const float metallicFactor, const float roughnessFactor,
            const float clearcoatFactor, const float clearcoatRoughnessFactor,
-           const glm::vec4&        diffuseTransmission,
-           const glm::vec4&        baseColorFactor,
+           const glm::vec4& diffuseTransmission,
+           const glm::vec4& baseColorFactor, const float alphaCutoff,
            const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
@@ -58,6 +58,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     clearcoatRoughnessFactor(clearcoatRoughnessFactor),
     diffuseTransmission(diffuseTransmission),
     baseColorFactor(baseColorFactor),
+    alphaCutoff(alphaCutoff),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
     this->numIndices  = numIndices;
@@ -94,6 +95,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .clearcoatRoughnessFactor =
             defaultShader->findUniform("clearcoatRoughnessFactor"),
         .baseColorFactor = defaultShader->findUniform("baseColorFactor"),
+        .alphaCutoff     = defaultShader->findUniform("alphaCutoff"),
         .diffuseTransmission =
             defaultShader->findUniform("diffuseTransmission"),
         .hasDiffuseTransmissionMap =
@@ -107,7 +109,8 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     };
 }
 
-void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
+void Mesh::draw(const std::shared_ptr<Shader>& shader,
+                const bool                     alphaTest) const {
     SPONGE_PROFILE;
 
     if (shader->getId() == meshProgramId) {
@@ -155,6 +158,7 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
         shader->setFloat(u.clearcoatFactor, clearcoatFactor);
         shader->setFloat(u.clearcoatRoughnessFactor, clearcoatRoughnessFactor);
         shader->setFloat4(u.baseColorFactor, baseColorFactor);
+        shader->setFloat(u.alphaCutoff, alphaCutoff);
         shader->setFloat4(u.diffuseTransmission, diffuseTransmission);
         if (diffuseTransmissionTexture) {
             shader->setBoolean(u.hasDiffuseTransmissionMap, true);
@@ -170,6 +174,23 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader) const {
             shader->setBoolean(u.hasMetallicRoughnessMap, false);
         }
         setUV(u.metallicRoughnessUV, uvTransforms.metallicRoughness);
+        shader->endBatch();
+    } else if (alphaTest) {
+        // The same albedo sampler, UV transform and alpha as pbr.slang reads.
+        // The program keeps its uniforms between meshes, so a mesh with no
+        // test must reset the cutoff.
+        shader->beginBatch();
+        shader->setFloat("alphaCutoff", alphaCutoff);
+        if (alphaCutoff > 0.F) {
+            shader->setFloat("baseColorAlpha", baseColorFactor.a);
+            shader->setBoolean("hasNoTexture", textures.empty());
+            const auto& uv = uvTransforms.albedo;
+            shader->setFloat4("albedoUVTransform",
+                              glm::vec4(uv.offset, uv.scale));
+            if (!textures.empty()) {
+                textures.at(0)->bind(0);
+            }
+        }
         shader->endBatch();
     }
 

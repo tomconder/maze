@@ -33,12 +33,17 @@ public:
         std::shared_ptr<renderer::Texture> diffuseTransmissionTexture = nullptr,
         float metallicFactor = 0.F, float roughnessFactor = .5F,
         float clearcoatFactor = 0.F, float clearcoatRoughnessFactor = 0.F,
-        const glm::vec4&        diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
-        const glm::vec4&        baseColorFactor     = glm::vec4(1.F),
-        const MeshUVTransforms& uvTransforms        = {});
+        const glm::vec4& diffuseTransmission = { 1.F, 1.F, 1.F, 0.F },
+        const glm::vec4& baseColorFactor     = glm::vec4(1.F),
+        float alphaCutoff = 0.F, const MeshUVTransforms& uvTransforms = {});
     // Sets the material and draws this mesh's range of the model's shared
-    // vertex and index buffers. The caller binds the model's VAO first.
-    void draw(const std::shared_ptr<renderer::Shader>& shader) const;
+    // vertex and index buffers. The caller binds the model's VAO first. The
+    // PBR program always gets its full material. Any other program gets only
+    // the alpha test inputs, and only when alphaTest is set: the depth
+    // prepass and the shadow pass use it, so their discards match the PBR
+    // pass.
+    void draw(const std::shared_ptr<renderer::Shader>& shader,
+              bool                                     alphaTest = false) const;
 
     // The geometry Model packs into its shared buffers, then frees.
     std::span<const sponge::scene::Vertex> getVertices() const {
@@ -96,6 +101,7 @@ private:
         Handle clearcoatFactor;
         Handle clearcoatRoughnessFactor;
         Handle baseColorFactor;
+        Handle alphaCutoff;
         Handle diffuseTransmission;
         Handle hasDiffuseTransmissionMap;
         Handle diffuseTransmissionUV;
@@ -119,6 +125,7 @@ private:
     float                                           clearcoatRoughnessFactor;
     glm::vec4                                       diffuseTransmission;
     glm::vec4                                       baseColorFactor;
+    float                                           alphaCutoff;
     MeshUVTransforms                                uvTransforms;
     sponge::scene::AABB                             bounds;
 };

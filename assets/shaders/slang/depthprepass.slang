@@ -6,6 +6,13 @@ uniform float4x4 mvpNoJitter;      // this frame, unjittered
 uniform float4x4 prevMvpNoJitter;  // last frame, unjittered
 uniform float4x4 normalMatrix;     // transpose(inverse(view * model))
 uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
+// glTF MASK, the same test as pbr.slang so the prepass depth matches the scene
+// pass. The albedo texture is on unit 0.
+uniform float                        alphaCutoff;     // 0 = opaque, no test
+uniform float                        baseColorAlpha;  // baseColorFactor.a
+uniform bool                         hasNoTexture;
+uniform float4                       albedoUVTransform;  // xy = offset, zw = scale
+[[vk::binding(0)]] Sampler2D<float4> albedoMap;
 
 // Same VSInput layout as pbr.slang (position/texCoord/normal/tangent), so
 // slangc assigns the same attribute locations the mesh VAO was built
@@ -22,6 +29,7 @@ struct VSInput {
 };
 struct VSOutput {
     float4 pos : SV_Position;
+    float2 texCoord : TEXCOORD3;
     // Unjittered clip positions: motion is measured between pixel centres, so
     // the sub-pixel jitter must not enter the difference.
     float4 currClip : TEXCOORD0;
@@ -43,6 +51,7 @@ VSOutput vertMain(VSInput input) {
     o.currClip        = mul(mvpNoJitter, position);
     o.prevClip        = mul(prevMvpNoJitter, position);
     o.viewNormal      = mul((float3x3)normalMatrix, input.normal);
+    o.texCoord        = input.texCoord;
     return o;
 };
 
@@ -50,6 +59,13 @@ VSOutput vertMain(VSInput input) {
 [shader("fragment")]
 FSOutput fragMain(VSOutput input) {
     // clang-format on
+    if (alphaCutoff > 0.0) {
+        float2 uv    = input.texCoord * albedoUVTransform.zw + albedoUVTransform.xy;
+        float  alpha = (hasNoTexture ? 1.0 : albedoMap.Sample(uv).a) * baseColorAlpha;
+        if (alpha < alphaCutoff) {
+            discard;
+        }
+    }
     FSOutput o;
     float2   currUV = input.currClip.xy / input.currClip.w * 0.5 + 0.5;
     float2   prevUV = input.prevClip.xy / input.prevClip.w * 0.5 + 0.5;

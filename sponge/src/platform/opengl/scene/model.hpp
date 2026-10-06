@@ -62,8 +62,11 @@ public:
     // getMeshBounds(). An empty span renders every mesh, same as the
     // overload above — the shadow pass uses that: it needs the light
     // frustum, not the camera one this mask is built from.
+    // alphaTest passes the alpha test inputs of masked meshes to a non-PBR
+    // shader (see Mesh::draw).
     void render(const std::shared_ptr<renderer::Shader>& shader,
-                std::span<const uint8_t>                 meshVisible) const;
+                std::span<const uint8_t>                 meshVisible,
+                bool alphaTest = false) const;
 
     size_t getNumIndices() const {
         return numIndices;

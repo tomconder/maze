@@ -1306,7 +1306,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
         depthPrepassShader->setFloat(
             "reflectivity", planar ? 0.F : frame.objectReflectivity[i]);
         frame.objectModels[i]->render(depthPrepassShader,
-                                      frame.objectMeshVisible[i]);
+                                      frame.objectMeshVisible[i], true);
     }
 
     // Light cubes use a second instance of the same shader: position-only
@@ -1517,8 +1517,8 @@ void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
             continue;
         }
         shader->setMat4("model", frame.objectModelMatrices[i]);
-        frame.objectModels[i]->render(shader,
-                                      frame.objectMeshVisibleLight[cascade][i]);
+        frame.objectModels[i]->render(
+            shader, frame.objectMeshVisibleLight[cascade][i], true);
     }
 
     shader->unbind();
