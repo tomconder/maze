@@ -39,6 +39,10 @@ struct ParsedImage {
     std::vector<uint8_t> ktx2;
 };
 
+// glTF alphaMode. Mask discards below ParsedMesh::alphaCutoff. Blend is
+// carried but not drawn yet, so it renders as Opaque.
+enum class AlphaMode : uint32_t { Opaque, Mask, Blend };
+
 // One mesh primitive's worth of CPU-parsed data: vertices/indices plus its
 // material images, as indices into ModelData::images.
 struct ParsedMesh {
@@ -58,10 +62,11 @@ struct ParsedMesh {
     glm::vec4 baseColorFactor{ 1.F };
     float     metallicFactor{ 0.F };
     float     roughnessFactor{ .5F };
-    // glTF alphaMode MASK: a fragment whose albedo alpha is below this is
-    // discarded. 0 means OPAQUE (alpha ignored). BLEND is not supported and
-    // loads as OPAQUE.
-    float alphaCutoff{ 0.F };
+    // glTF alphaMode. alphaCutoff only means something for Mask: a fragment
+    // whose albedo alpha is below it is discarded. It is 0 for the other
+    // modes.
+    AlphaMode alphaMode{ AlphaMode::Opaque };
+    float     alphaCutoff{ 0.F };
     // KHR_materials_clearcoat factors; both default to 0 (no coat). The coat
     // textures are not carried.
     float clearcoatFactor{ 0.F };

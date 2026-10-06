@@ -142,7 +142,16 @@ float geometrySmith(float NdotV, float NdotL, float rough) {
 // ---------------------------------------------------------------------------
 // Generic PBR evaluation, resolved at compile time per light type.
 // ---------------------------------------------------------------------------
-float3 evaluatePBR<L : ILight>(
+
+// Light leaving a surface, kept in two parts. Their sum is the colour. Apart,
+// a caller can fade the diffuse part alone, as a premultiplied-alpha blend
+// needs: specular reflection does not get fainter as a surface gets clearer.
+struct SurfaceLight {
+    float3 diffuse;
+    float3 specular;
+};
+
+SurfaceLight evaluatePBR<L : ILight>(
     L      light,
     float3 worldPos,
     float3 albedo,
@@ -154,31 +163,36 @@ float3 evaluatePBR<L : ILight>(
     float  clearcoat,
     float  coatRoughness,
     float  transmission) {  // share of the diffuse that goes through; see evaluateTransmission
-    float3 Ldir     = light.getDirection(worldPos);
-    float3 radiance = light.getRadiance(worldPos);
-    float3 H        = halfVector(V, Ldir);
-    float  NdotV    = max(dot(N, V), 1e-5);
-    float  NdotL    = max(dot(N, Ldir), 1e-5);
-    float3 F0       = lerp(float3(0.04), albedo, metallic);
-    float  NDF      = distributionGGX(N, H, roughness);
-    float  G        = geometrySmith(NdotV, NdotL, roughness);
-    float3 F        = fresnelSchlick(max(dot(H, V), 0.0), F0);
-    float3 specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 1e-5);
-    float3 kD       = (float3(1.0) - F) * (1.0 - metallic);
-    float3 base     = (kD * albedo * (1.0 - transmission) / M_PI + specular) * radiance * NdotL;
+    float3       Ldir     = light.getDirection(worldPos);
+    float3       radiance = light.getRadiance(worldPos);
+    float3       H        = halfVector(V, Ldir);
+    float        NdotV    = max(dot(N, V), 1e-5);
+    float        NdotL    = max(dot(N, Ldir), 1e-5);
+    float3       F0       = lerp(float3(0.04), albedo, metallic);
+    float        NDF      = distributionGGX(N, H, roughness);
+    float        G        = geometrySmith(NdotV, NdotL, roughness);
+    float3       F        = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    float3       specular = (NDF * G * F) / (4.0 * NdotV * NdotL + 1e-5);
+    float3       kD       = (float3(1.0) - F) * (1.0 - metallic);
+    SurfaceLight base;
+    base.diffuse  = kD * albedo * (1.0 - transmission) / M_PI * radiance * NdotL;
+    base.specular = specular * radiance * NdotL;
     if (clearcoat <= 0.0) {
         return base;
     }
 
     // Clear coat: a second GGX lobe at a fixed F0 of 0.04 over the base. The
     // base loses what the coat reflects.
-    float NdotVc = max(dot(Nc, V), 1e-5);
-    float NdotLc = max(dot(Nc, Ldir), 1e-5);
-    float Fc     = clearcoat * fresnelSchlick(max(dot(H, V), 0.0), float3(0.04)).x;
-    float coat   = distributionGGX(Nc, H, coatRoughness) *
-                   geometrySmith(NdotVc, NdotLc, coatRoughness) * Fc /
-                   (4.0 * NdotVc * NdotLc + 1e-5);
-    return base * (1.0 - Fc) + coat * radiance * NdotLc;
+    float        NdotVc = max(dot(Nc, V), 1e-5);
+    float        NdotLc = max(dot(Nc, Ldir), 1e-5);
+    float        Fc     = clearcoat * fresnelSchlick(max(dot(H, V), 0.0), float3(0.04)).x;
+    float        coat   = distributionGGX(Nc, H, coatRoughness) *
+                          geometrySmith(NdotVc, NdotLc, coatRoughness) * Fc /
+                          (4.0 * NdotVc * NdotLc + 1e-5);
+    SurfaceLight result;
+    result.diffuse  = base.diffuse * (1.0 - Fc);
+    result.specular = base.specular * (1.0 - Fc) + coat * radiance * NdotLc;
+    return result;
 }
 
 // Diffuse light that passes through a thin surface: the Lambert lobe on the
