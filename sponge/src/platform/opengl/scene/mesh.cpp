@@ -46,7 +46,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
            const glm::vec4&               diffuseTransmission,
            const glm::vec4&               baseColorFactor,
            const sponge::scene::AlphaMode alphaMode, const float alphaCutoff,
-           const MeshUVTransforms& uvTransforms) :
+           const bool doubleSided, const MeshUVTransforms& uvTransforms) :
     textures(std::move(textures)),
     normalTexture(std::move(normalTexture)),
     occlusionTexture(std::move(occlusionTexture)),
@@ -61,6 +61,7 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     baseColorFactor(baseColorFactor),
     alphaMode(alphaMode),
     alphaCutoff(alphaCutoff),
+    doubleSided(doubleSided),
     uvTransforms(uvTransforms) {
     this->indices     = std::move(indices);
     this->numIndices  = numIndices;

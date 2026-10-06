@@ -161,6 +161,7 @@ std::vector<uint8_t> write(const ModelData& data) {
         entry.clearcoatRoughnessFactor = mesh.clearcoatRoughnessFactor;
         entry.alphaMode                = static_cast<uint32_t>(mesh.alphaMode);
         entry.alphaCutoff              = mesh.alphaCutoff;
+        entry.doubleSided              = mesh.doubleSided ? 1 : 0;
         entry.diffuseTransmission      = mesh.diffuseTransmission;
         entry.uvTransforms             = mesh.uvTransforms;
     }
@@ -258,6 +259,8 @@ ModelData read(const std::string& path, std::string& error) {
                 static_cast<AlphaMode>(entry.alphaMode) :
                 AlphaMode::Opaque;
         mesh.alphaCutoff         = entry.alphaCutoff;
+        mesh.doubleSided         = entry.doubleSided != 0;
+        mesh.doubleSided         = entry.doubleSided != 0;
         mesh.diffuseTransmission = entry.diffuseTransmission;
         mesh.uvTransforms        = entry.uvTransforms;
     }

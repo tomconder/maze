@@ -148,8 +148,14 @@ than calling GLFW/OpenGL/OS APIs directly.
   prepass, shadow pass, mirror or probe capture (`AlphaPass::Solid` leaves it
   out), so it casts no shadow, gets no SSAO and no SSR, and TAA has no
   velocity for it. Glass does not refract it. Triangles inside one mesh are
-  not sorted. Face culling is always on, so a one-sided blended mesh shows
-  only its front.
+  not sorted.
+* glTF `doubleSided` is baked per mesh. Face culling is on by default; `Model`
+  turns it off for a double-sided mesh and back on after, and the PBR and
+  depth prepass fragment programs flip the normal when `SV_IsFrontFace` is
+  false. A double-sided blended mesh is one draw with culling off, so a closed
+  object can layer wrongly. The glass program does not flip normals. The
+  shadow pass also goes through `Model::render`, so a double-sided mesh casts
+  shadow from both faces.
 * Clear coat (`KHR_materials_clearcoat`) carries the two factors only; the
   three coat textures are not read. The coat uses
   the geometric normal, a fixed F0 of 0.04, and takes its Fresnel share off

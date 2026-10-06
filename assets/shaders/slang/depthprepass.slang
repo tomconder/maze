@@ -57,7 +57,7 @@ VSOutput vertMain(VSInput input) {
     return o;
 };
 
-FSOutput shade(VSOutput input) {
+FSOutput shade(VSOutput input, bool frontFacing) {
     FSOutput o;
     float2   currUV = input.currClip.xy / input.currClip.w * 0.5 + 0.5;
     float2   prevUV = input.prevClip.xy / input.prevClip.w * 0.5 + 0.5;
@@ -66,26 +66,29 @@ FSOutput shade(VSOutput input) {
     // Guard against normalizing a true-zero normal (light cubes / geometry
     // with no NORMAL attribute bound): 0/0 is NaN, and a NaN sentinel breaks
     // the "no surface here" length check ssao.slang relies on.
-    float len = length(input.viewNormal);
-    o.normal  = len > 1e-4 ? float4(input.viewNormal / len, reflectivity) : float4(0.0);
+    // A back face is only drawn for a double-sided mesh; SSAO and SSR want the
+    // normal on the side the camera sees.
+    float3 viewNormal = frontFacing ? input.viewNormal : -input.viewNormal;
+    float  len        = length(viewNormal);
+    o.normal          = len > 1e-4 ? float4(viewNormal / len, reflectivity) : float4(0.0);
     return o;
 };
 
 // clang-format off
 [shader("fragment")]
-FSOutput fragMain(VSOutput input) {
+FSOutput fragMain(VSOutput input, bool frontFacing : SV_IsFrontFace) {
     // clang-format on
-    return shade(input);
+    return shade(input, frontFacing);
 };
 
 // clang-format off
 [shader("fragment")]
-FSOutput fragMainMasked(VSOutput input) {
+FSOutput fragMainMasked(VSOutput input, bool frontFacing : SV_IsFrontFace) {
     // clang-format on
     float2 uv    = input.texCoord * albedoUVTransform.zw + albedoUVTransform.xy;
     float  alpha = (hasNoTexture ? 1.0 : albedoMap.Sample(uv).a) * baseColorAlpha;
     if (alpha < alphaCutoff) {
         discard;
     }
-    return shade(input);
+    return shade(input, frontFacing);
 };

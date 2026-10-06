@@ -67,6 +67,9 @@ struct ParsedMesh {
     // modes.
     AlphaMode alphaMode{ AlphaMode::Opaque };
     float     alphaCutoff{ 0.F };
+    // glTF doubleSided: both faces are drawn, and the normal of a back face is
+    // flipped.
+    bool doubleSided{ false };
     // KHR_materials_clearcoat factors; both default to 0 (no coat). The coat
     // textures are not carried.
     float clearcoatFactor{ 0.F };

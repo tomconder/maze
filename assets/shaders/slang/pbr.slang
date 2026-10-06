@@ -75,7 +75,7 @@ float widenRoughness(float roughness, float3 n) {
 
 // clang-format off
 [shader("fragment")]
-float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
+float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing : SV_IsFrontFace) : SV_Target {
     // clang-format on
     float2 albedoUV  = applyUVTransform(input.texCoords, params.albedoUVTransform);
     float4 texSample = texture_diffuse1.Sample(albedoUV);
@@ -88,6 +88,11 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
     }
 
     float3 N = normalize(input.worldNormal);
+    // A back face is only drawn for a double-sided mesh, and its normal points
+    // the other way (glTF).
+    if (!frontFacing) {
+        N = -N;
+    }
     // The coat has no normal map of its own here, so it keeps the surface
     // normal and does not follow the base layer's.
     float3 Nc = N;

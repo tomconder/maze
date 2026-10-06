@@ -17,6 +17,20 @@
 #include <vector>
 
 namespace {
+// Moves face culling to `wanted` and records it, so a run of meshes that
+// agree makes no GL call.
+void setCulling(bool& current, const bool wanted) {
+    if (current == wanted) {
+        return;
+    }
+    if (wanted) {
+        glEnable(GL_CULL_FACE);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
+    current = wanted;
+}
+
 // Slang-generated layout locations for pbr.vert.slang
 constexpr uint32_t positionLoc = 0;
 constexpr uint32_t texCoordLoc = 1;
@@ -133,7 +147,8 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
         parsedMesh.metallicFactor, parsedMesh.roughnessFactor,
         parsedMesh.clearcoatFactor, parsedMesh.clearcoatRoughnessFactor,
         parsedMesh.diffuseTransmission, parsedMesh.baseColorFactor,
-        parsedMesh.alphaMode, parsedMesh.alphaCutoff, parsedMesh.uvTransforms);
+        parsedMesh.alphaMode, parsedMesh.alphaCutoff, parsedMesh.doubleSided,
+        parsedMesh.uvTransforms);
     return mesh;
 }
 
@@ -171,14 +186,19 @@ void Model::render(const std::shared_ptr<renderer::Shader>& shader,
         return;
     }
     vao->bind();
+    // Face culling is on by default (RendererAPI). A double-sided mesh turns it
+    // off for its own draw; the run ends with it back on.
+    bool culling = true;
     for (size_t i = 0; i < meshes.size(); i++) {
         if (!meshes[i]->drawnIn(pass)) {
             continue;
         }
         if (meshVisible.empty() || meshVisible[i] != 0) {
+            setCulling(culling, !meshes[i]->isDoubleSided());
             meshes[i]->draw(shader, pass == AlphaPass::Masked);
         }
     }
+    setCulling(culling, true);
 }
 
 void Model::renderMesh(const std::shared_ptr<renderer::Shader>& shader,
@@ -187,6 +207,9 @@ void Model::renderMesh(const std::shared_ptr<renderer::Shader>& shader,
         return;
     }
     vao->bind();
+    bool culling = true;
+    setCulling(culling, !meshes[index]->isDoubleSided());
     meshes[index]->draw(shader);
+    setCulling(culling, true);
 }
 }  // namespace sponge::platform::opengl::scene
