@@ -2,9 +2,9 @@
 
 #include "font.hpp"
 #include "ktx2.hpp"
+#include "rectpack.hpp"
 
 #include <fmt/base.h>
-#include <stb_rect_pack.h>
 
 // clang-format off
 #include <ft2build.h>
@@ -37,7 +37,7 @@ namespace {
 namespace font = sponge::scene::font;
 namespace ktx2 = sponge::scene::ktx2;
 
-constexpr uint32_t atlasSize     = 1024;
+constexpr int      maxAtlasSide  = 1024;
 constexpr uint32_t atlasChannels = 3;
 
 // Printable ASCII plus U+00D7 MULTIPLICATION SIGN.
@@ -136,8 +136,8 @@ struct PendingGlyph {
 };
 
 struct Rasterized {
-    std::vector<PendingGlyph> pending;
-    std::vector<stbrp_rect>   rects;
+    std::vector<PendingGlyph>          pending;
+    std::vector<rectpack2D::rect_xywh> rects;
     // Glyphs with no bitmap, such as space, need no atlas room.
     std::map<uint64_t, font::Glyph> placed;
 };
@@ -183,54 +183,52 @@ void rasterize(FT_Face face, const uint32_t glyphIndex, const uint32_t size,
                     pending.bitmap.begin() + (row * width * atlasChannels));
     }
 
-    stbrp_rect rect{};
-    rect.id = static_cast<int>(out.rects.size());
-    rect.w  = width + 1;
-    rect.h  = height + 1;
-    out.rects.push_back(rect);
+    out.rects.emplace_back(0, 0, width + 1, height + 1);
     out.pending.push_back(std::move(pending));
 }
 
 // Packs every pending bitmap into the atlas and records where it went.
-std::optional<std::vector<uint8_t>> pack(Rasterized&        rasterized,
-                                         const std::string& path) {
-    std::vector<uint8_t> atlas(static_cast<size_t>(atlasSize) * atlasSize *
-                               atlasChannels);
+struct Atlas {
+    int                  width  = 0;
+    int                  height = 0;
+    std::vector<uint8_t> pixels;
+};
 
-    std::vector<stbrp_node> nodes(atlasSize);
-    stbrp_context           context{};
-    stbrp_init_target(&context, atlasSize, atlasSize, nodes.data(),
-                      static_cast<int>(nodes.size()));
-    stbrp_pack_rects(&context, rasterized.rects.data(),
-                     static_cast<int>(rasterized.rects.size()));
+std::optional<Atlas> pack(Rasterized& rasterized, const std::string& path) {
+    const auto packed = assetconv::packRects(rasterized.rects, maxAtlasSide);
+    if (packed.w == 0) {
+        fmt::println(stderr,
+                     "assetconv: {}: {} glyphs do not fit a {}x{} atlas", path,
+                     rasterized.rects.size(), maxAtlasSide, maxAtlasSide);
+        return std::nullopt;
+    }
+
+    Atlas atlas{ .width  = packed.w,
+                 .height = packed.h,
+                 .pixels = std::vector<uint8_t>(static_cast<size_t>(packed.w) *
+                                                packed.h * atlasChannels) };
 
     for (size_t i = 0; i < rasterized.pending.size(); i++) {
         const auto& pending = rasterized.pending[i];
         const auto& rect    = rasterized.rects[i];
-        if (rect.was_packed == 0) {
-            fmt::println(stderr,
-                         "assetconv: {}: glyph {} at {} px does not fit a "
-                         "{}x{} atlas",
-                         path, pending.glyphIndex, pending.size, atlasSize,
-                         atlasSize);
-            return std::nullopt;
-        }
 
         const auto width = static_cast<size_t>(pending.glyph.width);
         for (int row = 0; row < pending.glyph.height; row++) {
-            std::copy_n(pending.bitmap.begin() + (row * width * atlasChannels),
-                        width * atlasChannels,
-                        atlas.begin() + ((((static_cast<size_t>(rect.y) + row) *
-                                           atlasSize) +
-                                          rect.x) *
-                                         atlasChannels));
+            std::copy_n(
+                pending.bitmap.begin() + (row * width * atlasChannels),
+                width * atlasChannels,
+                atlas.pixels.begin() +
+                    ((((static_cast<size_t>(rect.y) + row) * atlas.width) +
+                      rect.x) *
+                     atlasChannels));
         }
 
-        auto glyph     = pending.glyph;
-        glyph.uvLeft   = static_cast<float>(rect.x) / atlasSize;
-        glyph.uvTop    = static_cast<float>(rect.y) / atlasSize;
-        glyph.uvWidth  = static_cast<float>(pending.glyph.width) / atlasSize;
-        glyph.uvHeight = static_cast<float>(pending.glyph.height) / atlasSize;
+        auto glyph    = pending.glyph;
+        glyph.uvLeft  = static_cast<float>(rect.x) / atlas.width;
+        glyph.uvTop   = static_cast<float>(rect.y) / atlas.height;
+        glyph.uvWidth = static_cast<float>(pending.glyph.width) / atlas.width;
+        glyph.uvHeight =
+            static_cast<float>(pending.glyph.height) / atlas.height;
         rasterized
             .placed[glyphKey(pending.glyphIndex, pending.size, pending.phase)] =
             glyph;
@@ -482,9 +480,10 @@ std::vector<uint8_t> bakeFont(const std::string&           path,
 
     const std::vector<ktx2::KeyValue> keyValues{ { std::string{ font::fontKey },
                                                    font::write(baked) } };
-    return ktx2::write(ktx2::formatR8G8B8Unorm, atlasSize, atlasSize,
-                       std::vector<std::vector<uint8_t>>{ std::move(*atlas) },
-                       keyValues);
+    return ktx2::write(
+        ktx2::formatR8G8B8Unorm, atlas->width, atlas->height,
+        std::vector<std::vector<uint8_t>>{ std::move(atlas->pixels) },
+        keyValues);
 }
 
 }  // namespace assetconv

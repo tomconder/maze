@@ -18,9 +18,10 @@ add_executable(assetconv ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(assetconv PRIVATE src)
 
 # Every asset format lives here, not in the engine: cgltf for glTF,
-# stb_image to decode source images, bc7enc for BC7 blocks, stb_rect_pack for
+# stb_image to decode source images, bc7enc for BC7 blocks, rectpack2D for
 # the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
+# rectpack2D @ 7dde22ed7a707b952b9f8fb263bf3c94f4cef898 (deps/rectpack2d, MIT)
 # cgltf and stb come from vcpkg.
 # Own target so they take the engine's options but not its warnings.
 find_package(Stb REQUIRED)
@@ -35,6 +36,8 @@ target_link_libraries(assetconv_deps PRIVATE sponge::options)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 target_link_libraries(assetconv PRIVATE assetconv_deps)
+# Header-only; SYSTEM keeps its warnings out of the build.
+target_include_directories(assetconv SYSTEM PRIVATE deps/rectpack2d)
 
 # Fonts rasterize and shape at bake time; the engine reads the tables.
 find_package(Freetype REQUIRED)
