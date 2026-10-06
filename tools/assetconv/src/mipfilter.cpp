@@ -12,8 +12,18 @@
 namespace {
 
 constexpr size_t channels = 4;
-// Below this the alpha byte rounds to 0 and the colour is never seen.
-constexpr float minAlpha = 0.5F / 255.0F;
+
+// Floats per texel while filtering. Opaque or linear data needs R G B A.
+// Colour with transparent texels also carries the plain R G B beside the
+// alpha-weighted one, as R G B A Rw Gw Bw Aw: where the weighted alpha is 0
+// only the plain colour says anything, and the engine draws albedo without
+// alpha, so dropping it turns foliage cards black.
+constexpr size_t singleFloats = channels;
+constexpr size_t doubleFloats = channels * 2;
+
+// Below this the weighted alpha is rounding noise and the plain colour is
+// used instead.
+constexpr float minAlpha = 1.0e-6F;
 
 // One RGBA texel per batch for the horizontal pass, the widest batch the
 // build targets for the vertical pass.
@@ -138,7 +148,9 @@ const std::array<uint8_t, srgbSteps + 1>& linearToSrgbTable() {
     return table;
 }
 
-// Source row to floats. Colour is decoded and multiplied by alpha.
+// Source row to floats. Colour is decoded and multiplied by alpha, and kept
+// plain as well when there are two sets of channels.
+template <size_t Floats>
 void decodeRow(const uint8_t* src, const size_t width,
                const assetconv::MipSpace space, float* out) {
     constexpr float byteScale = 1.0F / 255.0F;
@@ -147,11 +159,15 @@ void decodeRow(const uint8_t* src, const size_t width,
         const auto& lut = srgbToLinear();
         for (size_t x = 0; x < width; x++) {
             const auto* in    = src + (x * channels);
-            auto*       dst   = out + (x * channels);
+            auto*       dst   = out + (x * Floats);
             const auto  alpha = static_cast<float>(in[3]) * byteScale;
             // The lookups are scalar; the weighting by alpha is one multiply.
             const Pixel texel(lut[in[0]], lut[in[1]], lut[in[2]], 1.0F);
-            (texel * alpha).store_unaligned(dst);
+            if constexpr (Floats == doubleFloats) {
+                Pixel(lut[in[0]], lut[in[1]], lut[in[2]], alpha)
+                    .store_unaligned(dst);
+            }
+            (texel * alpha).store_unaligned(dst + Floats - channels);
         }
         return;
     }
@@ -162,31 +178,36 @@ void decodeRow(const uint8_t* src, const size_t width,
     }
 }
 
-// Output row back to bytes. Colour is divided by alpha and encoded.
+// Output row back to bytes. Colour is divided by alpha and encoded. Where
+// alpha is 0 the plain colour is used, if there is one.
+template <size_t Floats>
 void encodeRow(const float* src, const size_t width,
                const assetconv::MipSpace space, uint8_t* out) {
     if (space == assetconv::MipSpace::Srgb) {
         const auto& table = linearToSrgbTable();
         for (size_t x = 0; x < width; x++) {
-            const auto* in    = src + (x * channels);
+            const auto* in    = src + (x * Floats);
             auto*       dst   = out + (x * channels);
             const auto  alpha = std::clamp(in[3], 0.0F, 1.0F);
+
+            // Undo the alpha weight, clamp and scale to table indices for all
+            // channels at once. Only the lookups are scalar.
+            Pixel unit(0.0F);
             if (alpha >= minAlpha) {
-                // Undo the alpha weight, clamp and scale to table indices
-                // for all channels at once. Only the lookups are scalar.
-                const auto unit =
-                    xsimd::clip(Pixel::load_unaligned(in) * (1.0F / alpha),
-                                Pixel(0.0F), Pixel(1.0F));
-                const auto index = xsimd::batch_cast<int32_t>(
-                    (unit * static_cast<float>(srgbSteps)) + 0.5F);
-                std::array<int32_t, channels> at{};
-                index.store_unaligned(at.data());
-                dst[0] = table[static_cast<size_t>(at[0])];
-                dst[1] = table[static_cast<size_t>(at[1])];
-                dst[2] = table[static_cast<size_t>(at[2])];
-            } else {
-                dst[0] = dst[1] = dst[2] = 0;
+                unit = Pixel::load_unaligned(in + Floats - channels) *
+                       (1.0F / alpha);
+            } else if constexpr (Floats == doubleFloats) {
+                unit = Pixel::load_unaligned(in);
             }
+            const auto index = xsimd::batch_cast<int32_t>(
+                (xsimd::clip(unit, Pixel(0.0F), Pixel(1.0F)) *
+                 static_cast<float>(srgbSteps)) +
+                0.5F);
+            std::array<int32_t, channels> at{};
+            index.store_unaligned(at.data());
+            dst[0] = table[static_cast<size_t>(at[0])];
+            dst[1] = table[static_cast<size_t>(at[1])];
+            dst[2] = table[static_cast<size_t>(at[2])];
             dst[3] = toByte(alpha);
         }
         return;
@@ -199,11 +220,14 @@ void encodeRow(const float* src, const size_t width,
 
 // One source row, filtered across its width. `weight` holds the current
 // weights spread across a batch, redone only where they change.
+template <size_t Floats>
 void filterRow(const std::vector<float>& decoded, const std::vector<Taps>& taps,
                std::vector<Pixel>& weight, float* out) {
+    constexpr size_t sets = Floats / channels;
+
     for (size_t x = 0; x < taps.size(); x++) {
         const auto& tap   = taps[x];
-        const auto* in    = &decoded[tap.first * channels];
+        const auto* in    = &decoded[tap.first * Floats];
         const auto  count = tap.weights.size();
 
         if (!tap.repeat) {
@@ -212,21 +236,37 @@ void filterRow(const std::vector<float>& decoded, const std::vector<Taps>& taps,
             }
         }
 
-        auto acc = Pixel::load_unaligned(in) * weight[0];
-        for (size_t k = 1; k < count; k++) {
-            acc += Pixel::load_unaligned(in + (k * channels)) * weight[k];
+        std::array<Pixel, sets> acc;
+        for (size_t s = 0; s < sets; s++) {
+            acc[s] = Pixel::load_unaligned(in + (s * channels)) * weight[0];
         }
-        acc.store_unaligned(out + (x * channels));
+        for (size_t k = 1; k < count; k++) {
+            for (size_t s = 0; s < sets; s++) {
+                acc[s] +=
+                    Pixel::load_unaligned(in + (k * Floats) + (s * channels)) *
+                    weight[k];
+            }
+        }
+        for (size_t s = 0; s < sets; s++) {
+            acc[s].store_unaligned(out + (x * Floats) + (s * channels));
+        }
     }
 }
 
-}  // namespace
+// True if any texel is not fully opaque.
+bool hasTransparency(const std::span<const uint8_t> pixels) {
+    for (size_t i = channels - 1; i < pixels.size(); i += channels) {
+        if (pixels[i] != 255) {
+            return true;
+        }
+    }
+    return false;
+}
 
-namespace assetconv {
-
-std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
-                              const uint32_t width, const uint32_t height,
-                              const MipSpace space) {
+template <size_t Floats>
+std::vector<uint8_t> halve(const std::span<const uint8_t> pixels,
+                           const uint32_t width, const uint32_t height,
+                           const assetconv::MipSpace space) {
     const auto dstWidth  = std::max(width / 2, 1U);
     const auto dstHeight = std::max(height / 2, 1U);
     const auto columns   = makeTaps(width, dstWidth);
@@ -241,7 +281,7 @@ std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
     }
     // Rows are padded so the vertical pass has no scalar tail.
     const auto stride =
-        (dstWidth * channels + Lane::size - 1) / Lane::size * Lane::size;
+        (dstWidth * Floats + Lane::size - 1) / Lane::size * Lane::size;
 
     size_t columnWindow = 0;
     for (const auto& column : columns) {
@@ -250,7 +290,7 @@ std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
 
     std::vector<float> ring(window * stride);
     std::vector<float> line(stride);
-    std::vector<float> decoded(static_cast<size_t>(width) * channels);
+    std::vector<float> decoded(static_cast<size_t>(width) * Floats);
     std::vector<Pixel> columnWeight(columnWindow);
 
     // The vertical window of the current output row: where each row sits in
@@ -267,10 +307,10 @@ std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
         const auto& tap = rows[y];
 
         for (; filtered < tap.first + tap.weights.size(); filtered++) {
-            decodeRow(&pixels[filtered * width * channels], width, space,
-                      decoded.data());
-            filterRow(decoded, columns, columnWeight,
-                      &ring[(filtered % window) * stride]);
+            decodeRow<Floats>(&pixels[filtered * width * channels], width,
+                              space, decoded.data());
+            filterRow<Floats>(decoded, columns, columnWeight,
+                              &ring[(filtered % window) * stride]);
         }
 
         const auto count = tap.weights.size();
@@ -286,9 +326,24 @@ std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
             acc.store_unaligned(&line[i]);
         }
 
-        encodeRow(line.data(), dstWidth, space, &out[y * dstWidth * channels]);
+        encodeRow<Floats>(line.data(), dstWidth, space,
+                          &out[y * dstWidth * channels]);
     }
     return out;
+}
+
+}  // namespace
+
+namespace assetconv {
+
+std::vector<uint8_t> halveMip(const std::span<const uint8_t> pixels,
+                              const uint32_t width, const uint32_t height,
+                              const MipSpace space) {
+    // Only colour with transparent texels needs the second set of channels.
+    if (space == MipSpace::Srgb && hasTransparency(pixels)) {
+        return halve<doubleFloats>(pixels, width, height, space);
+    }
+    return halve<singleFloats>(pixels, width, height, space);
 }
 
 }  // namespace assetconv
