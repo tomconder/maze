@@ -91,6 +91,12 @@ GameObject{ .name = "cube1", .path = "/models/cube.spnga" }
 | `.slang` (into the shader pack) | Supported |
 | `.ttf`, `.otf` (into a baked font) | Supported |
 
+A glTF image can be in a buffer view (GLB), a `data:` URI, or a file named
+relative to the `.gltf` file. The files a `.gltf` names (buffers and images)
+are inputs of its bake: changing one rebakes the model. An image that cannot
+be read is logged and the mesh stays untextured. `KHR_texture_basisu` and WebP
+image sources are not read.
+
 ## Output format
 
 One file per model. Textures are packed in as whole KTX2 blobs, so a model of

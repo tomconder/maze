@@ -421,7 +421,13 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
 
         for (const auto& model : section(manifest, "models")) {
             const auto from = source(text(model, "source"));
-            if (!bake(text(model, "output"), { from },
+            // A glTF file also reads the buffers and images it names.
+            std::vector<fs::path> inputs{ from };
+            if (fs::path(from).extension() == ".gltf") {
+                const auto files = assetconv::gltf::dependencies(from);
+                inputs.insert(inputs.end(), files.begin(), files.end());
+            }
+            if (!bake(text(model, "output"), std::move(inputs),
                       [&](const std::string& to) {
                           return convert(from, to) == 0;
                       })) {

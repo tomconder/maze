@@ -1,6 +1,7 @@
 #include "gltfimport.hpp"
 
 #include "modeldata.hpp"
+#include "readbytes.hpp"
 #include "tangents.hpp"
 #include "vertex.hpp"
 
@@ -15,9 +16,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -54,10 +58,10 @@ UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
     };
 }
 
-std::optional<ParsedImage> decodeImage(const cgltf_buffer_view& view,
-                                       const std::string&       name) {
-    const auto* bytes = cgltf_buffer_view_data(&view);
-    const auto  size  = static_cast<int>(view.size);
+std::optional<ParsedImage> decodeImage(const uint8_t*     bytes,
+                                       const std::size_t  byteCount,
+                                       const std::string& name) {
+    const auto size = static_cast<int>(byteCount);
 
     int   width         = 0;
     int   height        = 0;
@@ -82,6 +86,42 @@ std::optional<ParsedImage> decodeImage(const cgltf_buffer_view& view,
     return decoded;
 }
 
+bool isDataUri(const char* uri) {
+    return std::string_view(uri).starts_with("data:");
+}
+
+// The bytes of an image that is not in a buffer view: a base64 data URI, or a
+// file named relative to the glTF file. Empty on any failure.
+std::vector<uint8_t> readImageUri(const char* uri, const std::string& path) {
+    if (isDataUri(uri)) {
+        const std::string_view whole(uri);
+        const auto             comma = whole.find(',');
+        if (comma == std::string_view::npos) {
+            return {};
+        }
+        const auto              base64  = whole.substr(comma + 1);
+        const auto              padding = base64.ends_with("==") ? 2U :
+                                          base64.ends_with('=')  ? 1U :
+                                                                   0U;
+        const auto              size    = (base64.size() / 4 * 3) - padding;
+        constexpr cgltf_options options{};
+        void*                   data = nullptr;
+        if (cgltf_load_buffer_base64(&options, size, base64.data(), &data) !=
+            cgltf_result_success) {
+            return {};
+        }
+        const auto*          begin = static_cast<const uint8_t*>(data);
+        std::vector<uint8_t> bytes(begin, begin + size);
+        std::free(data);
+        return bytes;
+    }
+
+    std::string decoded(uri);
+    decoded.resize(cgltf_decode_uri(decoded.data()));
+    return sponge::scene::readBytes(
+        (std::filesystem::path(path).parent_path() / decoded).string());
+}
+
 // Index into ModelData::images by image name, so an image shared by several
 // materials decodes once. Empty when the decode failed.
 using ImageIndex = std::map<std::string, std::optional<uint32_t>>;
@@ -95,21 +135,35 @@ std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
     }
 
     const auto* image = texture->image;
-    if (image->buffer_view == nullptr) {
-        fmt::println(stderr,
-                     "assetconv: {}: unsupported gltf image source "
-                     "(expected buffer view)",
-                     path);
+    if (image->buffer_view == nullptr && image->uri == nullptr) {
+        fmt::println(stderr, "assetconv: {}: gltf image has no source", path);
         return std::nullopt;
     }
 
-    // Path and byte range: one image per name.
-    const auto name = path + "#" + std::to_string(image->buffer_view->offset) +
-                      "_" + std::to_string(image->buffer_view->size);
+    // Path and byte range, or path and URI: one image per name.
+    const auto name = image->buffer_view != nullptr ?
+                          path + "#" +
+                              std::to_string(image->buffer_view->offset) + "_" +
+                              std::to_string(image->buffer_view->size) :
+                          path + "#" + image->uri;
 
     auto [entry, inserted] = imageIndex.try_emplace(name);
     if (inserted) {
-        if (auto decoded = decodeImage(*image->buffer_view, name)) {
+        std::vector<uint8_t> external;
+        const uint8_t*       bytes     = nullptr;
+        std::size_t          byteCount = 0;
+        if (image->buffer_view != nullptr) {
+            bytes     = cgltf_buffer_view_data(image->buffer_view);
+            byteCount = image->buffer_view->size;
+        } else {
+            external  = readImageUri(image->uri, path);
+            bytes     = external.data();
+            byteCount = external.size();
+        }
+        if (byteCount == 0) {
+            fmt::println(stderr, "assetconv: {}: unable to read image {}", path,
+                         name);
+        } else if (auto decoded = decodeImage(bytes, byteCount, name)) {
             entry->second = static_cast<uint32_t>(data.images.size());
             data.images.push_back(std::move(*decoded));
         }
@@ -329,6 +383,36 @@ sponge::scene::ModelData parse(const std::string& path) {
     cgltf_free(gltfData);
 
     return data;
+}
+
+std::vector<std::filesystem::path> dependencies(const std::string& path) {
+    constexpr cgltf_options options{};
+    cgltf_data*             gltfData = nullptr;
+    if (cgltf_parse_file(&options, path.c_str(), &gltfData) !=
+        cgltf_result_success) {
+        return {};
+    }
+
+    const auto folder = std::filesystem::path(path).parent_path();
+    const auto add    = [&](std::vector<std::filesystem::path>& files,
+                            const char*                         uri) {
+        if (uri == nullptr || isDataUri(uri)) {
+            return;
+        }
+        std::string decoded(uri);
+        decoded.resize(cgltf_decode_uri(decoded.data()));
+        files.push_back(folder / decoded);
+    };
+
+    std::vector<std::filesystem::path> files;
+    for (size_t i = 0; i < gltfData->buffers_count; i++) {
+        add(files, gltfData->buffers[i].uri);
+    }
+    for (size_t i = 0; i < gltfData->images_count; i++) {
+        add(files, gltfData->images[i].uri);
+    }
+    cgltf_free(gltfData);
+    return files;
 }
 
 }  // namespace assetconv::gltf
