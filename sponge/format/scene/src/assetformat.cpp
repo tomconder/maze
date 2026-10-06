@@ -159,6 +159,7 @@ std::vector<uint8_t> write(const ModelData& data) {
         entry.roughnessFactor          = mesh.roughnessFactor;
         entry.clearcoatFactor          = mesh.clearcoatFactor;
         entry.clearcoatRoughnessFactor = mesh.clearcoatRoughnessFactor;
+        entry.alphaMode                = static_cast<uint32_t>(mesh.alphaMode);
         entry.alphaCutoff              = mesh.alphaCutoff;
         entry.diffuseTransmission      = mesh.diffuseTransmission;
         entry.uvTransforms             = mesh.uvTransforms;
@@ -251,9 +252,14 @@ ModelData read(const std::string& path, std::string& error) {
         mesh.roughnessFactor          = entry.roughnessFactor;
         mesh.clearcoatFactor          = entry.clearcoatFactor;
         mesh.clearcoatRoughnessFactor = entry.clearcoatRoughnessFactor;
-        mesh.alphaCutoff              = entry.alphaCutoff;
-        mesh.diffuseTransmission      = entry.diffuseTransmission;
-        mesh.uvTransforms             = entry.uvTransforms;
+        // A value past Blend is a corrupt file; draw it as opaque.
+        mesh.alphaMode =
+            entry.alphaMode <= static_cast<uint32_t>(AlphaMode::Blend) ?
+                static_cast<AlphaMode>(entry.alphaMode) :
+                AlphaMode::Opaque;
+        mesh.alphaCutoff         = entry.alphaCutoff;
+        mesh.diffuseTransmission = entry.diffuseTransmission;
+        mesh.uvTransforms        = entry.uvTransforms;
     }
 
     return data;

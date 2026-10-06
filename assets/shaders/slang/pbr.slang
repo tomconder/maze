@@ -154,22 +154,25 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         transmission *= diffuseTransmissionMap.Sample(transmissionUV).a;
     }
 
-    float3 V  = normalize(params.viewPos - input.worldPosition);
-    float3 Lo = float3(0.0);
+    float3 V = normalize(params.viewPos - input.worldPosition);
+    // Diffuse and specular light kept apart; see SurfaceLight.
+    float3 Ld = float3(0.0);
+    float3 Ls = float3(0.0);
 
     // Directional light
-    float3 dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness,
-                                    Nc, params.clearcoatFactor, coatRoughness, transmission);
-    float  shadow     = 0.0;
+    SurfaceLight dirContrib = evaluatePBR(params.directionalLight, input.worldPosition, albedo, N, V, metallic, roughness,
+                                          Nc, params.clearcoatFactor, coatRoughness, transmission);
+    float        shadow     = 0.0;
     if (params.directionalLight.castShadow) {
         shadow = shadowCascaded(shadowMap, params.lightSpaceMatrices, params.cascadeCount,
                                 input.worldPosition, params.evsmBleedThreshold);
     }
-    Lo += dirContrib * (1.0 - shadow) * float(params.directionalLight.enabled);
+    Ld += dirContrib.diffuse * (1.0 - shadow) * float(params.directionalLight.enabled);
+    Ls += dirContrib.specular * (1.0 - shadow) * float(params.directionalLight.enabled);
     if (transmission > 0.0) {
         // Unshadowed: the surface would shadow its own back light. Objects
         // between the light and the surface do not block it.
-        Lo += evaluateTransmission(params.directionalLight, input.worldPosition, albedo, N,
+        Ld += evaluateTransmission(params.directionalLight, input.worldPosition, albedo, N,
                                    transmissionTint, transmission) *
               float(params.directionalLight.enabled);
     }
@@ -187,20 +190,23 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
             uint          li  = lightIndices[j];
             PointLightGPU gpu = lightBuffer[li];
             PointLight    pl;
-            pl.color            = gpu.color;
-            pl.position         = gpu.position;
-            pl.attenuationIndex = params.attenuationIndex;
-            Lo += evaluatePBR(pl, input.worldPosition, albedo, N, V,
-                              metallic, roughness,
-                              Nc, params.clearcoatFactor, coatRoughness, transmission);
+            pl.color             = gpu.color;
+            pl.position          = gpu.position;
+            pl.attenuationIndex  = params.attenuationIndex;
+            SurfaceLight contrib = evaluatePBR(pl, input.worldPosition, albedo, N, V,
+                                               metallic, roughness,
+                                               Nc, params.clearcoatFactor, coatRoughness, transmission);
+            Ld += contrib.diffuse;
+            Ls += contrib.specular;
             if (transmission > 0.0) {
-                Lo += evaluateTransmission(pl, input.worldPosition, albedo, N,
+                Ld += evaluateTransmission(pl, input.worldPosition, albedo, N,
                                            transmissionTint, transmission);
             }
         }
     }
 
-    float3 ambient = float3(params.ambientStrength) * albedo * ao;
+    float3 ambientDiffuse  = float3(params.ambientStrength) * albedo * ao;
+    float3 ambientSpecular = float3(0.0);
     if (params.probeEnabled) {
         // Split-sum image-based specular from the probe. Diffuse ambient
         // keeps the flat term, weighted for the light the surface reflects
@@ -213,8 +219,8 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
                                   params.probePosition, params.probeBoxMin,
                                   params.probeBoxMax);
         float3 probe = probeMap.SampleLevel(R, roughness * params.probeMaxMip).rgb;
-        ambient      = ambient * (1.0 - F) * (1.0 - metallic) +
-                       probe * (F0 * AB.x + AB.y) * aoTex;
+        ambientDiffuse *= (1.0 - F) * (1.0 - metallic);
+        ambientSpecular = probe * (F0 * AB.x + AB.y) * aoTex;
     }
     if (params.clearcoatFactor > 0.0) {
         // The coat takes its share of the ambient light off the base, and
@@ -222,17 +228,18 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position) : SV_Target {
         // is this reflection, since a point light only gives a small highlight.
         float NdotVc = max(dot(Nc, V), 1e-5);
         float Fc     = params.clearcoatFactor * fresnelSchlickRoughness(NdotVc, float3(0.04), coatRoughness).x;
-        ambient *= 1.0 - Fc;
+        ambientDiffuse *= 1.0 - Fc;
+        ambientSpecular *= 1.0 - Fc;
         if (params.probeEnabled) {
             float2 AB    = envBRDFApprox(NdotVc, coatRoughness);
             float3 Rc    = boxProject(reflect(-V, Nc), input.worldPosition,
                                       params.probePosition, params.probeBoxMin,
                                       params.probeBoxMax);
             float3 probe = probeMap.SampleLevel(Rc, coatRoughness * params.probeMaxMip).rgb;
-            ambient += probe * (0.04 * AB.x + AB.y) * params.clearcoatFactor * aoTex;
+            ambientSpecular += probe * (0.04 * AB.x + AB.y) * params.clearcoatFactor * aoTex;
         }
     }
-    float3 color = ambient + Lo + params.emissive + emissiveTexColor;
+    float3 color = (ambientDiffuse + Ld) + (ambientSpecular + Ls) + params.emissive + emissiveTexColor;
 
     // Linear HDR out. Tone mapping, gamma and dither happen once in
     // tonemap.slang, after bloom has extracted from this unbounded radiance.

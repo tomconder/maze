@@ -32,6 +32,7 @@ std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
 }  // namespace
 
 namespace assetconv::gltf {
+using sponge::scene::AlphaMode;
 using sponge::scene::ModelData;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
@@ -240,7 +241,10 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                 uvTransformOf(pbr.metallic_roughness_texture);
         }
         if (material.alpha_mode == cgltf_alpha_mode_mask) {
+            parsedMesh.alphaMode   = AlphaMode::Mask;
             parsedMesh.alphaCutoff = material.alpha_cutoff;
+        } else if (material.alpha_mode == cgltf_alpha_mode_blend) {
+            parsedMesh.alphaMode = AlphaMode::Blend;
         }
         if (material.has_clearcoat) {
             parsedMesh.clearcoatFactor = material.clearcoat.clearcoat_factor;

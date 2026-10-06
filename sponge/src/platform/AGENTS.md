@@ -127,7 +127,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   and multiplies the albedo in `pbr.slang`. With no albedo texture it is the
   albedo.
 * glTF `alphaMode` MASK is supported: the baked mesh entry carries
-  `alphaCutoff` (0 = OPAQUE), and a fragment whose albedo alpha
+  `alphaMode` and `alphaCutoff` (the cutoff is 0 unless the mode is Mask), and a fragment whose albedo alpha
   (`texture.a * baseColorFactor.a`) is below it is discarded. `pbr.slang`, the
   depth prepass and the shadow pass run the same test, so their depth agrees;
   a mismatch leaves holes or z-fighting in the scene pass. The prepass and
@@ -135,7 +135,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   a discard does not turn off early-Z for opaque meshes: `Model::render` draws
   `AlphaPass::Opaque` with one and `AlphaPass::Masked` with the other. The
   masked program reads the albedo on unit 0, and `Mesh::draw` sets its inputs.
-  BLEND loads as OPAQUE. `assetconv` scales each mip's alpha of a masked
+  BLEND is in the baked entry but draws as OPAQUE. `assetconv` scales each mip's alpha of a masked
   albedo so the share of texels passing the cutoff matches level 0; the
   cutoff is part of the baked pixels, so changing a material's cutoff needs a
   rebake.
