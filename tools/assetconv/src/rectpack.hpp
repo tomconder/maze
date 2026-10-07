@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rectpack2D/finders_interface.h>
+#include <finders_interface.h>
 
 #include <vector>
 
