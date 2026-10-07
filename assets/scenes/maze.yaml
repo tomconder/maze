@@ -12,7 +12,7 @@ camera:
 
 lighting:
   ambient:
-    strength: 0.25
+    strength: 0.5
     # 1 = no extra attenuation. SSAO supplies real per-pixel occlusion; this
     # is a flat multiplier on top of it.
     ambientOcclusion: 0.25
