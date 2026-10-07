@@ -108,6 +108,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(fkYAML CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_path(MINIAUDIO_INCLUDE_DIR miniaudio.h REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
@@ -126,13 +127,6 @@ endif ()
 add_library(sponge_options INTERFACE)
 add_library(sponge_warnings INTERFACE)
 add_library(sponge::options ALIAS sponge_options)
-
-# miniaudio, vendored: no warnings.
-add_library(sponge_miniaudio OBJECT deps/miniaudio/miniaudio.cpp)
-set_target_properties(sponge_miniaudio PROPERTIES CXX_STANDARD 23)
-target_link_libraries(sponge_miniaudio PRIVATE sponge_options)
-target_compile_options(sponge_miniaudio PRIVATE
-        $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 
 # Baked asset formats: readers for the engine, writers for assetconv. No
 # logging and no engine headers, so an engine edit does not relink assetconv
@@ -154,7 +148,6 @@ target_link_libraries(sponge_format PRIVATE fmt::fmt)
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 target_link_libraries(sponge PUBLIC sponge_format)
-target_link_libraries(sponge PRIVATE sponge_miniaudio)
 
 if (MSVC)
     # hardening
@@ -228,7 +221,7 @@ target_compile_definitions(sponge PUBLIC
 
 target_include_directories(sponge PUBLIC src)
 target_include_directories(sponge PUBLIC deps/glad2/include)
-target_include_directories(sponge PRIVATE deps/miniaudio)
+target_include_directories(sponge SYSTEM PRIVATE ${MINIAUDIO_INCLUDE_DIR})
 
 target_link_libraries(sponge PUBLIC glfw)
 target_link_libraries(sponge PUBLIC glm::glm-header-only)
