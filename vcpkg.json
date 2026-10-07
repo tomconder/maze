@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "4cb050be2cfa7a947cdd2dd1a70e24b17774c979",
+  "builtin-baseline": "2976266a3b2aa358e0eed9e89bde2e0cf59daf0a",
   "dependencies": [
     {
       "name": "cgltf",
@@ -32,7 +32,7 @@
     },
     {
       "name": "harfbuzz",
-      "version>=": "14.5.0",
+      "version>=": "14.5.1",
       "features": [
         "freetype"
       ]
@@ -47,11 +47,11 @@
     },
     {
       "name": "libjpeg-turbo",
-      "version>=": "3.2.0#1"
+      "version>=": "3.2.0"
     },
     {
       "name": "libspng",
-      "version>=": "0.7.4#1"
+      "version>=": "0.7.4"
     },
     {
       "name": "meshoptimizer",
@@ -59,7 +59,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2026.18.2"
+      "version>=": "2026.19"
     },
     {
       "name": "spdlog",
