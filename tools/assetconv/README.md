@@ -4,7 +4,7 @@ Build-time asset converter. It reads source models, images, fonts and shaders
 and writes the `.spnga` and `.ktx2` files the engine loads.
 
 The engine parses no third-party asset format at run time. Every importer
-lives here, along with cgltf, stb_image, bc7enc, xsimd,
+lives here, along with cgltf, libspng, libjpeg-turbo, bc7enc, rectpack2D, xsimd,
 meshoptimizer, FreeType, HarfBuzz and the Slang compiler;
 `Model::parse()` accepts `.spnga` and nothing else, `Texture` accepts `.ktx2`
 and nothing else, `BitmapFont` reads a baked `.ktx2` font, and `Shader` reads

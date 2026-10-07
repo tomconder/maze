@@ -7,7 +7,7 @@
 #include <vector>
 
 // glTF/GLB importer. Converter-only: the engine loads baked models, so
-// cgltf and stb_image never reach the runtime.
+// cgltf, libspng and libjpeg-turbo never reach the runtime.
 namespace assetconv::gltf {
 
 sponge::scene::ModelData parse(const std::string& path);

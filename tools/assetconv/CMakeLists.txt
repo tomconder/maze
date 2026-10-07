@@ -17,21 +17,20 @@ add_executable(assetconv ${SOURCE_FILES} ${HEADER_FILES})
 
 target_include_directories(assetconv PRIVATE src)
 
-# Every asset format lives here, not in the engine: cgltf for glTF,
-# stb_image to decode source images, bc7enc for BC7 blocks, rectpack2D for
-# the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
+# Every asset format lives here, not in the engine: cgltf for glTF, libspng
+# and libjpeg-turbo to decode source images, bc7enc for BC7 blocks, rectpack2D
+# for the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
 # rectpack2D @ 7dde22ed7a707b952b9f8fb263bf3c94f4cef898 (deps/rectpack2d, MIT)
-# cgltf and stb come from vcpkg.
+# cgltf comes from vcpkg.
 # Own target so they take the engine's options but not its warnings.
-find_package(Stb REQUIRED)
 find_path(CGLTF_INCLUDE_DIR cgltf.h REQUIRED)
 add_library(assetconv_deps OBJECT
         deps/bc7enc/bc7enc.cpp
         deps/headeronly.cpp)
 set_target_properties(assetconv_deps PROPERTIES CXX_STANDARD 23)
 target_include_directories(assetconv_deps PUBLIC
-        deps/bc7enc ${CGLTF_INCLUDE_DIR} ${Stb_INCLUDE_DIR})
+        deps/bc7enc ${CGLTF_INCLUDE_DIR})
 target_link_libraries(assetconv_deps PRIVATE sponge::options)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
@@ -43,6 +42,13 @@ target_include_directories(assetconv SYSTEM PRIVATE deps/rectpack2d)
 find_package(Freetype REQUIRED)
 find_package(harfbuzz CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE Freetype::Freetype harfbuzz::harfbuzz)
+
+# Source image decoders: PNG and JPEG.
+find_package(SPNG CONFIG REQUIRED)
+find_package(libjpeg-turbo CONFIG REQUIRED)
+target_link_libraries(assetconv PRIVATE
+        $<IF:$<TARGET_EXISTS:spng::spng>,spng::spng,spng::spng_static>
+        $<IF:$<TARGET_EXISTS:libjpeg-turbo::turbojpeg>,libjpeg-turbo::turbojpeg,libjpeg-turbo::turbojpeg-static>)
 
 # Mesh optimization is a bake step now, so meshoptimizer links here.
 find_package(meshoptimizer CONFIG REQUIRED)
