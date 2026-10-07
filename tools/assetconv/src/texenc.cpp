@@ -1,12 +1,13 @@
 #include "texenc.hpp"
 
+#include "imagedecode.hpp"
 #include "ktx2.hpp"
 #include "mipfilter.hpp"
 #include "modeldata.hpp"
+#include "readbytes.hpp"
 
 #include <fmt/base.h>
 #include <bc7enc.h>
-#include <stb_image.h>
 
 #include <algorithm>
 #include <array>
@@ -204,28 +205,12 @@ void initEncoder(const unsigned threads) {
 }
 
 sponge::scene::ParsedImage loadImage(const std::string& path) {
-    int   width   = 0;
-    int   height  = 0;
-    int   ignored = 0;
-    auto* pixels  = stbi_load(path.c_str(), &width, &height, &ignored,
-                              static_cast<int>(rgbaChannels));
-    if (pixels == nullptr) {
-        fmt::println(stderr, "assetconv: unable to load {}: {}", path,
-                     stbi_failure_reason());
+    const auto bytes = sponge::scene::readBytes(path);
+    if (bytes.empty()) {
+        fmt::println(stderr, "assetconv: unable to read {}", path);
         return {};
     }
-
-    sponge::scene::ParsedImage image{
-        .name          = path,
-        .width         = static_cast<uint32_t>(width),
-        .height        = static_cast<uint32_t>(height),
-        .bytesPerPixel = static_cast<uint32_t>(rgbaChannels),
-        .pixels = { pixels, pixels + (static_cast<size_t>(width) * height *
-                                      rgbaChannels) },
-        .ktx2   = {},
-    };
-    stbi_image_free(pixels);
-    return image;
+    return decodeImage(bytes, path).value_or(sponge::scene::ParsedImage{});
 }
 
 std::vector<uint8_t> encode(const sponge::scene::ParsedImage& image,

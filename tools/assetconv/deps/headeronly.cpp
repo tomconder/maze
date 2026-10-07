@@ -1,13 +1,3 @@
-// Implementations of the header-only libraries installed by vcpkg.
+// Implementation of the header-only library installed by vcpkg.
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
-
-#define STBI_NO_BMP
-#define STBI_NO_GIF
-#define STBI_NO_HDR
-#define STBI_NO_PIC
-#define STBI_NO_PNM
-#define STBI_NO_PSD
-#define STBI_NO_TGA
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>

@@ -1,5 +1,6 @@
 #include "gltfimport.hpp"
 
+#include "imagedecode.hpp"
 #include "modeldata.hpp"
 #include "readbytes.hpp"
 #include "tangents.hpp"
@@ -10,7 +11,6 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cgltf.h>
-#include <stb_image.h>
 
 #include <array>
 #include <cstddef>
@@ -24,16 +24,6 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-
-namespace {
-std::vector<uint8_t> copyPixels(const uint8_t* pixels, const int width,
-                                const int height, const int bytesPerPixel) {
-    const auto* begin = pixels;
-    const auto* end =
-        pixels + (static_cast<size_t>(width) * height * bytesPerPixel);
-    return { begin, end };
-}
-}  // namespace
 
 namespace assetconv::gltf {
 using sponge::scene::AlphaMode;
@@ -56,34 +46,6 @@ UVTransform uvTransformOf(const cgltf_texture_view& textureView) {
         .offset = glm::vec2(t.offset[0], t.offset[1]),
         .scale  = glm::vec2(t.scale[0], t.scale[1]),
     };
-}
-
-std::optional<ParsedImage> decodeImage(const uint8_t*     bytes,
-                                       const std::size_t  byteCount,
-                                       const std::string& name) {
-    const auto size = static_cast<int>(byteCount);
-
-    int   width         = 0;
-    int   height        = 0;
-    int   bytesPerPixel = 0;
-    auto* pixels =
-        stbi_load_from_memory(bytes, size, &width, &height, &bytesPerPixel, 0);
-    if (pixels == nullptr) {
-        fmt::println(stderr, "assetconv: unable to decode {}: {}", name,
-                     stbi_failure_reason());
-        return std::nullopt;
-    }
-
-    ParsedImage decoded{
-        .name          = name,
-        .width         = static_cast<uint32_t>(width),
-        .height        = static_cast<uint32_t>(height),
-        .bytesPerPixel = static_cast<uint32_t>(bytesPerPixel),
-        .pixels        = copyPixels(pixels, width, height, bytesPerPixel),
-        .ktx2          = {},
-    };
-    stbi_image_free(pixels);
-    return decoded;
 }
 
 bool isDataUri(const char* uri) {
@@ -163,7 +125,7 @@ std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
         if (byteCount == 0) {
             fmt::println(stderr, "assetconv: {}: unable to read image {}", path,
                          name);
-        } else if (auto decoded = decodeImage(bytes, byteCount, name)) {
+        } else if (auto decoded = decodeImage({ bytes, byteCount }, name)) {
             entry->second = static_cast<uint32_t>(data.images.size());
             data.images.push_back(std::move(*decoded));
         }
