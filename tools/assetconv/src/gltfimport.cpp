@@ -2,6 +2,7 @@
 
 #include "imagedecode.hpp"
 #include "modeldata.hpp"
+#include "parallel.hpp"
 #include "readbytes.hpp"
 #include "tangents.hpp"
 #include "vertex.hpp"
@@ -84,13 +85,31 @@ std::vector<uint8_t> readImageUri(const char* uri, const std::string& path) {
         (std::filesystem::path(path).parent_path() / decoded).string());
 }
 
-// Index into ModelData::images by image name, so an image shared by several
-// materials decodes once. Empty when the decode failed.
-using ImageIndex = std::map<std::string, std::optional<uint32_t>>;
+// An image found while parsing. Decoding waits until every mesh is parsed so
+// the images can decode side by side.
+struct PendingImage {
+    std::string name;
+    // The bytes of an image file, or empty when the image sits in a glTF
+    // buffer.
+    std::vector<uint8_t>     file;
+    std::span<const uint8_t> embedded;
+
+    std::span<const uint8_t> bytes() const {
+        return file.empty() ? embedded : std::span<const uint8_t>(file);
+    }
+};
+
+// Images by name, so an image shared by several materials decodes once. Each
+// entry holds the place of the image in ModelData::images, and the pending
+// images are in that order.
+struct ImageIndex {
+    std::map<std::string, std::optional<uint32_t>> byName;
+    std::vector<PendingImage>                      pending;
+};
 
 std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
-                                      const std::string& path, ModelData& data,
-                                      ImageIndex& imageIndex) {
+                                      const std::string&        path,
+                                      ImageIndex&               imageIndex) {
     const auto* texture = textureView.texture;
     if (texture == nullptr || texture->image == nullptr) {
         return std::nullopt;
@@ -109,34 +128,68 @@ std::optional<uint32_t> decodeTexture(const cgltf_texture_view& textureView,
                               std::to_string(image->buffer_view->size) :
                           path + "#" + image->uri;
 
-    auto [entry, inserted] = imageIndex.try_emplace(name);
+    auto [entry, inserted] = imageIndex.byName.try_emplace(name);
     if (inserted) {
-        std::vector<uint8_t> external;
-        const uint8_t*       bytes     = nullptr;
-        std::size_t          byteCount = 0;
+        PendingImage pending;
+        pending.name = name;
         if (image->buffer_view != nullptr) {
-            bytes     = cgltf_buffer_view_data(image->buffer_view);
-            byteCount = image->buffer_view->size;
+            pending.embedded = { cgltf_buffer_view_data(image->buffer_view),
+                                 image->buffer_view->size };
         } else {
-            external  = readImageUri(image->uri, path);
-            bytes     = external.data();
-            byteCount = external.size();
+            pending.file = readImageUri(image->uri, path);
         }
-        if (byteCount == 0) {
+        if (pending.bytes().empty()) {
             fmt::println(stderr, "assetconv: {}: unable to read image {}", path,
                          name);
-        } else if (auto decoded = decodeImage({ bytes, byteCount }, name)) {
-            entry->second = static_cast<uint32_t>(data.images.size());
-            data.images.push_back(std::move(*decoded));
+        } else {
+            entry->second = static_cast<uint32_t>(imageIndex.pending.size());
+            imageIndex.pending.push_back(std::move(pending));
         }
     }
     return entry->second;
 }
 
+// Decodes the pending images on several threads and puts them in
+// data.images. An image that fails to decode is dropped, as it was when
+// images decoded one at a time, and the meshes that used it lose that
+// texture.
+void decodePending(ModelData& data, const std::vector<PendingImage>& pending) {
+    std::vector<std::optional<ParsedImage>> decoded(pending.size());
+    parallelFor(pending.size(), [&](const size_t i) {
+        decoded[i] = decodeImage(pending[i].bytes(), pending[i].name);
+    });
+
+    constexpr uint32_t    dropped = UINT32_MAX;
+    std::vector<uint32_t> placed(pending.size(), dropped);
+    bool                  anyDropped = false;
+    for (size_t i = 0; i < decoded.size(); i++) {
+        if (decoded[i]) {
+            placed[i] = static_cast<uint32_t>(data.images.size());
+            data.images.push_back(std::move(*decoded[i]));
+        } else {
+            anyDropped = true;
+        }
+    }
+    if (!anyDropped) {
+        return;
+    }
+
+    for (auto& mesh : data.meshes) {
+        for (auto* slot :
+             { &mesh.albedo, &mesh.normal, &mesh.occlusion, &mesh.emissive,
+               &mesh.metallicRoughness, &mesh.diffuseTransmissionMap }) {
+            if (*slot) {
+                const auto at = placed[**slot];
+                *slot =
+                    at == dropped ? std::nullopt : std::optional<uint32_t>(at);
+            }
+        }
+    }
+}
+
 std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                                          const glm::mat4&       transform,
                                          const std::string&     path,
-                                         ModelData&             data,
                                          ImageIndex&            imageIndex) {
     if (primitive.type != cgltf_primitive_type_triangles) {
         return std::nullopt;
@@ -245,9 +298,9 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
         if (material.has_pbr_metallic_roughness) {
             const auto& pbr = material.pbr_metallic_roughness;
             parsedMesh.albedo =
-                decodeTexture(pbr.base_color_texture, path, data, imageIndex);
-            parsedMesh.metallicRoughness = decodeTexture(
-                pbr.metallic_roughness_texture, path, data, imageIndex);
+                decodeTexture(pbr.base_color_texture, path, imageIndex);
+            parsedMesh.metallicRoughness =
+                decodeTexture(pbr.metallic_roughness_texture, path, imageIndex);
             parsedMesh.baseColorFactor = glm::make_vec4(pbr.base_color_factor);
             parsedMesh.metallicFactor  = pbr.metallic_factor;
             parsedMesh.roughnessFactor = pbr.roughness_factor;
@@ -277,16 +330,16 @@ std::optional<ParsedMesh> parsePrimitive(const cgltf_primitive& primitive,
                           dt.diffuse_transmission_color_factor[2],
                           dt.diffuse_transmission_factor);
             parsedMesh.diffuseTransmissionMap = decodeTexture(
-                dt.diffuse_transmission_texture, path, data, imageIndex);
+                dt.diffuse_transmission_texture, path, imageIndex);
             parsedMesh.uvTransforms.diffuseTransmission =
                 uvTransformOf(dt.diffuse_transmission_texture);
         }
         parsedMesh.normal =
-            decodeTexture(material.normal_texture, path, data, imageIndex);
+            decodeTexture(material.normal_texture, path, imageIndex);
         parsedMesh.occlusion =
-            decodeTexture(material.occlusion_texture, path, data, imageIndex);
+            decodeTexture(material.occlusion_texture, path, imageIndex);
         parsedMesh.emissive =
-            decodeTexture(material.emissive_texture, path, data, imageIndex);
+            decodeTexture(material.emissive_texture, path, imageIndex);
         parsedMesh.uvTransforms.normal = uvTransformOf(material.normal_texture);
         parsedMesh.uvTransforms.occlusion =
             uvTransformOf(material.occlusion_texture);
@@ -334,7 +387,7 @@ sponge::scene::ModelData parse(const std::string& path) {
 
         for (size_t p = 0; p < node.mesh->primitives_count; p++) {
             auto parsedMesh = parsePrimitive(node.mesh->primitives[p],
-                                             transform, path, data, imageIndex);
+                                             transform, path, imageIndex);
             if (!parsedMesh) {
                 continue;
             }
@@ -342,6 +395,8 @@ sponge::scene::ModelData parse(const std::string& path) {
         }
     }
 
+    // The pending images point into the glTF buffers.
+    decodePending(data, imageIndex.pending);
     cgltf_free(gltfData);
 
     return data;

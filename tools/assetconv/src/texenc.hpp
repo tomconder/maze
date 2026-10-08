@@ -20,7 +20,8 @@ enum class TextureKind : uint8_t {
 };
 
 // Must run once before any encode. threads is the number of threads each
-// image is split across; 0 means one per hardware thread.
+// image is split across, and the number glTF image decoding and mip filtering
+// use; 0 means one per hardware thread.
 void initEncoder(unsigned threads);
 
 // Decodes an image file to RGBA8. Returns an image with zero width on
