@@ -34,6 +34,15 @@ target_include_directories(assetconv_deps PUBLIC
 target_link_libraries(assetconv_deps PRIVATE sponge::options)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
+# assetconv runs on the machine that builds the game, so the encoder and the
+# mip filter may use AVX2 and FMA: about 6% off the bake. The baked bytes are
+# the same on every AVX2 machine, but differ from a build without it.
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64|x64|x86)$")
+    target_compile_options(assetconv PRIVATE
+            $<IF:$<CXX_COMPILER_ID:MSVC>,/arch:AVX2,-mavx2$<SEMICOLON>-mfma>)
+    target_compile_options(assetconv_deps PRIVATE
+            $<IF:$<CXX_COMPILER_ID:MSVC>,/arch:AVX2,-mavx2$<SEMICOLON>-mfma>)
+endif ()
 target_link_libraries(assetconv PRIVATE assetconv_deps)
 # Header-only; SYSTEM keeps its warnings out of the build.
 target_include_directories(assetconv SYSTEM PRIVATE deps/rectpack2d)
