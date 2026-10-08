@@ -119,8 +119,17 @@ jobs:
               with:
                   packages: autoconf autoconf-archive automake libtool libasound2-dev libgl1-mesa-dev libltdl-dev
                       libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev
-                      libxrandr-dev mono-complete
+                      libxrandr-dev
                   version: 1.0
+
+            # Not in the cached list above: the action restores only the three
+            # files it records for the mono-complete metapackage, so cert-sync
+            # from its dependencies is missing on every run after the first.
+            - name: Install mono
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y mono-complete
 
             - name: Sync mono certificate store
               if: runner.os == 'Linux'
