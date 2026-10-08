@@ -1,5 +1,7 @@
 #include "mipfilter.hpp"
 
+#include "parallel.hpp"
+
 #include <xsimd/xsimd.hpp>
 
 #include <algorithm>
@@ -263,18 +265,16 @@ bool hasTransparency(const std::span<const uint8_t> pixels) {
     return false;
 }
 
+// Output rows [yBegin, yEnd) of a halved image. Source rows are filtered
+// across once, in order, and kept in a ring just big enough for the widest
+// vertical window. Whole-image intermediates would cost hundreds of MB on a 4K
+// texture.
 template <size_t Floats>
-std::vector<uint8_t> halve(const std::span<const uint8_t> pixels,
-                           const uint32_t width, const uint32_t height,
-                           const assetconv::MipSpace space) {
-    const auto dstWidth  = std::max(width / 2, 1U);
-    const auto dstHeight = std::max(height / 2, 1U);
-    const auto columns   = makeTaps(width, dstWidth);
-    const auto rows      = makeTaps(height, dstHeight);
-
-    // Source rows are filtered across once, in order, and kept in a ring just
-    // big enough for the widest vertical window. Whole-image intermediates
-    // would cost hundreds of MB on a 4K texture.
+void halveBand(const std::span<const uint8_t> pixels, const uint32_t width,
+               const assetconv::MipSpace space,
+               const std::vector<Taps>& columns, const std::vector<Taps>& rows,
+               const size_t dstWidth, const size_t yBegin, const size_t yEnd,
+               std::vector<uint8_t>& out) {
     size_t window = 0;
     for (const auto& row : rows) {
         window = std::max(window, row.weights.size());
@@ -299,11 +299,8 @@ std::vector<uint8_t> halve(const std::span<const uint8_t> pixels,
     std::vector<const float*> source(window);
     std::vector<Lane>         weight(window);
 
-    std::vector<uint8_t> out(static_cast<size_t>(dstWidth) * dstHeight *
-                             channels);
-
-    size_t filtered = 0;
-    for (size_t y = 0; y < dstHeight; y++) {
+    size_t filtered = rows[yBegin].first;
+    for (size_t y = yBegin; y < yEnd; y++) {
         const auto& tap = rows[y];
 
         for (; filtered < tap.first + tap.weights.size(); filtered++) {
@@ -329,6 +326,33 @@ std::vector<uint8_t> halve(const std::span<const uint8_t> pixels,
         encodeRow<Floats>(line.data(), dstWidth, space,
                           &out[y * dstWidth * channels]);
     }
+}
+
+template <size_t Floats>
+std::vector<uint8_t> halve(const std::span<const uint8_t> pixels,
+                           const uint32_t width, const uint32_t height,
+                           const assetconv::MipSpace space) {
+    const auto dstWidth  = std::max(width / 2, 1U);
+    const auto dstHeight = std::max(height / 2, 1U);
+    const auto columns   = makeTaps(width, dstWidth);
+    const auto rows      = makeTaps(height, dstHeight);
+
+    // Rows below this many per band are not worth a thread.
+    constexpr size_t minBandRows = 64;
+    const auto       bands       = std::max<size_t>(dstHeight / minBandRows, 1);
+
+    std::vector<uint8_t> out(static_cast<size_t>(dstWidth) * dstHeight *
+                             channels);
+
+    // Output rows are independent, so each band of them is filtered on its
+    // own thread. A band starts by filtering the few source rows that its
+    // first window needs, which its neighbour also filters; the bytes are the
+    // same as one pass over the whole image.
+    assetconv::parallelFor(bands, [&](const size_t band) {
+        halveBand<Floats>(pixels, width, space, columns, rows, dstWidth,
+                          dstHeight * band / bands,
+                          dstHeight * (band + 1) / bands, out);
+    });
     return out;
 }
 

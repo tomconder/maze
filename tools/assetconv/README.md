@@ -18,9 +18,10 @@ assetconv [--threads <n>] --manifest <manifest.yaml> <output dir> [--no-line-dir
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
 
-`--threads` sets how many threads each image's BC7 blocks are split across,
-and how many Slang sessions compile the shader pack, up to 3. The default is
-one per hardware thread. The output bytes do not depend on it.
+`--threads` sets how many threads each image's BC7 blocks and mip levels are
+split across, how many of a glTF file's images decode at once, and how many
+Slang sessions compile the shader pack, up to 3. The default is one per
+hardware thread. The output bytes do not depend on it.
 
 `--manifest` bakes every asset the manifest lists: models, textures, fonts,
 atlases and the shader pack. Sources are relative to the manifest's folder, outputs to

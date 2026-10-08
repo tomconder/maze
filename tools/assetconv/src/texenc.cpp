@@ -4,6 +4,7 @@
 #include "ktx2.hpp"
 #include "mipfilter.hpp"
 #include "modeldata.hpp"
+#include "parallel.hpp"
 #include "readbytes.hpp"
 
 #include <fmt/base.h>
@@ -205,6 +206,7 @@ void initEncoder(const unsigned threads) {
     encodeThreads = threads != 0 ?
                         threads :
                         std::max(std::thread::hardware_concurrency(), 1U);
+    setThreadCount(encodeThreads);
 }
 
 sponge::scene::ParsedImage loadImage(const std::string& path) {
