@@ -19,6 +19,7 @@ add_custom_target(
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
+        USES_TERMINAL
         VERBATIM
         COMMAND_EXPAND_LISTS)
 
