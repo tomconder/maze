@@ -113,23 +113,16 @@ jobs:
                   echo "id=$id" >> $GITHUB_OUTPUT
                   echo "VCPKG_GIT_COMMIT_ID=$id" >> $GITHUB_ENV
 
+            # Plain apt, not a cache action: cache-apt-pkgs-action pins exact
+            # versions, ignores an install that fails on a mirror 404, and saves
+            # the empty result as the cache for every later run.
             - name: Install linux packages
-              if: runner.os == 'Linux'
-              uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
-              with:
-                  packages: autoconf autoconf-archive automake libtool libasound2-dev libgl1-mesa-dev libltdl-dev
-                      libx11-dev libxcursor-dev libxext-dev libxfixes-dev libxft-dev libxi-dev libxinerama-dev
-                      libxrandr-dev
-                  version: 1.0
-
-            # Not in the cached list above: the action restores only the three
-            # files it records for the mono-complete metapackage, so cert-sync
-            # from its dependencies is missing on every run after the first.
-            - name: Install mono
               if: runner.os == 'Linux'
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y mono-complete
+                  sudo apt-get install -y autoconf autoconf-archive automake libtool libasound2-dev \
+                      libgl1-mesa-dev libltdl-dev libx11-dev libxcursor-dev libxext-dev libxfixes-dev \
+                      libxft-dev libxi-dev libxinerama-dev libxrandr-dev mono-complete
 
             - name: Sync mono certificate store
               if: runner.os == 'Linux'
