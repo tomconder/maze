@@ -143,6 +143,9 @@ std::vector<uint8_t> compress(const Surface&               surface,
     // Colorspace error in RGB, not YCbCr: the engine samples these as data
     // (roughness, occlusion) as often as as colour.
     bc7enc_compress_block_params_init_linear_weights(&params);
+    // The default 64 partitions for mode 1 costs about 1.6x the time of 16 for
+    // 0.05 dB of PSNR on the Sponza and helmet textures.
+    params.m_max_partitions = 16;
 
     const auto encodeRows = [&](const uint32_t first, const uint32_t last) {
         for (uint32_t by = first; by < last; by++) {
