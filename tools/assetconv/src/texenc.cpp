@@ -28,8 +28,6 @@ constexpr size_t   bc7BlockBytes = 16;
 constexpr size_t   bc4BlockBytes = 8;
 constexpr size_t   rgbaChannels  = 4;
 
-unsigned encodeThreads = 1;
-
 // One level of an RGBA8 image.
 struct Surface {
     uint32_t             width{ 0 };
@@ -46,16 +44,22 @@ Surface toRgba(const sponge::scene::ParsedImage& image) {
                          std::vector<uint8_t>(static_cast<size_t>(image.width) *
                                               image.height * rgbaChannels) };
 
-    const auto channels = image.bytesPerPixel;
-    for (size_t i = 0; i < static_cast<size_t>(image.width) * image.height;
-         i++) {
-        const auto* src = &image.pixels[i * channels];
-        auto*       dst = &surface.pixels[i * rgbaChannels];
-        dst[0]          = src[0];
-        dst[1]          = channels > 1 ? src[1] : src[0];
-        dst[2]          = channels > 2 ? src[2] : src[0];
-        dst[3]          = channels > 3 ? src[3] : 255;
-    }
+    // Texels are independent, so bands of rows convert on separate threads.
+    constexpr size_t minBandRows = 64;
+    const auto       texels   = static_cast<size_t>(image.width) * image.height;
+    const auto       bands    = std::max<size_t>(image.height / minBandRows, 1);
+    const auto       channels = image.bytesPerPixel;
+    assetconv::parallelFor(bands, [&](const size_t band) {
+        for (auto i = texels * band / bands; i < texels * (band + 1) / bands;
+             i++) {
+            const auto* src = &image.pixels[i * channels];
+            auto*       dst = &surface.pixels[i * rgbaChannels];
+            dst[0]          = src[0];
+            dst[1]          = channels > 1 ? src[1] : src[0];
+            dst[2]          = channels > 2 ? src[2] : src[0];
+            dst[3]          = channels > 3 ? src[3] : 255;
+        }
+    });
     return surface;
 }
 
@@ -148,32 +152,24 @@ std::vector<uint8_t> compress(const Surface&               surface,
     // 0.05 dB of PSNR on the Sponza and helmet textures.
     params.m_max_partitions = 16;
 
-    const auto encodeRows = [&](const uint32_t first, const uint32_t last) {
-        for (uint32_t by = first; by < last; by++) {
-            for (uint32_t bx = 0; bx < blocksX; bx++) {
-                const auto block =
-                    readBlock(surface, bx * blockSize, by * blockSize);
-                auto* dst = &out[((static_cast<size_t>(by) * blocksX) + bx) *
-                                 bytesPerBlock];
-                if (normal) {
-                    encodeBc4(block, 0, dst);
-                    encodeBc4(block, 1, dst + bc4BlockBytes);
-                } else {
-                    bc7enc_compress_block(dst, block.data(), &params);
-                }
+    const auto encodeRow = [&](const size_t by) {
+        for (uint32_t bx = 0; bx < blocksX; bx++) {
+            const auto block = readBlock(surface, bx * blockSize,
+                                         static_cast<uint32_t>(by) * blockSize);
+            auto*      dst   = &out[((by * blocksX) + bx) * bytesPerBlock];
+            if (normal) {
+                encodeBc4(block, 0, dst);
+                encodeBc4(block, 1, dst + bc4BlockBytes);
+            } else {
+                bc7enc_compress_block(dst, block.data(), &params);
             }
         }
     };
 
-    // Blocks are independent and bc7enc only reads its tables after init,
-    // so rows split across threads with the same bytes as a serial run.
-    const auto rowsPerThread = (blocksY + encodeThreads - 1) / encodeThreads;
-    std::vector<std::jthread> workers;
-    for (uint32_t first = 0; first < blocksY; first += rowsPerThread) {
-        workers.emplace_back(encodeRows, first,
-                             std::min(first + rowsPerThread, blocksY));
-    }
-    workers.clear();  // joins
+    // Blocks are independent and bc7enc only reads its tables after init, so
+    // threads take rows one at a time and give the same bytes as a serial
+    // run. A fixed split left threads idle on rows that encode fast.
+    assetconv::parallelFor(blocksY, encodeRow);
 
     return out;
 }
@@ -203,10 +199,9 @@ namespace assetconv {
 
 void initEncoder(const unsigned threads) {
     bc7enc_compress_block_init();
-    encodeThreads = threads != 0 ?
-                        threads :
-                        std::max(std::thread::hardware_concurrency(), 1U);
-    setThreadCount(encodeThreads);
+    setThreadCount(threads != 0 ?
+                       threads :
+                       std::max(std::thread::hardware_concurrency(), 1U));
 }
 
 sponge::scene::ParsedImage loadImage(const std::string& path) {
