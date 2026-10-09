@@ -36,9 +36,13 @@ float3 viewPositionFromDepth(float2 uv, float depth) {
     return view.xyz / view.w;
 }
 
-// Level 0 explicitly: the march loop has no usable derivatives.
+// View-space z only. A perspective projection leaves no x or y terms in the
+// z and w rows of its inverse, so the z row of the unprojection needs just the
+// depth. Level 0 explicitly: the march loop has no usable derivatives.
 float sceneViewZ(float2 uv) {
-    return viewPositionFromDepth(uv, depthTex.SampleLevel(uv, 0.0)).z;
+    float clipZ = depthTex.SampleLevel(uv, 0.0) * 2.0 - 1.0;
+    return (invProjection[2][2] * clipZ + invProjection[2][3]) /
+           (invProjection[3][2] * clipZ + invProjection[3][3]);
 }
 
 bool onScreen(float2 uv) {
