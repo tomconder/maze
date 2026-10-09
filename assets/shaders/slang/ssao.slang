@@ -52,6 +52,15 @@ float3 viewPositionFromDepth(float2 uv, float depth) {
     return view.xyz / view.w;
 }
 
+// View-space z only, for the kernel samples, which use nothing else. A
+// perspective projection leaves no x or y terms in the z and w rows of its
+// inverse, so z follows from the depth alone.
+float viewZFromDepth(float depth) {
+    float clipZ = depth * 2.0 - 1.0;
+    return (invProjection[2][2] * clipZ + invProjection[2][3]) /
+           (invProjection[3][2] * clipZ + invProjection[3][3]);
+}
+
 // clang-format off
 [shader("fragment")]
 float fragMain(FSInput input) : SV_Target {
@@ -76,11 +85,11 @@ float fragMain(FSInput input) : SV_Target {
         float4 sampleClip = mul(projection, float4(samplePos, 1.0));
         float2 sampleUV   = (sampleClip.xy / sampleClip.w) * 0.5 + 0.5;
 
-        float  sampleDepth = depthTex.Sample(sampleUV).r;
-        float3 sampledPos  = viewPositionFromDepth(sampleUV, sampleDepth);
+        float sampleDepth = depthTex.Sample(sampleUV).r;
+        float sampledZ    = viewZFromDepth(sampleDepth);
 
-        float isValid = abs(position.z - sampledPos.z) < radius ? 1.0 : 0.0;
-        occlusion += (sampledPos.z >= samplePos.z + bias) ? isValid : 0.0;
+        float isValid = abs(position.z - sampledZ) < radius ? 1.0 : 0.0;
+        occlusion += (sampledZ >= samplePos.z + bias) ? isValid : 0.0;
     }
 
     return 1.0 - occlusion / 16.0;
