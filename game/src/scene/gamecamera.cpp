@@ -3,7 +3,6 @@
 #include "logging/log.hpp"
 
 #include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
 #include <cstdint>
@@ -13,7 +12,7 @@ GameCamera::GameCamera(
     [[maybe_unused]] const GameCameraCreateInfo& createInfo) {
     SPONGE_INFO("Creating game camera: {}", createInfo.name);
 
-    setOrientation(yaw, pitch);
+    setOrientation(0.F, 0.F);
 }
 
 void GameCamera::updateProjection() {
@@ -23,7 +22,18 @@ void GameCamera::updateProjection() {
 }
 
 void GameCamera::updateView() {
-    view = lookAt(cameraPos, cameraPos + cameraFront, up);
+    // The orientation's own axes are the camera basis (+X front, +Y up, +Z
+    // right), so the view needs no lookAt. lookAt takes a cross product with
+    // the world up axis, which loses precision as the front nears a pole.
+    const glm::mat3 basis = glm::mat3_cast(orientation);
+    const glm::vec3 right = basis[2];
+    const glm::vec3 local = basis[1];
+    view = glm::mat4(glm::vec4(right.x, local.x, -cameraFront.x, 0.F),
+                     glm::vec4(right.y, local.y, -cameraFront.y, 0.F),
+                     glm::vec4(right.z, local.z, -cameraFront.z, 0.F),
+                     glm::vec4(-glm::dot(right, cameraPos),
+                               -glm::dot(local, cameraPos),
+                               glm::dot(cameraFront, cameraPos), 1.F));
     mvp  = projection * view;
 }
 
@@ -41,16 +51,11 @@ void GameCamera::setPosition(const glm::vec3& position) {
 
 void GameCamera::setOrientation(const float yawDegrees,
                                 const float pitchDegrees) {
-    yaw   = glm::mod(yawDegrees, 360.F);
-    pitch = glm::clamp(pitchDegrees, -89.F, 89.F);
+    const auto pitch = glm::clamp(pitchDegrees, -maxPitch, maxPitch);
 
-    const auto radYaw   = glm::radians(yaw);
-    const auto radPitch = glm::radians(pitch);
-    cameraFront = normalize(glm::vec3{ glm::cos(radYaw) * glm::cos(radPitch),
-                                       glm::sin(radPitch),
-                                       glm::sin(radYaw) * glm::cos(radPitch) });
-
-    updateView();
+    orientation = glm::angleAxis(glm::radians(yawDegrees), -up) *
+                  glm::angleAxis(glm::radians(pitch), pitchAxis);
+    applyOrientation();
 }
 
 void GameCamera::moveBackward(const double_t delta) {
@@ -81,7 +86,23 @@ void GameCamera::strafeRight(const double_t delta) {
 }
 
 void GameCamera::mouseMove(const glm::vec2& offset) {
-    setOrientation(yaw + offset.x, pitch + offset.y);
+    // Yaw about the world up axis, pitch about the camera's own right axis,
+    // with the pitch held inside the pole limit.
+    const auto currentPitch = glm::degrees(glm::atan(
+        cameraFront.y, glm::length(glm::vec2(cameraFront.x, cameraFront.z))));
+    const auto pitch =
+        glm::clamp(currentPitch + offset.y, -maxPitch, maxPitch) - currentPitch;
+
+    orientation = glm::angleAxis(glm::radians(offset.x), -up) * orientation *
+                  glm::angleAxis(glm::radians(pitch), pitchAxis);
+    applyOrientation();
+}
+
+void GameCamera::applyOrientation() {
+    // Renormalize so repeated deltas do not drift off a unit quaternion.
+    orientation = glm::normalize(orientation);
+    cameraFront = orientation * identityFront;
+    updateView();
 }
 
 void GameCamera::mouseScroll(const glm::vec2& offset) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <cstdint>
 
@@ -70,18 +71,22 @@ private:
 
     void updateView();
 
+    void applyOrientation();
+
     float fov = 60.F;
 
     static constexpr float zNear = 0.1F;
     static constexpr float zFar  = 100.F;
 
-    float pitch = 0.F;
-    float yaw   = 0.F;
+    // Identity looks down +X. Yaw turns about -Y and pitch about the local
+    // +Z (the right axis), so yaw 0 and pitch 0 match the old Euler angles.
+    glm::quat orientation = glm::quat(1.F, 0.F, 0.F, 0.F);
 
     float width  = 0.F;
     float height = 0.F;
 
     static constexpr float cameraSpeed = 100.F;
+    static constexpr float maxPitch    = 89.F;
 
     glm::mat4 projection = glm::mat4(1.F);
     glm::mat4 view       = glm::mat4(1.F);
@@ -90,8 +95,10 @@ private:
     // mvp = model * view * projection
     glm::mat4 mvp = glm::mat4(1.F);
 
-    glm::vec3                  cameraPos   = { 0.F, 0.F, 1.F };
-    static constexpr glm::vec3 up          = { 0.F, 1.F, 0.F };
-    glm::vec3                  cameraFront = { 0.F, 0.F, -1.F };
+    glm::vec3                  cameraPos     = { 0.F, 0.F, 1.F };
+    static constexpr glm::vec3 up            = { 0.F, 1.F, 0.F };
+    static constexpr glm::vec3 identityFront = { 1.F, 0.F, 0.F };
+    static constexpr glm::vec3 pitchAxis     = { 0.F, 0.F, 1.F };
+    glm::vec3                  cameraFront   = identityFront;
 };
 }  // namespace game::scene
