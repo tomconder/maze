@@ -32,6 +32,25 @@ ClusteredLights::ClusteredLights(const float near, const float far) :
 void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
     const glm::mat4 invProj = glm::inverse(projection);
 
+    // Unit view-space direction through each tile corner. The (tilesX + 1) x
+    // (tilesY + 1) grid is the same for every z-slice and shared by
+    // neighbouring tiles, so unproject it once.
+    constexpr int          cornersX = tilesX + 1;
+    constexpr int          cornersY = tilesY + 1;
+    std::vector<glm::vec3> cornerDirs(static_cast<std::size_t>(cornersX) *
+                                      cornersY);
+    for (int y = 0; y < cornersY; ++y) {
+        for (int x = 0; x < cornersX; ++x) {
+            const glm::vec4 ndc{ 2.F * static_cast<float>(x) / tilesX - 1.F,
+                                 2.F * static_cast<float>(y) / tilesY - 1.F,
+                                 -1.F, 1.F };
+            auto            v = invProj * ndc;
+            v /= v.w;
+            cornerDirs[static_cast<std::size_t>(x + y * cornersX)] =
+                glm::normalize(glm::vec3(v));
+        }
+    }
+
     for (int z = 0; z < tilesZ; ++z) {
         // Z subdivision: sliceNear_k = clusterNear * pow(far/clusterNear,
         // k/tilesZ). Must match clusterIndex() in clustered.slang. Slice 0
@@ -47,28 +66,14 @@ void ClusteredLights::buildClusterAABBs(const glm::mat4& projection) {
 
         for (int y = 0; y < tilesY; ++y) {
             for (int x = 0; x < tilesX; ++x) {
-                const float ndcXMin =
-                    2.F * static_cast<float>(x) / tilesX - 1.F;
-                const float ndcXMax =
-                    2.F * static_cast<float>(x + 1) / tilesX - 1.F;
-                const float ndcYMin =
-                    2.F * static_cast<float>(y) / tilesY - 1.F;
-                const float ndcYMax =
-                    2.F * static_cast<float>(y + 1) / tilesY - 1.F;
-
-                // Unproject screen corners to unit view-space direction
-                // vectors.
-                auto unprojectCorner = [&](float nx, float ny) -> glm::vec3 {
-                    const glm::vec4 ndc{ nx, ny, -1.F, 1.F };
-                    auto            v = invProj * ndc;
-                    v /= v.w;
-                    return glm::normalize(glm::vec3(v));
+                const auto corner = [&](const int cx, const int cy) {
+                    return cornerDirs[static_cast<std::size_t>(cx +
+                                                               cy * cornersX)];
                 };
-
-                const glm::vec3 dir00 = unprojectCorner(ndcXMin, ndcYMin);
-                const glm::vec3 dir10 = unprojectCorner(ndcXMax, ndcYMin);
-                const glm::vec3 dir01 = unprojectCorner(ndcXMin, ndcYMax);
-                const glm::vec3 dir11 = unprojectCorner(ndcXMax, ndcYMax);
+                const glm::vec3 dir00 = corner(x, y);
+                const glm::vec3 dir10 = corner(x + 1, y);
+                const glm::vec3 dir01 = corner(x, y + 1);
+                const glm::vec3 dir11 = corner(x + 1, y + 1);
 
                 // Scale each corner direction to the near and far depth planes.
                 auto scaleToDepth = [](const glm::vec3& dir,
