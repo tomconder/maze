@@ -122,11 +122,21 @@ jobs:
                   sudo apt-get update
                   sudo apt-get install -y autoconf autoconf-archive automake libtool libasound2-dev \
                       libgl1-mesa-dev libltdl-dev libx11-dev libxcursor-dev libxext-dev libxfixes-dev \
-                      libxft-dev libxi-dev libxinerama-dev libxrandr-dev mono-complete
+                      libxft-dev libxi-dev libxinerama-dev libxrandr-dev
 
-            - name: Sync mono certificate store
+            # Linux uses a file binary cache instead of NuGet, so it needs no mono.
+            - name: Use file binary cache
               if: runner.os == 'Linux'
-              run: cert-sync --user /etc/ssl/certs/ca-certificates.crt
+              run: |
+                  echo "VCPKG_BINARY_SOURCES=clear;files,${RUNNER_TEMP}/vcpkg-bincache,readwrite" >> $GITHUB_ENV
+
+            - name: Cache vcpkg binaries
+              if: runner.os == 'Linux'
+              uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: ${{runner.temp}}/vcpkg-bincache
+                  key: vcpkg-bin-linux-${{hashFiles('vcpkg.json', 'CMakePresets.json')}}
+                  restore-keys: vcpkg-bin-linux-
 
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
@@ -158,11 +168,10 @@ jobs:
                   restore-keys: vcpkg-downloads-windows-
 
             - name: Setup vcpkg NuGet credentials
+              if: runner.os == 'Windows'
               shell: bash
               run: |
-                  [[ "$RUNNER_OS" != "Windows" ]] && unset VCPKG_FORCE_SYSTEM_BINARIES
                   NUGET=$(vcpkg fetch nuget | tail -n 1)
-                  [[ "$NUGET" == *.exe && "$RUNNER_OS" != "Windows" ]] && NUGET="mono $NUGET"
                   $NUGET sources add \
                     -Name "GitHub" \
                     -Source "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" \
