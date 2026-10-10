@@ -61,7 +61,9 @@ public:
     UniformHandle findUniform(std::string_view name) const;
     void          setBoolean(UniformHandle handle, bool value) const;
     void          setFloat(UniformHandle handle, float value) const;
+    void          setFloat3(UniformHandle handle, const glm::vec3& value) const;
     void          setFloat4(UniformHandle handle, const glm::vec4& value) const;
+    void          setMat4(UniformHandle handle, const glm::mat4& value) const;
 
     void setBoolean(std::string_view name, bool value) const;
     void setFloat(std::string_view name, float value) const;
