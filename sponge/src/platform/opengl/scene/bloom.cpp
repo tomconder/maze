@@ -4,6 +4,9 @@
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 
+#include <glm/glm.hpp>
+
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -17,29 +20,27 @@ Bloom::Bloom(const uint32_t width, const uint32_t height) :
 }
 
 Bloom::~Bloom() {
-    destroyFramebuffers();
+    destroyTextures();
 }
 
 void Bloom::initialize() {
-    auto makeShader = [](std::string_view name, const char* frag) {
+    auto makeShader = [](std::string_view name, const char* comp) {
         return AssetManager::createShader(renderer::ShaderCreateInfo{
-            .name           = std::string(name),
-            .vertexShader   = "screenquad.vert",
-            .fragmentShader = frag,
+            .name          = std::string(name),
+            .computeShader = comp,
         });
     };
 
-    extractShader = makeShader(extractShaderName, "bloom_extract.frag");
-    downShader    = makeShader(downShaderName, "bloom_down.frag");
-    upShader      = makeShader(upShaderName, "bloom_up.frag");
+    extractShader = makeShader(extractShaderName, "bloom_extract.comp");
+    downShader    = makeShader(downShaderName, "bloom_down.comp");
+    upShader      = makeShader(upShaderName, "bloom_up.comp");
 
-    createFramebuffers();
+    createTextures();
 }
 
-void Bloom::createFramebuffers() {
-    // Mip-chain FBOs: level i at (width >> (i+1)) x (height >> (i+1))
+void Bloom::createTextures() {
     auto makeMipTex = [](uint32_t w, uint32_t h) {
-        return renderer::createRenderTarget(w, h, GL_RGB16F, GL_LINEAR);
+        return renderer::createRenderTarget(w, h, GL_RGBA16F, GL_LINEAR);
     };
 
     for (int i = 0; i < numLevels; i++) {
@@ -47,70 +48,54 @@ void Bloom::createFramebuffers() {
         const auto h = height >> (i + 1);
 
         downTextures[i] = makeMipTex(w, h);
-        downFbos[i] =
-            renderer::createFramebuffer("Bloom down", downTextures[i]);
-
-        upTextures[i] = makeMipTex(w, h);
-        upFbos[i]     = renderer::createFramebuffer("Bloom up", upTextures[i]);
+        upTextures[i]   = makeMipTex(w, h);
     }
 }
 
-void Bloom::destroyFramebuffers() {
-    glDeleteFramebuffers(numLevels, downFbos.data());
+void Bloom::destroyTextures() {
     glDeleteTextures(numLevels, downTextures.data());
-    glDeleteFramebuffers(numLevels, upFbos.data());
     glDeleteTextures(numLevels, upTextures.data());
-    downFbos.fill(0);
     downTextures.fill(0);
-    upFbos.fill(0);
     upTextures.fill(0);
 }
 
 void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
-    glDisable(GL_DEPTH_TEST);
+    // Each pass samples what the one before it stored through an image.
+    auto pass = [this](const renderer::Shader& shader, const uint32_t target,
+                       const int level) {
+        const auto w = std::max(width >> (level + 1), 1U);
+        const auto h = std::max(height >> (level + 1), 1U);
+        shader.setFloat2("targetSize", glm::vec2(static_cast<float>(w),
+                                                 static_cast<float>(h)));
+        glBindImageTexture(2, target, 0, GL_FALSE, 0, GL_WRITE_ONLY,
+                           GL_RGBA16F);
+        shader.dispatch((w + 7) / 8, (h + 7) / 8);
+        glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+    };
 
     // Extract bright pixels → down[0] at (w/2, h/2)
-    glBindFramebuffer(GL_FRAMEBUFFER, downFbos[0]);
-    glViewport(0, 0, static_cast<GLsizei>(width >> 1),
-               static_cast<GLsizei>(height >> 1));
-    extractShader->bind();
     extractShader->setFloat("threshold", threshold);
     glBindTextureUnit(0, sceneTexId);
-    quad.draw();
-    extractShader->unbind();
+    pass(*extractShader, downTextures[0], 0);
 
     // Downsample: down[i-1] → down[i]
-    downShader->bind();
     downShader->setFloat("offset", 1.0F);
     for (int i = 1; i < numLevels; i++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
-        glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
-                   static_cast<GLsizei>(height >> (i + 1)));
         glBindTextureUnit(0, downTextures[i - 1]);
-        quad.draw();
+        pass(*downShader, downTextures[i], i);
     }
-    downShader->unbind();
 
     // Upsample: from deepest down level back up to up[0], accumulating each
     // level's downsample so the coarsest mip's texel structure never shows.
-    upShader->bind();
     upShader->setFloat("offset", 1.0F);
     for (int i = numLevels - 1; i >= 0; i--) {
-        glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
-        glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
-                   static_cast<GLsizei>(height >> (i + 1)));
         upShader->setFloat("accumulate", i == numLevels - 1 ? 0.F : 1.F);
         glBindTextureUnit(1, downTextures[i]);
         const uint32_t src =
             (i == numLevels - 1) ? downTextures[i] : upTextures[i + 1];
         glBindTextureUnit(0, src);
-        quad.draw();
+        pass(*upShader, upTextures[i], i);
     }
-    upShader->unbind();
-
-    glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void Bloom::resize(const uint32_t newWidth, const uint32_t newHeight) {
@@ -119,8 +104,8 @@ void Bloom::resize(const uint32_t newWidth, const uint32_t newHeight) {
     }
     width  = newWidth;
     height = newHeight;
-    destroyFramebuffers();
-    createFramebuffers();
+    destroyTextures();
+    createTextures();
 }
 
 }  // namespace sponge::platform::opengl::scene

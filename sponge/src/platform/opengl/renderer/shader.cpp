@@ -30,6 +30,7 @@ Shader::Shader(const ShaderCreateInfo& createInfo) {
                                shaderName);
             std::exit(EXIT_FAILURE);
         }
+        initUBO();
         glDetachShader(program, cs);
         glDeleteShader(cs);
         return;
