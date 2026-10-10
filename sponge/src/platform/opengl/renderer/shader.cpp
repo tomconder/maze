@@ -410,8 +410,23 @@ void Shader::setFloat(const UniformHandle handle, const float value) const {
     }
 }
 
+void Shader::setFloat3(const UniformHandle handle,
+                       const glm::vec3&    value) const {
+    if (handle.valid()) {
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 glm::value_ptr(value), sizeof(float) * 3);
+    }
+}
+
 void Shader::setFloat4(const UniformHandle handle,
                        const glm::vec4&    value) const {
+    if (handle.valid()) {
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 glm::value_ptr(value), sizeof(value));
+    }
+}
+
+void Shader::setMat4(const UniformHandle handle, const glm::mat4& value) const {
     if (handle.valid()) {
         writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
                  glm::value_ptr(value), sizeof(value));

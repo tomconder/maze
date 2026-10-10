@@ -1418,15 +1418,20 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     depthPrepassCubeShader->bind();
     const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
     depthPrepassCubeShader->setFloat("reflectivity", 0.F);
+    const auto mvp     = depthPrepassCubeShader->findUniform("mvp");
+    const auto mvpNoJ  = depthPrepassCubeShader->findUniform("mvpNoJitter");
+    const auto prevMvp = depthPrepassCubeShader->findUniform("prevMvpNoJitter");
     for (int32_t i = 0; i < frame.numLights; i++) {
         const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
         const auto prevModel =
             lightCubeModel(frame.prevLightPositions[i], cubeScale);
-        depthPrepassCubeShader->setMat4("mvp", frame.cameraMVP * model);
-        depthPrepassCubeShader->setMat4("mvpNoJitter",
-                                        frame.cameraViewProj * model);
-        depthPrepassCubeShader->setMat4("prevMvpNoJitter",
+        // One upload per cube, not one per setter.
+        depthPrepassCubeShader->beginBatch();
+        depthPrepassCubeShader->setMat4(mvp, frame.cameraMVP * model);
+        depthPrepassCubeShader->setMat4(mvpNoJ, frame.cameraViewProj * model);
+        depthPrepassCubeShader->setMat4(prevMvp,
                                         frame.prevCameraViewProj * prevModel);
+        depthPrepassCubeShader->endBatch();
         cube->render();
     }
 
@@ -1459,12 +1464,17 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     const auto shader = cube->getShader();
     shader->bind();
 
-    const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
+    const auto cubeScale  = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
+    const auto lightColor = shader->findUniform("lightColor");
+    const auto mvp        = shader->findUniform("mvp");
     for (int32_t i = 0; i < frame.numLights; i++) {
-        shader->setFloat3("lightColor", frame.lightColors[i]);
-        shader->setMat4("mvp",
+        // One upload per cube, not one per setter.
+        shader->beginBatch();
+        shader->setFloat3(lightColor, frame.lightColors[i]);
+        shader->setMat4(mvp,
                         frame.cameraMVP *
                             lightCubeModel(frame.lightPositions[i], cubeScale));
+        shader->endBatch();
         cube->render();
     }
 
