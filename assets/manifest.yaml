@@ -56,9 +56,9 @@ licenses:
 shaders:
   output: shaders/shaders.spnga
   stages:
-    bloom_down.frag: shaders/slang/bloom.slang:downFragMain
-    bloom_extract.frag: shaders/slang/bloom.slang:extractFragMain
-    bloom_up.frag: shaders/slang/bloom.slang:upFragMain
+    bloom_down.comp: shaders/slang/bloom.slang:downMain
+    bloom_extract.comp: shaders/slang/bloom.slang:extractMain
+    bloom_up.comp: shaders/slang/bloom.slang:upMain
     blur.frag: shaders/slang/blur.slang:downFragMain
     blur_up.frag: shaders/slang/blur.slang:upFragMain
     cluster_assign.comp: shaders/slang/cluster_assign.slang:csMain

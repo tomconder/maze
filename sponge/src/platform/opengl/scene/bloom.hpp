@@ -1,7 +1,6 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
-#include "platform/opengl/scene/screenquad.hpp"
 
 #include <array>
 #include <cstdint>
@@ -39,19 +38,18 @@ private:
     std::shared_ptr<renderer::Shader> extractShader;
     std::shared_ptr<renderer::Shader> downShader;
     std::shared_ptr<renderer::Shader> upShader;
-    ScreenQuad                        quad;
 
-    std::array<uint32_t, numLevels> downFbos{};
+    // RGBA16F: image stores cannot write RGB16F. Level i is
+    // (width >> (i+1)) x (height >> (i+1)).
     std::array<uint32_t, numLevels> downTextures{};
-    std::array<uint32_t, numLevels> upFbos{};
     std::array<uint32_t, numLevels> upTextures{};
 
     uint32_t width  = 0;
     uint32_t height = 0;
 
     void initialize();
-    void createFramebuffers();
-    void destroyFramebuffers();
+    void createTextures();
+    void destroyTextures();
 };
 
 }  // namespace sponge::platform::opengl::scene
