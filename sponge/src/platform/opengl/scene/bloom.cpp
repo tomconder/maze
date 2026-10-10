@@ -47,22 +47,17 @@ void Bloom::createFramebuffers() {
         const auto h = height >> (i + 1);
 
         downTextures[i] = makeMipTex(w, h);
-        downFbos[i] =
-            renderer::createFramebuffer("Bloom down", downTextures[i]);
-
-        upTextures[i] = makeMipTex(w, h);
-        upFbos[i]     = renderer::createFramebuffer("Bloom up", upTextures[i]);
+        upTextures[i]   = makeMipTex(w, h);
     }
+    fbo = renderer::createFramebuffer("Bloom", downTextures[0]);
 }
 
 void Bloom::destroyFramebuffers() {
-    glDeleteFramebuffers(numLevels, downFbos.data());
+    glDeleteFramebuffers(1, &fbo);
     glDeleteTextures(numLevels, downTextures.data());
-    glDeleteFramebuffers(numLevels, upFbos.data());
     glDeleteTextures(numLevels, upTextures.data());
-    downFbos.fill(0);
+    fbo = 0;
     downTextures.fill(0);
-    upFbos.fill(0);
     upTextures.fill(0);
 }
 
@@ -70,7 +65,8 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     glDisable(GL_DEPTH_TEST);
 
     // Extract bright pixels → down[0] at (w/2, h/2)
-    glBindFramebuffer(GL_FRAMEBUFFER, downFbos[0]);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, downTextures[0], 0);
     glViewport(0, 0, static_cast<GLsizei>(width >> 1),
                static_cast<GLsizei>(height >> 1));
     extractShader->bind();
@@ -83,7 +79,8 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     downShader->bind();
     downShader->setFloat("offset", 1.0F);
     for (int i = 1; i < numLevels; i++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, downFbos[i]);
+        glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, downTextures[i],
+                                  0);
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
         glBindTextureUnit(0, downTextures[i - 1]);
@@ -96,7 +93,7 @@ void Bloom::process(const uint32_t sceneTexId, const float threshold) const {
     upShader->bind();
     upShader->setFloat("offset", 1.0F);
     for (int i = numLevels - 1; i >= 0; i--) {
-        glBindFramebuffer(GL_FRAMEBUFFER, upFbos[i]);
+        glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, upTextures[i], 0);
         glViewport(0, 0, static_cast<GLsizei>(width >> (i + 1)),
                    static_cast<GLsizei>(height >> (i + 1)));
         upShader->setFloat("accumulate", i == numLevels - 1 ? 0.F : 1.F);

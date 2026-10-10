@@ -41,9 +41,9 @@ private:
     std::shared_ptr<renderer::Shader> upShader;
     ScreenQuad                        quad;
 
-    std::array<uint32_t, numLevels> downFbos{};
+    // One framebuffer for every pass; each pass attaches its own target.
+    uint32_t                        fbo = 0;
     std::array<uint32_t, numLevels> downTextures{};
-    std::array<uint32_t, numLevels> upFbos{};
     std::array<uint32_t, numLevels> upTextures{};
 
     uint32_t width  = 0;
