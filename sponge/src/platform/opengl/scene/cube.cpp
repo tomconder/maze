@@ -5,13 +5,16 @@
 #include "platform/opengl/scene/unitcube.hpp"
 
 #include <glm/glm.hpp>
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
-Cube::Cube() {
+Cube::Cube() :
+    instances(static_cast<std::size_t>(maxInstances) * sizeof(Instance)) {
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName.data(),
         .vertexShader   = "cube.vert",
@@ -27,9 +30,16 @@ Cube::Cube() {
     vao->addAttribute(positionLoc, 3, 0);
 }
 
-void Cube::render() const {
+void Cube::setInstances(const std::span<const Instance> data) const {
+    const auto count = std::min(data.size(), std::size_t{ maxInstances });
+    instances.update(data.data(), count * sizeof(Instance));
+}
+
+void Cube::renderInstanced(const int count) const {
+    instances.bindBase(8);
     vao->bind();
-    glDrawArrays(GL_TRIANGLES, 0, unitCubeVertexCount);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, unitCubeVertexCount,
+                          std::min(count, maxInstances));
     vao->unbind();
 }
 

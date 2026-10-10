@@ -67,6 +67,7 @@ shaders:
     depthprepass.frag: shaders/slang/depthprepass.slang:fragMain
     depthprepass_masked.frag: shaders/slang/depthprepass.slang:fragMainMasked
     depthprepass.vert: shaders/slang/depthprepass.slang:vertMain
+    depthprepass_cube.vert: shaders/slang/depthprepass.slang:vertCubeMain
     fxaa.frag: shaders/slang/fxaa.slang:fragMain
     occlusionbox.frag: shaders/slang/occlusionbox.slang:fragMain
     occlusionbox.vert: shaders/slang/occlusionbox.slang:vertMain

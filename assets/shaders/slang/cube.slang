@@ -1,6 +1,13 @@
-// cube.slang: debug light-position cube vertex + fragment shader
+// cube.slang: debug light-position cube vertex + fragment shader. One instanced
+// draw covers every light: instance i reads its cube from cubeInstances.
+#include "include/instance.slang"
+
 uniform float4x4 mvp;
-uniform float3   lightColor;
+uniform float    cubeScale;
+
+// Per cube, three float4: position, previous position (the depth prepass uses
+// it) and colour, each in xyz. Must match Cube::Instance in cube.hpp.
+[[vk::binding(8)]] StructuredBuffer<float4> cubeInstances;
 
 // The cubes mark light positions, so they read as emitters. Radiance 1.0 is
 // mid-grey once tone mapped (1/(1+1) = 0.5); this keeps them near white and
@@ -20,8 +27,10 @@ struct VSOutput {
 VSOutput vertMain(VSInput input) {
     // clang-format on
     VSOutput output;
-    output.pos   = mul(mvp, float4(input.position, 1.0));
-    output.color = lightColor * emissiveStrength;
+    uint     instance = instanceIndex();
+    float3   center   = cubeInstances[instance * 3].xyz;
+    output.pos        = mul(mvp, float4(input.position * cubeScale + center, 1.0));
+    output.color      = cubeInstances[instance * 3 + 2].xyz * emissiveStrength;
     return output;
 };
 

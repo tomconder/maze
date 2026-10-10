@@ -38,11 +38,6 @@ constexpr int32_t maxPointLights =
 
 game::scene::DirectionalLight                       directionalLight;
 std::array<game::scene::PointLight, maxPointLights> pointLights;
-
-glm::mat4 lightCubeModel(const glm::vec3& position,
-                         const glm::vec3& cubeScale) {
-    return glm::scale(glm::translate(glm::mat4(1.F), position), cubeScale);
-}
 }  // namespace
 
 namespace game::layer {
@@ -256,7 +251,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     // shader whenever one program sees both (API PERFORMANCE 131218).
     depthPrepassCubeShader = AssetManager::createShader({
         .name           = "depthprepass_cube",
-        .vertexShader   = "depthprepass.vert",
+        .vertexShader   = "depthprepass_cube.vert",
         .fragmentShader = "depthprepass.frag",
     });
     refractionShader       = AssetManager::createShader({
@@ -1412,27 +1407,30 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     drawObjects(depthPrepassShader, AlphaPass::Opaque);
     drawObjects(depthPrepassMaskedShader, AlphaPass::Masked);
 
-    // Light cubes use a second instance of the same shader: position-only
-    // geometry at location 0. Including them here is what gives them depth
-    // coverage and motion vectors.
-    depthPrepassCubeShader->bind();
-    const auto cubeScale = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
-    depthPrepassCubeShader->setFloat("reflectivity", 0.F);
-    const auto mvp     = depthPrepassCubeShader->findUniform("mvp");
-    const auto mvpNoJ  = depthPrepassCubeShader->findUniform("mvpNoJitter");
-    const auto prevMvp = depthPrepassCubeShader->findUniform("prevMvpNoJitter");
-    for (int32_t i = 0; i < frame.numLights; i++) {
-        const auto model = lightCubeModel(frame.lightPositions[i], cubeScale);
-        const auto prevModel =
-            lightCubeModel(frame.prevLightPositions[i], cubeScale);
-        // One upload per cube, not one per setter.
-        depthPrepassCubeShader->beginBatch();
-        depthPrepassCubeShader->setMat4(mvp, frame.cameraMVP * model);
-        depthPrepassCubeShader->setMat4(mvpNoJ, frame.cameraViewProj * model);
-        depthPrepassCubeShader->setMat4(prevMvp,
-                                        frame.prevCameraViewProj * prevModel);
-        depthPrepassCubeShader->endBatch();
-        cube->render();
+    // Light cubes: one instanced draw. Including them here is what gives them
+    // depth coverage and motion vectors. The instance buffer filled here is
+    // also what renderLightCubes draws.
+    if (frame.numLights > 0) {
+        std::array<Cube::Instance, Cube::maxInstances> instances;
+        const auto count = std::min(frame.numLights, Cube::maxInstances);
+        for (int32_t i = 0; i < count; i++) {
+            instances[i] = { .position =
+                                 glm::vec4(frame.lightPositions[i], 1.F),
+                             .prevPosition =
+                                 glm::vec4(frame.prevLightPositions[i], 1.F),
+                             .color = glm::vec4(frame.lightColors[i], 1.F) };
+        }
+        cube->setInstances({ instances.data(), static_cast<size_t>(count) });
+
+        depthPrepassCubeShader->bind();
+        depthPrepassCubeShader->setFloat("reflectivity", 0.F);
+        depthPrepassCubeShader->setFloat(
+            "cubeScale", sceneDesc.lighting.point.debugCubeScale);
+        depthPrepassCubeShader->setMat4("mvp", frame.cameraMVP);
+        depthPrepassCubeShader->setMat4("mvpNoJitter", frame.cameraViewProj);
+        depthPrepassCubeShader->setMat4("prevMvpNoJitter",
+                                        frame.prevCameraViewProj);
+        cube->renderInstanced(count);
     }
 
     depthPrepassCubeShader->unbind();
@@ -1464,19 +1462,9 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     const auto shader = cube->getShader();
     shader->bind();
 
-    const auto cubeScale  = glm::vec3(sceneDesc.lighting.point.debugCubeScale);
-    const auto lightColor = shader->findUniform("lightColor");
-    const auto mvp        = shader->findUniform("mvp");
-    for (int32_t i = 0; i < frame.numLights; i++) {
-        // One upload per cube, not one per setter.
-        shader->beginBatch();
-        shader->setFloat3(lightColor, frame.lightColors[i]);
-        shader->setMat4(mvp,
-                        frame.cameraMVP *
-                            lightCubeModel(frame.lightPositions[i], cubeScale));
-        shader->endBatch();
-        cube->render();
-    }
+    shader->setFloat("cubeScale", sceneDesc.lighting.point.debugCubeScale);
+    shader->setMat4("mvp", frame.cameraMVP);
+    cube->renderInstanced(frame.numLights);
 
     shader->unbind();
 }
