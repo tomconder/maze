@@ -42,8 +42,8 @@ void RendererAPI::setClearColor(const glm::vec4& color) const {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
-void RendererAPI::clear() const {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void RendererAPI::clear(const bool clearColour) const {
+    glClear((clearColour ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 }
 
 void RendererAPI::clearColor() {

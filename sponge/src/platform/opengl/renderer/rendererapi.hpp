@@ -15,7 +15,8 @@ public:
                             int32_t height);
 
     void setClearColor(const glm::vec4& color) const;
-    void clear() const;
+    // Always clears depth. The colour buffer only when clearColour is set.
+    void clear(bool clearColour = true) const;
 
     // Clears the colour buffer of the bound framebuffer to the clear colour.
     static void clearColor();

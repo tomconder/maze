@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <chrono>
@@ -334,7 +335,11 @@ void Application::run() {
 
         {
             SPONGE_PROFILE_SECTION("clear");
-            renderer->clear();
+            const bool covered =
+                std::ranges::any_of(*layerStack, [](const auto& layer) {
+                    return layer->isActive() && layer->coversScreen();
+                });
+            renderer->clear(!covered);
         }
         {
             SPONGE_PROFILE_SECTION("imgui build");

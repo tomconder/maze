@@ -55,6 +55,10 @@ public:
         return true;
     }
 
+    // The final pass writes the whole back buffer, unless an options screen
+    // has taken over and onRender() skips the scene.
+    bool coversScreen() const override;
+
     void onDetach() override;
 
     void onEvent(sponge::event::Event& event) override;

@@ -339,6 +339,10 @@ void MazeLayer::activate() {
     setActive(true);
 }
 
+bool MazeLayer::coversScreen() const {
+    return !Maze::get().isOptionsOpen();
+}
+
 void MazeLayer::onDetach() {
     depthPrepass.reset();
 }
@@ -663,6 +667,13 @@ void MazeLayer::onRender() {
         shader->setFloat2("screenSize", glm::vec2(static_cast<float>(w),
                                                   static_cast<float>(h)));
         pendingResize.store(false, std::memory_order_relaxed);
+    }
+
+    // The options screens paint an opaque full-screen quad over the scene.
+    // Drawing the scene first leaves the grey frame-start clear on screen for
+    // most of the frame, which shows as a flash.
+    if (Maze::get().isOptionsOpen()) {
+        return;
     }
 
     if (capture && !capture->wantsStats() && !gpuTimerOff) {
