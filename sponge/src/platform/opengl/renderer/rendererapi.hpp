@@ -30,6 +30,11 @@ public:
     // global default.
     static void setPremultipliedAlphaBlend();
 
+    // Limits drawing to a pixel rectangle until disableScissor(). The origin is
+    // the bottom left corner of the framebuffer, as in GL.
+    static void setScissor(int32_t x, int32_t y, int32_t width, int32_t height);
+    static void disableScissor();
+
     static void bindTexture(uint32_t unit, uint32_t texture);
 
     // Hands the queued commands to the GPU now. The driver otherwise holds

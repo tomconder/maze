@@ -69,6 +69,16 @@ void RendererAPI::setPremultipliedAlphaBlend() {
     glEnable(GL_BLEND);
 }
 
+void RendererAPI::setScissor(const int32_t x, const int32_t y,
+                             const int32_t width, const int32_t height) {
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(x, y, width, height);
+}
+
+void RendererAPI::disableScissor() {
+    glDisable(GL_SCISSOR_TEST);
+}
+
 void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
     glBindTextureUnit(unit, texture);
 }

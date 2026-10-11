@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -30,6 +31,7 @@
 #include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuscroll.hpp"
 #include "ui/menuselection.hpp"
 #include "ui/slider.hpp"
 #include "ui/tabbar.hpp"
@@ -85,6 +87,9 @@ static_assert([] {
 // as the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
+// The volume rows scroll; Return stays pinned below them.
+game::ui::MenuScroll scroll;
+
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
@@ -120,6 +125,7 @@ using sponge::event::EventDispatcher;
 using sponge::event::MouseButtonPressedEvent;
 using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
+using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
@@ -199,6 +205,10 @@ void AudioLayer::onEvent(Event& event) {
         [this](const MouseButtonReleasedEvent& mouseEvent) {
             return isActive() ? onMouseButtonReleased(mouseEvent) : false;
         });
+    dispatcher.dispatch<MouseScrolledEvent>(
+        [this](const MouseScrolledEvent& scrollEvent) {
+            return isActive() ? onMouseScrolled(scrollEvent) : false;
+        });
     dispatcher.dispatch<MouseMovedEvent>(
         [this](const MouseMovedEvent& mouseMovedEvent) {
             return isActive() ? onMouseMoved(mouseMovedEvent) : false;
@@ -218,6 +228,10 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
         {
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
+                followSelection();
+                // open at the right row, not easing in from the last visit
+                scroll.snap();
+                relayout();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -230,6 +244,7 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
 
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
+                followSelection();
             }
 
             if (auto* const slider = sliderFor(selectedItem);
@@ -276,13 +291,21 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
+    if (scroll.step(static_cast<float>(elapsedTime))) {
+        relayout();
+    }
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
+    scroll.beginClip(height);
     for (const auto& [item, label] : volumeRows) {
+        if (!scroll.shows(+item)) {
+            continue;
+        }
         const auto [x, y, w, h] = rowLayout(item);
         renderRowBackground(x, y, w, h, item);
         sliderFor(item)->onUpdate(x, y, w, h, label);
     }
+    scroll.endClip();
 
     const auto [retX, retY, retW, retH] = rowLayout(AudioMenuItem::Return);
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
@@ -290,6 +313,8 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
                                 selectedItem == AudioMenuItem::Return,
                                 textHoverColor);
     returnButton->onUpdate(elapsedTime);
+
+    scroll.render(*quad);
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] =
@@ -397,9 +422,33 @@ void AudioLayer::recalculateLayout(const float width, const float height) {
         ui::setMenuRowHeight(row, width);
     }
     ui::pinMenuRowToBottom(rowNodes[+AudioMenuItem::Return], width);
-    YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, usableHeight);
-    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
+    scroll.layout(rootNode, menuNode, menuBackgroundNode,
+                  std::span<const YGNodeRef>(rowNodes).first(volumeRows.size()),
+                  rowNodes[+AudioMenuItem::Return], width, usableHeight,
+                  ui::tabBarHeight(width));
+}
+
+void AudioLayer::relayout() {
+    recalculateLayout(static_cast<float>(orthoCamera->getWidth()),
+                      static_cast<float>(orthoCamera->getHeight()));
+}
+
+void AudioLayer::followSelection() {
+    if (scroll.ensureVisible(+selectedItem)) {
+        relayout();
+    }
+}
+
+bool AudioLayer::onMouseScrolled(const MouseScrolledEvent& event) {
+    if (draggingItem) {
+        return true;
+    }
+    if (scroll.wheel(event.getYOffset())) {
+        // no mouse move follows, so the old hover points at the wrong row
+        hoveredItem = std::nullopt;
+        relayout();
+    }
+    return true;
 }
 
 bool AudioLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
@@ -426,9 +475,15 @@ bool AudioLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    if (scroll.press({ mouseX, mouseY })) {
+        relayout();
+        return true;
+    }
+
     for (const auto& [item, label] : volumeRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (!contains(x, y, w, h, mouseX, mouseY)) {
+        if (!scroll.canHit(+item, mouseY) ||
+            !contains(x, y, w, h, mouseX, mouseY)) {
             continue;
         }
 
@@ -449,6 +504,13 @@ bool AudioLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool AudioLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
+    if (scroll.drag(pos.y)) {
+        relayout();
+    }
+    if (scroll.isDragging()) {
+        return true;
+    }
+
     if (draggingItem) {
         const auto [x, y, w, h] = rowLayout(*draggingItem);
         auto* const slider      = sliderFor(*draggingItem);
@@ -462,7 +524,7 @@ bool AudioLayer::onMouseMoved(const MouseMovedEvent& event) {
     std::optional<AudioMenuItem> nextHover;
     for (const auto& [item, label] : volumeRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (contains(x, y, w, h, pos.x, pos.y)) {
+        if (scroll.canHit(+item, pos.y) && contains(x, y, w, h, pos.x, pos.y)) {
             nextHover = item;
             break;
         }
@@ -476,8 +538,14 @@ bool AudioLayer::onMouseMoved(const MouseMovedEvent& event) {
 }
 
 bool AudioLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
-    if (event.getMouseButton() != sponge::input::MouseButton::Button0 ||
-        !draggingItem) {
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
+    if (scroll.isDragging()) {
+        scroll.release();
+        return true;
+    }
+    if (!draggingItem) {
         return false;
     }
 
@@ -492,6 +560,7 @@ bool AudioLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto width  = static_cast<float>(event.getWidth());
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
+    followSelection();
 
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
     if (newFontSize != fontSize) {
@@ -508,6 +577,7 @@ bool AudioLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void AudioLayer::clearHoveredItems() {
+    scroll.release();
     returnButton->setHover(false);
     hoveredItem = std::nullopt;
 }

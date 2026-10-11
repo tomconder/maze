@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -29,6 +30,7 @@
 #include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuscroll.hpp"
 #include "ui/menuselection.hpp"
 #include "ui/tabbar.hpp"
 
@@ -96,6 +98,9 @@ static_assert([] {
 // the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
+// The binding rows scroll; Reset to Defaults and Return stay pinned below them.
+game::ui::MenuScroll scroll;
+
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
@@ -139,7 +144,9 @@ namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
 using sponge::event::MouseButtonPressedEvent;
+using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
+using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
@@ -195,12 +202,20 @@ void KeyMapLayer::onEvent(Event& event) {
         [this](const MouseButtonPressedEvent& mouseEvent) {
             return isActive() ? onMouseButtonPressed(mouseEvent) : false;
         });
+    dispatcher.dispatch<MouseButtonReleasedEvent>(
+        [this](const MouseButtonReleasedEvent& mouseEvent) {
+            return isActive() ? onMouseButtonReleased(mouseEvent) : false;
+        });
+    dispatcher.dispatch<MouseScrolledEvent>(
+        [this](const MouseScrolledEvent& scrollEvent) {
+            return isActive() ? onMouseScrolled(scrollEvent) : false;
+        });
     dispatcher.dispatch<MouseMovedEvent>(
         [this](const MouseMovedEvent& mouseMovedEvent) {
             return isActive() ? onMouseMoved(mouseMovedEvent) : false;
         });
     dispatcher.dispatch<WindowResizeEvent>(
-        [](const WindowResizeEvent& windowResizeEvent) {
+        [this](const WindowResizeEvent& windowResizeEvent) {
             return onWindowResize(windowResizeEvent);
         });
 }
@@ -223,6 +238,10 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
         const auto& input      = mgr.getSnapshot();
 
         if (takesInput && !wasActiveLastFrame) {
+            followSelection();
+            // open at the right row, not easing in from the last visit
+            scroll.snap();
+            relayout();
             waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
         } else if (waitForConfirmRelease &&
                    !input.isHeld(GameAction::MenuConfirm)) {
@@ -232,6 +251,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
         if (wasActiveLastFrame && takesInput) {
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
+                followSelection();
             }
             if (input.isActive(GameAction::TabNext)) {
                 mgr.consumeActive(GameAction::TabNext);
@@ -262,9 +282,16 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
+    if (scroll.step(static_cast<float>(elapsedTime))) {
+        relayout();
+    }
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
+    scroll.beginClip(height);
     for (const auto& [item, action, label] : bindingRows) {
+        if (!scroll.shows(+item)) {
+            continue;
+        }
         const auto [x, y, w, h] = rowLayout(item);
         renderRowBackground(x, y, w, h, item);
 
@@ -284,6 +311,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
                          capturing ? captureColor : textColor);
         menuFont->endPass();
     }
+    scroll.endClip();
 
     for (const auto item : { KeyMapItem::ResetDefaults, KeyMapItem::Return }) {
         const auto [x, y, w, h] = rowLayout(item);
@@ -293,6 +321,8 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
                                     textHoverColor);
         button->onUpdate(elapsedTime);
     }
+
+    scroll.render(*quad);
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] = rowLayout(KeyMapItem::MoveForward);
@@ -367,13 +397,46 @@ void KeyMapLayer::recalculateLayout(const float width, const float height) {
         ui::setMenuRowHeight(row, width);
     }
 
-    // this menu fills its column, so keep Reset to Defaults off Return
+    // Reset to Defaults takes the leftover space, so the pair sits at the
+    // bottom with a gap between them
     YGNodeStyleSetMargin(rowNodes[+KeyMapItem::ResetDefaults], YGEdgeBottom,
                          ui::menuRowHeight(width) * 0.4F);
-    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::Return], width);
-    YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, usableHeight);
-    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
+    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::ResetDefaults], width);
+    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::Return], width, false);
+    scroll.layout(
+        rootNode, menuNode, menuBackgroundNode,
+        std::span<const YGNodeRef>(rowNodes).first(bindingRows.size()),
+        rowNodes[+KeyMapItem::ResetDefaults], width, usableHeight,
+        ui::tabBarHeight(width));
+}
+
+void KeyMapLayer::relayout() {
+    recalculateLayout(static_cast<float>(orthoCamera->getWidth()),
+                      static_cast<float>(orthoCamera->getHeight()));
+}
+
+void KeyMapLayer::followSelection() {
+    if (scroll.ensureVisible(+selectedItem)) {
+        relayout();
+    }
+}
+
+bool KeyMapLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
+    scroll.release();
+    return true;
+}
+
+bool KeyMapLayer::onMouseScrolled(const MouseScrolledEvent& event) {
+    // the row being bound must stay in view
+    if (!rebindingItem && scroll.wheel(event.getYOffset())) {
+        // no mouse move follows, so the old hover points at the wrong row
+        hoveredItem = std::nullopt;
+        relayout();
+    }
+    return true;
 }
 
 bool KeyMapLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
@@ -395,10 +458,15 @@ bool KeyMapLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    if (scroll.press({ mouseX, mouseY })) {
+        relayout();
+        return true;
+    }
+
     for (size_t i = 0; i < rowCount; i++) {
         const auto item         = static_cast<KeyMapItem>(i);
         const auto [x, y, w, h] = rowLayout(item);
-        if (contains(x, y, w, h, mouseX, mouseY)) {
+        if (scroll.canHit(i, mouseY) && contains(x, y, w, h, mouseX, mouseY)) {
             selectedItem = item;
             activate(item);
             break;
@@ -414,10 +482,14 @@ bool KeyMapLayer::onMouseMoved(const MouseMovedEvent& event) {
     ui::updateButtonHover(resetButton.get(), pos);
     ui::updateButtonHover(returnButton.get(), pos);
 
+    if (scroll.drag(pos.y)) {
+        relayout();
+    }
+
     std::optional<KeyMapItem> nextHover;
     for (const auto& [item, action, label] : bindingRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (contains(x, y, w, h, pos.x, pos.y)) {
+        if (scroll.canHit(+item, pos.y) && contains(x, y, w, h, pos.x, pos.y)) {
             nextHover = item;
             break;
         }
@@ -436,6 +508,7 @@ bool KeyMapLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto width  = static_cast<float>(event.getWidth());
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
+    followSelection();
 
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
     if (newFontSize != fontSize) {
@@ -448,6 +521,7 @@ bool KeyMapLayer::onWindowResize(const WindowResizeEvent& event) {
 }
 
 void KeyMapLayer::clearHoveredItems() {
+    scroll.release();
     resetButton->setHover(false);
     returnButton->setHover(false);
     hoveredItem = std::nullopt;
