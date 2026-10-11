@@ -92,7 +92,7 @@ struct MazeRenderFrame {
     // opaque passes. Filled from the scene each frame, and left blank (all
     // non-refractive) while refraction is off, so glass takes the opaque path.
     std::vector<scene::SceneRefraction> objectRefraction;
-    bool                                refractionEnabled{ true };
+    bool                                refractionEnabled{ false };
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 

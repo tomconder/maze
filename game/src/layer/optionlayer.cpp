@@ -80,6 +80,7 @@ constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
 constexpr glm::vec4 hoverColor         = { 0.84F, 0.84F, 0.84F, 0.14F };
 constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
+constexpr glm::vec3 headingColor       = { 0.6F, 0.6F, 0.6F };
 constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
 
 constexpr glm::vec4 dotColorDefault = { 0.25F, 0.25F, 0.25F, 1.F };
@@ -214,20 +215,29 @@ struct RowDef {
     std::string_view label;
 };
 
+// A heading is a label only: it is never selected, hovered or clicked.
+constexpr bool isHeading(const OptionMenuItem item) {
+    return item == OptionMenuItem::GeneralHeading ||
+           item == OptionMenuItem::QualityHeading ||
+           item == OptionMenuItem::AdvancedHeading;
+}
+
 // Every row except Return, which is a Button rather than a setting widget.
 constexpr std::array settingRows = {
+    RowDef{ .item = OptionMenuItem::GeneralHeading, .label = "General" },
+    RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
     RowDef{ .item = OptionMenuItem::AspectRatio, .label = "Aspect Ratio" },
     RowDef{ .item = OptionMenuItem::Resolution, .label = "Resolution" },
-    RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
-    RowDef{ .item = OptionMenuItem::VerticalSync, .label = "Vertical Sync" },
-    RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-Aliasing" },
+    RowDef{ .item = OptionMenuItem::VerticalSync, .label = "VSync" },
+    RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-aliasing" },
+    RowDef{ .item = OptionMenuItem::QualityHeading, .label = "Quality" },
     RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Quality" },
+    RowDef{ .item = OptionMenuItem::AdvancedHeading, .label = "Advanced" },
     RowDef{ .item  = OptionMenuItem::AmbientOcclusion,
             .label = "Ambient Occlusion" },
     RowDef{ .item = OptionMenuItem::Bloom, .label = "Bloom" },
     RowDef{ .item  = OptionMenuItem::SubsurfaceScattering,
             .label = "Subsurface Scattering" },
-    RowDef{ .item = OptionMenuItem::Refraction, .label = "Refraction" },
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
@@ -376,7 +386,6 @@ void OptionLayer::onAttach() {
     bloomCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     subsurfaceScatteringCheckbox =
         std::make_unique<ui::Checkbox>(checkboxCreateInfo);
-    refractionCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
 
     std::vector<std::string> arItems;
     arItems.reserve(validAspectRatioFilters.size());
@@ -461,6 +470,13 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             const auto& input = mgr.getSnapshot();
 
             if (ui::stepSelection(input, selectedItem)) {
+                // hop over headings in the direction of travel
+                const bool up = input.isActive(GameAction::MenuUp) &&
+                                !input.isActive(GameAction::MenuDown);
+                while (isHeading(selectedItem)) {
+                    selectedItem = static_cast<OptionMenuItem>(
+                        (+selectedItem + (up ? rowCount - 1 : 1)) % rowCount);
+                }
                 ui::playHoverClick();
                 followSelection();
             }
@@ -484,7 +500,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
                 clearHoveredItems();
-                selectedItem = OptionMenuItem::AspectRatio;
+                selectedItem = OptionMenuItem::DisplayMode;
                 resetSelectionToCurrentState();
                 setActive(false);
             }
@@ -496,7 +512,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                         applyChanges();
                     } else {
                         clearHoveredItems();
-                        selectedItem = OptionMenuItem::AspectRatio;
+                        selectedItem = OptionMenuItem::DisplayMode;
                         resetSelectionToCurrentState();
                         setActive(false);
                     }
@@ -547,11 +563,12 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     };
 
     auto renderRowLabel = [&](const float x, const float y, const float h,
-                              const std::string_view label) {
+                              const std::string_view label,
+                              const glm::vec3&       color) {
         const float textY = std::floor(
             y + (h - static_cast<float>(menuFont->getHeight(fontSize))) / 2.F);
         menuFont->beginPass(fontSize);
-        menuFont->render(label, { x + textMarginLeft, textY }, textColor);
+        menuFont->render(label, { x + textMarginLeft, textY }, color);
         menuFont->endPass();
     };
 
@@ -561,6 +578,10 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             continue;
         }
         const auto [x, y, w, h] = rowLayout(item);
+        if (isHeading(item)) {
+            renderRowLabel(x, y, h, label, headingColor);
+            continue;
+        }
         renderRowBackground(x, y, w, h, item);
 
         if (auto* const list = listFor(item); list != nullptr) {
@@ -569,7 +590,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             renderDots(dotCount, list->getValueCenterX(x, w), y, h,
                        list->getSelectedIndex(), appliedIndex);
         } else {
-            renderRowLabel(x, y, h, label);
+            renderRowLabel(x, y, h, label, textColor);
             checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
         }
     }
@@ -587,7 +608,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] =
-        rowLayout(OptionMenuItem::AspectRatio);
+        rowLayout(OptionMenuItem::GeneralHeading);
     ui::renderTabBar(ui::OptionTab::Display, menuFont,
                      orthoCamera->getProjection(), width, tabX);
 
@@ -654,8 +675,6 @@ ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
             return bloomCheckbox.get();
         case OptionMenuItem::SubsurfaceScattering:
             return subsurfaceScatteringCheckbox.get();
-        case OptionMenuItem::Refraction:
-            return refractionCheckbox.get();
         default:
             return nullptr;
     }
@@ -671,8 +690,6 @@ bool* OptionLayer::pendingFor(const OptionMenuItem item) {
             return &pendingBloom;
         case OptionMenuItem::SubsurfaceScattering:
             return &pendingSubsurfaceScattering;
-        case OptionMenuItem::Refraction:
-            return &pendingRefraction;
         default:
             return nullptr;
     }
@@ -738,11 +755,6 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
             sponge::core::Settings::set("video.translucencyEnabled",
                                         pendingSubsurfaceScattering);
             break;
-        case OptionMenuItem::Refraction:
-            Maze::get().getMazeLayer()->setRefractionEnabled(pendingRefraction);
-            sponge::core::Settings::set("video.refractionEnabled",
-                                        pendingRefraction);
-            break;
         default:
             break;
     }
@@ -774,7 +786,14 @@ void OptionLayer::relayout() {
 }
 
 void OptionLayer::followSelection() {
-    if (scroll.ensureVisible(+selectedItem)) {
+    // keep the heading above the first row of a section in view too
+    bool moved = false;
+    if (+selectedItem > 0 &&
+        isHeading(static_cast<OptionMenuItem>(+selectedItem - 1))) {
+        moved = scroll.ensureVisible(+selectedItem - 1);
+    }
+    moved = scroll.ensureVisible(+selectedItem) || moved;
+    if (moved) {
         relayout();
     }
 }
@@ -805,7 +824,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         sponge::platform::glfw::core::Application::get().getMousePosition();
 
     const auto [tabX, tabY, tabW, tabH] =
-        rowLayout(OptionMenuItem::AspectRatio);
+        rowLayout(OptionMenuItem::GeneralHeading);
     const auto clickedTab =
         ui::tabBarHitTest(menuFont, static_cast<float>(orthoCamera->getWidth()),
                           tabX, { mouseX, mouseY });
@@ -833,7 +852,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
     for (const auto& [item, label] : settingRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (!scroll.canHit(+item, mouseY) ||
+        if (isHeading(item) || !scroll.canHit(+item, mouseY) ||
             !contains(x, y, w, h, mouseX, mouseY)) {
             continue;
         }
@@ -868,7 +887,8 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     std::optional<OptionMenuItem> nextHover;
     for (const auto& [item, label] : settingRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (scroll.canHit(+item, pos.y) && contains(x, y, w, h, pos.x, pos.y)) {
+        if (!isHeading(item) && scroll.canHit(+item, pos.y) &&
+            contains(x, y, w, h, pos.x, pos.y)) {
             nextHover = item;
             break;
         }
@@ -902,7 +922,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
             if (auto* const list = listFor(item); list != nullptr) {
                 list->setFontSize(fontSize);
                 list->setMaxValueWidth(maxCycleValueWidth);
-            } else {
+            } else if (!isHeading(item)) {
                 checkboxFor(item)->setSize(checkboxSize);
             }
         }
@@ -1014,7 +1034,6 @@ void OptionLayer::syncPendingCheckboxState() {
     pendingBloom            = Maze::get().isBloomEnabled();
     pendingSubsurfaceScattering =
         Maze::get().getMazeLayer()->isTranslucencyEnabled();
-    pendingRefraction = Maze::get().getMazeLayer()->isRefractionEnabled();
 
     const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
     pendingAaIndex =

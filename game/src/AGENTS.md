@@ -131,19 +131,22 @@ primitives, windowing, or platform backends itself — see
   bloom, still in linear radiance. It samples a copy of the scene color.
   Moving it back into the prepass deletes the image behind the glass.
 
-* The Display tab's Ambient Occlusion, Bloom, Subsurface Scattering and
-  Refraction rows apply on the spot and save `video.ssaoEnabled`,
-  `video.bloomEnabled`, `video.translucencyEnabled` and
-  `video.refractionEnabled`. Subsurface Scattering is the PBR shader's diffuse
+* The Display tab has three sections, General, Quality and Advanced. Each
+  starts with a heading row (`isHeading()` in `optionlayer.cpp`), which takes a
+  scroll slot but is never selected, hovered or clicked.
+* The Display tab's Ambient Occlusion, Bloom and Subsurface Scattering
+  rows apply on the spot and save `video.ssaoEnabled`,
+  `video.bloomEnabled` and `video.translucencyEnabled`. Subsurface Scattering is the PBR shader's diffuse
   transmission; the `translucencyEnabled` uniform zeroes its factor, so it is
   a shader uniform and not part of the render snapshot. The options screen
   opens before the maze loads, so `MazeLayer` reads these settings in its
   constructor, and its setters must skip a null `Mesh::getShader()`;
-  `finishLoading()` sends the stored values to the shader. With refraction off, `captureRenderFrame()` blanks
-  `objectRefraction`, so glass takes the opaque path (prepass, shadows, opaque
-  color) and the glass pass is skipped. The shadow cache is cleared when the
-  setting changes, because glass then joins or leaves the casters. The
-  reflection probe is captured once and keeps the setting it saw.
+  `finishLoading()` sends the stored values to the shader.
+* Refraction has no option and is off (`MazeLayer::refractionEnabled`, false).
+  `captureRenderFrame()` blanks `objectRefraction`, so glass takes the opaque
+  path (prepass, shadows, opaque color) and the glass pass is skipped. The
+  shadow cache is cleared if the flag changes, because glass then joins or
+  leaves the casters.
 
 ## Anti-patterns
 

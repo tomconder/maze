@@ -41,6 +41,8 @@ private:
     static void showLogWindow(float width, float height);
     static void showMenu();  // App info window sections
     static void showLightsSection();
+    static void showGraphicsSection();
+    static void showShadowControls();
     static void showBloomControls();
     static void showToneMapControls();
     static void showSsaoControls();

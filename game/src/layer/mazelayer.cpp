@@ -107,8 +107,6 @@ MazeLayer::MazeLayer() :
     // The scene file has no say in these.
     ssaoEnabled =
         sponge::core::Settings::getBool("video.ssaoEnabled", ssaoEnabled);
-    refractionEnabled = sponge::core::Settings::getBool(
-        "video.refractionEnabled", refractionEnabled);
     translucencyEnabled = sponge::core::Settings::getBool(
         "video.translucencyEnabled", translucencyEnabled);
 }
@@ -1806,15 +1804,6 @@ void MazeLayer::setTranslucencyEnabled(const bool val) {
     if (const auto shader = Mesh::getShader()) {
         shader->setBoolean("translucencyEnabled", val);
     }
-}
-
-bool MazeLayer::isRefractionEnabled() const {
-    return refractionEnabled;
-}
-
-void MazeLayer::setRefractionEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    refractionEnabled = val;
 }
 
 bool MazeLayer::isSsrEnabled() const {

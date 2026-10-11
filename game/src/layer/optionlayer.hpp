@@ -15,16 +15,18 @@
 namespace game::layer {
 
 enum class OptionMenuItem : uint8_t {
-    AspectRatio = 0,
-    Resolution,
+    GeneralHeading = 0,
     DisplayMode,
+    AspectRatio,
+    Resolution,
     VerticalSync,
     AntiAliasing,
+    QualityHeading,
     ShadowQuality,
+    AdvancedHeading,
     AmbientOcclusion,
     Bloom,
     SubsurfaceScattering,
-    Refraction,
     Return,
     Count,
 };
@@ -42,7 +44,7 @@ public:
     bool onUpdate(double elapsedTime) override;
 
 private:
-    OptionMenuItem                selectedItem = OptionMenuItem::AspectRatio;
+    OptionMenuItem                selectedItem = OptionMenuItem::DisplayMode;
     std::optional<OptionMenuItem> hoveredItem;
 
     bool hasUnappliedChanges   = false;
@@ -55,7 +57,6 @@ private:
     bool pendingAmbientOcclusion     = true;
     bool pendingBloom                = true;
     bool pendingSubsurfaceScattering = true;
-    bool pendingRefraction           = true;
     int  pendingDisplayModeIndex     = 0;  // compared with the live mode
     int  pendingAaIndex              = 0;
     int  appliedAaIndex              = 0;  // baseline pendingAaIndex synced to
@@ -72,7 +73,6 @@ private:
     std::unique_ptr<ui::Checkbox>   ambientOcclusionCheckbox;
     std::unique_ptr<ui::Checkbox>   bloomCheckbox;
     std::unique_ptr<ui::Checkbox>   subsurfaceScatteringCheckbox;
-    std::unique_ptr<ui::Checkbox>   refractionCheckbox;
 
     void renderRowBackground(float x, float y, float w, float h,
                              OptionMenuItem item) const;
