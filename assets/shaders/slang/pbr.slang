@@ -152,7 +152,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
     float coatRoughness = widenRoughness(clamp(params.clearcoatRoughnessFactor, 0.089, 1.0), Nc);
 
     float3 transmissionTint = params.diffuseTransmission.rgb;
-    float  transmission     = params.diffuseTransmission.w;
+    float  transmission     = params.translucencyEnabled ? params.diffuseTransmission.w : 0.0;
     if (params.hasDiffuseTransmissionMap) {
         // KHR_materials_diffuse_transmission: the strength is in alpha.
         float2 transmissionUV = applyUVTransform(input.texCoords, params.diffuseTransmissionUVTransform);

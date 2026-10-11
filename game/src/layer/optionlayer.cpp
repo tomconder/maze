@@ -208,6 +208,12 @@ constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::VerticalSync, .label = "Vertical Sync" },
     RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-Aliasing" },
     RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Map" },
+    RowDef{ .item  = OptionMenuItem::AmbientOcclusion,
+            .label = "Ambient Occlusion" },
+    RowDef{ .item = OptionMenuItem::Bloom, .label = "Bloom" },
+    RowDef{ .item  = OptionMenuItem::SubsurfaceScattering,
+            .label = "Subsurface Scattering" },
+    RowDef{ .item = OptionMenuItem::Refraction, .label = "Refraction" },
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
@@ -348,6 +354,12 @@ void OptionLayer::onAttach() {
     };
     fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    ambientOcclusionCheckbox =
+        std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    bloomCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    subsurfaceScatteringCheckbox =
+        std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    refractionCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
 
     std::vector<std::string> arItems;
     arItems.reserve(validAspectRatioFilters.size());
@@ -617,6 +629,14 @@ ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
             return fullScreenCheckbox.get();
         case OptionMenuItem::VerticalSync:
             return verticalSyncCheckbox.get();
+        case OptionMenuItem::AmbientOcclusion:
+            return ambientOcclusionCheckbox.get();
+        case OptionMenuItem::Bloom:
+            return bloomCheckbox.get();
+        case OptionMenuItem::SubsurfaceScattering:
+            return subsurfaceScatteringCheckbox.get();
+        case OptionMenuItem::Refraction:
+            return refractionCheckbox.get();
         default:
             return nullptr;
     }
@@ -628,6 +648,14 @@ bool* OptionLayer::pendingFor(const OptionMenuItem item) {
             return &pendingFullscreen;
         case OptionMenuItem::VerticalSync:
             return &pendingVsync;
+        case OptionMenuItem::AmbientOcclusion:
+            return &pendingAmbientOcclusion;
+        case OptionMenuItem::Bloom:
+            return &pendingBloom;
+        case OptionMenuItem::SubsurfaceScattering:
+            return &pendingSubsurfaceScattering;
+        case OptionMenuItem::Refraction:
+            return &pendingRefraction;
         default:
             return nullptr;
     }
@@ -669,9 +697,36 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
 
     // Vsync applies on the spot — unlike resolution and fullscreen it needs no
     // batching, so it never lights up the Apply button.
-    if (item == OptionMenuItem::VerticalSync) {
-        Maze::get().requestVerticalSync(pendingVsync);
-        sponge::core::Settings::set("video.vsync", pendingVsync);
+    // The effects below apply the same way.
+    switch (item) {
+        case OptionMenuItem::VerticalSync:
+            Maze::get().requestVerticalSync(pendingVsync);
+            sponge::core::Settings::set("video.vsync", pendingVsync);
+            break;
+        case OptionMenuItem::AmbientOcclusion:
+            Maze::get().getMazeLayer()->setSsaoEnabled(pendingAmbientOcclusion);
+            sponge::core::Settings::set("video.ssaoEnabled",
+                                        pendingAmbientOcclusion);
+            break;
+        case OptionMenuItem::Bloom:
+            Maze::get().setBloomEnabled(pendingBloom);
+            sponge::core::Settings::set("video.bloomEnabled", pendingBloom);
+            break;
+        case OptionMenuItem::SubsurfaceScattering:
+            Maze::get().getMazeLayer()->setTranslucencyEnabled(
+                pendingSubsurfaceScattering);
+            sponge::core::Settings::set("video.translucencyEnabled",
+                                        pendingSubsurfaceScattering);
+            break;
+        case OptionMenuItem::Refraction:
+            Maze::get().getMazeLayer()->setRefractionEnabled(pendingRefraction);
+            sponge::core::Settings::set("video.refractionEnabled",
+                                        pendingRefraction);
+            break;
+        default:
+            break;
+    }
+    if (item != OptionMenuItem::FullScreen) {
         sponge::core::Settings::save();
     }
 
@@ -919,8 +974,13 @@ void OptionLayer::applyChanges() {
 }
 
 void OptionLayer::syncPendingCheckboxState() {
-    pendingFullscreen = Maze::get().isFullscreen();
-    pendingVsync      = Maze::get().hasVerticalSync();
+    pendingFullscreen       = Maze::get().isFullscreen();
+    pendingVsync            = Maze::get().hasVerticalSync();
+    pendingAmbientOcclusion = Maze::get().getMazeLayer()->isSsaoEnabled();
+    pendingBloom            = Maze::get().isBloomEnabled();
+    pendingSubsurfaceScattering =
+        Maze::get().getMazeLayer()->isTranslucencyEnabled();
+    pendingRefraction = Maze::get().getMazeLayer()->isRefractionEnabled();
 
     const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
     pendingAaIndex =

@@ -88,9 +88,11 @@ struct MazeRenderFrame {
     // reflection; the depth prepass writes it into the normal alpha.
     std::vector<float> objectReflectivity;
 
-    // Static after load. Index-locked with objectModels. A non-refractive
-    // object stays in the opaque passes.
+    // Index-locked with objectModels. A non-refractive object stays in the
+    // opaque passes. Filled from the scene each frame, and left blank (all
+    // non-refractive) while refraction is off, so glass takes the opaque path.
     std::vector<scene::SceneRefraction> objectRefraction;
+    bool                                refractionEnabled{ true };
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Model>>
         objectModels;
 
