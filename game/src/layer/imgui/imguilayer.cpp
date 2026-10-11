@@ -102,6 +102,7 @@ void ImGuiLayer::showAppInfoWindow(const float width) {
     if (ImGui::Begin("App Info", &hasAppInfoMenu, windowFlags)) {
         showInfoSection();
         showLightsSection();
+        showGraphicsSection();
         showResourcesSection();
     }
     ImGui::End();
@@ -200,6 +201,21 @@ void ImGuiLayer::showLightsSection() {
         }
         if (ImGui::BeginTabItem("Directional##Tab")) {
             showDirectionalLightControls();
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+}
+
+void ImGuiLayer::showGraphicsSection() {
+    if (!ImGui::CollapsingHeader("Graphics##Header",
+                                 ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    if (ImGui::BeginTabBar("GraphicsTabBar")) {
+        if (ImGui::BeginTabItem("Shadows##Tab")) {
+            showShadowControls();
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Bloom##Tab")) {
@@ -346,6 +362,15 @@ void ImGuiLayer::showSsrControls() {
             }
         });
 
+        auto probeEnabled = mazeLayer->isProbeEnabled();
+        showTableRow([&] {
+            ImGui::Text("Probe");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##probeenabled", &probeEnabled)) {
+                mazeLayer->setProbeEnabled(probeEnabled);
+            }
+        });
+
         ImGui::EndTable();
     }
 }
@@ -403,8 +428,16 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
+        ImGui::EndTable();
+    }
+}
+
+void ImGuiLayer::showShadowControls() {
+    if (ImGui::BeginTable("Shadows##Table", 2, tableFlags)) {
+        const auto mazeLayer = Maze::get().getMazeLayer();
+
         showTableRow([&] {
-            ImGui::Text("Shadow Quality");
+            ImGui::Text("Quality");
             ImGui::TableNextColumn();
 
             static constexpr std::array<const char*, 3> shadowQualityLabels = {
@@ -439,15 +472,6 @@ void ImGuiLayer::showDirectionalLightControls() {
             if (ImGui::SliderFloat("##shadowsplit", &lambda, 0.F, 1.F, "%.2f",
                                    ImGuiSliderFlags_AlwaysClamp)) {
                 mazeLayer->setShadowSplitLambda(lambda);
-            }
-        });
-
-        auto probeEnabled = mazeLayer->isProbeEnabled();
-        showTableRow([&] {
-            ImGui::Text("Probe");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##probeenabled", &probeEnabled)) {
-                mazeLayer->setProbeEnabled(probeEnabled);
             }
         });
 

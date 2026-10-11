@@ -151,8 +151,6 @@ public:
     void setTranslucencyEnabled(bool val);
 
     // Off draws refractive objects as ordinary opaque ones: no glass pass.
-    bool isRefractionEnabled() const;
-    void setRefractionEnabled(bool val);
 
     bool isSsrEnabled() const;
     void setSsrEnabled(bool val);
@@ -386,7 +384,7 @@ private:
     bool    ssaoEnabled         = true;
     float   ssaoRadius          = 0.5F;
     bool    translucencyEnabled = true;
-    bool    refractionEnabled   = true;
+    bool    refractionEnabled   = false;
     bool    ssrEnabled          = true;
     bool    planarEnabled       = true;
     bool    probeEnabled        = true;
