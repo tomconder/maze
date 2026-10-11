@@ -55,8 +55,12 @@ void SelectList::setSelectedIndex(const size_t index) {
     selectedIndex = index;
 }
 
+void SelectList::setDisabled(const bool value) {
+    disabled = value;
+}
+
 bool SelectList::selectPrev() {
-    if (selectedIndex > 0) {
+    if (!disabled && selectedIndex > 0) {
         selectedIndex--;
         return true;
     }
@@ -64,7 +68,7 @@ bool SelectList::selectPrev() {
 }
 
 bool SelectList::selectNext() {
-    if (!items.empty() && selectedIndex + 1 < items.size()) {
+    if (!disabled && !items.empty() && selectedIndex + 1 < items.size()) {
         selectedIndex++;
         return true;
     }
@@ -79,11 +83,11 @@ std::string_view SelectList::getValue() const {
 }
 
 bool SelectList::hasLeft() const {
-    return selectedIndex > 0;
+    return !disabled && selectedIndex > 0;
 }
 
 bool SelectList::hasRight() const {
-    return !items.empty() && selectedIndex + 1 < items.size();
+    return !disabled && !items.empty() && selectedIndex + 1 < items.size();
 }
 
 float SelectList::getStartX(const float x, const float w) const {
@@ -104,11 +108,13 @@ void SelectList::onUpdate(const float x, const float y, const float w,
     const float startX = getStartX(x, w);
     const float valueX = startX + leftLen + (maxValueWidth - valLen) / 2.F;
 
+    const auto& color = disabled ? arrowDisabledColor : textColor;
+
     font->beginPass(fontSize);
-    font->render(label, { x + textMarginLeft, textY }, textColor);
+    font->render(label, { x + textMarginLeft, textY }, color);
     font->render(leftArrow, { startX, textY },
                  hasLeft() ? textColor : arrowDisabledColor);
-    font->render(value, { valueX, textY }, textColor, tabularFigures);
+    font->render(value, { valueX, textY }, color, tabularFigures);
     font->render(rightArrow, { startX + leftLen + maxValueWidth, textY },
                  hasRight() ? textColor : arrowDisabledColor);
     font->endPass();

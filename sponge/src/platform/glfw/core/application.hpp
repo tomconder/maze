@@ -20,11 +20,12 @@
 
 namespace sponge::platform::glfw::core {
 struct ApplicationSpecification {
-    std::string_view name       = "Sponge";
-    uint32_t         width      = 1600;
-    uint32_t         height     = 900;
-    bool             fullscreen = true;
-    bool             vsync      = true;
+    std::string_view          name   = "Sponge";
+    uint32_t                  width  = 1600;
+    uint32_t                  height = 900;
+    sponge::core::DisplayMode displayMode =
+        sponge::core::DisplayMode::FullScreen;
+    bool vsync = true;
 };
 
 using logging::LogItem;
@@ -53,14 +54,14 @@ public:
 
     void pushLayer(const std::shared_ptr<layer::Layer>& layer) const;
 
-    void toggleFullscreen();
+    void setDisplayMode(sponge::core::DisplayMode mode);
 
     void setResolution(uint32_t width, uint32_t height);
 
     static std::vector<sponge::core::Resolution> getAvailableResolutions();
 
-    bool isFullscreen() const {
-        return fullscreen;
+    sponge::core::DisplayMode getDisplayMode() const {
+        return displayMode;
     }
 
     layer::LayerStack* getLayerStack() const {
@@ -147,12 +148,15 @@ private:
 
     std::unique_ptr<std::vector<LogItem>> messages;
 
-    bool    fullscreen = false;
-    bool    vsync      = true;
-    int32_t prevH      = 0;
-    int32_t prevW      = 0;
-    int32_t prevX      = 0;
-    int32_t prevY      = 0;
+    sponge::core::DisplayMode displayMode = sponge::core::DisplayMode::Windowed;
+    // The mode the OS window is in; only the main loop writes it.
+    sponge::core::DisplayMode appliedDisplayMode =
+        sponge::core::DisplayMode::Windowed;
+    bool    vsync = true;
+    int32_t prevH = 0;
+    int32_t prevW = 0;
+    int32_t prevX = 0;
+    int32_t prevY = 0;
 
     std::unique_ptr<layer::LayerStack> layerStack;
 
@@ -184,9 +188,10 @@ private:
     std::atomic<uint32_t> pendingResolutionW{ 0 };
     std::atomic<uint32_t> pendingResolutionH{ 0 };
 
-    // fullscreen flips immediately in toggleFullscreen(); the GLFW window call
-    // runs here to avoid deadlocking the Win32 message pump.
-    std::atomic<bool> pendingFullscreenToggle{ false };
+    // displayMode changes immediately in setDisplayMode(); the GLFW window
+    // call runs on the main thread to avoid deadlocking the Win32 message
+    // pump.
+    std::atomic<bool> pendingDisplayMode{ false };
 
     // Deferred mouse-visibility change requested from update-thread layers
     // (e.g. MazeLayer's pause handling). glfwSetInputMode must run on the

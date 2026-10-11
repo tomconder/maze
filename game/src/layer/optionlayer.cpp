@@ -145,6 +145,13 @@ size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 
+// Index order is the sponge::core::DisplayMode order.
+constexpr std::array<std::string_view, 3> displayModeLabels = {
+    "Windowed", "Full Screen", "Borderless Window"
+};
+static_assert(displayModeLabels.size() ==
+              static_cast<size_t>(sponge::core::DisplayMode::Count));
+
 // max display width across all aspect-ratio labels and resolution strings.
 // Measured with tabularFigures=true to match how they render.
 float computeMaxCycleValueWidth() {
@@ -154,6 +161,10 @@ float computeMaxCycleValueWidth() {
             return std::max(acc, static_cast<float>(menuFont->getLength(
                                      f.label, fontSize, true)));
         });
+    for (const auto label : displayModeLabels) {
+        width = std::max(
+            width, static_cast<float>(menuFont->getLength(label, fontSize)));
+    }
     return std::accumulate(
         availableResolutions.begin(), availableResolutions.end(), width,
         [](const float acc, const auto& res) {
@@ -165,15 +176,17 @@ float computeMaxCycleValueWidth() {
 }
 
 // video.vsync is not here: it applies and persists the moment its checkbox is
-// toggled, so it never waits for Apply.
-void saveVideoSettings(const uint32_t width, const uint32_t height,
-                       const bool                       fullscreen,
+// toggled, so it never waits for Apply. An empty size keeps the saved one.
+void saveVideoSettings(const std::optional<sponge::core::Resolution>& size,
+                       const sponge::core::DisplayMode  displayMode,
                        const game::thread::AntiAliasing antiAliasing,
                        const game::layer::ShadowQuality shadowQuality) {
     using sponge::core::Settings;
-    Settings::set("video.width", width);
-    Settings::set("video.height", height);
-    Settings::set("video.fullscreen", fullscreen);
+    if (size) {
+        Settings::set("video.width", size->width);
+        Settings::set("video.height", size->height);
+    }
+    Settings::set("video.displayMode", static_cast<uint32_t>(displayMode));
     Settings::set("video.aa", static_cast<uint32_t>(antiAliasing));
     Settings::set("video.shadowQuality", static_cast<uint32_t>(shadowQuality));
     Settings::save();
@@ -205,7 +218,7 @@ struct RowDef {
 constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::AspectRatio, .label = "Aspect Ratio" },
     RowDef{ .item = OptionMenuItem::Resolution, .label = "Resolution" },
-    RowDef{ .item = OptionMenuItem::FullScreen, .label = "Full Screen" },
+    RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
     RowDef{ .item = OptionMenuItem::VerticalSync, .label = "Vertical Sync" },
     RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-Aliasing" },
     RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Quality" },
@@ -229,6 +242,7 @@ static_assert([] {
     return true;
 }());
 
+std::optional<size_t> currentDisplayModeIndex;
 std::optional<size_t> currentShadowQualityIndex;
 std::optional<size_t> currentAaIndex;
 
@@ -241,13 +255,15 @@ constexpr std::array aaModes = {
 static_assert(aaModes.size() ==
               static_cast<size_t>(game::thread::AntiAliasing::Count));
 
-// Dot strip state for the three cycling rows: total items, applied index.
+// Dot strip state for the cycling rows: total items, applied index.
 std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
     switch (item) {
         case OptionMenuItem::AspectRatio:
             return { validAspectRatioFilters.size(), currentAspectRatioIndex };
         case OptionMenuItem::Resolution:
             return { filteredResolutions.size(), currentResolutionIndex };
+        case OptionMenuItem::DisplayMode:
+            return { displayModeLabels.size(), currentDisplayModeIndex };
         case OptionMenuItem::AntiAliasing:
             return { aaModes.size(), currentAaIndex };
         case OptionMenuItem::ShadowQuality:
@@ -346,6 +362,7 @@ void OptionLayer::onAttach() {
     numericCreateInfo.tabularFigures = true;
     aspectRatioList   = std::make_unique<ui::SelectList>(numericCreateInfo);
     resolutionList    = std::make_unique<ui::SelectList>(numericCreateInfo);
+    displayModeList   = std::make_unique<ui::SelectList>(selectCreateInfo);
     shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
     antiAliasingList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
@@ -353,7 +370,6 @@ void OptionLayer::onAttach() {
         .margin = textMarginLeft,
         .size   = static_cast<float>(fontSize),
     };
-    fullScreenCheckbox   = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     ambientOcclusionCheckbox =
         std::make_unique<ui::Checkbox>(checkboxCreateInfo);
@@ -369,6 +385,8 @@ void OptionLayer::onAttach() {
     }
     aspectRatioList->setItems(std::move(arItems));
 
+    displayModeList->setItems(
+        { displayModeLabels.begin(), displayModeLabels.end() });
     shadowQualityList->setItems({ "Low", "Medium", "High" });
     antiAliasingList->setItems({ "Off", "FXAA", "TAA" });
 
@@ -615,6 +633,8 @@ ui::SelectList* OptionLayer::listFor(const OptionMenuItem item) const {
             return aspectRatioList.get();
         case OptionMenuItem::Resolution:
             return resolutionList.get();
+        case OptionMenuItem::DisplayMode:
+            return displayModeList.get();
         case OptionMenuItem::AntiAliasing:
             return antiAliasingList.get();
         case OptionMenuItem::ShadowQuality:
@@ -626,8 +646,6 @@ ui::SelectList* OptionLayer::listFor(const OptionMenuItem item) const {
 
 ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
     switch (item) {
-        case OptionMenuItem::FullScreen:
-            return fullScreenCheckbox.get();
         case OptionMenuItem::VerticalSync:
             return verticalSyncCheckbox.get();
         case OptionMenuItem::AmbientOcclusion:
@@ -645,8 +663,6 @@ ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
 
 bool* OptionLayer::pendingFor(const OptionMenuItem item) {
     switch (item) {
-        case OptionMenuItem::FullScreen:
-            return &pendingFullscreen;
         case OptionMenuItem::VerticalSync:
             return &pendingVsync;
         case OptionMenuItem::AmbientOcclusion:
@@ -680,6 +696,9 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
         return;
     }
 
+    if (item == OptionMenuItem::DisplayMode) {
+        pendingDisplayModeIndex = static_cast<int>(list->getSelectedIndex());
+    }
     if (item == OptionMenuItem::ShadowQuality) {
         pendingShadowQualityIndex = static_cast<int>(list->getSelectedIndex());
     }
@@ -727,9 +746,7 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
         default:
             break;
     }
-    if (item != OptionMenuItem::FullScreen) {
-        sponge::core::Settings::save();
-    }
+    sponge::core::Settings::save();
 
     updateChangeStatus();
 }
@@ -947,27 +964,39 @@ void OptionLayer::filterResolutions() {
 }
 
 void OptionLayer::applyChanges() {
+    using sponge::core::DisplayMode;
     const auto currentWindow = Maze::get().getWindow();
-    auto       saveWidth     = currentWindow->getWidth();
-    auto       saveHeight    = currentWindow->getHeight();
+    const auto previousMode  = Maze::get().getDisplayMode();
+    const auto displayMode = static_cast<DisplayMode>(pendingDisplayModeIndex);
 
-    if (!filteredResolutions.empty()) {
+    // A borderless window takes the desktop size, so it neither sets nor
+    // saves a resolution. Leaving it, the saved size still describes the
+    // windowed rect.
+    std::optional<sponge::core::Resolution> saveSize;
+    if (displayMode != DisplayMode::Borderless &&
+        previousMode != DisplayMode::Borderless) {
+        saveSize = sponge::core::Resolution{ currentWindow->getWidth(),
+                                             currentWindow->getHeight() };
+    }
+    if (displayMode != DisplayMode::Borderless &&
+        !filteredResolutions.empty()) {
         const auto& res =
             filteredResolutions[resolutionList->getSelectedIndex()];
-        saveWidth  = res.width;
-        saveHeight = res.height;
-        Maze::get().setResolution(res.width, res.height);
+        if (res.width != currentWindow->getWidth() ||
+            res.height != currentWindow->getHeight()) {
+            saveSize = res;
+            Maze::get().setResolution(res.width, res.height);
+        }
     }
-    if (pendingFullscreen != Maze::get().isFullscreen()) {
-        Maze::get().toggleFullscreen();
+    if (displayMode != previousMode) {
+        Maze::get().setDisplayMode(displayMode);
     }
     const auto aaMode = aaModes[static_cast<size_t>(pendingAaIndex)];
     Maze::get().setAntiAliasing(aaMode);
     const auto shadowQuality =
         static_cast<game::layer::ShadowQuality>(pendingShadowQualityIndex);
     Maze::get().getMazeLayer()->setShadowQuality(shadowQuality);
-    saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, aaMode,
-                      shadowQuality);
+    saveVideoSettings(saveSize, displayMode, aaMode, shadowQuality);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
@@ -975,7 +1004,11 @@ void OptionLayer::applyChanges() {
 }
 
 void OptionLayer::syncPendingCheckboxState() {
-    pendingFullscreen       = Maze::get().isFullscreen();
+    pendingDisplayModeIndex = static_cast<int>(Maze::get().getDisplayMode());
+    if (displayModeList) {
+        displayModeList->setSelectedIndex(
+            static_cast<size_t>(pendingDisplayModeIndex));
+    }
     pendingVsync            = Maze::get().hasVerticalSync();
     pendingAmbientOcclusion = Maze::get().getMazeLayer()->isSsaoEnabled();
     pendingBloom            = Maze::get().isBloomEnabled();
@@ -1001,9 +1034,18 @@ void OptionLayer::syncPendingCheckboxState() {
 }
 
 void OptionLayer::updateChangeStatus() {
-    const bool checkboxChanged =
-        pendingFullscreen != Maze::get().isFullscreen() ||
-        pendingVsync != Maze::get().hasVerticalSync();
+    const bool checkboxChanged = pendingVsync != Maze::get().hasVerticalSync();
+
+    currentDisplayModeIndex = static_cast<size_t>(Maze::get().getDisplayMode());
+    const bool displayModeChanged =
+        pendingDisplayModeIndex != static_cast<int>(*currentDisplayModeIndex);
+
+    // A borderless window has the desktop size, so the size rows are locked.
+    const bool borderless =
+        pendingDisplayModeIndex ==
+        static_cast<int>(sponge::core::DisplayMode::Borderless);
+    aspectRatioList->setDisabled(borderless);
+    resolutionList->setDisabled(borderless);
 
     const auto window = Maze::get().getWindow();
     const auto curW   = window->getWidth();
@@ -1023,7 +1065,8 @@ void OptionLayer::updateChangeStatus() {
     if (!filteredResolutions.empty()) {
         const auto& res =
             filteredResolutions[resolutionList->getSelectedIndex()];
-        resolutionChanged = res.width != curW || res.height != curH;
+        resolutionChanged =
+            !borderless && (res.width != curW || res.height != curH);
 
         const auto it =
             std::ranges::find_if(filteredResolutions, [&](const auto& r) {
@@ -1048,8 +1091,8 @@ void OptionLayer::updateChangeStatus() {
             std::nullopt;
     const bool aaChanged = pendingAaIndex != appliedAaIndex;
 
-    hasUnappliedChanges =
-        checkboxChanged || resolutionChanged || shadowChanged || aaChanged;
+    hasUnappliedChanges = checkboxChanged || displayModeChanged ||
+                          resolutionChanged || shadowChanged || aaChanged;
     returnButton->setMessage(hasUnappliedChanges ? applyMessage :
                                                    returnMessage);
 }

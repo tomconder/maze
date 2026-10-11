@@ -22,7 +22,6 @@ enum class GameAction : uint8_t {
     LookVertical,
     Pause,
     ExitGame,
-    ToggleFullscreen,
     ToggleDebugUI,
     Count,
 };
@@ -34,11 +33,11 @@ constexpr int operator+(const GameAction a) noexcept {
 // Stable identifiers, indexed by GameAction. Used to build settings keys for
 // rebound keys, so renaming one discards the player's binding.
 constexpr std::array<std::string_view, +GameAction::Count> actionNames{
-    "menuUp",           "menuDown",      "menuLeft", "menuRight",
-    "menuConfirm",      "menuBack",      "tabPrev",  "tabNext",
-    "moveForward",      "moveBack",      "moveLeft", "moveRight",
-    "lookHorizontal",   "lookVertical",  "pause",    "exitGame",
-    "toggleFullscreen", "toggleDebugUI",
+    "menuUp",         "menuDown",     "menuLeft", "menuRight",
+    "menuConfirm",    "menuBack",     "tabPrev",  "tabNext",
+    "moveForward",    "moveBack",     "moveLeft", "moveRight",
+    "lookHorizontal", "lookVertical", "pause",    "exitGame",
+    "toggleDebugUI",
 };
 
 // A missing name would build settings keys of "input.", so catch it here

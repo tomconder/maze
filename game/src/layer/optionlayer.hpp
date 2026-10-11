@@ -17,7 +17,7 @@ namespace game::layer {
 enum class OptionMenuItem : uint8_t {
     AspectRatio = 0,
     Resolution,
-    FullScreen,
+    DisplayMode,
     VerticalSync,
     AntiAliasing,
     ShadowQuality,
@@ -49,14 +49,14 @@ private:
     bool wasActiveLastFrame    = false;
     bool waitForConfirmRelease = false;
 
-    bool pendingFullscreen = false;
-    bool pendingVsync      = false;
+    bool pendingVsync = false;
     // These four apply as soon as they are toggled, like vsync, so they
     // never light up Apply.
     bool pendingAmbientOcclusion     = true;
     bool pendingBloom                = true;
     bool pendingSubsurfaceScattering = true;
     bool pendingRefraction           = true;
+    int  pendingDisplayModeIndex     = 0;  // compared with the live mode
     int  pendingAaIndex              = 0;
     int  appliedAaIndex              = 0;  // baseline pendingAaIndex synced to
     int  pendingShadowQualityIndex   = 1;
@@ -65,9 +65,9 @@ private:
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
+    std::unique_ptr<ui::SelectList> displayModeList;
     std::unique_ptr<ui::SelectList> shadowQualityList;
     std::unique_ptr<ui::SelectList> antiAliasingList;
-    std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
     std::unique_ptr<ui::Checkbox>   ambientOcclusionCheckbox;
     std::unique_ptr<ui::Checkbox>   bloomCheckbox;

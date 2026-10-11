@@ -35,6 +35,9 @@ public:
     size_t getSelectedIndex() const;
     void   setSelectedIndex(size_t index);
 
+    // A disabled list is drawn grey and ignores cycling.
+    void setDisabled(bool value);
+
     bool selectPrev();
     bool selectNext();
 
@@ -57,6 +60,7 @@ private:
     float     textMarginLeft;
     float     maxValueWidth;
     bool      tabularFigures;
+    bool      disabled = false;
 
     std::vector<std::string> items;
     size_t                   selectedIndex = 0;

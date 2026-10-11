@@ -418,9 +418,6 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
             isImguiOpen = !isImguiOpen;
             Maze::get().getImGuiLayer()->setActive(isImguiOpen);
         }
-        if (!overlayActive && snap.isActive(GameAction::ToggleFullscreen)) {
-            Application::get().toggleFullscreen();
-        }
 
         if (!overlayActive) {
             updateCamera(snap, elapsedTime);

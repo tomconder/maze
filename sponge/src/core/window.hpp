@@ -10,11 +10,18 @@ struct Resolution {
     uint32_t height;
 };
 
+enum class DisplayMode : uint8_t {
+    Windowed,
+    FullScreen,
+    Borderless,
+    Count,
+};
+
 struct WindowProps {
     std::string_view title;
     uint32_t         width;
     uint32_t         height;
-    bool             fullscreen;
+    DisplayMode      displayMode;
 };
 
 }  // namespace sponge::core

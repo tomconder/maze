@@ -76,8 +76,6 @@ constexpr std::array bindingRows = {
     BindingRow{ KeyMapItem::MoveRight, sponge::input::GameAction::MoveRight,
                 "Move Right" },
     BindingRow{ KeyMapItem::Pause, sponge::input::GameAction::Pause, "Pause" },
-    BindingRow{ KeyMapItem::ToggleFullscreen,
-                sponge::input::GameAction::ToggleFullscreen, "Full Screen" },
     BindingRow{ KeyMapItem::ToggleDebugUI,
                 sponge::input::GameAction::ToggleDebugUI, "Debug UI" },
 };
