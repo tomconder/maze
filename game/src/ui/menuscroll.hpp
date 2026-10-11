@@ -20,7 +20,7 @@ namespace game::ui {
 // outside the window (see shows()), draw the rest between beginClip() and
 // endClip(), and test mouse hits with canHit().
 //
-// Only the first `count` rows scroll. The rows after them stay pinned at the
+// Only the first `count` rows scroll. Any rows after them stay pinned at the
 // bottom, and shows() is always true for those.
 class MenuScroll {
 public:
@@ -90,8 +90,9 @@ public:
     }
 
     // Fits the rows to the space above the pinned footer and lays out. rows are
-    // the scrolling rows in order. footer is the first pinned row. originY is
-    // the height reserved above the root.
+    // the scrolling rows in order. footer is the first pinned row, or nullptr
+    // when the rows have the whole menu. originY is the height reserved above
+    // the root.
     void layout(const YGNodeRef root, const YGNodeRef menu,
                 const YGNodeRef                  background,
                 const std::span<const YGNodeRef> rows, const YGNodeRef footer,
@@ -108,9 +109,10 @@ public:
         YGNodeStyleSetHeight(root, height);
         YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
 
-        setWindow(rows.size(),
-                  static_cast<size_t>(YGNodeLayoutGetTop(footer) / rowHeight +
-                                      0.001F));
+        const float room = footer != nullptr ?
+                               YGNodeLayoutGetTop(footer) :
+                               YGNodeLayoutGetHeight(background);
+        setWindow(rows.size(), static_cast<size_t>(room / rowHeight + 0.001F));
         for (size_t i = 0; i < rows.size(); i++) {
             YGNodeStyleSetPosition(rows[i], YGEdgeTop,
                                    (static_cast<float>(i) - offset) *

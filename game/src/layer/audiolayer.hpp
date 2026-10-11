@@ -17,7 +17,6 @@ enum class AudioMenuItem : uint8_t {
     MasterVolume = 0,
     SfxVolume,
     MusicVolume,
-    Return,
     Count,
 };
 
@@ -53,7 +52,7 @@ private:
     // Screen rect of a row, resolved through the root/menu/background chain.
     static std::tuple<float, float, float, float> rowLayout(AudioMenuItem item);
 
-    // Widget backing a row, or nullptr for Return, which is a Button.
+    // Widget backing a row.
     ui::Slider* sliderFor(AudioMenuItem item) const;
 
     // Pushes a slider's current value to the audio engine and to Settings.

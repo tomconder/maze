@@ -40,7 +40,8 @@ primitives, windowing, or platform backends itself — see
   drag-release or a discrete step, not on every mouse-move frame of a drag.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   absolute Yoga nodes placed from the first visible row, so the pinned rows
-  (Return, and Reset to Defaults) keep their flex position at the bottom.
+  (Apply on Display, Reset to Defaults on Keyboard, none on Audio) keep their
+  flex position at the bottom. Esc is the only way back; there is no Return row.
   The target and the drawn offset are in fractional rows, so a row can rest
   half in view; the offset eases toward the target
   (`MenuScroll::step()`, which relays out each frame it moves). Every render
