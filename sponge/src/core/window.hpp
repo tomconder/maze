@@ -22,6 +22,7 @@ struct WindowProps {
     uint32_t         width;
     uint32_t         height;
     DisplayMode      displayMode;
+    bool             decorated = true;
 };
 
 }  // namespace sponge::core

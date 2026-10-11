@@ -105,9 +105,11 @@ void Window::init(const sponge::core::WindowProps& props) {
         }
     }
 
-    glfwSetWindowAttrib(
-        window, GLFW_DECORATED,
-        props.displayMode == DisplayMode::Windowed ? GLFW_TRUE : GLFW_FALSE);
+    glfwSetWindowAttrib(window, GLFW_DECORATED,
+                        props.displayMode == DisplayMode::Windowed &&
+                                props.decorated ?
+                            GLFW_TRUE :
+                            GLFW_FALSE);
 
     glfwSetWindowUserPointer(window, &data);
 

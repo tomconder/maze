@@ -1,10 +1,10 @@
 #pragma once
 
+#include "capture/framecapture.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/mouseevent.hpp"
 #include "input/inputsnapshot.hpp"
-#include "layer/framecapture.hpp"
 #include "layer/layer.hpp"
 #include "platform/opengl/debug/gputimer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
@@ -392,8 +392,8 @@ private:
     int32_t numLights           = 0;
     bool    isImguiOpen         = true;
 
-    std::optional<FrameCapture> capture;
-    std::string                 captureOff;
+    std::optional<game::capture::FrameCapture> capture;
+    std::string                                captureOff;
     // Capture runs only; null otherwise, which turns gpuBegin and gpuEnd into
     // no-ops.
     mutable std::optional<sponge::platform::opengl::debug::GpuTimer> gpuTimer;

@@ -114,6 +114,7 @@ bool Application::start() {
         .width       = appSpec.width,
         .height      = appSpec.height,
         .displayMode = appSpec.displayMode,
+        .decorated   = appSpec.decorated,
     });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
     if (glfwWindow == nullptr) {

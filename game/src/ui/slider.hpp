@@ -12,6 +12,8 @@
 
 namespace game::ui {
 
+// trackWidth, trackHeight, handleRadius and handleBorderWidth are pixels at the
+// 32 px menu font; the slider scales them with its font size.
 struct SliderCreateInfo {
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
@@ -57,16 +59,21 @@ public:
     // drag updates.
     float valueAtX(float mouseX, float x, float w) const;
 
+    // -1 over the left arrow, +1 over the right one, 0 elsewhere. Ask after
+    // isInsideTrack: the widened track zone wins where the two overlap.
+    int arrowAt(float mouseX, float x, float w) const;
+
 private:
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
     float     textMarginLeft;
-    float     trackWidth;
+    float     trackWidth;  // pixels at the 32 px font; multiply by scale
     float     trackHeight;
     float     handleRadius;
     float     handleBorderWidth;
+    float     scale = 1.F;  // fontSize / 32
     glm::vec4 trackColor;
     glm::vec4 fillColor;
     glm::vec4 handleColor;

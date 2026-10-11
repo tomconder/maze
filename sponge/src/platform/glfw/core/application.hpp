@@ -25,7 +25,8 @@ struct ApplicationSpecification {
     uint32_t                  height = 900;
     sponge::core::DisplayMode displayMode =
         sponge::core::DisplayMode::FullScreen;
-    bool vsync = true;
+    bool vsync     = true;
+    bool decorated = true;
 };
 
 using logging::LogItem;

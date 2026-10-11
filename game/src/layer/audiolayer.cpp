@@ -494,6 +494,11 @@ bool AudioLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
             slider->setValue(slider->valueAtX(mouseX, x, w));
             applyVolume(item, false);
             draggingItem = item;
+        } else if (const auto arrow = slider->arrowAt(mouseX, x, w);
+                   arrow != 0) {
+            if (slider->step(static_cast<float>(arrow) * volumeStep)) {
+                applyVolume(item, true);
+            }
         }
         return true;
     }

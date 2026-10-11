@@ -1,10 +1,12 @@
 #include "maze.hpp"
 
+#include "capture/menucapturelayer.hpp"
 #include "core/settings.hpp"
 #include "core/window.hpp"
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
+#include "ui/tabbar.hpp"
 #include "version.hpp"
 
 #include <charconv>
@@ -20,13 +22,14 @@ using sponge::platform::glfw::core::ApplicationSpecification;
 
 Maze::Maze(ApplicationSpecification specification, const uint32_t captureFrames,
            const bool nanStats, std::string captureOff, const float captureWalk,
-           const uint32_t captureCascades) :
+           const uint32_t captureCascades, std::string captureMenu) :
     Application(std::move(specification)),
     captureFrames(captureFrames),
     nanStats(nanStats),
     captureOff(std::move(captureOff)),
     captureWalk(captureWalk),
-    captureCascades(captureCascades) {
+    captureCascades(captureCascades),
+    captureMenu(std::move(captureMenu)) {
     // Base class handles singleton pattern
 }
 
@@ -54,7 +57,20 @@ bool Maze::onUserCreate() {
 
     // A layer starts active, so the splash has to be turned off explicitly. Its
     // timeout is also what starts the intro.
-    splashScreenLayer->setActive(captureFrames == 0);
+    splashScreenLayer->setActive(captureFrames == 0 && captureMenu.empty());
+    if (!captureMenu.empty()) {
+        // Last in the stack, so it reads the frame after every menu has drawn.
+        pushOverlay(std::make_shared<capture::MenuCaptureLayer>(captureMenu));
+        if (captureMenu == "display") {
+            ui::showOptionTab(ui::OptionTab::Display);
+        } else if (captureMenu == "keyboard") {
+            ui::showOptionTab(ui::OptionTab::Keyboard);
+        } else if (captureMenu == "audio") {
+            ui::showOptionTab(ui::OptionTab::Audio);
+        } else {
+            introLayer->setActive(true);
+        }
+    }
     if (captureFrames > 0) {
         mazeLayer->enableCapture(captureFrames, nanStats, captureOff,
                                  captureWalk, captureCascades);
@@ -124,6 +140,9 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     std::string captureOff;
     float       captureWalk     = 0.F;
     uint32_t    captureCascades = 0;
+    std::string captureMenu;
+    uint32_t    captureWidth  = 1600;
+    uint32_t    captureHeight = 900;
 
 #ifndef NDEBUG
     // Debug builds only; a release build ignores these flags.
@@ -133,7 +152,10 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // leaves the normal start. --capture-off=a,b: turn passes off for the run
     // (see MazeLayer::enableCapture). --capture-walk=D: walk D world units
     // per frame along +X instead of turning. --capture-cascades=N: use N
-    // shadow cascades.
+    // shadow cascades. --capture-menu=display, keyboard or audio: show that
+    // menu screen (any other name shows the intro), write
+    // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
+    // of any capture run.
     constexpr std::string_view          captureFlag = "--capture-frames";
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&captureFrames](const std::string_view value) {
@@ -155,6 +177,16 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             const auto value = args[i].substr(15);
             std::from_chars(value.data(), value.data() + value.size(),
                             captureWalk);
+        } else if (args[i].starts_with("--capture-menu=")) {
+            captureMenu = std::string(args[i].substr(15));
+        } else if (args[i].starts_with("--capture-size=")) {
+            const auto value = args[i].substr(15);
+            const auto x     = value.find('x');
+            if (x != std::string_view::npos) {
+                std::from_chars(value.data(), value.data() + x, captureWidth);
+                std::from_chars(value.data() + x + 1,
+                                value.data() + value.size(), captureHeight);
+            }
         } else if (args[i].starts_with("--capture-cascades=")) {
             const auto value = args[i].substr(19);
             std::from_chars(value.data(), value.data() + value.size(),
@@ -165,7 +197,7 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         captureFrames = 600;
     }
 #endif
-    const bool capturing = captureFrames > 0;
+    const bool capturing = captureFrames > 0 || !captureMenu.empty();
 
     // Files from before the three display modes hold only video.fullscreen.
     constexpr auto modeCount =
@@ -180,16 +212,20 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
 
     // A capture run uses a fixed window and no vsync, so runs compare.
     const auto spec = ApplicationSpecification{
-        .name        = game::project_name,
-        .width       = capturing ? 1600 : Settings::getUInt32("video.width", 0),
-        .height      = capturing ? 900 : Settings::getUInt32("video.height", 0),
+        .name = game::project_name,
+        .width =
+            capturing ? captureWidth : Settings::getUInt32("video.width", 0),
+        .height =
+            capturing ? captureHeight : Settings::getUInt32("video.height", 0),
         .displayMode = capturing ?
                            sponge::core::DisplayMode::Windowed :
                            static_cast<sponge::core::DisplayMode>(savedMode),
         .vsync       = !capturing && Settings::getBool("video.vsync", true),
+        // An undecorated window can be larger than the screen.
+        .decorated = captureMenu.empty(),
     };
 
     return std::make_unique<game::Maze>(spec, captureFrames, nanStats,
                                         captureOff, captureWalk,
-                                        captureCascades);
+                                        captureCascades, captureMenu);
 }

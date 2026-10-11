@@ -17,12 +17,12 @@ A game engine featuring a nice walk through a maze.
 * Clustered (volume-tiled) light culling
 * Exponential variance shadow maps (EVSM) with Dual Kawase blur
 * Selectable tone mapping: AgX (default), ACES, Filmic or Reinhard
-* Physically based bloom
+* Physically based bloom, run as compute passes
 * Screen-space ambient occlusion (SSAO)
 * Screen-space reflection (SSR) for objects marked `reflective` in the scene file
 * Planar reflection for flat mirrors
 * Reflection probe with box-projected specular reflections
-* Screen-space refraction for glass objects, with index of refraction, thickness and tint
+* Screen-space refraction for glass objects, with index of refraction, thickness and tint (built in, switched off for now)
 * Camera frustum and hardware occlusion culling
 * Selectable anti-aliasing: FXAA or temporal (TAA)
 * Shaders written in Slang, compiled at build time into one shader pack
@@ -31,11 +31,13 @@ A game engine featuring a nice walk through a maze.
 * UI icons packed into a sprite atlas
 * LCD subpixel text with subpixel positioning, rasterized with FreeType and shaped with HarfBuzz at build time
 * Flexbox-based UI layout with Yoga
+* Menus that scale with the window width: the font, option rows, tab bar and key hints follow `width / 1920`
+* Options screen with Display, Keyboard and Audio tabs: display mode (windowed, full screen or borderless window), aspect ratio, resolution, vsync, anti-aliasing, shadow quality, ambient occlusion, bloom, subsurface scattering, key rebinding and volumes, with smooth scrolling
 * Audio playback with miniaudio
 * Draggable slider widget for Master/Sfx/Music volume, with mouse, keyboard and gamepad support
 * Performance profiling with Tracy
 * Gamepad support
-* Dear ImGui debug and options UI
+* Dear ImGui debug UI
 * Third-party license notices assembled at build time and shipped with the game
 
 ## Project Organization

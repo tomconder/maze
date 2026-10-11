@@ -11,10 +11,12 @@
 namespace game::ui {
 
 namespace {
-constexpr float            valueGap       = 12.F;
-constexpr std::string_view fullValueText  = "100%";
-constexpr std::string_view leftArrowText  = "< ";
-constexpr std::string_view rightArrowText = " >";
+// The sizes in SliderCreateInfo are for this font size.
+constexpr float            referenceFontSize = 32.F;
+constexpr float            baseValueGap      = 12.F;
+constexpr std::string_view fullValueText     = "100%";
+constexpr std::string_view leftArrowText     = "< ";
+constexpr std::string_view rightArrowText    = " >";
 }  // namespace
 
 Slider::Slider(const SliderCreateInfo& createInfo) :
@@ -59,6 +61,7 @@ void Slider::setFontSize(const uint32_t size) {
 }
 
 void Slider::recomputeCachedLengths() {
+    scale = static_cast<float>(fontSize) / referenceFontSize;
     percentLen =
         static_cast<float>(font->getLength(fullValueText, fontSize, true));
     leftArrowLen = static_cast<float>(font->getLength(leftArrowText, fontSize));
@@ -68,11 +71,12 @@ void Slider::recomputeCachedLengths() {
 
 std::tuple<float, float, float, float>
     Slider::computeLayout(const float x, const float w) const {
+    const float valueGap    = baseValueGap * scale;
     const float rightEdge   = x + w - textMarginLeft;
     const float valueX      = rightEdge - percentLen;
     const float rightArrowX = valueX - valueGap - rightArrowLen;
     const float trackEndX   = rightArrowX - valueGap;
-    const float trackStartX = trackEndX - trackWidth;
+    const float trackStartX = trackEndX - trackWidth * scale;
     const float leftArrowX  = trackStartX - valueGap - leftArrowLen;
     return { leftArrowX, trackStartX, rightArrowX, valueX };
 }
@@ -81,26 +85,29 @@ void Slider::onUpdate(const float x, const float y, const float w,
                       const float h, const std::string_view label) {
     const auto [leftArrowX, tStartX, rightArrowX, valueX] = computeLayout(x, w);
 
+    const float trackW = trackWidth * scale;
+    const float trackH = trackHeight * scale;
+    const float radius = handleRadius * scale;
+
     const float textY = std::floor(
         y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    const float trackY = y + (h - trackHeight) / 2.F;
+    const float trackY = y + (h - trackH) / 2.F;
 
-    quad->render({ tStartX, trackY },
-                 { tStartX + trackWidth, trackY + trackHeight }, trackColor,
-                 trackHeight / 2.F);
+    quad->render({ tStartX, trackY }, { tStartX + trackW, trackY + trackH },
+                 trackColor, trackH / 2.F);
 
-    const float fillWidth = trackWidth * value;
+    const float fillWidth = trackW * value;
     if (fillWidth > 0.F) {
         quad->render({ tStartX, trackY },
-                     { tStartX + fillWidth, trackY + trackHeight }, fillColor,
-                     trackHeight / 2.F);
+                     { tStartX + fillWidth, trackY + trackH }, fillColor,
+                     trackH / 2.F);
     }
 
     const float handleCenterX = tStartX + fillWidth;
-    const float handleCenterY = trackY + trackHeight / 2.F;
-    quad->render({ handleCenterX - handleRadius, handleCenterY - handleRadius },
-                 { handleCenterX + handleRadius, handleCenterY + handleRadius },
-                 handleColor, handleRadius, handleBorderWidth,
+    const float handleCenterY = trackY + trackH / 2.F;
+    quad->render({ handleCenterX - radius, handleCenterY - radius },
+                 { handleCenterX + radius, handleCenterY + radius },
+                 handleColor, radius, handleBorderWidth * scale,
                  handleBorderColor);
 
     font->beginPass(fontSize);
@@ -119,13 +126,25 @@ void Slider::onUpdate(const float x, const float y, const float w,
 bool Slider::isInsideTrack(const float mouseX, const float x,
                            const float w) const {
     const auto [leftArrowX, tStartX, rightArrowX, valueX] = computeLayout(x, w);
-    return mouseX >= tStartX - handleRadius &&
-           mouseX <= tStartX + trackWidth + handleRadius;
+    const float radius = handleRadius * scale;
+    return mouseX >= tStartX - radius &&
+           mouseX <= tStartX + trackWidth * scale + radius;
 }
 
 float Slider::valueAtX(const float mouseX, const float x, const float w) const {
     const auto [leftArrowX, tStartX, rightArrowX, valueX] = computeLayout(x, w);
-    return std::clamp((mouseX - tStartX) / trackWidth, 0.F, 1.F);
+    return std::clamp((mouseX - tStartX) / (trackWidth * scale), 0.F, 1.F);
+}
+
+int Slider::arrowAt(const float mouseX, const float x, const float w) const {
+    const auto [leftArrowX, tStartX, rightArrowX, valueX] = computeLayout(x, w);
+    if (mouseX >= leftArrowX && mouseX < tStartX) {
+        return -1;
+    }
+    if (mouseX >= rightArrowX && mouseX < valueX) {
+        return 1;
+    }
+    return 0;
 }
 
 }  // namespace game::ui
