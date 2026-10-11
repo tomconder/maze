@@ -33,6 +33,17 @@ primitives, windowing, or platform backends itself — see
   live to `sponge::platform::audio::Audio` and written to `Settings` on every
   change, but only flushed to disk on drag-release or a discrete step — not
   on every mouse-move frame of a drag.
+  The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
+  absolute Yoga nodes placed from the first visible row, so the pinned rows
+  (Return, and Reset to Defaults) keep their flex position at the bottom.
+  The target and the drawn offset are in fractional rows, so a row can rest
+  half in view; the offset eases toward the target
+  (`MenuScroll::step()`, which relays out each frame it moves). Every render
+  loop skips rows with `shows()` and draws between `beginClip()` and
+  `endClip()`, which use `RendererAPI::setScissor()` (the ortho camera and the
+  viewport share one pixel size). Hover and click loops use `canHit()`.
+  Follow the selection only when it changes (`followSelection()`), or the
+  wheel snaps back.
 * `layer/imgui/imguilayer.hpp` / `.cpp` - the debug UI, compiled only when
   `ENABLE_IMGUI`. `layer/imgui/noopimguilayer.hpp` defines an inert
   `ImGuiLayer` with the same name for release builds, picked by the single

@@ -79,6 +79,12 @@ private:
 
     static void recalculateLayout(float width, float height);
 
+    // Lays out again at the current window size, after the scroll moved.
+    static void relayout();
+
+    // Scrolls the selected row into view.
+    void followSelection();
+
     void applyChanges();
 
     void syncPendingCheckboxState();
@@ -89,6 +95,11 @@ private:
         const sponge::event::MouseButtonPressedEvent& event);
 
     bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
+
+    bool onMouseButtonReleased(
+        const sponge::event::MouseButtonReleasedEvent& event);
+
+    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event);
 

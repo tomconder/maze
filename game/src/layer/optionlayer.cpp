@@ -9,6 +9,7 @@
 #include <numeric>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -37,6 +38,7 @@
 #include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuscroll.hpp"
 #include "ui/menuselection.hpp"
 #include "ui/selectlist.hpp"
 #include "ui/tabbar.hpp"
@@ -190,6 +192,9 @@ constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
 // doubles as the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
+// The setting rows scroll; Return stays pinned below them.
+game::ui::MenuScroll scroll;
+
 struct RowDef {
     OptionMenuItem   item;
     std::string_view label;
@@ -268,7 +273,9 @@ namespace game::layer {
 using sponge::event::Event;
 using sponge::event::EventDispatcher;
 using sponge::event::MouseButtonPressedEvent;
+using sponge::event::MouseButtonReleasedEvent;
 using sponge::event::MouseMovedEvent;
+using sponge::event::MouseScrolledEvent;
 using sponge::event::WindowResizeEvent;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::scene::FontCreateInfo;
@@ -379,6 +386,14 @@ void OptionLayer::onEvent(Event& event) {
         [this](const MouseButtonPressedEvent& mouseEvent) {
             return isActive() ? onMouseButtonPressed(mouseEvent) : false;
         });
+    dispatcher.dispatch<MouseButtonReleasedEvent>(
+        [this](const MouseButtonReleasedEvent& mouseEvent) {
+            return isActive() ? onMouseButtonReleased(mouseEvent) : false;
+        });
+    dispatcher.dispatch<MouseScrolledEvent>(
+        [this](const MouseScrolledEvent& scrollEvent) {
+            return isActive() ? onMouseScrolled(scrollEvent) : false;
+        });
     dispatcher.dispatch<MouseMovedEvent>(
         [this](const MouseMovedEvent& mouseMovedEvent) {
             return isActive() ? onMouseMoved(mouseMovedEvent) : false;
@@ -400,6 +415,10 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             const auto& input = mgr.getSnapshot();
             if (!wasActiveLastFrame) {
                 resetSelectionToCurrentState();
+                followSelection();
+                // open at the right row, not easing in from the last visit
+                scroll.snap();
+                relayout();
                 waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
             } else if (waitForConfirmRelease &&
                        !input.isHeld(GameAction::MenuConfirm)) {
@@ -412,6 +431,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
+                followSelection();
             }
 
             if (input.isActive(GameAction::MenuLeft)) {
@@ -463,6 +483,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
 
     const auto width  = static_cast<float>(orthoCamera->getWidth());
     const auto height = static_cast<float>(orthoCamera->getHeight());
+    if (scroll.step(static_cast<float>(elapsedTime))) {
+        relayout();
+    }
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
     auto renderDots = [&](const size_t count, const float valueCenterX,
@@ -501,7 +524,11 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         menuFont->endPass();
     };
 
+    scroll.beginClip(height);
     for (const auto& [item, label] : settingRows) {
+        if (!scroll.shows(+item)) {
+            continue;
+        }
         const auto [x, y, w, h] = rowLayout(item);
         renderRowBackground(x, y, w, h, item);
 
@@ -515,6 +542,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
         }
     }
+    scroll.endClip();
 
     const auto [retX, retY, retW, retH] = rowLayout(OptionMenuItem::Return);
     returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
@@ -523,6 +551,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
                                 textHoverColor);
 
     returnButton->onUpdate(elapsedTime);
+
+    scroll.render(*quad);
 
     // the strip lines up with the rows, so it starts at the first row's edge
     const auto [tabX, tabY, tabW, tabH] =
@@ -658,9 +688,39 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
         ui::setMenuRowHeight(row, width);
     }
     ui::pinMenuRowToBottom(rowNodes[+OptionMenuItem::Return], width);
-    YGNodeStyleSetWidth(rootNode, width);
-    YGNodeStyleSetHeight(rootNode, usableHeight);
-    YGNodeCalculateLayout(rootNode, width, usableHeight, YGDirectionLTR);
+    scroll.layout(
+        rootNode, menuNode, menuBackgroundNode,
+        std::span<const YGNodeRef>(rowNodes).first(settingRows.size()),
+        rowNodes[+OptionMenuItem::Return], width, usableHeight,
+        ui::tabBarHeight(width));
+}
+
+void OptionLayer::relayout() {
+    recalculateLayout(static_cast<float>(orthoCamera->getWidth()),
+                      static_cast<float>(orthoCamera->getHeight()));
+}
+
+void OptionLayer::followSelection() {
+    if (scroll.ensureVisible(+selectedItem)) {
+        relayout();
+    }
+}
+
+bool OptionLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
+    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
+        return false;
+    }
+    scroll.release();
+    return true;
+}
+
+bool OptionLayer::onMouseScrolled(const MouseScrolledEvent& event) {
+    if (scroll.wheel(event.getYOffset())) {
+        // no mouse move follows, so the old hover points at the wrong row
+        hoveredItem = std::nullopt;
+        relayout();
+    }
+    return true;
 }
 
 bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
@@ -693,9 +753,15 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    if (scroll.press({ mouseX, mouseY })) {
+        relayout();
+        return true;
+    }
+
     for (const auto& [item, label] : settingRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (!contains(x, y, w, h, mouseX, mouseY)) {
+        if (!scroll.canHit(+item, mouseY) ||
+            !contains(x, y, w, h, mouseX, mouseY)) {
             continue;
         }
 
@@ -722,10 +788,14 @@ bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
 
     ui::updateButtonHover(returnButton.get(), pos);
 
+    if (scroll.drag(pos.y)) {
+        relayout();
+    }
+
     std::optional<OptionMenuItem> nextHover;
     for (const auto& [item, label] : settingRows) {
         const auto [x, y, w, h] = rowLayout(item);
-        if (contains(x, y, w, h, pos.x, pos.y)) {
+        if (scroll.canHit(+item, pos.y) && contains(x, y, w, h, pos.x, pos.y)) {
             nextHover = item;
             break;
         }
@@ -744,6 +814,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto width  = static_cast<float>(event.getWidth());
     const auto height = static_cast<float>(event.getHeight());
     recalculateLayout(width, height);
+    followSelection();
 
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
     if (newFontSize != fontSize) {
@@ -932,6 +1003,7 @@ void OptionLayer::updateChangeStatus() {
 }
 
 void OptionLayer::clearHoveredItems() {
+    scroll.release();
     returnButton->setHover(false);
     hoveredItem = std::nullopt;
 }

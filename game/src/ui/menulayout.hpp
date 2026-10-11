@@ -52,8 +52,13 @@ inline void setMenuRowHeight(const YGNodeRef row, const float windowWidth) {
     YGNodeStyleSetMaxHeight(row, menuRowHeight(windowWidth));
 }
 
-inline void pinMenuRowToBottom(const YGNodeRef row, const float windowWidth) {
-    YGNodeStyleSetMarginAuto(row, YGEdgeTop);
+// Only the first pinned row of a menu takes the leftover space; a second auto
+// margin would split it.
+inline void pinMenuRowToBottom(const YGNodeRef row, const float windowWidth,
+                               const bool takesLeftover = true) {
+    if (takesLeftover) {
+        YGNodeStyleSetMarginAuto(row, YGEdgeTop);
+    }
     YGNodeStyleSetFlexGrow(row, 0.F);
     YGNodeStyleSetFlexShrink(row, 0.F);
     // makeMenuRow left a flex basis of 0, so the siblings would grow into
