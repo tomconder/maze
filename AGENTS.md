@@ -50,6 +50,7 @@ paths and repeated logs.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * `maxCascades` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::maxCascades` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
 * `evsmExponent` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::evsmExponent` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
+* `bakedFontSizes` in `game/src/ui/menufontsize.hpp` must match `fonts[].sizes` in `assets/manifest.yaml`. The font holds only those sizes; a text size outside the list draws nothing.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 
 ## IDE Tooling
@@ -124,8 +125,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
 
 * `--capture-frames N` (or `=N`): skips the splash and intro screens, loads the
   maze, turns the camera once over N frames in a fixed 1600x900 window with
-  vsync off, writes the last frame of each stage as a float `capture_<stage>_last.pfm`
-  and exits. A missing, zero or non-numeric N leaves the normal start.
+  vsync off, writes the last frame of each stage and exits. The `scene` and
+  `bloom` stages hold radiance and are float `capture_<stage>_last.pfm`; the
+  0 to 1 stages (`tonemap`, `taa`, `backbuffer`) are 8-bit
+  `capture_<stage>_last.png`. A missing, zero or non-numeric N leaves the
+  normal start.
 * `--dump-nan-stats`: scans every stage on every frame and writes
   `capture_stats.txt` (NaN, Inf, values over 1000, bright and dark specks,
   highest finite value, first hit), `capture_specks.txt` (frame and pixel of
@@ -138,6 +142,14 @@ maze.exe --capture-frames=600 --dump-nan-stats
   near cascade redraws when the camera has moved one texel of its map.
 * `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
   the whole-scene map alone, for an A/B against the cascades.
+* `--capture-menu=intro|display|keyboard|audio`: skip the splash, show that
+  menu screen for two seconds, write the back buffer as
+  `capture_menu_<name>.png` (8-bit RGB) and exit. The window has no frame, so
+  `--capture-size=WxH` can be larger than the screen; it also sets the window
+  size of any other capture run (default 1600x900). Use it to check menu layout
+  at a resolution the monitor cannot show, such as
+  `--capture-menu=display --capture-size=3840x2160`. Debug builds link libspng
+  for the PNG; release builds do not.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
   measurement: `shadowcache` draws the shadow map every frame (the cache would

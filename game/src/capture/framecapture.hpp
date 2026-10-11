@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace game::layer {
+namespace game::capture {
 
 // Debug capture: counts non-finite, huge and isolated pixels per pipeline
 // stage, every frame, on 32-bit float readbacks. Stages read before the final
@@ -98,4 +98,4 @@ private:
     std::vector<std::array<uint32_t, 3>> specks;
 };
 
-}  // namespace game::layer
+}  // namespace game::capture

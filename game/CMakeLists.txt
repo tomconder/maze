@@ -6,14 +6,14 @@ file(
         GLOB HEADER_FILES
         CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
-        src/*.hpp src/layer/*.hpp src/layer/imgui/*.hpp src/scene/*.hpp
+        src/*.hpp src/capture/*.hpp src/layer/*.hpp src/layer/imgui/*.hpp src/scene/*.hpp
         src/thread/*.hpp src/ui/*.hpp)
 
 file(
         GLOB SOURCE_FILES
         CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
-        src/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
+        src/*.cpp src/capture/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
 
 file(
         GLOB ASSETS
@@ -198,6 +198,14 @@ target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(game PRIVATE fkYAML::fkYAML)
 target_link_libraries(game PRIVATE sponge::sponge)
 target_link_libraries(game PRIVATE yoga::yogacore)
+
+# --capture-menu writes a PNG, so debug builds link libspng. Release builds
+# never do: image formats stay out of the shipped game.
+find_package(SPNG CONFIG REQUIRED)
+target_link_libraries(
+        game
+        PRIVATE
+        $<$<NOT:$<CONFIG:Release,RelWithDebInfo,MinSizeRel>>:$<IF:$<TARGET_EXISTS:spng::spng>,spng::spng,spng::spng_static>>)
 
 if (CMAKE_SKIP_INSTALL_RULES)
     return()

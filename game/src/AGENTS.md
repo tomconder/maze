@@ -13,12 +13,17 @@ primitives, windowing, or platform backends itself — see
 * `layer/mazelayer.hpp` / `.cpp` - the core gameplay layer: camera, lighting,
   shadow map, SSAO, occlusion culling, bloom/FXAA/TAA post-processing, and
   the update/render split.
-* `layer/framecapture.hpp` / `.cpp` - the `--capture-frames` and
+* `capture/framecapture.hpp` / `.cpp` - the `--capture-frames` and
   `--dump-nan-stats` debug scan (see the root `AGENTS.md`). Parsed in
   `createApplication()` under `#ifndef NDEBUG`; `MazeLayer::recordCapture()`
   feeds it float readbacks on the render thread. Test NaN and Inf by bits,
   through a pointer: the build uses fast math, so `std::isnan`, `std::isinf`
   and a bit test on a float passed by value all fold to false.
+* `capture/menucapturelayer.hpp` / `.cpp` - the `--capture-menu` debug capture.
+  `Maze::onUserCreate()` pushes it after every other layer, so it reads a
+  frame all menus have drawn, and shows the named screen through
+  `introLayer` or `ui::showOptionTab()`. It writes a PNG with libspng, which
+  only debug builds link (`game/CMakeLists.txt`).
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
   `layer/audiolayer.hpp`, `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp`
   - other screens in the layer stack. The options screen is one layer per tab:
@@ -29,10 +34,10 @@ primitives, windowing, or platform backends itself — see
   their Yoga root. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
-  are `ui::Slider` (drag, click-to-jump, and keyboard/gamepad step), applied
-  live to `sponge::platform::audio::Audio` and written to `Settings` on every
-  change, but only flushed to disk on drag-release or a discrete step — not
-  on every mouse-move frame of a drag.
+  are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
+  keyboard/gamepad step), applied live to `sponge::platform::audio::Audio` and
+  written to `Settings` on every change, but only flushed to disk on
+  drag-release or a discrete step, not on every mouse-move frame of a drag.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   absolute Yoga nodes placed from the first visible row, so the pinned rows
   (Return, and Reset to Defaults) keep their flex position at the bottom.
@@ -147,6 +152,21 @@ primitives, windowing, or platform backends itself — see
   path (prepass, shadows, opaque color) and the glass pass is skipped. The
   shadow cache is cleared if the flag changes, because glass then joins or
   leaves the casters.
+
+* Menu scale follows the window width. `ui::menuFontSizeForWidth()` returns the
+  baked font size nearest to `32 * width / 1920`, and the option rows, tab
+  bar and key hints derive from it. Checked with `--capture-menu` (all four
+  screens) at 1024x768 and 3840x2160, and by screenshot at 1280x720 and
+  1920x1080. `ui::Slider` scales its track, handle and gaps from its font size
+  (its `SliderCreateInfo` sizes are pixels at the 32 px font). These do not
+  scale yet:
+  * `makeMenuRow()` caps a row at 110 px, so the intro and exit menus keep the
+    1080p row height at 4K.
+  * The 10 px margin in `buildMenuSkeleton()`.
+  Scale these from the font size when one of them needs the fix.
+* The font snaps to the nearest baked size, about 10 to 15% apart, so a width
+  between two steps gets the nearest one. Exact scaling needs `BitmapFont` to
+  scale a baked size at draw time.
 
 ## Anti-patterns
 

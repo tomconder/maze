@@ -29,10 +29,12 @@ class Maze final : public sponge::platform::glfw::core::Application {
 public:
     // A non-zero `captureFrames` skips the splash and intro screens, loads
     // the maze and renders that many frames, then exits. See FrameCapture.
+    // A non-empty `captureMenu` skips the splash, shows that menu screen
+    // and writes one capture. See MenuCaptureLayer.
     Maze(sponge::platform::glfw::core::ApplicationSpecification specification,
          uint32_t captureFrames = 0, bool nanStats = false,
          std::string captureOff = {}, float captureWalk = 0.F,
-         uint32_t captureCascades = 0);
+         uint32_t captureCascades = 0, std::string captureMenu = {});
 
     bool onUserCreate() override;
 
@@ -114,6 +116,7 @@ private:
     std::string captureOff;
     float       captureWalk;
     uint32_t    captureCascades;
+    std::string captureMenu;
 
     std::shared_ptr<layer::AudioLayer> audioLayer =
         std::make_shared<layer::AudioLayer>();

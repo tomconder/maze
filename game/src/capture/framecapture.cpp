@@ -1,5 +1,6 @@
-#include "layer/framecapture.hpp"
+#include "capture/framecapture.hpp"
 
+#include "capture/capturepng.hpp"
 #include "platform/opengl/renderer/readback.hpp"
 
 #include <algorithm>
@@ -9,7 +10,7 @@
 #include <fstream>
 #include <limits>
 
-namespace game::layer {
+namespace game::capture {
 using sponge::platform::opengl::renderer::Image;
 using sponge::platform::opengl::renderer::writePfm;
 
@@ -142,7 +143,12 @@ void FrameCapture::record(const std::string& stage, const Image& image,
         s.hitFrames++;
     }
     if (isLastFrame()) {
-        writePfm(image, std::format("capture_{}_last.pfm", stage).c_str());
+        // 0..1 stages are plain pictures; radiance needs the float file.
+        if (hdr) {
+            writePfm(image, std::format("capture_{}_last.pfm", stage).c_str());
+        } else {
+            writePng(image, std::format("capture_{}_last.png", stage).c_str());
+        }
     }
 }
 
@@ -211,4 +217,4 @@ void FrameCapture::report(
     }
 }
 
-}  // namespace game::layer
+}  // namespace game::capture
