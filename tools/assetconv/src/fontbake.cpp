@@ -37,7 +37,7 @@ namespace {
 namespace font = sponge::scene::font;
 namespace ktx2 = sponge::scene::ktx2;
 
-constexpr int      maxAtlasSide  = 1024;
+constexpr int      maxAtlasSide  = 2048;
 constexpr uint32_t atlasChannels = 3;
 
 // Printable ASCII plus U+00D7 MULTIPLICATION SIGN.
