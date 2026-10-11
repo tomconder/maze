@@ -7,14 +7,11 @@
 #include <memory>
 #include <vector>
 
-#ifndef NDEBUG
 #include <spng.h>
-#endif
 
 namespace game::capture {
 using sponge::platform::opengl::renderer::Image;
 
-#ifndef NDEBUG
 namespace {
 struct SpngDeleter {
     void operator()(spng_ctx* context) const {
@@ -73,10 +70,4 @@ bool writePng(const Image& image, const char* path) {
               static_cast<std::streamsize>(size));
     return out.good();
 }
-#else
-bool writePng(const Image&, const char*) {
-    return false;
-}
-#endif
-
 }  // namespace game::capture

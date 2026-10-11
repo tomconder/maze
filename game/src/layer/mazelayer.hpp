@@ -1,6 +1,8 @@
 #pragma once
 
+#ifndef NDEBUG
 #include "capture/framecapture.hpp"
+#endif
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "event/mouseevent.hpp"
@@ -210,6 +212,7 @@ public:
     // Re-activates an already-loaded layer without going through LoadingLayer.
     void activate();
 
+#ifndef NDEBUG
     // Debug capture run: renders `frames` frames while the camera turns once,
     // then the app exits. See FrameCapture. Call before the app runs.
     // `off` is a comma list of passes to disable for the run, to find which
@@ -222,6 +225,7 @@ public:
     // A non-zero `cascades` sets the shadow cascade count for the run.
     void enableCapture(uint32_t frames, bool stats, std::string off = {},
                        float walk = 0.F, uint32_t cascades = 0);
+#endif
 
 private:
     // Loaded in the constructor, before any other member reads it.
@@ -303,8 +307,6 @@ private:
     bool shadowCachedRefraction = true;
     // Debug capture only: draw the shadow map every frame, to time it.
     bool shadowCacheOff = false;
-    // Debug capture only: skip the GPU timer, to measure its own cost.
-    bool gpuTimerOff = false;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
@@ -392,16 +394,20 @@ private:
     int32_t numLights           = 0;
     bool    isImguiOpen         = true;
 
-    std::optional<game::capture::FrameCapture> capture;
-    std::string                                captureOff;
     // Capture runs only; null otherwise, which turns gpuBegin and gpuEnd into
     // no-ops.
     mutable std::optional<sponge::platform::opengl::debug::GpuTimer> gpuTimer;
+#ifndef NDEBUG
+    std::optional<game::capture::FrameCapture> frameCapture;
+    std::string                                captureOff;
+    // Skip the GPU timer, to measure its own cost.
+    bool gpuTimerOff = false;
     // Degrees of yaw per update while capturing; 0 leaves the camera alone.
     float captureYawStep = 0.F;
     // World units per update along +X while capturing; 0 leaves the camera
     // alone.
     float captureWalkStep = 0.F;
+#endif
 
     void onWindowFocus(const sponge::event::WindowFocusEvent& event);
 
@@ -436,7 +442,9 @@ private:
                                  uint32_t sceneCopy) const;
 
     void renderLightCubes(const thread::MazeRenderFrame& frame) const;
+#ifndef NDEBUG
     void recordCapture(bool fxaaActive, bool taaActive, uint32_t bloomTexId);
+#endif
     void gpuBegin(std::string_view name) const {
         if (gpuTimer) {
             gpuTimer->begin(name);

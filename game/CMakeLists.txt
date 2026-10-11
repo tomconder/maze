@@ -13,7 +13,13 @@ file(
         GLOB SOURCE_FILES
         CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
-        src/*.cpp src/capture/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
+        src/*.cpp src/layer/*.cpp src/scene/*.cpp src/ui/*.cpp)
+
+file(
+        GLOB CAPTURE_SOURCES
+        CONFIGURE_DEPENDS
+        LIST_DIRECTORIES false
+        src/capture/*.cpp)
 
 file(
         GLOB ASSETS
@@ -199,8 +205,12 @@ target_link_libraries(game PRIVATE fkYAML::fkYAML)
 target_link_libraries(game PRIVATE sponge::sponge)
 target_link_libraries(game PRIVATE yoga::yogacore)
 
-# --capture-menu writes a PNG, so debug builds link libspng. Release builds
-# never do: image formats stay out of the shipped game.
+# The capture code and libspng (for --capture-menu ONGs) are debug only:
+# release builds neither compile nor link them.
+target_sources(
+        game
+        PRIVATE
+        $<$<NOT:$<CONFIG:Release,RelWithDebInfo,MinSizeRel>>:${CAPTURE_SOURCES}>)
 find_package(SPNG CONFIG REQUIRED)
 target_link_libraries(
         game
