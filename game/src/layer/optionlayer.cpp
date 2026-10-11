@@ -66,8 +66,7 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
     { .label = "25:16", .numerator = 25, .denominator = 16 },
 });
 
-constexpr std::string_view returnMessage = "Return";
-constexpr std::string_view applyMessage  = "Apply";
+constexpr std::string_view applyMessage = "Apply";
 
 constexpr size_t shadowQualityCount =
     static_cast<size_t>(game::layer::ShadowQuality::Count);
@@ -193,7 +192,7 @@ void saveVideoSettings(const std::optional<sponge::core::Resolution>& size,
     Settings::save();
 }
 
-std::unique_ptr<game::ui::Button> returnButton;
+std::unique_ptr<game::ui::Button> applyButton;
 
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
@@ -207,7 +206,7 @@ constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
 // doubles as the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
-// The setting rows scroll; Return stays pinned below them.
+// The setting rows scroll; Apply stays pinned below them.
 game::ui::MenuScroll scroll;
 
 struct RowDef {
@@ -222,7 +221,7 @@ constexpr bool isHeading(const OptionMenuItem item) {
            item == OptionMenuItem::AdvancedHeading;
 }
 
-// Every row except Return, which is a Button rather than a setting widget.
+// Every row except Apply, which is a Button rather than a setting widget.
 constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::GeneralHeading, .label = "General" },
     RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
@@ -241,7 +240,7 @@ constexpr std::array settingRows = {
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
-// cover every row but Return.
+// cover every row but Apply.
 static_assert(settingRows.size() + 1 == rowCount);
 static_assert([] {
     for (size_t i = 0; i < settingRows.size(); i++) {
@@ -329,8 +328,8 @@ void OptionLayer::onAttach() {
 
     fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
 
-    returnButton = ui::makeMenuButton(returnMessage, fontSize, menuFont,
-                                      buttonColor, textColor);
+    applyButton = ui::makeMenuButton(applyMessage, fontSize, menuFont,
+                                     buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->setMat4("projection", orthoCamera->getProjection());
@@ -507,14 +506,9 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
-                if (selectedItem == OptionMenuItem::Return) {
+                if (selectedItem == OptionMenuItem::Apply) {
                     if (hasUnappliedChanges) {
                         applyChanges();
-                    } else {
-                        clearHoveredItems();
-                        selectedItem = OptionMenuItem::DisplayMode;
-                        resetSelectionToCurrentState();
-                        setActive(false);
                     }
                 } else {
                     togglePending(selectedItem);
@@ -596,13 +590,15 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
     }
     scroll.endClip();
 
-    const auto [retX, retY, retW, retH] = rowLayout(OptionMenuItem::Return);
-    returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
-    ui::updateMenuButtonVisuals(returnButton.get(),
-                                selectedItem == OptionMenuItem::Return,
+    const auto [applyX, applyY, applyW, applyH] =
+        rowLayout(OptionMenuItem::Apply);
+    applyButton->setPosition({ applyX, applyY },
+                             { applyX + applyW, applyY + applyH });
+    ui::updateMenuButtonVisuals(applyButton.get(),
+                                selectedItem == OptionMenuItem::Apply,
                                 textHoverColor);
 
-    returnButton->onUpdate(elapsedTime);
+    applyButton->onUpdate(elapsedTime);
 
     scroll.render(*quad);
 
@@ -772,11 +768,11 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
     for (auto* const row : rowNodes) {
         ui::setMenuRowHeight(row, width);
     }
-    ui::pinMenuRowToBottom(rowNodes[+OptionMenuItem::Return], width);
+    ui::pinMenuRowToBottom(rowNodes[+OptionMenuItem::Apply], width);
     scroll.layout(
         rootNode, menuNode, menuBackgroundNode,
         std::span<const YGNodeRef>(rowNodes).first(settingRows.size()),
-        rowNodes[+OptionMenuItem::Return], width, usableHeight,
+        rowNodes[+OptionMenuItem::Apply], width, usableHeight,
         ui::tabBarHeight(width));
 }
 
@@ -834,13 +830,9 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    if (returnButton->isInside({ mouseX, mouseY })) {
+    if (applyButton->isInside({ mouseX, mouseY })) {
         if (hasUnappliedChanges) {
             applyChanges();
-        } else {
-            clearHoveredItems();
-            resetSelectionToCurrentState();
-            setActive(false);
         }
         return true;
     }
@@ -878,7 +870,7 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    ui::updateButtonHover(returnButton.get(), pos);
+    ui::updateButtonHover(applyButton.get(), pos);
 
     if (scroll.drag(pos.y)) {
         relayout();
@@ -913,7 +905,7 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     if (newFontSize != fontSize) {
         fontSize = newFontSize;
 
-        returnButton->setFontSize(fontSize);
+        applyButton->setFontSize(fontSize);
 
         const auto  checkboxSize       = static_cast<float>(fontSize);
         const float maxCycleValueWidth = computeMaxCycleValueWidth();
@@ -1020,7 +1012,6 @@ void OptionLayer::applyChanges() {
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
-    returnButton->setMessage(returnMessage);
 }
 
 void OptionLayer::syncPendingCheckboxState() {
@@ -1112,13 +1103,11 @@ void OptionLayer::updateChangeStatus() {
 
     hasUnappliedChanges = checkboxChanged || displayModeChanged ||
                           resolutionChanged || shadowChanged || aaChanged;
-    returnButton->setMessage(hasUnappliedChanges ? applyMessage :
-                                                   returnMessage);
 }
 
 void OptionLayer::clearHoveredItems() {
     scroll.release();
-    returnButton->setHover(false);
+    applyButton->setHover(false);
     hoveredItem = std::nullopt;
 }
 

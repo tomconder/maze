@@ -40,8 +40,6 @@ namespace {
 constexpr std::string_view fontName = "inter";
 constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
-constexpr std::string_view returnMessage = "Return";
-
 constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
 constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
 constexpr glm::vec4 hoverColor         = { 0.84F, 0.84F, 0.84F, 0.14F };
@@ -64,7 +62,6 @@ struct RowDef {
     std::string_view label;
 };
 
-// Every row except Return, which is a Button rather than a slider.
 constexpr std::array volumeRows = {
     RowDef{ .item = AudioMenuItem::MasterVolume, .label = "Master Volume" },
     RowDef{ .item = AudioMenuItem::SfxVolume, .label = "Sound Effects" },
@@ -72,8 +69,8 @@ constexpr std::array volumeRows = {
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
-// cover every row but Return.
-static_assert(volumeRows.size() + 1 == rowCount);
+// cover every row.
+static_assert(volumeRows.size() == rowCount);
 static_assert([] {
     for (size_t i = 0; i < volumeRows.size(); i++) {
         if (static_cast<size_t>(volumeRows[i].item) != i) {
@@ -87,7 +84,7 @@ static_assert([] {
 // as the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
-// The volume rows scroll; Return stays pinned below them.
+// The volume rows scroll.
 game::ui::MenuScroll scroll;
 
 YGNodeRef menuBackgroundNode = nullptr;
@@ -102,8 +99,6 @@ constexpr std::array<game::ui::KeyHint, 4> audioKeyHints = {
     game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
     game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
 };
-
-std::unique_ptr<game::ui::Button> returnButton;
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;
@@ -145,9 +140,6 @@ void AudioLayer::onAttach() {
     quad = std::make_unique<Quad>();
 
     fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
-
-    returnButton = ui::makeMenuButton(returnMessage, fontSize, menuFont,
-                                      buttonColor, textColor);
 
     const ui::SliderCreateInfo sliderCreateInfo{
         .font               = menuFont,
@@ -275,12 +267,6 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
                 mgr.consumeActive(GameAction::MenuBack);
                 close();
             }
-            if (!waitForConfirmRelease &&
-                input.isActive(GameAction::MenuConfirm) &&
-                selectedItem == AudioMenuItem::Return) {
-                mgr.consumeActive(GameAction::MenuConfirm);
-                close();
-            }
         }
         wasActiveLastFrame = true;
     }
@@ -306,13 +292,6 @@ bool AudioLayer::onUpdate(const double elapsedTime) {
         sliderFor(item)->onUpdate(x, y, w, h, label);
     }
     scroll.endClip();
-
-    const auto [retX, retY, retW, retH] = rowLayout(AudioMenuItem::Return);
-    returnButton->setPosition({ retX, retY }, { retX + retW, retY + retH });
-    ui::updateMenuButtonVisuals(returnButton.get(),
-                                selectedItem == AudioMenuItem::Return,
-                                textHoverColor);
-    returnButton->onUpdate(elapsedTime);
 
     scroll.render(*quad);
 
@@ -421,11 +400,8 @@ void AudioLayer::recalculateLayout(const float width, const float height) {
     for (auto* const row : rowNodes) {
         ui::setMenuRowHeight(row, width);
     }
-    ui::pinMenuRowToBottom(rowNodes[+AudioMenuItem::Return], width);
-    scroll.layout(rootNode, menuNode, menuBackgroundNode,
-                  std::span<const YGNodeRef>(rowNodes).first(volumeRows.size()),
-                  rowNodes[+AudioMenuItem::Return], width, usableHeight,
-                  ui::tabBarHeight(width));
+    scroll.layout(rootNode, menuNode, menuBackgroundNode, rowNodes, nullptr,
+                  width, usableHeight, ui::tabBarHeight(width));
 }
 
 void AudioLayer::relayout() {
@@ -467,11 +443,6 @@ bool AudioLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
     if (clickedTab) {
         clearHoveredItems();
         ui::showOptionTab(*clickedTab);
-        return true;
-    }
-
-    if (returnButton->isInside({ mouseX, mouseY })) {
-        close();
         return true;
     }
 
@@ -524,8 +495,6 @@ bool AudioLayer::onMouseMoved(const MouseMovedEvent& event) {
         return true;
     }
 
-    ui::updateButtonHover(returnButton.get(), pos);
-
     std::optional<AudioMenuItem> nextHover;
     for (const auto& [item, label] : volumeRows) {
         const auto [x, y, w, h] = rowLayout(item);
@@ -570,7 +539,6 @@ bool AudioLayer::onWindowResize(const WindowResizeEvent& event) {
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
     if (newFontSize != fontSize) {
         fontSize = newFontSize;
-        returnButton->setFontSize(fontSize);
         for (auto* const slider :
              { masterVolumeSlider.get(), sfxVolumeSlider.get(),
                musicVolumeSlider.get() }) {
@@ -583,7 +551,6 @@ bool AudioLayer::onWindowResize(const WindowResizeEvent& event) {
 
 void AudioLayer::clearHoveredItems() {
     scroll.release();
-    returnButton->setHover(false);
     hoveredItem = std::nullopt;
 }
 }  // namespace game::layer

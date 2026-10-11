@@ -27,7 +27,7 @@ enum class OptionMenuItem : uint8_t {
     AmbientOcclusion,
     Bloom,
     SubsurfaceScattering,
-    Return,
+    Apply,
     Count,
 };
 

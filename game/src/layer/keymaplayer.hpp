@@ -20,7 +20,6 @@ enum class KeyMapItem : uint8_t {
     Pause,
     ToggleDebugUI,
     ResetDefaults,
-    Return,
     Count,
 };
 
@@ -52,7 +51,7 @@ private:
     // Screen rect of a row, resolved through the root/menu/background chain.
     static std::tuple<float, float, float, float> rowLayout(KeyMapItem item);
 
-    // Starts a rebind, resets the defaults, or leaves — whichever the row is.
+    // Starts a rebind or resets the defaults — whichever the row is.
     void activate(KeyMapItem item);
 
     void close();

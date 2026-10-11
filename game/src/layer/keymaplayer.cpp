@@ -39,7 +39,6 @@ constexpr std::string_view fontName = "inter";
 constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
 constexpr std::string_view resetMessage   = "Reset to Defaults";
-constexpr std::string_view returnMessage  = "Return";
 constexpr std::string_view captureMessage = "Press a key";
 
 constexpr glm::vec4 backgroundColor = { 0.F, 0.F, 0.F, 1.F };
@@ -81,8 +80,8 @@ constexpr std::array bindingRows = {
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
-// cover every row but ResetDefaults and Return.
-static_assert(bindingRows.size() + 2 == rowCount);
+// cover every row but ResetDefaults.
+static_assert(bindingRows.size() + 1 == rowCount);
 static_assert([] {
     for (size_t i = 0; i < bindingRows.size(); i++) {
         if (static_cast<size_t>(bindingRows[i].item) != i) {
@@ -96,7 +95,7 @@ static_assert([] {
 // the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
-// The binding rows scroll; Reset to Defaults and Return stay pinned below them.
+// The binding rows scroll; Reset to Defaults stays pinned below them.
 game::ui::MenuScroll scroll;
 
 YGNodeRef menuBackgroundNode = nullptr;
@@ -111,7 +110,6 @@ constexpr std::array<game::ui::KeyHint, 3> keyMapKeyHints = {
 };
 
 std::unique_ptr<game::ui::Button> resetButton;
-std::unique_ptr<game::ui::Button> returnButton;
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;
@@ -126,16 +124,6 @@ bool contains(const float x, const float y, const float w, const float h,
     return px >= x && px <= x + w && py >= y && py <= y + h;
 }
 
-game::ui::Button* buttonFor(const KeyMapItem item) {
-    switch (item) {
-        case KeyMapItem::ResetDefaults:
-            return resetButton.get();
-        case KeyMapItem::Return:
-            return returnButton.get();
-        default:
-            return nullptr;
-    }
-}
 }  // namespace
 
 namespace game::layer {
@@ -165,10 +153,8 @@ void KeyMapLayer::onAttach() {
 
     fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
 
-    resetButton  = ui::makeMenuButton(resetMessage, fontSize, menuFont,
-                                      buttonColor, textColor);
-    returnButton = ui::makeMenuButton(returnMessage, fontSize, menuFont,
-                                      buttonColor, textColor);
+    resetButton = ui::makeMenuButton(resetMessage, fontSize, menuFont,
+                                     buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->setMat4("projection", orthoCamera->getProjection());
@@ -311,14 +297,14 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
     }
     scroll.endClip();
 
-    for (const auto item : { KeyMapItem::ResetDefaults, KeyMapItem::Return }) {
-        const auto [x, y, w, h] = rowLayout(item);
-        auto* const button      = buttonFor(item);
-        button->setPosition({ x, y }, { x + w, y + h });
-        ui::updateMenuButtonVisuals(button, selectedItem == item,
-                                    textHoverColor);
-        button->onUpdate(elapsedTime);
-    }
+    const auto [resetX, resetY, resetW, resetH] =
+        rowLayout(KeyMapItem::ResetDefaults);
+    resetButton->setPosition({ resetX, resetY },
+                             { resetX + resetW, resetY + resetH });
+    ui::updateMenuButtonVisuals(resetButton.get(),
+                                selectedItem == KeyMapItem::ResetDefaults,
+                                textHoverColor);
+    resetButton->onUpdate(elapsedTime);
 
     scroll.render(*quad);
 
@@ -368,9 +354,6 @@ void KeyMapLayer::activate(const KeyMapItem item) {
         case KeyMapItem::ResetDefaults:
             inputManager().requestResetBindings();
             return;
-        case KeyMapItem::Return:
-            close();
-            return;
         default:
             break;
     }
@@ -395,12 +378,7 @@ void KeyMapLayer::recalculateLayout(const float width, const float height) {
         ui::setMenuRowHeight(row, width);
     }
 
-    // Reset to Defaults takes the leftover space, so the pair sits at the
-    // bottom with a gap between them
-    YGNodeStyleSetMargin(rowNodes[+KeyMapItem::ResetDefaults], YGEdgeBottom,
-                         ui::menuRowHeight(width) * 0.4F);
     ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::ResetDefaults], width);
-    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::Return], width, false);
     scroll.layout(
         rootNode, menuNode, menuBackgroundNode,
         std::span<const YGNodeRef>(rowNodes).first(bindingRows.size()),
@@ -478,7 +456,6 @@ bool KeyMapLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
     ui::updateButtonHover(resetButton.get(), pos);
-    ui::updateButtonHover(returnButton.get(), pos);
 
     if (scroll.drag(pos.y)) {
         relayout();
@@ -512,7 +489,6 @@ bool KeyMapLayer::onWindowResize(const WindowResizeEvent& event) {
     if (newFontSize != fontSize) {
         fontSize = newFontSize;
         resetButton->setFontSize(fontSize);
-        returnButton->setFontSize(fontSize);
     }
 
     return false;
@@ -521,7 +497,6 @@ bool KeyMapLayer::onWindowResize(const WindowResizeEvent& event) {
 void KeyMapLayer::clearHoveredItems() {
     scroll.release();
     resetButton->setHover(false);
-    returnButton->setHover(false);
     hoveredItem = std::nullopt;
 }
 }  // namespace game::layer
