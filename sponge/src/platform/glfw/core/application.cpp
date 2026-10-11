@@ -450,6 +450,13 @@ void Application::run() {
                         glfwSetWindowMonitor(glfwWindow, nullptr, monitorX,
                                              monitorY, mm->mode->width,
                                              mm->mode->height, GLFW_DONT_CARE);
+                        // Leaving full screen restores the desktop mode, which
+                        // may differ from the full screen mode read above.
+                        if (const auto* desktop =
+                                glfwGetVideoMode(mm->monitor)) {
+                            glfwSetWindowSize(glfwWindow, desktop->width,
+                                              desktop->height);
+                        }
                     } else {
                         if (prevW <= 0) {
                             prevW = static_cast<int>(appSpec.width);
@@ -464,12 +471,19 @@ void Application::run() {
                         if (prevW <= 0 || prevH <= 0) {
                             glfwGetWindowSize(glfwWindow, &prevW, &prevH);
                         }
-                        const int posX = (mm->mode->width - prevW) / 2;
-                        const int posY = (mm->mode->height - prevH) / 2;
                         glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
                                             GLFW_TRUE);
-                        glfwSetWindowMonitor(glfwWindow, nullptr, posX, posY,
-                                             prevW, prevH, GLFW_DONT_CARE);
+                        glfwSetWindowMonitor(glfwWindow, nullptr, 0, 0, prevW,
+                                             prevH, GLFW_DONT_CARE);
+                        // Centre on the desktop mode read after the call:
+                        // leaving full screen restores it, and it may differ
+                        // from the full screen mode in mm.
+                        if (const auto* desktop =
+                                glfwGetVideoMode(mm->monitor)) {
+                            glfwSetWindowPos(glfwWindow,
+                                             (desktop->width - prevW) / 2,
+                                             (desktop->height - prevH) / 2);
+                        }
                         glfwFocusWindow(glfwWindow);
                     }
                     appliedDisplayMode = displayMode;
