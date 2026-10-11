@@ -62,10 +62,16 @@ void Window::init(const sponge::core::WindowProps& props) {
         height = mode != nullptr ? mode->height : 900;
     }
 
-    if (props.fullscreen) {
+    using sponge::core::DisplayMode;
+    if (props.displayMode == DisplayMode::FullScreen) {
         SPONGE_CORE_INFO("Creating fullscreen window");
         window = glfwCreateWindow(width, height, props.title.data(),
                                   primaryMonitor, nullptr);
+    } else if (props.displayMode == DisplayMode::Borderless &&
+               mode != nullptr) {
+        SPONGE_CORE_INFO("Creating borderless window");
+        window = glfwCreateWindow(mode->width, mode->height, props.title.data(),
+                                  nullptr, nullptr);
     } else {
         SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
         window = glfwCreateWindow(width, height, props.title.data(), nullptr,
@@ -87,12 +93,21 @@ void Window::init(const sponge::core::WindowProps& props) {
     data.width  = static_cast<uint32_t>(w);
     data.height = static_cast<uint32_t>(h);
 
-    if (!props.fullscreen && mode != nullptr) {
-        glfwSetWindowPos(window, (mode->width - w) / 2, (mode->height - h) / 2);
+    if (mode != nullptr) {
+        if (props.displayMode == DisplayMode::Windowed) {
+            glfwSetWindowPos(window, (mode->width - w) / 2,
+                             (mode->height - h) / 2);
+        } else if (props.displayMode == DisplayMode::Borderless) {
+            int monitorX = 0;
+            int monitorY = 0;
+            glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
+            glfwSetWindowPos(window, monitorX, monitorY);
+        }
     }
 
-    glfwSetWindowAttrib(window, GLFW_DECORATED,
-                        props.fullscreen ? GLFW_FALSE : GLFW_TRUE);
+    glfwSetWindowAttrib(
+        window, GLFW_DECORATED,
+        props.displayMode == DisplayMode::Windowed ? GLFW_TRUE : GLFW_FALSE);
 
     glfwSetWindowUserPointer(window, &data);
 

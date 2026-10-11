@@ -1,6 +1,7 @@
 #include "maze.hpp"
 
 #include "core/settings.hpp"
+#include "core/window.hpp"
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
@@ -166,13 +167,26 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
 #endif
     const bool capturing = captureFrames > 0;
 
+    // Files from before the three display modes hold only video.fullscreen.
+    constexpr auto modeCount =
+        static_cast<uint32_t>(sponge::core::DisplayMode::Count);
+    auto savedMode = Settings::getUInt32("video.displayMode", modeCount);
+    if (savedMode >= modeCount) {
+        savedMode =
+            static_cast<uint32_t>(Settings::getBool("video.fullscreen", true) ?
+                                      sponge::core::DisplayMode::FullScreen :
+                                      sponge::core::DisplayMode::Windowed);
+    }
+
     // A capture run uses a fixed window and no vsync, so runs compare.
     const auto spec = ApplicationSpecification{
-        .name       = game::project_name,
-        .width      = capturing ? 1600 : Settings::getUInt32("video.width", 0),
-        .height     = capturing ? 900 : Settings::getUInt32("video.height", 0),
-        .fullscreen = !capturing && Settings::getBool("video.fullscreen", true),
-        .vsync      = !capturing && Settings::getBool("video.vsync", true),
+        .name        = game::project_name,
+        .width       = capturing ? 1600 : Settings::getUInt32("video.width", 0),
+        .height      = capturing ? 900 : Settings::getUInt32("video.height", 0),
+        .displayMode = capturing ?
+                           sponge::core::DisplayMode::Windowed :
+                           static_cast<sponge::core::DisplayMode>(savedMode),
+        .vsync       = !capturing && Settings::getBool("video.vsync", true),
     };
 
     return std::make_unique<game::Maze>(spec, captureFrames, nanStats,

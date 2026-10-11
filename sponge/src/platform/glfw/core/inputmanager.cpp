@@ -791,24 +791,10 @@ void InputManager::buildDefaultBindings() {
     };
 
     // ── Toggle actions (both contexts) ───────────────────────────────────────
-    menu[+GameAction::ToggleFullscreen] = {
-        InputBinding{
-            .type      = BindingType::Key,
-            .rawCode   = +KeyCode::SpongeKey_F,
-            .axisScale = 1.f,
-        },
-    };
     menu[+GameAction::ToggleDebugUI] = {
         InputBinding{
             .type      = BindingType::Key,
             .rawCode   = +KeyCode::SpongeKey_GraveAccent,
-            .axisScale = 1.f,
-        },
-    };
-    gameplay[+GameAction::ToggleFullscreen] = {
-        InputBinding{
-            .type      = BindingType::Key,
-            .rawCode   = +KeyCode::SpongeKey_F,
             .axisScale = 1.f,
         },
     };

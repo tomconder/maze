@@ -18,7 +18,6 @@ enum class KeyMapItem : uint8_t {
     MoveLeft,
     MoveRight,
     Pause,
-    ToggleFullscreen,
     ToggleDebugUI,
     ResetDefaults,
     Return,

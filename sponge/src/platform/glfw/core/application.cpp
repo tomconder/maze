@@ -104,15 +104,16 @@ bool Application::start() {
         return false;
     }
 
-    fullscreen = appSpec.fullscreen;
+    displayMode        = appSpec.displayMode;
+    appliedDisplayMode = displayMode;
 
     graphics = std::make_unique<Context>();
 
     window           = std::make_unique<Window>(sponge::core::WindowProps{
-        .title      = appName,
-        .width      = appSpec.width,
-        .height     = appSpec.height,
-        .fullscreen = appSpec.fullscreen,
+        .title       = appName,
+        .width       = appSpec.width,
+        .height      = appSpec.height,
+        .displayMode = appSpec.displayMode,
     });
     auto* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
     if (glfwWindow == nullptr) {
@@ -224,9 +225,9 @@ void Application::pushLayer(const std::shared_ptr<layer::Layer>& layer) const {
     layer->setActive(true);
 }
 
-void Application::toggleFullscreen() {
-    fullscreen = !fullscreen;
-    pendingFullscreenToggle.store(true, std::memory_order_release);
+void Application::setDisplayMode(const sponge::core::DisplayMode mode) {
+    displayMode = mode;
+    pendingDisplayMode.store(true, std::memory_order_release);
 }
 
 void Application::setMouseVisible(const bool value) const {
@@ -419,19 +420,36 @@ void Application::run() {
 
         // glfwSetWindowMonitor from render/update threads deadlocks on Windows
         // (Win32 message pump runs only here). Runs before pendingResolution
-        // so fullscreen matches the actual OS state when the resize branch
-        // fires.
-        if (pendingFullscreenToggle.load(std::memory_order_acquire)) {
+        // so the display mode matches the actual OS state when the resize
+        // branch fires.
+        if (pendingDisplayMode.load(std::memory_order_acquire)) {
+            using sponge::core::DisplayMode;
             auto* glfwWindow =
                 static_cast<GLFWwindow*>(window->getNativeWindow());
             if (glfwWindow != nullptr) {
                 if (const auto mm = getPrimaryMonitorMode()) {
-                    if (fullscreen) {
+                    // Remember the windowed rect only when leaving it, so a
+                    // hop between the other two modes keeps it.
+                    if (appliedDisplayMode == DisplayMode::Windowed &&
+                        displayMode != DisplayMode::Windowed) {
                         glfwGetWindowPos(glfwWindow, &prevX, &prevY);
                         glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                    }
+                    if (displayMode == DisplayMode::FullScreen) {
+                        int curW = 0;
+                        int curH = 0;
+                        glfwGetWindowSize(glfwWindow, &curW, &curH);
                         glfwSetWindowMonitor(glfwWindow, mm->monitor, 0, 0,
-                                             prevW, prevH,
-                                             mm->mode->refreshRate);
+                                             curW, curH, mm->mode->refreshRate);
+                    } else if (displayMode == DisplayMode::Borderless) {
+                        int monitorX = 0;
+                        int monitorY = 0;
+                        glfwGetMonitorPos(mm->monitor, &monitorX, &monitorY);
+                        glfwSetWindowAttrib(glfwWindow, GLFW_DECORATED,
+                                            GLFW_FALSE);
+                        glfwSetWindowMonitor(glfwWindow, nullptr, monitorX,
+                                             monitorY, mm->mode->width,
+                                             mm->mode->height, GLFW_DONT_CARE);
                     } else {
                         if (prevW <= 0) {
                             prevW = static_cast<int>(appSpec.width);
@@ -454,12 +472,14 @@ void Application::run() {
                                              prevW, prevH, GLFW_DONT_CARE);
                         glfwFocusWindow(glfwWindow);
                     }
+                    appliedDisplayMode = displayMode;
                 }
             }
-            pendingFullscreenToggle.store(false, std::memory_order_relaxed);
+            pendingDisplayMode.store(false, std::memory_order_relaxed);
         }
 
-        // Runs after pendingFullscreenToggle so fullscreen matches OS state.
+        // Runs after pendingDisplayMode so the mode matches OS state. A
+        // borderless window always keeps the desktop size.
         if (pendingResolution.load(std::memory_order_acquire)) {
             const uint32_t w =
                 pendingResolutionW.load(std::memory_order_relaxed);
@@ -469,11 +489,12 @@ void Application::run() {
                 static_cast<GLFWwindow*>(window->getNativeWindow());
             if (glfwWindow != nullptr) {
                 if (const auto mm = getPrimaryMonitorMode()) {
-                    if (fullscreen) {
+                    if (displayMode == sponge::core::DisplayMode::FullScreen) {
                         glfwSetWindowMonitor(
                             glfwWindow, mm->monitor, 0, 0, static_cast<int>(w),
                             static_cast<int>(h), mm->mode->refreshRate);
-                    } else {
+                    } else if (displayMode ==
+                               sponge::core::DisplayMode::Windowed) {
                         glfwSetWindowSize(glfwWindow, static_cast<int>(w),
                                           static_cast<int>(h));
                         const int posX =
