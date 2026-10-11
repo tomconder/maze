@@ -41,6 +41,10 @@
 #include <vector>
 
 namespace game::layer {
+// Saved as video.shadowQuality. Keep the order: the options list and the
+// saved value use it as an index.
+enum class ShadowQuality : uint32_t { Low, Medium, High, Count };
+
 class MazeLayer final : public sponge::layer::Layer {
 public:
     MazeLayer();
@@ -91,9 +95,12 @@ public:
 
     void setDirectionalLightEnabled(bool value);
 
-    uint32_t getDirectionalLightShadowMapRes() const;
-
-    void setShadowMapRes(uint32_t res);
+    // Low, Medium and High each set the map size and the cascade count. The
+    // size change rebuilds the map on the render thread.
+    ShadowQuality getShadowQuality() const {
+        return shadowQuality;
+    }
+    void setShadowQuality(ShadowQuality quality);
 
     uint32_t getShadowCascades() const {
         return shadowCascades.load(std::memory_order_relaxed);
@@ -273,9 +280,12 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget>  sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
 
+    // Set and read on the render thread (options, ImGui, startup).
+    ShadowQuality shadowQuality = ShadowQuality::Medium;
+
     // Cascades in use, 1 to ShadowMap::maxCascades, and the log/uniform blend
-    // of their split distances. Read on the update thread; ImGui and the debug
-    // capture set them from the render thread.
+    // of their split distances. Read on the update thread; setShadowQuality(),
+    // ImGui and the debug capture set them from the render thread.
     std::atomic<uint32_t> shadowCascades{ 2 };
     std::atomic<float>    shadowSplitLambda{ 0.7F };
 

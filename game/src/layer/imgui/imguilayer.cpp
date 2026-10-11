@@ -404,54 +404,29 @@ void ImGuiLayer::showDirectionalLightControls() {
         });
 
         showTableRow([&] {
-            ImGui::Text("Shadow Map Size");
+            ImGui::Text("Shadow Quality");
             ImGui::TableNextColumn();
 
-            static constexpr std::array<uint32_t, 4> shadowResolutions = {
-                512,
-                1024,
-                2048,
-                4096,
-            };
-            static constexpr std::array<const char*, 4> shadowResLabels = {
+            static constexpr std::array<const char*, 3> shadowQualityLabels = {
                 "Low",
-                "Normal",
+                "Medium",
                 "High",
-                "Ultra",
             };
+            static_assert(shadowQualityLabels.size() ==
+                          static_cast<size_t>(ShadowQuality::Count));
 
-            const auto currentRes =
-                mazeLayer->getDirectionalLightShadowMapRes();
-            const auto it = std::ranges::find(shadowResolutions, currentRes);
-            int        shadowResIndex =
-                it != shadowResolutions.end() ?
-                    static_cast<int>(it - shadowResolutions.begin()) :
-                    1;
-
+            auto shadowQualityIndex =
+                static_cast<int>(mazeLayer->getShadowQuality());
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::Combo("##shadowmapsize", &shadowResIndex,
-                             shadowResLabels.data(),
-                             static_cast<int>(shadowResLabels.size()))) {
-                const auto res =
-                    shadowResolutions[static_cast<size_t>(shadowResIndex)];
-                mazeLayer->setShadowMapRes(res);
-                sponge::core::Settings::set("video.shadowRes", res);
+            if (ImGui::Combo("##shadowquality", &shadowQualityIndex,
+                             shadowQualityLabels.data(),
+                             static_cast<int>(shadowQualityLabels.size()))) {
+                const auto quality =
+                    static_cast<ShadowQuality>(shadowQualityIndex);
+                mazeLayer->setShadowQuality(quality);
+                sponge::core::Settings::set("video.shadowQuality",
+                                            static_cast<uint32_t>(quality));
                 sponge::core::Settings::save();
-            }
-        });
-
-        showTableRow([&] {
-            ImGui::Text("Shadow Cascades");
-            ImGui::TableNextColumn();
-
-            auto cascades = static_cast<int>(mazeLayer->getShadowCascades());
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderInt(
-                    "##shadowcascades", &cascades, 1,
-                    static_cast<int>(sponge::platform::opengl::scene::
-                                         ShadowMap::maxCascades),
-                    "%d", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setShadowCascades(static_cast<uint32_t>(cascades));
             }
         });
 

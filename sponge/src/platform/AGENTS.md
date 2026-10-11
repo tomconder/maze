@@ -59,7 +59,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   back into its own literal or it silently truncates instead of erroring.
 * `ShadowMap` uses EVSM (exponentially warped depth, positive and negative
   warp, so four moments in an RGBA32F layer) with a Dual Kawase blur; shadow resolution is a
-  discrete quality setting (`video.shadowRes`), not a continuous slider, and
+  discrete quality setting (`video.shadowQuality`), not a continuous slider, and
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
@@ -71,7 +71,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   the next near its edge. They pick by position, not by camera depth, so the
   mirrored view and the reflection probe stay correct. All
   `maxCascades` (4) layers are always allocated, and one cascade is at most
-  `ShadowMap::maxResolution` (2048) on a side, so the 4096 quality setting
+  `ShadowMap::maxResolution` (2048) on a side, so a larger request
   builds a 2048 map. The blur reads a 2D view per layer. A view does not inherit the parent's sampler state, so set
   the filter, wrap and border colour on the view. Its name must come from
   `glGenTextures`, because `glTextureView` rejects a name that already has a

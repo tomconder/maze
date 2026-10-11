@@ -22,9 +22,6 @@ lighting:
     castShadow: true
     color: [1.0, 1.0, 1.0]
     direction: [0.0, -20.0, 1.333]
-    # The default only. A shadow resolution saved from the options screen
-    # (video.shadowRes) overrides this.
-    shadowMapRes: 1024
 
   # Point lights sit on a seeded ellipse, generated at runtime so the debug
   # slider can change the count. radiusMin is the short (Z) semi-axis;

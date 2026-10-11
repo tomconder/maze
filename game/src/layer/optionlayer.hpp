@@ -59,8 +59,9 @@ private:
     bool pendingRefraction           = true;
     int  pendingAaIndex              = 0;
     int  appliedAaIndex              = 0;  // baseline pendingAaIndex synced to
-    int  pendingShadowResIndex       = 1;
-    int  appliedShadowResIndex = 1;  // baseline pendingShadowResIndex synced to
+    int  pendingShadowQualityIndex   = 1;
+    int  appliedShadowQualityIndex =
+        1;  // baseline pendingShadowQualityIndex synced to
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
