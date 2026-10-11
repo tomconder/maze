@@ -25,16 +25,31 @@
 #include <string>
 
 namespace game {
+#ifndef NDEBUG
+// Debug builds only; the command-line flags fill it in.
+struct CaptureOptions {
+    // Non-zero skips the splash and intro screens, loads the maze and renders
+    // that many frames, then exits. See FrameCapture.
+    uint32_t    frames   = 0;
+    bool        nanStats = false;
+    std::string off;
+    float       walk     = 0.F;
+    uint32_t    cascades = 0;
+    // Non-empty skips the splash, shows that menu screen and writes one
+    // capture. See MenuCaptureLayer.
+    std::string menu;
+};
+#endif
+
 class Maze final : public sponge::platform::glfw::core::Application {
 public:
-    // A non-zero `captureFrames` skips the splash and intro screens, loads
-    // the maze and renders that many frames, then exits. See FrameCapture.
-    // A non-empty `captureMenu` skips the splash, shows that menu screen
-    // and writes one capture. See MenuCaptureLayer.
+#ifdef NDEBUG
+    explicit Maze(
+        sponge::platform::glfw::core::ApplicationSpecification specification);
+#else
     Maze(sponge::platform::glfw::core::ApplicationSpecification specification,
-         uint32_t captureFrames = 0, bool nanStats = false,
-         std::string captureOff = {}, float captureWalk = 0.F,
-         uint32_t captureCascades = 0, std::string captureMenu = {});
+         CaptureOptions                                         capture = {});
+#endif
 
     bool onUserCreate() override;
 
@@ -111,12 +126,12 @@ private:
     // The render thread clears it when a capture run ends.
     std::atomic<bool> isRunning{ true };
 
-    uint32_t    captureFrames;
-    bool        nanStats;
-    std::string captureOff;
-    float       captureWalk;
-    uint32_t    captureCascades;
-    std::string captureMenu;
+#ifndef NDEBUG
+    CaptureOptions capture;
+
+    void setUpCapture();
+    void startCaptureLoad();
+#endif
 
     std::shared_ptr<layer::AudioLayer> audioLayer =
         std::make_shared<layer::AudioLayer>();

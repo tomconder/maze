@@ -9,7 +9,9 @@
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
+#ifndef NDEBUG
 #include "platform/opengl/renderer/readback.hpp"
+#endif
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/mesh.hpp"
 #include "scene/gamecamera.hpp"
@@ -53,8 +55,10 @@ using sponge::platform::glfw::core::Application;
 using sponge::platform::opengl::debug::GpuTimer;
 using sponge::platform::opengl::renderer::AssetManager;
 using sponge::platform::opengl::renderer::DepthFunc;
+#ifndef NDEBUG
 using sponge::platform::opengl::renderer::readBackBuffer;
 using sponge::platform::opengl::renderer::readTexture;
+#endif
 using sponge::platform::opengl::renderer::RendererAPI;
 using sponge::platform::opengl::renderer::Shader;
 using sponge::platform::opengl::scene::AlphaPass;
@@ -379,6 +383,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         return true;
     }
 
+#ifndef NDEBUG
     // A capture run moves the camera whatever the UI holds: an ImGui window
     // under the pointer, or an overlay, would otherwise freeze the turn or the
     // walk and the run would measure a still camera.
@@ -389,6 +394,7 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
         camera->setPosition(camera->getPosition() +
                             glm::vec3(captureWalkStep, 0.F, 0.F));
     }
+#endif
 
     auto&      inputManager = Application::get().getInputManager();
     const bool overlayActive =
@@ -677,13 +683,15 @@ void MazeLayer::onRender() {
         return;
     }
 
-    if (capture && !capture->wantsStats() && !gpuTimerOff) {
+#ifndef NDEBUG
+    if (frameCapture && !frameCapture->wantsStats() && !gpuTimerOff) {
         if (!gpuTimer) {
             gpuTimer.emplace();
         }
         SPONGE_PROFILE_SECTION("gpu timer begin");
         gpuTimer->nextFrame();
     }
+#endif
 
     // Pick up whichever occlusion queries resolved since last frame, before
     // any pass decides what's visible.
@@ -919,19 +927,22 @@ void MazeLayer::onRender() {
         gpuTimer->endFrame();
     }
 
+#ifndef NDEBUG
     // Before the first populated frame the scene is the untouched defaults.
-    if (capture && frame.populated) {
+    if (frameCapture && frame.populated) {
         SPONGE_PROFILE_SECTION("recordCapture");
         recordCapture(fxaaActive, taaActive, bloomTexId);
     }
+#endif
 
     RendererAPI::setDepth(DepthFunc::LessEqual, true);
 }
 
+#ifndef NDEBUG
 void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
                               std::string off, const float walk,
                               const uint32_t cascades) {
-    capture.emplace(frames, stats);
+    frameCapture.emplace(frames, stats);
     captureOff      = std::move(off);
     gpuTimerOff     = ("," + captureOff + ",").contains(",gputimer,");
     captureWalkStep = walk;
@@ -944,7 +955,7 @@ void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
 
 void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
                               const uint32_t bloomTexId) {
-    if (capture->done()) {
+    if (frameCapture->done()) {
         return;
     }
     if (!captureOff.empty()) {
@@ -979,39 +990,43 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         captureOff.clear();
     }
     const auto& loop = Maze::get().loopTimes;
-    capture->recordLoop({ loop.renderTaskUs.load(std::memory_order_relaxed),
-                          loop.flipUs.load(std::memory_order_relaxed),
-                          loop.updateTaskUs.load(std::memory_order_relaxed),
-                          loop.waitRenderUs.load(std::memory_order_relaxed),
-                          loop.waitUpdateUs.load(std::memory_order_relaxed) });
-    capture->beginFrame();
+    frameCapture->recordLoop(
+        { loop.renderTaskUs.load(std::memory_order_relaxed),
+          loop.flipUs.load(std::memory_order_relaxed),
+          loop.updateTaskUs.load(std::memory_order_relaxed),
+          loop.waitRenderUs.load(std::memory_order_relaxed),
+          loop.waitUpdateUs.load(std::memory_order_relaxed) });
+    frameCapture->beginFrame();
 
     // Reading a stage costs a GPU stall, so without stats only the last frame
     // is read.
-    if (capture->wantsStats() || capture->isLastFrame()) {
+    if (frameCapture->wantsStats() || frameCapture->isLastFrame()) {
         // RGB16F stages, before anything quantizes them to 8 bits.
-        capture->record("scene", readTexture(sceneTarget->getTexture()), true);
+        frameCapture->record("scene", readTexture(sceneTarget->getTexture()),
+                             true);
         if (bloomTexId != 0) {
-            capture->record("bloom", readTexture(bloomTexId), true);
+            frameCapture->record("bloom", readTexture(bloomTexId), true);
         }
         if (fxaaActive) {
-            capture->record("tonemap", readTexture(fxaa->getInputTexture()),
-                            false);
+            frameCapture->record("tonemap",
+                                 readTexture(fxaa->getInputTexture()), false);
         } else if (taaActive) {
-            capture->record("tonemap", readTexture(taa->getInputTexture()),
-                            false);
-            capture->record("taa", readTexture(taa->getResolvedTexture()),
-                            false);
+            frameCapture->record("tonemap", readTexture(taa->getInputTexture()),
+                                 false);
+            frameCapture->record("taa", readTexture(taa->getResolvedTexture()),
+                                 false);
         }
         // What a screen capture sees: 8 bits, dithered.
-        capture->record("backbuffer", readBackBuffer(), false);
+        frameCapture->record("backbuffer", readBackBuffer(), false);
     }
 
-    if (capture->done()) {
-        capture->report(gpuTimer ? gpuTimer->summary(60) : GpuTimer::Summary{});
+    if (frameCapture->done()) {
+        frameCapture->report(gpuTimer ? gpuTimer->summary(60) :
+                                        GpuTimer::Summary{});
         Maze::get().exit();
     }
 }
+#endif
 
 float MazeLayer::getAmbientStrength() const {
     return ambientStrength;
