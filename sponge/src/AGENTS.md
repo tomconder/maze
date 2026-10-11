@@ -25,6 +25,8 @@ Does NOT own maze gameplay — see `../../game/src/AGENTS.md`.
 
 ## Patterns
 
+* `Layer::coversScreen()` defaults to `false`. `Application` clears the colour buffer at the start of each frame only when no active layer returns `true`. A layer may return `true` only if it overwrites every back-buffer pixel with alpha 1; otherwise stale pixels show. The clear colour on screen while a long frame renders shows as a flash.
+
 New layer: subclass `sponge::layer::Layer`. Override `runsOnUpdateThread()` only if update must run in parallel with render. Push via `Application::pushLayer` / `pushOverlay`.
 
 New setting: `Settings::get*` / `set` with a dotted key; persist with `Settings::save()`. Cross-thread readers need their own mutex (see MazeLayer).

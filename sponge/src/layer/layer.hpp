@@ -36,6 +36,13 @@ public:
         return false;
     }
 
+    // True if this layer overwrites every pixel of the back buffer, so the
+    // frame-start colour clear can be skipped. Without that, the clear colour
+    // stays on screen while a long frame renders and shows as a flash.
+    virtual bool coversScreen() const {
+        return false;
+    }
+
     const std::string& getName() const {
         return debugName;
     }

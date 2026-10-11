@@ -339,6 +339,10 @@ void MazeLayer::activate() {
     setActive(true);
 }
 
+bool MazeLayer::coversScreen() const {
+    return !Maze::get().isOptionsOpen();
+}
+
 void MazeLayer::onDetach() {
     depthPrepass.reset();
 }
@@ -665,6 +669,19 @@ void MazeLayer::onRender() {
         pendingResize.store(false, std::memory_order_relaxed);
     }
 
+    // Read the latest snapshot from the update thread.
+    const auto& frame =
+        renderFrames[renderReadIndex.load(std::memory_order_acquire)];
+
+    // Draw nothing in two cases, and the frame keeps what is on screen. The
+    // options screens paint an opaque full-screen quad over the scene. And
+    // until the first real snapshot, finishLoading() has seeded placeholders
+    // with no camera, so the scene would show only its tone-mapped clear
+    // colour for a few frames.
+    if (Maze::get().isOptionsOpen() || !frame.populated) {
+        return;
+    }
+
     if (capture && !capture->wantsStats() && !gpuTimerOff) {
         if (!gpuTimer) {
             gpuTimer.emplace();
@@ -672,10 +689,6 @@ void MazeLayer::onRender() {
         SPONGE_PROFILE_SECTION("gpu timer begin");
         gpuTimer->nextFrame();
     }
-
-    // Read the latest snapshot from the update thread.
-    const auto& frame =
-        renderFrames[renderReadIndex.load(std::memory_order_acquire)];
 
     // Pick up whichever occlusion queries resolved since last frame, before
     // any pass decides what's visible.
