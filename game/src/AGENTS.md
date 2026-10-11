@@ -97,10 +97,11 @@ primitives, windowing, or platform backends itself — see
   defaults in `scene/scenefile.hpp` and `scene/refraction.hpp`, so a partial
   file still yields a complete scene. A missing or malformed file logs and
   leaves the defaults standing; it must never take startup down.
-* The scene file supplies the shadow map resolution *default* only. A
-  `video.shadowRes` saved from the options screen overrides it — keep the
-  scene value as the fallback argument to `Settings::getUInt32()`, or a
-  saved resolution silently reverts.
+* Shadow quality is `ShadowQuality` (Low, Medium, High), saved as
+  `video.shadowQuality`. Each level sets the map size and the cascade count
+  together (`shadowPresets` in `mazelayer.cpp`); the options row and the debug
+  combo both call `MazeLayer::setShadowQuality()`. The scene file has no
+  shadow size. The debug UI keeps only Cascade Split as a free control.
 * Point lights are placed by the seeded spiral in `setNumLights()`, not
   authored one by one, so the debug slider can change the count at run
   time. The scene file carries the generator's inputs, not positions.

@@ -53,8 +53,6 @@ struct SceneDirectionalLight {
     bool      castShadow{ true };
     glm::vec3 color{ 1.F };
     glm::vec3 direction{ 0.F, -20.F, 1.333F };
-    // The default only. A saved video.shadowRes overrides it.
-    uint32_t shadowMapRes{ 1024U };
 };
 
 // Point lights are placed by a seeded spiral rather than authored one by one,

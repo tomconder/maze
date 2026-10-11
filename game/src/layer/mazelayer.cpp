@@ -77,6 +77,22 @@ using sponge::platform::opengl::scene::TAA;
 using sponge::platform::opengl::scene::ToneMapper;
 using thread::AntiAliasing;
 
+namespace {
+struct ShadowPreset {
+    uint32_t resolution;
+    uint32_t cascades;
+};
+
+// Indexed by ShadowQuality. ShadowMap::maxResolution caps a cascade at 2048.
+constexpr std::array<ShadowPreset, 3> shadowPresets = { {
+    { .resolution = 1024, .cascades = 1 },
+    { .resolution = 1024, .cascades = 2 },
+    { .resolution = 2048, .cascades = 4 },
+} };
+static_assert(shadowPresets.size() ==
+              static_cast<size_t>(ShadowQuality::Count));
+}  // namespace
+
 MazeLayer::MazeLayer() :
     Layer("maze"), sceneDesc(scene::loadScene(std::string(scenePath))) {
     ambientStrength  = sceneDesc.lighting.ambient.strength;
@@ -178,17 +194,20 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
 
     shader->setFloat("ambientStrength", ambientStrength);
 
-    // The scene file supplies the default; a resolution saved from the
-    // options screen overrides it.
-    const auto savedShadowRes = sponge::core::Settings::getUInt32(
-        "video.shadowRes", sceneDesc.lighting.directional.shadowMapRes);
+    const auto savedQuality = sponge::core::Settings::getUInt32(
+        "video.shadowQuality", static_cast<uint32_t>(shadowQuality));
+    if (savedQuality < static_cast<uint32_t>(ShadowQuality::Count)) {
+        shadowQuality = static_cast<ShadowQuality>(savedQuality);
+    }
+    const auto& preset = shadowPresets[static_cast<size_t>(shadowQuality)];
+    shadowCascades.store(preset.cascades, std::memory_order_relaxed);
 
     directionalLight = {
         .enabled      = sceneDesc.lighting.directional.enabled,
         .castShadow   = sceneDesc.lighting.directional.castShadow,
         .color        = sceneDesc.lighting.directional.color,
         .direction    = sceneDesc.lighting.directional.direction,
-        .shadowMapRes = savedShadowRes,
+        .shadowMapRes = preset.resolution,
     };
 
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
@@ -1067,14 +1086,16 @@ void MazeLayer::setDirectionalLightEnabled(const bool value) {
     shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
 }
 
-uint32_t MazeLayer::getDirectionalLightShadowMapRes() const {
-    return directionalLight.shadowMapRes;
-}
-
-void MazeLayer::setShadowMapRes(const uint32_t res) {
-    directionalLight.shadowMapRes = res;
-    pendingShadowRebuildRes.store(res, std::memory_order_relaxed);
-    pendingShadowRebuild.store(true, std::memory_order_release);
+void MazeLayer::setShadowQuality(const ShadowQuality quality) {
+    shadowQuality      = quality;
+    const auto& preset = shadowPresets[static_cast<size_t>(quality)];
+    setShadowCascades(preset.cascades);
+    if (preset.resolution != directionalLight.shadowMapRes) {
+        directionalLight.shadowMapRes = preset.resolution;
+        pendingShadowRebuildRes.store(preset.resolution,
+                                      std::memory_order_relaxed);
+        pendingShadowRebuild.store(true, std::memory_order_release);
+    }
 }
 
 int32_t MazeLayer::getNumLights() const {

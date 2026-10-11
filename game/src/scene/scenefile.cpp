@@ -98,8 +98,6 @@ void readLighting(const node& root, game::scene::SceneLighting& lighting) {
         dst.castShadow = readBool(*directional, "castShadow", dst.castShadow);
         dst.color      = readVec3(*directional, "color", dst.color);
         dst.direction  = readVec3(*directional, "direction", dst.direction);
-        dst.shadowMapRes =
-            readInt(*directional, "shadowMapRes", dst.shadowMapRes);
     }
 
     if (const auto* point = find(*map, "point"); point != nullptr) {

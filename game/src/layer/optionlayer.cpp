@@ -69,7 +69,8 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
 constexpr std::string_view returnMessage = "Return";
 constexpr std::string_view applyMessage  = "Apply";
 
-constexpr std::array<uint32_t, 4> shadowResolutions = { 512, 1024, 2048, 4096 };
+constexpr size_t shadowQualityCount =
+    static_cast<size_t>(game::layer::ShadowQuality::Count);
 
 constexpr std::string_view fontName = "inter";
 constexpr std::string_view fontPath = "/fonts/inter.ktx2";
@@ -168,13 +169,13 @@ float computeMaxCycleValueWidth() {
 void saveVideoSettings(const uint32_t width, const uint32_t height,
                        const bool                       fullscreen,
                        const game::thread::AntiAliasing antiAliasing,
-                       const uint32_t                   shadowRes) {
+                       const game::layer::ShadowQuality shadowQuality) {
     using sponge::core::Settings;
     Settings::set("video.width", width);
     Settings::set("video.height", height);
     Settings::set("video.fullscreen", fullscreen);
     Settings::set("video.aa", static_cast<uint32_t>(antiAliasing));
-    Settings::set("video.shadowRes", shadowRes);
+    Settings::set("video.shadowQuality", static_cast<uint32_t>(shadowQuality));
     Settings::save();
 }
 
@@ -207,7 +208,7 @@ constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::FullScreen, .label = "Full Screen" },
     RowDef{ .item = OptionMenuItem::VerticalSync, .label = "Vertical Sync" },
     RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-Aliasing" },
-    RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Map" },
+    RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Quality" },
     RowDef{ .item  = OptionMenuItem::AmbientOcclusion,
             .label = "Ambient Occlusion" },
     RowDef{ .item = OptionMenuItem::Bloom, .label = "Bloom" },
@@ -228,7 +229,7 @@ static_assert([] {
     return true;
 }());
 
-std::optional<size_t> currentShadowResIndex;
+std::optional<size_t> currentShadowQualityIndex;
 std::optional<size_t> currentAaIndex;
 
 // Index order is the OptionMenuItem row order the SelectList shows.
@@ -250,7 +251,7 @@ std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
         case OptionMenuItem::AntiAliasing:
             return { aaModes.size(), currentAaIndex };
         case OptionMenuItem::ShadowQuality:
-            return { shadowResolutions.size(), currentShadowResIndex };
+            return { shadowQualityCount, currentShadowQualityIndex };
         default:
             return { 0, std::nullopt };
     }
@@ -368,7 +369,7 @@ void OptionLayer::onAttach() {
     }
     aspectRatioList->setItems(std::move(arItems));
 
-    shadowQualityList->setItems({ "Low", "Normal", "High", "Ultra" });
+    shadowQualityList->setItems({ "Low", "Medium", "High" });
     antiAliasingList->setItems({ "Off", "FXAA", "TAA" });
 
     const auto window        = Maze::get().getWindow();
@@ -680,7 +681,7 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
     }
 
     if (item == OptionMenuItem::ShadowQuality) {
-        pendingShadowResIndex = static_cast<int>(list->getSelectedIndex());
+        pendingShadowQualityIndex = static_cast<int>(list->getSelectedIndex());
     }
     if (item == OptionMenuItem::AntiAliasing) {
         pendingAaIndex = static_cast<int>(list->getSelectedIndex());
@@ -962,11 +963,11 @@ void OptionLayer::applyChanges() {
     }
     const auto aaMode = aaModes[static_cast<size_t>(pendingAaIndex)];
     Maze::get().setAntiAliasing(aaMode);
-    const auto shadowRes =
-        shadowResolutions[static_cast<size_t>(pendingShadowResIndex)];
-    Maze::get().getMazeLayer()->setShadowMapRes(shadowRes);
+    const auto shadowQuality =
+        static_cast<game::layer::ShadowQuality>(pendingShadowQualityIndex);
+    Maze::get().getMazeLayer()->setShadowQuality(shadowQuality);
     saveVideoSettings(saveWidth, saveHeight, pendingFullscreen, aaMode,
-                      shadowRes);
+                      shadowQuality);
 
     syncPendingCheckboxState();
     hasUnappliedChanges = false;
@@ -990,18 +991,13 @@ void OptionLayer::syncPendingCheckboxState() {
     }
     appliedAaIndex = pendingAaIndex;
 
-    const auto currentShadowRes =
-        Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
-    const auto it = std::ranges::find(shadowResolutions, currentShadowRes);
-    pendingShadowResIndex =
-        it != shadowResolutions.end() ?
-            static_cast<int>(it - shadowResolutions.begin()) :
-            1;
+    pendingShadowQualityIndex =
+        static_cast<int>(Maze::get().getMazeLayer()->getShadowQuality());
     if (shadowQualityList) {
         shadowQualityList->setSelectedIndex(
-            static_cast<size_t>(pendingShadowResIndex));
+            static_cast<size_t>(pendingShadowQualityIndex));
     }
-    appliedShadowResIndex = pendingShadowResIndex;
+    appliedShadowQualityIndex = pendingShadowQualityIndex;
 }
 
 void OptionLayer::updateChangeStatus() {
@@ -1040,14 +1036,10 @@ void OptionLayer::updateChangeStatus() {
                 std::nullopt;
     }
 
-    const auto currentShadowRes =
-        Maze::get().getMazeLayer()->getDirectionalLightShadowMapRes();
-    const auto sqIt = std::ranges::find(shadowResolutions, currentShadowRes);
-    currentShadowResIndex    = sqIt != shadowResolutions.end() ?
-                                   std::optional{ static_cast<size_t>(
-                                       sqIt - shadowResolutions.begin()) } :
-                                   std::nullopt;
-    const bool shadowChanged = pendingShadowResIndex != appliedShadowResIndex;
+    currentShadowQualityIndex =
+        static_cast<size_t>(Maze::get().getMazeLayer()->getShadowQuality());
+    const bool shadowChanged =
+        pendingShadowQualityIndex != appliedShadowQualityIndex;
 
     const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
     currentAaIndex =
