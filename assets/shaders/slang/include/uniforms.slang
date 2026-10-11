@@ -35,6 +35,7 @@ struct PbrParams {
     float4   diffuseTransmission;  // rgb = color, w = factor; 0 = opaque
     float    ao;
     bool     ssaoEnabled;
+    bool     translucencyEnabled;  // false ignores diffuseTransmission
     float    ambientStrength;
     float    evsmBleedThreshold;
     bool     hasNoTexture;

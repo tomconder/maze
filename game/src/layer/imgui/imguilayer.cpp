@@ -304,6 +304,8 @@ void ImGuiLayer::showSsaoControls() {
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("##ssaoenabled", &ssaoEnabled)) {
                 mazeLayer->setSsaoEnabled(ssaoEnabled);
+                sponge::core::Settings::set("video.ssaoEnabled", ssaoEnabled);
+                sponge::core::Settings::save();
             }
         });
 

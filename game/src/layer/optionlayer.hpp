@@ -21,6 +21,10 @@ enum class OptionMenuItem : uint8_t {
     VerticalSync,
     AntiAliasing,
     ShadowQuality,
+    AmbientOcclusion,
+    Bloom,
+    SubsurfaceScattering,
+    Refraction,
     Return,
     Count,
 };
@@ -45,11 +49,17 @@ private:
     bool wasActiveLastFrame    = false;
     bool waitForConfirmRelease = false;
 
-    bool pendingFullscreen     = false;
-    bool pendingVsync          = false;
-    int  pendingAaIndex        = 0;
-    int  appliedAaIndex        = 0;  // baseline pendingAaIndex synced to
-    int  pendingShadowResIndex = 1;
+    bool pendingFullscreen = false;
+    bool pendingVsync      = false;
+    // These four apply as soon as they are toggled, like vsync, so they
+    // never light up Apply.
+    bool pendingAmbientOcclusion     = true;
+    bool pendingBloom                = true;
+    bool pendingSubsurfaceScattering = true;
+    bool pendingRefraction           = true;
+    int  pendingAaIndex              = 0;
+    int  appliedAaIndex              = 0;  // baseline pendingAaIndex synced to
+    int  pendingShadowResIndex       = 1;
     int  appliedShadowResIndex = 1;  // baseline pendingShadowResIndex synced to
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
@@ -58,6 +68,10 @@ private:
     std::unique_ptr<ui::SelectList> antiAliasingList;
     std::unique_ptr<ui::Checkbox>   fullScreenCheckbox;
     std::unique_ptr<ui::Checkbox>   verticalSyncCheckbox;
+    std::unique_ptr<ui::Checkbox>   ambientOcclusionCheckbox;
+    std::unique_ptr<ui::Checkbox>   bloomCheckbox;
+    std::unique_ptr<ui::Checkbox>   subsurfaceScatteringCheckbox;
+    std::unique_ptr<ui::Checkbox>   refractionCheckbox;
 
     void renderRowBackground(float x, float y, float w, float h,
                              OptionMenuItem item) const;

@@ -134,6 +134,15 @@ public:
     float getSsaoRadius() const;
     void  setSsaoRadius(float val);
 
+    // Diffuse transmission, the approximate subsurface scattering. Off lights
+    // every surface as plain diffuse.
+    bool isTranslucencyEnabled() const;
+    void setTranslucencyEnabled(bool val);
+
+    // Off draws refractive objects as ordinary opaque ones: no glass pass.
+    bool isRefractionEnabled() const;
+    void setRefractionEnabled(bool val);
+
     bool isSsrEnabled() const;
     void setSsrEnabled(bool val);
 
@@ -277,6 +286,9 @@ private:
     sponge::platform::opengl::scene::ShadowMap::Matrices shadowCachedMatrices{};
     std::array<bool, sponge::platform::opengl::scene::ShadowMap::maxCascades>
         shadowCached{};
+    // The refraction setting the cached maps were drawn with: glass casts a
+    // shadow only while refraction is off, so a change redraws them all.
+    bool shadowCachedRefraction = true;
     // Debug capture only: draw the shadow map every frame, to time it.
     bool shadowCacheOff = false;
     // Debug capture only: skip the GPU timer, to measure its own cost.
@@ -356,15 +368,17 @@ private:
     // composited after the curve, so this is roughly 1/30th of the old value
     // for the same look. Re-derive it against a measurement, never by
     // scaling the old number.
-    float   bloomIntensity     = 0.08F;
-    bool    ssaoEnabled        = true;
-    float   ssaoRadius         = 0.5F;
-    bool    ssrEnabled         = true;
-    bool    planarEnabled      = true;
-    bool    probeEnabled       = true;
-    bool    mouseButtonPressed = false;
-    int32_t numLights          = 0;
-    bool    isImguiOpen        = true;
+    float   bloomIntensity      = 0.08F;
+    bool    ssaoEnabled         = true;
+    float   ssaoRadius          = 0.5F;
+    bool    translucencyEnabled = true;
+    bool    refractionEnabled   = true;
+    bool    ssrEnabled          = true;
+    bool    planarEnabled       = true;
+    bool    probeEnabled        = true;
+    bool    mouseButtonPressed  = false;
+    int32_t numLights           = 0;
+    bool    isImguiOpen         = true;
 
     std::optional<FrameCapture> capture;
     std::string                 captureOff;

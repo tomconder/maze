@@ -85,6 +85,16 @@ MazeLayer::MazeLayer() :
     numLights = std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
     bloomThreshold = sceneDesc.bloom.threshold;
     bloomIntensity = sceneDesc.bloom.intensity;
+
+    // Saved from the options screen, which opens before the maze has loaded,
+    // so the values must be right here and not only after finishLoading().
+    // The scene file has no say in these.
+    ssaoEnabled =
+        sponge::core::Settings::getBool("video.ssaoEnabled", ssaoEnabled);
+    refractionEnabled = sponge::core::Settings::getBool(
+        "video.refractionEnabled", refractionEnabled);
+    translucencyEnabled = sponge::core::Settings::getBool(
+        "video.translucencyEnabled", translucencyEnabled);
 }
 
 std::vector<ModelCreateInfo> MazeLayer::getModelLoadRequests() const {
@@ -164,6 +174,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     const auto shader = Mesh::getShader();
     shader->setFloat("ao", ao);
     shader->setBoolean("ssaoEnabled", ssaoEnabled);
+    shader->setBoolean("translucencyEnabled", translucencyEnabled);
 
     shader->setFloat("ambientStrength", ambientStrength);
 
@@ -563,6 +574,13 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.bloomIntensity = bloomIntensity;
         frame.toneMapper     = toneMapper;
 
+        frame.refractionEnabled = refractionEnabled;
+        if (refractionEnabled) {
+            frame.objectRefraction = objectRefraction;
+        } else {
+            frame.objectRefraction.assign(objectRefraction.size(), {});
+        }
+
         frame.ssaoEnabled  = ssaoEnabled;
         frame.ssaoRadius   = ssaoRadius;
         frame.ssrEnabled   = ssrEnabled;
@@ -657,6 +675,11 @@ void MazeLayer::onRender() {
     // Phase 1: shadow map. Each cascade is drawn again only when its own
     // matrix changed, so a camera that only turns redraws nothing.
     if (frame.shadowEnabled && frame.shadowCastShadow) {
+        if (frame.refractionEnabled != shadowCachedRefraction) {
+            // every cascade, including ones not drawn this frame
+            shadowCached.fill(false);
+            shadowCachedRefraction = frame.refractionEnabled;
+        }
         for (uint32_t c = 0; c < frame.cascadeCount; c++) {
             if (shadowCacheOff || !shadowCached[c] ||
                 frame.lightSpaceMatrices[c] != shadowCachedMatrices[c]) {
@@ -1721,8 +1744,11 @@ void MazeLayer::setSsaoEnabled(const bool val) {
         ssaoEnabled = val;
     }
 
-    const auto shader = Mesh::getShader();
-    shader->setBoolean("ssaoEnabled", val);
+    // The mesh shader does not exist until the maze has loaded; finishLoading()
+    // sends it the stored value then.
+    if (const auto shader = Mesh::getShader()) {
+        shader->setBoolean("ssaoEnabled", val);
+    }
 }
 
 float MazeLayer::getSsaoRadius() const {
@@ -1732,6 +1758,32 @@ float MazeLayer::getSsaoRadius() const {
 void MazeLayer::setSsaoRadius(const float val) {
     std::scoped_lock lock(settingsMutex);
     ssaoRadius = val;
+}
+
+bool MazeLayer::isTranslucencyEnabled() const {
+    return translucencyEnabled;
+}
+
+void MazeLayer::setTranslucencyEnabled(const bool val) {
+    {
+        std::scoped_lock lock(settingsMutex);
+        translucencyEnabled = val;
+    }
+
+    // A shader uniform, so it needs no per-frame copy in the snapshot. Before
+    // the maze has loaded there is no shader; finishLoading() sends the value.
+    if (const auto shader = Mesh::getShader()) {
+        shader->setBoolean("translucencyEnabled", val);
+    }
+}
+
+bool MazeLayer::isRefractionEnabled() const {
+    return refractionEnabled;
+}
+
+void MazeLayer::setRefractionEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
+    refractionEnabled = val;
 }
 
 bool MazeLayer::isSsrEnabled() const {
