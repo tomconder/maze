@@ -458,6 +458,11 @@ void Application::run() {
                                               desktop->height);
                         }
                     } else {
+                        // From full screen the window takes the resolution in
+                        // use, not the windowed size from before it.
+                        if (appliedDisplayMode == DisplayMode::FullScreen) {
+                            glfwGetWindowSize(glfwWindow, &prevW, &prevH);
+                        }
                         if (prevW <= 0) {
                             prevW = static_cast<int>(appSpec.width);
                         }
