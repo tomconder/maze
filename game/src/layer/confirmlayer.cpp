@@ -93,9 +93,9 @@ bool ConfirmLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void ConfirmLayer::show(std::function<void(ui::ConfirmResult)> onResult,
+void ConfirmLayer::show(std::function<void(ui::ConfirmResult)> callback,
                         const float                            seconds) {
-    this->onResult = std::move(onResult);
+    onResult = std::move(callback);
     dialog->open(seconds);
     wasActiveLastFrame = false;
     setActive(true);

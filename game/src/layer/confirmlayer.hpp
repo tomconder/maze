@@ -26,7 +26,7 @@ public:
 
     // Opens the prompt. onResult runs once with Accepted or Cancelled, after
     // the layer has gone inactive. The countdown running out is Cancelled.
-    void show(std::function<void(ui::ConfirmResult)> onResult, float seconds);
+    void show(std::function<void(ui::ConfirmResult)> callback, float seconds);
 
 private:
     std::unique_ptr<ui::ConfirmDialog>     dialog;
