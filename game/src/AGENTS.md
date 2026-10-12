@@ -40,7 +40,7 @@ primitives, windowing, or platform backends itself — see
   drag-release or a discrete step, not on every mouse-move frame of a drag.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   absolute Yoga nodes placed from the first visible row, so the pinned rows
-  (Apply on Display, Reset to Defaults on Keyboard, none on Audio) keep their
+  (Reset to Defaults on Keyboard, none on Display and Audio) keep their
   flex position at the bottom. Esc is the only way back; there is no Return row.
   The target and the drawn offset are in fractional rows, so a row can rest
   half in view; the offset eases toward the target
@@ -140,6 +140,19 @@ primitives, windowing, or platform backends itself — see
 * The Display tab has three sections, General, Quality and Advanced. Each
   starts with a heading row (`isHeading()` in `optionlayer.cpp`), which takes a
   scroll slot but is never selected, hovered or clicked.
+* The Display tab has no Apply row: every row applies the moment it changes.
+  A Display Mode change also opens `layer/confirmlayer.hpp` ("Confirm
+  Graphical Changes", 15 second countdown, Accept selected), which draws a
+  `ui::ConfirmDialog`. It is the top overlay and modal: it takes the mouse
+  events first, and `OptionLayer` skips its keys while it is active. It runs
+  its callback after it goes inactive, and ignores the key press that opened
+  it. `--capture-menu=confirm` shows it over the Display tab. Accept saves
+  `video.displayMode`; Cancel, Esc or the countdown ending puts back the mode
+  held in `previousDisplayMode`. Nothing is saved before Accept, so a crash
+  with a bad mode open starts with the old one. Resolution, Aspect Ratio (which
+  applies the first resolution of the new ratio), Anti-aliasing and Shadow
+  Quality apply and save at once with no prompt. Mode and size changes reach the window
+  asynchronously on the main thread, so `onWindowResize()` re-syncs the rows.
 * The Display tab's Ambient Occlusion, Bloom and Subsurface Scattering
   rows apply on the spot and save `video.ssaoEnabled`,
   `video.bloomEnabled` and `video.translucencyEnabled`. Subsurface Scattering is the PBR shader's diffuse

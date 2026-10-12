@@ -66,7 +66,7 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
     { .label = "25:16", .numerator = 25, .denominator = 16 },
 });
 
-constexpr std::string_view applyMessage = "Apply";
+constexpr float confirmSeconds = 15.F;
 
 constexpr size_t shadowQualityCount =
     static_cast<size_t>(game::layer::ShadowQuality::Count);
@@ -175,24 +175,8 @@ float computeMaxCycleValueWidth() {
         });
 }
 
-// video.vsync is not here: it applies and persists the moment its checkbox is
-// toggled, so it never waits for Apply. An empty size keeps the saved one.
-void saveVideoSettings(const std::optional<sponge::core::Resolution>& size,
-                       const sponge::core::DisplayMode  displayMode,
-                       const game::thread::AntiAliasing antiAliasing,
-                       const game::layer::ShadowQuality shadowQuality) {
-    using sponge::core::Settings;
-    if (size) {
-        Settings::set("video.width", size->width);
-        Settings::set("video.height", size->height);
-    }
-    Settings::set("video.displayMode", static_cast<uint32_t>(displayMode));
-    Settings::set("video.aa", static_cast<uint32_t>(antiAliasing));
-    Settings::set("video.shadowQuality", static_cast<uint32_t>(shadowQuality));
-    Settings::save();
-}
-
-std::unique_ptr<game::ui::Button> applyButton;
+// The display mode a change replaced, until the player accepts it.
+std::optional<sponge::core::DisplayMode> previousDisplayMode;
 
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
@@ -206,7 +190,6 @@ constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
 // doubles as the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
-// The setting rows scroll; Apply stays pinned below them.
 game::ui::MenuScroll scroll;
 
 struct RowDef {
@@ -221,7 +204,6 @@ constexpr bool isHeading(const OptionMenuItem item) {
            item == OptionMenuItem::AdvancedHeading;
 }
 
-// Every row except Apply, which is a Button rather than a setting widget.
 constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::GeneralHeading, .label = "General" },
     RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
@@ -240,8 +222,8 @@ constexpr std::array settingRows = {
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
-// cover every row but Apply.
-static_assert(settingRows.size() + 1 == rowCount);
+// cover every row.
+static_assert(settingRows.size() == rowCount);
 static_assert([] {
     for (size_t i = 0; i < settingRows.size(); i++) {
         if (static_cast<size_t>(settingRows[i].item) != i) {
@@ -327,9 +309,6 @@ void OptionLayer::onAttach() {
     quad = std::make_unique<Quad>();
 
     fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
-
-    applyButton = ui::makeMenuButton(applyMessage, fontSize, menuFont,
-                                     buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->setMat4("projection", orthoCamera->getProjection());
@@ -465,7 +444,8 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             }
         }
 
-        if (wasActiveLastFrame) {
+        // the prompt over this screen takes the keys while it is open
+        if (wasActiveLastFrame && !Maze::get().getConfirmLayer()->isActive()) {
             const auto& input = mgr.getSnapshot();
 
             if (ui::stepSelection(input, selectedItem)) {
@@ -506,13 +486,7 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
                 mgr.consumeActive(GameAction::MenuConfirm);
-                if (selectedItem == OptionMenuItem::Apply) {
-                    if (hasUnappliedChanges) {
-                        applyChanges();
-                    }
-                } else {
-                    togglePending(selectedItem);
-                }
+                togglePending(selectedItem);
             }
         }
         wasActiveLastFrame = true;
@@ -589,16 +563,6 @@ bool OptionLayer::onUpdate(const double elapsedTime) {
         }
     }
     scroll.endClip();
-
-    const auto [applyX, applyY, applyW, applyH] =
-        rowLayout(OptionMenuItem::Apply);
-    applyButton->setPosition({ applyX, applyY },
-                             { applyX + applyW, applyY + applyH });
-    ui::updateMenuButtonVisuals(applyButton.get(),
-                                selectedItem == OptionMenuItem::Apply,
-                                textHoverColor);
-
-    applyButton->onUpdate(elapsedTime);
 
     scroll.render(*quad);
 
@@ -699,24 +663,48 @@ void OptionLayer::cycleList(const OptionMenuItem item, const int delta) {
         return;
     }
 
-    if (delta < 0 ? list->selectPrev() : list->selectNext()) {
-        ui::playHoverClick();
-    }
-
-    if (item == OptionMenuItem::AspectRatio) {
-        // filterResolutions() ends in updateChangeStatus()
-        filterResolutions();
+    if (!(delta < 0 ? list->selectPrev() : list->selectNext())) {
         return;
     }
+    ui::playHoverClick();
 
-    if (item == OptionMenuItem::DisplayMode) {
-        pendingDisplayModeIndex = static_cast<int>(list->getSelectedIndex());
-    }
-    if (item == OptionMenuItem::ShadowQuality) {
-        pendingShadowQualityIndex = static_cast<int>(list->getSelectedIndex());
-    }
-    if (item == OptionMenuItem::AntiAliasing) {
-        pendingAaIndex = static_cast<int>(list->getSelectedIndex());
+    const auto index = static_cast<int>(list->getSelectedIndex());
+    switch (item) {
+        case OptionMenuItem::AspectRatio:
+            // the new ratio takes its first resolution, applied like a
+            // resolution change
+            filterResolutions();
+            if (!filteredResolutions.empty()) {
+                applyResolution();
+            }
+            break;
+        case OptionMenuItem::DisplayMode:
+            pendingDisplayModeIndex = index;
+            applyDisplayMode();
+            break;
+        case OptionMenuItem::Resolution:
+            applyResolution();
+            break;
+        case OptionMenuItem::ShadowQuality: {
+            pendingShadowQualityIndex = index;
+            const auto quality        = static_cast<ShadowQuality>(index);
+            Maze::get().getMazeLayer()->setShadowQuality(quality);
+            sponge::core::Settings::set("video.shadowQuality",
+                                        static_cast<uint32_t>(quality));
+            sponge::core::Settings::save();
+            break;
+        }
+        case OptionMenuItem::AntiAliasing: {
+            pendingAaIndex    = index;
+            const auto aaMode = aaModes[static_cast<size_t>(index)];
+            Maze::get().setAntiAliasing(aaMode);
+            sponge::core::Settings::set("video.aa",
+                                        static_cast<uint32_t>(aaMode));
+            sponge::core::Settings::save();
+            break;
+        }
+        default:
+            break;
     }
     updateChangeStatus();
 }
@@ -728,9 +716,7 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
     }
     *pending = !*pending;
 
-    // Vsync applies on the spot — unlike resolution and fullscreen it needs no
-    // batching, so it never lights up the Apply button.
-    // The effects below apply the same way.
+    // Vsync and the effects below apply on the spot and need no confirmation.
     switch (item) {
         case OptionMenuItem::VerticalSync:
             Maze::get().requestVerticalSync(pendingVsync);
@@ -768,12 +754,8 @@ void OptionLayer::recalculateLayout(const float width, const float height) {
     for (auto* const row : rowNodes) {
         ui::setMenuRowHeight(row, width);
     }
-    ui::pinMenuRowToBottom(rowNodes[+OptionMenuItem::Apply], width);
-    scroll.layout(
-        rootNode, menuNode, menuBackgroundNode,
-        std::span<const YGNodeRef>(rowNodes).first(settingRows.size()),
-        rowNodes[+OptionMenuItem::Apply], width, usableHeight,
-        ui::tabBarHeight(width));
+    scroll.layout(rootNode, menuNode, menuBackgroundNode, rowNodes, nullptr,
+                  width, usableHeight, ui::tabBarHeight(width));
 }
 
 void OptionLayer::relayout() {
@@ -830,13 +812,6 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
-    if (applyButton->isInside({ mouseX, mouseY })) {
-        if (hasUnappliedChanges) {
-            applyChanges();
-        }
-        return true;
-    }
-
     if (scroll.press({ mouseX, mouseY })) {
         relayout();
         return true;
@@ -869,8 +844,6 @@ bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 
 bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
-
-    ui::updateButtonHover(applyButton.get(), pos);
 
     if (scroll.drag(pos.y)) {
         relayout();
@@ -905,8 +878,6 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
     if (newFontSize != fontSize) {
         fontSize = newFontSize;
 
-        applyButton->setFontSize(fontSize);
-
         const auto  checkboxSize       = static_cast<float>(fontSize);
         const float maxCycleValueWidth = computeMaxCycleValueWidth();
 
@@ -920,8 +891,20 @@ bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
         }
     }
 
+    // A mode change lands here, so the rows follow the window. The OS can
+    // clamp a window to the desktop work area; that size is in no list, and
+    // following it would drop the row to the first 4:3 entry.
     if (isActive()) {
-        updateChangeStatus();
+        const bool listed =
+            std::ranges::any_of(availableResolutions, [&](const auto& res) {
+                return res.width == event.getWidth() &&
+                       res.height == event.getHeight();
+            });
+        if (listed) {
+            resetSelectionToCurrentState();
+        } else {
+            updateChangeStatus();
+        }
     }
 
     return false;
@@ -975,43 +958,42 @@ void OptionLayer::filterResolutions() {
     updateChangeStatus();
 }
 
-void OptionLayer::applyChanges() {
-    using sponge::core::DisplayMode;
-    const auto currentWindow = Maze::get().getWindow();
-    const auto previousMode  = Maze::get().getDisplayMode();
-    const auto displayMode = static_cast<DisplayMode>(pendingDisplayModeIndex);
+void OptionLayer::applyDisplayMode() {
+    previousDisplayMode = Maze::get().getDisplayMode();
+    Maze::get().setDisplayMode(
+        static_cast<sponge::core::DisplayMode>(pendingDisplayModeIndex));
+    clearHoveredItems();
+    Maze::get().getConfirmLayer()->show(
+        [this](const ui::ConfirmResult result) {
+            resolveDisplayChange(result);
+        },
+        confirmSeconds);
+}
 
-    // A borderless window takes the desktop size, so it neither sets nor
-    // saves a resolution. Leaving it, the saved size still describes the
-    // windowed rect.
-    std::optional<sponge::core::Resolution> saveSize;
-    if (displayMode != DisplayMode::Borderless &&
-        previousMode != DisplayMode::Borderless) {
-        saveSize = sponge::core::Resolution{ currentWindow->getWidth(),
-                                             currentWindow->getHeight() };
-    }
-    if (displayMode != DisplayMode::Borderless &&
-        !filteredResolutions.empty()) {
-        const auto& res =
-            filteredResolutions[resolutionList->getSelectedIndex()];
-        if (res.width != currentWindow->getWidth() ||
-            res.height != currentWindow->getHeight()) {
-            saveSize = res;
-            Maze::get().setResolution(res.width, res.height);
-        }
-    }
-    if (displayMode != previousMode) {
-        Maze::get().setDisplayMode(displayMode);
-    }
-    const auto aaMode = aaModes[static_cast<size_t>(pendingAaIndex)];
-    Maze::get().setAntiAliasing(aaMode);
-    const auto shadowQuality =
-        static_cast<game::layer::ShadowQuality>(pendingShadowQualityIndex);
-    Maze::get().getMazeLayer()->setShadowQuality(shadowQuality);
-    saveVideoSettings(saveSize, displayMode, aaMode, shadowQuality);
+// A size cannot lock the player out, so it applies and saves with no prompt.
+void OptionLayer::applyResolution() {
+    const auto& res = filteredResolutions[resolutionList->getSelectedIndex()];
+    Maze::get().setResolution(res.width, res.height);
+    sponge::core::Settings::set("video.width", res.width);
+    sponge::core::Settings::set("video.height", res.height);
+    sponge::core::Settings::save();
+}
 
-    syncPendingCheckboxState();
-    hasUnappliedChanges = false;
+void OptionLayer::resolveDisplayChange(const ui::ConfirmResult result) {
+    if (result == ui::ConfirmResult::Pending) {
+        return;
+    }
+    if (result == ui::ConfirmResult::Accepted) {
+        sponge::core::Settings::set(
+            "video.displayMode",
+            static_cast<uint32_t>(Maze::get().getDisplayMode()));
+        sponge::core::Settings::save();
+    } else if (previousDisplayMode) {
+        Maze::get().setDisplayMode(*previousDisplayMode);
+    }
+    previousDisplayMode.reset();
+
+    resetSelectionToCurrentState();
 }
 
 void OptionLayer::syncPendingCheckboxState() {
@@ -1032,7 +1014,6 @@ void OptionLayer::syncPendingCheckboxState() {
     if (antiAliasingList) {
         antiAliasingList->setSelectedIndex(static_cast<size_t>(pendingAaIndex));
     }
-    appliedAaIndex = pendingAaIndex;
 
     pendingShadowQualityIndex =
         static_cast<int>(Maze::get().getMazeLayer()->getShadowQuality());
@@ -1040,15 +1021,10 @@ void OptionLayer::syncPendingCheckboxState() {
         shadowQualityList->setSelectedIndex(
             static_cast<size_t>(pendingShadowQualityIndex));
     }
-    appliedShadowQualityIndex = pendingShadowQualityIndex;
 }
 
 void OptionLayer::updateChangeStatus() {
-    const bool checkboxChanged = pendingVsync != Maze::get().hasVerticalSync();
-
     currentDisplayModeIndex = static_cast<size_t>(Maze::get().getDisplayMode());
-    const bool displayModeChanged =
-        pendingDisplayModeIndex != static_cast<int>(*currentDisplayModeIndex);
 
     // A borderless window has the desktop size, so the size rows are locked.
     const bool borderless =
@@ -1071,13 +1047,7 @@ void OptionLayer::updateChangeStatus() {
         currentAspectRatioIndex = std::nullopt;
     }
 
-    bool resolutionChanged = false;
     if (!filteredResolutions.empty()) {
-        const auto& res =
-            filteredResolutions[resolutionList->getSelectedIndex()];
-        resolutionChanged =
-            !borderless && (res.width != curW || res.height != curH);
-
         const auto it =
             std::ranges::find_if(filteredResolutions, [&](const auto& r) {
                 return r.width == curW && r.height == curH;
@@ -1091,23 +1061,16 @@ void OptionLayer::updateChangeStatus() {
 
     currentShadowQualityIndex =
         static_cast<size_t>(Maze::get().getMazeLayer()->getShadowQuality());
-    const bool shadowChanged =
-        pendingShadowQualityIndex != appliedShadowQualityIndex;
 
     const auto aaIt = std::ranges::find(aaModes, Maze::get().getAntiAliasing());
     currentAaIndex =
         aaIt != aaModes.end() ?
             std::optional{ static_cast<size_t>(aaIt - aaModes.begin()) } :
             std::nullopt;
-    const bool aaChanged = pendingAaIndex != appliedAaIndex;
-
-    hasUnappliedChanges = checkboxChanged || displayModeChanged ||
-                          resolutionChanged || shadowChanged || aaChanged;
 }
 
 void OptionLayer::clearHoveredItems() {
     scroll.release();
-    applyButton->setHover(false);
     hoveredItem = std::nullopt;
 }
 
