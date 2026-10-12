@@ -5,6 +5,7 @@
 #include "event/mouseevent.hpp"
 #include "layer/layer.hpp"
 #include "ui/checkbox.hpp"
+#include "ui/confirmdialog.hpp"
 #include "ui/selectlist.hpp"
 
 #include <cstdint>
@@ -27,7 +28,6 @@ enum class OptionMenuItem : uint8_t {
     AmbientOcclusion,
     Bloom,
     SubsurfaceScattering,
-    Apply,
     Count,
 };
 
@@ -47,22 +47,18 @@ private:
     OptionMenuItem                selectedItem = OptionMenuItem::DisplayMode;
     std::optional<OptionMenuItem> hoveredItem;
 
-    bool hasUnappliedChanges   = false;
     bool wasActiveLastFrame    = false;
     bool waitForConfirmRelease = false;
 
-    bool pendingVsync = false;
-    // These four apply as soon as they are toggled, like vsync, so they
-    // never light up Apply.
+    // Every row applies as soon as it changes. A display mode change opens
+    // the confirm layer and is undone unless it is accepted.
+    bool pendingVsync                = false;
     bool pendingAmbientOcclusion     = true;
     bool pendingBloom                = true;
     bool pendingSubsurfaceScattering = true;
-    int  pendingDisplayModeIndex     = 0;  // compared with the live mode
+    int  pendingDisplayModeIndex     = 0;
     int  pendingAaIndex              = 0;
-    int  appliedAaIndex              = 0;  // baseline pendingAaIndex synced to
     int  pendingShadowQualityIndex   = 1;
-    int  appliedShadowQualityIndex =
-        1;  // baseline pendingShadowQualityIndex synced to
 
     std::unique_ptr<ui::SelectList> aspectRatioList;
     std::unique_ptr<ui::SelectList> resolutionList;
@@ -100,7 +96,13 @@ private:
     // Scrolls the selected row into view.
     void followSelection();
 
-    void applyChanges();
+    // The mode asks to be kept; the resolution applies and saves at once.
+    void applyDisplayMode();
+    void applyResolution();
+
+    // Keeps or undoes the mode change the dialog asked about. No-op while
+    // Pending.
+    void resolveDisplayChange(ui::ConfirmResult result);
 
     void syncPendingCheckboxState();
 

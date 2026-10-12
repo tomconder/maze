@@ -43,6 +43,7 @@ bool Maze::onUserCreate() {
     pushOverlay(optionLayer);
     pushOverlay(keyMapLayer);
     pushOverlay(audioLayer);
+    pushOverlay(confirmLayer);
 
     pushLayer(mazeLayer);
     pushLayer(loadingLayer);
@@ -55,6 +56,7 @@ bool Maze::onUserCreate() {
     keyMapLayer->setActive(false);
     optionLayer->setActive(false);
     audioLayer->setActive(false);
+    confirmLayer->setActive(false);
 
 #ifndef NDEBUG
     setUpCapture();
@@ -100,6 +102,9 @@ void Maze::setUpCapture() {
             ui::showOptionTab(ui::OptionTab::Keyboard);
         } else if (capture.menu == "audio") {
             ui::showOptionTab(ui::OptionTab::Audio);
+        } else if (capture.menu == "confirm") {
+            ui::showOptionTab(ui::OptionTab::Display);
+            confirmLayer->show(nullptr, 15.F);
         } else {
             introLayer->setActive(true);
         }

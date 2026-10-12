@@ -3,6 +3,7 @@
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "layer/audiolayer.hpp"
+#include "layer/confirmlayer.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
@@ -65,6 +66,10 @@ public:
 
     std::shared_ptr<layer::AudioLayer> getAudioLayer() const {
         return audioLayer;
+    }
+
+    std::shared_ptr<layer::ConfirmLayer> getConfirmLayer() const {
+        return confirmLayer;
     }
 
     std::shared_ptr<layer::ExitLayer> getExitLayer() const {
@@ -135,6 +140,8 @@ private:
 
     std::shared_ptr<layer::AudioLayer> audioLayer =
         std::make_shared<layer::AudioLayer>();
+    std::shared_ptr<layer::ConfirmLayer> confirmLayer =
+        std::make_shared<layer::ConfirmLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
