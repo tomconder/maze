@@ -27,8 +27,8 @@ public:
     // seconds <= 0 shows no countdown and never times out. defaultAccept
     // picks the selected button: Accept for a change that is easy to undo,
     // Cancel for one that is not.
-    void open(std::string_view title, std::string_view message, float seconds,
-              bool defaultAccept);
+    void open(std::string_view newTitle, std::string_view newMessage,
+              float seconds, bool defaultAccept);
 
     void close() {
         opened = false;

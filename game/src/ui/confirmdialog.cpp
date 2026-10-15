@@ -35,15 +35,15 @@ ConfirmDialog::ConfirmDialog(
     cancelButton->setAlignType(ButtonAlignType::CenterAligned);
 }
 
-void ConfirmDialog::open(const std::string_view title,
-                         const std::string_view message, const float seconds,
+void ConfirmDialog::open(const std::string_view newTitle,
+                         const std::string_view newMessage, const float seconds,
                          const bool defaultAccept) {
-    this->title   = title;
-    this->message = message;
-    opened        = true;
-    acceptChosen  = defaultAccept;
-    timed         = seconds > 0.F;
-    remaining     = seconds;
+    title        = newTitle;
+    message      = newMessage;
+    opened       = true;
+    acceptChosen = defaultAccept;
+    timed        = seconds > 0.F;
+    remaining    = seconds;
     acceptButton->setHover(false);
     cancelButton->setHover(false);
 }
