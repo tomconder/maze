@@ -8,12 +8,18 @@
 
 #include <functional>
 #include <memory>
+#include <string_view>
 
 namespace game::layer {
 
-// The "Confirm Graphical Changes" prompt, on top of every other layer. It is
-// modal: while it is active it takes the mouse events first, and the layers
-// under it skip their keys (see Maze::getConfirmLayer()).
+inline constexpr std::string_view displayChangeTitle =
+    "Confirm Graphical Changes";
+inline constexpr std::string_view displayChangeMessage =
+    "Keep the changes to your graphical settings?";
+
+// A yes or no prompt, on top of every other layer. It is modal: while it is
+// active it takes the mouse events first, and the layers under it skip their
+// keys (see Maze::getConfirmLayer()).
 class ConfirmLayer final : public sponge::layer::Layer {
 public:
     ConfirmLayer();
@@ -25,8 +31,11 @@ public:
     bool onUpdate(double elapsedTime) override;
 
     // Opens the prompt. onResult runs once with Accepted or Cancelled, after
-    // the layer has gone inactive. The countdown running out is Cancelled.
-    void show(std::function<void(ui::ConfirmResult)> callback, float seconds);
+    // the layer has gone inactive. The countdown running out is Cancelled;
+    // seconds <= 0 has no countdown. defaultAccept picks the selected button.
+    void show(std::string_view title, std::string_view message,
+              std::function<void(ui::ConfirmResult)> callback, float seconds,
+              bool defaultAccept = true);
 
 private:
     std::unique_ptr<ui::ConfirmDialog>     dialog;

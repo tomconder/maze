@@ -146,7 +146,10 @@ primitives, windowing, or platform backends itself — see
   `ui::ConfirmDialog`. It is the top overlay and modal: it takes the mouse
   events first, and `OptionLayer` skips its keys while it is active. It runs
   its callback after it goes inactive, and ignores the key press that opened
-  it. `--capture-menu=confirm` shows it over the Display tab. Accept saves
+  it. `--capture-menu=confirm` shows it over the Display tab. `show()` takes the
+  title, message, countdown seconds (0 or less: no countdown, no timeout) and
+  `defaultAccept`, so other screens can reuse it; give a destructive action
+  `defaultAccept = false`. Accept saves
   `video.displayMode`; Cancel, Esc or the countdown ending puts back the mode
   held in `previousDisplayMode`. Nothing is saved before Accept, so a crash
   with a bad mode open starts with the old one. Resolution, Aspect Ratio (which

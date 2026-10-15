@@ -22,11 +22,8 @@ constexpr float     panelBorderSize = 2.F;
 }  // namespace
 
 ConfirmDialog::ConfirmDialog(
-    const std::string_view title, const std::string_view message,
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font,
     const uint32_t                                               fontSize) :
-    title(title),
-    message(message),
     font(std::move(font)),
     fontSize(fontSize),
     quad(std::make_unique<sponge::platform::opengl::scene::Quad>()),
@@ -38,9 +35,14 @@ ConfirmDialog::ConfirmDialog(
     cancelButton->setAlignType(ButtonAlignType::CenterAligned);
 }
 
-void ConfirmDialog::open(const float seconds) {
+void ConfirmDialog::open(const std::string_view newTitle,
+                         const std::string_view newMessage, const float seconds,
+                         const bool defaultAccept) {
+    title        = newTitle;
+    message      = newMessage;
     opened       = true;
-    acceptChosen = true;
+    acceptChosen = defaultAccept;
+    timed        = seconds > 0.F;
     remaining    = seconds;
     acceptButton->setHover(false);
     cancelButton->setHover(false);
@@ -97,9 +99,11 @@ void ConfirmDialog::onMouseMoved(const glm::vec2& position) {
 
 ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
                                       const float width, const float height) {
-    remaining -= static_cast<float>(elapsedTime);
-    if (remaining <= 0.F) {
-        return ConfirmResult::Cancelled;
+    if (timed) {
+        remaining -= static_cast<float>(elapsedTime);
+        if (remaining <= 0.F) {
+            return ConfirmResult::Cancelled;
+        }
     }
 
     const auto  size    = static_cast<float>(fontSize);
@@ -108,12 +112,11 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
     const float gap     = size * 0.5F;
     const float buttonH = size * 2.2F;
 
-    const auto countdown =
-        fmt::format("Reverting in {}", static_cast<int>(std::ceil(remaining)));
+    const float lines  = timed ? 3.F : 2.F;
     const float textW  = static_cast<float>(std::max(
         font->getLength(title, fontSize), font->getLength(message, fontSize)));
     const float panelW = textW + pad * 2.F;
-    const float panelH = pad * 2.F + lineH * 3.F + gap * 3.F + buttonH;
+    const float panelH = pad * 2.F + lineH * lines + gap * lines + buttonH;
     const float panelX = std::round((width - panelW) / 2.F);
     const float panelY = std::round((height - panelH) / 2.F);
 
@@ -134,8 +137,12 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
     y += lineH + gap;
     centered(message, y, textColor);
     y += lineH + gap;
-    centered(countdown, y, countdownColor);
-    y += lineH + gap;
+    if (timed) {
+        centered(fmt::format("Reverting in {}",
+                             static_cast<int>(std::ceil(remaining))),
+                 y, countdownColor);
+        y += lineH + gap;
+    }
 
     const float buttonW = (panelW - pad * 2.F - gap) / 2.F;
     const float leftX   = panelX + pad;

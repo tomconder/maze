@@ -45,9 +45,7 @@ void ConfirmLayer::onAttach() {
     orthoCamera = scene::menuOrthoCamera();
 
     dialog = std::make_unique<ui::ConfirmDialog>(
-        "Confirm Graphical Changes",
-        "Keep the changes to your graphical settings?", menuFont,
-        ui::menuFontSizeForWidth(orthoCamera->getWidth()));
+        menuFont, ui::menuFontSizeForWidth(orthoCamera->getWidth()));
 }
 
 void ConfirmLayer::onEvent(Event& event) {
@@ -93,10 +91,12 @@ bool ConfirmLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void ConfirmLayer::show(std::function<void(ui::ConfirmResult)> callback,
-                        const float                            seconds) {
+void ConfirmLayer::show(const std::string_view                 title,
+                        const std::string_view                 message,
+                        std::function<void(ui::ConfirmResult)> callback,
+                        const float seconds, const bool defaultAccept) {
     onResult = std::move(callback);
-    dialog->open(seconds);
+    dialog->open(title, message, seconds, defaultAccept);
     wasActiveLastFrame = false;
     setActive(true);
 }
