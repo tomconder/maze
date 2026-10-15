@@ -101,9 +101,15 @@ void renderKeyHints(std::span<const KeyHint>           hints,
     const auto& shader = promptSprite(hints.front().keyIcon).getShader();
     shader->setMat4("projection", projection);
 
-    auto       x          = marginX;
-    const auto renderHint = [&](const KeyHint& hint) {
-        const auto icon      = gamepad ? hint.padIcon : hint.keyIcon;
+    const auto iconOf = [gamepad](const KeyHint& hint) {
+        return gamepad ? hint.padIcon : hint.keyIcon;
+    };
+    const auto hintWidth = [&](const KeyHint& hint) {
+        return iconSize * iconScale(iconOf(hint)) + gap +
+               static_cast<float>(font->getLength(hint.label, size));
+    };
+    const auto renderHint = [&](const KeyHint& hint, const float x) {
+        const auto icon      = iconOf(hint);
         const auto drawnSize = iconSize * iconScale(icon);
 
         promptSprite(icon).render(
@@ -113,23 +119,36 @@ void renderKeyHints(std::span<const KeyHint>           hints,
         font->beginPass(size);
         font->render(hint.label, { x + drawnSize + gap, textTop }, labelColor);
         font->endPass();
-
-        x += drawnSize + gap +
-             static_cast<float>(font->getLength(hint.label, size)) + gap * 2.F;
     };
 
-    // Back leads every row so it sits in the same place on every menu.
+    // Back sits at the left margin so it is in the same place on every menu.
+    // Every other hint is right-aligned against the right margin, in order.
     const auto isBack = [](const KeyHint& hint) {
         return hint.keyIcon == "keyboard_escape";
     };
+    auto leftEnd = marginX;
     for (const auto& hint : hints) {
         if (isBack(hint)) {
-            renderHint(hint);
+            renderHint(hint, marginX);
+            leftEnd += hintWidth(hint);
         }
     }
+
+    float rightWidth = 0.F;
     for (const auto& hint : hints) {
         if (!isBack(hint)) {
-            renderHint(hint);
+            rightWidth += hintWidth(hint) + gap * 2.F;
+        }
+    }
+    rightWidth -= rightWidth > 0.F ? gap * 2.F : 0.F;
+
+    // a window too narrow for both groups keeps Back whole and lets the rest
+    // run past the right margin
+    auto x = std::max(windowWidth - marginX - rightWidth, leftEnd + gap * 4.F);
+    for (const auto& hint : hints) {
+        if (!isBack(hint)) {
+            renderHint(hint, x);
+            x += hintWidth(hint) + gap * 2.F;
         }
     }
 }
