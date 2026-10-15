@@ -17,6 +17,7 @@ Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other ag
 * For visual changes, show a before/after table with images.
 * For benchmarks, show before/after tables (baseline from target branch).
 * For large or high-risk changes, write it like a technical blog post.
+* Set the body with `gh pr create/edit --body-file <file>`. `--body -` does not read stdin; it sets the body to a literal `-`. Read the body back with `gh pr view <n> --json body -q .body`.
 
 ## Compaction
 
