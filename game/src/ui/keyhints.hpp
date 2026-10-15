@@ -36,11 +36,9 @@ float heightWithoutKeyHints(float windowWidth, float windowHeight);
 // relayout. Shows the gamepad prompt while the gamepad is the device in use.
 // The Back hint (keyboard_escape) is always drawn first; the rest keep their
 // order.
-// rightText, if given, is drawn on the same line against the right margin.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth, float windowHeight,
-    std::string_view rightText = {});
+    const glm::mat4& projection, float windowWidth, float windowHeight);
 
 }  // namespace game::ui

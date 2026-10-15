@@ -20,8 +20,7 @@
 #include <string_view>
 
 namespace {
-constexpr glm::vec3 labelColor     = { 0.9F, 0.9F, 0.9F };
-constexpr glm::vec3 rightTextColor = { 0.6F, 0.6F, 0.6F };
+constexpr glm::vec3 labelColor = { 0.9F, 0.9F, 0.9F };
 
 struct Metrics {
     uint32_t size;
@@ -80,8 +79,7 @@ float heightWithoutKeyHints(const float windowWidth, const float windowHeight) {
 void renderKeyHints(std::span<const KeyHint>           hints,
                     const std::shared_ptr<BitmapFont>& font,
                     const glm::mat4& projection, const float windowWidth,
-                    const float            windowHeight,
-                    const std::string_view rightText) {
+                    const float windowHeight) {
     if (hints.empty()) {
         return;
     }
@@ -133,15 +131,6 @@ void renderKeyHints(std::span<const KeyHint>           hints,
         if (!isBack(hint)) {
             renderHint(hint);
         }
-    }
-
-    if (!rightText.empty()) {
-        const auto textWidth =
-            static_cast<float>(font->getLength(rightText, size));
-        font->beginPass(size);
-        font->render(rightText, { windowWidth - marginX - textWidth, textTop },
-                     rightTextColor);
-        font->endPass();
     }
 }
 }  // namespace game::ui
