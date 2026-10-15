@@ -31,11 +31,11 @@ float keyHintBarHeight(float windowWidth);
 // the bar, and Yoga must never be handed a negative dimension.
 float heightWithoutKeyHints(float windowWidth, float windowHeight);
 
-// Draws a row of input prompts along the bottom-left of the window. Positioned
+// Draws a row of input prompts along the bottom of the window. Positioned
 // from the window size, not the Yoga tree, so it survives resize without
 // relayout. Shows the gamepad prompt while the gamepad is the device in use.
-// The Back hint (keyboard_escape) is always drawn first; the rest keep their
-// order.
+// The Back hint (keyboard_escape) sits at the left margin; the rest keep
+// their order and are right-aligned against the right margin.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
