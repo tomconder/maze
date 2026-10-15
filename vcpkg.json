@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "e456309491fd875487bf02b8a0dca76c1b1b00cc",
+  "builtin-baseline": "20ceb8adbf0504d4b0d5e4058a32f9d4fc896391",
   "dependencies": [
     {
       "name": "cgltf",
@@ -60,6 +60,10 @@
     {
       "name": "miniaudio",
       "version>=": "0.11.25"
+    },
+    {
+      "name": "rectpack2d",
+      "version>=": "2026-08-09"
     },
     {
       "name": "shader-slang",
