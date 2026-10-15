@@ -23,6 +23,7 @@ enum class GameAction : uint8_t {
     Pause,
     ExitGame,
     ToggleDebugUI,
+    MenuReset,
     Count,
 };
 
@@ -37,7 +38,7 @@ constexpr std::array<std::string_view, +GameAction::Count> actionNames{
     "menuConfirm",    "menuBack",     "tabPrev",  "tabNext",
     "moveForward",    "moveBack",     "moveLeft", "moveRight",
     "lookHorizontal", "lookVertical", "pause",    "exitGame",
-    "toggleDebugUI",
+    "toggleDebugUI",  "menuReset",
 };
 
 // A missing name would build settings keys of "input.", so catch it here

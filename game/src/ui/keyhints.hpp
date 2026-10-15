@@ -5,7 +5,9 @@
 
 #include <glm/glm.hpp>
 
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string_view>
 
@@ -17,6 +19,7 @@ struct KeyHint {
     std::string_view keyIcon;  // keyboard prompt, e.g. "keyboard_escape"
     std::string_view padIcon;  // gamepad prompt for the same action
     std::string_view label;    // what it does, e.g. "Back"
+    bool leftAligned = false;  // sits beside Back, not at the right margin
 };
 
 // Prompt sprite by name, from the UI atlas.
@@ -34,11 +37,19 @@ float heightWithoutKeyHints(float windowWidth, float windowHeight);
 // Draws a row of input prompts along the bottom of the window. Positioned
 // from the window size, not the Yoga tree, so it survives resize without
 // relayout. Shows the gamepad prompt while the gamepad is the device in use.
-// The Back hint (keyboard_escape) sits at the left margin; the rest keep
-// their order and are right-aligned against the right margin.
+// The Back hint (keyboard_escape) sits at the left margin, followed by the
+// hints marked leftAligned; the rest keep their order and are right-aligned
+// against the right margin. hovered is the index of the hint under the mouse.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth, float windowHeight);
+    const glm::mat4& projection, float windowWidth, float windowHeight,
+    std::optional<size_t> hovered = std::nullopt);
+
+// Index of the hint under the point, laid out as renderKeyHints() does.
+std::optional<size_t> hitTestKeyHints(
+    std::span<const KeyHint>                                            hints,
+    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
+    float windowWidth, float windowHeight, const glm::vec2& position);
 
 }  // namespace game::ui

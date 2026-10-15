@@ -39,9 +39,16 @@ primitives, windowing, or platform backends itself — see
   written to `Settings` on every change, but only flushed to disk on
   drag-release or a discrete step, not on every mouse-move frame of a drag.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
-  absolute Yoga nodes placed from the first visible row, so the pinned rows
-  (Reset to Defaults on Keyboard, none on Display and Audio) keep their
-  flex position at the bottom. Esc is the only way back; there is no Return row.
+  absolute Yoga nodes placed from the first visible row. No screen has a
+  pinned row now; `MenuScroll::layout()` still takes a footer node, so a later
+  screen can pin one. Esc is the only way back; there is no Return row.
+  The key hint bar (`ui/keyhints.hpp`) puts Back at the left margin, then any
+  hint with `leftAligned` set, and right-aligns the rest. Reset to Defaults is
+  a left-aligned hint on the Keyboard tab: the `MenuReset` action (R, gamepad
+  Y), or a click on the hint (`hitTestKeyHints()`), opens a `ConfirmLayer`
+  prompt with Cancel selected and no countdown. Only Accept calls
+  `requestResetBindings()`. The Keyboard tab ignores its keys while that
+  prompt is open.
   The target and the drawn offset are in fractional rows, so a row can rest
   half in view; the offset eases toward the target
   (`MenuScroll::step()`, which relays out each frame it moves). Every render
