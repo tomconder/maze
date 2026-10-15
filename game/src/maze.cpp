@@ -247,7 +247,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                            static_cast<sponge::core::DisplayMode>(savedMode),
         .vsync       = !capturing && Settings::getBool("video.vsync", true),
         // An undecorated window can be larger than the screen.
-        .decorated = decorated,
+        .decorated            = decorated,
+        .throttleInBackground = !capturing,
     };
 
 #ifdef NDEBUG

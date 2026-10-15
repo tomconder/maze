@@ -27,6 +27,9 @@ struct ApplicationSpecification {
         sponge::core::DisplayMode::FullScreen;
     bool vsync     = true;
     bool decorated = true;
+    // Cap the frame rate while the window is unfocused. A capture run turns
+    // it off so its timings do not depend on which window has focus.
+    bool throttleInBackground = true;
 };
 
 using logging::LogItem;

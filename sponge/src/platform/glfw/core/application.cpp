@@ -25,11 +25,19 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
 namespace {
 sponge::core::Timer mainTimer;
+
+// A minimised window does no update and no render; the loop wakes this often
+// to pump events. An unfocused window still runs, at no more than 30 frames a
+// second. Neither is a setting: raise them only if a case needs it.
+constexpr double minimizedWaitSeconds = 0.1;
+constexpr auto   backgroundFrameInterval =
+    std::chrono::duration<double>(1.0 / 30.0);
 
 uint32_t microsSince(const std::chrono::steady_clock::time_point start) {
     return static_cast<uint32_t>(
@@ -407,6 +415,8 @@ void Application::run() {
     renderThread.kick(renderTask);
     renderThread.waitForComplete();
 
+    auto lastFrameStart = std::chrono::steady_clock::now();
+
     // Pipelined loop: update[N] overlaps with render[N].
     while (true) {
         mainTimer.tick();
@@ -553,10 +563,37 @@ void Application::run() {
             break;
         }
 
+        // Minimised: nothing to show, so no update, no render and no spinning
+        // (the swap does not block for a minimised window). Both workers are
+        // idle here, so skipping the kicks keeps the frame pairing intact.
+        // The timer ticks at the top of the loop, so the first frame after a
+        // restore sees the last wait, not the whole time minimised. Audio runs
+        // on its own device thread and keeps playing.
+        if (glfwGetWindowAttrib(glfwWin, GLFW_ICONIFIED) == GLFW_TRUE) {
+            glfwWaitEventsTimeout(minimizedWaitSeconds);
+            // The update step that reads a close request does not run, so
+            // look at GLFW's own flag, which a close sets before its callback.
+            if (glfwWindowShouldClose(glfwWin) == GLFW_TRUE) {
+                onUserDestroy();
+                break;
+            }
+            continue;
+        }
+
         // Update elapsed time for render-thread layers.
         renderElapsedTime = elapsed;
 
         frameSync();
+
+        // Unfocused: cap the rate, so vsync off or an unpaced swap cannot spin
+        // the loop. The sleep counts towards the next tick, so game time does
+        // not slow down.
+        if (appSpec.throttleInBackground &&
+            glfwGetWindowAttrib(glfwWin, GLFW_FOCUSED) == GLFW_FALSE) {
+            std::this_thread::sleep_until(lastFrameStart +
+                                          backgroundFrameInterval);
+        }
+        lastFrameStart = std::chrono::steady_clock::now();
 
         // Game logic for frame N into the free snapshot slot.
         updateThread.kick([this, elapsed] {
