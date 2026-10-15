@@ -14,7 +14,6 @@
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuselection.hpp"
-#include "version.hpp"
 
 #include <glm/glm.hpp>
 #include <yoga/Yoga.h>
@@ -215,9 +214,8 @@ bool IntroLayer::onUpdate(const double elapsedTime) {
         menuButtons[i]->onUpdate(elapsedTime);
     }
 
-    static const std::string versionText = project_version + "-" + git_sha;
     ui::renderKeyHints(introKeyHints, menuFont, orthoCamera->getProjection(),
-                       width, height, versionText);
+                       width, height);
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
