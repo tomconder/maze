@@ -15,12 +15,15 @@
 #include <algorithm>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace {
 constexpr glm::vec3 labelColor = { 0.9F, 0.9F, 0.9F };
+constexpr glm::vec3 hoverColor = { 1.F, 0.45F, 0.45F };
 
 struct Metrics {
     uint32_t size;
@@ -48,8 +51,77 @@ Metrics metricsFor(const float windowWidth) {
 // Single-key prompts fill 48 px of their 64 px sprite, the arrow clusters only
 // 30 px, so single keys draw smaller to match the arrows.
 float iconScale(const std::string_view icon) {
-    return icon == "keyboard_enter" || icon == "keyboard_escape" ? 30.F / 48.F :
-                                                                   1.F;
+    return icon == "keyboard_enter" || icon == "keyboard_escape" ||
+                   icon == "keyboard_r" ?
+               30.F / 48.F :
+               1.F;
+}
+
+bool usingGamepad() {
+    return sponge::platform::glfw::core::Application::get()
+               .getInputManager()
+               .getSnapshot()
+               .activeDevice == sponge::input::ActiveDevice::Gamepad;
+}
+
+std::string_view iconOf(const game::ui::KeyHint& hint, const bool gamepad) {
+    return gamepad ? hint.padIcon : hint.keyIcon;
+}
+
+using FontPtr = std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>;
+
+float hintWidth(const game::ui::KeyHint& hint, const FontPtr& font,
+                const Metrics& metrics, const bool gamepad) {
+    return metrics.iconSize * iconScale(iconOf(hint, gamepad)) + metrics.gap +
+           static_cast<float>(font->getLength(hint.label, metrics.size));
+}
+
+bool isBack(const game::ui::KeyHint& hint) {
+    return hint.keyIcon == "keyboard_escape";
+}
+
+// Back and the hints marked leftAligned sit at the left margin.
+bool isLeft(const game::ui::KeyHint& hint) {
+    return isBack(hint) || hint.leftAligned;
+}
+
+// Left x of every hint. The left group runs from the left margin, Back first
+// so it sits in the same place on every menu; the rest are right-aligned
+// against the right margin, in order. A window too narrow for both keeps the
+// left group whole and lets the right group run past the margin.
+std::vector<float> placeHints(std::span<const game::ui::KeyHint> hints,
+                              const FontPtr& font, const Metrics& metrics,
+                              const float windowWidth, const bool gamepad) {
+    std::vector<float> xs(hints.size());
+    const auto         step = metrics.gap * 2.F;
+
+    auto leftEnd = metrics.marginX;
+    for (const bool backPass : { true, false }) {
+        for (size_t i = 0; i < hints.size(); i++) {
+            if (isLeft(hints[i]) && isBack(hints[i]) == backPass) {
+                xs[i] = leftEnd;
+                leftEnd += hintWidth(hints[i], font, metrics, gamepad) + step;
+            }
+        }
+    }
+
+    float rightWidth = 0.F;
+    for (const auto& hint : hints) {
+        if (!isLeft(hint)) {
+            rightWidth += hintWidth(hint, font, metrics, gamepad) + step;
+        }
+    }
+    rightWidth = std::max(0.F, rightWidth - step);
+
+    auto x = std::max(windowWidth - metrics.marginX - rightWidth,
+                      leftEnd + metrics.gap * 2.F);
+    for (size_t i = 0; i < hints.size(); i++) {
+        if (!isLeft(hints[i])) {
+            xs[i] = x;
+            x += hintWidth(hints[i], font, metrics, gamepad) + step;
+        }
+    }
+    return xs;
 }
 
 }  // namespace
@@ -79,77 +151,60 @@ float heightWithoutKeyHints(const float windowWidth, const float windowHeight) {
 void renderKeyHints(std::span<const KeyHint>           hints,
                     const std::shared_ptr<BitmapFont>& font,
                     const glm::mat4& projection, const float windowWidth,
-                    const float windowHeight) {
+                    const float                 windowHeight,
+                    const std::optional<size_t> hovered) {
     if (hints.empty()) {
         return;
     }
 
-    const auto [size, iconSize, gap, marginX, marginY] =
-        metricsFor(windowWidth);
+    const auto metrics = metricsFor(windowWidth);
+    const auto [size, iconSize, gap, marginX, marginY] = metrics;
 
     const auto iconTop = windowHeight - marginY - iconSize;
     const auto textTop =
         iconTop + (iconSize - static_cast<float>(font->getHeight(size))) / 2.F;
 
-    const bool gamepad =
-        sponge::platform::glfw::core::Application::get()
-            .getInputManager()
-            .getSnapshot()
-            .activeDevice == sponge::input::ActiveDevice::Gamepad;
+    const bool gamepad = usingGamepad();
+    const auto xs      = placeHints(hints, font, metrics, windowWidth, gamepad);
 
     // every prompt shares the one sprite shader
     const auto& shader = promptSprite(hints.front().keyIcon).getShader();
     shader->setMat4("projection", projection);
 
-    const auto iconOf = [gamepad](const KeyHint& hint) {
-        return gamepad ? hint.padIcon : hint.keyIcon;
-    };
-    const auto hintWidth = [&](const KeyHint& hint) {
-        return iconSize * iconScale(iconOf(hint)) + gap +
-               static_cast<float>(font->getLength(hint.label, size));
-    };
-    const auto renderHint = [&](const KeyHint& hint, const float x) {
-        const auto icon      = iconOf(hint);
+    for (size_t i = 0; i < hints.size(); i++) {
+        const auto icon      = iconOf(hints[i], gamepad);
         const auto drawnSize = iconSize * iconScale(icon);
 
         promptSprite(icon).render(
-            { x, iconTop + ((iconSize - drawnSize) / 2.F) },
+            { xs[i], iconTop + ((iconSize - drawnSize) / 2.F) },
             { drawnSize, drawnSize }, 1.F);
 
         font->beginPass(size);
-        font->render(hint.label, { x + drawnSize + gap, textTop }, labelColor);
+        font->render(hints[i].label, { xs[i] + drawnSize + gap, textTop },
+                     hovered == i ? hoverColor : labelColor);
         font->endPass();
-    };
+    }
+}
 
-    // Back sits at the left margin so it is in the same place on every menu.
-    // Every other hint is right-aligned against the right margin, in order.
-    const auto isBack = [](const KeyHint& hint) {
-        return hint.keyIcon == "keyboard_escape";
-    };
-    auto leftEnd = marginX;
-    for (const auto& hint : hints) {
-        if (isBack(hint)) {
-            renderHint(hint, marginX);
-            leftEnd += hintWidth(hint);
-        }
+std::optional<size_t> hitTestKeyHints(std::span<const KeyHint>           hints,
+                                      const std::shared_ptr<BitmapFont>& font,
+                                      const float      windowWidth,
+                                      const float      windowHeight,
+                                      const glm::vec2& position) {
+    const auto metrics = metricsFor(windowWidth);
+    const auto iconTop = windowHeight - metrics.marginY - metrics.iconSize;
+    if (position.y < iconTop || position.y > iconTop + metrics.iconSize) {
+        return std::nullopt;
     }
 
-    float rightWidth = 0.F;
-    for (const auto& hint : hints) {
-        if (!isBack(hint)) {
-            rightWidth += hintWidth(hint) + gap * 2.F;
+    const bool gamepad = usingGamepad();
+    const auto xs      = placeHints(hints, font, metrics, windowWidth, gamepad);
+    for (size_t i = 0; i < hints.size(); i++) {
+        const auto width = hintWidth(hints[i], font, metrics, gamepad);
+        if (position.x >= xs[i] && position.x <= xs[i] + width) {
+            return i;
         }
     }
-    rightWidth -= rightWidth > 0.F ? gap * 2.F : 0.F;
-
-    // a window too narrow for both groups keeps Back whole and lets the rest
-    // run past the right margin
-    auto x = std::max(windowWidth - marginX - rightWidth, leftEnd + gap * 4.F);
-    for (const auto& hint : hints) {
-        if (!isBack(hint)) {
-            renderHint(hint, x);
-            x += hintWidth(hint) + gap * 2.F;
-        }
-    }
+    return std::nullopt;
 }
 }  // namespace game::ui

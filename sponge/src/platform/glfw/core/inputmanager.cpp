@@ -648,6 +648,19 @@ void InputManager::buildDefaultBindings() {
             .axisScale = 1.f,
         },
     };
+    // Restores a screen's defaults; only the Keyboard tab reads it.
+    menu[+GameAction::MenuReset] = {
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_R,
+            .axisScale = 1.f,
+        },
+        InputBinding{
+            .type      = BindingType::GamepadButton,
+            .rawCode   = GLFW_GAMEPAD_BUTTON_Y,
+            .axisScale = 1.f,
+        },
+    };
 
     // Category tabs on the menu screens.
     menu[+GameAction::TabPrev] = {

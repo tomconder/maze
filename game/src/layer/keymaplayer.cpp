@@ -38,7 +38,6 @@ namespace {
 constexpr std::string_view fontName = "inter";
 constexpr std::string_view fontPath = "/fonts/inter.ktx2";
 
-constexpr std::string_view resetMessage   = "Reset to Defaults";
 constexpr std::string_view captureMessage = "Press a key";
 
 constexpr glm::vec4 backgroundColor = { 0.F, 0.F, 0.F, 1.F };
@@ -80,8 +79,8 @@ constexpr std::array bindingRows = {
 };
 
 // rowNodes are created by index, so the table must stay in enum order and
-// cover every row but ResetDefaults.
-static_assert(bindingRows.size() + 1 == rowCount);
+// cover every row.
+static_assert(bindingRows.size() == rowCount);
 static_assert([] {
     for (size_t i = 0; i < bindingRows.size(); i++) {
         if (static_cast<size_t>(bindingRows[i].item) != i) {
@@ -95,21 +94,22 @@ static_assert([] {
 // the row index.
 std::array<YGNodeRef, rowCount> rowNodes{};
 
-// The binding rows scroll; Reset to Defaults stays pinned below them.
+// The binding rows scroll.
 game::ui::MenuScroll scroll;
 
 YGNodeRef menuBackgroundNode = nullptr;
 YGNodeRef menuNode           = nullptr;
 YGNodeRef rootNode           = nullptr;
 
-constexpr std::array<game::ui::KeyHint, 3> keyMapKeyHints = {
+constexpr std::array<game::ui::KeyHint, 4> keyMapKeyHints = {
     game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
                        "Navigate" },
     game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Rebind" },
     game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
+    game::ui::KeyHint{ "keyboard_r", "xbox_button_y", "Reset to Defaults",
+                       true },
 };
-
-std::unique_ptr<game::ui::Button> resetButton;
+constexpr size_t resetHint = 3;  // Reset to Defaults in keyMapKeyHints
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;
@@ -152,9 +152,6 @@ void KeyMapLayer::onAttach() {
     quad = std::make_unique<Quad>();
 
     fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
-
-    resetButton = ui::makeMenuButton(resetMessage, fontSize, menuFont,
-                                     buttonColor, textColor);
 
     for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
         shader->setMat4("projection", orthoCamera->getProjection());
@@ -232,7 +229,9 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
             waitForConfirmRelease = false;
         }
 
-        if (wasActiveLastFrame && takesInput) {
+        // the prompt over this screen takes the keys while it is open
+        if (wasActiveLastFrame && takesInput &&
+            !Maze::get().getConfirmLayer()->isActive()) {
             if (ui::stepSelection(input, selectedItem)) {
                 ui::playHoverClick();
                 followSelection();
@@ -250,6 +249,10 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
             if (input.isActive(GameAction::MenuBack)) {
                 mgr.consumeActive(GameAction::MenuBack);
                 close();
+            }
+            if (input.isActive(GameAction::MenuReset)) {
+                mgr.consumeActive(GameAction::MenuReset);
+                askReset();
             }
             if (!waitForConfirmRelease &&
                 input.isActive(GameAction::MenuConfirm)) {
@@ -297,15 +300,6 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
     }
     scroll.endClip();
 
-    const auto [resetX, resetY, resetW, resetH] =
-        rowLayout(KeyMapItem::ResetDefaults);
-    resetButton->setPosition({ resetX, resetY },
-                             { resetX + resetW, resetY + resetH });
-    ui::updateMenuButtonVisuals(resetButton.get(),
-                                selectedItem == KeyMapItem::ResetDefaults,
-                                textHoverColor);
-    resetButton->onUpdate(elapsedTime);
-
     scroll.render(*quad);
 
     // the strip lines up with the rows, so it starts at the first row's edge
@@ -314,7 +308,7 @@ bool KeyMapLayer::onUpdate(const double elapsedTime) {
                      orthoCamera->getProjection(), width, tabX);
 
     ui::renderKeyHints(keyMapKeyHints, menuFont, orthoCamera->getProjection(),
-                       width, height);
+                       width, height, hoveredHint);
 
     if (!isActive()) {
         wasActiveLastFrame    = false;
@@ -350,16 +344,20 @@ std::tuple<float, float, float, float>
 }
 
 void KeyMapLayer::activate(const KeyMapItem item) {
-    switch (item) {
-        case KeyMapItem::ResetDefaults:
-            inputManager().requestResetBindings();
-            return;
-        default:
-            break;
-    }
-
     rebindingItem = item;
     inputManager().requestRebind(bindingRows[static_cast<size_t>(item)].action);
+}
+
+void KeyMapLayer::askReset() {
+    clearHoveredItems();
+    Maze::get().getConfirmLayer()->show(
+        resetBindingsTitle, resetBindingsMessage,
+        [](const ui::ConfirmResult result) {
+            if (result == ui::ConfirmResult::Accepted) {
+                inputManager().requestResetBindings();
+            }
+        },
+        0.F, false);
 }
 
 void KeyMapLayer::close() {
@@ -378,12 +376,8 @@ void KeyMapLayer::recalculateLayout(const float width, const float height) {
         ui::setMenuRowHeight(row, width);
     }
 
-    ui::pinMenuRowToBottom(rowNodes[+KeyMapItem::ResetDefaults], width);
-    scroll.layout(
-        rootNode, menuNode, menuBackgroundNode,
-        std::span<const YGNodeRef>(rowNodes).first(bindingRows.size()),
-        rowNodes[+KeyMapItem::ResetDefaults], width, usableHeight,
-        ui::tabBarHeight(width));
+    scroll.layout(rootNode, menuNode, menuBackgroundNode, rowNodes, nullptr,
+                  width, usableHeight, ui::tabBarHeight(width));
 }
 
 void KeyMapLayer::relayout() {
@@ -434,6 +428,14 @@ bool KeyMapLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
         return true;
     }
 
+    if (ui::hitTestKeyHints(keyMapKeyHints, menuFont,
+                            static_cast<float>(orthoCamera->getWidth()),
+                            static_cast<float>(orthoCamera->getHeight()),
+                            { mouseX, mouseY }) == resetHint) {
+        askReset();
+        return true;
+    }
+
     if (scroll.press({ mouseX, mouseY })) {
         relayout();
         return true;
@@ -455,7 +457,10 @@ bool KeyMapLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
 bool KeyMapLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto pos = glm::vec2{ event.getX(), event.getY() };
 
-    ui::updateButtonHover(resetButton.get(), pos);
+    const auto hint = ui::hitTestKeyHints(
+        keyMapKeyHints, menuFont, static_cast<float>(orthoCamera->getWidth()),
+        static_cast<float>(orthoCamera->getHeight()), pos);
+    hoveredHint = hint == resetHint ? hint : std::nullopt;
 
     if (scroll.drag(pos.y)) {
         relayout();
@@ -485,18 +490,14 @@ bool KeyMapLayer::onWindowResize(const WindowResizeEvent& event) {
     recalculateLayout(width, height);
     followSelection();
 
-    const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
-    if (newFontSize != fontSize) {
-        fontSize = newFontSize;
-        resetButton->setFontSize(fontSize);
-    }
+    fontSize = ui::menuFontSizeForWidth(event.getWidth());
 
     return false;
 }
 
 void KeyMapLayer::clearHoveredItems() {
     scroll.release();
-    resetButton->setHover(false);
+    hoveredHint = std::nullopt;
     hoveredItem = std::nullopt;
 }
 }  // namespace game::layer

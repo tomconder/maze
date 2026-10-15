@@ -6,6 +6,7 @@
 #include "input/gameaction.hpp"
 #include "layer/layer.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <tuple>
@@ -19,7 +20,6 @@ enum class KeyMapItem : uint8_t {
     MoveRight,
     Pause,
     ToggleDebugUI,
-    ResetDefaults,
     Count,
 };
 
@@ -39,6 +39,9 @@ private:
     KeyMapItem                selectedItem = KeyMapItem::MoveForward;
     std::optional<KeyMapItem> hoveredItem;
 
+    // Hint bar entry under the mouse; only Reset to Defaults is clickable.
+    std::optional<size_t> hoveredHint;
+
     // Row waiting for a key, while InputManager captures the next press.
     std::optional<KeyMapItem> rebindingItem;
 
@@ -51,8 +54,11 @@ private:
     // Screen rect of a row, resolved through the root/menu/background chain.
     static std::tuple<float, float, float, float> rowLayout(KeyMapItem item);
 
-    // Starts a rebind or resets the defaults — whichever the row is.
+    // Starts a rebind for the row.
     void activate(KeyMapItem item);
+
+    // Asks before resetting every binding to its default.
+    void askReset();
 
     void close();
 
