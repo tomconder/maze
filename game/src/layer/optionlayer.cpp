@@ -964,6 +964,7 @@ void OptionLayer::applyDisplayMode() {
         static_cast<sponge::core::DisplayMode>(pendingDisplayModeIndex));
     clearHoveredItems();
     Maze::get().getConfirmLayer()->show(
+        displayChangeTitle, displayChangeMessage,
         [this](const ui::ConfirmResult result) {
             resolveDisplayChange(result);
         },

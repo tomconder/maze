@@ -16,17 +16,19 @@ namespace game::ui {
 
 enum class ConfirmResult : uint8_t { Pending = 0, Accepted, Cancelled };
 
-// A modal prompt with a title, one line of text, a countdown and an Accept and
-// a Cancel button. The countdown running out counts as Cancelled. Accept is
-// selected when it opens, so Enter keeps the change.
+// A modal prompt with a title, one line of text, an optional countdown and an
+// Accept and a Cancel button. The countdown running out counts as Cancelled.
 class ConfirmDialog {
 public:
     ConfirmDialog(
-        std::string_view title, std::string_view message,
         std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font,
         uint32_t                                                     fontSize);
 
-    void open(float seconds);
+    // seconds <= 0 shows no countdown and never times out. defaultAccept
+    // picks the selected button: Accept for a change that is easy to undo,
+    // Cancel for one that is not.
+    void open(std::string_view title, std::string_view message, float seconds,
+              bool defaultAccept);
 
     void close() {
         opened = false;
@@ -60,6 +62,7 @@ private:
 
     bool  opened       = false;
     bool  acceptChosen = true;
+    bool  timed        = false;
     float remaining    = 0.F;
 };
 

@@ -104,7 +104,8 @@ void Maze::setUpCapture() {
             ui::showOptionTab(ui::OptionTab::Audio);
         } else if (capture.menu == "confirm") {
             ui::showOptionTab(ui::OptionTab::Display);
-            confirmLayer->show(nullptr, 15.F);
+            confirmLayer->show(layer::displayChangeTitle,
+                               layer::displayChangeMessage, nullptr, 15.F);
         } else {
             introLayer->setActive(true);
         }
