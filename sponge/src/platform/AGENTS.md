@@ -50,6 +50,15 @@ than calling GLFW/OpenGL/OS APIs directly.
   atomic pending-flag pair from other threads and applied inside
   `Application`/`onRender()` — never call the GLFW function directly from a
   layer's update thread.
+* The main loop only paces itself through the blocking swap, which a minimised
+  window does not do. So `Application::run()` reads `GLFW_ICONIFIED` and
+  `GLFW_FOCUSED` each iteration, once both workers are idle. Minimised: no
+  update and no render kick, and a `glfwWaitEventsTimeout(0.1)` instead; the
+  update step that reads a close request does not run, so that branch checks
+  `glfwWindowShouldClose()` itself. Unfocused: the loop sleeps to a 30 fps
+  cap (`ApplicationSpecification::throttleInBackground`, off for capture
+  runs). Audio is not paused. A window hidden behind another one is neither,
+  so it still runs at full rate.
 * SSBOs: do not use `row_major mat4` layout for driver-uploaded matrices — it
   is broken on at least one driver in this project's history. Pass matrices
   as individual float4 rows instead. See `opengl/renderer/ssbo.*` and
