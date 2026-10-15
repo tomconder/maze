@@ -153,7 +153,8 @@ primitives, windowing, or platform backends itself — see
   `ui::ConfirmDialog`. It is the top overlay and modal: it takes the mouse
   events first, and `OptionLayer` skips its keys while it is active. It runs
   its callback after it goes inactive, and ignores the key press that opened
-  it. `--capture-menu=confirm` shows it over the Display tab. `show()` takes the
+  it. `--capture-menu=confirm` shows it over the Display tab, and
+  `--capture-menu=reset` shows the Reset to Defaults prompt over the Keyboard tab. `show()` takes the
   title, message, countdown seconds (0 or less: no countdown, no timeout) and
   `defaultAccept`, so other screens can reuse it; give a destructive action
   `defaultAccept = false`. Accept saves

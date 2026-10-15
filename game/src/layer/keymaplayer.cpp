@@ -351,7 +351,7 @@ void KeyMapLayer::activate(const KeyMapItem item) {
 void KeyMapLayer::askReset() {
     clearHoveredItems();
     Maze::get().getConfirmLayer()->show(
-        "Reset to Defaults", "Reset every key binding to its default?",
+        resetBindingsTitle, resetBindingsMessage,
         [](const ui::ConfirmResult result) {
             if (result == ui::ConfirmResult::Accepted) {
                 inputManager().requestResetBindings();

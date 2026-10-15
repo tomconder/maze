@@ -106,6 +106,11 @@ void Maze::setUpCapture() {
             ui::showOptionTab(ui::OptionTab::Display);
             confirmLayer->show(layer::displayChangeTitle,
                                layer::displayChangeMessage, nullptr, 15.F);
+        } else if (capture.menu == "reset") {
+            ui::showOptionTab(ui::OptionTab::Keyboard);
+            confirmLayer->show(layer::resetBindingsTitle,
+                               layer::resetBindingsMessage, nullptr, 0.F,
+                               false);
         } else {
             introLayer->setActive(true);
         }

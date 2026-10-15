@@ -16,6 +16,9 @@ inline constexpr std::string_view displayChangeTitle =
     "Confirm Graphical Changes";
 inline constexpr std::string_view displayChangeMessage =
     "Keep the changes to your graphical settings?";
+inline constexpr std::string_view resetBindingsTitle = "Reset to Defaults";
+inline constexpr std::string_view resetBindingsMessage =
+    "Reset every key binding to its default?";
 
 // A yes or no prompt, on top of every other layer. It is modal: while it is
 // active it takes the mouse events first, and the layers under it skip their

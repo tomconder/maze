@@ -143,7 +143,7 @@ maze.exe --capture-frames=600 --dump-nan-stats
   near cascade redraws when the camera has moved one texel of its map.
 * `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
   the whole-scene map alone, for an A/B against the cascades.
-* `--capture-menu=intro|display|keyboard|audio|confirm`: skip the splash, show that
+* `--capture-menu=intro|display|keyboard|audio|confirm|reset`: skip the splash, show that
   menu screen for two seconds, write the back buffer as
   `capture_menu_<name>.png` (8-bit RGB) and exit. The window has no frame, so
   `--capture-size=WxH` can be larger than the screen; it also sets the window
