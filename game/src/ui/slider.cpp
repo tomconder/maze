@@ -160,14 +160,14 @@ float Slider::valueAtX(const float mouseX) const {
 }
 
 int Slider::arrowAt(const float mouseX) const {
-    const auto left  = nodeRect(YGNodeGetChild(rowNode, leftArrowPart));
-    const auto track = nodeRect(YGNodeGetChild(rowNode, trackPart));
-    const auto right = nodeRect(YGNodeGetChild(rowNode, rightArrowPart));
-    const auto value = nodeRect(YGNodeGetChild(rowNode, valuePart));
+    const auto left      = nodeRect(YGNodeGetChild(rowNode, leftArrowPart));
+    const auto track     = nodeRect(YGNodeGetChild(rowNode, trackPart));
+    const auto right     = nodeRect(YGNodeGetChild(rowNode, rightArrowPart));
+    const auto valueRect = nodeRect(YGNodeGetChild(rowNode, valuePart));
     if (mouseX >= left.x && mouseX < track.x) {
         return -1;
     }
-    if (mouseX >= right.x && mouseX < value.x) {
+    if (mouseX >= right.x && mouseX < valueRect.x) {
         return 1;
     }
     return 0;
