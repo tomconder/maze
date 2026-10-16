@@ -1,6 +1,5 @@
 #include "ui/yogadump.hpp"
 
-#include <cmath>
 #include <format>
 #include <string>
 
@@ -20,7 +19,7 @@ void addValue(std::string& style, const char* name, const YGValue value) {
 }
 
 void addNumber(std::string& style, const char* name, const float value) {
-    if (!std::isnan(value) && value != 0.F) {
+    if (!YGFloatIsUndefined(value) && value != 0.F) {
         style += std::format("{}: {}, ", name, value);
     }
 }

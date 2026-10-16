@@ -84,8 +84,8 @@ bool KeyMapLayer::takesInput() const {
 
 void KeyMapLayer::renderRow(const size_t row, const float x, const float y,
                             const float w, const float h) {
-    const auto& font     = menuFont();
-    const auto  fontSize = menuFontSize();
+    const auto& labelFont = menuFont();
+    const auto  labelSize = menuFontSize();
 
     const bool capturing = rebindingRow == row;
     const auto value =
@@ -93,16 +93,16 @@ void KeyMapLayer::renderRow(const size_t row, const float x, const float y,
                     sponge::platform::glfw::core::InputManager::keyLabel(
                         inputManager().getPrimaryKey(bindingRows[row].action));
     const auto valueWidth =
-        static_cast<float>(font->getLength(value, fontSize));
+        static_cast<float>(labelFont->getLength(value, labelSize));
     const float textY = std::floor(
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
+        y + (h - static_cast<float>(labelFont->getHeight(labelSize))) / 2.F);
 
-    font->beginPass(fontSize);
-    font->render(bindingRows[row].label, { x + textMarginLeft, textY },
-                 textColor);
-    font->render(value, { x + w - textMarginLeft - valueWidth, textY },
-                 capturing ? captureColor : textColor);
-    font->endPass();
+    labelFont->beginPass(labelSize);
+    labelFont->render(bindingRows[row].label, { x + textMarginLeft, textY },
+                      textColor);
+    labelFont->render(value, { x + w - textMarginLeft - valueWidth, textY },
+                      capturing ? captureColor : textColor);
+    labelFont->endPass();
 }
 
 void KeyMapLayer::onRowKeys(const size_t /*row*/,

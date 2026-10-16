@@ -371,13 +371,13 @@ void OptionLayer::renderDots(const size_t count, const float valueCenterX,
 void OptionLayer::renderRowLabel(const float x, const float y, const float h,
                                  const std::string_view label,
                                  const glm::vec3&       color) const {
-    const auto& font     = menuFont();
-    const auto  fontSize = menuFontSize();
-    const float textY    = std::floor(
-        y + (h - static_cast<float>(font->getHeight(fontSize))) / 2.F);
-    font->beginPass(fontSize);
-    font->render(label, { x + textMarginLeft, textY }, color);
-    font->endPass();
+    const auto& labelFont = menuFont();
+    const auto  labelSize = menuFontSize();
+    const float textY     = std::floor(
+        y + (h - static_cast<float>(labelFont->getHeight(labelSize))) / 2.F);
+    labelFont->beginPass(labelSize);
+    labelFont->render(label, { x + textMarginLeft, textY }, color);
+    labelFont->endPass();
 }
 
 void OptionLayer::renderRow(const size_t row, const float x, const float y,
