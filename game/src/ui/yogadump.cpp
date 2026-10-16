@@ -30,10 +30,17 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
     addValue(style, "height", YGNodeStyleGetHeight(node));
     addValue(style, "maxHeight", YGNodeStyleGetMaxHeight(node));
     addValue(style, "margin", YGNodeStyleGetMargin(node, YGEdgeAll));
+    addValue(style, "marginLeft", YGNodeStyleGetMargin(node, YGEdgeLeft));
+    addValue(style, "paddingHorizontal",
+             YGNodeStyleGetPadding(node, YGEdgeHorizontal));
+    addNumber(style, "columnGap", YGNodeStyleGetGap(node, YGGutterColumn));
     addNumber(style, "flex", YGNodeStyleGetFlex(node));
     addNumber(style, "flexGrow", YGNodeStyleGetFlexGrow(node));
     if (YGNodeStyleGetFlexDirection(node) == YGFlexDirectionRow) {
         style += "flexDirection: \"row\", ";
+    }
+    if (YGNodeStyleGetAlignItems(node) == YGAlignCenter) {
+        style += "alignItems: \"center\", ";
     }
     if (!style.empty()) {
         style.resize(style.size() - 2);
@@ -55,23 +62,10 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
 
 namespace game::ui {
 
-std::string yogaToPlayground(const YGNodeRef root, const float windowWidth,
-                             const float windowHeight,
-                             const float tabBarHeight) {
-    const auto keyHintsHeight =
-        windowHeight - tabBarHeight - YGNodeStyleGetHeight(root).value;
-
+std::string yogaToPlayground(const YGNodeRef root) {
     std::string out = "<Layout config={{useWebDefaults: false}}>\n";
-    out += std::format("  <Node style={{{{width: {}, height: {}}}}}>\n",
-                       windowWidth, windowHeight);
-    if (tabBarHeight > 0.F) {
-        out += std::format("    <Node style={{{{height: {}}}}} />\n",
-                           tabBarHeight);
-    }
-    writeNode(root, 2, out);
-    out +=
-        std::format("    <Node style={{{{height: {}}}}} />\n", keyHintsHeight);
-    out += "  </Node>\n</Layout>\n";
+    writeNode(root, 1, out);
+    out += "</Layout>\n";
     return out;
 }
 

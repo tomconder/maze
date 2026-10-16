@@ -22,18 +22,11 @@ constexpr std::array<std::string_view, menuItemCount> menuLabels = {
     "Exit the Game",
 };
 
-constexpr std::array<game::ui::KeyHint, 3> exitKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
-    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
-};
-
 game::layer::ButtonMenuStyle exitStyle() {
     return {
         .name            = "exit",
         .labels          = menuLabels,
-        .keyHints        = exitKeyHints,
+        .keyHints        = game::layer::exitKeyHints,
         .layout          = game::layer::exitMenuLayout,
         .buttonColor     = { 0.05F, 0.05F, 0.05F, 1.F },
         .selectedColor   = { 0.84F, 0.04F, 0.04F, 0.07F },

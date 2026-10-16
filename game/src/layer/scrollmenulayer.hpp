@@ -16,6 +16,7 @@
 
 #include <glm/glm.hpp>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -26,10 +27,20 @@
 
 namespace game::layer {
 
+// The hints of the tabs whose rows change a value.
+inline constexpr std::array<ui::KeyHint, 4> adjustKeyHints = {
+    ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical", "Navigate" },
+    ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
+                 "Change" },
+    ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+    ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
+};
+
 // No spacer above: the rows start under the tab bar.
 inline constexpr ui::MenuLayoutSpec scrollMenuLayout = {
     .backgroundWidthPercent = 45.F,
     .titleFlexGrow          = 0.F,
+    .optionTab              = true,
 };
 
 // What differs between two option tabs.
@@ -134,15 +145,14 @@ private:
     std::shared_ptr<scene::OrthoCamera>                          camera;
     std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;
     std::unique_ptr<ui::MenuLayout>                              layout;
-    // left edge of the rows, where the tab strip starts
-    float          tabX = 0.F;
-    ui::MenuScroll scroll;
+    ui::MenuScroll                                               scroll;
 
     uint32_t fontSize = 0;
 
     size_t                selected = 0;
     std::optional<size_t> hovered;
     std::optional<size_t> hoveredHint;
+    bool                  hintsForGamepad = false;
     // Row following the mouse; set by a press, cleared on release.
     std::optional<size_t> dragging;
 

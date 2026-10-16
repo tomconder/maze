@@ -78,12 +78,13 @@ private:
     std::unique_ptr<ui::MenuLayout>                              layout;
     std::vector<std::unique_ptr<ui::Button>>                     buttons;
 
-    size_t          selected = 0;
+    size_t          selected        = 0;
+    bool            hintsForGamepad = false;
     ui::ConfirmGate confirmGate;
 
     void handleInput();
 
-    void recalculateLayout() const;
+    void recalculateLayout();
 
     bool onMouseButtonPressed(
         const sponge::event::MouseButtonPressedEvent& event);

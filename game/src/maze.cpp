@@ -3,18 +3,21 @@
 #ifndef NDEBUG
 #include "capture/menucapturelayer.hpp"
 #endif
+#include "core/file.hpp"
 #include "core/settings.hpp"
 #include "core/window.hpp"
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "layer/audiolayer.hpp"
+#include "layer/exitlayer.hpp"
+#include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
 #include "layer/optionlayer.hpp"
 #include "layer/scrollmenulayer.hpp"
+#include "ui/fontmetrics.hpp"
+#include "ui/keyhints.hpp"
 #include "ui/menulayout.hpp"
-#include "ui/menuscroll.hpp"
-#include "ui/tabbar.hpp"
 #include "ui/yogadump.hpp"
 #include "version.hpp"
 
@@ -23,6 +26,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -252,25 +256,45 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         const auto rows =
             isExit ? static_cast<size_t>(game::layer::ExitMenuItem::Count) :
                      static_cast<size_t>(game::layer::IntroMenuItem::Count);
-        const float tabHeight =
-            tabRows > 0 ? game::ui::tabBarHeight(width) : 0.F;
+        const std::span<const game::ui::KeyHint> hints =
+            dumpYoga == "keyboard" ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::keyMapKeyHints
+                } :
+            tabRows > 0 ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::adjustKeyHints
+                } :
+            isExit ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::exitKeyHints
+                } :
+                std::span<const game::ui::KeyHint>{
+                    game::layer::introKeyHints
+                };
         game::ui::MenuLayout layout(tabRows > 0 ? tabRows : rows,
                                     tabRows > 0 ?
                                         game::layer::scrollMenuLayout :
                                     isExit ? game::layer::exitMenuLayout :
-                                             game::layer::introMenuLayout);
+                                             game::layer::introMenuLayout,
+                                    hints);
+
+        game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
+                                      "/fonts/inter.ktx2");
+        const game::ui::TextMeasure measure =
+            [&metrics](const std::string_view text, const uint32_t size) {
+                return game::ui::TextSize{
+                    static_cast<float>(metrics.length(text, size)),
+                    static_cast<float>(metrics.height(size))
+                };
+            };
         if (tabRows > 0) {
-            game::ui::MenuScroll{}.layout(
-                layout, width,
-                game::ui::heightWithoutKeyHints(width, height) - tabHeight,
-                tabHeight);
-        } else {
-            layout.calculate(width, height);
+            layout.setTabLabelSizes(game::ui::tabLabelSizes(width, measure));
         }
-        std::fputs(
-            game::ui::yogaToPlayground(layout.root(), width, height, tabHeight)
-                .c_str(),
-            stdout);
+        layout.setKeyHintSizes(
+            game::ui::keyHintSizes(hints, width, false, measure));
+        layout.calculate(width, height);
+        std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(), stdout);
         std::exit(0);
     }
     if (capture.nanStats && capture.frames == 0) {

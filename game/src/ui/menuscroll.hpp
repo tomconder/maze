@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <span>
 
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/quad.hpp"
@@ -94,26 +93,19 @@ public:
         return scrollBy(-yOffset * wheelRows);
     }
 
-    // Fits the rows of a layout to the menu area and lays out. Yoga places the
-    // rows as if nothing scrolled; a caller subtracts pixelOffset() from a
-    // row's y. originY is the height reserved above the root.
-    void layout(const MenuLayout& menuLayout, const float width,
-                const float height, const float originY) {
-        auto* const root      = menuLayout.root();
-        const auto  rows      = menuLayout.rowNodes();
+    // Lays out an option tab layout and fits the window of rows to its panel.
+    // Yoga places the rows as if nothing scrolled; a caller subtracts
+    // pixelOffset() from a row's y.
+    void layout(MenuLayout& menuLayout, const float width, const float height) {
         const float rowHeight = menuRowHeight(width);
         rowPixels             = rowHeight;
-        for (auto* const row : rows) {
-            YGNodeStyleSetHeight(row, rowHeight);
-        }
-        YGNodeStyleSetWidth(root, width);
-        YGNodeStyleSetHeight(root, height);
-        YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
+        menuLayout.calculate(width, height);
 
         const float room = std::get<3>(menuLayout.backgroundRect());
-        setWindow(rows.size(), static_cast<size_t>(room / rowHeight + 0.001F));
+        setWindow(menuLayout.rowCount(),
+                  static_cast<size_t>(room / rowHeight + 0.001F));
 
-        const auto [bgX, bgY, bgW, bgH] = menuLayout.backgroundRect(originY);
+        const auto [bgX, bgY, bgW, bgH] = menuLayout.backgroundRect();
         thickness = std::max(6.F, std::round(rowHeight / 20.F));
         trackX    = bgX + bgW + thickness;
         trackY    = bgY;

@@ -40,14 +40,6 @@ constexpr std::array<BindingRow, rowCount> bindingRows = {
     BindingRow{ sponge::input::GameAction::ToggleDebugUI, "Debug UI" },
 };
 
-constexpr std::array<game::ui::KeyHint, 4> keyMapKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Rebind" },
-    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
-    game::ui::KeyHint{ "keyboard_r", "xbox_button_y", "Reset to Defaults",
-                       true },
-};
 constexpr size_t resetHint = 3;  // Reset to Defaults in keyMapKeyHints
 
 game::layer::ScrollMenuStyle keyMapStyle() {
@@ -55,7 +47,7 @@ game::layer::ScrollMenuStyle keyMapStyle() {
         .name       = "keymap",
         .tab        = game::ui::OptionTab::Keyboard,
         .rowCount   = rowCount,
-        .keyHints   = keyMapKeyHints,
+        .keyHints   = game::layer::keyMapKeyHints,
         .actionHint = resetHint,
     };
 }

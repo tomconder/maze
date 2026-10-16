@@ -12,12 +12,10 @@
 
 #include <glm/glm.hpp>
 
-#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <span>
-#include <string>
 #include <string_view>
 #include <vector>
 
@@ -57,23 +55,8 @@ float iconScale(const std::string_view icon) {
                1.F;
 }
 
-bool usingGamepad() {
-    return sponge::platform::glfw::core::Application::get()
-               .getInputManager()
-               .getSnapshot()
-               .activeDevice == sponge::input::ActiveDevice::Gamepad;
-}
-
 std::string_view iconOf(const game::ui::KeyHint& hint, const bool gamepad) {
     return gamepad ? hint.padIcon : hint.keyIcon;
-}
-
-using FontPtr = std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>;
-
-float hintWidth(const game::ui::KeyHint& hint, const FontPtr& font,
-                const Metrics& metrics, const bool gamepad) {
-    return metrics.iconSize * iconScale(iconOf(hint, gamepad)) + metrics.gap +
-           static_cast<float>(font->getLength(hint.label, metrics.size));
 }
 
 bool isBack(const game::ui::KeyHint& hint) {
@@ -84,46 +67,6 @@ bool isBack(const game::ui::KeyHint& hint) {
 bool isLeft(const game::ui::KeyHint& hint) {
     return isBack(hint) || hint.leftAligned;
 }
-
-// Left x of every hint. The left group runs from the left margin, Back first
-// so it sits in the same place on every menu; the rest are right-aligned
-// against the right margin, in order. A window too narrow for both keeps the
-// left group whole and lets the right group run past the margin.
-std::vector<float> placeHints(std::span<const game::ui::KeyHint> hints,
-                              const FontPtr& font, const Metrics& metrics,
-                              const float windowWidth, const bool gamepad) {
-    std::vector<float> xs(hints.size());
-    const auto         step = metrics.gap * 2.F;
-
-    auto leftEnd = metrics.marginX;
-    for (const bool backPass : { true, false }) {
-        for (size_t i = 0; i < hints.size(); i++) {
-            if (isLeft(hints[i]) && isBack(hints[i]) == backPass) {
-                xs[i] = leftEnd;
-                leftEnd += hintWidth(hints[i], font, metrics, gamepad) + step;
-            }
-        }
-    }
-
-    float rightWidth = 0.F;
-    for (const auto& hint : hints) {
-        if (!isLeft(hint)) {
-            rightWidth += hintWidth(hint, font, metrics, gamepad) + step;
-        }
-    }
-    rightWidth = std::max(0.F, rightWidth - step);
-
-    auto x = std::max(windowWidth - metrics.marginX - rightWidth,
-                      leftEnd + metrics.gap * 2.F);
-    for (size_t i = 0; i < hints.size(); i++) {
-        if (!isLeft(hints[i])) {
-            xs[i] = x;
-            x += hintWidth(hints[i], font, metrics, gamepad) + step;
-        }
-    }
-    return xs;
-}
-
 }  // namespace
 
 namespace game::ui {
@@ -144,64 +87,94 @@ float keyHintBarHeight(const float windowWidth) {
     return metrics.iconSize + metrics.marginY * 2.F;
 }
 
-float heightWithoutKeyHints(const float windowWidth, const float windowHeight) {
-    return std::max(0.F, windowHeight - keyHintBarHeight(windowWidth));
+float keyHintMarginX(const float windowWidth) {
+    return metricsFor(windowWidth).marginX;
 }
 
-void renderKeyHints(std::span<const KeyHint>           hints,
+float keyHintGap(const float windowWidth) {
+    return metricsFor(windowWidth).gap;
+}
+
+bool usingGamepad() {
+    return sponge::platform::glfw::core::Application::get()
+               .getInputManager()
+               .getSnapshot()
+               .activeDevice == sponge::input::ActiveDevice::Gamepad;
+}
+
+TextMeasure fontMeasure(const std::shared_ptr<BitmapFont>& font) {
+    return [font](const std::string_view text, const uint32_t size) {
+        return TextSize{ static_cast<float>(font->getLength(text, size)),
+                         static_cast<float>(font->getHeight(size)) };
+    };
+}
+
+KeyHintOrder keyHintOrder(const std::span<const KeyHint> hints) {
+    KeyHintOrder order;
+    for (const bool backPass : { true, false }) {
+        for (size_t i = 0; i < hints.size(); i++) {
+            if (isLeft(hints[i]) && isBack(hints[i]) == backPass) {
+                order.left.push_back(i);
+            }
+        }
+    }
+    for (size_t i = 0; i < hints.size(); i++) {
+        if (!isLeft(hints[i])) {
+            order.right.push_back(i);
+        }
+    }
+    return order;
+}
+
+std::vector<KeyHintSize> keyHintSizes(const std::span<const KeyHint> hints,
+                                      const float        windowWidth,
+                                      const bool         gamepad,
+                                      const TextMeasure& measure) {
+    const auto metrics = metricsFor(windowWidth);
+
+    std::vector<KeyHintSize> sizes;
+    for (const auto& hint : hints) {
+        sizes.push_back({ metrics.iconSize * iconScale(iconOf(hint, gamepad)),
+                          measure(hint.label, metrics.size) });
+    }
+    return sizes;
+}
+
+void renderKeyHints(const std::span<const KeyHint>     hints,
                     const std::shared_ptr<BitmapFont>& font,
                     const glm::mat4& projection, const float windowWidth,
-                    const float                 windowHeight,
-                    const std::optional<size_t> hovered) {
+                    const std::span<const KeyHintRects> rects,
+                    const std::optional<size_t>         hovered) {
     if (hints.empty()) {
         return;
     }
 
-    const auto metrics = metricsFor(windowWidth);
-    const auto [size, iconSize, gap, marginX, marginY] = metrics;
-
-    const auto iconTop = windowHeight - marginY - iconSize;
-    const auto textTop =
-        iconTop + (iconSize - static_cast<float>(font->getHeight(size))) / 2.F;
-
+    const auto size    = metricsFor(windowWidth).size;
     const bool gamepad = usingGamepad();
-    const auto xs      = placeHints(hints, font, metrics, windowWidth, gamepad);
 
     // every prompt shares the one sprite shader
     const auto& shader = promptSprite(hints.front().keyIcon).getShader();
     shader->setMat4("projection", projection);
 
     for (size_t i = 0; i < hints.size(); i++) {
-        const auto icon      = iconOf(hints[i], gamepad);
-        const auto drawnSize = iconSize * iconScale(icon);
+        const auto& [hint, icon, label] = rects[i];
 
-        promptSprite(icon).render(
-            { xs[i], iconTop + ((iconSize - drawnSize) / 2.F) },
-            { drawnSize, drawnSize }, 1.F);
+        promptSprite(iconOf(hints[i], gamepad))
+            .render({ icon.x, icon.y }, { icon.width, icon.height }, 1.F);
 
         font->beginPass(size);
-        font->render(hints[i].label, { xs[i] + drawnSize + gap, textTop },
+        font->render(hints[i].label, { label.x, label.y },
                      hovered == i ? hoverColor : labelColor);
         font->endPass();
     }
 }
 
-std::optional<size_t> hitTestKeyHints(std::span<const KeyHint>           hints,
-                                      const std::shared_ptr<BitmapFont>& font,
-                                      const float      windowWidth,
-                                      const float      windowHeight,
+std::optional<size_t> hitTestKeyHints(const std::span<const KeyHintRects> rects,
                                       const glm::vec2& position) {
-    const auto metrics = metricsFor(windowWidth);
-    const auto iconTop = windowHeight - metrics.marginY - metrics.iconSize;
-    if (position.y < iconTop || position.y > iconTop + metrics.iconSize) {
-        return std::nullopt;
-    }
-
-    const bool gamepad = usingGamepad();
-    const auto xs      = placeHints(hints, font, metrics, windowWidth, gamepad);
-    for (size_t i = 0; i < hints.size(); i++) {
-        const auto width = hintWidth(hints[i], font, metrics, gamepad);
-        if (position.x >= xs[i] && position.x <= xs[i] + width) {
+    for (size_t i = 0; i < rects.size(); i++) {
+        const auto& hint = rects[i].hint;
+        if (position.x >= hint.x && position.x <= hint.x + hint.width &&
+            position.y >= hint.y && position.y <= hint.y + hint.height) {
             return i;
         }
     }

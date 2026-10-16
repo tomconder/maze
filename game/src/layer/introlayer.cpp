@@ -20,17 +20,11 @@ constexpr std::array<std::string_view, menuItemCount> menuLabels = {
     "Quit",
 };
 
-constexpr std::array<game::ui::KeyHint, 2> introKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
-};
-
 game::layer::ButtonMenuStyle introStyle() {
     return {
         .name            = "intro",
         .labels          = menuLabels,
-        .keyHints        = introKeyHints,
+        .keyHints        = game::layer::introKeyHints,
         .layout          = game::layer::introMenuLayout,
         .buttonColor     = { 0.F, 0.F, 0.F, 0.F },
         .selectedColor   = { 0.84F, 0.04F, 0.04F, 0.07F },

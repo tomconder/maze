@@ -37,21 +37,12 @@ constexpr std::array<const char*, rowCount> volumeKeys = {
     "audio.musicVolume",
 };
 
-constexpr std::array<game::ui::KeyHint, 4> audioKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
-                       "Change" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
-    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
-};
-
 game::layer::ScrollMenuStyle audioStyle() {
     return {
         .name     = "audio",
         .tab      = game::ui::OptionTab::Audio,
         .rowCount = rowCount,
-        .keyHints = audioKeyHints,
+        .keyHints = game::layer::adjustKeyHints,
     };
 }
 }  // namespace

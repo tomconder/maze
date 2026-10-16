@@ -48,8 +48,8 @@ primitives, windowing, or platform backends itself — see
   `OptionLayer` is Display, `KeyMapLayer` is Keyboard, `AudioLayer` is Audio.
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
-  (`cycleTab`), so all three layers reserve `tabBarHeight()` at the top of
-  their Yoga root. `KeyMapLayer` rebinds keys through
+  (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
+  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. `--dump-yoga` measures them with `ui/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
@@ -60,8 +60,11 @@ primitives, windowing, or platform backends itself — see
   fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
   their computed y in `ScrollMenuLayer::rowRect()`. No screen has a
   pinned row now. Esc is the only way back; there is no Return row.
-  The key hint bar (`ui/keyhints.hpp`) puts Back at the left margin, then any
-  hint with `leftAligned` set, and right-aligns the rest. Reset to Defaults is
+  The key hint bar (`ui/keyhints.hpp`) is a row of Yoga nodes below the menu
+  (an icon and a label per hint, sized by `keyHintSizes()`, drawn where
+  `MenuLayout::keyHintRects()` says). It puts Back at the left margin, then any
+  hint with `leftAligned` set, and right-aligns the rest. The layers lay out
+  again when the active device changes, because the prompt sizes differ. Reset to Defaults is
   a left-aligned hint on the Keyboard tab: the `MenuReset` action (R, gamepad
   Y), or a click on the hint (`hitTestKeyHints()`), opens a `ConfirmLayer`
   prompt with Cancel selected and no countdown. Only Accept calls

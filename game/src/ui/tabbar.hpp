@@ -1,10 +1,12 @@
 #pragma once
 
 #include "platform/opengl/scene/bitmapfont.hpp"
+#include "ui/layouttypes.hpp"
 
 #include <glm/glm.hpp>
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -16,8 +18,21 @@ namespace game::ui {
 // thing they share.
 enum class OptionTab : uint8_t { Display = 0, Keyboard, Audio, Count };
 
-constexpr std::array<std::string_view, static_cast<size_t>(OptionTab::Count)>
-    optionTabLabels{ "Display", "Keyboard", "Audio" };
+constexpr size_t tabCount = static_cast<size_t>(OptionTab::Count);
+
+constexpr std::array<std::string_view, tabCount> optionTabLabels{
+    "Display",
+    "Keyboard",
+    "Audio",
+};
+
+// Where the tab bar nodes of a layout ended up, in window pixels: the prompt
+// that goes to the previous tab, the three labels and the next tab prompt.
+struct TabBarRects {
+    Rect                       prev;
+    std::array<Rect, tabCount> labels;
+    Rect                       next;
+};
 
 // Next (direction = 1) or previous (direction = -1) tab, wrapping at both
 // ends. Any direction works: the second % folds a negative remainder back.
@@ -31,20 +46,28 @@ constexpr OptionTab cycleTab(const OptionTab current, const int direction) {
 // Vertical space the bar occupies; reserve it at the top of layouts.
 float tabBarHeight(float windowWidth);
 
-// Draws the tabs across the top of the window, underlining the active one and
-// bracketing them with the prompts that switch tab. The strip starts at left,
-// which callers pass from their first row so the two line up. Shares the
-// caller's font and quad shaders, so the caller must already have set their
-// projection this frame.
+// Size of the prompt icons, and the gap between the nodes of the bar.
+float tabIconSize(float windowWidth);
+
+float tabGap(float windowWidth);
+
+// The size of every tab label at the menu font size for the window width.
+std::array<TextSize, tabCount> tabLabelSizes(float              windowWidth,
+                                             const TextMeasure& measure);
+
+// Draws the tabs where the layout put them, marking the active one and
+// bracketing them with the prompts that switch tab. Shares the caller's font
+// and quad shaders, so the caller must already have set their projection this
+// frame.
 void renderTabBar(
     OptionTab                                                           active,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth, float left);
+    const glm::mat4& projection, float windowWidth, const TabBarRects& rects);
 
-// Tab under a point, if any. left must match the value given to renderTabBar.
-std::optional<OptionTab> tabBarHitTest(
-    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    float windowWidth, float left, const glm::vec2& position);
+// Tab under a point, if any.
+std::optional<OptionTab> tabBarHitTest(const TabBarRects& rects,
+                                       float              windowWidth,
+                                       const glm::vec2&   position);
 
 // Hands the screen to the layer that owns the tab.
 void showOptionTab(OptionTab tab);

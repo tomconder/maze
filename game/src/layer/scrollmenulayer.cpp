@@ -66,8 +66,8 @@ void ScrollMenuLayer::onAttach() {
         shader->setMat4("projection", camera->getProjection());
     }
 
-    layout =
-        std::make_unique<ui::MenuLayout>(menuStyle.rowCount, scrollMenuLayout);
+    layout = std::make_unique<ui::MenuLayout>(
+        menuStyle.rowCount, scrollMenuLayout, menuStyle.keyHints);
     recalculateLayout();
 }
 
@@ -179,10 +179,15 @@ bool ScrollMenuLayer::onUpdate(const double elapsedTime) {
     scroll.render(*quad);
 
     // the strip lines up with the rows, so it starts at the first row's edge
-    ui::renderTabBar(menuStyle.tab, font, camera->getProjection(), width, tabX);
+    ui::renderTabBar(menuStyle.tab, font, camera->getProjection(), width,
+                     layout->tabBarRects());
 
+    // the prompts change size with the device
+    if (ui::usingGamepad() != hintsForGamepad) {
+        recalculateLayout();
+    }
     ui::renderKeyHints(menuStyle.keyHints, font, camera->getProjection(), width,
-                       height, hoveredHint);
+                       layout->keyHintRects(), hoveredHint);
 
     if (!isActive()) {
         confirmGate.reset();
@@ -207,15 +212,12 @@ void ScrollMenuLayer::renderRowBackground(const size_t row, const float x,
 
 std::tuple<float, float, float, float>
     ScrollMenuLayer::rowRect(const size_t row) const {
-    const auto [x, y, w, h] = layout->rowRect(
-        row, ui::tabBarHeight(static_cast<float>(camera->getWidth())));
+    const auto [x, y, w, h] = layout->rowRect(row);
     return { x, y - scroll.pixelOffset(), w, h };
 }
 
 std::optional<size_t> ScrollMenuLayer::hintAt(const glm::vec2& pos) const {
-    return ui::hitTestKeyHints(menuStyle.keyHints, font,
-                               static_cast<float>(camera->getWidth()),
-                               static_cast<float>(camera->getHeight()), pos);
+    return ui::hitTestKeyHints(layout->keyHintRects(), pos);
 }
 
 void ScrollMenuLayer::close() {
@@ -232,15 +234,13 @@ void ScrollMenuLayer::clearHoveredItems() {
 }
 
 void ScrollMenuLayer::recalculateLayout() {
-    const auto width  = static_cast<float>(camera->getWidth());
-    const auto height = static_cast<float>(camera->getHeight());
-    // leave room for the tab bar along the top and the key hint bar along the
-    // bottom
-    const auto usableHeight =
-        std::max(0.F, ui::heightWithoutKeyHints(width, height) -
-                          ui::tabBarHeight(width));
-    scroll.layout(*layout, width, usableHeight, ui::tabBarHeight(width));
-    tabX = std::get<0>(layout->backgroundRect());
+    const auto width   = static_cast<float>(camera->getWidth());
+    const auto measure = ui::fontMeasure(font);
+    hintsForGamepad    = ui::usingGamepad();
+    layout->setTabLabelSizes(ui::tabLabelSizes(width, measure));
+    layout->setKeyHintSizes(
+        ui::keyHintSizes(menuStyle.keyHints, width, hintsForGamepad, measure));
+    scroll.layout(*layout, width, static_cast<float>(camera->getHeight()));
 }
 
 void ScrollMenuLayer::followSelection() {
@@ -272,7 +272,8 @@ bool ScrollMenuLayer::onMouseButtonPressed(
     const auto [mouseX, mouseY] = Application::get().getMousePosition();
 
     const auto clickedTab = ui::tabBarHitTest(
-        font, static_cast<float>(camera->getWidth()), tabX, { mouseX, mouseY });
+        layout->tabBarRects(), static_cast<float>(camera->getWidth()),
+        { mouseX, mouseY });
     if (clickedTab) {
         clearHoveredItems();
         ui::showOptionTab(*clickedTab);

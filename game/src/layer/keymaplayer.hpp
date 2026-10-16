@@ -2,6 +2,7 @@
 
 #include "layer/scrollmenulayer.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -16,6 +17,13 @@ enum class KeyMapItem : uint8_t {
     Pause,
     ToggleDebugUI,
     Count,
+};
+
+inline constexpr std::array<ui::KeyHint, 4> keyMapKeyHints = {
+    ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical", "Navigate" },
+    ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Rebind" },
+    ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
+    ui::KeyHint{ "keyboard_r", "xbox_button_y", "Reset to Defaults", true },
 };
 
 class KeyMapLayer final : public ScrollMenuLayer {

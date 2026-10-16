@@ -231,21 +231,12 @@ std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
     }
 }
 
-constexpr std::array<game::ui::KeyHint, 4> optionKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
-                       "Change" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
-    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
-};
-
 game::layer::ScrollMenuStyle optionStyle() {
     return {
         .name     = "options",
         .tab      = game::ui::OptionTab::Display,
         .rowCount = rowCount,
-        .keyHints = optionKeyHints,
+        .keyHints = game::layer::adjustKeyHints,
         .firstRow = static_cast<size_t>(OptionMenuItem::DisplayMode),
     };
 }
