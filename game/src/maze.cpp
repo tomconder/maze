@@ -8,11 +8,14 @@
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
-#include "ui/tabbar.hpp"
+#include "ui/menulayout.hpp"
+#include "ui/yogadump.hpp"
 #include "version.hpp"
 
 #include <charconv>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -111,6 +114,8 @@ void Maze::setUpCapture() {
             confirmLayer->show(layer::resetBindingsTitle,
                                layer::resetBindingsMessage, nullptr, 0.F,
                                false);
+        } else if (capture.menu == "exit") {
+            exitLayer->setActive(true);
         } else {
             introLayer->setActive(true);
         }
@@ -176,11 +181,13 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // leaves the normal start. --capture-off=a,b: turn passes off for the run
     // (see MazeLayer::enableCapture). --capture-walk=D: walk D world units
     // per frame along +X instead of turning. --capture-cascades=N: use N
-    // shadow cascades. --capture-menu=display, keyboard or audio: show that
-    // menu screen (any other name shows the intro), write
+    // shadow cascades. --capture-menu=display, keyboard, audio or exit: show
+    // that menu screen (any other name shows the intro), write
     // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
-    // of any capture run.
+    // of any capture run. --dump-yoga=intro or exit: print that menu's layout
+    // as yogalayout.dev playground JSX.
     constexpr std::string_view          captureFlag = "--capture-frames";
+    std::string_view                    dumpYoga;
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&capture](const std::string_view value) {
         std::from_chars(value.data(), value.data() + value.size(),
@@ -203,6 +210,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                             capture.walk);
         } else if (args[i].starts_with("--capture-menu=")) {
             capture.menu = std::string(args[i].substr(15));
+        } else if (args[i].starts_with("--dump-yoga=")) {
+            dumpYoga = args[i].substr(12);
         } else if (args[i].starts_with("--capture-size=")) {
             const auto value = args[i].substr(15);
             const auto x     = value.find('x');
@@ -216,6 +225,21 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             std::from_chars(value.data(), value.data() + value.size(),
                             capture.cascades);
         }
+    }
+    if (!dumpYoga.empty()) {
+        // --dump-yoga=intro or exit: print the menu's Yoga tree as playground
+        // JSX at the --capture-size window size and exit.
+        const bool isExit = dumpYoga == "exit";
+        const auto rows =
+            isExit ? static_cast<size_t>(game::layer::ExitMenuItem::Count) :
+                     static_cast<size_t>(game::layer::IntroMenuItem::Count);
+        game::ui::MenuLayout layout(rows, isExit ?
+                                              game::layer::exitMenuLayout :
+                                              game::layer::introMenuLayout);
+        layout.calculate(static_cast<float>(captureWidth),
+                         static_cast<float>(captureHeight));
+        std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(), stdout);
+        std::exit(0);
     }
     if (capture.nanStats && capture.frames == 0) {
         capture.frames = 600;

@@ -143,7 +143,7 @@ maze.exe --capture-frames=600 --dump-nan-stats
   near cascade redraws when the camera has moved one texel of its map.
 * `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
   the whole-scene map alone, for an A/B against the cascades.
-* `--capture-menu=intro|display|keyboard|audio|confirm|reset`: skip the splash, show that
+* `--capture-menu=intro|exit|display|keyboard|audio|confirm|reset`: skip the splash, show that
   menu screen for two seconds, write the back buffer as
   `capture_menu_<name>.png` (8-bit RGB) and exit. The window has no frame, so
   `--capture-size=WxH` can be larger than the screen; it also sets the window
@@ -151,6 +151,9 @@ maze.exe --capture-frames=600 --dump-nan-stats
   at a resolution the monitor cannot show, such as
   `--capture-menu=display --capture-size=3840x2160`. Debug builds link libspng
   for the PNG; release builds do not.
+* `--dump-yoga=intro|exit`: print that menu's Yoga tree as JSX for
+  yogalayout.dev/playground at the `--capture-size` window size (default
+  1600x900) and exit. No window opens. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
   measurement: `shadowcache` draws the shadow map every frame (the cache would

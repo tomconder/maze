@@ -89,29 +89,24 @@ public:
         return scrollBy(-yOffset * wheelRows);
     }
 
-    // Fits the rows to the space above the pinned footer and lays out. rows are
-    // the scrolling rows in order. footer is the first pinned row, or nullptr
-    // when the rows have the whole menu. originY is the height reserved above
-    // the root.
-    void layout(const YGNodeRef root, const YGNodeRef menu,
-                const YGNodeRef                  background,
-                const std::span<const YGNodeRef> rows, const YGNodeRef footer,
-                const float width, const float height, const float originY) {
+    // Fits the rows of a layout to the menu area and lays out. All rows
+    // scroll, in order. originY is the height reserved above the root.
+    void layout(const MenuLayout& menuLayout, const float width,
+                const float height, const float originY) {
+        auto* const root      = menuLayout.root();
+        const auto  rows      = menuLayout.rowNodes();
         const float rowHeight = menuRowHeight(width);
-        for (size_t i = 0; i < rows.size(); i++) {
-            // out of the flex flow, so the pinned rows keep their place
-            YGNodeStyleSetPositionType(rows[i], YGPositionTypeAbsolute);
-            YGNodeStyleSetPosition(rows[i], YGEdgeLeft, 0.F);
-            YGNodeStyleSetWidthPercent(rows[i], 100.F);
-            YGNodeStyleSetHeight(rows[i], rowHeight);
+        for (auto* const row : rows) {
+            YGNodeStyleSetPositionType(row, YGPositionTypeAbsolute);
+            YGNodeStyleSetPosition(row, YGEdgeLeft, 0.F);
+            YGNodeStyleSetWidthPercent(row, 100.F);
+            YGNodeStyleSetHeight(row, rowHeight);
         }
         YGNodeStyleSetWidth(root, width);
         YGNodeStyleSetHeight(root, height);
         YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
 
-        const float room = footer != nullptr ?
-                               YGNodeLayoutGetTop(footer) :
-                               YGNodeLayoutGetHeight(background);
+        const float room = std::get<3>(menuLayout.backgroundRect());
         setWindow(rows.size(), static_cast<size_t>(room / rowHeight + 0.001F));
         for (size_t i = 0; i < rows.size(); i++) {
             YGNodeStyleSetPosition(rows[i], YGEdgeTop,
@@ -120,12 +115,7 @@ public:
         }
         YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
 
-        const auto [rootX, rootY, rootW, rootH] =
-            getNodeLayout(root, 0.F, originY);
-        const auto [menuX, menuY, menuW, menuH] =
-            getNodeLayout(menu, rootX, rootY);
-        const auto [bgX, bgY, bgW, bgH] =
-            getNodeLayout(background, menuX, menuY);
+        const auto [bgX, bgY, bgW, bgH] = menuLayout.backgroundRect(originY);
         thickness = std::max(6.F, std::round(rowHeight / 20.F));
         trackX    = bgX + bgW + thickness;
         trackY    = bgY;

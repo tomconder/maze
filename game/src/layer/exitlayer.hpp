@@ -1,10 +1,9 @@
 #pragma once
 
-#include "event/applicationevent.hpp"
-#include "event/event.hpp"
-#include "event/mouseevent.hpp"
-#include "layer/layer.hpp"
+#include "layer/buttonmenulayer.hpp"
+#include "ui/menulayout.hpp"
 
+#include <cstddef>
 #include <cstdint>
 
 namespace game::layer {
@@ -17,37 +16,21 @@ enum class ExitMenuItem : uint8_t {
     Count,
 };
 
-class ExitLayer final : public sponge::layer::Layer {
+inline constexpr ui::MenuLayoutSpec exitMenuLayout = {
+    .backgroundWidthPercent = 45.F,
+    .rootWidthScale         = 0.54F,
+};
+
+class ExitLayer final : public ButtonMenuLayer {
 public:
     ExitLayer();
 
-    void onAttach() override;
+protected:
+    void onSelect(size_t item) override;
 
-    void onDetach() override;
-
-    void onEvent(sponge::event::Event& event) override;
-
-    bool onUpdate(double elapsedTime) override;
+    bool onBack() override;
 
 private:
-    ExitMenuItem selectedItem          = ExitMenuItem::Continue;
-    bool         wasActiveLastFrame    = false;
-    bool         waitForConfirmRelease = false;
-
-    static void recalculateLayout(float width, float height);
-
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
-
-    // Acts on selectedItem; shared by the keyboard and mouse paths.
-    void activateSelected();
-
-    static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
-
-    static bool onWindowResize(const sponge::event::WindowResizeEvent& event);
-
-    static void clearHoveredItems();
-
     void resumeGame();
 };
 }  // namespace game::layer

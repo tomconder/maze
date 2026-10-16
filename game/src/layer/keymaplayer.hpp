@@ -1,15 +1,10 @@
 #pragma once
 
-#include "event/applicationevent.hpp"
-#include "event/event.hpp"
-#include "event/mouseevent.hpp"
-#include "input/gameaction.hpp"
-#include "layer/layer.hpp"
+#include "layer/scrollmenulayer.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <tuple>
 
 namespace game::layer {
 
@@ -23,66 +18,35 @@ enum class KeyMapItem : uint8_t {
     Count,
 };
 
-class KeyMapLayer final : public sponge::layer::Layer {
+class KeyMapLayer final : public ScrollMenuLayer {
 public:
     KeyMapLayer();
-
-    void onAttach() override;
-
-    void onDetach() override;
-
-    void onEvent(sponge::event::Event& event) override;
 
     bool onUpdate(double elapsedTime) override;
 
 private:
-    KeyMapItem                selectedItem = KeyMapItem::MoveForward;
-    std::optional<KeyMapItem> hoveredItem;
-
-    // Hint bar entry under the mouse; only Reset to Defaults is clickable.
-    std::optional<size_t> hoveredHint;
-
     // Row waiting for a key, while InputManager captures the next press.
-    std::optional<KeyMapItem> rebindingItem;
+    std::optional<size_t> rebindingRow;
 
-    bool wasActiveLastFrame    = false;
-    bool waitForConfirmRelease = false;
+    void startRebind(size_t row);
 
-    void renderRowBackground(float x, float y, float w, float h,
-                             KeyMapItem item) const;
-
-    // Screen rect of a row, resolved through the root/menu/background chain.
-    static std::tuple<float, float, float, float> rowLayout(KeyMapItem item);
-
-    // Starts a rebind for the row.
-    void activate(KeyMapItem item);
-
-    // Asks before resetting every binding to its default.
     void askReset();
 
-    void close();
+protected:
+    // The row being bound takes the input itself, and so does the prompt over
+    // this screen.
+    bool takesInput() const override;
 
-    static void recalculateLayout(float width, float height);
+    void renderRow(size_t row, float x, float y, float w, float h) override;
 
-    // Lays out again at the current window size, after the scroll moved.
-    static void relayout();
+    void onRowKeys(size_t                              row,
+                   const sponge::input::InputSnapshot& input) override;
 
-    // Scrolls the selected row into view.
-    void followSelection();
+    bool onConfirm(size_t row) override;
 
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
+    void onActionHint() override;
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
-
-    bool onMouseButtonReleased(
-        const sponge::event::MouseButtonReleasedEvent& event);
-
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
-
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event);
-
-    void clearHoveredItems();
+    bool onRowPressed(size_t row, const glm::vec2& mouse) override;
 };
 
 }  // namespace game::layer

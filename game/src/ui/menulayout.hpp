@@ -2,77 +2,22 @@
 
 #include <yoga/Yoga.h>
 
+#include <cstddef>
+#include <cstdint>
+#include <span>
 #include <tuple>
+#include <vector>
 
+#include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 
 namespace game::ui {
-
-struct MenuSkeleton {
-    YGNodeRef root;
-    YGNodeRef menu;
-    YGNodeRef menuBackground;
-};
-
-// titleFlexGrow sets the empty space above the rows, relative to the row area
-// (which is 1.0). Menus with many rows want a smaller share.
-inline MenuSkeleton buildMenuSkeleton(const float menuBackgroundWidthPercent,
-                                      const float titleFlexGrow = 0.9F) {
-    auto* const root = YGNodeNew();
-
-    auto* const title = YGNodeNew();
-    YGNodeStyleSetFlexGrow(title, titleFlexGrow);
-    YGNodeInsertChild(root, title, 0);
-
-    auto* const menu = YGNodeNew();
-    YGNodeStyleSetFlex(menu, 1.F);
-    YGNodeStyleSetFlexDirection(menu, YGFlexDirectionRow);
-    YGNodeInsertChild(root, menu, 1);
-
-    auto* const menuBackground = YGNodeNew();
-    YGNodeStyleSetMargin(menuBackground, YGEdgeAll, 10.F);
-    YGNodeStyleSetWidthPercent(menuBackground, menuBackgroundWidthPercent);
-    YGNodeInsertChild(menu, menuBackground, 0);
-
-    return { root, menu, menuBackground };
-}
 
 // Rows track the menu font, which steps with the window width.
 inline float menuRowHeight(const float windowWidth) {
     return static_cast<float>(
                menuFontSizeForWidth(static_cast<uint32_t>(windowWidth))) *
            3.4F;
-}
-
-// Auto margin takes the leftover space, the fixed height keeps the row off the
-// flex share, so it lands in the same place whatever sits above it.
-// Row heights are set here, not at construction, because the window width is
-// only known once the layout runs.
-inline void setMenuRowHeight(const YGNodeRef row, const float windowWidth) {
-    YGNodeStyleSetMaxHeight(row, menuRowHeight(windowWidth));
-}
-
-// Only the first pinned row of a menu takes the leftover space; a second auto
-// margin would split it.
-inline void pinMenuRowToBottom(const YGNodeRef row, const float windowWidth,
-                               const bool takesLeftover = true) {
-    if (takesLeftover) {
-        YGNodeStyleSetMarginAuto(row, YGEdgeTop);
-    }
-    YGNodeStyleSetFlexGrow(row, 0.F);
-    YGNodeStyleSetFlexShrink(row, 0.F);
-    // makeMenuRow left a flex basis of 0, so the siblings would grow into
-    // this row's space; the basis is what reserves it
-    YGNodeStyleSetFlexBasis(row, menuRowHeight(windowWidth));
-    YGNodeStyleSetHeight(row, menuRowHeight(windowWidth));
-}
-
-inline YGNodeRef makeMenuRow(const YGNodeRef parent, const int index) {
-    auto* const child = YGNodeNew();
-    YGNodeStyleSetFlex(child, 1.F);
-    YGNodeStyleSetMaxHeight(child, 110);
-    YGNodeInsertChild(parent, child, index);
-    return child;
 }
 
 inline std::tuple<float, float, float, float>
@@ -82,5 +27,97 @@ inline std::tuple<float, float, float, float>
              offsetY + YGNodeLayoutGetTop(node), YGNodeLayoutGetWidth(node),
              YGNodeLayoutGetHeight(node) };
 }
+
+struct MenuLayoutSpec {
+    float backgroundWidthPercent;
+    // The empty space above the rows, relative to the row area (which is 1.0).
+    // Menus with many rows want a smaller share.
+    float titleFlexGrow = 0.9F;
+    // The share of the window width the tree spans; the exit panel is narrower
+    // than the window.
+    float rootWidthScale = 1.F;
+};
+
+// The Yoga tree of a menu with equal rows, built once and freed with the
+// object. The window size is the only input to calculate().
+class MenuLayout {
+public:
+    MenuLayout(const size_t rowCount, const MenuLayoutSpec& layoutSpec) :
+        spec(layoutSpec) {
+        auto* const title = YGNodeNew();
+        YGNodeStyleSetFlexGrow(title, spec.titleFlexGrow);
+        YGNodeInsertChild(rootNode, title, 0);
+
+        YGNodeStyleSetFlex(menuNode, 1.F);
+        YGNodeStyleSetFlexDirection(menuNode, YGFlexDirectionRow);
+        YGNodeInsertChild(rootNode, menuNode, 1);
+
+        YGNodeStyleSetMargin(backgroundNode, YGEdgeAll, 10.F);
+        YGNodeStyleSetWidthPercent(backgroundNode, spec.backgroundWidthPercent);
+        YGNodeInsertChild(menuNode, backgroundNode, 0);
+
+        for (size_t i = 0; i < rowCount; i++) {
+            auto* const row = YGNodeNew();
+            YGNodeStyleSetFlex(row, 1.F);
+            YGNodeInsertChild(backgroundNode, row, static_cast<int>(i));
+            rows.push_back(row);
+        }
+    }
+
+    ~MenuLayout() {
+        YGNodeFreeRecursive(rootNode);
+    }
+
+    MenuLayout(const MenuLayout&)            = delete;
+    MenuLayout& operator=(const MenuLayout&) = delete;
+
+    // Leaves room for the key hint bar along the bottom. Row heights are set
+    // here, not at construction, because the window width is only known once
+    // the layout runs.
+    void calculate(const float width, const float height) {
+        const auto panelWidth   = width * spec.rootWidthScale;
+        const auto usableHeight = heightWithoutKeyHints(width, height);
+        for (auto* const row : rows) {
+            YGNodeStyleSetMaxHeight(row, menuRowHeight(width));
+        }
+        YGNodeStyleSetWidth(rootNode, panelWidth);
+        YGNodeStyleSetHeight(rootNode, usableHeight);
+        YGNodeCalculateLayout(rootNode, panelWidth, usableHeight,
+                              YGDirectionLTR);
+    }
+
+    // x, y, width, height of the panel that holds the rows. originY is the
+    // height reserved above the tree, such as a tab bar.
+    std::tuple<float, float, float, float>
+        backgroundRect(const float originY = 0.F) const {
+        const auto [rootX, rootY, rootW, rootH] =
+            getNodeLayout(rootNode, 0.F, originY);
+        const auto [menuX, menuY, menuW, menuH] =
+            getNodeLayout(menuNode, rootX, rootY);
+        return getNodeLayout(backgroundNode, menuX, menuY);
+    }
+
+    // x, y, width, height of a row in window pixels.
+    std::tuple<float, float, float, float>
+        rowRect(const size_t row, const float originY = 0.F) const {
+        const auto [bgX, bgY, bgW, bgH] = backgroundRect(originY);
+        return getNodeLayout(rows[row], bgX, bgY);
+    }
+
+    YGNodeRef root() const {
+        return rootNode;
+    }
+
+    std::span<const YGNodeRef> rowNodes() const {
+        return rows;
+    }
+
+private:
+    MenuLayoutSpec         spec;
+    YGNodeRef              rootNode       = YGNodeNew();
+    YGNodeRef              menuNode       = YGNodeNew();
+    YGNodeRef              backgroundNode = YGNodeNew();
+    std::vector<YGNodeRef> rows;
+};
 
 }  // namespace game::ui
