@@ -67,7 +67,9 @@ void AudioLayer::onAttach() {
         sliders[i]->setValue(
             static_cast<float>(Settings::getUInt32(volumeKeys[i], 100)) /
             100.F);
+        sliders[i]->attach(rowNode(i));
     }
+    recalculateLayout();
 }
 
 void AudioLayer::applyVolume(const AudioMenuItem item, const bool save) const {
@@ -99,9 +101,9 @@ void AudioLayer::applyVolume(const AudioMenuItem item, const bool save) const {
     }
 }
 
-void AudioLayer::renderRow(const size_t row, const float x, const float y,
-                           const float w, const float h) {
-    sliders[row]->onUpdate(x, y, w, h, volumeLabels[row]);
+void AudioLayer::renderRow(const size_t row, const float /*x*/, const float y,
+                           const float /*w*/, const float /*h*/) {
+    sliders[row]->onUpdate(y, volumeLabels[row]);
 }
 
 void AudioLayer::onRowKeys(const size_t                        row,
@@ -124,16 +126,15 @@ void AudioLayer::onRowKeys(const size_t                        row,
 }
 
 bool AudioLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
-    const auto [x, y, w, h] = rowRect(row);
-    const auto item         = static_cast<AudioMenuItem>(row);
-    auto&      slider       = *sliders[row];
+    const auto item   = static_cast<AudioMenuItem>(row);
+    auto&      slider = *sliders[row];
 
-    if (slider.isInsideTrack(mouse.x, x, w)) {
-        slider.setValue(slider.valueAtX(mouse.x, x, w));
+    if (slider.isInsideTrack(mouse.x)) {
+        slider.setValue(slider.valueAtX(mouse.x));
         applyVolume(item, false);
         return true;
     }
-    if (const auto arrow = slider.arrowAt(mouse.x, x, w); arrow != 0) {
+    if (const auto arrow = slider.arrowAt(mouse.x); arrow != 0) {
         if (slider.step(static_cast<float>(arrow) * volumeStep)) {
             applyVolume(item, true);
         }
@@ -142,9 +143,8 @@ bool AudioLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
 }
 
 void AudioLayer::onRowDrag(const size_t row, const glm::vec2& mouse) {
-    const auto [x, y, w, h] = rowRect(row);
-    auto& slider            = *sliders[row];
-    slider.setValue(slider.valueAtX(mouse.x, x, w));
+    auto& slider = *sliders[row];
+    slider.setValue(slider.valueAtX(mouse.x));
     applyVolume(static_cast<AudioMenuItem>(row), false);
 }
 

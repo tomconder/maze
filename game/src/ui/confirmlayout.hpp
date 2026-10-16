@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "ui/layouttypes.hpp"
+#include "ui/yogarect.hpp"
 
 namespace game::ui {
 
@@ -75,44 +76,33 @@ public:
 
     // Where the nodes are, in window pixels.
     Rect panel() const {
-        return rectOf(panelNode);
+        return nodeRect(panelNode);
     }
 
     Rect title() const {
-        return rectOf(titleNode);
+        return nodeRect(titleNode);
     }
 
     Rect message() const {
-        return rectOf(messageNode);
+        return nodeRect(messageNode);
     }
 
     Rect countdown() const {
-        return rectOf(countdownNode);
+        return nodeRect(countdownNode);
     }
 
     Rect accept() const {
-        return rectOf(acceptNode);
+        return nodeRect(acceptNode);
     }
 
     Rect cancel() const {
-        return rectOf(cancelNode);
+        return nodeRect(cancelNode);
     }
 
 private:
     static void setSize(const YGNodeRef node, const TextSize& size) {
         YGNodeStyleSetWidth(node, size.width);
         YGNodeStyleSetHeight(node, size.height);
-    }
-
-    static Rect rectOf(const YGNodeRef node) {
-        float x = 0.F;
-        float y = 0.F;
-        for (auto* n = node; n != nullptr; n = YGNodeGetParent(n)) {
-            x += YGNodeLayoutGetLeft(n);
-            y += YGNodeLayoutGetTop(n);
-        }
-        return { x, y, YGNodeLayoutGetWidth(node),
-                 YGNodeLayoutGetHeight(node) };
     }
 
     YGNodeRef windowNode    = YGNodeNew();

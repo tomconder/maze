@@ -220,6 +220,10 @@ std::optional<size_t> ScrollMenuLayer::hintAt(const glm::vec2& pos) const {
     return ui::hitTestKeyHints(layout->keyHintRects(), pos);
 }
 
+YGNodeRef ScrollMenuLayer::rowNode(const size_t row) const {
+    return layout->rowNode(row);
+}
+
 void ScrollMenuLayer::close() {
     clearHoveredItems();
     selected = menuStyle.firstRow;
@@ -359,14 +363,15 @@ bool ScrollMenuLayer::onMouseButtonReleased(
 
 bool ScrollMenuLayer::onWindowResize(const WindowResizeEvent& event) {
     camera->setWidthAndHeight(event.getWidth(), event.getHeight());
-    recalculateLayout();
-    followSelection();
 
+    // widgets size their nodes to the font, so it changes before the layout
     const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
     if (newFontSize != fontSize) {
         fontSize = newFontSize;
         onFontSizeChanged();
     }
+    recalculateLayout();
+    followSelection();
     onResized(event.getWidth(), event.getHeight());
 
     return false;

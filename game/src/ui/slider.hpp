@@ -2,13 +2,15 @@
 
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
+#include "ui/layouttypes.hpp"
+
+#include <yoga/Yoga.h>
 
 #include <glm/glm.hpp>
 
 #include <cstdint>
 #include <memory>
 #include <string_view>
-#include <tuple>
 
 namespace game::ui {
 
@@ -35,6 +37,10 @@ struct SliderCreateInfo {
 // Checkbox and SelectList — mouse drag state, keyboard/gamepad stepping and
 // settings persistence are the owning layer's job, driven through
 // isInsideTrack/valueAtX/setValue/step.
+//
+// The parts are Yoga nodes in the row the slider is attached to: the label
+// takes the free width, then the left arrow, the track, the right arrow and
+// the value. The row must be laid out before the slider draws or hit-tests.
 class Slider {
 public:
     explicit Slider(const SliderCreateInfo& createInfo);
@@ -46,22 +52,27 @@ public:
     // Returns true if the value actually changed, for keyboard/gamepad steps.
     bool step(float delta);
 
+    // Adds the parts to the row node, which lives in the layer's layout.
+    void attach(YGNodeRef row);
+
     void setFontSize(uint32_t size);
 
-    void onUpdate(float x, float y, float w, float h, std::string_view label);
+    // y is the top of the row as drawn, which differs from the row node when
+    // the rows scroll.
+    void onUpdate(float y, std::string_view label);
 
     // Track hit zone, widened by the handle radius on both ends so grabbing
-    // the handle at either extreme works. y/h aren't needed: callers already
+    // the handle at either extreme works. Only x is asked: callers already
     // row-bound the click before asking, same contract as SelectList.
-    bool isInsideTrack(float mouseX, float x, float w) const;
+    bool isInsideTrack(float mouseX) const;
 
     // Maps a mouse x position to a value in [0, 1], for click-to-jump and
     // drag updates.
-    float valueAtX(float mouseX, float x, float w) const;
+    float valueAtX(float mouseX) const;
 
     // -1 over the left arrow, +1 over the right one, 0 elsewhere. Ask after
     // isInsideTrack: the widened track zone wins where the two overlap.
-    int arrowAt(float mouseX, float x, float w) const;
+    int arrowAt(float mouseX) const;
 
 private:
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
@@ -86,12 +97,12 @@ private:
 
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
+    YGNodeRef rowNode = nullptr;
+
     void recomputeCachedLengths();
 
-    // Left edge of the arrow/track/value block: {leftArrowX, trackStartX,
-    // rightArrowX, valueX}.
-    std::tuple<float, float, float, float> computeLayout(float x,
-                                                         float w) const;
+    // Gives the nodes the sizes of the text and the track.
+    void sizeNodes() const;
 };
 
 }  // namespace game::ui

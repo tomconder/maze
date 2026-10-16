@@ -307,12 +307,20 @@ void OptionLayer::onAttach() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
+    for (size_t row = 0; row < settingRows.size(); row++) {
+        if (auto* const list = listFor(settingRows[row].item);
+            list != nullptr) {
+            list->attach(rowNode(row));
+        }
+    }
+
     syncPendingCheckboxState();
 
     aspectRatioList->setSelectedIndex(
         findAspectRatioIndex(currentWidth, currentHeight));
 
     filterResolutions();
+    recalculateLayout();
 }
 
 bool OptionLayer::takesInput() const {
@@ -377,9 +385,9 @@ void OptionLayer::renderRow(const size_t row, const float x, const float y,
     if (isHeading(item)) {
         renderRowLabel(x, y, h, label, headingColor);
     } else if (auto* const list = listFor(item); list != nullptr) {
-        list->onUpdate(x, y, w, h, label);
+        list->onUpdate(y, label);
         const auto [dotCount, appliedIndex] = dotState(item);
-        renderDots(dotCount, list->getValueCenterX(x, w), y, h,
+        renderDots(dotCount, list->getValueCenterX(), y, h,
                    list->getSelectedIndex(), appliedIndex);
     } else {
         renderRowLabel(x, y, h, label, textColor);
@@ -408,9 +416,9 @@ bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
     const auto [x, y, w, h] = rowRect(row);
     const auto item         = static_cast<OptionMenuItem>(row);
     if (auto* const list = listFor(item); list != nullptr) {
-        if (list->isInsideLeft(mouse.x, x, w)) {
+        if (list->isInsideLeft(mouse.x)) {
             cycleList(item, -1);
-        } else if (list->isInsideRight(mouse.x, x, w)) {
+        } else if (list->isInsideRight(mouse.x)) {
             cycleList(item, 1);
         }
     } else if (checkboxFor(item)->isInside(mouse.x, mouse.y, x, y, w, h)) {

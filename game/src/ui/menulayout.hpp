@@ -218,6 +218,11 @@ public:
         return rows.size();
     }
 
+    // The node of a row, for a widget that puts its parts in it.
+    YGNodeRef rowNode(const size_t row) const {
+        return rows[row];
+    }
+
 private:
     static Rect nodeRect(const YGNodeRef node, const float x, const float y) {
         const auto [left, top, w, h] = getNodeLayout(node, x, y);

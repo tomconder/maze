@@ -56,6 +56,13 @@ primitives, windowing, or platform backends itself — see
   keyboard/gamepad step), applied live to `sponge::platform::audio::Audio` and
   written to `Settings` on every change, but only flushed to disk on
   drag-release or a discrete step, not on every mouse-move frame of a drag.
+  `ui::Slider` and `ui::SelectList` are Yoga nodes inside their row: `attach(rowNode(row))`
+  adds a label that takes the free width, the arrows, and the track or the
+  value. They size those nodes from the font, so a layer calls
+  `onFontSizeChanged()` before `recalculateLayout()` and once after
+  attaching. `--dump-yoga` does not show these nodes; it has no font to
+  measure them with. `ui::Checkbox` and the heading labels are still drawn by
+  hand.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
   their computed y in `ScrollMenuLayer::rowRect()`. No screen has a

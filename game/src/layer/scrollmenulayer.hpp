@@ -123,6 +123,12 @@ protected:
     // x, y, width, height of a row in window pixels.
     std::tuple<float, float, float, float> rowRect(size_t row) const;
 
+    // The Yoga node of a row. A widget adds its parts to it; call
+    // recalculateLayout() once they are there.
+    YGNodeRef rowNode(size_t row) const;
+
+    void recalculateLayout();
+
     void clearHoveredItems();
 
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>&
@@ -166,8 +172,6 @@ private:
 
     void renderRowBackground(size_t row, float x, float y, float w,
                              float h) const;
-
-    void recalculateLayout();
 
     void followSelection();
 
