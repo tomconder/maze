@@ -74,37 +74,14 @@ public:
         return windowNode;
     }
 
-    // Where the nodes are, in window pixels.
-    Rect panel() const {
-        return nodeRect(panelNode);
-    }
-
-    Rect title() const {
-        return nodeRect(titleNode);
-    }
-
-    Rect message() const {
-        return nodeRect(messageNode);
-    }
-
-    Rect countdown() const {
-        return nodeRect(countdownNode);
-    }
-
-    Rect accept() const {
-        return nodeRect(acceptNode);
-    }
-
-    Rect cancel() const {
-        return nodeRect(cancelNode);
-    }
-
 private:
     static void setSize(const YGNodeRef node, const TextSize& size) {
         YGNodeStyleSetWidth(node, size.width);
         YGNodeStyleSetHeight(node, size.height);
     }
 
+public:
+    // Read where they ended up with nodeRect().
     YGNodeRef windowNode    = YGNodeNew();
     YGNodeRef panelNode     = YGNodeNew();
     YGNodeRef titleNode     = YGNodeNew();

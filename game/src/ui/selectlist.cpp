@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "ui/yogarect.hpp"
+#include "ui/rowparts.hpp"
 
 namespace game::ui {
 
@@ -47,13 +47,7 @@ void SelectList::setItems(std::vector<std::string> newItems) {
 
 void SelectList::attach(const YGNodeRef row) {
     rowNode = row;
-    YGNodeStyleSetFlexDirection(row, YGFlexDirectionRow);
-    YGNodeStyleSetAlignItems(row, YGAlignCenter);
-    YGNodeStyleSetPadding(row, YGEdgeHorizontal, textMarginLeft);
-    for (int part = 0; part < partCount; part++) {
-        YGNodeInsertChild(row, YGNodeNew(), part);
-    }
-    YGNodeStyleSetFlexGrow(YGNodeGetChild(row, labelPart), 1.F);
+    attachRowParts(row, partCount, textMarginLeft);
     sizeNodes();
 }
 
@@ -62,16 +56,10 @@ void SelectList::sizeNodes() const {
         return;
     }
     const auto textHeight = static_cast<float>(font->getHeight(fontSize));
-    const auto setSize    = [&](const int part, const float w, const float h) {
-        auto* const node = YGNodeGetChild(rowNode, part);
-        YGNodeStyleSetWidth(node, w);
-        YGNodeStyleSetHeight(node, h);
-    };
-    // the label has no width of its own: it takes what the rest leaves
-    YGNodeStyleSetHeight(YGNodeGetChild(rowNode, labelPart), textHeight);
-    setSize(leftArrowPart, leftLen, textHeight);
-    setSize(valuePart, maxValueWidth, textHeight);
-    setSize(rightArrowPart, rightLen, textHeight);
+    setPartSize(rowNode, labelPart, YGUndefined, textHeight);
+    setPartSize(rowNode, leftArrowPart, leftLen, textHeight);
+    setPartSize(rowNode, valuePart, maxValueWidth, textHeight);
+    setPartSize(rowNode, rightArrowPart, rightLen, textHeight);
 }
 
 void SelectList::setMaxValueWidth(const float width) {
@@ -138,11 +126,8 @@ float SelectList::getValueCenterX() const {
 }
 
 void SelectList::onUpdate(const float y, const std::string_view label) {
-    const auto rowTop = nodeRect(rowNode).y;
-    const auto part   = [&](const int index) {
-        auto rect = nodeRect(YGNodeGetChild(rowNode, index));
-        rect.y += y - rowTop;
-        return rect;
+    const auto part = [&](const int index) {
+        return partRect(rowNode, index, y);
     };
     const auto labelRect      = part(labelPart);
     const auto leftArrowRect  = part(leftArrowPart);

@@ -117,26 +117,26 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
                           std::optional{ measure(countdownText, fontSize) } :
                           std::nullopt);
 
-    const auto panel = layout->panel();
+    const auto panel = nodeRect(layout->panelNode);
     quad->render({ 0.F, 0.F }, { width, height }, dimColor);
     quad->render({ panel.x, panel.y },
                  { panel.x + panel.width, panel.y + panel.height }, panelColor,
                  cornerRadius, panelBorderSize, panelBorder);
 
     font->beginPass(fontSize);
-    const auto draw = [&](const std::string_view text, const Rect& rect,
-                          const glm::vec3& color) {
-        font->render(text, { rect.x, rect.y }, color);
-    };
-    draw(title, layout->title(), textColor);
-    draw(message, layout->message(), textColor);
+    const auto titleRect   = nodeRect(layout->titleNode);
+    const auto messageRect = nodeRect(layout->messageNode);
+    font->render(title, { titleRect.x, titleRect.y }, textColor);
+    font->render(message, { messageRect.x, messageRect.y }, textColor);
     if (timed) {
-        draw(countdownText, layout->countdown(), countdownColor);
+        const auto countdownRect = nodeRect(layout->countdownNode);
+        font->render(countdownText, { countdownRect.x, countdownRect.y },
+                     countdownColor);
     }
     font->endPass();
 
-    const auto accept = layout->accept();
-    const auto cancel = layout->cancel();
+    const auto accept = nodeRect(layout->acceptNode);
+    const auto cancel = nodeRect(layout->cancelNode);
     acceptButton->setPosition(
         { accept.x, accept.y },
         { accept.x + accept.width, accept.y + accept.height });

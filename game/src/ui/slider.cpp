@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <yoga/Yoga.h>
 
-#include "ui/yogarect.hpp"
+#include "ui/rowparts.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -83,13 +83,7 @@ void Slider::recomputeCachedLengths() {
 
 void Slider::attach(const YGNodeRef row) {
     rowNode = row;
-    YGNodeStyleSetFlexDirection(row, YGFlexDirectionRow);
-    YGNodeStyleSetAlignItems(row, YGAlignCenter);
-    YGNodeStyleSetPadding(row, YGEdgeHorizontal, textMarginLeft);
-    for (int part = 0; part < partCount; part++) {
-        YGNodeInsertChild(row, YGNodeNew(), part);
-    }
-    YGNodeStyleSetFlexGrow(YGNodeGetChild(row, labelPart), 1.F);
+    attachRowParts(row, partCount, textMarginLeft);
     sizeNodes();
 }
 
@@ -100,25 +94,16 @@ void Slider::sizeNodes() const {
     YGNodeStyleSetGap(rowNode, YGGutterColumn, baseValueGap * scale);
 
     const auto textHeight = static_cast<float>(font->getHeight(fontSize));
-    const auto setSize    = [&](const int part, const float w, const float h) {
-        auto* const node = YGNodeGetChild(rowNode, part);
-        YGNodeStyleSetWidth(node, w);
-        YGNodeStyleSetHeight(node, h);
-    };
-    // the label has no width of its own: it takes what the rest leaves
-    YGNodeStyleSetHeight(YGNodeGetChild(rowNode, labelPart), textHeight);
-    setSize(leftArrowPart, leftArrowLen, textHeight);
-    setSize(trackPart, trackWidth * scale, trackHeight * scale);
-    setSize(rightArrowPart, rightArrowLen, textHeight);
-    setSize(valuePart, percentLen, textHeight);
+    setPartSize(rowNode, labelPart, YGUndefined, textHeight);
+    setPartSize(rowNode, leftArrowPart, leftArrowLen, textHeight);
+    setPartSize(rowNode, trackPart, trackWidth * scale, trackHeight * scale);
+    setPartSize(rowNode, rightArrowPart, rightArrowLen, textHeight);
+    setPartSize(rowNode, valuePart, percentLen, textHeight);
 }
 
 void Slider::onUpdate(const float y, const std::string_view label) {
-    const auto rowTop = nodeRect(rowNode).y;
-    const auto part   = [&](const int index) {
-        auto rect = nodeRect(YGNodeGetChild(rowNode, index));
-        rect.y += y - rowTop;
-        return rect;
+    const auto part = [&](const int index) {
+        return partRect(rowNode, index, y);
     };
     const auto labelRect      = part(labelPart);
     const auto leftArrowRect  = part(leftArrowPart);
