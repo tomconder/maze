@@ -14,7 +14,7 @@ runs compare. The camera turns once over the run, unless `--capture-walk` moves 
 | `--capture-cascades=N`    | Use `N` shadow cascades, 1 to 4. The default is 2. One is the whole-scene map alone, for an A/B against the cascades. |
 | `--capture-size=WxH`      | Use a `W` by `H` window for any capture run, for example `3840x2160`. The default is 1600x900. A menu capture has no window frame, so the size can be larger than the screen. |
 | `--capture-menu=name`     | Show one menu screen instead of the maze: `intro`, `exit`, `display`, `keyboard`, `audio`, `confirm` (the display menu with the graphical changes prompt open) or `reset` (the keyboard menu with the reset prompt open). The run waits two seconds, writes `capture_menu_<name>.png` and exits. Any other name gives the normal start. |
-| `--dump-yoga=name`        | Print the Yoga layout tree of the `intro` or `exit` menu as JSX and exit, with no window. It uses the `--capture-size` window size. Paste the output into [yogalayout.dev/playground](https://yogalayout.dev/playground) to inspect or change the layout. |
+| `--dump-yoga=name`        | Print the Yoga layout tree of the `intro`, `exit`, `display`, `keyboard` or `audio` menu as JSX and exit, with no window. The tab bar and key hint bar show as empty nodes above and below the menu. It uses the `--capture-size` window size. Paste the output into [yogalayout.dev/playground](https://yogalayout.dev/playground) to inspect or change the layout. |
 
 Examples:
 

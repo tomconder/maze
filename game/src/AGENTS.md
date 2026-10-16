@@ -29,7 +29,7 @@ primitives, windowing, or platform backends itself — see
   gives a `ButtonMenuStyle` (labels, key hints, colours, `MenuLayoutSpec`) and
   overrides `onSelect()`, and `onBack()` if it has a back action. The layout is
   a `ui::MenuLayout` member (`ui/menulayout.hpp`), which owns the Yoga tree and
-  frees it. `--dump-yoga=intro|exit` prints that tree as JSX for
+  frees it. `--dump-yoga=intro|exit|display|keyboard|audio` prints that tree as JSX for
   yogalayout.dev/playground (`ui/yogadump.hpp`).
 * `layer/scrollmenulayer.hpp` / `.cpp` - the base of an options tab with rows
   under the tab bar. It owns the camera, font, `ui::MenuLayout`, `MenuScroll`,
@@ -57,7 +57,8 @@ primitives, windowing, or platform backends itself — see
   written to `Settings` on every change, but only flushed to disk on
   drag-release or a discrete step, not on every mouse-move frame of a drag.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
-  absolute Yoga nodes placed from the first visible row. No screen has a
+  fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
+  their computed y in `ScrollMenuLayer::rowRect()`. No screen has a
   pinned row now. Esc is the only way back; there is no Return row.
   The key hint bar (`ui/keyhints.hpp`) puts Back at the left margin, then any
   hint with `leftAligned` set, and right-aligns the rest. Reset to Defaults is

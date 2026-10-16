@@ -55,10 +55,23 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
 
 namespace game::ui {
 
-std::string yogaToPlayground(const YGNodeRef root) {
+std::string yogaToPlayground(const YGNodeRef root, const float windowWidth,
+                             const float windowHeight,
+                             const float tabBarHeight) {
+    const auto keyHintsHeight =
+        windowHeight - tabBarHeight - YGNodeStyleGetHeight(root).value;
+
     std::string out = "<Layout config={{useWebDefaults: false}}>\n";
-    writeNode(root, 1, out);
-    out += "</Layout>\n";
+    out += std::format("  <Node style={{{{width: {}, height: {}}}}}>\n",
+                       windowWidth, windowHeight);
+    if (tabBarHeight > 0.F) {
+        out += std::format("    <Node style={{{{height: {}}}}} />\n",
+                           tabBarHeight);
+    }
+    writeNode(root, 2, out);
+    out +=
+        std::format("    <Node style={{{{height: {}}}}} />\n", keyHintsHeight);
+    out += "  </Node>\n</Layout>\n";
     return out;
 }
 

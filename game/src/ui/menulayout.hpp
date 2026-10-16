@@ -58,7 +58,6 @@ public:
 
         for (size_t i = 0; i < rowCount; i++) {
             auto* const row = YGNodeNew();
-            YGNodeStyleSetFlex(row, 1.F);
             YGNodeInsertChild(backgroundNode, row, static_cast<int>(i));
             rows.push_back(row);
         }
@@ -71,13 +70,15 @@ public:
     MenuLayout(const MenuLayout&)            = delete;
     MenuLayout& operator=(const MenuLayout&) = delete;
 
-    // Leaves room for the key hint bar along the bottom. Row heights are set
-    // here, not at construction, because the window width is only known once
-    // the layout runs.
+    // Lays out equal rows that share the height, up to a maximum. Leaves room
+    // for the key hint bar along the bottom. Row heights are set here, not at
+    // construction, because the window width is only known once the layout
+    // runs.
     void calculate(const float width, const float height) {
         const auto panelWidth   = width * spec.rootWidthScale;
         const auto usableHeight = heightWithoutKeyHints(width, height);
         for (auto* const row : rows) {
+            YGNodeStyleSetFlex(row, 1.F);
             YGNodeStyleSetMaxHeight(row, menuRowHeight(width));
         }
         YGNodeStyleSetWidth(rootNode, panelWidth);

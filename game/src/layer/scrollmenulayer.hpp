@@ -26,6 +26,12 @@
 
 namespace game::layer {
 
+// No spacer above: the rows start under the tab bar.
+inline constexpr ui::MenuLayoutSpec scrollMenuLayout = {
+    .backgroundWidthPercent = 45.F,
+    .titleFlexGrow          = 0.F,
+};
+
 // What differs between two option tabs.
 struct ScrollMenuStyle {
     std::string                  name;

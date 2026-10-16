@@ -29,12 +29,6 @@ constexpr glm::vec4 selectedColor   = { 0.84F, 0.04F, 0.04F, 0.14F };
 constexpr float cornerRadius        = 12.F;
 constexpr float selectedBorderWidth = 3.F;
 
-// No spacer above: the rows start under the tab bar.
-constexpr game::ui::MenuLayoutSpec layoutSpec = {
-    .backgroundWidthPercent = 45.F,
-    .titleFlexGrow          = 0.F,
-};
-
 bool contains(const float x, const float y, const float w, const float h,
               const float px, const float py) {
     return px >= x && px <= x + w && py >= y && py <= y + h;
@@ -72,7 +66,8 @@ void ScrollMenuLayer::onAttach() {
         shader->setMat4("projection", camera->getProjection());
     }
 
-    layout = std::make_unique<ui::MenuLayout>(menuStyle.rowCount, layoutSpec);
+    layout =
+        std::make_unique<ui::MenuLayout>(menuStyle.rowCount, scrollMenuLayout);
     recalculateLayout();
 }
 
@@ -117,7 +112,6 @@ void ScrollMenuLayer::handleInput() {
         followSelection();
         // open at the right row, not easing in from the last visit
         scroll.snap();
-        recalculateLayout();
     }
 
     if (confirmGate.wasActive && takes) {
@@ -166,9 +160,7 @@ bool ScrollMenuLayer::onUpdate(const double elapsedTime) {
 
     const auto width  = static_cast<float>(camera->getWidth());
     const auto height = static_cast<float>(camera->getHeight());
-    if (scroll.step(static_cast<float>(elapsedTime))) {
-        recalculateLayout();
-    }
+    scroll.step(static_cast<float>(elapsedTime));
     quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
 
     scroll.beginClip(height);
@@ -215,8 +207,9 @@ void ScrollMenuLayer::renderRowBackground(const size_t row, const float x,
 
 std::tuple<float, float, float, float>
     ScrollMenuLayer::rowRect(const size_t row) const {
-    return layout->rowRect(
+    const auto [x, y, w, h] = layout->rowRect(
         row, ui::tabBarHeight(static_cast<float>(camera->getWidth())));
+    return { x, y - scroll.pixelOffset(), w, h };
 }
 
 std::optional<size_t> ScrollMenuLayer::hintAt(const glm::vec2& pos) const {
@@ -252,14 +245,10 @@ void ScrollMenuLayer::recalculateLayout() {
 
 void ScrollMenuLayer::followSelection() {
     // keep the label above a section's first row in view too
-    bool moved = false;
     if (selected > 0 && !isSelectable(selected - 1)) {
-        moved = scroll.ensureVisible(selected - 1);
+        scroll.ensureVisible(selected - 1);
     }
-    moved = scroll.ensureVisible(selected) || moved;
-    if (moved) {
-        recalculateLayout();
-    }
+    scroll.ensureVisible(selected);
 }
 
 bool ScrollMenuLayer::onMouseScrolled(const MouseScrolledEvent& event) {
@@ -269,7 +258,6 @@ bool ScrollMenuLayer::onMouseScrolled(const MouseScrolledEvent& event) {
     if (scroll.wheel(event.getYOffset())) {
         // no mouse move follows, so the old hover points at the wrong row
         hovered = std::nullopt;
-        recalculateLayout();
     }
     return true;
 }
@@ -298,7 +286,6 @@ bool ScrollMenuLayer::onMouseButtonPressed(
     }
 
     if (scroll.press({ mouseX, mouseY })) {
-        recalculateLayout();
         return true;
     }
 
@@ -324,9 +311,7 @@ bool ScrollMenuLayer::onMouseMoved(const MouseMovedEvent& event) {
     const auto hint = hintAt(pos);
     hoveredHint = hint && hint == menuStyle.actionHint ? hint : std::nullopt;
 
-    if (scroll.drag(pos.y)) {
-        recalculateLayout();
-    }
+    scroll.drag(pos.y);
     if (scroll.isDragging()) {
         return true;
     }

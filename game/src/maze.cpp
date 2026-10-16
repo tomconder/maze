@@ -8,7 +8,13 @@
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
+#include "layer/audiolayer.hpp"
+#include "layer/keymaplayer.hpp"
+#include "layer/optionlayer.hpp"
+#include "layer/scrollmenulayer.hpp"
 #include "ui/menulayout.hpp"
+#include "ui/menuscroll.hpp"
+#include "ui/tabbar.hpp"
 #include "ui/yogadump.hpp"
 #include "version.hpp"
 
@@ -184,8 +190,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // shadow cascades. --capture-menu=display, keyboard, audio or exit: show
     // that menu screen (any other name shows the intro), write
     // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
-    // of any capture run. --dump-yoga=intro or exit: print that menu's layout
-    // as yogalayout.dev playground JSX.
+    // of any capture run. --dump-yoga=intro, exit, display, keyboard or audio:
+    // print that menu's layout as yogalayout.dev playground JSX.
     constexpr std::string_view          captureFlag = "--capture-frames";
     std::string_view                    dumpYoga;
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
@@ -227,18 +233,44 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         }
     }
     if (!dumpYoga.empty()) {
-        // --dump-yoga=intro or exit: print the menu's Yoga tree as playground
-        // JSX at the --capture-size window size and exit.
+        // --dump-yoga=intro, exit, display, keyboard or audio: print the
+        // menu's Yoga tree as playground JSX at the --capture-size window size
+        // and exit.
+        const auto width  = static_cast<float>(captureWidth);
+        const auto height = static_cast<float>(captureHeight);
+
+        // The option tabs share one layout, with the rows placed by MenuScroll.
+        using game::layer::AudioMenuItem;
+        using game::layer::KeyMapItem;
+        using game::layer::OptionMenuItem;
+        const auto tabRows =
+            dumpYoga == "keyboard" ? static_cast<size_t>(KeyMapItem::Count) :
+            dumpYoga == "audio"    ? static_cast<size_t>(AudioMenuItem::Count) :
+            dumpYoga == "display" ? static_cast<size_t>(OptionMenuItem::Count) :
+                                    0;
         const bool isExit = dumpYoga == "exit";
         const auto rows =
             isExit ? static_cast<size_t>(game::layer::ExitMenuItem::Count) :
                      static_cast<size_t>(game::layer::IntroMenuItem::Count);
-        game::ui::MenuLayout layout(rows, isExit ?
-                                              game::layer::exitMenuLayout :
-                                              game::layer::introMenuLayout);
-        layout.calculate(static_cast<float>(captureWidth),
-                         static_cast<float>(captureHeight));
-        std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(), stdout);
+        const float tabHeight =
+            tabRows > 0 ? game::ui::tabBarHeight(width) : 0.F;
+        game::ui::MenuLayout layout(tabRows > 0 ? tabRows : rows,
+                                    tabRows > 0 ?
+                                        game::layer::scrollMenuLayout :
+                                    isExit ? game::layer::exitMenuLayout :
+                                             game::layer::introMenuLayout);
+        if (tabRows > 0) {
+            game::ui::MenuScroll{}.layout(
+                layout, width,
+                game::ui::heightWithoutKeyHints(width, height) - tabHeight,
+                tabHeight);
+        } else {
+            layout.calculate(width, height);
+        }
+        std::fputs(
+            game::ui::yogaToPlayground(layout.root(), width, height, tabHeight)
+                .c_str(),
+            stdout);
         std::exit(0);
     }
     if (capture.nanStats && capture.frames == 0) {

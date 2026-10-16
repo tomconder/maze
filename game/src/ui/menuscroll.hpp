@@ -48,13 +48,18 @@ public:
                (shows(row) && y >= trackY && y <= trackY + trackH);
     }
 
+    // How far the rows have scrolled, in pixels.
+    constexpr float pixelOffset() const {
+        return offset * rowPixels;
+    }
+
     // Jumps the drawn position to the target, with no easing.
     constexpr void snap() {
         offset = target;
     }
 
-    // Eases the drawn position toward the target. Returns true while it moves,
-    // so the caller lays out again. Seconds since the last frame.
+    // Eases the drawn position toward the target. Returns true while it moves.
+    // Seconds since the last frame.
     constexpr bool step(const float seconds) {
         const float diff = target - offset;
         if (diff < 0.002F && diff > -0.002F) {
@@ -66,7 +71,7 @@ public:
         return true;
     }
 
-    // Each returns true when the target moved, so the caller lays out again.
+    // Each returns true when the target moved.
     constexpr bool scrollBy(const float rows) {
         return setTarget(target + rows);
     }
@@ -89,17 +94,16 @@ public:
         return scrollBy(-yOffset * wheelRows);
     }
 
-    // Fits the rows of a layout to the menu area and lays out. All rows
-    // scroll, in order. originY is the height reserved above the root.
+    // Fits the rows of a layout to the menu area and lays out. Yoga places the
+    // rows as if nothing scrolled; a caller subtracts pixelOffset() from a
+    // row's y. originY is the height reserved above the root.
     void layout(const MenuLayout& menuLayout, const float width,
                 const float height, const float originY) {
         auto* const root      = menuLayout.root();
         const auto  rows      = menuLayout.rowNodes();
         const float rowHeight = menuRowHeight(width);
+        rowPixels             = rowHeight;
         for (auto* const row : rows) {
-            YGNodeStyleSetPositionType(row, YGPositionTypeAbsolute);
-            YGNodeStyleSetPosition(row, YGEdgeLeft, 0.F);
-            YGNodeStyleSetWidthPercent(row, 100.F);
             YGNodeStyleSetHeight(row, rowHeight);
         }
         YGNodeStyleSetWidth(root, width);
@@ -108,12 +112,6 @@ public:
 
         const float room = std::get<3>(menuLayout.backgroundRect());
         setWindow(rows.size(), static_cast<size_t>(room / rowHeight + 0.001F));
-        for (size_t i = 0; i < rows.size(); i++) {
-            YGNodeStyleSetPosition(rows[i], YGEdgeTop,
-                                   (static_cast<float>(i) - offset) *
-                                       rowHeight);
-        }
-        YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
 
         const auto [bgX, bgY, bgW, bgH] = menuLayout.backgroundRect(originY);
         thickness = std::max(6.F, std::round(rowHeight / 20.F));
@@ -201,6 +199,7 @@ private:
     float target = 0.F;
     float offset = 0.F;
 
+    float rowPixels = 0.F;
     float clipW     = 0.F;
     float trackX    = 0.F;
     float trackY    = 0.F;
