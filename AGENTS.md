@@ -151,7 +151,7 @@ maze.exe --capture-frames=600 --dump-nan-stats
   at a resolution the monitor cannot show, such as
   `--capture-menu=display --capture-size=3840x2160`. Debug builds link libspng
   for the PNG; release builds do not.
-* `--dump-yoga=intro|exit|display|keyboard|audio`: print that menu's Yoga tree as JSX for
+* `--dump-yoga=intro|exit|display|keyboard|audio|confirm|reset`: print that menu's Yoga tree as JSX for
   yogalayout.dev/playground at the `--capture-size` window size (default
   1600x900) and exit. No window opens. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,

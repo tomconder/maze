@@ -4,6 +4,7 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
 #include "ui/button.hpp"
+#include "ui/confirmlayout.hpp"
 
 #include <glm/glm.hpp>
 
@@ -56,6 +57,7 @@ private:
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
 
+    std::unique_ptr<ConfirmLayout>                         layout;
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
     std::unique_ptr<Button>                                acceptButton;
     std::unique_ptr<Button>                                cancelButton;

@@ -31,9 +31,11 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
     addValue(style, "maxHeight", YGNodeStyleGetMaxHeight(node));
     addValue(style, "margin", YGNodeStyleGetMargin(node, YGEdgeAll));
     addValue(style, "marginLeft", YGNodeStyleGetMargin(node, YGEdgeLeft));
+    addValue(style, "padding", YGNodeStyleGetPadding(node, YGEdgeAll));
     addValue(style, "paddingHorizontal",
              YGNodeStyleGetPadding(node, YGEdgeHorizontal));
     addNumber(style, "columnGap", YGNodeStyleGetGap(node, YGGutterColumn));
+    addNumber(style, "rowGap", YGNodeStyleGetGap(node, YGGutterRow));
     addNumber(style, "flex", YGNodeStyleGetFlex(node));
     addNumber(style, "flexGrow", YGNodeStyleGetFlexGrow(node));
     if (YGNodeStyleGetFlexDirection(node) == YGFlexDirectionRow) {
@@ -41,6 +43,15 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
     }
     if (YGNodeStyleGetAlignItems(node) == YGAlignCenter) {
         style += "alignItems: \"center\", ";
+    }
+    if (YGNodeStyleGetAlignSelf(node) == YGAlignStretch) {
+        style += "alignSelf: \"stretch\", ";
+    }
+    if (YGNodeStyleGetJustifyContent(node) == YGJustifyCenter) {
+        style += "justifyContent: \"center\", ";
+    }
+    if (YGNodeStyleGetDisplay(node) == YGDisplayNone) {
+        style += "display: \"none\", ";
     }
     if (!style.empty()) {
         style.resize(style.size() - 2);

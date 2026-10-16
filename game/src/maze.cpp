@@ -10,13 +10,16 @@
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
 #include "layer/audiolayer.hpp"
+#include "layer/confirmlayer.hpp"
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
 #include "layer/optionlayer.hpp"
 #include "layer/scrollmenulayer.hpp"
+#include "ui/confirmlayout.hpp"
 #include "ui/fontmetrics.hpp"
 #include "ui/keyhints.hpp"
+#include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/yogadump.hpp"
 #include "version.hpp"
@@ -26,6 +29,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -194,8 +198,9 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // shadow cascades. --capture-menu=display, keyboard, audio or exit: show
     // that menu screen (any other name shows the intro), write
     // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
-    // of any capture run. --dump-yoga=intro, exit, display, keyboard or audio:
-    // print that menu's layout as yogalayout.dev playground JSX.
+    // of any capture run. --dump-yoga=intro, exit, display, keyboard, audio,
+    // confirm or reset: print that menu's layout as yogalayout.dev playground
+    // JSX.
     constexpr std::string_view          captureFlag = "--capture-frames";
     std::string_view                    dumpYoga;
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
@@ -237,11 +242,33 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         }
     }
     if (!dumpYoga.empty()) {
-        // --dump-yoga=intro, exit, display, keyboard or audio: print the
-        // menu's Yoga tree as playground JSX at the --capture-size window size
-        // and exit.
+        // --dump-yoga=intro, exit, display, keyboard, audio, confirm or reset:
+        // print the menu's Yoga tree as playground JSX at the --capture-size
+        // window size and exit.
         const auto width  = static_cast<float>(captureWidth);
         const auto height = static_cast<float>(captureHeight);
+
+        if (dumpYoga == "confirm" || dumpYoga == "reset") {
+            const bool            timed = dumpYoga == "confirm";
+            game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
+                                          "/fonts/inter.ktx2");
+            const auto            measure = metrics.measure();
+            const auto            fontSize =
+                game::ui::menuFontSizeForWidth(static_cast<uint32_t>(width));
+            const auto title   = timed ? game::layer::displayChangeTitle :
+                                         game::layer::resetBindingsTitle;
+            const auto message = timed ? game::layer::displayChangeMessage :
+                                         game::layer::resetBindingsMessage;
+            game::ui::ConfirmLayout layout;
+            layout.calculate(
+                width, height, fontSize, measure(title, fontSize),
+                measure(message, fontSize),
+                timed ? std::optional{ measure("Reverting in 15", fontSize) } :
+                        std::nullopt);
+            std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(),
+                       stdout);
+            std::exit(0);
+        }
 
         // The option tabs share one layout, with the rows placed by MenuScroll.
         using game::layer::AudioMenuItem;

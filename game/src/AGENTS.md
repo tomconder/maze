@@ -29,7 +29,7 @@ primitives, windowing, or platform backends itself — see
   gives a `ButtonMenuStyle` (labels, key hints, colours, `MenuLayoutSpec`) and
   overrides `onSelect()`, and `onBack()` if it has a back action. The layout is
   a `ui::MenuLayout` member (`ui/menulayout.hpp`), which owns the Yoga tree and
-  frees it. `--dump-yoga=intro|exit|display|keyboard|audio` prints that tree as JSX for
+  frees it. `--dump-yoga=intro|exit|display|keyboard|audio|confirm|reset` prints that tree as JSX for
   yogalayout.dev/playground (`ui/yogadump.hpp`).
 * `layer/scrollmenulayer.hpp` / `.cpp` - the base of an options tab with rows
   under the tab bar. It owns the camera, font, `ui::MenuLayout`, `MenuScroll`,
@@ -171,7 +171,8 @@ primitives, windowing, or platform backends itself — see
 * The Display tab has no Apply row: every row applies the moment it changes.
   A Display Mode change also opens `layer/confirmlayer.hpp` ("Confirm
   Graphical Changes", 15 second countdown, Accept selected), which draws a
-  `ui::ConfirmDialog`. It is the top overlay and modal: it takes the mouse
+  `ui::ConfirmDialog`, whose panel, text lines and buttons are the Yoga nodes of
+  `ui::ConfirmLayout` (`ui/confirmlayout.hpp`). It is the top overlay and modal: it takes the mouse
   events first, and `OptionLayer` skips its keys while it is active. It runs
   its callback after it goes inactive, and ignores the key press that opened
   it. `--capture-menu=confirm` shows it over the Display tab, and
