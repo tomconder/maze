@@ -1,6 +1,7 @@
 #pragma once
 
 #include "font.hpp"
+#include "ui/layouttypes.hpp"
 
 #include <cstdint>
 #include <string>
@@ -19,6 +20,9 @@ public:
     uint32_t length(std::string_view text, uint32_t size);
 
     uint32_t height(uint32_t size) const;
+
+    // Valid while this object lives.
+    TextMeasure measure();
 
 private:
     sponge::scene::font::Font                     font;

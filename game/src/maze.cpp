@@ -281,18 +281,12 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
 
         game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
                                       "/fonts/inter.ktx2");
-        const game::ui::TextMeasure measure =
-            [&metrics](const std::string_view text, const uint32_t size) {
-                return game::ui::TextSize{
-                    static_cast<float>(metrics.length(text, size)),
-                    static_cast<float>(metrics.height(size))
-                };
-            };
+        const auto            measure = metrics.measure();
         if (tabRows > 0) {
             layout.setTabLabelSizes(game::ui::tabLabelSizes(width, measure));
         }
         layout.setKeyHintSizes(
-            game::ui::keyHintSizes(hints, width, false, measure));
+            game::ui::keyHintSizes(hints, width, false, measure), false);
         layout.calculate(width, height);
         std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(), stdout);
         std::exit(0);

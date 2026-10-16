@@ -119,11 +119,7 @@ void renderTabBar(const OptionTab                    active,
     }
     font->endPass();
 
-    const bool gamepad =
-        sponge::platform::glfw::core::Application::get()
-            .getInputManager()
-            .getSnapshot()
-            .activeDevice == sponge::input::ActiveDevice::Gamepad;
+    const bool gamepad  = usingGamepad();
     const auto prevIcon = gamepad ? prevPadIcon : prevKeyIcon;
     const auto nextIcon = gamepad ? nextPadIcon : nextKeyIcon;
 

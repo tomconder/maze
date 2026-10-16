@@ -78,8 +78,7 @@ private:
     std::unique_ptr<ui::MenuLayout>                              layout;
     std::vector<std::unique_ptr<ui::Button>>                     buttons;
 
-    size_t          selected        = 0;
-    bool            hintsForGamepad = false;
+    size_t          selected = 0;
     ui::ConfirmGate confirmGate;
 
     void handleInput();

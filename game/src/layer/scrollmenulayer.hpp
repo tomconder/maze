@@ -152,7 +152,6 @@ private:
     size_t                selected = 0;
     std::optional<size_t> hovered;
     std::optional<size_t> hoveredHint;
-    bool                  hintsForGamepad = false;
     // Row following the mouse; set by a press, cleared on release.
     std::optional<size_t> dragging;
 

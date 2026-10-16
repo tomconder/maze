@@ -169,9 +169,16 @@ public:
         labelSizes = sizes;
     }
 
-    // One size per hint, in the order of the hints the layout was built with.
-    void setKeyHintSizes(std::vector<KeyHintSize> sizes) {
-        hintSizes = std::move(sizes);
+    // One size per hint, in the order of the hints the layout was built with,
+    // measured for the prompts of the keyboard or the gamepad.
+    void setKeyHintSizes(std::vector<KeyHintSize> sizes, const bool gamepad) {
+        hintSizes   = std::move(sizes);
+        hintsPadded = gamepad;
+    }
+
+    // True once the active device is not the one the sizes were measured for.
+    bool keyHintsStale() const {
+        return usingGamepad() != hintsPadded;
     }
 
     // Where the nodes of every hint are, in window pixels, in the order of the
@@ -179,18 +186,12 @@ public:
     std::vector<KeyHintRects> keyHintRects() const {
         const auto [barX, barY, barW, barH] =
             getNodeLayout(hintBarNode, 0.F, 0.F);
-        const auto rectOf = [](const YGNodeRef node, const float x,
-                               const float y) {
-            const auto [left, top, w, h] = getNodeLayout(node, x, y);
-            return Rect{ left, top, w, h };
-        };
-
         std::vector<KeyHintRects> rects;
         for (auto* const node : hintNodes) {
-            const auto hint = rectOf(node, barX, barY);
+            const auto hint = nodeRect(node, barX, barY);
             rects.push_back(
-                { hint, rectOf(YGNodeGetChild(node, 0), hint.x, hint.y),
-                  rectOf(YGNodeGetChild(node, 1), hint.x, hint.y) });
+                { hint, nodeRect(YGNodeGetChild(node, 0), hint.x, hint.y),
+                  nodeRect(YGNodeGetChild(node, 1), hint.x, hint.y) });
         }
         return rects;
     }
@@ -201,9 +202,7 @@ public:
         const auto [barX, barY, barW, barH] =
             getNodeLayout(tabBarNode, 0.F, 0.F);
         const auto rectOf = [&](const uint32_t child) {
-            const auto [x, y, w, h] =
-                getNodeLayout(YGNodeGetChild(tabBarNode, child), barX, barY);
-            return Rect{ x, y, w, h };
+            return nodeRect(YGNodeGetChild(tabBarNode, child), barX, barY);
         };
 
         TabBarRects rects{};
@@ -220,6 +219,11 @@ public:
     }
 
 private:
+    static Rect nodeRect(const YGNodeRef node, const float x, const float y) {
+        const auto [left, top, w, h] = getNodeLayout(node, x, y);
+        return { left, top, w, h };
+    }
+
     void addHint(const size_t index) {
         auto* const hint = YGNodeNew();
         YGNodeStyleSetFlexDirection(hint, YGFlexDirectionRow);
@@ -280,6 +284,7 @@ private:
     std::array<TextSize, tabCount> labelSizes{};
     std::vector<YGNodeRef>         hintNodes;  // by hint index
     std::vector<KeyHintSize>       hintSizes;
+    bool                           hintsPadded = false;
 };
 
 }  // namespace game::ui

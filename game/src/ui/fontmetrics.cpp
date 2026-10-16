@@ -40,4 +40,11 @@ uint32_t FontMetrics::height(const uint32_t size) const {
     return baked != nullptr ? static_cast<uint32_t>(baked->lineHeight) : size;
 }
 
+TextMeasure FontMetrics::measure() {
+    return [this](const std::string_view text, const uint32_t size) {
+        return TextSize{ static_cast<float>(length(text, size)),
+                         static_cast<float>(height(size)) };
+    };
+}
+
 }  // namespace game::ui
