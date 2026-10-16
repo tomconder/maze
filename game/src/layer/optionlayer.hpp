@@ -1,17 +1,15 @@
 #pragma once
 
-#include "event/applicationevent.hpp"
-#include "event/event.hpp"
-#include "event/mouseevent.hpp"
-#include "layer/layer.hpp"
+#include "layer/scrollmenulayer.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/confirmdialog.hpp"
 #include "ui/selectlist.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
-#include <tuple>
+#include <string_view>
 
 namespace game::layer {
 
@@ -31,25 +29,13 @@ enum class OptionMenuItem : uint8_t {
     Count,
 };
 
-class OptionLayer final : public sponge::layer::Layer {
+class OptionLayer final : public ScrollMenuLayer {
 public:
     OptionLayer();
 
     void onAttach() override;
 
-    void onDetach() override;
-
-    void onEvent(sponge::event::Event& event) override;
-
-    bool onUpdate(double elapsedTime) override;
-
 private:
-    OptionMenuItem                selectedItem = OptionMenuItem::DisplayMode;
-    std::optional<OptionMenuItem> hoveredItem;
-
-    bool wasActiveLastFrame    = false;
-    bool waitForConfirmRelease = false;
-
     // Every row applies as soon as it changes. A display mode change opens
     // the confirm layer and is undone unless it is accepted.
     bool pendingVsync                = false;
@@ -70,13 +56,6 @@ private:
     std::unique_ptr<ui::Checkbox>   bloomCheckbox;
     std::unique_ptr<ui::Checkbox>   subsurfaceScatteringCheckbox;
 
-    void renderRowBackground(float x, float y, float w, float h,
-                             OptionMenuItem item) const;
-
-    // Screen rect of a row, resolved through the root/menu/background chain.
-    static std::tuple<float, float, float, float>
-        rowLayout(OptionMenuItem item);
-
     // Widget backing a row, or nullptr when the row is not of that kind.
     ui::SelectList* listFor(OptionMenuItem item) const;
     ui::Checkbox*   checkboxFor(OptionMenuItem item) const;
@@ -87,14 +66,6 @@ private:
     void togglePending(OptionMenuItem item);
 
     void filterResolutions();
-
-    static void recalculateLayout(float width, float height);
-
-    // Lays out again at the current window size, after the scroll moved.
-    static void relayout();
-
-    // Scrolls the selected row into view.
-    void followSelection();
 
     // The mode asks to be kept; the resolution applies and saves at once.
     void applyDisplayMode();
@@ -108,21 +79,36 @@ private:
 
     void updateChangeStatus();
 
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
-
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
-
-    bool onMouseButtonReleased(
-        const sponge::event::MouseButtonReleasedEvent& event);
-
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
-
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event);
-
-    void clearHoveredItems();
-
     void resetSelectionToCurrentState();
+
+    void renderDots(size_t count, float valueCenterX, float rowY, float rowH,
+                    size_t                       displayIdx,
+                    const std::optional<size_t>& currentIdx) const;
+
+    void renderRowLabel(float x, float y, float h, std::string_view label,
+                        const glm::vec3& color) const;
+
+protected:
+    bool takesInput() const override;
+
+    bool isSelectable(size_t row) const override;
+
+    void onOpened() override;
+
+    void onClosed() override;
+
+    void renderRow(size_t row, float x, float y, float w, float h) override;
+
+    void onRowKeys(size_t                              row,
+                   const sponge::input::InputSnapshot& input) override;
+
+    bool onConfirm(size_t row) override;
+
+    bool onRowPressed(size_t row, const glm::vec2& mouse) override;
+
+    void onFontSizeChanged() override;
+
+    void onResized(uint32_t width, uint32_t height) override;
 };
 
 }  // namespace game::layer

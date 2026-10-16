@@ -1,50 +1,41 @@
 #pragma once
 
-#include "event/applicationevent.hpp"
-#include "event/event.hpp"
-#include "event/mouseevent.hpp"
-#include "layer/layer.hpp"
+#include "layer/buttonmenulayer.hpp"
+#include "ui/menulayout.hpp"
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace game::layer {
 
 enum class IntroMenuItem : uint8_t { NewGame = 0, Options, Quit, Count };
 
-class IntroLayer final : public sponge::layer::Layer {
+inline constexpr ui::MenuLayoutSpec introMenuLayout = {
+    .backgroundWidthPercent = 30.F,
+};
+
+inline constexpr std::array<ui::KeyHint, 2> introKeyHints = {
+    ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical", "Navigate" },
+    ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
+};
+
+class IntroLayer final : public ButtonMenuLayer {
 public:
     IntroLayer();
-
-    void onAttach() override;
-
-    void onDetach() override;
-
-    void onEvent(sponge::event::Event& event) override;
 
     bool onUpdate(double elapsedTime) override;
 
     void beginFadeIn(double duration);
 
 private:
-    IntroMenuItem selectedItem          = IntroMenuItem::NewGame;
-    bool          wasActiveLastFrame    = false;
-    bool          isFadingIn            = false;
-    bool          waitForConfirmRelease = false;
-    double        fadeInDuration        = 0.0;
-    double        fadeInAccumulator     = 0.0;
+    bool   isFadingIn        = false;
+    double fadeInDuration    = 0.0;
+    double fadeInAccumulator = 0.0;
 
-    static void recalculateLayout(float width, float height);
+protected:
+    void onSelect(size_t item) override;
 
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
-
-    // Acts on selectedItem; shared by the keyboard and mouse paths.
-    void activateSelected();
-
-    static bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
-
-    static bool onWindowResize(const sponge::event::WindowResizeEvent& event);
-
-    static void clearHoveredItems();
+    bool takesInput() const override;
 };
 }  // namespace game::layer

@@ -1,11 +1,12 @@
 #include "ui/confirmdialog.hpp"
 
 #include "input/gameaction.hpp"
+#include "ui/keyhints.hpp"
 
 #include <fmt/format.h>
 
-#include <algorithm>
 #include <cmath>
+#include <optional>
 #include <utility>
 
 namespace game::ui {
@@ -26,6 +27,7 @@ ConfirmDialog::ConfirmDialog(
     const uint32_t                                               fontSize) :
     font(std::move(font)),
     fontSize(fontSize),
+    layout(std::make_unique<ConfirmLayout>()),
     quad(std::make_unique<sponge::platform::opengl::scene::Quad>()),
     acceptButton(makeMenuButton("Accept", fontSize, this->font,
                                 glm::vec4{ 0.F }, textColor)),
@@ -106,49 +108,41 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
         }
     }
 
-    const auto  size    = static_cast<float>(fontSize);
-    const auto  lineH   = static_cast<float>(font->getHeight(fontSize));
-    const float pad     = size * 1.25F;
-    const float gap     = size * 0.5F;
-    const float buttonH = size * 2.2F;
+    const auto measure = fontMeasure(font);
+    const auto countdownText =
+        fmt::format("Reverting in {}", static_cast<int>(std::ceil(remaining)));
+    layout->calculate(width, height, fontSize, measure(title, fontSize),
+                      measure(message, fontSize),
+                      timed ?
+                          std::optional{ measure(countdownText, fontSize) } :
+                          std::nullopt);
 
-    const float lines  = timed ? 3.F : 2.F;
-    const float textW  = static_cast<float>(std::max(
-        font->getLength(title, fontSize), font->getLength(message, fontSize)));
-    const float panelW = textW + pad * 2.F;
-    const float panelH = pad * 2.F + lineH * lines + gap * lines + buttonH;
-    const float panelX = std::round((width - panelW) / 2.F);
-    const float panelY = std::round((height - panelH) / 2.F);
-
+    const auto panel = nodeRect(layout->panelNode);
     quad->render({ 0.F, 0.F }, { width, height }, dimColor);
-    quad->render({ panelX, panelY }, { panelX + panelW, panelY + panelH },
-                 panelColor, cornerRadius, panelBorderSize, panelBorder);
+    quad->render({ panel.x, panel.y },
+                 { panel.x + panel.width, panel.y + panel.height }, panelColor,
+                 cornerRadius, panelBorderSize, panelBorder);
 
-    auto centered = [&](const std::string_view text, const float y,
-                        const glm::vec3& color) {
-        const auto len = static_cast<float>(font->getLength(text, fontSize));
-        font->beginPass(fontSize);
-        font->render(text, { std::round(panelX + (panelW - len) / 2.F), y },
-                     color);
-        font->endPass();
-    };
-    float y = panelY + pad;
-    centered(title, y, textColor);
-    y += lineH + gap;
-    centered(message, y, textColor);
-    y += lineH + gap;
+    font->beginPass(fontSize);
+    const auto titleRect   = nodeRect(layout->titleNode);
+    const auto messageRect = nodeRect(layout->messageNode);
+    font->render(title, { titleRect.x, titleRect.y }, textColor);
+    font->render(message, { messageRect.x, messageRect.y }, textColor);
     if (timed) {
-        centered(fmt::format("Reverting in {}",
-                             static_cast<int>(std::ceil(remaining))),
-                 y, countdownColor);
-        y += lineH + gap;
+        const auto countdownRect = nodeRect(layout->countdownNode);
+        font->render(countdownText, { countdownRect.x, countdownRect.y },
+                     countdownColor);
     }
+    font->endPass();
 
-    const float buttonW = (panelW - pad * 2.F - gap) / 2.F;
-    const float leftX   = panelX + pad;
-    const float rightX  = leftX + buttonW + gap;
-    acceptButton->setPosition({ leftX, y }, { leftX + buttonW, y + buttonH });
-    cancelButton->setPosition({ rightX, y }, { rightX + buttonW, y + buttonH });
+    const auto accept = nodeRect(layout->acceptNode);
+    const auto cancel = nodeRect(layout->cancelNode);
+    acceptButton->setPosition(
+        { accept.x, accept.y },
+        { accept.x + accept.width, accept.y + accept.height });
+    cancelButton->setPosition(
+        { cancel.x, cancel.y },
+        { cancel.x + cancel.width, cancel.y + cancel.height });
     for (const auto& [button, selected] :
          { std::pair{ acceptButton.get(), acceptChosen },
            std::pair{ cancelButton.get(), !acceptChosen } }) {

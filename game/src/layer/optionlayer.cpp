@@ -17,31 +17,17 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <yoga/Yoga.h>
 
-#include "core/base.hpp"
 #include "core/settings.hpp"
 #include "core/window.hpp"
-#include "event/event.hpp"
 #include "input/gameaction.hpp"
-#include "input/inputcontext.hpp"
-#include "input/mousecode.hpp"
 #include "maze.hpp"
 #include "platform/glfw/core/application.hpp"
-#include "platform/opengl/renderer/assetmanager.hpp"
-#include "platform/opengl/scene/bitmapfont.hpp"
-#include "platform/opengl/scene/quad.hpp"
-#include "scene/orthocamera.hpp"
 #include "thread/mazeframe.hpp"
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/keyhints.hpp"
-#include "ui/menufontsize.hpp"
-#include "ui/menulayout.hpp"
-#include "ui/menuscroll.hpp"
-#include "ui/menuselection.hpp"
 #include "ui/selectlist.hpp"
-#include "ui/tabbar.hpp"
 
 namespace {
 struct AspectRatioFilter {
@@ -71,25 +57,15 @@ constexpr float confirmSeconds = 15.F;
 constexpr size_t shadowQualityCount =
     static_cast<size_t>(game::layer::ShadowQuality::Count);
 
-constexpr std::string_view fontName = "inter";
-constexpr std::string_view fontPath = "/fonts/inter.ktx2";
-
-constexpr glm::vec4 backgroundColor    = { 0.F, 0.F, 0.F, 1.F };
-constexpr glm::vec4 buttonColor        = { 0.F, 0.F, 0.F, 0.F };
-constexpr glm::vec4 hoverColor         = { 0.84F, 0.84F, 0.84F, 0.14F };
 constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 constexpr glm::vec3 headingColor       = { 0.6F, 0.6F, 0.6F };
-constexpr glm::vec4 textHoverColor     = { 0.84F, 0.04F, 0.04F, 0.14F };
 
 constexpr glm::vec4 dotColorDefault = { 0.25F, 0.25F, 0.25F, 1.F };
 constexpr glm::vec4 dotColorCurrent = { 1.F, 1.F, 1.F, 1.F };
 constexpr glm::vec4 dotColorDisplay = { 0.65F, 0.65F, 0.65F, 1.F };
 
-uint32_t        fontSize            = 48;
-constexpr float textMarginLeft      = 26.F;
-constexpr float cornerRadius        = 12.F;
-constexpr float selectedBorderWidth = 3.F;
+constexpr float textMarginLeft = 26.F;
 
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
@@ -143,8 +119,6 @@ size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
                0;
 }
 
-std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
-
 // Index order is the sponge::core::DisplayMode order.
 constexpr std::array<std::string_view, 3> displayModeLabels = {
     "Windowed", "Full Screen", "Borderless Window"
@@ -154,10 +128,13 @@ static_assert(displayModeLabels.size() ==
 
 // max display width across all aspect-ratio labels and resolution strings.
 // Measured with tabularFigures=true to match how they render.
-float computeMaxCycleValueWidth() {
+float computeMaxCycleValueWidth(
+    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>&
+                   menuFont,
+    const uint32_t fontSize) {
     float width = std::accumulate(
         validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-        [](const float acc, const auto& f) {
+        [&](const float acc, const auto& f) {
             return std::max(acc, static_cast<float>(menuFont->getLength(
                                      f.label, fontSize, true)));
         });
@@ -167,7 +144,7 @@ float computeMaxCycleValueWidth() {
     }
     return std::accumulate(
         availableResolutions.begin(), availableResolutions.end(), width,
-        [](const float acc, const auto& res) {
+        [&](const float acc, const auto& res) {
             return std::max(acc,
                             static_cast<float>(menuFont->getLength(
                                 fmt::format("{} × {}", res.width, res.height),
@@ -178,19 +155,9 @@ float computeMaxCycleValueWidth() {
 // The display mode a change replaced, until the player accepts it.
 std::optional<sponge::core::DisplayMode> previousDisplayMode;
 
-YGNodeRef menuBackgroundNode = nullptr;
-YGNodeRef menuNode           = nullptr;
-YGNodeRef rootNode           = nullptr;
-
 using game::layer::OptionMenuItem;
 
 constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
-
-// Rows are laid out top-to-bottom in OptionMenuItem order, so the enum
-// doubles as the row index.
-std::array<YGNodeRef, rowCount> rowNodes{};
-
-game::ui::MenuScroll scroll;
 
 struct RowDef {
     OptionMenuItem   item;
@@ -264,65 +231,23 @@ std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
     }
 }
 
-bool contains(const float x, const float y, const float w, const float h,
-              const float px, const float py) {
-    return px >= x && px <= x + w && py >= y && py <= y + h;
+game::layer::ScrollMenuStyle optionStyle() {
+    return {
+        .name     = "options",
+        .tab      = game::ui::OptionTab::Display,
+        .rowCount = rowCount,
+        .keyHints = game::layer::adjustKeyHints,
+        .firstRow = static_cast<size_t>(OptionMenuItem::DisplayMode),
+    };
 }
-
-constexpr std::array<game::ui::KeyHint, 4> optionKeyHints = {
-    game::ui::KeyHint{ "keyboard_arrows_vertical", "xbox_dpad_vertical",
-                       "Navigate" },
-    game::ui::KeyHint{ "keyboard_arrows_horizontal", "xbox_dpad_horizontal",
-                       "Change" },
-    game::ui::KeyHint{ "keyboard_enter", "xbox_button_a", "Select" },
-    game::ui::KeyHint{ "keyboard_escape", "xbox_button_b", "Back" },
-};
-
-std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
-
-std::shared_ptr<game::scene::OrthoCamera> orthoCamera;
 }  // namespace
 
 namespace game::layer {
-using sponge::event::Event;
-using sponge::event::EventDispatcher;
-using sponge::event::MouseButtonPressedEvent;
-using sponge::event::MouseButtonReleasedEvent;
-using sponge::event::MouseMovedEvent;
-using sponge::event::MouseScrolledEvent;
-using sponge::event::WindowResizeEvent;
-using sponge::platform::opengl::renderer::AssetManager;
-using sponge::platform::opengl::scene::FontCreateInfo;
-using sponge::platform::opengl::scene::Quad;
 
-OptionLayer::OptionLayer() : Layer("options") {}
+OptionLayer::OptionLayer() : ScrollMenuLayer(optionStyle()) {}
 
 void OptionLayer::onAttach() {
-    const auto fontCreateInfo = FontCreateInfo{
-        .name = std::string(fontName),
-        .path = std::string(fontPath),
-    };
-    menuFont = AssetManager::createFont(fontCreateInfo);
-
-    orthoCamera = scene::menuOrthoCamera();
-
-    quad = std::make_unique<Quad>();
-
-    fontSize = ui::menuFontSizeForWidth(orthoCamera->getWidth());
-
-    for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->setMat4("projection", orthoCamera->getProjection());
-    }
-
-    // no spacer above: the rows start under the tab bar
-    const auto skeleton = ui::buildMenuSkeleton(45.F, 0.F);
-    rootNode            = skeleton.root;
-    menuNode            = skeleton.menu;
-    menuBackgroundNode  = skeleton.menuBackground;
-
-    for (size_t i = 0; i < rowNodes.size(); i++) {
-        rowNodes[i] = ui::makeMenuRow(menuBackgroundNode, static_cast<int>(i));
-    }
+    ScrollMenuLayer::onAttach();
 
     availableResolutions =
         sponge::platform::glfw::core::Application::getAvailableResolutions();
@@ -334,11 +259,12 @@ void OptionLayer::onAttach() {
         }
     }
 
-    const float maxCycleValueWidth = computeMaxCycleValueWidth();
+    const float maxCycleValueWidth =
+        computeMaxCycleValueWidth(menuFont(), menuFontSize());
 
     const ui::SelectListCreateInfo selectCreateInfo{
-        .font               = menuFont,
-        .fontSize           = fontSize,
+        .font               = menuFont(),
+        .fontSize           = menuFontSize(),
         .textColor          = textColor,
         .arrowDisabledColor = arrowDisabledColor,
         .textMarginLeft     = textMarginLeft,
@@ -356,7 +282,7 @@ void OptionLayer::onAttach() {
 
     const ui::CheckboxCreateInfo checkboxCreateInfo{
         .margin = textMarginLeft,
-        .size   = static_cast<float>(fontSize),
+        .size   = static_cast<float>(menuFontSize()),
     };
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     ambientOcclusionCheckbox =
@@ -381,231 +307,156 @@ void OptionLayer::onAttach() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
+    for (size_t row = 0; row < settingRows.size(); row++) {
+        if (auto* const list = listFor(settingRows[row].item);
+            list != nullptr) {
+            list->attach(rowNode(row));
+        }
+    }
+
     syncPendingCheckboxState();
 
     aspectRatioList->setSelectedIndex(
         findAspectRatioIndex(currentWidth, currentHeight));
 
     filterResolutions();
-
-    const auto width  = static_cast<float>(orthoCamera->getWidth());
-    const auto height = static_cast<float>(orthoCamera->getHeight());
-    recalculateLayout(width, height);
+    recalculateLayout();
 }
 
-void OptionLayer::onDetach() {
-    YGNodeFreeRecursive(rootNode);
+bool OptionLayer::takesInput() const {
+    // the prompt over this screen takes the keys while it is open
+    return !Maze::get().getConfirmLayer()->isActive();
 }
 
-void OptionLayer::onEvent(Event& event) {
-    EventDispatcher dispatcher(event);
-
-    dispatcher.dispatch<MouseButtonPressedEvent>(
-        [this](const MouseButtonPressedEvent& mouseEvent) {
-            return isActive() ? onMouseButtonPressed(mouseEvent) : false;
-        });
-    dispatcher.dispatch<MouseButtonReleasedEvent>(
-        [this](const MouseButtonReleasedEvent& mouseEvent) {
-            return isActive() ? onMouseButtonReleased(mouseEvent) : false;
-        });
-    dispatcher.dispatch<MouseScrolledEvent>(
-        [this](const MouseScrolledEvent& scrollEvent) {
-            return isActive() ? onMouseScrolled(scrollEvent) : false;
-        });
-    dispatcher.dispatch<MouseMovedEvent>(
-        [this](const MouseMovedEvent& mouseMovedEvent) {
-            return isActive() ? onMouseMoved(mouseMovedEvent) : false;
-        });
-    dispatcher.dispatch<WindowResizeEvent>(
-        [this](const WindowResizeEvent& windowResizeEvent) {
-            return onWindowResize(windowResizeEvent);
-        });
+bool OptionLayer::isSelectable(const size_t row) const {
+    return !isHeading(static_cast<OptionMenuItem>(row));
 }
 
-bool OptionLayer::onUpdate(const double elapsedTime) {
-    {
-        using sponge::input::GameAction;
-        auto& mgr =
-            sponge::platform::glfw::core::Application::get().getInputManager();
-        mgr.setActiveContext(sponge::input::InputContext::Menu);
+void OptionLayer::onOpened() {
+    resetSelectionToCurrentState();
+}
 
-        {
-            const auto& input = mgr.getSnapshot();
-            if (!wasActiveLastFrame) {
-                resetSelectionToCurrentState();
-                followSelection();
-                // open at the right row, not easing in from the last visit
-                scroll.snap();
-                relayout();
-                waitForConfirmRelease = input.isHeld(GameAction::MenuConfirm);
-            } else if (waitForConfirmRelease &&
-                       !input.isHeld(GameAction::MenuConfirm)) {
-                waitForConfirmRelease = false;
-            }
-        }
+void OptionLayer::onClosed() {
+    resetSelectionToCurrentState();
+}
 
-        // the prompt over this screen takes the keys while it is open
-        if (wasActiveLastFrame && !Maze::get().getConfirmLayer()->isActive()) {
-            const auto& input = mgr.getSnapshot();
-
-            if (ui::stepSelection(input, selectedItem)) {
-                // hop over headings in the direction of travel
-                const bool up = input.isActive(GameAction::MenuUp) &&
-                                !input.isActive(GameAction::MenuDown);
-                while (isHeading(selectedItem)) {
-                    selectedItem = static_cast<OptionMenuItem>(
-                        (+selectedItem + (up ? rowCount - 1 : 1)) % rowCount);
-                }
-                ui::playHoverClick();
-                followSelection();
-            }
-
-            if (input.isActive(GameAction::MenuLeft)) {
-                cycleList(selectedItem, -1);
-            }
-            if (input.isActive(GameAction::MenuRight)) {
-                cycleList(selectedItem, 1);
-            }
-            if (input.isActive(GameAction::TabNext)) {
-                mgr.consumeActive(GameAction::TabNext);
-                clearHoveredItems();
-                ui::showOptionTab(ui::cycleTab(ui::OptionTab::Display, 1));
-            }
-            if (input.isActive(GameAction::TabPrev)) {
-                mgr.consumeActive(GameAction::TabPrev);
-                clearHoveredItems();
-                ui::showOptionTab(ui::cycleTab(ui::OptionTab::Display, -1));
-            }
-            if (input.isActive(GameAction::MenuBack)) {
-                mgr.consumeActive(GameAction::MenuBack);
-                clearHoveredItems();
-                selectedItem = OptionMenuItem::DisplayMode;
-                resetSelectionToCurrentState();
-                setActive(false);
-            }
-            if (!waitForConfirmRelease &&
-                input.isActive(GameAction::MenuConfirm)) {
-                mgr.consumeActive(GameAction::MenuConfirm);
-                togglePending(selectedItem);
-            }
-        }
-        wasActiveLastFrame = true;
+void OptionLayer::renderDots(const size_t count, const float valueCenterX,
+                             const float rowY, const float rowH,
+                             const size_t                 displayIdx,
+                             const std::optional<size_t>& currentIdx) const {
+    if (count == 0) {
+        return;
     }
-
-    for (const auto& shader : { menuFont->getShader(), Quad::getShader() }) {
-        shader->setMat4("projection", orthoCamera->getProjection());
+    const float dotRadius =
+        std::max(3.F, std::round(static_cast<float>(menuFontSize()) / 12.F));
+    const float dotSpacing = dotRadius * 3.5F;
+    const float totalW =
+        (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
+    float       dotX = valueCenterX - totalW / 2.F;
+    const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
+    for (size_t i = 0; i < count; i++) {
+        const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
+        const bool isDisplay = i == displayIdx;
+        const auto color     = isCurrent ? dotColorCurrent :
+                               isDisplay ? dotColorDisplay :
+                                           dotColorDefault;
+        menuQuad().render({ dotX, dotY },
+                          { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
+                          color, dotRadius);
+        dotX += dotSpacing;
     }
+}
 
-    const auto width  = static_cast<float>(orthoCamera->getWidth());
-    const auto height = static_cast<float>(orthoCamera->getHeight());
-    if (scroll.step(static_cast<float>(elapsedTime))) {
-        relayout();
+void OptionLayer::renderRowLabel(const float x, const float y, const float h,
+                                 const std::string_view label,
+                                 const glm::vec3&       color) const {
+    const auto& labelFont = menuFont();
+    const auto  labelSize = menuFontSize();
+    const float textY     = std::floor(
+        y + (h - static_cast<float>(labelFont->getHeight(labelSize))) / 2.F);
+    labelFont->beginPass(labelSize);
+    labelFont->render(label, { x + textMarginLeft, textY }, color);
+    labelFont->endPass();
+}
+
+void OptionLayer::renderRow(const size_t row, const float x, const float y,
+                            const float w, const float h) {
+    const auto& [item, label] = settingRows[row];
+    if (isHeading(item)) {
+        renderRowLabel(x, y, h, label, headingColor);
+    } else if (auto* const list = listFor(item); list != nullptr) {
+        list->onUpdate(y, label);
+        const auto [dotCount, appliedIndex] = dotState(item);
+        renderDots(dotCount, list->getValueCenterX(), y, h,
+                   list->getSelectedIndex(), appliedIndex);
+    } else {
+        renderRowLabel(x, y, h, label, textColor);
+        checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
     }
-    quad->render({ 0.F, 0.F }, { width, height }, backgroundColor);
+}
 
-    auto renderDots = [&](const size_t count, const float valueCenterX,
-                          const float rowY, const float rowH,
-                          const size_t                 displayIdx,
-                          const std::optional<size_t>& currentIdx) {
-        if (count == 0) {
-            return;
-        }
-        const float dotRadius =
-            std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
-        const float dotSpacing = dotRadius * 3.5F;
-        const float totalW =
-            (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
-        float       dotX = valueCenterX - totalW / 2.F;
-        const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
-        for (size_t i = 0; i < count; i++) {
-            const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
-            const bool isDisplay = i == displayIdx;
-            const auto color     = isCurrent ? dotColorCurrent :
-                                   isDisplay ? dotColorDisplay :
-                                               dotColorDefault;
-            quad->render({ dotX, dotY },
-                         { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
-                         color, dotRadius);
-            dotX += dotSpacing;
-        }
-    };
-
-    auto renderRowLabel = [&](const float x, const float y, const float h,
-                              const std::string_view label,
-                              const glm::vec3&       color) {
-        const float textY = std::floor(
-            y + (h - static_cast<float>(menuFont->getHeight(fontSize))) / 2.F);
-        menuFont->beginPass(fontSize);
-        menuFont->render(label, { x + textMarginLeft, textY }, color);
-        menuFont->endPass();
-    };
-
-    scroll.beginClip(height);
-    for (const auto& [item, label] : settingRows) {
-        if (!scroll.shows(+item)) {
-            continue;
-        }
-        const auto [x, y, w, h] = rowLayout(item);
-        if (isHeading(item)) {
-            renderRowLabel(x, y, h, label, headingColor);
-            continue;
-        }
-        renderRowBackground(x, y, w, h, item);
-
-        if (auto* const list = listFor(item); list != nullptr) {
-            list->onUpdate(x, y, w, h, label);
-            const auto [dotCount, appliedIndex] = dotState(item);
-            renderDots(dotCount, list->getValueCenterX(x, w), y, h,
-                       list->getSelectedIndex(), appliedIndex);
-        } else {
-            renderRowLabel(x, y, h, label, textColor);
-            checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
-        }
+void OptionLayer::onRowKeys(const size_t                        row,
+                            const sponge::input::InputSnapshot& input) {
+    using sponge::input::GameAction;
+    const auto item = static_cast<OptionMenuItem>(row);
+    if (input.isActive(GameAction::MenuLeft)) {
+        cycleList(item, -1);
     }
-    scroll.endClip();
-
-    scroll.render(*quad);
-
-    // the strip lines up with the rows, so it starts at the first row's edge
-    const auto [tabX, tabY, tabW, tabH] =
-        rowLayout(OptionMenuItem::GeneralHeading);
-    ui::renderTabBar(ui::OptionTab::Display, menuFont,
-                     orthoCamera->getProjection(), width, tabX);
-
-    ui::renderKeyHints(optionKeyHints, menuFont, orthoCamera->getProjection(),
-                       width, height);
-
-    if (!isActive()) {
-        wasActiveLastFrame    = false;
-        waitForConfirmRelease = false;
+    if (input.isActive(GameAction::MenuRight)) {
+        cycleList(item, 1);
     }
+}
 
+bool OptionLayer::onConfirm(const size_t row) {
+    togglePending(static_cast<OptionMenuItem>(row));
     return true;
 }
 
-void OptionLayer::renderRowBackground(float x, float y, const float w,
-                                      const float          h,
-                                      const OptionMenuItem item) const {
-    const bool isSelected = selectedItem == item;
-    const bool isHovered  = hoveredItem == item;
-    quad->render({ x, y }, { x + w, y + h },
-                 isSelected ? textHoverColor :
-                 isHovered  ? hoverColor :
-                              buttonColor,
-                 cornerRadius, isSelected ? selectedBorderWidth : 0.F,
-                 glm::vec4{ 1.F });
+bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
+    const auto [x, y, w, h] = rowRect(row);
+    const auto item         = static_cast<OptionMenuItem>(row);
+    if (auto* const list = listFor(item); list != nullptr) {
+        if (list->isInsideLeft(mouse.x)) {
+            cycleList(item, -1);
+        } else if (list->isInsideRight(mouse.x)) {
+            cycleList(item, 1);
+        }
+    } else if (checkboxFor(item)->isInside(mouse.x, mouse.y, x, y, w, h)) {
+        togglePending(item);
+    }
+    return false;
 }
 
-std::tuple<float, float, float, float>
-    OptionLayer::rowLayout(const OptionMenuItem item) {
-    const auto [rootX, rootY, rootW, rootH] = ui::getNodeLayout(
-        rootNode, 0.F,
-        ui::tabBarHeight(static_cast<float>(orthoCamera->getWidth())));
-    const auto [menuX, menuY, menuW, menuH] =
-        ui::getNodeLayout(menuNode, rootX, rootY);
-    const auto [bgX, bgY, bgW, bgH] =
-        ui::getNodeLayout(menuBackgroundNode, menuX, menuY);
-    return ui::getNodeLayout(rowNodes[static_cast<size_t>(item)], bgX, bgY);
+void OptionLayer::onFontSizeChanged() {
+    const auto  checkboxSize = static_cast<float>(menuFontSize());
+    const float maxCycleValueWidth =
+        computeMaxCycleValueWidth(menuFont(), menuFontSize());
+
+    for (const auto& [item, label] : settingRows) {
+        if (auto* const list = listFor(item); list != nullptr) {
+            list->setFontSize(menuFontSize());
+            list->setMaxValueWidth(maxCycleValueWidth);
+        } else if (!isHeading(item)) {
+            checkboxFor(item)->setSize(checkboxSize);
+        }
+    }
+}
+
+void OptionLayer::onResized(const uint32_t width, const uint32_t height) {
+    // A mode change lands here, so the rows follow the window. The OS can
+    // clamp a window to the desktop work area; that size is in no list, and
+    // following it would drop the row to the first 4:3 entry.
+    if (isActive()) {
+        const bool listed =
+            std::ranges::any_of(availableResolutions, [&](const auto& res) {
+                return res.width == width && res.height == height;
+            });
+        if (listed) {
+            resetSelectionToCurrentState();
+        } else {
+            updateChangeStatus();
+        }
+    }
 }
 
 ui::SelectList* OptionLayer::listFor(const OptionMenuItem item) const {
@@ -743,171 +594,6 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
     sponge::core::Settings::save();
 
     updateChangeStatus();
-}
-
-void OptionLayer::recalculateLayout(const float width, const float height) {
-    // leave room for the tab bar along the top and the key hint bar along the
-    // bottom
-    const auto usableHeight =
-        std::max(0.F, ui::heightWithoutKeyHints(width, height) -
-                          ui::tabBarHeight(width));
-    for (auto* const row : rowNodes) {
-        ui::setMenuRowHeight(row, width);
-    }
-    scroll.layout(rootNode, menuNode, menuBackgroundNode, rowNodes, nullptr,
-                  width, usableHeight, ui::tabBarHeight(width));
-}
-
-void OptionLayer::relayout() {
-    recalculateLayout(static_cast<float>(orthoCamera->getWidth()),
-                      static_cast<float>(orthoCamera->getHeight()));
-}
-
-void OptionLayer::followSelection() {
-    // keep the heading above the first row of a section in view too
-    bool moved = false;
-    if (+selectedItem > 0 &&
-        isHeading(static_cast<OptionMenuItem>(+selectedItem - 1))) {
-        moved = scroll.ensureVisible(+selectedItem - 1);
-    }
-    moved = scroll.ensureVisible(+selectedItem) || moved;
-    if (moved) {
-        relayout();
-    }
-}
-
-bool OptionLayer::onMouseButtonReleased(const MouseButtonReleasedEvent& event) {
-    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
-        return false;
-    }
-    scroll.release();
-    return true;
-}
-
-bool OptionLayer::onMouseScrolled(const MouseScrolledEvent& event) {
-    if (scroll.wheel(event.getYOffset())) {
-        // no mouse move follows, so the old hover points at the wrong row
-        hoveredItem = std::nullopt;
-        relayout();
-    }
-    return true;
-}
-
-bool OptionLayer::onMouseButtonPressed(const MouseButtonPressedEvent& event) {
-    if (event.getMouseButton() != sponge::input::MouseButton::Button0) {
-        return false;
-    }
-
-    auto [mouseX, mouseY] =
-        sponge::platform::glfw::core::Application::get().getMousePosition();
-
-    const auto [tabX, tabY, tabW, tabH] =
-        rowLayout(OptionMenuItem::GeneralHeading);
-    const auto clickedTab =
-        ui::tabBarHitTest(menuFont, static_cast<float>(orthoCamera->getWidth()),
-                          tabX, { mouseX, mouseY });
-    if (clickedTab) {
-        clearHoveredItems();
-        ui::showOptionTab(*clickedTab);
-        return true;
-    }
-
-    if (scroll.press({ mouseX, mouseY })) {
-        relayout();
-        return true;
-    }
-
-    for (const auto& [item, label] : settingRows) {
-        const auto [x, y, w, h] = rowLayout(item);
-        if (isHeading(item) || !scroll.canHit(+item, mouseY) ||
-            !contains(x, y, w, h, mouseX, mouseY)) {
-            continue;
-        }
-
-        selectedItem = item;
-
-        if (auto* const list = listFor(item); list != nullptr) {
-            if (list->isInsideLeft(mouseX, x, w)) {
-                cycleList(item, -1);
-            } else if (list->isInsideRight(mouseX, x, w)) {
-                cycleList(item, 1);
-            }
-        } else if (checkboxFor(item)->isInside(mouseX, mouseY, x, y, w, h)) {
-            togglePending(item);
-        }
-
-        return true;
-    }
-
-    return true;
-}
-
-bool OptionLayer::onMouseMoved(const MouseMovedEvent& event) {
-    const auto pos = glm::vec2{ event.getX(), event.getY() };
-
-    if (scroll.drag(pos.y)) {
-        relayout();
-    }
-
-    std::optional<OptionMenuItem> nextHover;
-    for (const auto& [item, label] : settingRows) {
-        const auto [x, y, w, h] = rowLayout(item);
-        if (!isHeading(item) && scroll.canHit(+item, pos.y) &&
-            contains(x, y, w, h, pos.x, pos.y)) {
-            nextHover = item;
-            break;
-        }
-    }
-    if (nextHover && nextHover != hoveredItem) {
-        ui::playHoverClick();
-    }
-    hoveredItem = nextHover;
-
-    return true;
-}
-
-bool OptionLayer::onWindowResize(const WindowResizeEvent& event) {
-    orthoCamera->setWidthAndHeight(event.getWidth(), event.getHeight());
-
-    const auto width  = static_cast<float>(event.getWidth());
-    const auto height = static_cast<float>(event.getHeight());
-    recalculateLayout(width, height);
-    followSelection();
-
-    const auto newFontSize = ui::menuFontSizeForWidth(event.getWidth());
-    if (newFontSize != fontSize) {
-        fontSize = newFontSize;
-
-        const auto  checkboxSize       = static_cast<float>(fontSize);
-        const float maxCycleValueWidth = computeMaxCycleValueWidth();
-
-        for (const auto& [item, label] : settingRows) {
-            if (auto* const list = listFor(item); list != nullptr) {
-                list->setFontSize(fontSize);
-                list->setMaxValueWidth(maxCycleValueWidth);
-            } else if (!isHeading(item)) {
-                checkboxFor(item)->setSize(checkboxSize);
-            }
-        }
-    }
-
-    // A mode change lands here, so the rows follow the window. The OS can
-    // clamp a window to the desktop work area; that size is in no list, and
-    // following it would drop the row to the first 4:3 entry.
-    if (isActive()) {
-        const bool listed =
-            std::ranges::any_of(availableResolutions, [&](const auto& res) {
-                return res.width == event.getWidth() &&
-                       res.height == event.getHeight();
-            });
-        if (listed) {
-            resetSelectionToCurrentState();
-        } else {
-            updateChangeStatus();
-        }
-    }
-
-    return false;
 }
 
 void OptionLayer::filterResolutions() {
@@ -1068,11 +754,6 @@ void OptionLayer::updateChangeStatus() {
         aaIt != aaModes.end() ?
             std::optional{ static_cast<size_t>(aaIt - aaModes.begin()) } :
             std::nullopt;
-}
-
-void OptionLayer::clearHoveredItems() {
-    scroll.release();
-    hoveredItem = std::nullopt;
 }
 
 void OptionLayer::resetSelectionToCurrentState() {

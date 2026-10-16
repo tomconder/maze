@@ -2,6 +2,7 @@
 
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/sprite.hpp"
+#include "ui/layouttypes.hpp"
 
 #include <glm/glm.hpp>
 
@@ -10,6 +11,7 @@
 #include <optional>
 #include <span>
 #include <string_view>
+#include <vector>
 
 namespace game::ui {
 
@@ -26,30 +28,62 @@ struct KeyHint {
 const sponge::platform::opengl::scene::Sprite&
     promptSprite(std::string_view name);
 
-// Vertical space the bar occupies; reserve it in layouts that reach the
-// bottom of the window.
+// Vertical space the bar occupies; the layout reserves it along the bottom of
+// the window.
 float keyHintBarHeight(float windowWidth);
 
-// windowHeight less the bar, floored at zero: the window can be shorter than
-// the bar, and Yoga must never be handed a negative dimension.
-float heightWithoutKeyHints(float windowWidth, float windowHeight);
+// Space left and right of the bar, and between the hints.
+float keyHintMarginX(float windowWidth);
 
-// Draws a row of input prompts along the bottom of the window. Positioned
-// from the window size, not the Yoga tree, so it survives resize without
-// relayout. Shows the gamepad prompt while the gamepad is the device in use.
-// The Back hint (keyboard_escape) sits at the left margin, followed by the
-// hints marked leftAligned; the rest keep their order and are right-aligned
-// against the right margin. hovered is the index of the hint under the mouse.
+float keyHintGap(float windowWidth);
+
+// True while the gamepad is the device in use; its prompts replace the
+// keyboard ones, and some are drawn at another size.
+bool usingGamepad();
+
+// Measures a text with the font.
+TextMeasure fontMeasure(
+    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font);
+
+// Indices of the hints at the left margin, Back first so it sits in the same
+// place on every menu, then the hints marked leftAligned, and of the rest,
+// which are right-aligned against the right margin in their order.
+struct KeyHintOrder {
+    std::vector<size_t> left;
+    std::vector<size_t> right;
+};
+
+KeyHintOrder keyHintOrder(std::span<const KeyHint> hints);
+
+// The size of the icon as drawn, and of the label, of every hint.
+struct KeyHintSize {
+    float    icon;
+    TextSize label;
+};
+
+std::vector<KeyHintSize> keyHintSizes(std::span<const KeyHint> hints,
+                                      float windowWidth, bool gamepad,
+                                      const TextMeasure& measure);
+
+// Where the nodes of a hint ended up, in window pixels.
+struct KeyHintRects {
+    Rect hint;
+    Rect icon;
+    Rect label;
+};
+
+// Draws the hints where the layout put them, showing the gamepad prompt while
+// the gamepad is the device in use. hovered is the index of the hint under the
+// mouse.
 void renderKeyHints(
     std::span<const KeyHint>                                            hints,
     const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    const glm::mat4& projection, float windowWidth, float windowHeight,
-    std::optional<size_t> hovered = std::nullopt);
+    const glm::mat4& projection, float windowWidth,
+    std::span<const KeyHintRects> rects,
+    std::optional<size_t>         hovered = std::nullopt);
 
-// Index of the hint under the point, laid out as renderKeyHints() does.
-std::optional<size_t> hitTestKeyHints(
-    std::span<const KeyHint>                                            hints,
-    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>& font,
-    float windowWidth, float windowHeight, const glm::vec2& position);
+// Index of the hint under the point.
+std::optional<size_t> hitTestKeyHints(std::span<const KeyHintRects> rects,
+                                      const glm::vec2&              position);
 
 }  // namespace game::ui

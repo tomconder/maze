@@ -3,17 +3,34 @@
 #ifndef NDEBUG
 #include "capture/menucapturelayer.hpp"
 #endif
+#include "core/file.hpp"
 #include "core/settings.hpp"
 #include "core/window.hpp"
 #include "entrypoint.hpp"
 #include "event/applicationevent.hpp"
 #include "event/event.hpp"
-#include "ui/tabbar.hpp"
+#include "layer/audiolayer.hpp"
+#include "layer/confirmlayer.hpp"
+#include "layer/exitlayer.hpp"
+#include "layer/introlayer.hpp"
+#include "layer/keymaplayer.hpp"
+#include "layer/optionlayer.hpp"
+#include "layer/scrollmenulayer.hpp"
+#include "ui/confirmlayout.hpp"
+#include "ui/fontmetrics.hpp"
+#include "ui/keyhints.hpp"
+#include "ui/menufontsize.hpp"
+#include "ui/menulayout.hpp"
+#include "ui/yogadump.hpp"
 #include "version.hpp"
 
 #include <charconv>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
+#include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -111,6 +128,8 @@ void Maze::setUpCapture() {
             confirmLayer->show(layer::resetBindingsTitle,
                                layer::resetBindingsMessage, nullptr, 0.F,
                                false);
+        } else if (capture.menu == "exit") {
+            exitLayer->setActive(true);
         } else {
             introLayer->setActive(true);
         }
@@ -176,11 +195,14 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // leaves the normal start. --capture-off=a,b: turn passes off for the run
     // (see MazeLayer::enableCapture). --capture-walk=D: walk D world units
     // per frame along +X instead of turning. --capture-cascades=N: use N
-    // shadow cascades. --capture-menu=display, keyboard or audio: show that
-    // menu screen (any other name shows the intro), write
+    // shadow cascades. --capture-menu=display, keyboard, audio or exit: show
+    // that menu screen (any other name shows the intro), write
     // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
-    // of any capture run.
+    // of any capture run. --dump-yoga=intro, exit, display, keyboard, audio,
+    // confirm or reset: print that menu's layout as yogalayout.dev playground
+    // JSX.
     constexpr std::string_view          captureFlag = "--capture-frames";
+    std::string_view                    dumpYoga;
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
     const auto parseCount = [&capture](const std::string_view value) {
         std::from_chars(value.data(), value.data() + value.size(),
@@ -203,6 +225,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                             capture.walk);
         } else if (args[i].starts_with("--capture-menu=")) {
             capture.menu = std::string(args[i].substr(15));
+        } else if (args[i].starts_with("--dump-yoga=")) {
+            dumpYoga = args[i].substr(12);
         } else if (args[i].starts_with("--capture-size=")) {
             const auto value = args[i].substr(15);
             const auto x     = value.find('x');
@@ -216,6 +240,83 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             std::from_chars(value.data(), value.data() + value.size(),
                             capture.cascades);
         }
+    }
+    if (!dumpYoga.empty()) {
+        // --dump-yoga=intro, exit, display, keyboard, audio, confirm or reset:
+        // print the menu's Yoga tree as playground JSX at the --capture-size
+        // window size and exit.
+        const auto width  = static_cast<float>(captureWidth);
+        const auto height = static_cast<float>(captureHeight);
+
+        if (dumpYoga == "confirm" || dumpYoga == "reset") {
+            const bool            timed = dumpYoga == "confirm";
+            game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
+                                          "/fonts/inter.ktx2");
+            const auto            measure = metrics.measure();
+            const auto            fontSize =
+                game::ui::menuFontSizeForWidth(static_cast<uint32_t>(width));
+            const auto title   = timed ? game::layer::displayChangeTitle :
+                                         game::layer::resetBindingsTitle;
+            const auto message = timed ? game::layer::displayChangeMessage :
+                                         game::layer::resetBindingsMessage;
+            game::ui::ConfirmLayout layout;
+            layout.calculate(
+                width, height, fontSize, measure(title, fontSize),
+                measure(message, fontSize),
+                timed ? std::optional{ measure("Reverting in 15", fontSize) } :
+                        std::nullopt);
+            std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(),
+                       stdout);
+            std::exit(0);
+        }
+
+        // The option tabs share one layout, with the rows placed by MenuScroll.
+        using game::layer::AudioMenuItem;
+        using game::layer::KeyMapItem;
+        using game::layer::OptionMenuItem;
+        const auto tabRows =
+            dumpYoga == "keyboard" ? static_cast<size_t>(KeyMapItem::Count) :
+            dumpYoga == "audio"    ? static_cast<size_t>(AudioMenuItem::Count) :
+            dumpYoga == "display" ? static_cast<size_t>(OptionMenuItem::Count) :
+                                    0;
+        const bool isExit = dumpYoga == "exit";
+        const auto rows =
+            isExit ? static_cast<size_t>(game::layer::ExitMenuItem::Count) :
+                     static_cast<size_t>(game::layer::IntroMenuItem::Count);
+        const std::span<const game::ui::KeyHint> hints =
+            dumpYoga == "keyboard" ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::keyMapKeyHints
+                } :
+            tabRows > 0 ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::adjustKeyHints
+                } :
+            isExit ?
+                std::span<const game::ui::KeyHint>{
+                    game::layer::exitKeyHints
+                } :
+                std::span<const game::ui::KeyHint>{
+                    game::layer::introKeyHints
+                };
+        game::ui::MenuLayout layout(tabRows > 0 ? tabRows : rows,
+                                    tabRows > 0 ?
+                                        game::layer::scrollMenuLayout :
+                                    isExit ? game::layer::exitMenuLayout :
+                                             game::layer::introMenuLayout,
+                                    hints);
+
+        game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
+                                      "/fonts/inter.ktx2");
+        const auto            measure = metrics.measure();
+        if (tabRows > 0) {
+            layout.setTabLabelSizes(game::ui::tabLabelSizes(width, measure));
+        }
+        layout.setKeyHintSizes(
+            game::ui::keyHintSizes(hints, width, false, measure), false);
+        layout.calculate(width, height);
+        std::fputs(game::ui::yogaToPlayground(layout.root()).c_str(), stdout);
+        std::exit(0);
     }
     if (capture.nanStats && capture.frames == 0) {
         capture.frames = 600;

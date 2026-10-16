@@ -3,23 +3,23 @@
 #include "input/gameaction.hpp"
 #include "input/inputsnapshot.hpp"
 
+#include <cstddef>
+
 namespace game::ui {
 
-// Moves the selection on MenuUp/MenuDown, wrapping at both ends. T is a menu
-// enum with contiguous values and Count last. Returns true when changed.
-template <typename T>
-bool stepSelection(const sponge::input::InputSnapshot& input, T& selected) {
-    constexpr auto count   = static_cast<int>(T::Count);
-    bool           changed = false;
+// Moves the selection on MenuUp/MenuDown, wrapping at both ends. Returns true
+// when changed.
+inline bool stepSelection(const sponge::input::InputSnapshot& input,
+                          size_t& selected, const size_t count) {
+    bool changed = false;
 
     if (input.isActive(sponge::input::GameAction::MenuDown)) {
-        selected = static_cast<T>((static_cast<int>(selected) + 1) % count);
+        selected = (selected + 1) % count;
         changed  = true;
     }
     if (input.isActive(sponge::input::GameAction::MenuUp)) {
-        selected =
-            static_cast<T>((static_cast<int>(selected) - 1 + count) % count);
-        changed = true;
+        selected = (selected + count - 1) % count;
+        changed  = true;
     }
     return changed;
 }

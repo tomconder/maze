@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <span>
 
 #include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/scene/quad.hpp"
@@ -48,13 +47,18 @@ public:
                (shows(row) && y >= trackY && y <= trackY + trackH);
     }
 
+    // How far the rows have scrolled, in pixels.
+    constexpr float pixelOffset() const {
+        return offset * rowPixels;
+    }
+
     // Jumps the drawn position to the target, with no easing.
     constexpr void snap() {
         offset = target;
     }
 
-    // Eases the drawn position toward the target. Returns true while it moves,
-    // so the caller lays out again. Seconds since the last frame.
+    // Eases the drawn position toward the target. Returns true while it moves.
+    // Seconds since the last frame.
     constexpr bool step(const float seconds) {
         const float diff = target - offset;
         if (diff < 0.002F && diff > -0.002F) {
@@ -66,7 +70,7 @@ public:
         return true;
     }
 
-    // Each returns true when the target moved, so the caller lays out again.
+    // Each returns true when the target moved.
     constexpr bool scrollBy(const float rows) {
         return setTarget(target + rows);
     }
@@ -89,43 +93,19 @@ public:
         return scrollBy(-yOffset * wheelRows);
     }
 
-    // Fits the rows to the space above the pinned footer and lays out. rows are
-    // the scrolling rows in order. footer is the first pinned row, or nullptr
-    // when the rows have the whole menu. originY is the height reserved above
-    // the root.
-    void layout(const YGNodeRef root, const YGNodeRef menu,
-                const YGNodeRef                  background,
-                const std::span<const YGNodeRef> rows, const YGNodeRef footer,
-                const float width, const float height, const float originY) {
+    // Lays out an option tab layout and fits the window of rows to its panel.
+    // Yoga places the rows as if nothing scrolled; a caller subtracts
+    // pixelOffset() from a row's y.
+    void layout(MenuLayout& menuLayout, const float width, const float height) {
         const float rowHeight = menuRowHeight(width);
-        for (size_t i = 0; i < rows.size(); i++) {
-            // out of the flex flow, so the pinned rows keep their place
-            YGNodeStyleSetPositionType(rows[i], YGPositionTypeAbsolute);
-            YGNodeStyleSetPosition(rows[i], YGEdgeLeft, 0.F);
-            YGNodeStyleSetWidthPercent(rows[i], 100.F);
-            YGNodeStyleSetHeight(rows[i], rowHeight);
-        }
-        YGNodeStyleSetWidth(root, width);
-        YGNodeStyleSetHeight(root, height);
-        YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
+        rowPixels             = rowHeight;
+        menuLayout.calculate(width, height);
 
-        const float room = footer != nullptr ?
-                               YGNodeLayoutGetTop(footer) :
-                               YGNodeLayoutGetHeight(background);
-        setWindow(rows.size(), static_cast<size_t>(room / rowHeight + 0.001F));
-        for (size_t i = 0; i < rows.size(); i++) {
-            YGNodeStyleSetPosition(rows[i], YGEdgeTop,
-                                   (static_cast<float>(i) - offset) *
-                                       rowHeight);
-        }
-        YGNodeCalculateLayout(root, width, height, YGDirectionLTR);
+        const float room = std::get<3>(menuLayout.backgroundRect());
+        setWindow(menuLayout.rowCount(),
+                  static_cast<size_t>(room / rowHeight + 0.001F));
 
-        const auto [rootX, rootY, rootW, rootH] =
-            getNodeLayout(root, 0.F, originY);
-        const auto [menuX, menuY, menuW, menuH] =
-            getNodeLayout(menu, rootX, rootY);
-        const auto [bgX, bgY, bgW, bgH] =
-            getNodeLayout(background, menuX, menuY);
+        const auto [bgX, bgY, bgW, bgH] = menuLayout.backgroundRect();
         thickness = std::max(6.F, std::round(rowHeight / 20.F));
         trackX    = bgX + bgW + thickness;
         trackY    = bgY;
@@ -211,6 +191,7 @@ private:
     float target = 0.F;
     float offset = 0.F;
 
+    float rowPixels = 0.F;
     float clipW     = 0.F;
     float trackX    = 0.F;
     float trackY    = 0.F;

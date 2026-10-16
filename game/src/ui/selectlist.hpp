@@ -2,6 +2,8 @@
 
 #include "platform/opengl/scene/bitmapfont.hpp"
 
+#include <yoga/Yoga.h>
+
 #include <glm/glm.hpp>
 
 #include <cstddef>
@@ -24,9 +26,17 @@ struct SelectListCreateInfo {
     bool tabularFigures = false;
 };
 
+// A value picked from a list, drawn as "label < value >". The parts are Yoga
+// nodes in the row the list is attached to: the label takes the free width,
+// then the left arrow, the value (a fixed width, so the arrows stay put) and
+// the right arrow. The row must be laid out before the list draws or
+// hit-tests.
 class SelectList {
 public:
     explicit SelectList(const SelectListCreateInfo& createInfo);
+
+    // Adds the parts to the row node, which lives in the layer's layout.
+    void attach(YGNodeRef row);
 
     void setItems(std::vector<std::string> newItems);
     void setMaxValueWidth(float width);
@@ -45,12 +55,14 @@ public:
     bool             hasLeft() const;
     bool             hasRight() const;
 
-    void onUpdate(float x, float y, float w, float h, std::string_view label);
+    // y is the top of the row as drawn, which differs from the row node when
+    // the rows scroll.
+    void onUpdate(float y, std::string_view label);
 
-    float getValueCenterX(float x, float w) const;
+    float getValueCenterX() const;
 
-    bool isInsideLeft(float mouseX, float x, float w) const;
-    bool isInsideRight(float mouseX, float x, float w) const;
+    bool isInsideLeft(float mouseX) const;
+    bool isInsideRight(float mouseX) const;
 
 private:
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
@@ -68,7 +80,10 @@ private:
     float leftLen  = 0.F;
     float rightLen = 0.F;
 
-    float getStartX(float x, float w) const;
+    YGNodeRef rowNode = nullptr;
+
+    // Gives the nodes the sizes of the text.
+    void sizeNodes() const;
 };
 
 }  // namespace game::ui

@@ -1,15 +1,12 @@
 #pragma once
 
-#include "event/applicationevent.hpp"
-#include "event/event.hpp"
-#include "event/mouseevent.hpp"
-#include "layer/layer.hpp"
+#include "layer/scrollmenulayer.hpp"
 #include "ui/slider.hpp"
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <optional>
-#include <tuple>
 
 namespace game::layer {
 
@@ -20,69 +17,36 @@ enum class AudioMenuItem : uint8_t {
     Count,
 };
 
-class AudioLayer final : public sponge::layer::Layer {
+class AudioLayer final : public ScrollMenuLayer {
 public:
     AudioLayer();
 
     void onAttach() override;
 
-    void onDetach() override;
-
-    void onEvent(sponge::event::Event& event) override;
-
-    bool onUpdate(double elapsedTime) override;
-
 private:
-    AudioMenuItem                selectedItem = AudioMenuItem::MasterVolume;
-    std::optional<AudioMenuItem> hoveredItem;
-
-    // Row currently tracking the mouse; set on press, cleared on release.
-    std::optional<AudioMenuItem> draggingItem;
-
-    bool wasActiveLastFrame    = false;
-    bool waitForConfirmRelease = false;
-
-    std::unique_ptr<ui::Slider> masterVolumeSlider;
-    std::unique_ptr<ui::Slider> sfxVolumeSlider;
-    std::unique_ptr<ui::Slider> musicVolumeSlider;
-
-    void renderRowBackground(float x, float y, float w, float h,
-                             AudioMenuItem item) const;
-
-    // Screen rect of a row, resolved through the root/menu/background chain.
-    static std::tuple<float, float, float, float> rowLayout(AudioMenuItem item);
-
-    // Widget backing a row.
-    ui::Slider* sliderFor(AudioMenuItem item) const;
+    // One slider per row, in AudioMenuItem order.
+    std::array<std::unique_ptr<ui::Slider>,
+               static_cast<size_t>(AudioMenuItem::Count)>
+        sliders;
 
     // Pushes a slider's current value to the audio engine and to Settings.
     // save chooses whether the write reaches disk now (a discrete step) or
     // waits for the drag to end (continuous mouse movement).
     void applyVolume(AudioMenuItem item, bool save) const;
 
-    void close();
+protected:
+    void renderRow(size_t row, float x, float y, float w, float h) override;
 
-    static void recalculateLayout(float width, float height);
+    void onRowKeys(size_t                              row,
+                   const sponge::input::InputSnapshot& input) override;
 
-    // Lays out again at the current window size, after the scroll moved.
-    static void relayout();
+    bool onRowPressed(size_t row, const glm::vec2& mouse) override;
 
-    // Scrolls the selected row into view.
-    void followSelection();
+    void onRowDrag(size_t row, const glm::vec2& mouse) override;
 
-    bool onMouseButtonPressed(
-        const sponge::event::MouseButtonPressedEvent& event);
+    void onRowReleased(size_t row) override;
 
-    bool onMouseMoved(const sponge::event::MouseMovedEvent& event);
-
-    bool onMouseButtonReleased(
-        const sponge::event::MouseButtonReleasedEvent& event);
-
-    bool onMouseScrolled(const sponge::event::MouseScrolledEvent& event);
-
-    bool onWindowResize(const sponge::event::WindowResizeEvent& event);
-
-    void clearHoveredItems();
+    void onFontSizeChanged() override;
 };
 
 }  // namespace game::layer

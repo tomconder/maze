@@ -24,26 +24,54 @@ primitives, windowing, or platform backends itself — see
   frame all menus have drawn, and shows the named screen through
   `introLayer` or `ui::showOptionTab()`. It writes a PNG with libspng, which
   only debug builds link (`game/CMakeLists.txt`).
+* `layer/buttonmenulayer.hpp` / `.cpp` - the base of the intro and exit menus:
+  a column of buttons with keyboard, gamepad and mouse selection. A subclass
+  gives a `ButtonMenuStyle` (labels, key hints, colours, `MenuLayoutSpec`) and
+  overrides `onSelect()`, and `onBack()` if it has a back action. The layout is
+  a `ui::MenuLayout` member (`ui/menulayout.hpp`), which owns the Yoga tree and
+  frees it. `--dump-yoga=intro|exit|display|keyboard|audio|confirm|reset` prints that tree as JSX for
+  yogalayout.dev/playground (`ui/yogadump.hpp`).
+* `layer/scrollmenulayer.hpp` / `.cpp` - the base of an options tab with rows
+  under the tab bar. It owns the camera, font, `ui::MenuLayout`, `MenuScroll`,
+  selection, hover, tab switching, wheel and scroll bar handling. A subclass
+  gives a `ScrollMenuStyle` and overrides `renderRow()`, plus `onRowKeys()`,
+  `onRowPressed()` (return true to drag), `onRowDrag()`, `onRowReleased()`,
+  `onConfirm()`, `onFontSizeChanged()`, `onResized()`, `onOpened()`,
+  `onClosed()`, `isSelectable()` and `takesInput()` as needed. A row that is
+  not selectable is a label: no highlight, hover or click, and the selection
+  hops over it. A style can name one clickable key hint (`actionHint`, handled
+  in `onActionHint()`) and the row selected on open (`firstRow`). All three
+  option tabs use it.
 * `layer/introlayer.hpp`, `layer/optionlayer.hpp`, `layer/keymaplayer.hpp`,
   `layer/audiolayer.hpp`, `layer/exitlayer.hpp`, `layer/splashscreenlayer.hpp`
   - other screens in the layer stack. The options screen is one layer per tab:
   `OptionLayer` is Display, `KeyMapLayer` is Keyboard, `AudioLayer` is Audio.
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
-  (`cycleTab`), so all three layers reserve `tabBarHeight()` at the top of
-  their Yoga root. `KeyMapLayer` rebinds keys through
+  (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
+  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. `--dump-yoga` measures them with `ui/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
   keyboard/gamepad step), applied live to `sponge::platform::audio::Audio` and
   written to `Settings` on every change, but only flushed to disk on
   drag-release or a discrete step, not on every mouse-move frame of a drag.
+  `ui::Slider` and `ui::SelectList` are Yoga nodes inside their row: `attach(rowNode(row))`
+  adds a label that takes the free width, the arrows, and the track or the
+  value. They size those nodes from the font, so a layer calls
+  `onFontSizeChanged()` before `recalculateLayout()` and once after
+  attaching. `--dump-yoga` does not show these nodes; it has no font to
+  measure them with. `ui::Checkbox` and the heading labels are still drawn by
+  hand.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
-  absolute Yoga nodes placed from the first visible row. No screen has a
-  pinned row now; `MenuScroll::layout()` still takes a footer node, so a later
-  screen can pin one. Esc is the only way back; there is no Return row.
-  The key hint bar (`ui/keyhints.hpp`) puts Back at the left margin, then any
-  hint with `leftAligned` set, and right-aligns the rest. Reset to Defaults is
+  fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
+  their computed y in `ScrollMenuLayer::rowRect()`. No screen has a
+  pinned row now. Esc is the only way back; there is no Return row.
+  The key hint bar (`ui/keyhints.hpp`) is a row of Yoga nodes below the menu
+  (an icon and a label per hint, sized by `keyHintSizes()`, drawn where
+  `MenuLayout::keyHintRects()` says). It puts Back at the left margin, then any
+  hint with `leftAligned` set, and right-aligns the rest. The layers lay out
+  again when the active device changes, because the prompt sizes differ. Reset to Defaults is
   a left-aligned hint on the Keyboard tab: the `MenuReset` action (R, gamepad
   Y), or a click on the hint (`hitTestKeyHints()`), opens a `ConfirmLayer`
   prompt with Cancel selected and no countdown. Only Accept calls
@@ -150,7 +178,8 @@ primitives, windowing, or platform backends itself — see
 * The Display tab has no Apply row: every row applies the moment it changes.
   A Display Mode change also opens `layer/confirmlayer.hpp` ("Confirm
   Graphical Changes", 15 second countdown, Accept selected), which draws a
-  `ui::ConfirmDialog`. It is the top overlay and modal: it takes the mouse
+  `ui::ConfirmDialog`, whose panel, text lines and buttons are the Yoga nodes of
+  `ui::ConfirmLayout` (`ui/confirmlayout.hpp`). It is the top overlay and modal: it takes the mouse
   events first, and `OptionLayer` skips its keys while it is active. It runs
   its callback after it goes inactive, and ignores the key press that opened
   it. `--capture-menu=confirm` shows it over the Display tab, and
@@ -185,9 +214,7 @@ primitives, windowing, or platform backends itself — see
   1920x1080. `ui::Slider` scales its track, handle and gaps from its font size
   (its `SliderCreateInfo` sizes are pixels at the 32 px font). These do not
   scale yet:
-  * `makeMenuRow()` caps a row at 110 px, so the intro and exit menus keep the
-    1080p row height at 4K.
-  * The 10 px margin in `buildMenuSkeleton()`.
+  * The 10 px margin in `MenuLayout`.
   Scale these from the font size when one of them needs the fix.
 * The font snaps to the nearest baked size, about 10 to 15% apart, so a width
   between two steps gets the nearest one. Exact scaling needs `BitmapFont` to
