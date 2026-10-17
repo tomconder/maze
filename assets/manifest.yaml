@@ -84,7 +84,6 @@ shaders:
     quad.frag: shaders/slang/rectangle.slang:fragMain
     quad.vert: shaders/slang/rectangle.slang:vertMain
     screenquad.vert: shaders/slang/fxaa.slang:vertMain
-    shadowmap.frag: shaders/slang/shadowmap.slang:fragMain
     shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
     shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
     shadowmap_evsm_masked.frag: shaders/slang/shadowmap.slang:fragMainEVSMMasked

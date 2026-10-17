@@ -11,6 +11,15 @@ static const int TILES_Z = 24;
 // Equal to the max scene light count so per-cluster truncation cannot occur.
 static const int MAX_LIGHTS_PER_CLUSTER = 128;
 
+// A point light as the light buffer stores it: explicit padding so each
+// float3 takes a 16-byte slot, as std430 lays it out.
+struct PointLightGPU {
+    float3 color;
+    float  pad0;
+    float3 position;  // world-space
+    float  pad1;
+};
+
 // Culling radii live in lighting.slang (attenuationRadius), shared with the
 // radiance window so culled lights are exactly zero at the boundary.
 
