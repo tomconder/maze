@@ -12,6 +12,7 @@
 #include "thread/worker.hpp"
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string_view>
@@ -151,6 +152,22 @@ public:
     LoopTimes loopTimes;
 
 private:
+    // Render thread.
+    bool renderFrame();
+    void applyRenderThreadRequests();
+    void drawLayers(double elapsed);
+
+    // Main thread, in run().
+    void primeFrame();
+    void frameSync() const;
+    void applyPendingWindowRequests();
+    void applyDisplayMode();
+    void applyResolution(uint32_t width, uint32_t height);
+    void limitFrameRate(
+        GLFWwindow*                            glfwWindow,
+        std::chrono::steady_clock::time_point& lastFrameStart) const;
+    void stopThreads(GLFWwindow* glfwWindow);
+
     std::string_view                               appName = "undefined";
     std::unique_ptr<opengl::renderer::Context>     graphics;
     std::unique_ptr<opengl::renderer::RendererAPI> renderer;
@@ -166,8 +183,6 @@ private:
     bool    vsync = true;
     int32_t prevH = 0;
     int32_t prevW = 0;
-    int32_t prevX = 0;
-    int32_t prevY = 0;
 
     std::unique_ptr<layer::LayerStack> layerStack;
 
@@ -182,6 +197,9 @@ private:
     // Elapsed time for render-thread layers; written by main, read by render
     // thread.
     double renderElapsedTime{ 0.0 };
+
+    // Render thread only: set once it has taken the GL context.
+    bool renderContextAcquired = false;
 
     // Signals quit from a render-thread layer back to the main loop.
     std::atomic<bool> renderThreadQuit{ false };
