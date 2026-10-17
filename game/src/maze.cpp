@@ -2,6 +2,7 @@
 
 #ifndef NDEBUG
 #include "capture/menucapturelayer.hpp"
+#include "capture/menudump.hpp"
 #endif
 #include "core/file.hpp"
 #include "core/settings.hpp"
@@ -14,22 +15,18 @@
 #include "layer/exitlayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
-#include "layer/menudump.hpp"
 #include "layer/optionlayer.hpp"
 #include "layer/scrollmenulayer.hpp"
 #include "ui/confirmlayout.hpp"
-#include "ui/fontmetrics.hpp"
 #include "ui/keyhints.hpp"
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
-#include "ui/yogadump.hpp"
 #include "version.hpp"
 
 #include <charconv>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <memory>
 #include <optional>
 #include <span>
@@ -244,15 +241,11 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         }
     }
     if (dumpYoga && !capture.menu.empty()) {
-        game::ui::FontMetrics metrics(sponge::core::File::getResourceDir() +
-                                      "/fonts/inter.ktx2");
-        const auto            tree = game::layer::dumpMenuYoga(
-            capture.menu, captureWidth, captureHeight, metrics.measure());
-        if (!tree) {
+        if (!game::capture::writeMenuYoga(capture.menu, captureWidth,
+                                          captureHeight)) {
             std::fprintf(stderr, "unknown menu: %s\n", capture.menu.c_str());
             std::exit(1);
         }
-        std::ofstream("capture_menu_" + capture.menu + ".jsx") << *tree;
         std::exit(0);
     }
     if (capture.nanStats && capture.frames == 0) {

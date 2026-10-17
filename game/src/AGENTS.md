@@ -30,7 +30,7 @@ primitives, windowing, or platform backends itself — see
   overrides `onSelect()`, and `onBack()` if it has a back action. The layout is
   a `ui::MenuLayout` member (`ui/menulayout.hpp`), which owns the Yoga tree and
   frees it. `--capture-menu=<name> --dump-yoga` writes that tree as JSX for
-  yogalayout.dev/playground (`ui/yogadump.hpp`, `layer/menudump.hpp`) without a
+  yogalayout.dev/playground (`capture/yogadump.hpp`, `capture/menudump.hpp`) without a
   window.
 * `layer/scrollmenulayer.hpp` / `.cpp` - the base of an options tab with rows
   under the tab bar. It owns the camera, font, `ui::MenuLayout`, `MenuScroll`,
@@ -50,7 +50,7 @@ primitives, windowing, or platform backends itself — see
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
   (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
-  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. The headless `--dump-yoga` measures them with `ui/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
+  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
@@ -65,7 +65,7 @@ primitives, windowing, or platform backends itself — see
   header (`layer/audiorows.hpp`, `optionrows.hpp`, `keymaprows.hpp`) and
   overrides `ScrollMenuLayer::layoutRows()`, which `recalculateLayout()`
   calls; `ButtonMenuLayer` and `ConfirmLayout` call `layoutButton()` the same
-  way. `layer/menudump.cpp` calls the same functions, which is how
+  way. `capture/menudump.cpp` calls the same functions, which is how
   `--dump-yoga` reads the real tree without a window. A row is a label that
   takes the free width, then the arrows, track, value or box. A heading row is
   a label alone, and a keyboard row is a label and a zero-width value part at

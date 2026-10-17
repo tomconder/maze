@@ -1,4 +1,4 @@
-#include "ui/fontmetrics.hpp"
+#include "capture/fontmetrics.hpp"
 
 #include "ktx2.hpp"
 #include "readbytes.hpp"
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace game::ui {
+namespace game::capture {
 
 FontMetrics::FontMetrics(const std::string& path) {
     const auto  bytes = sponge::scene::readBytes(path);
@@ -41,12 +41,13 @@ uint32_t FontMetrics::height(const uint32_t size) const {
     return baked != nullptr ? static_cast<uint32_t>(baked->lineHeight) : size;
 }
 
-TextMeasure FontMetrics::measure() {
+ui::TextMeasure FontMetrics::measure() {
     return [this](const std::string_view text, const uint32_t size,
                   const bool tabularFigures) {
-        return TextSize{ static_cast<float>(length(text, size, tabularFigures)),
-                         static_cast<float>(height(size)) };
+        return ui::TextSize{ static_cast<float>(
+                                 length(text, size, tabularFigures)),
+                             static_cast<float>(height(size)) };
     };
 }
 
-}  // namespace game::ui
+}  // namespace game::capture

@@ -1,4 +1,4 @@
-#include "ui/yogadump.hpp"
+#include "capture/yogadump.hpp"
 
 #include <format>
 #include <string>
@@ -77,7 +77,7 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
 }
 }  // namespace
 
-namespace game::ui {
+namespace game::capture {
 
 std::string yogaToPlayground(const YGNodeRef root) {
     std::string out = "<Layout config={{useWebDefaults: false}}>\n";
@@ -86,4 +86,4 @@ std::string yogaToPlayground(const YGNodeRef root) {
     return out;
 }
 
-}  // namespace game::ui
+}  // namespace game::capture

@@ -1,7 +1,13 @@
-#include "layer/menudump.hpp"
+#include "capture/menudump.hpp"
+
+#include "capture/fontmetrics.hpp"
+#include "capture/yogadump.hpp"
+#include "core/file.hpp"
 
 #include <array>
 #include <cstddef>
+#include <fstream>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -17,9 +23,8 @@
 #include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/rowlayout.hpp"
-#include "ui/yogadump.hpp"
 
-namespace game::layer {
+namespace game::capture {
 
 namespace {
 constexpr std::string_view countdownText = "Reverting in 15";
@@ -30,11 +35,12 @@ constexpr std::array<std::string_view, 3> aspectStandIns = { "4:3", "16:9",
 std::string confirmTree(const bool timed, const float width, const float height,
                         const ui::RowText& text) {
     ui::ConfirmLayout layout;
-    layout.calculate(width, height, text,
-                     timed ? displayChangeTitle : resetBindingsTitle,
-                     timed ? displayChangeMessage : resetBindingsMessage,
-                     timed ? std::optional{ countdownText } : std::nullopt);
-    return ui::yogaToPlayground(layout.root());
+    layout.calculate(
+        width, height, text,
+        timed ? layer::displayChangeTitle : layer::resetBindingsTitle,
+        timed ? layer::displayChangeMessage : layer::resetBindingsMessage,
+        timed ? std::optional{ countdownText } : std::nullopt);
+    return yogaToPlayground(layout.root());
 }
 
 // A menu is its rows, the key hints and, on an option tab, the tab bar.
@@ -51,9 +57,8 @@ std::string menuTree(const size_t rows, const ui::MenuLayoutSpec& spec,
     layout.setKeyHintSizes(ui::keyHintSizes(hints, width, false, text.measure),
                            false);
     layout.calculate(width, height);
-    return ui::yogaToPlayground(layout.root());
+    return yogaToPlayground(layout.root());
 }
-}  // namespace
 
 std::optional<std::string> dumpMenuYoga(const std::string_view screen,
                                         const uint32_t         width,
@@ -67,34 +72,39 @@ std::optional<std::string> dumpMenuYoga(const std::string_view screen,
         return confirmTree(screen == "confirm", w, h, text);
     }
     if (screen == "intro") {
-        return menuTree(introMenuLabels.size(), introMenuLayout, introKeyHints,
-                        false, w, h, text,
+        return menuTree(layer::introMenuLabels.size(), layer::introMenuLayout,
+                        layer::introKeyHints, false, w, h, text,
                         [](const auto& layout, const auto& t) {
-                            ui::layoutMenuButtons(layout, t, introMenuLabels);
+                            ui::layoutMenuButtons(layout, t,
+                                                  layer::introMenuLabels);
                         });
     }
     if (screen == "exit") {
-        return menuTree(exitMenuLabels.size(), exitMenuLayout, exitKeyHints,
-                        false, w, h, text,
+        return menuTree(layer::exitMenuLabels.size(), layer::exitMenuLayout,
+                        layer::exitKeyHints, false, w, h, text,
                         [](const auto& layout, const auto& t) {
-                            ui::layoutMenuButtons(layout, t, exitMenuLabels);
+                            ui::layoutMenuButtons(layout, t,
+                                                  layer::exitMenuLabels);
                         });
     }
     if (screen == "keyboard") {
-        return menuTree(keyMapRowCount, scrollMenuLayout, keyMapKeyHints, true,
-                        w, h, text, layoutKeyMapRows);
+        return menuTree(layer::keyMapRowCount, layer::scrollMenuLayout,
+                        layer::keyMapKeyHints, true, w, h, text,
+                        layer::layoutKeyMapRows);
     }
     if (screen == "audio") {
-        return menuTree(audioRowCount, scrollMenuLayout, adjustKeyHints, true,
-                        w, h, text, layoutAudioRows);
+        return menuTree(layer::audioRowCount, layer::scrollMenuLayout,
+                        layer::adjustKeyHints, true, w, h, text,
+                        layer::layoutAudioRows);
     }
     if (screen == "display") {
         const std::array<std::string, 4> resolutions = {
             "1280 × 720", "1920 × 1080", "2560 × 1440", "3840 × 2160"
         };
-        return menuTree(optionRowCount, scrollMenuLayout, adjustKeyHints, true,
-                        w, h, text, [&](const auto& layout, const auto& t) {
-                            layoutOptionRows(
+        return menuTree(layer::optionRowCount, layer::scrollMenuLayout,
+                        layer::adjustKeyHints, true, w, h, text,
+                        [&](const auto& layout, const auto& t) {
+                            layer::layoutOptionRows(
                                 layout, t,
                                 { .aspectLabels     = aspectStandIns,
                                   .resolutionLabels = resolutions,
@@ -104,4 +114,18 @@ std::optional<std::string> dumpMenuYoga(const std::string_view screen,
     return std::nullopt;
 }
 
-}  // namespace game::layer
+}  // namespace
+
+bool writeMenuYoga(const std::string_view screen, const uint32_t width,
+                   const uint32_t height) {
+    FontMetrics metrics(sponge::core::File::getResourceDir() +
+                        "/fonts/inter.ktx2");
+    const auto  tree = dumpMenuYoga(screen, width, height, metrics.measure());
+    if (!tree) {
+        return false;
+    }
+    std::ofstream("capture_menu_" + std::string(screen) + ".jsx") << *tree;
+    return true;
+}
+
+}  // namespace game::capture
