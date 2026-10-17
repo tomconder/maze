@@ -16,9 +16,9 @@
 namespace game::ui {
 
 namespace {
-constexpr float            disabledAlpha  = 0.4F;
-constexpr std::string_view leftArrowText  = "< ";
-constexpr std::string_view rightArrowText = " >";
+constexpr float            disabledBrightness = 0.4F;
+constexpr std::string_view leftArrowText      = "< ";
+constexpr std::string_view rightArrowText     = " >";
 }  // namespace
 
 Slider::Slider(const SliderCreateInfo& createInfo) :
@@ -84,11 +84,10 @@ void Slider::onUpdate(const float y, const std::string_view label) {
     const float tStartX = track.x;
     const float trackY  = track.y;
 
-    // Disabled: everything drawn with a fraction of its alpha.
-    const float dim   = disabled ? disabledAlpha : 1.F;
+    // Disabled: everything drawn with a fraction of its brightness.
+    const float dim   = disabled ? disabledBrightness : 1.F;
     const auto  faded = [dim](glm::vec4 color) {
-        color.a *= dim;
-        return color;
+        return glm::vec4(glm::vec3(color) * dim, color.a);
     };
 
     quad->render({ tStartX, trackY }, { tStartX + trackW, trackY + trackH },
