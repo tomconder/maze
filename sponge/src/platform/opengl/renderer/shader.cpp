@@ -271,6 +271,36 @@ GLint Shader::getUniformLocation(const std::string_view name) const {
     return location;
 }
 
+namespace {
+
+// Maps a driver uniform name to the name the shader code uses.
+std::string normalizeUniformName(std::string name) {
+    // Strip Slang's _N disambiguation suffixes from mangled names
+    // e.g. "directionalLight_0.color_0"  -> "directionalLight.color"
+    //      "pointLights_0[0].color_1"    -> "pointLights[0].color"
+    for (size_t pos = 0; pos + 2 < name.size();) {
+        if (name[pos] == '_' && std::isdigit(name[pos + 1]) &&
+            (name[pos + 2] == '.' || name[pos + 2] == '[')) {
+            name.erase(pos, 2);
+        } else {
+            ++pos;
+        }
+    }
+    if (name.size() > 2 && name[name.size() - 2] == '_' &&
+        std::isdigit(name[name.size() - 1])) {
+        name.erase(name.size() - 2);
+    }
+    // Strip the block instance-name prefix that OpenGL prepends when the
+    // interface block has an instance name (e.g. "params.mvp" -> "mvp",
+    // "params.directionalLight.color" -> "directionalLight.color").
+    if (const auto dot = name.find('.'); dot != std::string::npos) {
+        name.erase(0, dot + 1);
+    }
+    return name;
+}
+
+}  // namespace
+
 void Shader::initUBO() {
     int32_t numBlocks = 0;
     glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
@@ -320,29 +350,8 @@ void Shader::initUBO() {
                                static_cast<GLsizei>(rawName.size()), &nameLen,
                                rawName.data());
 
-        std::string name(rawName.data(), static_cast<size_t>(nameLen));
-        // Strip Slang's _N disambiguation suffixes from mangled names
-        // e.g. "directionalLight_0.color_0"  -> "directionalLight.color"
-        //      "pointLights_0[0].color_1"    -> "pointLights[0].color"
-        for (size_t pos = 0; pos + 2 < name.size();) {
-            if (name[pos] == '_' && std::isdigit(name[pos + 1]) &&
-                (name[pos + 2] == '.' || name[pos + 2] == '[')) {
-                name.erase(pos, 2);
-            } else {
-                ++pos;
-            }
-        }
-        if (name.size() > 2 && name[name.size() - 2] == '_' &&
-            std::isdigit(name[name.size() - 1])) {
-            name.erase(name.size() - 2);
-        }
-        // Strip the block instance-name prefix that OpenGL prepends when the
-        // interface block has an instance name (e.g. "params.mvp" -> "mvp",
-        // "params.directionalLight.color" -> "directionalLight.color").
-        if (const auto dot = name.find('.'); dot != std::string::npos) {
-            name.erase(0, dot + 1);
-        }
-
+        const std::string name = normalizeUniformName(
+            std::string(rawName.data(), static_cast<size_t>(nameLen)));
         uboBlocks[static_cast<size_t>(blockIndex)].offsets[name] = offset;
         SPONGE_GL_DEBUG("UBO block[{}] member: [{}] offset={}", blockIndex,
                         name, offset);

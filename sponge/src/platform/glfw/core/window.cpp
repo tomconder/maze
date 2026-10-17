@@ -25,24 +25,15 @@ Window::~Window() noexcept {
     shutdown();
 }
 
-void Window::init(const sponge::core::WindowProps& props) {
-    data.title  = props.title;
-    data.width  = props.width;
-    data.height = props.height;
+namespace {
 
-    if (props.title.empty()) {
-        SPONGE_CORE_CRITICAL("Title cannot be empty");
-    }
+WindowData* dataOf(GLFWwindow* win) {
+    return static_cast<WindowData*>(glfwGetWindowUserPointer(win));
+}
 
-    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
-
-    GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode =
-        primaryMonitor != nullptr ? glfwGetVideoMode(primaryMonitor) : nullptr;
-    if (mode == nullptr) {
-        SPONGE_CORE_ERROR("No primary monitor/video mode detected");
-    }
-
+GLFWwindow* createGlfwWindow(const sponge::core::WindowProps& props,
+                             GLFWmonitor*                     primaryMonitor,
+                             const GLFWvidmode*               mode) {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     if (mode != nullptr) {
@@ -65,91 +56,73 @@ void Window::init(const sponge::core::WindowProps& props) {
     using sponge::core::DisplayMode;
     if (props.displayMode == DisplayMode::FullScreen) {
         SPONGE_CORE_INFO("Creating fullscreen window");
-        window = glfwCreateWindow(width, height, props.title.data(),
-                                  primaryMonitor, nullptr);
-    } else if (props.displayMode == DisplayMode::Borderless &&
-               mode != nullptr) {
-        SPONGE_CORE_INFO("Creating borderless window");
-        window = glfwCreateWindow(mode->width, mode->height, props.title.data(),
-                                  nullptr, nullptr);
-    } else {
-        SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
-        window = glfwCreateWindow(width, height, props.title.data(), nullptr,
-                                  nullptr);
+        return glfwCreateWindow(width, height, props.title.data(),
+                                primaryMonitor, nullptr);
     }
+    if (props.displayMode == DisplayMode::Borderless && mode != nullptr) {
+        SPONGE_CORE_INFO("Creating borderless window");
+        return glfwCreateWindow(mode->width, mode->height, props.title.data(),
+                                nullptr, nullptr);
+    }
+    SPONGE_CORE_INFO("Creating window {}x{}", props.width, props.height);
+    return glfwCreateWindow(width, height, props.title.data(), nullptr,
+                            nullptr);
+}
 
-    if (window == nullptr) {
-        const char* descCStr = nullptr;
-        glfwGetError(&descCStr);
-        const std::string description = descCStr ? descCStr : "Unknown error";
-        SPONGE_CORE_CRITICAL("Could not create window: {}", description);
+void positionWindow(GLFWwindow* window, const sponge::core::WindowProps& props,
+                    GLFWmonitor* primaryMonitor, const GLFWvidmode* mode) {
+    using sponge::core::DisplayMode;
+    if (mode == nullptr) {
         return;
     }
 
-    int w = 0;
-    int h = 0;
-    glfwGetWindowSize(window, &w, &h);
-
-    data.width  = static_cast<uint32_t>(w);
-    data.height = static_cast<uint32_t>(h);
-
-    if (mode != nullptr) {
-        if (props.displayMode == DisplayMode::Windowed) {
-            glfwSetWindowPos(window, (mode->width - w) / 2,
-                             (mode->height - h) / 2);
-        } else if (props.displayMode == DisplayMode::Borderless) {
-            int monitorX = 0;
-            int monitorY = 0;
-            glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
-            glfwSetWindowPos(window, monitorX, monitorY);
-        }
+    if (props.displayMode == DisplayMode::Windowed) {
+        int w = 0;
+        int h = 0;
+        glfwGetWindowSize(window, &w, &h);
+        glfwSetWindowPos(window, (mode->width - w) / 2, (mode->height - h) / 2);
+    } else if (props.displayMode == DisplayMode::Borderless) {
+        int monitorX = 0;
+        int monitorY = 0;
+        glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
+        glfwSetWindowPos(window, monitorX, monitorY);
     }
+}
 
-    glfwSetWindowAttrib(window, GLFW_DECORATED,
-                        props.displayMode == DisplayMode::Windowed &&
-                                props.decorated ?
-                            GLFW_TRUE :
-                            GLFW_FALSE);
+void installCallbacks(GLFWwindow* window) {
+    glfwSetWindowSizeCallback(
+        window, [](GLFWwindow* win, const int newWidth, const int newHeight) {
+            if (newWidth == 0 && newHeight == 0) {
+                return;
+            }
 
-    glfwSetWindowUserPointer(window, &data);
+            auto* data = dataOf(win);
 
-    glfwSetWindowSizeCallback(window, [](GLFWwindow* win, const int newWidth,
-                                         const int newHeight) {
-        if (newWidth == 0 && newHeight == 0) {
-            return;
-        }
+            data->width  = static_cast<uint32_t>(newWidth);
+            data->height = static_cast<uint32_t>(newHeight);
 
-        auto* data = static_cast<WindowData*>(glfwGetWindowUserPointer(win));
+            // Defer viewport GL call to render thread; callback may fire on any
+            // thread.
+            Application::get().setPendingViewport(newWidth, newHeight);
 
-        data->width  = static_cast<uint32_t>(newWidth);
-        data->height = static_cast<uint32_t>(newHeight);
+            event::WindowResizeEvent event(static_cast<uint32_t>(newWidth),
+                                           static_cast<uint32_t>(newHeight));
+            data->eventCallback(event);
+        });
 
-        // Defer viewport GL call to render thread; callback may fire on any
-        // thread.
-        Application::get().setPendingViewport(newWidth, newHeight);
-
-        event::WindowResizeEvent event(static_cast<uint32_t>(newWidth),
-                                       static_cast<uint32_t>(newHeight));
-        data->eventCallback(event);
-    });
-
-    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) {
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-
+    glfwSetWindowCloseCallback(window, [](GLFWwindow* win) {
         event::WindowCloseEvent event;
-        data->eventCallback(event);
+        dataOf(win)->eventCallback(event);
     });
 
-    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, const int button,
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* win, const int button,
                                           const int action, const int) {
         if (Application::get().isEventHandledByImGui()) {
             return;
         }
 
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-        const auto buttonCode = static_cast<input::MouseButton>(button);
+        const auto* data       = dataOf(win);
+        const auto  buttonCode = static_cast<input::MouseButton>(button);
 
         switch (action) {
             case GLFW_PRESS: {
@@ -168,37 +141,80 @@ void Window::init(const sponge::core::WindowProps& props) {
     });
 
     glfwSetCursorPosCallback(
-        window, [](GLFWwindow* window, const double x, const double y) {
+        window, [](GLFWwindow* win, const double x, const double y) {
             if (Application::get().isEventHandledByImGui()) {
                 return;
             }
 
-            const auto* data =
-                static_cast<WindowData*>(glfwGetWindowUserPointer(window));
             event::MouseMovedEvent event(0.F, 0.F, static_cast<float>(x),
                                          static_cast<float>(y));
-            data->eventCallback(event);
+            dataOf(win)->eventCallback(event);
         });
 
-    glfwSetScrollCallback(window, [](GLFWwindow* window, const double xoffset,
+    glfwSetScrollCallback(window, [](GLFWwindow* win, const double xoffset,
                                      const double yoffset) {
         if (Application::get().isEventHandledByImGui()) {
             return;
         }
-        const auto* data =
-            static_cast<WindowData*>(glfwGetWindowUserPointer(window));
         event::MouseScrolledEvent event(static_cast<float>(xoffset),
                                         static_cast<float>(yoffset));
-        data->eventCallback(event);
+        dataOf(win)->eventCallback(event);
     });
 
-    glfwSetWindowFocusCallback(
-        window, [](GLFWwindow* window, const int focused) {
-            const auto* data =
-                static_cast<WindowData*>(glfwGetWindowUserPointer(window));
-            event::WindowFocusEvent event(focused == GLFW_TRUE);
-            data->eventCallback(event);
-        });
+    glfwSetWindowFocusCallback(window, [](GLFWwindow* win, const int focused) {
+        event::WindowFocusEvent event(focused == GLFW_TRUE);
+        dataOf(win)->eventCallback(event);
+    });
+}
+
+}  // namespace
+
+void Window::init(const sponge::core::WindowProps& props) {
+    data.title  = props.title;
+    data.width  = props.width;
+    data.height = props.height;
+
+    if (props.title.empty()) {
+        SPONGE_CORE_CRITICAL("Title cannot be empty");
+    }
+
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+
+    GLFWmonitor*       primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode =
+        primaryMonitor != nullptr ? glfwGetVideoMode(primaryMonitor) : nullptr;
+    if (mode == nullptr) {
+        SPONGE_CORE_ERROR("No primary monitor/video mode detected");
+    }
+
+    window = createGlfwWindow(props, primaryMonitor, mode);
+
+    if (window == nullptr) {
+        const char* descCStr = nullptr;
+        glfwGetError(&descCStr);
+        const std::string description = descCStr ? descCStr : "Unknown error";
+        SPONGE_CORE_CRITICAL("Could not create window: {}", description);
+        return;
+    }
+
+    int w = 0;
+    int h = 0;
+    glfwGetWindowSize(window, &w, &h);
+
+    data.width  = static_cast<uint32_t>(w);
+    data.height = static_cast<uint32_t>(h);
+
+    positionWindow(window, props, primaryMonitor, mode);
+
+    using sponge::core::DisplayMode;
+    glfwSetWindowAttrib(window, GLFW_DECORATED,
+                        props.displayMode == DisplayMode::Windowed &&
+                                props.decorated ?
+                            GLFW_TRUE :
+                            GLFW_FALSE);
+
+    glfwSetWindowUserPointer(window, &data);
+    installCallbacks(window);
 }
 
 void Window::shutdown() const {

@@ -44,6 +44,12 @@ ShadowMap::~ShadowMap() {
 }
 
 void ShadowMap::initialize() {
+    createTextures();
+    createFramebuffers();
+    createShaders();
+}
+
+void ShadowMap::createTextures() {
     // Moment array (RGBA32F): the first two moments of exp(c * depth) in the
     // red and green channels and of -exp(-c * depth) in the blue and alpha
     // channels. One layer per cascade.
@@ -83,7 +89,9 @@ void ShadowMap::initialize() {
     // Depth renderbuffer for depth testing during the moment-writing pass,
     // shared by every cascade because only one is drawn at a time
     depthRbo = renderer::createDepthRenderbuffer(shadowWidth, shadowHeight);
+}
 
+void ShadowMap::createFramebuffers() {
     // Moment FBOs: colour = one layer of momentArray, depth = depthRbo
     glCreateFramebuffers(static_cast<GLsizei>(maxCascades), momentFbos.data());
     for (uint32_t i = 0; i < maxCascades; i++) {
@@ -100,7 +108,9 @@ void ShadowMap::initialize() {
 
     // Blur FBO: colour = blurTexture (no depth needed)
     blurFbo = renderer::createFramebuffer("EVSM blur", blurTexture);
+}
 
+void ShadowMap::createShaders() {
     // EVSM moment-writing shader (reuses shadowmap.vert)
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName,

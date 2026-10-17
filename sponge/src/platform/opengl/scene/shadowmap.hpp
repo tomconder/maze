@@ -110,6 +110,9 @@ private:
     uint32_t shadowWidth;
 
     void initialize();
+    void createTextures();
+    void createFramebuffers();
+    void createShaders();
     void applyBlur(uint32_t cascade) const;
 };
 }  // namespace sponge::platform::opengl::scene
