@@ -30,6 +30,8 @@ class KeyMapLayer final : public ScrollMenuLayer {
 public:
     KeyMapLayer();
 
+    void onAttach() override;
+
     bool onUpdate(double elapsedTime) override;
 
 private:
@@ -46,6 +48,8 @@ protected:
     bool takesInput() const override;
 
     void renderRow(size_t row, float x, float y, float w, float h) override;
+
+    void onFontSizeChanged() override;
 
     void onRowKeys(size_t                              row,
                    const sponge::input::InputSnapshot& input) override;

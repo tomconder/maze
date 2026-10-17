@@ -58,11 +58,13 @@ primitives, windowing, or platform backends itself — see
   drag-release or a discrete step, not on every mouse-move frame of a drag.
   `ui::Slider`, `ui::SelectList` and `ui::Checkbox` are Yoga nodes inside their
   row: `attach(rowNode(row))` adds a label that takes the free width, then the
-  arrows, track, value or box. A heading row is a label alone (`ui/rowparts.hpp`). They size those nodes from the font, so a layer calls
-  `onFontSizeChanged()` before `recalculateLayout()` and once after
-  attaching. `--dump-yoga` does not show these nodes; it has no font to
-  measure them with. The select-list dots and the scroll bar are still placed by
-  hand.
+  arrows, track, value or box. A heading row is a label alone, and a keyboard
+  row is a label and a zero-width value part at the right edge, with the key
+  name hanging left of it (`ui/rowparts.hpp`). The nodes are sized from the
+  font, so a layer calls `onFontSizeChanged()` before `recalculateLayout()` and
+  once after attaching. `--dump-yoga` does not show the widget nodes; it has no
+  font to measure them with. The select-list dots and the scroll bar are still
+  placed by hand.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
   their computed y in `ScrollMenuLayer::rowRect()`. No screen has a
