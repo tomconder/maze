@@ -1,5 +1,6 @@
 #pragma once
 
+#include "layer/audiorows.hpp"
 #include "layer/scrollmenulayer.hpp"
 #include "ui/slider.hpp"
 
@@ -9,13 +10,6 @@
 #include <memory>
 
 namespace game::layer {
-
-enum class AudioMenuItem : uint8_t {
-    MasterVolume = 0,
-    SfxVolume,
-    MusicVolume,
-    Count,
-};
 
 class AudioLayer final : public ScrollMenuLayer {
 public:
@@ -47,6 +41,9 @@ protected:
     void onRowReleased(size_t row) override;
 
     void onFontSizeChanged() override;
+
+    void layoutRows(const ui::MenuLayout& menuLayout,
+                    const ui::RowText&    text) override;
 };
 
 }  // namespace game::layer

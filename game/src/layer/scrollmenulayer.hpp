@@ -12,6 +12,7 @@
 #include "ui/keyhints.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/menuscroll.hpp"
+#include "ui/rowlayout.hpp"
 #include "ui/tabbar.hpp"
 
 #include <glm/glm.hpp>
@@ -121,6 +122,12 @@ protected:
     virtual void onRowReleased(size_t /*row*/) {}
 
     virtual void onFontSizeChanged() {}
+
+    // Builds the parts of the rows in the layout and sizes them for the font,
+    // with the functions in ui/rowlayout.hpp. Runs on every layout, so it
+    // builds only what is not there yet.
+    virtual void layoutRows(const ui::MenuLayout& menuLayout,
+                            const ui::RowText&    text) = 0;
 
     // Runs after every window size change, once the layout follows it.
     virtual void onResized(uint32_t /*width*/, uint32_t /*height*/) {}

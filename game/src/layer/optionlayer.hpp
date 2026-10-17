@@ -1,5 +1,6 @@
 #pragma once
 
+#include "layer/optionrows.hpp"
 #include "layer/scrollmenulayer.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/confirmdialog.hpp"
@@ -13,29 +14,6 @@
 #include <string_view>
 
 namespace game::layer {
-
-// The Maximum Frame Rate slider runs over this range, in frames a second.
-inline constexpr uint32_t minFrameRate     = 30;
-inline constexpr uint32_t maxFrameRate     = 240;
-inline constexpr uint32_t defaultFrameRate = 60;
-
-enum class OptionMenuItem : uint8_t {
-    GeneralHeading = 0,
-    DisplayMode,
-    AspectRatio,
-    Resolution,
-    VerticalSync,
-    FrameRateCap,
-    MaxFrameRate,
-    AntiAliasing,
-    QualityHeading,
-    ShadowQuality,
-    AdvancedHeading,
-    AmbientOcclusion,
-    Bloom,
-    SubsurfaceScattering,
-    Count,
-};
 
 class OptionLayer final : public ScrollMenuLayer {
 public:
@@ -126,6 +104,9 @@ protected:
     void onRowReleased(size_t row) override;
 
     void onFontSizeChanged() override;
+
+    void layoutRows(const ui::MenuLayout& menuLayout,
+                    const ui::RowText&    text) override;
 
     void onResized(uint32_t width, uint32_t height) override;
 };

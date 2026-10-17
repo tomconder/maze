@@ -17,37 +17,16 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     textSize(createInfo.fontSize),
     color(createInfo.buttonColor),
     textColor(createInfo.textColor),
-    marginLeft(createInfo.marginLeft),
     cornerRadius(createInfo.cornerRadius),
     borderWidth(createInfo.borderWidth),
-    borderColor(createInfo.borderColor),
-    alignType(createInfo.alignType) {
-    font   = createInfo.font;
-    length = font->getLength(text, textSize);
+    borderColor(createInfo.borderColor) {
+    font = createInfo.font;
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
 }
 
 void Button::attach(const YGNodeRef box) {
     node = box;
-    YGNodeStyleSetFlexDirection(node, YGFlexDirectionRow);
-    YGNodeStyleSetAlignItems(node, YGAlignCenter);
-    YGNodeStyleSetPadding(node, YGEdgeHorizontal,
-                          static_cast<float>(marginLeft));
-    YGNodeInsertChild(node, YGNodeNew(), 0);
-    sizeNodes();
-}
-
-void Button::sizeNodes() const {
-    if (node == nullptr) {
-        return;
-    }
-    YGNodeStyleSetJustifyContent(
-        node, alignType == ButtonAlignType::CenterAligned ? YGJustifyCenter :
-                                                            YGJustifyFlexStart);
-    // The text is centred on the font size, not the line height.
-    setPartSize(node, 0, static_cast<float>(length),
-                static_cast<float>(textSize));
 }
 
 bool Button::onUpdate(const double) const {
@@ -84,28 +63,8 @@ void Button::setBorderColor(const glm::vec4& val) {
     borderColor = val;
 }
 
-void Button::setAlignType(const ButtonAlignType& val) {
-    alignType = val;
-    sizeNodes();
-}
-
-void Button::setMessage(std::string_view message) {
-    if (text == message) {
-        return;
-    }
-
-    text   = message;
-    length = font->getLength(text, textSize);
-    sizeNodes();
-}
-
 void Button::setFontSize(const uint32_t size) {
-    if (textSize == size) {
-        return;
-    }
     textSize = size;
-    length   = font->getLength(text, textSize);
-    sizeNodes();
 }
 
 std::unique_ptr<Button> makeMenuButton(
@@ -118,9 +77,7 @@ std::unique_ptr<Button> makeMenuButton(
         .font         = std::move(font),
         .buttonColor  = buttonColor,
         .textColor    = textColor,
-        .marginLeft   = 26,
         .cornerRadius = 12.F,
-        .alignType    = ButtonAlignType::LeftAligned,
     });
 }
 

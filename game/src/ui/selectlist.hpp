@@ -22,8 +22,6 @@ struct SelectListCreateInfo {
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
-    float     textMarginLeft;
-    float     maxValueWidth = 0.F;
     // fixed-width digits for the selected value; see font::shape()
     bool tabularFigures = false;
 };
@@ -32,17 +30,16 @@ struct SelectListCreateInfo {
 // nodes in the row the list is attached to: the label takes the free width,
 // then the left arrow, the value (a fixed width, so the arrows stay put) and
 // the right arrow. The value part holds the value text and, under it, a strip
-// of dots, one per item. The row must be laid out before the list draws or
-// hit-tests.
+// of dots, one per item. layoutSelect() builds and sizes them. The row must be
+// laid out before the list draws or hit-tests.
 class SelectList {
 public:
     explicit SelectList(const SelectListCreateInfo& createInfo);
 
-    // Adds the parts to the row node, which lives in the layer's layout.
+    // The row node, which lives in the layer's layout.
     void attach(YGNodeRef row);
 
     void setItems(std::vector<std::string> newItems);
-    void setMaxValueWidth(float width);
     void setFontSize(uint32_t size);
 
     size_t getSelectedIndex() const;
@@ -63,9 +60,7 @@ public:
     void onUpdate(float y, std::string_view label);
 
     // One dot per item under the value: the selected item is lit, and so is
-    // the applied one, which can differ. Returns true when the count changed,
-    // so the layer lays out again.
-    bool setDotCount(size_t count);
+    // the applied one, which can differ.
     void setAppliedIndex(std::optional<size_t> index);
 
     bool isInsideLeft(float mouseX) const;
@@ -76,30 +71,17 @@ private:
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
-    float     textMarginLeft;
-    float     maxValueWidth;
     bool      tabularFigures;
     bool      disabled = false;
 
     std::vector<std::string> items;
     size_t                   selectedIndex = 0;
 
-    float leftLen  = 0.F;
-    float rightLen = 0.F;
-
     YGNodeRef rowNode = nullptr;
 
-    size_t                dotCount = 0;
     std::optional<size_t> appliedIndex;
 
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
-
-    // Gives the nodes the sizes of the text.
-    void sizeNodes() const;
-
-    float dotRadius() const;
-
-    void rebuildDots() const;
 
     void renderDots(float y) const;
 };

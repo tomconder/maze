@@ -10,6 +10,7 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/inputmanager.hpp"
 #include "ui/keyhints.hpp"
+#include "ui/rowlayout.hpp"
 #include "ui/rowparts.hpp"
 
 namespace {
@@ -18,31 +19,9 @@ constexpr std::string_view captureMessage = "Press a key";
 constexpr glm::vec3 textColor    = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 captureColor = { 1.F, 0.84F, 0.2F };
 
-constexpr float textMarginLeft = 26.F;
+using game::layer::bindingRows;
 
-// The row is the label, then the value. The value part has no width: it marks
-// the right edge, and the text hangs left of it.
-constexpr int valuePart = 1;
-
-using game::layer::KeyMapItem;
-
-constexpr size_t rowCount = static_cast<size_t>(KeyMapItem::Count);
-
-struct BindingRow {
-    sponge::input::GameAction action;
-    std::string_view          label;
-};
-
-// Rows follow KeyMapItem order, so the enum is the row index. Menu navigation
-// is absent on purpose: rebinding it could leave no way out of this screen.
-constexpr std::array<BindingRow, rowCount> bindingRows = {
-    BindingRow{ sponge::input::GameAction::MoveForward, "Move Forward" },
-    BindingRow{ sponge::input::GameAction::MoveBack, "Move Back" },
-    BindingRow{ sponge::input::GameAction::MoveLeft, "Move Left" },
-    BindingRow{ sponge::input::GameAction::MoveRight, "Move Right" },
-    BindingRow{ sponge::input::GameAction::Pause, "Pause" },
-    BindingRow{ sponge::input::GameAction::ToggleDebugUI, "Debug UI" },
-};
+constexpr size_t rowCount = game::layer::keyMapRowCount;
 
 constexpr size_t resetHint = 3;  // Reset to Defaults in keyMapKeyHints
 
@@ -67,20 +46,12 @@ KeyMapLayer::KeyMapLayer() : ScrollMenuLayer(keyMapStyle()) {}
 
 void KeyMapLayer::onAttach() {
     ScrollMenuLayer::onAttach();
-    for (size_t row = 0; row < rowCount; row++) {
-        ui::attachRowParts(rowNode(row), 2, textMarginLeft);
-    }
-    onFontSizeChanged();
     recalculateLayout();
 }
 
-void KeyMapLayer::onFontSizeChanged() {
-    const auto textHeight =
-        static_cast<float>(menuFont()->getHeight(menuFontSize()));
-    for (size_t row = 0; row < rowCount; row++) {
-        ui::setPartSize(rowNode(row), ui::labelPart, YGUndefined, textHeight);
-        ui::setPartSize(rowNode(row), valuePart, 0.F, textHeight);
-    }
+void KeyMapLayer::layoutRows(const ui::MenuLayout& menuLayout,
+                             const ui::RowText&    text) {
+    layoutKeyMapRows(menuLayout, text);
 }
 
 bool KeyMapLayer::onUpdate(const double elapsedTime) {
@@ -108,7 +79,8 @@ void KeyMapLayer::renderRow(const size_t row, const float y) {
     const auto valueWidth =
         static_cast<float>(labelFont->getLength(value, labelSize));
     const auto labelRect = ui::partRect(rowNode(row), ui::labelPart, y);
-    const auto valueRect = ui::partRect(rowNode(row), valuePart, y);
+    const auto valueRect =
+        ui::partRect(rowNode(row), ui::bindingparts::value, y);
 
     labelFont->beginPass(labelSize);
     labelFont->render(bindingRows[row].label, { labelRect.x, labelRect.y },

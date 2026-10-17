@@ -6,10 +6,18 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 namespace game::layer {
 
 enum class IntroMenuItem : uint8_t { NewGame = 0, Options, Quit, Count };
+
+// Buttons follow IntroMenuItem order, so the enum is the button index.
+inline constexpr std::array<std::string_view, 3> introMenuLabels = {
+    "New Game",
+    "Options",
+    "Quit",
+};
 
 inline constexpr ui::MenuLayoutSpec introMenuLayout = {
     .backgroundWidthPercent = 30.F,

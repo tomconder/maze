@@ -29,8 +29,9 @@ primitives, windowing, or platform backends itself — see
   gives a `ButtonMenuStyle` (labels, key hints, colours, `MenuLayoutSpec`) and
   overrides `onSelect()`, and `onBack()` if it has a back action. The layout is
   a `ui::MenuLayout` member (`ui/menulayout.hpp`), which owns the Yoga tree and
-  frees it. `--dump-yoga=intro|exit|display|keyboard|audio|confirm|reset` prints that tree as JSX for
-  yogalayout.dev/playground (`ui/yogadump.hpp`).
+  frees it. `--capture-menu=<name> --dump-yoga` writes that tree as JSX for
+  yogalayout.dev/playground (`capture/yogadump.hpp`, `capture/menudump.hpp`) without a
+  window.
 * `layer/scrollmenulayer.hpp` / `.cpp` - the base of an options tab with rows
   under the tab bar. It owns the camera, font, `ui::MenuLayout`, `MenuScroll`,
   selection, hover, tab switching, wheel and scroll bar handling. A subclass
@@ -49,27 +50,32 @@ primitives, windowing, or platform backends itself — see
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
   (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
-  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. `--dump-yoga` measures them with `ui/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
+  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
   keyboard/gamepad step), applied live to `sponge::platform::audio::Audio` and
   written to `Settings` on every change, but only flushed to disk on
   drag-release or a discrete step, not on every mouse-move frame of a drag.
-  `ui::Slider`, `ui::SelectList` and `ui::Checkbox` are Yoga nodes inside their
-  row: `attach(rowNode(row))` adds a label that takes the free width, then the
-  arrows, track, value or box. A heading row is a label alone, and a keyboard
-  row is a label and a zero-width value part at the right edge, with the key
-  name hanging left of it (`ui/rowparts.hpp`). `ui::Button` is a node
-  too: `attach(node)` adds its text as the only child, centred or left-aligned,
-  and it draws from `nodeRect()`. The value part of a `ui::SelectList` is as
-  tall as the row: the text sits in the middle and a strip of dots, one node per
-  item, hangs from the bottom edge. `setDotCount()` returns true when the count
-  changed, and the layer then lays out again (the Resolution list changes with
-  the aspect ratio). The nodes are sized from the font, so a layer calls
-  `onFontSizeChanged()` before `recalculateLayout()` and once after attaching.
-  `--dump-yoga` does not show the widget nodes; it has no font to measure them
-  with. The scroll bar is still placed by hand.
+  The parts of a row are Yoga nodes, built and sized by the functions in
+  `ui/rowlayout.hpp` (`layoutSlider()`, `layoutSelect()`, `layoutCheckbox()`,
+  `layoutHeading()`, `layoutBinding()`, `layoutButton()`). They need only a
+  `TextMeasure` and the font size, no GL, and they build a row's nodes the
+  first time and size them every time. A layer lists its rows in a GL-free
+  header (`layer/audiorows.hpp`, `optionrows.hpp`, `keymaprows.hpp`) and
+  overrides `ScrollMenuLayer::layoutRows()`, which `recalculateLayout()`
+  calls; `ButtonMenuLayer` and `ConfirmLayout` call `layoutButton()` the same
+  way. `capture/menudump.cpp` calls the same functions, which is how
+  `--dump-yoga` reads the real tree without a window. A row is a label that
+  takes the free width, then the arrows, track, value or box. A heading row is
+  a label alone, and a keyboard row is a label and a zero-width value part at
+  the right edge, with the key name hanging left of it (`ui/rowparts.hpp`).
+  `ui::Slider`, `ui::SelectList`, `ui::Checkbox` and `ui::Button` only
+  `attach(node)` to the row, and draw and hit-test from `nodeRect()`. The value
+  part of a `ui::SelectList` is as tall as the row: the text sits in the middle
+  and a strip of dots, one node per item, hangs from the bottom edge. When the
+  Resolution list changes with the aspect ratio, `OptionLayer` calls
+  `recalculateLayout()`. The scroll bar is still placed by hand.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
   their computed y in `ScrollMenuLayer::rowRect()`. No screen has a

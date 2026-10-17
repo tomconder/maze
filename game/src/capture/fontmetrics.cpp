@@ -1,4 +1,4 @@
-#include "ui/fontmetrics.hpp"
+#include "capture/fontmetrics.hpp"
 
 #include "ktx2.hpp"
 #include "readbytes.hpp"
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace game::ui {
+namespace game::capture {
 
 FontMetrics::FontMetrics(const std::string& path) {
     const auto  bytes = sponge::scene::readBytes(path);
@@ -21,13 +21,14 @@ FontMetrics::FontMetrics(const std::string& path) {
     }
 }
 
-uint32_t FontMetrics::length(const std::string_view text, const uint32_t size) {
+uint32_t FontMetrics::length(const std::string_view text, const uint32_t size,
+                             const bool tabularFigures) {
     const auto* baked = sponge::scene::font::sizeOf(font, size);
     if (baked == nullptr) {
         return 0;
     }
 
-    sponge::scene::font::shape(font, *baked, text, false, shaped);
+    sponge::scene::font::shape(font, *baked, text, tabularFigures, shaped);
     float penX = 0.F;
     for (const auto& glyph : shaped) {
         penX += glyph.xAdvance;
@@ -40,11 +41,13 @@ uint32_t FontMetrics::height(const uint32_t size) const {
     return baked != nullptr ? static_cast<uint32_t>(baked->lineHeight) : size;
 }
 
-TextMeasure FontMetrics::measure() {
-    return [this](const std::string_view text, const uint32_t size) {
-        return TextSize{ static_cast<float>(length(text, size)),
-                         static_cast<float>(height(size)) };
+ui::TextMeasure FontMetrics::measure() {
+    return [this](const std::string_view text, const uint32_t size,
+                  const bool tabularFigures) {
+        return ui::TextSize{ static_cast<float>(
+                                 length(text, size, tabularFigures)),
+                             static_cast<float>(height(size)) };
     };
 }
 
-}  // namespace game::ui
+}  // namespace game::capture

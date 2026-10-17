@@ -103,8 +103,10 @@ bool usingGamepad() {
 }
 
 TextMeasure fontMeasure(const std::shared_ptr<BitmapFont>& font) {
-    return [font](const std::string_view text, const uint32_t size) {
-        return TextSize{ static_cast<float>(font->getLength(text, size)),
+    return [font](const std::string_view text, const uint32_t size,
+                  const bool tabularFigures) {
+        return TextSize{ static_cast<float>(
+                             font->getLength(text, size, tabularFigures)),
                          static_cast<float>(font->getHeight(size)) };
     };
 }

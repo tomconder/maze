@@ -10,22 +10,10 @@
 #include <string_view>
 
 namespace {
-using game::layer::ExitMenuItem;
-
-constexpr size_t menuItemCount = static_cast<size_t>(ExitMenuItem::Count);
-
-// Buttons follow ExitMenuItem order, so the enum is the button index.
-constexpr std::array<std::string_view, menuItemCount> menuLabels = {
-    "Continue",
-    "Options",
-    "Return to Menu",
-    "Exit the Game",
-};
-
 game::layer::ButtonMenuStyle exitStyle() {
     return {
         .name            = "exit",
-        .labels          = menuLabels,
+        .labels          = game::layer::exitMenuLabels,
         .keyHints        = game::layer::exitKeyHints,
         .layout          = game::layer::exitMenuLayout,
         .buttonColor     = { 0.05F, 0.05F, 0.05F, 1.F },

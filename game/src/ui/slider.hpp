@@ -3,6 +3,7 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 #include "platform/opengl/scene/quad.hpp"
 #include "ui/layouttypes.hpp"
+#include "ui/rowlayout.hpp"
 
 #include <yoga/Yoga.h>
 
@@ -15,20 +16,15 @@
 
 namespace game::ui {
 
-// trackWidth, trackHeight, handleRadius and handleBorderWidth are pixels at the
-// 32 px menu font; the slider scales them with its font size.
+// handleRadius and handleBorderWidth are pixels at the 32 px menu font; the
+// slider scales them with its font size.
 struct SliderCreateInfo {
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
-    float     textMarginLeft;
-    float     trackWidth        = 200.F;
-    float     trackHeight       = 6.F;
     float     handleRadius      = 15.F;
     float     handleBorderWidth = 2.F;
-    // Space left of the label, for a row that belongs to the one above it.
-    float     labelIndent       = 0.F;
     glm::vec4 trackColor        = { 1.F, 1.F, 1.F, 0.15F };
     glm::vec4 fillColor         = { 1.F, 0.84F, 0.2F, 1.F };
     glm::vec4 handleColor       = { 1.F, 1.F, 1.F, 1.F };
@@ -41,9 +37,10 @@ struct SliderCreateInfo {
 // settings persistence are the owning layer's job, driven through
 // isInsideTrack/valueAtX/setValue/step.
 //
-// The parts are Yoga nodes in the row the slider is attached to: the label
-// takes the free width, then the left arrow, the track, the right arrow and
-// the value. The row must be laid out before the slider draws or hit-tests.
+// The parts are Yoga nodes in the row the slider is attached to, which
+// layoutSlider() builds and sizes: the label takes the free width, then the
+// left arrow, the track, the right arrow and the value. The row must be laid
+// out before the slider draws or hit-tests.
 class Slider {
 public:
     explicit Slider(const SliderCreateInfo& createInfo);
@@ -62,7 +59,7 @@ public:
     // layer's call, same as the rest of the interaction.
     void setDisabled(bool isDisabled);
 
-    // Adds the parts to the row node, which lives in the layer's layout.
+    // The row node, which lives in the layer's layout.
     void attach(YGNodeRef row);
 
     void setFontSize(uint32_t size);
@@ -85,17 +82,17 @@ public:
     int arrowAt(float mouseX) const;
 
 private:
+    // fontSize relative to the 32 px font the sizes are given for.
+    float scale() const {
+        return static_cast<float>(fontSize) / referenceFontSize;
+    }
+
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
-    float     textMarginLeft;
-    float     trackWidth;  // pixels at the 32 px font; multiply by scale
-    float     trackHeight;
-    float     handleRadius;
+    float     handleRadius;  // pixels at the 32 px font; multiply by scale()
     float     handleBorderWidth;
-    float     labelIndent;
-    float     scale = 1.F;  // fontSize / 32
     glm::vec4 trackColor;
     glm::vec4 fillColor;
     glm::vec4 handleColor;
@@ -104,18 +101,10 @@ private:
     float       value    = 1.F;
     bool        disabled = false;
     std::string valueText;
-    float       percentLen    = 0.F;  // cached width of "100%" at fontSize
-    float       leftArrowLen  = 0.F;  // cached width of "< " at fontSize
-    float       rightArrowLen = 0.F;  // cached width of " >" at fontSize
 
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 
     YGNodeRef rowNode = nullptr;
-
-    void recomputeCachedLengths();
-
-    // Gives the nodes the sizes of the text and the track.
-    void sizeNodes() const;
 };
 
 }  // namespace game::ui

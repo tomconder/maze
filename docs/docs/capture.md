@@ -2,7 +2,7 @@
 
 > These arguments exist only in debug builds. A release build ignores them and starts normally.
 
-A capture run skips the splash and intro screens and loads the maze. (`--capture-menu` shows one menu screen instead, and `--dump-yoga` opens no window.) It uses a 1600x900 window by default, with vsync off, so
+A capture run skips the splash and intro screens and loads the maze. (`--capture-menu` shows one menu screen instead, and `--capture-menu` with `--dump-yoga` opens no window.) It uses a 1600x900 window by default, with vsync off, so
 runs compare. The camera turns once over the run, unless `--capture-walk` moves it. The run writes its results to the working directory and then exits.
 
 | Argument                  | Description                                                                                                                                                     |
@@ -14,7 +14,7 @@ runs compare. The camera turns once over the run, unless `--capture-walk` moves 
 | `--capture-cascades=N`    | Use `N` shadow cascades, 1 to 4. The default is 2. One is the whole-scene map alone, for an A/B against the cascades. |
 | `--capture-size=WxH`      | Use a `W` by `H` window for any capture run, for example `3840x2160`. The default is 1600x900. A menu capture has no window frame, so the size can be larger than the screen. |
 | `--capture-menu=name`     | Show one menu screen instead of the maze: `intro`, `exit`, `display`, `keyboard`, `audio`, `confirm` (the display menu with the graphical changes prompt open) or `reset` (the keyboard menu with the reset prompt open). The run waits two seconds, writes `capture_menu_<name>.png` and exits. Any other name gives the normal start. |
-| `--dump-yoga=name`        | Print the Yoga layout tree of the `intro`, `exit`, `display`, `keyboard`, `audio` menu, or the `confirm` or `reset` prompt, as JSX and exit, with no window. The tab bar and the key hint bar are part of the tree. It uses the `--capture-size` window size. Paste the output into [yogalayout.dev/playground](https://yogalayout.dev/playground) to inspect or change the layout. |
+| `--dump-yoga`             | With `--capture-menu=name`, write the Yoga layout tree of the screen as JSX to `capture_menu_<name>.jsx` and exit, with no window and no OpenGL. It works for `intro`, `exit`, `display`, `keyboard`, `audio`, and for the `confirm` and `reset` prompts. The tree holds every node: the tab bar, the key hint bar and the parts of each row (sliders, select lists, checkboxes, buttons). It uses the `--capture-size` window size. The display tab lists three aspect ratios and four resolutions in place of what a monitor reports, so its dots and value width can differ from a real run. Paste the output into [yogalayout.dev/playground](https://yogalayout.dev/playground) to inspect or change the layout. |
 
 Examples:
 
@@ -25,7 +25,7 @@ maze.exe --capture-frames 1500 --capture-off=ssao,bloom
 maze.exe --capture-frames 600 --capture-walk=0.05 --capture-cascades=3
 maze.exe --capture-menu=display --capture-size=3840x2160
 maze.exe --capture-menu=exit
-maze.exe --dump-yoga=intro --capture-size=1920x1080
+maze.exe --capture-menu=intro --dump-yoga --capture-size=1920x1080
 ```
 
 ## Output files
