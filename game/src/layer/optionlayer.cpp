@@ -27,6 +27,7 @@
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/keyhints.hpp"
+#include "ui/rowparts.hpp"
 #include "ui/selectlist.hpp"
 
 namespace {
@@ -344,6 +345,17 @@ void OptionLayer::onAttach() {
     frameRateSlider->attach(
         rowNode(static_cast<size_t>(OptionMenuItem::MaxFrameRate)));
 
+    // A heading is a label alone; a checkbox row is a label and the box.
+    for (size_t row = 0; row < settingRows.size(); row++) {
+        const auto item = settingRows[row].item;
+        if (isHeading(item)) {
+            ui::attachRowParts(rowNode(row), 1, textMarginLeft);
+        } else if (auto* const box = checkboxFor(item); box != nullptr) {
+            box->attach(rowNode(row));
+        }
+    }
+    onFontSizeChanged();
+
     syncPendingCheckboxState();
 
     aspectRatioList->setSelectedIndex(
@@ -400,23 +412,21 @@ void OptionLayer::renderDots(const size_t count, const float valueCenterX,
     }
 }
 
-void OptionLayer::renderRowLabel(const float x, const float y, const float h,
+void OptionLayer::renderRowLabel(const size_t row, const float y,
                                  const std::string_view label,
                                  const glm::vec3&       color) const {
     const auto& labelFont = menuFont();
-    const auto  labelSize = menuFontSize();
-    const float textY     = std::floor(
-        y + (h - static_cast<float>(labelFont->getHeight(labelSize))) / 2.F);
-    labelFont->beginPass(labelSize);
-    labelFont->render(label, { x + textMarginLeft, textY }, color);
+    const auto  rect      = ui::partRect(rowNode(row), ui::labelPart, y);
+    labelFont->beginPass(menuFontSize());
+    labelFont->render(label, { rect.x, rect.y }, color);
     labelFont->endPass();
 }
 
-void OptionLayer::renderRow(const size_t row, const float x, const float y,
-                            const float w, const float h) {
+void OptionLayer::renderRow(const size_t row, const float /*x*/, const float y,
+                            const float /*w*/, const float h) {
     const auto& [item, label] = settingRows[row];
     if (isHeading(item)) {
-        renderRowLabel(x, y, h, label, headingColor);
+        renderRowLabel(row, y, label, headingColor);
     } else if (item == OptionMenuItem::MaxFrameRate) {
         frameRateSlider->onUpdate(y, label);
     } else if (auto* const list = listFor(item); list != nullptr) {
@@ -425,8 +435,8 @@ void OptionLayer::renderRow(const size_t row, const float x, const float y,
         renderDots(dotCount, list->getValueCenterX(), y, h,
                    list->getSelectedIndex(), appliedIndex);
     } else {
-        renderRowLabel(x, y, h, label, textColor);
-        checkboxFor(item)->onUpdate(x, y, w, h, *pendingFor(item));
+        renderRowLabel(row, y, label, textColor);
+        checkboxFor(item)->onUpdate(y, *pendingFor(item));
     }
 }
 
@@ -461,8 +471,8 @@ bool OptionLayer::onConfirm(const size_t row) {
 }
 
 bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
-    const auto [x, y, w, h] = rowRect(row);
-    const auto item         = static_cast<OptionMenuItem>(row);
+    const auto y    = std::get<1>(rowRect(row));
+    const auto item = static_cast<OptionMenuItem>(row);
     if (item == OptionMenuItem::MaxFrameRate) {
         auto& slider = *frameRateSlider;
         if (slider.isInsideTrack(mouse.x)) {
@@ -483,7 +493,7 @@ bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
         } else if (list->isInsideRight(mouse.x)) {
             cycleList(item, 1);
         }
-    } else if (checkboxFor(item)->isInside(mouse.x, mouse.y, x, y, w, h)) {
+    } else if (checkboxFor(item)->isInside(mouse.x, mouse.y, y)) {
         togglePending(item);
     }
     return false;
@@ -499,18 +509,25 @@ void OptionLayer::onRowReleased(const size_t /*row*/) {
 }
 
 void OptionLayer::onFontSizeChanged() {
-    const auto  checkboxSize = static_cast<float>(menuFontSize());
+    const auto checkboxSize = static_cast<float>(menuFontSize());
+    const auto textHeight =
+        static_cast<float>(menuFont()->getHeight(menuFontSize()));
     const float maxCycleValueWidth =
         computeMaxCycleValueWidth(menuFont(), menuFontSize());
 
-    for (const auto& [item, label] : settingRows) {
+    for (size_t row = 0; row < settingRows.size(); row++) {
+        const auto item = settingRows[row].item;
         if (auto* const list = listFor(item); list != nullptr) {
             list->setFontSize(menuFontSize());
             list->setMaxValueWidth(maxCycleValueWidth);
         } else if (item == OptionMenuItem::MaxFrameRate) {
             frameRateSlider->setFontSize(menuFontSize());
-        } else if (!isHeading(item)) {
-            checkboxFor(item)->setSize(checkboxSize);
+        } else {
+            if (!isHeading(item)) {
+                checkboxFor(item)->setSize(checkboxSize);
+            }
+            ui::setPartSize(rowNode(row), ui::labelPart, YGUndefined,
+                            textHeight);
         }
     }
 }

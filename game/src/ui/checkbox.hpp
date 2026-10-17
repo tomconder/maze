@@ -3,6 +3,7 @@
 #include "platform/opengl/scene/quad.hpp"
 
 #include <glm/glm.hpp>
+#include <yoga/Yoga.h>
 
 #include <memory>
 
@@ -23,16 +24,19 @@ class Checkbox {
 public:
     explicit Checkbox(const CheckboxCreateInfo& createInfo);
 
-    void onUpdate(float x, float y, float w, float h, bool checked);
+    // The row is a label that takes the free width, then the box. The caller
+    // sizes and draws the label: part 0 of the row.
+    void attach(YGNodeRef row);
 
-    bool isInside(float mouseX, float mouseY, float x, float y, float w,
-                  float h) const;
+    // y is where the row starts; the rows scroll and the nodes do not.
+    void onUpdate(float y, bool checked);
 
-    void setSize(float newSize) {
-        size = newSize;
-    }
+    bool isInside(float mouseX, float mouseY, float y) const;
+
+    void setSize(float newSize);
 
 private:
+    YGNodeRef rowNode = nullptr;
     float     margin;
     float     size;
     float     cornerRadius;

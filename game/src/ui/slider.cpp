@@ -24,8 +24,7 @@ constexpr std::string_view fullValueText     = "100%";
 constexpr std::string_view leftArrowText     = "< ";
 constexpr std::string_view rightArrowText    = " >";
 
-// The children of the row, left to right.
-constexpr int labelPart      = 0;
+// The children of the row after the label, left to right.
 constexpr int leftArrowPart  = 1;
 constexpr int trackPart      = 2;
 constexpr int rightArrowPart = 3;
