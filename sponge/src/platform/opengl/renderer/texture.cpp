@@ -42,6 +42,7 @@ GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
 namespace sponge::platform::opengl::renderer {
 Texture::Texture(const TextureCreateInfo& createInfo) {
     glCreateTextures(GL_TEXTURE_2D, 1, &id);
+    labelObject(GL_TEXTURE, id, createInfo.name);
 
     if (!createInfo.ktx2.empty()) {
         SPONGE_GL_INFO("Loading baked texture: [{}]", createInfo.name);
