@@ -44,6 +44,9 @@ public:
     // — true for any object large enough to enclose the eye (e.g. the whole
     // level). An orthographic eye (e.g. a directional light) doesn't clip
     // this way, so there the guard is just a harmless no-op.
+    //
+    // An object whose box is outside the viewProj frustum is also skipped and
+    // left visible: it would rasterize nothing and read as occluded.
     void query(const std::vector<sponge::scene::AABB>& worldBounds,
                const glm::mat4& viewProj, const glm::vec3& eyePos);
 
