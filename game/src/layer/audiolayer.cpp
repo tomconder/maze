@@ -142,9 +142,9 @@ void AudioLayer::onRowReleased(const size_t row) {
     applyVolume(static_cast<AudioMenuItem>(row), true);
 }
 
-void AudioLayer::layoutRows(const ui::MenuLayout& layout,
+void AudioLayer::layoutRows(const ui::MenuLayout& menuLayout,
                             const ui::RowText&    text) {
-    layoutAudioRows(layout, text);
+    layoutAudioRows(menuLayout, text);
 }
 
 void AudioLayer::onFontSizeChanged() {

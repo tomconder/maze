@@ -402,9 +402,9 @@ void OptionLayer::onRowReleased(const size_t /*row*/) {
     applyFrameRate(true);
 }
 
-void OptionLayer::layoutRows(const ui::MenuLayout& layout,
+void OptionLayer::layoutRows(const ui::MenuLayout& menuLayout,
                              const ui::RowText&    text) {
-    layoutOptionRows(layout, text,
+    layoutOptionRows(menuLayout, text,
                      { .aspectLabels     = aspectLabels,
                        .resolutionLabels = resolutionLabels,
                        .resolutionDots   = filteredResolutions.size() });

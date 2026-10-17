@@ -105,7 +105,7 @@ protected:
 
     void onFontSizeChanged() override;
 
-    void layoutRows(const ui::MenuLayout& layout,
+    void layoutRows(const ui::MenuLayout& menuLayout,
                     const ui::RowText&    text) override;
 
     void onResized(uint32_t width, uint32_t height) override;

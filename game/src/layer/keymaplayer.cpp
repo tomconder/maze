@@ -49,9 +49,9 @@ void KeyMapLayer::onAttach() {
     recalculateLayout();
 }
 
-void KeyMapLayer::layoutRows(const ui::MenuLayout& layout,
+void KeyMapLayer::layoutRows(const ui::MenuLayout& menuLayout,
                              const ui::RowText&    text) {
-    layoutKeyMapRows(layout, text);
+    layoutKeyMapRows(menuLayout, text);
 }
 
 bool KeyMapLayer::onUpdate(const double elapsedTime) {

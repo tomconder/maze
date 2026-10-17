@@ -32,7 +32,7 @@ protected:
 
     void renderRow(size_t row, float y) override;
 
-    void layoutRows(const ui::MenuLayout& layout,
+    void layoutRows(const ui::MenuLayout& menuLayout,
                     const ui::RowText&    text) override;
 
     void onRowKeys(size_t                              row,

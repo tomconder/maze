@@ -42,7 +42,7 @@ protected:
 
     void onFontSizeChanged() override;
 
-    void layoutRows(const ui::MenuLayout& layout,
+    void layoutRows(const ui::MenuLayout& menuLayout,
                     const ui::RowText&    text) override;
 };
 
