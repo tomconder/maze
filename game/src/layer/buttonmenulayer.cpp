@@ -167,9 +167,12 @@ void ButtonMenuLayer::clearHoveredItems() const {
 void ButtonMenuLayer::recalculateLayout() {
     const auto width   = static_cast<float>(camera->getWidth());
     const auto gamepad = ui::usingGamepad();
-    layout->setKeyHintSizes(ui::keyHintSizes(menuStyle.keyHints, width, gamepad,
-                                             ui::fontMeasure(font)),
-                            gamepad);
+    const auto measure = ui::fontMeasure(font);
+    layout->setKeyHintSizes(
+        ui::keyHintSizes(menuStyle.keyHints, width, gamepad, measure), gamepad);
+    ui::layoutMenuButtons(
+        *layout, { measure, ui::menuFontSizeForWidth(camera->getWidth()) },
+        menuStyle.labels);
     layout->calculate(width, static_cast<float>(camera->getHeight()));
 }
 

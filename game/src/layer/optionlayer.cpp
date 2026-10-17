@@ -27,6 +27,7 @@
 #include "ui/button.hpp"
 #include "ui/checkbox.hpp"
 #include "ui/keyhints.hpp"
+#include "ui/rowlayout.hpp"
 #include "ui/rowparts.hpp"
 #include "ui/selectlist.hpp"
 
@@ -55,14 +56,9 @@ constexpr auto aspectRatioFilters = std::to_array<AspectRatioFilter>({
 
 constexpr float confirmSeconds = 15.F;
 
-constexpr size_t shadowQualityCount =
-    static_cast<size_t>(game::layer::ShadowQuality::Count);
-
 constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 constexpr glm::vec3 headingColor       = { 0.6F, 0.6F, 0.6F };
-
-constexpr float textMarginLeft = 26.F;
 
 // The slider holds 0 to 1; the frame rate is that across the range.
 constexpr float frameRateSpan =
@@ -81,6 +77,8 @@ float frameRateToSlider(const uint32_t fps) {
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
 std::vector<AspectRatioFilter>        validAspectRatioFilters;
+std::vector<std::string_view>         aspectLabels;
+std::vector<std::string>              resolutionLabels;
 std::optional<size_t>                 currentAspectRatioIndex;
 std::optional<size_t>                 currentResolutionIndex;
 
@@ -130,89 +128,22 @@ size_t findAspectRatioIndex(const uint32_t width, const uint32_t height) {
                0;
 }
 
-// Index order is the sponge::core::DisplayMode order.
-constexpr std::array<std::string_view, 3> displayModeLabels = {
-    "Windowed", "Full Screen", "Borderless Window"
-};
-static_assert(displayModeLabels.size() ==
+static_assert(game::layer::displayModeLabels.size() ==
               static_cast<size_t>(sponge::core::DisplayMode::Count));
-
-// max display width across all aspect-ratio labels and resolution strings.
-// Measured with tabularFigures=true to match how they render.
-float computeMaxCycleValueWidth(
-    const std::shared_ptr<sponge::platform::opengl::scene::BitmapFont>&
-                   menuFont,
-    const uint32_t fontSize) {
-    float width = std::accumulate(
-        validAspectRatioFilters.begin(), validAspectRatioFilters.end(), 0.F,
-        [&](const float acc, const auto& f) {
-            return std::max(acc, static_cast<float>(menuFont->getLength(
-                                     f.label, fontSize, true)));
-        });
-    for (const auto label : displayModeLabels) {
-        width = std::max(
-            width, static_cast<float>(menuFont->getLength(label, fontSize)));
-    }
-    return std::accumulate(
-        availableResolutions.begin(), availableResolutions.end(), width,
-        [&](const float acc, const auto& res) {
-            return std::max(acc,
-                            static_cast<float>(menuFont->getLength(
-                                fmt::format("{} × {}", res.width, res.height),
-                                fontSize, true)));
-        });
-}
 
 // The display mode a change replaced, until the player accepts it.
 std::optional<sponge::core::DisplayMode> previousDisplayMode;
 
 using game::layer::OptionMenuItem;
+using game::layer::optionRows;
 
-constexpr size_t rowCount = static_cast<size_t>(OptionMenuItem::Count);
-
-struct RowDef {
-    OptionMenuItem   item;
-    std::string_view label;
-};
+constexpr size_t rowCount = game::layer::optionRowCount;
 
 // A heading is a label only: it is never selected, hovered or clicked.
 constexpr bool isHeading(const OptionMenuItem item) {
-    return item == OptionMenuItem::GeneralHeading ||
-           item == OptionMenuItem::QualityHeading ||
-           item == OptionMenuItem::AdvancedHeading;
+    return game::layer::optionRows[static_cast<size_t>(item)].kind ==
+           game::layer::OptionRowKind::Heading;
 }
-
-constexpr std::array settingRows = {
-    RowDef{ .item = OptionMenuItem::GeneralHeading, .label = "General" },
-    RowDef{ .item = OptionMenuItem::DisplayMode, .label = "Display Mode" },
-    RowDef{ .item = OptionMenuItem::AspectRatio, .label = "Aspect Ratio" },
-    RowDef{ .item = OptionMenuItem::Resolution, .label = "Resolution" },
-    RowDef{ .item = OptionMenuItem::VerticalSync, .label = "VSync" },
-    RowDef{ .item = OptionMenuItem::FrameRateCap, .label = "Frame Rate Cap" },
-    RowDef{ .item  = OptionMenuItem::MaxFrameRate,
-            .label = "Maximum Frame Rate" },
-    RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-aliasing" },
-    RowDef{ .item = OptionMenuItem::QualityHeading, .label = "Quality" },
-    RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Quality" },
-    RowDef{ .item = OptionMenuItem::AdvancedHeading, .label = "Advanced" },
-    RowDef{ .item  = OptionMenuItem::AmbientOcclusion,
-            .label = "Ambient Occlusion" },
-    RowDef{ .item = OptionMenuItem::Bloom, .label = "Bloom" },
-    RowDef{ .item  = OptionMenuItem::SubsurfaceScattering,
-            .label = "Subsurface Scattering" },
-};
-
-// rowNodes are created by index, so the table must stay in enum order and
-// cover every row.
-static_assert(settingRows.size() == rowCount);
-static_assert([] {
-    for (size_t i = 0; i < settingRows.size(); i++) {
-        if (static_cast<size_t>(settingRows[i].item) != i) {
-            return false;
-        }
-    }
-    return true;
-}());
 
 std::optional<size_t> currentDisplayModeIndex;
 std::optional<size_t> currentShadowQualityIndex;
@@ -224,24 +155,25 @@ constexpr std::array aaModes = {
     game::thread::AntiAliasing::Fxaa,
     game::thread::AntiAliasing::Taa,
 };
-static_assert(aaModes.size() ==
-              static_cast<size_t>(game::thread::AntiAliasing::Count));
+static_assert(aaModes.size() == game::layer::aaModeCount);
+static_assert(game::layer::shadowQualityCount ==
+              static_cast<size_t>(game::layer::ShadowQuality::Count));
 
-// Dot strip state for the cycling rows: total items, applied index.
-std::pair<size_t, std::optional<size_t>> dotState(const OptionMenuItem item) {
+// The applied index the dot strip lights for the cycling rows.
+std::optional<size_t> appliedIndexFor(const OptionMenuItem item) {
     switch (item) {
         case OptionMenuItem::AspectRatio:
-            return { validAspectRatioFilters.size(), currentAspectRatioIndex };
+            return currentAspectRatioIndex;
         case OptionMenuItem::Resolution:
-            return { filteredResolutions.size(), currentResolutionIndex };
+            return currentResolutionIndex;
         case OptionMenuItem::DisplayMode:
-            return { displayModeLabels.size(), currentDisplayModeIndex };
+            return currentDisplayModeIndex;
         case OptionMenuItem::AntiAliasing:
-            return { aaModes.size(), currentAaIndex };
+            return currentAaIndex;
         case OptionMenuItem::ShadowQuality:
-            return { shadowQualityCount, currentShadowQualityIndex };
+            return currentShadowQualityIndex;
         default:
-            return { 0, std::nullopt };
+            return std::nullopt;
     }
 }
 
@@ -273,16 +205,21 @@ void OptionLayer::onAttach() {
         }
     }
 
-    const float maxCycleValueWidth =
-        computeMaxCycleValueWidth(menuFont(), menuFontSize());
+    aspectLabels.clear();
+    for (const auto& f : validAspectRatioFilters) {
+        aspectLabels.push_back(f.label);
+    }
+    resolutionLabels.clear();
+    for (const auto& res : availableResolutions) {
+        resolutionLabels.push_back(
+            fmt::format("{} × {}", res.width, res.height));
+    }
 
     const ui::SelectListCreateInfo selectCreateInfo{
         .font               = menuFont(),
         .fontSize           = menuFontSize(),
         .textColor          = textColor,
         .arrowDisabledColor = arrowDisabledColor,
-        .textMarginLeft     = textMarginLeft,
-        .maxValueWidth      = maxCycleValueWidth,
     };
     // tabular figures: aspect ratio/resolution digits shouldn't shift width
     // as the player cycles through values
@@ -294,10 +231,7 @@ void OptionLayer::onAttach() {
     shadowQualityList = std::make_unique<ui::SelectList>(selectCreateInfo);
     antiAliasingList  = std::make_unique<ui::SelectList>(selectCreateInfo);
 
-    const ui::CheckboxCreateInfo checkboxCreateInfo{
-        .margin = textMarginLeft,
-        .size   = static_cast<float>(menuFontSize()),
-    };
+    const ui::CheckboxCreateInfo checkboxCreateInfo{};
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     frameRateCapCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     ambientOcclusionCheckbox =
@@ -322,32 +256,24 @@ void OptionLayer::onAttach() {
     const auto currentWidth  = window->getWidth();
     const auto currentHeight = window->getHeight();
 
-    for (size_t row = 0; row < settingRows.size(); row++) {
-        if (auto* const list = listFor(settingRows[row].item);
-            list != nullptr) {
+    for (size_t row = 0; row < optionRows.size(); row++) {
+        if (auto* const list = listFor(optionRows[row].item); list != nullptr) {
             list->attach(rowNode(row));
-            list->setDotCount(dotState(settingRows[row].item).first);
         }
     }
 
-    // One step of indent: the slider belongs to the checkbox above it.
     frameRateSlider = std::make_unique<ui::Slider>(ui::SliderCreateInfo{
         .font               = menuFont(),
         .fontSize           = menuFontSize(),
         .textColor          = textColor,
         .arrowDisabledColor = arrowDisabledColor,
-        .textMarginLeft     = textMarginLeft,
-        .labelIndent        = 32.F,
     });
     frameRateSlider->attach(
         rowNode(static_cast<size_t>(OptionMenuItem::MaxFrameRate)));
 
-    // A heading is a label alone; a checkbox row is a label and the box.
-    for (size_t row = 0; row < settingRows.size(); row++) {
-        const auto item = settingRows[row].item;
-        if (isHeading(item)) {
-            ui::attachRowParts(rowNode(row), 1, textMarginLeft);
-        } else if (auto* const box = checkboxFor(item); box != nullptr) {
+    for (size_t row = 0; row < optionRows.size(); row++) {
+        if (auto* const box = checkboxFor(optionRows[row].item);
+            box != nullptr) {
             box->attach(rowNode(row));
         }
     }
@@ -393,13 +319,14 @@ void OptionLayer::renderRowLabel(const size_t row, const float y,
 }
 
 void OptionLayer::renderRow(const size_t row, const float y) {
-    const auto& [item, label] = settingRows[row];
+    const auto item  = optionRows[row].item;
+    const auto label = optionRows[row].label;
     if (isHeading(item)) {
         renderRowLabel(row, y, label, headingColor);
     } else if (item == OptionMenuItem::MaxFrameRate) {
         frameRateSlider->onUpdate(y, label);
     } else if (auto* const list = listFor(item); list != nullptr) {
-        list->setAppliedIndex(dotState(item).second);
+        list->setAppliedIndex(appliedIndexFor(item));
         list->onUpdate(y, label);
     } else {
         renderRowLabel(row, y, label, textColor);
@@ -475,28 +402,21 @@ void OptionLayer::onRowReleased(const size_t /*row*/) {
     applyFrameRate(true);
 }
 
-void OptionLayer::onFontSizeChanged() {
-    const auto checkboxSize = static_cast<float>(menuFontSize());
-    const auto textHeight =
-        static_cast<float>(menuFont()->getHeight(menuFontSize()));
-    const float maxCycleValueWidth =
-        computeMaxCycleValueWidth(menuFont(), menuFontSize());
+void OptionLayer::layoutRows(const ui::MenuLayout& layout,
+                             const ui::RowText&    text) {
+    layoutOptionRows(layout, text,
+                     { .aspectLabels     = aspectLabels,
+                       .resolutionLabels = resolutionLabels,
+                       .resolutionDots   = filteredResolutions.size() });
+}
 
-    for (size_t row = 0; row < settingRows.size(); row++) {
-        const auto item = settingRows[row].item;
-        if (auto* const list = listFor(item); list != nullptr) {
+void OptionLayer::onFontSizeChanged() {
+    for (size_t row = 0; row < optionRows.size(); row++) {
+        if (auto* const list = listFor(optionRows[row].item); list != nullptr) {
             list->setFontSize(menuFontSize());
-            list->setMaxValueWidth(maxCycleValueWidth);
-        } else if (item == OptionMenuItem::MaxFrameRate) {
-            frameRateSlider->setFontSize(menuFontSize());
-        } else {
-            if (!isHeading(item)) {
-                checkboxFor(item)->setSize(checkboxSize);
-            }
-            ui::setPartSize(rowNode(row), ui::labelPart, YGUndefined,
-                            textHeight);
         }
     }
+    frameRateSlider->setFontSize(menuFontSize());
 }
 
 void OptionLayer::onResized(const uint32_t width, const uint32_t height) {
@@ -680,9 +600,7 @@ void OptionLayer::applyFrameRate(const bool save) {
 }
 
 void OptionLayer::syncResolutionDots() {
-    if (resolutionList->setDotCount(filteredResolutions.size())) {
-        recalculateLayout();
-    }
+    recalculateLayout();
 }
 
 void OptionLayer::filterResolutions() {

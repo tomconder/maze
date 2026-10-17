@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 
+#include "ui/rowlayout.hpp"
 #include "ui/rowparts.hpp"
 
 namespace game::ui {
@@ -21,16 +22,11 @@ namespace {
 constexpr std::string_view leftArrow  = "< ";
 constexpr std::string_view rightArrow = " >";
 
-// The children of the row after the label, left to right.
-constexpr int leftArrowPart  = 1;
-constexpr int valuePart      = 2;
-constexpr int rightArrowPart = 3;
-constexpr int partCount      = 4;
-
-// The value part is the text, then the dots, which hang from its bottom edge.
-constexpr int   textNode        = 0;
-constexpr int   dotsNode        = 1;
-constexpr float dotBottomMargin = 9.F;
+constexpr int leftArrowPart  = selectparts::leftArrow;
+constexpr int valuePart      = selectparts::value;
+constexpr int rightArrowPart = selectparts::rightArrow;
+constexpr int textNode       = selectparts::text;
+constexpr int dotsNode       = selectparts::dots;
 
 constexpr glm::vec4 dotColorDefault = { 0.25F, 0.25F, 0.25F, 1.F };
 constexpr glm::vec4 dotColorCurrent = { 1.F, 1.F, 1.F, 1.F };
@@ -42,13 +38,8 @@ SelectList::SelectList(const SelectListCreateInfo& createInfo) :
     fontSize(createInfo.fontSize),
     textColor(createInfo.textColor),
     arrowDisabledColor(createInfo.arrowDisabledColor),
-    textMarginLeft(createInfo.textMarginLeft),
-    maxValueWidth(createInfo.maxValueWidth),
     tabularFigures(createInfo.tabularFigures),
-    quad(std::make_unique<sponge::platform::opengl::scene::Quad>()) {
-    leftLen  = static_cast<float>(font->getLength(leftArrow, fontSize));
-    rightLen = static_cast<float>(font->getLength(rightArrow, fontSize));
-}
+    quad(std::make_unique<sponge::platform::opengl::scene::Quad>()) {}
 
 void SelectList::setItems(std::vector<std::string> newItems) {
     items = std::move(newItems);
@@ -59,97 +50,14 @@ void SelectList::setItems(std::vector<std::string> newItems) {
 
 void SelectList::attach(const YGNodeRef row) {
     rowNode = row;
-    attachRowParts(row, partCount, textMarginLeft);
-
-    // The value part is as tall as the row, so the dots can hang from its
-    // bottom edge while the text stays in the middle.
-    auto* const value = YGNodeGetChild(row, valuePart);
-    YGNodeStyleSetAlignSelf(value, YGAlignStretch);
-    YGNodeStyleSetJustifyContent(value, YGJustifyCenter);
-    YGNodeStyleSetAlignItems(value, YGAlignCenter);
-    YGNodeInsertChild(value, YGNodeNew(), textNode);
-
-    auto* const dots = YGNodeNew();
-    YGNodeStyleSetPositionType(dots, YGPositionTypeAbsolute);
-    YGNodeStyleSetPosition(dots, YGEdgeLeft, 0.F);
-    YGNodeStyleSetPosition(dots, YGEdgeRight, 0.F);
-    YGNodeStyleSetPosition(dots, YGEdgeBottom, dotBottomMargin);
-    YGNodeStyleSetFlexDirection(dots, YGFlexDirectionRow);
-    YGNodeStyleSetJustifyContent(dots, YGJustifyCenter);
-    YGNodeInsertChild(value, dots, dotsNode);
-
-    rebuildDots();
-}
-
-void SelectList::sizeNodes() const {
-    if (rowNode == nullptr) {
-        return;
-    }
-    const auto textHeight = static_cast<float>(font->getHeight(fontSize));
-    setPartSize(rowNode, labelPart, YGUndefined, textHeight);
-    setPartSize(rowNode, leftArrowPart, leftLen, textHeight);
-    setPartSize(rowNode, rightArrowPart, rightLen, textHeight);
-
-    auto* const value = YGNodeGetChild(rowNode, valuePart);
-    YGNodeStyleSetWidth(value, maxValueWidth);
-    setPartSize(value, textNode, maxValueWidth, textHeight);
-
-    const auto  diameter = dotRadius() * 2.F;
-    auto* const dots     = YGNodeGetChild(value, dotsNode);
-    YGNodeStyleSetGap(dots, YGGutterColumn, dotRadius() * 1.5F);
-    for (size_t i = 0; i < YGNodeGetChildCount(dots); i++) {
-        auto* const dot = YGNodeGetChild(dots, i);
-        YGNodeStyleSetWidth(dot, diameter);
-        YGNodeStyleSetHeight(dot, diameter);
-    }
-}
-
-float SelectList::dotRadius() const {
-    return std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
-}
-
-void SelectList::rebuildDots() const {
-    auto* const dots =
-        YGNodeGetChild(YGNodeGetChild(rowNode, valuePart), dotsNode);
-    while (YGNodeGetChildCount(dots) > 0) {
-        auto* const dot = YGNodeGetChild(dots, YGNodeGetChildCount(dots) - 1);
-        YGNodeRemoveChild(dots, dot);
-        YGNodeFree(dot);
-    }
-    for (size_t i = 0; i < dotCount; i++) {
-        YGNodeInsertChild(dots, YGNodeNew(), i);
-    }
-    sizeNodes();
-}
-
-bool SelectList::setDotCount(const size_t count) {
-    if (count == dotCount) {
-        return false;
-    }
-    dotCount = count;
-    if (rowNode != nullptr) {
-        rebuildDots();
-    }
-    return true;
 }
 
 void SelectList::setAppliedIndex(const std::optional<size_t> index) {
     appliedIndex = index;
 }
 
-void SelectList::setMaxValueWidth(const float width) {
-    maxValueWidth = width;
-    sizeNodes();
-}
-
 void SelectList::setFontSize(const uint32_t size) {
-    if (fontSize == size) {
-        return;
-    }
     fontSize = size;
-    leftLen  = static_cast<float>(font->getLength(leftArrow, fontSize));
-    rightLen = static_cast<float>(font->getLength(rightArrow, fontSize));
-    sizeNodes();
 }
 
 size_t SelectList::getSelectedIndex() const {
@@ -236,7 +144,7 @@ void SelectList::renderDots(const float y) const {
                                                 dotColorDefault;
         quad->render({ dot.x, dot.y },
                      { dot.x + dot.width, dot.y + dot.height }, color,
-                     dotRadius());
+                     dotRadius(fontSize));
     }
 }
 

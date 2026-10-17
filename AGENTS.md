@@ -151,9 +151,13 @@ maze.exe --capture-frames=600 --dump-nan-stats
   at a resolution the monitor cannot show, such as
   `--capture-menu=display --capture-size=3840x2160`. Debug builds link libspng
   for the PNG; release builds do not.
-* `--dump-yoga=intro|exit|display|keyboard|audio|confirm|reset`: print that menu's Yoga tree as JSX for
-  yogalayout.dev/playground at the `--capture-size` window size (default
-  1600x900) and exit. No window opens. Debug builds only.
+* `--dump-yoga`: with `--capture-menu=<name>`, write that menu's Yoga tree as
+  JSX for yogalayout.dev/playground to `capture_menu_<name>.jsx` at the
+  `--capture-size` window size (default 1600x900) and exit. No window or
+  OpenGL is used. The tree has every row part (sliders, select lists,
+  checkboxes, buttons). The display tab lists three aspect ratios and four
+  resolutions in place of what a monitor reports, so its dot counts and
+  value width can differ from a run on a real monitor. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
   measurement: `shadowcache` draws the shadow map every frame (the cache would

@@ -17,7 +17,8 @@ class FontMetrics {
 public:
     explicit FontMetrics(const std::string& path);
 
-    uint32_t length(std::string_view text, uint32_t size);
+    uint32_t length(std::string_view text, uint32_t size,
+                    bool tabularFigures = false);
 
     uint32_t height(uint32_t size) const;
 

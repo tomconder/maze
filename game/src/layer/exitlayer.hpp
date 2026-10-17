@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 namespace game::layer {
 
@@ -15,6 +16,14 @@ enum class ExitMenuItem : uint8_t {
     ReturnToMenu,
     Exit,
     Count,
+};
+
+// Buttons follow ExitMenuItem order, so the enum is the button index.
+inline constexpr std::array<std::string_view, 4> exitMenuLabels = {
+    "Continue",
+    "Options",
+    "Return to Menu",
+    "Exit the Game",
 };
 
 inline constexpr ui::MenuLayoutSpec exitMenuLayout = {

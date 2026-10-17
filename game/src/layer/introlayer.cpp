@@ -5,25 +5,11 @@
 
 #include <glm/glm.hpp>
 
-#include <array>
-#include <string_view>
-
 namespace {
-using game::layer::IntroMenuItem;
-
-constexpr size_t menuItemCount = static_cast<size_t>(IntroMenuItem::Count);
-
-// Buttons follow IntroMenuItem order, so the enum is the button index.
-constexpr std::array<std::string_view, menuItemCount> menuLabels = {
-    "New Game",
-    "Options",
-    "Quit",
-};
-
 game::layer::ButtonMenuStyle introStyle() {
     return {
         .name            = "intro",
-        .labels          = menuLabels,
+        .labels          = game::layer::introMenuLabels,
         .keyHints        = game::layer::introKeyHints,
         .layout          = game::layer::introMenuLayout,
         .buttonColor     = { 0.F, 0.F, 0.F, 0.F },

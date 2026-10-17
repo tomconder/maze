@@ -34,6 +34,12 @@ void writeNode(const YGNodeRef node, const int depth, std::string& out) {
     addValue(style, "padding", YGNodeStyleGetPadding(node, YGEdgeAll));
     addValue(style, "paddingHorizontal",
              YGNodeStyleGetPadding(node, YGEdgeHorizontal));
+    if (YGNodeStyleGetPositionType(node) == YGPositionTypeAbsolute) {
+        style += "position: \"absolute\", ";
+        addValue(style, "left", YGNodeStyleGetPosition(node, YGEdgeLeft));
+        addValue(style, "right", YGNodeStyleGetPosition(node, YGEdgeRight));
+        addValue(style, "bottom", YGNodeStyleGetPosition(node, YGEdgeBottom));
+    }
     addNumber(style, "columnGap", YGNodeStyleGetGap(node, YGGutterColumn));
     addNumber(style, "rowGap", YGNodeStyleGetGap(node, YGGutterRow));
     addNumber(style, "flex", YGNodeStyleGetFlex(node));

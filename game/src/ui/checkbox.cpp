@@ -1,5 +1,6 @@
 #include "ui/checkbox.hpp"
 
+#include "ui/rowlayout.hpp"
 #include "ui/rowparts.hpp"
 
 #include <memory>
@@ -7,13 +8,10 @@
 namespace game::ui {
 
 namespace {
-constexpr int boxPart   = 1;
-constexpr int partCount = 2;
+constexpr int boxPart = checkboxparts::box;
 }  // namespace
 
 Checkbox::Checkbox(const CheckboxCreateInfo& createInfo) :
-    margin(createInfo.margin),
-    size(createInfo.size),
     cornerRadius(createInfo.cornerRadius),
     borderWidth(createInfo.borderWidth),
     checkedFill(createInfo.checkedFill),
@@ -24,15 +22,6 @@ Checkbox::Checkbox(const CheckboxCreateInfo& createInfo) :
 
 void Checkbox::attach(const YGNodeRef row) {
     rowNode = row;
-    attachRowParts(row, partCount, margin);
-    setSize(size);
-}
-
-void Checkbox::setSize(const float newSize) {
-    size = newSize;
-    if (rowNode != nullptr) {
-        setPartSize(rowNode, boxPart, size, size);
-    }
 }
 
 void Checkbox::onUpdate(const float y, const bool checked) {

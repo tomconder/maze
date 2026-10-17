@@ -13,27 +13,24 @@
 
 namespace game::ui {
 
-enum class ButtonAlignType : uint8_t { CenterAligned = 0, LeftAligned };
-
 struct ButtonCreateInfo {
     std::string                                                  message;
     uint32_t                                                     fontSize;
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     glm::vec4                                                    buttonColor;
     glm::vec3                                                    textColor;
-    uint32_t                                                     marginLeft = 0;
-    float           cornerRadius = 0.F;
-    float           borderWidth  = 0.F;
-    glm::vec4       borderColor  = glm::vec4(0.F);
-    ButtonAlignType alignType    = ButtonAlignType::CenterAligned;
+    float     cornerRadius = 0.F;
+    float     borderWidth  = 0.F;
+    glm::vec4 borderColor  = glm::vec4(0.F);
 };
 
 class Button {
 public:
     explicit Button(const ButtonCreateInfo& createInfo);
 
-    // The button is the node's box; the text is its only child, aligned by
-    // the align type. The node must be laid out before the button draws.
+    // The button is the node's box; the text is its only child. layoutButton()
+    // builds and sizes them. The node must be laid out before the button
+    // draws.
     void attach(YGNodeRef box);
 
     bool onUpdate(double elapsedTime) const;
@@ -48,10 +45,6 @@ public:
 
     void setBorderColor(const glm::vec4& val);
 
-    void setAlignType(const ButtonAlignType& val);
-
-    void setMessage(std::string_view message);
-
     void setFontSize(uint32_t size);
 
     void setHover(const bool value) {
@@ -62,24 +55,15 @@ public:
         return hover;
     }
 
-    [[nodiscard]] ButtonAlignType getAlignType() const {
-        return alignType;
-    }
-
 private:
-    YGNodeRef       node = nullptr;
-    std::string     text;
-    uint32_t        textSize;
-    glm::vec4       color;
-    glm::vec3       textColor;
-    uint32_t        length;
-    uint32_t        marginLeft;
-    float           cornerRadius;
-    float           borderWidth;
-    glm::vec4       borderColor;
-    ButtonAlignType alignType;
-
-    void sizeNodes() const;
+    YGNodeRef   node = nullptr;
+    std::string text;
+    uint32_t    textSize;
+    glm::vec4   color;
+    glm::vec3   textColor;
+    float       cornerRadius;
+    float       borderWidth;
+    glm::vec4   borderColor;
 
     bool hover = false;
 

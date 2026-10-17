@@ -29,12 +29,10 @@ ConfirmDialog::ConfirmDialog(
     fontSize(fontSize),
     layout(std::make_unique<ConfirmLayout>()),
     quad(std::make_unique<sponge::platform::opengl::scene::Quad>()),
-    acceptButton(makeMenuButton("Accept", fontSize, this->font,
+    acceptButton(makeMenuButton(acceptLabel, fontSize, this->font,
                                 glm::vec4{ 0.F }, textColor)),
-    cancelButton(makeMenuButton("Cancel", fontSize, this->font,
+    cancelButton(makeMenuButton(cancelLabel, fontSize, this->font,
                                 glm::vec4{ 0.F }, textColor)) {
-    acceptButton->setAlignType(ButtonAlignType::CenterAligned);
-    cancelButton->setAlignType(ButtonAlignType::CenterAligned);
     acceptButton->attach(layout->acceptNode);
     cancelButton->attach(layout->cancelNode);
 }
@@ -113,11 +111,9 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
     const auto measure = fontMeasure(font);
     const auto countdownText =
         fmt::format("Reverting in {}", static_cast<int>(std::ceil(remaining)));
-    layout->calculate(width, height, fontSize, measure(title, fontSize),
-                      measure(message, fontSize),
-                      timed ?
-                          std::optional{ measure(countdownText, fontSize) } :
-                          std::nullopt);
+    layout->calculate(width, height, { measure, fontSize }, title, message,
+                      timed ? std::optional<std::string_view>{ countdownText } :
+                              std::nullopt);
 
     const auto panel = nodeRect(layout->panelNode);
     quad->render({ 0.F, 0.F }, { width, height }, dimColor);

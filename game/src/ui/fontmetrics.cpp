@@ -21,13 +21,14 @@ FontMetrics::FontMetrics(const std::string& path) {
     }
 }
 
-uint32_t FontMetrics::length(const std::string_view text, const uint32_t size) {
+uint32_t FontMetrics::length(const std::string_view text, const uint32_t size,
+                             const bool tabularFigures) {
     const auto* baked = sponge::scene::font::sizeOf(font, size);
     if (baked == nullptr) {
         return 0;
     }
 
-    sponge::scene::font::shape(font, *baked, text, false, shaped);
+    sponge::scene::font::shape(font, *baked, text, tabularFigures, shaped);
     float penX = 0.F;
     for (const auto& glyph : shaped) {
         penX += glyph.xAdvance;
@@ -41,8 +42,9 @@ uint32_t FontMetrics::height(const uint32_t size) const {
 }
 
 TextMeasure FontMetrics::measure() {
-    return [this](const std::string_view text, const uint32_t size) {
-        return TextSize{ static_cast<float>(length(text, size)),
+    return [this](const std::string_view text, const uint32_t size,
+                  const bool tabularFigures) {
+        return TextSize{ static_cast<float>(length(text, size, tabularFigures)),
                          static_cast<float>(height(size)) };
     };
 }

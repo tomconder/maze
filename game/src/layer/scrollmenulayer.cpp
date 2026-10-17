@@ -241,6 +241,7 @@ void ScrollMenuLayer::recalculateLayout() {
     const auto width   = static_cast<float>(camera->getWidth());
     const auto measure = ui::fontMeasure(font);
     const auto gamepad = ui::usingGamepad();
+    layoutRows(*layout, { measure, fontSize });
     layout->setTabLabelSizes(ui::tabLabelSizes(width, measure));
     layout->setKeyHintSizes(
         ui::keyHintSizes(menuStyle.keyHints, width, gamepad, measure), gamepad);

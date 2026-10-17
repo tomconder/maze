@@ -17,19 +17,11 @@ namespace {
 constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 
-constexpr float textMarginLeft = 26.F;
-constexpr float volumeStep     = 0.05F;
+constexpr float volumeStep = 0.05F;
 
 using game::layer::AudioMenuItem;
 
-constexpr size_t rowCount = static_cast<size_t>(AudioMenuItem::Count);
-
-// Rows follow AudioMenuItem order, so the enum is the row index.
-constexpr std::array<std::string_view, rowCount> volumeLabels = {
-    "Master Volume",
-    "Sound Effects",
-    "Music",
-};
+constexpr size_t rowCount = game::layer::audioRowCount;
 
 constexpr std::array<const char*, rowCount> volumeKeys = {
     "audio.masterVolume",
@@ -59,7 +51,6 @@ void AudioLayer::onAttach() {
         .fontSize           = menuFontSize(),
         .textColor          = textColor,
         .arrowDisabledColor = arrowDisabledColor,
-        .textMarginLeft     = textMarginLeft,
     };
     using sponge::core::Settings;
     for (size_t i = 0; i < rowCount; i++) {
@@ -149,6 +140,11 @@ void AudioLayer::onRowDrag(const size_t row, const glm::vec2& mouse) {
 
 void AudioLayer::onRowReleased(const size_t row) {
     applyVolume(static_cast<AudioMenuItem>(row), true);
+}
+
+void AudioLayer::layoutRows(const ui::MenuLayout& layout,
+                            const ui::RowText&    text) {
+    layoutAudioRows(layout, text);
 }
 
 void AudioLayer::onFontSizeChanged() {

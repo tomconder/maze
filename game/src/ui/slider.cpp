@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <yoga/Yoga.h>
 
-#include "ui/rowparts.hpp"
+#include "ui/rowlayout.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -16,20 +16,9 @@
 namespace game::ui {
 
 namespace {
-// The sizes in SliderCreateInfo are for this font size.
-constexpr float            referenceFontSize = 32.F;
-constexpr float            baseValueGap      = 12.F;
-constexpr float            disabledAlpha     = 0.4F;
-constexpr std::string_view fullValueText     = "100%";
-constexpr std::string_view leftArrowText     = "< ";
-constexpr std::string_view rightArrowText    = " >";
-
-// The children of the row after the label, left to right.
-constexpr int leftArrowPart  = 1;
-constexpr int trackPart      = 2;
-constexpr int rightArrowPart = 3;
-constexpr int valuePart      = 4;
-constexpr int partCount      = 5;
+constexpr float            disabledAlpha  = 0.4F;
+constexpr std::string_view leftArrowText  = "< ";
+constexpr std::string_view rightArrowText = " >";
 }  // namespace
 
 Slider::Slider(const SliderCreateInfo& createInfo) :
@@ -37,18 +26,14 @@ Slider::Slider(const SliderCreateInfo& createInfo) :
     fontSize(createInfo.fontSize),
     textColor(createInfo.textColor),
     arrowDisabledColor(createInfo.arrowDisabledColor),
-    textMarginLeft(createInfo.textMarginLeft),
-    trackWidth(createInfo.trackWidth),
-    trackHeight(createInfo.trackHeight),
     handleRadius(createInfo.handleRadius),
     handleBorderWidth(createInfo.handleBorderWidth),
-    labelIndent(createInfo.labelIndent),
     trackColor(createInfo.trackColor),
     fillColor(createInfo.fillColor),
     handleColor(createInfo.handleColor),
     handleBorderColor(createInfo.handleBorderColor),
     quad(std::make_unique<sponge::platform::opengl::scene::Quad>()) {
-    recomputeCachedLengths();
+    scale = static_cast<float>(fontSize) / referenceFontSize;
 }
 
 float Slider::getValue() const {
@@ -79,39 +64,11 @@ void Slider::setFontSize(const uint32_t size) {
         return;
     }
     fontSize = size;
-    recomputeCachedLengths();
-}
-
-void Slider::recomputeCachedLengths() {
-    scale = static_cast<float>(fontSize) / referenceFontSize;
-    percentLen =
-        static_cast<float>(font->getLength(fullValueText, fontSize, true));
-    leftArrowLen = static_cast<float>(font->getLength(leftArrowText, fontSize));
-    rightArrowLen =
-        static_cast<float>(font->getLength(rightArrowText, fontSize));
-    sizeNodes();
+    scale    = static_cast<float>(fontSize) / referenceFontSize;
 }
 
 void Slider::attach(const YGNodeRef row) {
     rowNode = row;
-    attachRowParts(row, partCount, textMarginLeft);
-    sizeNodes();
-}
-
-void Slider::sizeNodes() const {
-    if (rowNode == nullptr) {
-        return;
-    }
-    YGNodeStyleSetGap(rowNode, YGGutterColumn, baseValueGap * scale);
-
-    const auto textHeight = static_cast<float>(font->getHeight(fontSize));
-    setPartSize(rowNode, labelPart, YGUndefined, textHeight);
-    YGNodeStyleSetMargin(YGNodeGetChild(rowNode, labelPart), YGEdgeLeft,
-                         labelIndent * scale);
-    setPartSize(rowNode, leftArrowPart, leftArrowLen, textHeight);
-    setPartSize(rowNode, trackPart, trackWidth * scale, trackHeight * scale);
-    setPartSize(rowNode, rightArrowPart, rightArrowLen, textHeight);
-    setPartSize(rowNode, valuePart, percentLen, textHeight);
 }
 
 void Slider::onUpdate(const float y, const std::string_view label) {
@@ -119,10 +76,10 @@ void Slider::onUpdate(const float y, const std::string_view label) {
         return partRect(rowNode, index, y);
     };
     const auto labelRect      = part(labelPart);
-    const auto leftArrowRect  = part(leftArrowPart);
-    const auto track          = part(trackPart);
-    const auto rightArrowRect = part(rightArrowPart);
-    const auto valueRect      = part(valuePart);
+    const auto leftArrowRect  = part(sliderparts::leftArrow);
+    const auto track          = part(sliderparts::track);
+    const auto rightArrowRect = part(sliderparts::rightArrow);
+    const auto valueRect      = part(sliderparts::value);
 
     const float trackW  = track.width;
     const float trackH  = track.height;
@@ -171,22 +128,24 @@ void Slider::onUpdate(const float y, const std::string_view label) {
 }
 
 bool Slider::isInsideTrack(const float mouseX) const {
-    const auto  track  = nodeRect(YGNodeGetChild(rowNode, trackPart));
+    const auto  track  = nodeRect(YGNodeGetChild(rowNode, sliderparts::track));
     const float radius = handleRadius * scale;
     return mouseX >= track.x - radius &&
            mouseX <= track.x + track.width + radius;
 }
 
 float Slider::valueAtX(const float mouseX) const {
-    const auto track = nodeRect(YGNodeGetChild(rowNode, trackPart));
+    const auto track = nodeRect(YGNodeGetChild(rowNode, sliderparts::track));
     return std::clamp((mouseX - track.x) / track.width, 0.F, 1.F);
 }
 
 int Slider::arrowAt(const float mouseX) const {
-    const auto left      = nodeRect(YGNodeGetChild(rowNode, leftArrowPart));
-    const auto track     = nodeRect(YGNodeGetChild(rowNode, trackPart));
-    const auto right     = nodeRect(YGNodeGetChild(rowNode, rightArrowPart));
-    const auto valueRect = nodeRect(YGNodeGetChild(rowNode, valuePart));
+    const auto left = nodeRect(YGNodeGetChild(rowNode, sliderparts::leftArrow));
+    const auto track = nodeRect(YGNodeGetChild(rowNode, sliderparts::track));
+    const auto right =
+        nodeRect(YGNodeGetChild(rowNode, sliderparts::rightArrow));
+    const auto valueRect =
+        nodeRect(YGNodeGetChild(rowNode, sliderparts::value));
     if (mouseX >= left.x && mouseX < track.x) {
         return -1;
     }
