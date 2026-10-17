@@ -96,8 +96,7 @@ bool KeyMapLayer::takesInput() const {
     return !rebindingRow && !Maze::get().getConfirmLayer()->isActive();
 }
 
-void KeyMapLayer::renderRow(const size_t row, const float /*x*/, const float y,
-                            const float /*w*/, const float /*h*/) {
+void KeyMapLayer::renderRow(const size_t row, const float y) {
     const auto& labelFont = menuFont();
     const auto  labelSize = menuFontSize();
 

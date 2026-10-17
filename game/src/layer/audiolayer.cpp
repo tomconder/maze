@@ -101,8 +101,7 @@ void AudioLayer::applyVolume(const AudioMenuItem item, const bool save) const {
     }
 }
 
-void AudioLayer::renderRow(const size_t row, const float /*x*/, const float y,
-                           const float /*w*/, const float /*h*/) {
+void AudioLayer::renderRow(const size_t row, const float y) {
     sliders[row]->onUpdate(y, volumeLabels[row]);
 }
 

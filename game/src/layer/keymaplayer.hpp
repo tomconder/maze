@@ -47,7 +47,7 @@ protected:
     // this screen.
     bool takesInput() const override;
 
-    void renderRow(size_t row, float x, float y, float w, float h) override;
+    void renderRow(size_t row, float y) override;
 
     void onFontSizeChanged() override;
 

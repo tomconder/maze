@@ -32,12 +32,16 @@ inline void setPartSize(const YGNodeRef row, const int part, const float width,
     YGNodeStyleSetHeight(node, height);
 }
 
-// Where a part is in window pixels, moved so the row starts at y: the rows
-// scroll, and the nodes stay where Yoga put them.
-inline Rect partRect(const YGNodeRef row, const int part, const float y) {
-    auto rect = nodeRect(YGNodeGetChild(row, part));
+// Where a node under the row is in window pixels, moved so the row starts at
+// y: the rows scroll, and the nodes stay where Yoga put them.
+inline Rect rectAt(const YGNodeRef row, const YGNodeRef node, const float y) {
+    auto rect = nodeRect(node);
     rect.y += y - nodeRect(row).y;
     return rect;
+}
+
+inline Rect partRect(const YGNodeRef row, const int part, const float y) {
+    return rectAt(row, YGNodeGetChild(row, part), y);
 }
 
 }  // namespace game::ui
