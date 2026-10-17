@@ -4,6 +4,7 @@
 #include "platform/opengl/scene/quad.hpp"
 
 #include <glm/glm.hpp>
+#include <yoga/Yoga.h>
 
 #include <cstdint>
 #include <memory>
@@ -15,10 +16,8 @@ namespace game::ui {
 enum class ButtonAlignType : uint8_t { CenterAligned = 0, LeftAligned };
 
 struct ButtonCreateInfo {
-    glm::vec2   topLeft     = {};
-    glm::vec2   bottomRight = {};
-    std::string message;
-    uint32_t    fontSize;
+    std::string                                                  message;
+    uint32_t                                                     fontSize;
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     glm::vec4                                                    buttonColor;
     glm::vec3                                                    textColor;
@@ -33,6 +32,10 @@ class Button {
 public:
     explicit Button(const ButtonCreateInfo& createInfo);
 
+    // The button is the node's box; the text is its only child, aligned by
+    // the align type. The node must be laid out before the button draws.
+    void attach(YGNodeRef box);
+
     bool onUpdate(double elapsedTime) const;
 
     bool isInside(const glm::vec2& position) const;
@@ -44,8 +47,6 @@ public:
     void setBorderWidth(float val);
 
     void setBorderColor(const glm::vec4& val);
-
-    void setPosition(const glm::vec2& topLeft, const glm::vec2& bottomRight);
 
     void setAlignType(const ButtonAlignType& val);
 
@@ -66,8 +67,7 @@ public:
     }
 
 private:
-    glm::vec2       top;
-    glm::vec2       bottom;
+    YGNodeRef       node = nullptr;
     std::string     text;
     uint32_t        textSize;
     glm::vec4       color;
@@ -79,8 +79,9 @@ private:
     glm::vec4       borderColor;
     ButtonAlignType alignType;
 
-    glm::vec2 textPosition;
-    bool      hover = false;
+    void sizeNodes() const;
+
+    bool hover = false;
 
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     std::unique_ptr<sponge::platform::opengl::scene::Quad>       quad;

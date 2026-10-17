@@ -1,7 +1,6 @@
 #include "layer/keymaplayer.hpp"
 
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <string>
 #include <string_view>
@@ -11,6 +10,7 @@
 #include "platform/glfw/core/application.hpp"
 #include "platform/glfw/core/inputmanager.hpp"
 #include "ui/keyhints.hpp"
+#include "ui/rowparts.hpp"
 
 namespace {
 constexpr std::string_view captureMessage = "Press a key";
@@ -19,6 +19,10 @@ constexpr glm::vec3 textColor    = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 captureColor = { 1.F, 0.84F, 0.2F };
 
 constexpr float textMarginLeft = 26.F;
+
+// The row is the label, then the value. The value part has no width: it marks
+// the right edge, and the text hangs left of it.
+constexpr int valuePart = 1;
 
 using game::layer::KeyMapItem;
 
@@ -61,6 +65,24 @@ namespace game::layer {
 
 KeyMapLayer::KeyMapLayer() : ScrollMenuLayer(keyMapStyle()) {}
 
+void KeyMapLayer::onAttach() {
+    ScrollMenuLayer::onAttach();
+    for (size_t row = 0; row < rowCount; row++) {
+        ui::attachRowParts(rowNode(row), 2, textMarginLeft);
+    }
+    onFontSizeChanged();
+    recalculateLayout();
+}
+
+void KeyMapLayer::onFontSizeChanged() {
+    const auto textHeight =
+        static_cast<float>(menuFont()->getHeight(menuFontSize()));
+    for (size_t row = 0; row < rowCount; row++) {
+        ui::setPartSize(rowNode(row), ui::labelPart, YGUndefined, textHeight);
+        ui::setPartSize(rowNode(row), valuePart, 0.F, textHeight);
+    }
+}
+
 bool KeyMapLayer::onUpdate(const double elapsedTime) {
     // The capture frame reports no actions at all, so nothing in the base fires
     // on the key being bound.
@@ -74,8 +96,8 @@ bool KeyMapLayer::takesInput() const {
     return !rebindingRow && !Maze::get().getConfirmLayer()->isActive();
 }
 
-void KeyMapLayer::renderRow(const size_t row, const float x, const float y,
-                            const float w, const float h) {
+void KeyMapLayer::renderRow(const size_t row, const float /*x*/, const float y,
+                            const float /*w*/, const float /*h*/) {
     const auto& labelFont = menuFont();
     const auto  labelSize = menuFontSize();
 
@@ -86,13 +108,13 @@ void KeyMapLayer::renderRow(const size_t row, const float x, const float y,
                         inputManager().getPrimaryKey(bindingRows[row].action));
     const auto valueWidth =
         static_cast<float>(labelFont->getLength(value, labelSize));
-    const float textY = std::floor(
-        y + (h - static_cast<float>(labelFont->getHeight(labelSize))) / 2.F);
+    const auto labelRect = ui::partRect(rowNode(row), ui::labelPart, y);
+    const auto valueRect = ui::partRect(rowNode(row), valuePart, y);
 
     labelFont->beginPass(labelSize);
-    labelFont->render(bindingRows[row].label, { x + textMarginLeft, textY },
+    labelFont->render(bindingRows[row].label, { labelRect.x, labelRect.y },
                       textColor);
-    labelFont->render(value, { x + w - textMarginLeft - valueWidth, textY },
+    labelFont->render(value, { valueRect.x - valueWidth, valueRect.y },
                       capturing ? captureColor : textColor);
     labelFont->endPass();
 }
