@@ -219,6 +219,7 @@ uint32_t Shader::compileStage(const GLenum                      type,
 uint32_t Shader::linkProgram(const uint32_t vs, const uint32_t fs,
                              const std::optional<uint32_t> gs) const {
     const uint32_t id = glCreateProgram();
+    labelObject(GL_PROGRAM, id, shaderName);
 
     glAttachShader(id, vs);
     if (fs != 0) {

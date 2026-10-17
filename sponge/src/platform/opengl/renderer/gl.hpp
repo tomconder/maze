@@ -6,9 +6,22 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <string>
 #include <string_view>
 
 namespace sponge::platform::opengl::renderer {
+
+// Names a GL object for RenderDoc, Nsight and driver messages. `identifier` is
+// GL_TEXTURE, GL_FRAMEBUFFER, GL_RENDERBUFFER, GL_PROGRAM and so on. Does
+// nothing in release builds. The name need not end in a null.
+inline void labelObject([[maybe_unused]] const GLenum           identifier,
+                        [[maybe_unused]] const uint32_t         id,
+                        [[maybe_unused]] const std::string_view name) {
+#ifndef NDEBUG
+    glObjectLabel(identifier, id, static_cast<GLsizei>(name.size()),
+                  name.data());
+#endif
+}
 
 // FBO attachment: immutable storage, no mip chain. Wrap is always
 // CLAMP_TO_EDGE — every sampler reading one of these reads neighbouring
@@ -43,11 +56,17 @@ inline uint32_t createDepthRenderbuffer(const uint32_t width,
 
 // One color attachment, plus a depth renderbuffer when depthRbo is not 0.
 // An incomplete framebuffer is logged and still returned.
-inline uint32_t createFramebuffer([[maybe_unused]] const std::string_view name,
-                                  const uint32_t colorTexture,
-                                  const uint32_t depthRbo = 0) {
+// The framebuffer and its attachments are labelled from `name`.
+inline uint32_t createFramebuffer(const std::string_view name,
+                                  const uint32_t         colorTexture,
+                                  const uint32_t         depthRbo = 0) {
     uint32_t fbo = 0;
     glCreateFramebuffers(1, &fbo);
+    labelObject(GL_FRAMEBUFFER, fbo, std::string(name) + " FBO");
+    labelObject(GL_TEXTURE, colorTexture, std::string(name) + " color");
+    if (depthRbo != 0) {
+        labelObject(GL_RENDERBUFFER, depthRbo, std::string(name) + " depth");
+    }
     glNamedFramebufferTexture(fbo, GL_COLOR_ATTACHMENT0, colorTexture, 0);
     if (depthRbo != 0) {
         glNamedFramebufferRenderbuffer(fbo, GL_DEPTH_ATTACHMENT,
