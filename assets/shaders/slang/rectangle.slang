@@ -20,25 +20,30 @@ VSOutput vertMain(VSInput input) {
     return output;
 };
 
+// Signed distance to a rounded box of half extents h; negative inside.
+float sdRoundBox(float2 p, float2 h, float r) {
+    float2 d = abs(p) - (h - r);
+    return length(max(d, float2(0.0, 0.0))) + min(max(d.x, d.y), 0.0) - r;
+}
+
 // clang-format off
 [shader("fragment")]
 float4 fragMain(VSOutput input) : SV_Target {
     // clang-format on
-    float2 localPos = (input.localPosition - quadParams.corners.xy) / (quadParams.corners.zw - quadParams.corners.xy);
-    float2 quadSize = quadParams.corners.zw - quadParams.corners.xy;
-    float2 pos      = localPos * quadSize;
-    float2 halfSize = quadSize * 0.5;
+    float2 halfSize = (quadParams.corners.zw - quadParams.corners.xy) * 0.5;
+    float2 p        = input.localPosition - quadParams.corners.xy - halfSize;
 
-    float2 d     = abs(pos - halfSize) - (halfSize - quadParams.cornerRadius);
-    float  dist  = length(max(d, float2(0.0, 0.0))) - quadParams.cornerRadius;
-    float  alpha = smoothstep(1.0, 0.0, dist);
+    // Coverage is centred on the edge, in pixels.
+    float radius = min(quadParams.cornerRadius, min(halfSize.x, halfSize.y));
+    float alpha  = saturate(0.5 - sdRoundBox(p, halfSize, radius));
 
     if (quadParams.borderWidth > 0.0) {
-        float2 innerD     = abs(pos - halfSize) - (halfSize - quadParams.cornerRadius - quadParams.borderWidth);
-        float  innerDist  = length(max(innerD, float2(0.0, 0.0))) - quadParams.cornerRadius;
-        float  borderMask = smoothstep(1.0, 0.0, dist) - smoothstep(1.0, 0.0, innerDist);
-        float  fillMask   = smoothstep(1.0, 0.0, innerDist);
-        float4 finalColor = quadParams.borderColor * borderMask + quadParams.color * fillMask;
+        // The inner edge shares the corner centre (radius shrinks by the border width), so the
+        // border keeps a constant thickness around the corners.
+        float  bw         = quadParams.borderWidth;
+        float  innerAlpha = saturate(0.5 - sdRoundBox(p, halfSize - bw, max(radius - bw, 0.0)));
+        float  borderMask = alpha - innerAlpha;
+        float4 finalColor = quadParams.borderColor * borderMask + quadParams.color * innerAlpha;
         return float4(finalColor.rgb, finalColor.a * alpha);
     }
     return float4(quadParams.color.rgb, quadParams.color.a * alpha);
