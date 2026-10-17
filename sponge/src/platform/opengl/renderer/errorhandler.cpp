@@ -6,6 +6,24 @@
 #include <cstdint>
 #include <string>
 
+#if defined(_WIN32) && !defined(NDEBUG)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
+namespace {
+// The callback is synchronous, so the stack at the break is the offending GL
+// call. Windows debug builds only; the other platforms just log.
+void breakIfDebugging() {
+#if defined(_WIN32) && !defined(NDEBUG)
+    if (IsDebuggerPresent() != 0) {
+        __debugbreak();
+    }
+#endif
+}
+}  // namespace
+
 void GLAPIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
                              GLenum severity, GLsizei, const char* message,
                              const void*) {
@@ -72,6 +90,7 @@ void GLAPIENTRY glLogMessage(GLenum source, GLenum type, uint32_t id,
     switch (severity) {
         case GL_DEBUG_SEVERITY_HIGH:
             SPONGE_GL_ERROR("{} {} [{}]: {}", sourceStr, typeStr, id, message);
+            breakIfDebugging();
             break;
         case GL_DEBUG_SEVERITY_MEDIUM:
             SPONGE_GL_WARN("{} {} [{}]: {}", sourceStr, typeStr, id, message);

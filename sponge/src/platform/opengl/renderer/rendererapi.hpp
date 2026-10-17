@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <string_view>
 
 namespace sponge::platform::opengl::renderer {
 
@@ -42,6 +43,11 @@ public:
     // them until the swap, so the GPU starts only after the CPU has recorded
     // the whole frame.
     static void flush();
+
+    // Names the GL calls between pushGroup() and popGroup() in a RenderDoc or
+    // Nsight capture. Calls must pair. The name need not end in a null.
+    static void pushGroup(std::string_view name);
+    static void popGroup();
 };
 
 }  // namespace sponge::platform::opengl::renderer
