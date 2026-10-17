@@ -9,7 +9,9 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
+#include <utility>
 
 namespace game::ui {
 
@@ -17,6 +19,7 @@ namespace {
 // The sizes in SliderCreateInfo are for this font size.
 constexpr float            referenceFontSize = 32.F;
 constexpr float            baseValueGap      = 12.F;
+constexpr float            disabledAlpha     = 0.4F;
 constexpr std::string_view fullValueText     = "100%";
 constexpr std::string_view leftArrowText     = "< ";
 constexpr std::string_view rightArrowText    = " >";
@@ -40,6 +43,7 @@ Slider::Slider(const SliderCreateInfo& createInfo) :
     trackHeight(createInfo.trackHeight),
     handleRadius(createInfo.handleRadius),
     handleBorderWidth(createInfo.handleBorderWidth),
+    labelIndent(createInfo.labelIndent),
     trackColor(createInfo.trackColor),
     fillColor(createInfo.fillColor),
     handleColor(createInfo.handleColor),
@@ -61,6 +65,14 @@ bool Slider::step(const float delta) {
     const bool  changed  = newValue != value;
     value                = newValue;
     return changed;
+}
+
+void Slider::setValueText(std::string text) {
+    valueText = std::move(text);
+}
+
+void Slider::setDisabled(const bool isDisabled) {
+    disabled = isDisabled;
 }
 
 void Slider::setFontSize(const uint32_t size) {
@@ -95,6 +107,8 @@ void Slider::sizeNodes() const {
 
     const auto textHeight = static_cast<float>(font->getHeight(fontSize));
     setPartSize(rowNode, labelPart, YGUndefined, textHeight);
+    YGNodeStyleSetMargin(YGNodeGetChild(rowNode, labelPart), YGEdgeLeft,
+                         labelIndent * scale);
     setPartSize(rowNode, leftArrowPart, leftArrowLen, textHeight);
     setPartSize(rowNode, trackPart, trackWidth * scale, trackHeight * scale);
     setPartSize(rowNode, rightArrowPart, rightArrowLen, textHeight);
@@ -117,13 +131,20 @@ void Slider::onUpdate(const float y, const std::string_view label) {
     const float tStartX = track.x;
     const float trackY  = track.y;
 
+    // Disabled: everything drawn with a fraction of its alpha.
+    const float dim   = disabled ? disabledAlpha : 1.F;
+    const auto  faded = [dim](glm::vec4 color) {
+        color.a *= dim;
+        return color;
+    };
+
     quad->render({ tStartX, trackY }, { tStartX + trackW, trackY + trackH },
-                 trackColor, trackH / 2.F);
+                 faded(trackColor), trackH / 2.F);
 
     const float fillWidth = trackW * value;
     if (fillWidth > 0.F) {
         quad->render({ tStartX, trackY },
-                     { tStartX + fillWidth, trackY + trackH }, fillColor,
+                     { tStartX + fillWidth, trackY + trackH }, faded(fillColor),
                      trackH / 2.F);
     }
 
@@ -131,19 +152,22 @@ void Slider::onUpdate(const float y, const std::string_view label) {
     const float handleCenterY = trackY + trackH / 2.F;
     quad->render({ handleCenterX - radius, handleCenterY - radius },
                  { handleCenterX + radius, handleCenterY + radius },
-                 handleColor, radius, handleBorderWidth * scale,
-                 handleBorderColor);
+                 faded(handleColor), radius, handleBorderWidth * scale,
+                 faded(handleBorderColor));
 
+    const auto& color = disabled ? arrowDisabledColor : textColor;
     font->beginPass(fontSize);
-    font->render(label, { labelRect.x, labelRect.y }, textColor);
+    font->render(label, { labelRect.x, labelRect.y }, color);
     font->render(leftArrowText, { leftArrowRect.x, leftArrowRect.y },
-                 value > 0.F ? textColor : arrowDisabledColor);
+                 !disabled && value > 0.F ? textColor : arrowDisabledColor);
     font->render(rightArrowText, { rightArrowRect.x, rightArrowRect.y },
-                 value < 1.F ? textColor : arrowDisabledColor);
+                 !disabled && value < 1.F ? textColor : arrowDisabledColor);
 
     const auto valueStr =
-        fmt::format("{}%", static_cast<int>(std::lround(value * 100.F)));
-    font->render(valueStr, { valueRect.x, valueRect.y }, textColor, true);
+        valueText.empty() ?
+            fmt::format("{}%", static_cast<int>(std::lround(value * 100.F))) :
+            valueText;
+    font->render(valueStr, { valueRect.x, valueRect.y }, color, true);
     font->endPass();
 }
 

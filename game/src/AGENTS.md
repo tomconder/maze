@@ -201,6 +201,13 @@ primitives, windowing, or platform backends itself — see
   opens before the maze loads, so `MazeLayer` reads these settings in its
   constructor, and its setters must skip a null `Mesh::getShader()`;
   `finishLoading()` sends the stored values to the shader.
+* The Display tab's Frame Rate Cap checkbox and Maximum Frame Rate slider save
+  `video.frameRateCap` and `video.maxFrameRate` (30 to 240, default 60) and
+  apply at once through `Application::setFrameRateCap()`; `createApplication()`
+  reads both at start, and a capture run never caps. The slider keeps its value
+  while the cap is off. It is drawn dim, and `isSelectable()` makes it a label,
+  until the cap is on. Keys and arrow clicks move it 5 frames a second; the
+  track and a drag move it 1.
 * Refraction has no option and is off (`MazeLayer::refractionEnabled`, false).
   `captureRenderFrame()` blanks `objectRefraction`, so glass takes the opaque
   path (prepass, shadows, opaque color) and the glass pass is skipped. The

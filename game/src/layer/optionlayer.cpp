@@ -67,6 +67,20 @@ constexpr glm::vec4 dotColorDisplay = { 0.65F, 0.65F, 0.65F, 1.F };
 
 constexpr float textMarginLeft = 26.F;
 
+// The slider holds 0 to 1; the frame rate is that across the range.
+constexpr float frameRateSpan =
+    static_cast<float>(game::layer::maxFrameRate - game::layer::minFrameRate);
+
+// One key press or arrow click moves the frame rate slider 5 frames a second.
+constexpr float frameRateSliderStep = 5.F / frameRateSpan;
+
+float frameRateToSlider(const uint32_t fps) {
+    const auto clamped =
+        std::clamp(fps, game::layer::minFrameRate, game::layer::maxFrameRate);
+    return static_cast<float>(clamped - game::layer::minFrameRate) /
+           frameRateSpan;
+}
+
 std::vector<sponge::core::Resolution> availableResolutions;
 std::vector<sponge::core::Resolution> filteredResolutions;
 std::vector<AspectRatioFilter>        validAspectRatioFilters;
@@ -177,6 +191,9 @@ constexpr std::array settingRows = {
     RowDef{ .item = OptionMenuItem::AspectRatio, .label = "Aspect Ratio" },
     RowDef{ .item = OptionMenuItem::Resolution, .label = "Resolution" },
     RowDef{ .item = OptionMenuItem::VerticalSync, .label = "VSync" },
+    RowDef{ .item = OptionMenuItem::FrameRateCap, .label = "Frame Rate Cap" },
+    RowDef{ .item  = OptionMenuItem::MaxFrameRate,
+            .label = "Maximum Frame Rate" },
     RowDef{ .item = OptionMenuItem::AntiAliasing, .label = "Anti-aliasing" },
     RowDef{ .item = OptionMenuItem::QualityHeading, .label = "Quality" },
     RowDef{ .item = OptionMenuItem::ShadowQuality, .label = "Shadow Quality" },
@@ -285,6 +302,7 @@ void OptionLayer::onAttach() {
         .size   = static_cast<float>(menuFontSize()),
     };
     verticalSyncCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
+    frameRateCapCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     ambientOcclusionCheckbox =
         std::make_unique<ui::Checkbox>(checkboxCreateInfo);
     bloomCheckbox = std::make_unique<ui::Checkbox>(checkboxCreateInfo);
@@ -314,6 +332,18 @@ void OptionLayer::onAttach() {
         }
     }
 
+    // One step of indent: the slider belongs to the checkbox above it.
+    frameRateSlider = std::make_unique<ui::Slider>(ui::SliderCreateInfo{
+        .font               = menuFont(),
+        .fontSize           = menuFontSize(),
+        .textColor          = textColor,
+        .arrowDisabledColor = arrowDisabledColor,
+        .textMarginLeft     = textMarginLeft,
+        .labelIndent        = 32.F,
+    });
+    frameRateSlider->attach(
+        rowNode(static_cast<size_t>(OptionMenuItem::MaxFrameRate)));
+
     syncPendingCheckboxState();
 
     aspectRatioList->setSelectedIndex(
@@ -329,7 +359,10 @@ bool OptionLayer::takesInput() const {
 }
 
 bool OptionLayer::isSelectable(const size_t row) const {
-    return !isHeading(static_cast<OptionMenuItem>(row));
+    const auto item = static_cast<OptionMenuItem>(row);
+    // The slider is a label until the cap is on.
+    return !isHeading(item) &&
+           (item != OptionMenuItem::MaxFrameRate || pendingFrameRateCap);
 }
 
 void OptionLayer::onOpened() {
@@ -384,6 +417,8 @@ void OptionLayer::renderRow(const size_t row, const float x, const float y,
     const auto& [item, label] = settingRows[row];
     if (isHeading(item)) {
         renderRowLabel(x, y, h, label, headingColor);
+    } else if (item == OptionMenuItem::MaxFrameRate) {
+        frameRateSlider->onUpdate(y, label);
     } else if (auto* const list = listFor(item); list != nullptr) {
         list->onUpdate(y, label);
         const auto [dotCount, appliedIndex] = dotState(item);
@@ -399,6 +434,19 @@ void OptionLayer::onRowKeys(const size_t                        row,
                             const sponge::input::InputSnapshot& input) {
     using sponge::input::GameAction;
     const auto item = static_cast<OptionMenuItem>(row);
+    if (item == OptionMenuItem::MaxFrameRate) {
+        bool changed = false;
+        if (input.isActive(GameAction::MenuLeft)) {
+            changed = frameRateSlider->step(-frameRateSliderStep);
+        }
+        if (input.isActive(GameAction::MenuRight)) {
+            changed = frameRateSlider->step(frameRateSliderStep) || changed;
+        }
+        if (changed) {
+            applyFrameRate(true);
+        }
+        return;
+    }
     if (input.isActive(GameAction::MenuLeft)) {
         cycleList(item, -1);
     }
@@ -415,6 +463,20 @@ bool OptionLayer::onConfirm(const size_t row) {
 bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
     const auto [x, y, w, h] = rowRect(row);
     const auto item         = static_cast<OptionMenuItem>(row);
+    if (item == OptionMenuItem::MaxFrameRate) {
+        auto& slider = *frameRateSlider;
+        if (slider.isInsideTrack(mouse.x)) {
+            slider.setValue(slider.valueAtX(mouse.x));
+            applyFrameRate(false);
+            return true;
+        }
+        if (const auto arrow = slider.arrowAt(mouse.x); arrow != 0) {
+            if (slider.step(static_cast<float>(arrow) * frameRateSliderStep)) {
+                applyFrameRate(true);
+            }
+        }
+        return false;
+    }
     if (auto* const list = listFor(item); list != nullptr) {
         if (list->isInsideLeft(mouse.x)) {
             cycleList(item, -1);
@@ -427,6 +489,15 @@ bool OptionLayer::onRowPressed(const size_t row, const glm::vec2& mouse) {
     return false;
 }
 
+void OptionLayer::onRowDrag(const size_t /*row*/, const glm::vec2& mouse) {
+    frameRateSlider->setValue(frameRateSlider->valueAtX(mouse.x));
+    applyFrameRate(false);
+}
+
+void OptionLayer::onRowReleased(const size_t /*row*/) {
+    applyFrameRate(true);
+}
+
 void OptionLayer::onFontSizeChanged() {
     const auto  checkboxSize = static_cast<float>(menuFontSize());
     const float maxCycleValueWidth =
@@ -436,6 +507,8 @@ void OptionLayer::onFontSizeChanged() {
         if (auto* const list = listFor(item); list != nullptr) {
             list->setFontSize(menuFontSize());
             list->setMaxValueWidth(maxCycleValueWidth);
+        } else if (item == OptionMenuItem::MaxFrameRate) {
+            frameRateSlider->setFontSize(menuFontSize());
         } else if (!isHeading(item)) {
             checkboxFor(item)->setSize(checkboxSize);
         }
@@ -480,6 +553,8 @@ ui::Checkbox* OptionLayer::checkboxFor(const OptionMenuItem item) const {
     switch (item) {
         case OptionMenuItem::VerticalSync:
             return verticalSyncCheckbox.get();
+        case OptionMenuItem::FrameRateCap:
+            return frameRateCapCheckbox.get();
         case OptionMenuItem::AmbientOcclusion:
             return ambientOcclusionCheckbox.get();
         case OptionMenuItem::Bloom:
@@ -495,6 +570,8 @@ bool* OptionLayer::pendingFor(const OptionMenuItem item) {
     switch (item) {
         case OptionMenuItem::VerticalSync:
             return &pendingVsync;
+        case OptionMenuItem::FrameRateCap:
+            return &pendingFrameRateCap;
         case OptionMenuItem::AmbientOcclusion:
             return &pendingAmbientOcclusion;
         case OptionMenuItem::Bloom:
@@ -573,6 +650,11 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
             Maze::get().requestVerticalSync(pendingVsync);
             sponge::core::Settings::set("video.vsync", pendingVsync);
             break;
+        case OptionMenuItem::FrameRateCap:
+            Maze::get().setFrameRateCap(pendingFrameRateCap ? frameRate() : 0);
+            sponge::core::Settings::set("video.frameRateCap",
+                                        pendingFrameRateCap);
+            break;
         case OptionMenuItem::AmbientOcclusion:
             Maze::get().getMazeLayer()->setSsaoEnabled(pendingAmbientOcclusion);
             sponge::core::Settings::set("video.ssaoEnabled",
@@ -594,6 +676,23 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
     sponge::core::Settings::save();
 
     updateChangeStatus();
+}
+
+uint32_t OptionLayer::frameRate() const {
+    return minFrameRate + static_cast<uint32_t>(std::lround(
+                              frameRateSlider->getValue() * frameRateSpan));
+}
+
+void OptionLayer::applyFrameRate(const bool save) {
+    const auto fps = frameRate();
+    frameRateSlider->setValueText(std::to_string(fps));
+    if (pendingFrameRateCap) {
+        Maze::get().setFrameRateCap(fps);
+    }
+    sponge::core::Settings::set("video.maxFrameRate", fps);
+    if (save) {
+        sponge::core::Settings::save();
+    }
 }
 
 void OptionLayer::filterResolutions() {
@@ -689,7 +788,15 @@ void OptionLayer::syncPendingCheckboxState() {
         displayModeList->setSelectedIndex(
             static_cast<size_t>(pendingDisplayModeIndex));
     }
-    pendingVsync            = Maze::get().hasVerticalSync();
+    pendingVsync = Maze::get().hasVerticalSync();
+    // Settings holds the cap and its value; the slider keeps its own value
+    // while the cap is off.
+    pendingFrameRateCap =
+        sponge::core::Settings::getBool("video.frameRateCap", false);
+    frameRateSlider->setValue(
+        frameRateToSlider(sponge::core::Settings::getUInt32(
+            "video.maxFrameRate", defaultFrameRate)));
+    frameRateSlider->setValueText(std::to_string(frameRate()));
     pendingAmbientOcclusion = Maze::get().getMazeLayer()->isSsaoEnabled();
     pendingBloom            = Maze::get().isBloomEnabled();
     pendingSubsurfaceScattering =
@@ -719,6 +826,7 @@ void OptionLayer::updateChangeStatus() {
         static_cast<int>(sponge::core::DisplayMode::Borderless);
     aspectRatioList->setDisabled(borderless);
     resolutionList->setDisabled(borderless);
+    frameRateSlider->setDisabled(!pendingFrameRateCap);
 
     const auto window = Maze::get().getWindow();
     const auto curW   = window->getWidth();

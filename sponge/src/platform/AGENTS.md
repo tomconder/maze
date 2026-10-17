@@ -57,7 +57,14 @@ than calling GLFW/OpenGL/OS APIs directly.
   update step that reads a close request does not run, so that branch checks
   `glfwWindowShouldClose()` itself. Unfocused: the loop sleeps to a 30 fps
   cap (`ApplicationSpecification::throttleInBackground`, off for capture
-  runs). Audio is not paused. A window hidden behind another one is neither,
+  runs). The player's cap (`ApplicationSpecification::frameRateCap`,
+  `setFrameRateCap()`, 0 is off) uses the same sleep. While an active layer
+  returns true from `Layer::isMenu()` (the intro, exit and options screens),
+  the loop runs at no more than 30 fps. Unfocused, the same limit applies. The wait is `core::Timer::sleepUntil()`, which on Windows uses
+  `windows/core/wintimer.hpp` (`WinTimer`, a high resolution waitable timer),
+  because `sleep_until` wakes on the 15.6 ms tick and held a
+  60 fps cap to 32. The next frame time is the last target, not the wake time,
+  so a late wake does not slow the rate. Audio is not paused. A window hidden behind another one is neither,
   so it still runs at full rate.
 * SSBOs: do not use `row_major mat4` layout for driver-uploaded matrices — it
   is broken on at least one driver in this project's history. Pass matrices

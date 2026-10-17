@@ -50,6 +50,10 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
+    bool isMenu() const override {
+        return true;
+    }
+
 protected:
     explicit ButtonMenuLayer(ButtonMenuStyle menuStyle);
 

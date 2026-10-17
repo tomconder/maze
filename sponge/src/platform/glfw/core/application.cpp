@@ -25,7 +25,6 @@
 #include <mutex>
 #include <optional>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -33,11 +32,11 @@ namespace {
 sponge::core::Timer mainTimer;
 
 // A minimised window does no update and no render; the loop wakes this often
-// to pump events. An unfocused window still runs, at no more than 30 frames a
-// second. Neither is a setting: raise them only if a case needs it.
+// to pump events. An unfocused window and a menu still run, at no more than 30
+// frames a second. Neither is a setting: raise them only if a case needs it.
 constexpr double minimizedWaitSeconds = 0.1;
-constexpr auto   backgroundFrameInterval =
-    std::chrono::duration<double>(1.0 / 30.0);
+constexpr auto   oneSecond = std::chrono::nanoseconds(std::chrono::seconds(1));
+constexpr auto   slowFrameInterval = oneSecond / 30;
 
 uint32_t microsSince(const std::chrono::steady_clock::time_point start) {
     return static_cast<uint32_t>(
@@ -76,6 +75,7 @@ Application* Application::instance = nullptr;
 
 Application::Application(ApplicationSpecification specification) :
     appSpec(std::move(specification)) {
+    frameRateCap.store(appSpec.frameRateCap, std::memory_order_relaxed);
     const auto guiSink = std::make_shared<imgui::Sink<std::mutex>>();
     logging::Log::addSink(guiSink, logging::Log::fileFormatPattern);
 
@@ -585,15 +585,35 @@ void Application::run() {
 
         frameSync();
 
-        // Unfocused: cap the rate, so vsync off or an unpaced swap cannot spin
-        // the loop. The sleep counts towards the next tick, so game time does
-        // not slow down.
-        if (appSpec.throttleInBackground &&
-            glfwGetWindowAttrib(glfwWin, GLFW_FOCUSED) == GLFW_FALSE) {
-            std::this_thread::sleep_until(lastFrameStart +
-                                          backgroundFrameInterval);
+        // Cap the rate: the player's cap, and while a menu is open or the
+        // window is unfocused 30 frames a second if that is slower. That also
+        // keeps vsync off or an unpaced swap from spinning the loop. The sleep
+        // counts towards the next tick, so game time does not slow down.
+        std::chrono::nanoseconds interval{ 0 };
+        if (const auto cap = frameRateCap.load(std::memory_order_relaxed);
+            cap > 0) {
+            interval = oneSecond / cap;
         }
-        lastFrameStart = std::chrono::steady_clock::now();
+        const bool menuOpen =
+            std::ranges::any_of(*layerStack, [](const auto& layer) {
+                return layer->isActive() && layer->isMenu();
+            });
+        if (menuOpen ||
+            (appSpec.throttleInBackground &&
+             glfwGetWindowAttrib(glfwWin, GLFW_FOCUSED) == GLFW_FALSE)) {
+            interval = std::max(interval, slowFrameInterval);
+        }
+        if (interval.count() > 0) {
+            const auto target = lastFrameStart + interval;
+            sponge::core::Timer::sleepUntil(target);
+            // Keep to the schedule, so a late wake does not lengthen every
+            // frame after it. After a stall, start again from now: running
+            // frames back to back to catch up is no cap at all.
+            const auto now = std::chrono::steady_clock::now();
+            lastFrameStart = now - target > interval ? now : target;
+        } else {
+            lastFrameStart = std::chrono::steady_clock::now();
+        }
 
         // Game logic for frame N into the free snapshot slot.
         updateThread.kick([this, elapsed] {
