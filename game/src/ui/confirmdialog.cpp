@@ -14,7 +14,7 @@ namespace {
 constexpr glm::vec4 dimColor        = { 0.F, 0.F, 0.F, 0.7F };
 constexpr glm::vec4 panelColor      = { 0.05F, 0.05F, 0.05F, 1.F };
 constexpr glm::vec4 panelBorder     = { 0.84F, 0.84F, 0.84F, 0.5F };
-constexpr glm::vec4 buttonBorder    = { 1.F, 1.F, 1.F, 0.25F };
+constexpr glm::vec4 buttonBorder    = { 1.F, 1.F, 1.F, 0.4F };
 constexpr glm::vec4 selectedColor   = { 0.84F, 0.04F, 0.04F, 0.14F };
 constexpr glm::vec3 textColor       = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 countdownColor  = { 0.6F, 0.6F, 0.6F };
@@ -138,7 +138,7 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
            std::pair{ cancelButton.get(), !acceptChosen } }) {
         updateMenuButtonVisuals(button, selected, selectedColor);
         if (!selected && !button->hasHover()) {
-            button->setBorderWidth(1.F);
+            button->setBorderWidth(2.F);
             button->setBorderColor(buttonBorder);
         }
         button->onUpdate(elapsedTime);

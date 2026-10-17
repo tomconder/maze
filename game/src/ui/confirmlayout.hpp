@@ -59,10 +59,12 @@ public:
 
         YGNodeStyleSetWidth(windowNode, width);
         YGNodeStyleSetHeight(windowNode, height);
-        YGNodeStyleSetPadding(panelNode, YGEdgeAll, pad);
-        YGNodeStyleSetGap(panelNode, YGGutterRow, gap);
+        YGNodeStyleSetPadding(panelNode, YGEdgeHorizontal, pad);
+        YGNodeStyleSetPadding(panelNode, YGEdgeVertical, size * 3.F);
+        YGNodeStyleSetGap(panelNode, YGGutterRow, size * 1.1F);
         YGNodeStyleSetGap(buttonRowNode, YGGutterColumn, gap);
-        YGNodeStyleSetHeight(buttonRowNode, size * 2.2F);
+        YGNodeStyleSetMargin(buttonRowNode, YGEdgeTop, size * 0.8F);
+        YGNodeStyleSetHeight(buttonRowNode, size * 2.6F);
 
         setSize(titleNode, text.measure(title, fontSize));
         setSize(messageNode, text.measure(message, fontSize));
