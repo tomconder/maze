@@ -56,6 +56,9 @@ void ButtonMenuLayer::onAttach() {
 
     layout = std::make_unique<ui::MenuLayout>(buttons.size(), menuStyle.layout,
                                               menuStyle.keyHints);
+    for (size_t i = 0; i < buttons.size(); i++) {
+        buttons[i]->attach(layout->rowNode(i));
+    }
     recalculateLayout();
 }
 
@@ -130,8 +133,6 @@ bool ButtonMenuLayer::onUpdate(const double elapsedTime) {
     }
 
     for (size_t i = 0; i < buttons.size(); i++) {
-        const auto [x, y, w, h] = layout->rowRect(i);
-        buttons[i]->setPosition({ x, y }, { x + w, y + h });
         ui::updateMenuButtonVisuals(buttons[i].get(), selected == i,
                                     menuStyle.selectedColor);
         buttons[i]->onUpdate(elapsedTime);
@@ -199,12 +200,13 @@ bool ButtonMenuLayer::onMouseMoved(const MouseMovedEvent& event) {
 
 bool ButtonMenuLayer::onWindowResize(const WindowResizeEvent& event) {
     camera->setWidthAndHeight(event.getWidth(), event.getHeight());
-    recalculateLayout();
 
+    // the buttons size their nodes to the font, so it changes before the layout
     const auto fontSize = ui::menuFontSizeForWidth(event.getWidth());
     for (const auto& button : buttons) {
         button->setFontSize(fontSize);
     }
+    recalculateLayout();
     return false;
 }
 }  // namespace game::layer

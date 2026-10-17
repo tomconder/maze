@@ -60,7 +60,9 @@ primitives, windowing, or platform backends itself — see
   row: `attach(rowNode(row))` adds a label that takes the free width, then the
   arrows, track, value or box. A heading row is a label alone, and a keyboard
   row is a label and a zero-width value part at the right edge, with the key
-  name hanging left of it (`ui/rowparts.hpp`). The nodes are sized from the
+  name hanging left of it (`ui/rowparts.hpp`). `ui::Button` is a node
+  too: `attach(node)` adds its text as the only child, centred or left-aligned,
+  and it draws from `nodeRect()`. The nodes are sized from the
   font, so a layer calls `onFontSizeChanged()` before `recalculateLayout()` and
   once after attaching. `--dump-yoga` does not show the widget nodes; it has no
   font to measure them with. The select-list dots and the scroll bar are still

@@ -2,8 +2,9 @@
 
 #include "core/file.hpp"
 #include "platform/audio/audio.hpp"
+#include "ui/rowparts.hpp"
+#include "ui/yogarect.hpp"
 
-#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -12,8 +13,6 @@
 namespace game::ui {
 
 Button::Button(const ButtonCreateInfo& createInfo) :
-    top(createInfo.topLeft),
-    bottom(createInfo.bottomRight),
     text(createInfo.message),
     textSize(createInfo.fontSize),
     color(createInfo.buttonColor),
@@ -22,26 +21,51 @@ Button::Button(const ButtonCreateInfo& createInfo) :
     cornerRadius(createInfo.cornerRadius),
     borderWidth(createInfo.borderWidth),
     borderColor(createInfo.borderColor),
-    alignType(createInfo.alignType),
-    textPosition({ createInfo.topLeft.x, createInfo.topLeft.y }) {
+    alignType(createInfo.alignType) {
     font   = createInfo.font;
     length = font->getLength(text, textSize);
 
     quad = std::make_unique<sponge::platform::opengl::scene::Quad>();
 }
 
+void Button::attach(const YGNodeRef box) {
+    node = box;
+    YGNodeStyleSetFlexDirection(node, YGFlexDirectionRow);
+    YGNodeStyleSetAlignItems(node, YGAlignCenter);
+    YGNodeStyleSetPadding(node, YGEdgeHorizontal,
+                          static_cast<float>(marginLeft));
+    YGNodeInsertChild(node, YGNodeNew(), 0);
+    sizeNodes();
+}
+
+void Button::sizeNodes() const {
+    if (node == nullptr) {
+        return;
+    }
+    YGNodeStyleSetJustifyContent(
+        node, alignType == ButtonAlignType::CenterAligned ? YGJustifyCenter :
+                                                            YGJustifyFlexStart);
+    // The text is centred on the font size, not the line height.
+    setPartSize(node, 0, static_cast<float>(length),
+                static_cast<float>(textSize));
+}
+
 bool Button::onUpdate(const double) const {
-    quad->render(top, bottom, color, cornerRadius, borderWidth, borderColor);
+    const auto box      = nodeRect(node);
+    const auto textRect = nodeRect(YGNodeGetChild(node, 0));
+    quad->render({ box.x, box.y }, { box.x + box.width, box.y + box.height },
+                 color, cornerRadius, borderWidth, borderColor);
     font->beginPass(textSize);
-    font->render(text, textPosition, textColor);
+    font->render(text, { textRect.x, textRect.y }, textColor);
     font->endPass();
 
     return true;
 }
 
 bool Button::isInside(const glm::vec2& position) const {
-    return top.x <= position.x && top.y <= position.y &&
-           bottom.x >= position.x && bottom.y >= position.y;
+    const auto box = nodeRect(node);
+    return box.x <= position.x && box.y <= position.y &&
+           box.x + box.width >= position.x && box.y + box.height >= position.y;
 }
 
 void Button::setButtonColor(const glm::vec4& val) {
@@ -62,6 +86,7 @@ void Button::setBorderColor(const glm::vec4& val) {
 
 void Button::setAlignType(const ButtonAlignType& val) {
     alignType = val;
+    sizeNodes();
 }
 
 void Button::setMessage(std::string_view message) {
@@ -71,8 +96,7 @@ void Button::setMessage(std::string_view message) {
 
     text   = message;
     length = font->getLength(text, textSize);
-
-    setPosition(top, bottom);
+    sizeNodes();
 }
 
 void Button::setFontSize(const uint32_t size) {
@@ -81,29 +105,7 @@ void Button::setFontSize(const uint32_t size) {
     }
     textSize = size;
     length   = font->getLength(text, textSize);
-    setPosition(top, bottom);
-}
-
-void Button::setPosition(const glm::vec2& topLeft,
-                         const glm::vec2& bottomRight) {
-    top.x = topLeft.x;
-    top.y = topLeft.y;
-
-    bottom.x = bottomRight.x;
-    bottom.y = bottomRight.y;
-
-    const auto width  = std::abs(topLeft.x - bottomRight.x);
-    const auto height = std::abs(topLeft.y - bottomRight.y);
-
-    if (alignType == ButtonAlignType::CenterAligned) {
-        textPosition = { top.x + (width - static_cast<float>(length)) / 2.F,
-                         top.y +
-                             (height - static_cast<float>(textSize)) / 2.F };
-    } else {
-        textPosition = { top.x + marginLeft,
-                         top.y +
-                             (height - static_cast<float>(textSize)) / 2.F };
-    }
+    sizeNodes();
 }
 
 std::unique_ptr<Button> makeMenuButton(

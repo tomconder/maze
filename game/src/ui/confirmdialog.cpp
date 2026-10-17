@@ -35,6 +35,8 @@ ConfirmDialog::ConfirmDialog(
                                 glm::vec4{ 0.F }, textColor)) {
     acceptButton->setAlignType(ButtonAlignType::CenterAligned);
     cancelButton->setAlignType(ButtonAlignType::CenterAligned);
+    acceptButton->attach(layout->acceptNode);
+    cancelButton->attach(layout->cancelNode);
 }
 
 void ConfirmDialog::open(const std::string_view newTitle,
@@ -135,14 +137,6 @@ ConfirmResult ConfirmDialog::onUpdate(const double elapsedTime,
     }
     font->endPass();
 
-    const auto accept = nodeRect(layout->acceptNode);
-    const auto cancel = nodeRect(layout->cancelNode);
-    acceptButton->setPosition(
-        { accept.x, accept.y },
-        { accept.x + accept.width, accept.y + accept.height });
-    cancelButton->setPosition(
-        { cancel.x, cancel.y },
-        { cancel.x + cancel.width, cancel.y + cancel.height });
     for (const auto& [button, selected] :
          { std::pair{ acceptButton.get(), acceptChosen },
            std::pair{ cancelButton.get(), !acceptChosen } }) {
