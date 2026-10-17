@@ -385,135 +385,109 @@ void InputManager::updateActiveDevice() {
     }
 }
 
-void InputManager::resolveActions() {
+InputManager::BindingState
+    InputManager::evaluateBinding(const input::InputBinding& binding) const {
     using input::BindingType;
-    using input::GameAction;
+    const auto& [type, rawCode, axisScale, deadzone] = binding;
 
+    BindingState state;
+
+    // Suppress keyboard and mouse bindings when gamepad is active to prevent
+    // D-pad ghost-firing arrow key events (driver-level aliasing).
+    const bool gamepadActive =
+        snapshot.activeDevice == input::ActiveDevice::Gamepad;
+
+    switch (type) {
+        case BindingType::Key:
+            if (!gamepadActive && rawCode > 0 && rawCode <= GLFW_KEY_LAST) {
+                state.held   = keyDown[rawCode];
+                state.active = keyDown[rawCode] && !keyPrev[rawCode];
+                state.axis   = state.held ? axisScale : 0.f;
+            }
+            break;
+        case BindingType::MouseButton:
+            if (!gamepadActive && rawCode >= 0 &&
+                rawCode <= GLFW_MOUSE_BUTTON_LAST) {
+                state.held   = mouseDown[rawCode];
+                state.active = mouseDown[rawCode] && !mousePrev[rawCode];
+                state.axis   = state.held ? axisScale : 0.f;
+            }
+            break;
+        case BindingType::MouseAxisX:
+        case BindingType::MouseAxisY:
+            if (!gamepadActive) {
+                const double delta = type == BindingType::MouseAxisX ?
+                                         cursorDeltaX :
+                                         cursorDeltaY;
+                state.axis         = static_cast<float>(delta) * axisScale;
+                state.held         = std::abs(state.axis) > deadzone;
+                state.active       = state.held;
+            }
+            break;
+        case BindingType::GamepadButton:
+            if (snapshot.gamepadConnected && rawCode >= 0 &&
+                rawCode <= GLFW_GAMEPAD_BUTTON_LAST) {
+                state.held = gamepadStateCurrent.buttons[rawCode] == GLFW_PRESS;
+                state.active = state.held &&
+                               gamepadStatePrev.buttons[rawCode] != GLFW_PRESS;
+                state.axis   = state.held ? axisScale : 0.f;
+            }
+            break;
+        case BindingType::GamepadAxis:
+            if (snapshot.gamepadConnected && rawCode >= 0 &&
+                rawCode <= GLFW_GAMEPAD_AXIS_LAST) {
+                const auto withDeadzone = [&](const float value) {
+                    const float scaled = value * axisScale;
+                    return std::abs(scaled) < deadzone ? 0.f : scaled;
+                };
+                const float prev = withDeadzone(gamepadStatePrev.axes[rawCode]);
+                state.axis   = withDeadzone(gamepadStateCurrent.axes[rawCode]);
+                state.held   = state.axis > 0.f;
+                state.active = state.held && prev <= 0.f;
+            }
+            break;
+    }
+    return state;
+}
+
+void InputManager::latchAction(const size_t action) {
+    // One action per press. The button bounces on release: the pad reports
+    // a second down/up a few ms later. So the latch is held until the
+    // action has been released for the whole debounce.
+    const auto now = std::chrono::steady_clock::now();
+    if (snapshot.held[action]) {
+        lastHeld[action] = now;
+    } else if (now - lastHeld[action] >= releaseDebounce) {
+        actionLatched[action] = false;
+    }
+
+    if (snapshot.active[action]) {
+        if (actionLatched[action]) {
+            snapshot.active[action] = false;
+        } else {
+            actionLatched[action] = true;
+        }
+    }
+}
+
+void InputManager::resolveActions() {
     const auto& bindingMap = bindingMaps[static_cast<uint8_t>(activeContext())];
     snapshot.active.fill(false);
     snapshot.held.fill(false);
     snapshot.axis.fill(0.f);
 
-    for (int action = 0; action < +GameAction::Count; action++) {
-        for (const auto& [type, rawCode, axisScale, deadzone] :
-             bindingMap[action]) {
-            bool  newHeld   = false;
-            bool  newActive = false;
-            float newAxis   = 0.f;
+    for (size_t action = 0; action < +input::GameAction::Count; action++) {
+        for (const auto& binding : bindingMap[action]) {
+            const auto [held, active, axis] = evaluateBinding(binding);
 
-            const bool gamepadActive =
-                snapshot.activeDevice == input::ActiveDevice::Gamepad;
-
-            switch (type) {
-                case BindingType::Key: {
-                    // Suppress keyboard bindings when gamepad is active to
-                    // prevent D-pad ghost-firing arrow key events (driver-level
-                    // aliasing).
-                    if (gamepadActive)
-                        break;
-                    const int key = rawCode;
-                    if (key > 0 && key <= GLFW_KEY_LAST) {
-                        newHeld   = keyDown[key];
-                        newActive = keyDown[key] && !keyPrev[key];
-                        newAxis   = newHeld ? axisScale : 0.f;
-                    }
-                    break;
-                }
-                case BindingType::MouseButton: {
-                    if (gamepadActive)
-                        break;
-                    const int mouseButton = rawCode;
-                    if (mouseButton >= 0 &&
-                        mouseButton <= GLFW_MOUSE_BUTTON_LAST) {
-                        newHeld = mouseDown[mouseButton];
-                        newActive =
-                            mouseDown[mouseButton] && !mousePrev[mouseButton];
-                        newAxis = newHeld ? axisScale : 0.f;
-                    }
-                    break;
-                }
-                case BindingType::MouseAxisX: {
-                    if (gamepadActive)
-                        break;
-                    newAxis   = static_cast<float>(cursorDeltaX) * axisScale;
-                    newHeld   = std::abs(newAxis) > deadzone;
-                    newActive = newHeld;
-                    break;
-                }
-                case BindingType::MouseAxisY: {
-                    if (gamepadActive)
-                        break;
-                    newAxis   = static_cast<float>(cursorDeltaY) * axisScale;
-                    newHeld   = std::abs(newAxis) > deadzone;
-                    newActive = newHeld;
-                    break;
-                }
-                case BindingType::GamepadButton: {
-                    if (snapshot.gamepadConnected) {
-                        const int gamepadButton = rawCode;
-                        if (gamepadButton >= 0 &&
-                            gamepadButton <= GLFW_GAMEPAD_BUTTON_LAST) {
-                            newHeld =
-                                gamepadStateCurrent.buttons[gamepadButton] ==
-                                GLFW_PRESS;
-                            newActive =
-                                newHeld &&
-                                gamepadStatePrev.buttons[gamepadButton] !=
-                                    GLFW_PRESS;
-                            newAxis = newHeld ? axisScale : 0.f;
-                        }
-                    }
-                    break;
-                }
-                case BindingType::GamepadAxis: {
-                    if (snapshot.gamepadConnected) {
-                        const int gamepadAxis = rawCode;
-                        if (gamepadAxis >= 0 &&
-                            gamepadAxis <= GLFW_GAMEPAD_AXIS_LAST) {
-                            float raw = gamepadStateCurrent.axes[gamepadAxis] *
-                                        axisScale;
-                            if (std::abs(raw) < deadzone) {
-                                raw = 0.f;
-                            }
-                            float rawPrev =
-                                gamepadStatePrev.axes[gamepadAxis] * axisScale;
-                            if (std::abs(rawPrev) < deadzone) {
-                                rawPrev = 0.f;
-                            }
-                            newAxis   = raw;
-                            newHeld   = newAxis > 0.f;
-                            newActive = newHeld && rawPrev <= 0.f;
-                        }
-                    }
-                    break;
-                }
-            }
-
-            snapshot.held[action]   = snapshot.held[action] || newHeld;
-            snapshot.active[action] = snapshot.active[action] || newActive;
+            snapshot.held[action]   = snapshot.held[action] || held;
+            snapshot.active[action] = snapshot.active[action] || active;
             // Highest-magnitude binding wins
-            if (std::abs(newAxis) > std::abs(snapshot.axis[action])) {
-                snapshot.axis[action] = newAxis;
+            if (std::abs(axis) > std::abs(snapshot.axis[action])) {
+                snapshot.axis[action] = axis;
             }
         }
-
-        // One action per press. The button bounces on release — the pad
-        // reports a second down/up a few ms later — so the latch is held
-        // until the action has been released for the whole debounce.
-        const auto now = std::chrono::steady_clock::now();
-        if (snapshot.held[action]) {
-            lastHeld[action] = now;
-        } else if (now - lastHeld[action] >= releaseDebounce) {
-            actionLatched[action] = false;
-        }
-
-        if (snapshot.active[action]) {
-            if (actionLatched[action]) {
-                snapshot.active[action] = false;
-            } else {
-                actionLatched[action] = true;
-            }
-        }
+        latchAction(action);
     }
 }
 

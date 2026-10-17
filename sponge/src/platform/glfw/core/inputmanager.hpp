@@ -10,6 +10,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -132,7 +133,15 @@ private:
 
     void pollGamepad();
     void resolveActions();
-    void updateActiveDevice();
+
+    struct BindingState {
+        bool  held   = false;
+        bool  active = false;
+        float axis   = 0.f;
+    };
+    BindingState evaluateBinding(const input::InputBinding& binding) const;
+    void         latchAction(size_t action);
+    void         updateActiveDevice();
 
     // Static joystick callback for hot-plug; uses instance pointer
     static InputManager* instance;
