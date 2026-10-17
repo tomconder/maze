@@ -102,7 +102,7 @@ private:
                     size_t                       displayIdx,
                     const std::optional<size_t>& currentIdx) const;
 
-    void renderRowLabel(float x, float y, float h, std::string_view label,
+    void renderRowLabel(size_t row, float y, std::string_view label,
                         const glm::vec3& color) const;
 
 protected:

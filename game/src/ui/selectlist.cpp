@@ -18,8 +18,7 @@ namespace {
 constexpr std::string_view leftArrow  = "< ";
 constexpr std::string_view rightArrow = " >";
 
-// The children of the row, left to right.
-constexpr int labelPart      = 0;
+// The children of the row after the label, left to right.
 constexpr int leftArrowPart  = 1;
 constexpr int valuePart      = 2;
 constexpr int rightArrowPart = 3;

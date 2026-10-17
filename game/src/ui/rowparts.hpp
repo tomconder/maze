@@ -7,6 +7,9 @@
 
 namespace game::ui {
 
+// The label is the first part of every row.
+inline constexpr int labelPart = 0;
+
 // A widget in a row of a menu is a run of parts, left to right. The first part
 // is the label and takes the width the others leave; the row keeps a margin on
 // both sides.
@@ -18,7 +21,7 @@ inline void attachRowParts(const YGNodeRef row, const int count,
     for (int part = 0; part < count; part++) {
         YGNodeInsertChild(row, YGNodeNew(), part);
     }
-    YGNodeStyleSetFlexGrow(YGNodeGetChild(row, 0), 1.F);
+    YGNodeStyleSetFlexGrow(YGNodeGetChild(row, labelPart), 1.F);
 }
 
 // width may be YGUndefined, for a part that takes what the rest leaves.
