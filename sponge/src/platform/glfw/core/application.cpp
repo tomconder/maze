@@ -590,21 +590,9 @@ void Application::stopThreads(GLFWwindow* glfwWindow) {
     updateThread.stop();
 }
 
-void Application::run() {
-#ifdef ENABLE_PROFILING
-    SPONGE_CORE_DEBUG("Tracy profiler enabled");
-#endif
-
-    SPONGE_CORE_INFO("Starting");
-    if (!start()) {
-        return;
-    }
-
+void Application::startThreads(GLFWwindow* glfwWindow) {
     // Transfer GL context to render thread, which acquires it on first wake.
-    auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
-    graphics->release(glfwWin);
-
-    const std::function<bool()> renderTask = [this] { return renderFrame(); };
+    graphics->release(glfwWindow);
 
     renderThread.start();
     updateThread.start();
@@ -616,77 +604,94 @@ void Application::run() {
 
     // Warm up the render thread, which acquires the GL context, before the main
     // loop.
-    renderThread.kick(renderTask);
+    renderThread.kick([this] { return renderFrame(); });
     renderThread.waitForComplete();
+}
+
+bool Application::runFrame(
+    GLFWwindow*                            glfwWindow,
+    std::chrono::steady_clock::time_point& lastFrameStart) {
+    mainTimer.tick();
+    // Must finish before polling, because GLFW callbacks write ImGui's
+    // InputEventsQueue and the render thread reads it.
+    const auto renderWaitStart = std::chrono::steady_clock::now();
+    renderThread.waitForComplete();
+    loopTimes.waitRenderUs.store(microsSince(renderWaitStart),
+                                 std::memory_order_relaxed);
+    inputManager.recenterCursor();
+    glfwPollEvents();
+    applyPendingWindowRequests();
+
+    // Wait for update thread before writing new snapshot data.
+    const auto updateWaitStart = std::chrono::steady_clock::now();
+    const bool updateResult    = updateThread.waitForComplete();
+    loopTimes.waitUpdateUs.store(microsSince(updateWaitStart),
+                                 std::memory_order_relaxed);
+
+    // Now safe: all previous-frame reads of the snapshot are complete.
+    inputManager.update();
+    const double elapsed = mainTimer.getElapsedSeconds();
+
+    // A render-thread layer can ask to quit.
+    if (!updateResult || renderThreadQuit.load(std::memory_order_acquire)) {
+        onUserDestroy();
+        return false;
+    }
+
+    // Minimised. There is nothing to show, so there is no update, no render
+    // and no spinning, because the swap does not block for a minimised
+    // window. Both workers are idle here, so skipping the kicks keeps the
+    // frame pairing intact. The timer ticks at the top of the loop, so the
+    // first frame after a restore sees the last wait and not the whole time
+    // minimised. Audio runs on its own device thread and keeps playing.
+    if (glfwGetWindowAttrib(glfwWindow, GLFW_ICONIFIED) == GLFW_TRUE) {
+        glfwWaitEventsTimeout(minimizedWaitSeconds);
+        // The update step that reads a close request does not run, so look at
+        // GLFW's own flag, which a close sets before its callback.
+        const bool closing = glfwWindowShouldClose(glfwWindow) == GLFW_TRUE;
+        if (closing) {
+            onUserDestroy();
+        }
+        return !closing;
+    }
+
+    // Update elapsed time for render-thread layers.
+    renderElapsedTime = elapsed;
+
+    frameSync();
+    limitFrameRate(glfwWindow, lastFrameStart);
+
+    // Game logic for frame N into the free snapshot slot.
+    updateThread.kick([this, elapsed] {
+        const auto start  = std::chrono::steady_clock::now();
+        const bool result = onUserUpdate(elapsed);
+        loopTimes.updateTaskUs.store(microsSince(start),
+                                     std::memory_order_relaxed);
+        return result;
+    });
+
+    // GPU work for frame N, which overlaps with update[N].
+    renderThread.kick([this] { return renderFrame(); });
+    return true;
+}
+
+void Application::run() {
+#ifdef ENABLE_PROFILING
+    SPONGE_CORE_DEBUG("Tracy profiler enabled");
+#endif
+
+    SPONGE_CORE_INFO("Starting");
+    if (!start()) {
+        return;
+    }
+
+    auto* glfwWin = static_cast<GLFWwindow*>(window->getNativeWindow());
+    startThreads(glfwWin);
 
     auto lastFrameStart = std::chrono::steady_clock::now();
 
     // Main loop: update[N] runs at the same time as render[N].
-    while (true) {
-        mainTimer.tick();
-        // Must finish before polling, because GLFW callbacks write ImGui's
-        // InputEventsQueue and the render thread reads it.
-        const auto renderWaitStart = std::chrono::steady_clock::now();
-        renderThread.waitForComplete();
-        loopTimes.waitRenderUs.store(microsSince(renderWaitStart),
-                                     std::memory_order_relaxed);
-        inputManager.recenterCursor();
-        glfwPollEvents();
-        applyPendingWindowRequests();
-
-        // Wait for update thread before writing new snapshot data.
-        const auto updateWaitStart = std::chrono::steady_clock::now();
-        const bool updateResult    = updateThread.waitForComplete();
-        loopTimes.waitUpdateUs.store(microsSince(updateWaitStart),
-                                     std::memory_order_relaxed);
-
-        // Now safe: all previous-frame reads of the snapshot are complete.
-        inputManager.update();
-        const double elapsed = mainTimer.getElapsedSeconds();
-
-        // Check whether a render-thread layer asked to quit.
-        const bool renderQuit =
-            renderThreadQuit.load(std::memory_order_acquire);
-
-        if (!updateResult || renderQuit) {
-            onUserDestroy();
-            break;
-        }
-
-        // Minimised. There is nothing to show, so there is no update, no render
-        // and no spinning, because the swap does not block for a minimised
-        // window. Both workers are idle here, so skipping the kicks keeps the
-        // frame pairing intact. The timer ticks at the top of the loop, so the
-        // first frame after a restore sees the last wait and not the whole time
-        // minimised. Audio runs on its own device thread and keeps playing.
-        if (glfwGetWindowAttrib(glfwWin, GLFW_ICONIFIED) == GLFW_TRUE) {
-            glfwWaitEventsTimeout(minimizedWaitSeconds);
-            // The update step that reads a close request does not run, so
-            // look at GLFW's own flag, which a close sets before its callback.
-            if (glfwWindowShouldClose(glfwWin) == GLFW_TRUE) {
-                onUserDestroy();
-                break;
-            }
-            continue;
-        }
-
-        // Update elapsed time for render-thread layers.
-        renderElapsedTime = elapsed;
-
-        frameSync();
-        limitFrameRate(glfwWin, lastFrameStart);
-
-        // Game logic for frame N into the free snapshot slot.
-        updateThread.kick([this, elapsed] {
-            const auto start  = std::chrono::steady_clock::now();
-            const bool result = onUserUpdate(elapsed);
-            loopTimes.updateTaskUs.store(microsSince(start),
-                                         std::memory_order_relaxed);
-            return result;
-        });
-
-        // GPU work for frame N, which overlaps with update[N].
-        renderThread.kick(renderTask);
+    while (runFrame(glfwWin, lastFrameStart)) {
     }
 
     stopThreads(glfwWin);
