@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 
 namespace game::ui {
@@ -26,6 +27,8 @@ struct SliderCreateInfo {
     float     trackHeight       = 6.F;
     float     handleRadius      = 15.F;
     float     handleBorderWidth = 2.F;
+    // Space left of the label, for a row that belongs to the one above it.
+    float     labelIndent       = 0.F;
     glm::vec4 trackColor        = { 1.F, 1.F, 1.F, 0.15F };
     glm::vec4 fillColor         = { 1.F, 0.84F, 0.2F, 1.F };
     glm::vec4 handleColor       = { 1.F, 1.F, 1.F, 1.F };
@@ -51,6 +54,13 @@ public:
     // Nudges the value by delta (positive or negative), clamped to [0, 1].
     // Returns true if the value actually changed, for keyboard/gamepad steps.
     bool step(float delta);
+
+    // Text drawn in place of the percentage. Empty goes back to the percentage.
+    void setValueText(std::string text);
+
+    // A disabled slider is drawn dim. Whether it still takes input is the
+    // layer's call, same as the rest of the interaction.
+    void setDisabled(bool value);
 
     // Adds the parts to the row node, which lives in the layer's layout.
     void attach(YGNodeRef row);
@@ -84,16 +94,19 @@ private:
     float     trackHeight;
     float     handleRadius;
     float     handleBorderWidth;
+    float     labelIndent;
     float     scale = 1.F;  // fontSize / 32
     glm::vec4 trackColor;
     glm::vec4 fillColor;
     glm::vec4 handleColor;
     glm::vec4 handleBorderColor;
 
-    float value         = 1.F;
-    float percentLen    = 0.F;  // cached width of "100%" at fontSize
-    float leftArrowLen  = 0.F;  // cached width of "< " at fontSize
-    float rightArrowLen = 0.F;  // cached width of " >" at fontSize
+    float       value    = 1.F;
+    bool        disabled = false;
+    std::string valueText;
+    float       percentLen    = 0.F;  // cached width of "100%" at fontSize
+    float       leftArrowLen  = 0.F;  // cached width of "< " at fontSize
+    float       rightArrowLen = 0.F;  // cached width of " >" at fontSize
 
     std::unique_ptr<sponge::platform::opengl::scene::Quad> quad;
 

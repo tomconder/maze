@@ -30,6 +30,8 @@ struct ApplicationSpecification {
     // Cap the frame rate while the window is unfocused. A capture run turns
     // it off so its timings do not depend on which window has focus.
     bool throttleInBackground = true;
+    // Most frames a second the loop runs; 0 is no cap.
+    uint32_t frameRateCap = 0;
 };
 
 using logging::LogItem;
@@ -82,6 +84,11 @@ public:
     // update-thread or render-thread layer). hasVerticalSync() reflects the
     // new value at once; glfwSwapInterval runs on the context-owning thread.
     void requestVerticalSync(bool val);
+
+    // Thread-safe: the main loop reads it each frame. 0 removes the cap.
+    void setFrameRateCap(const uint32_t fps) {
+        frameRateCap.store(fps, std::memory_order_relaxed);
+    }
 
     std::vector<LogItem>& getMessages() const {
         return *messages;
@@ -208,6 +215,8 @@ private:
     // the thread that owns the window/context.
     std::atomic<bool> pendingVerticalSync{ false };
     std::atomic<bool> pendingVerticalSyncValue{ false };
+
+    std::atomic<uint32_t> frameRateCap{ 0 };
 
     static Application* instance;
 

@@ -68,6 +68,10 @@ public:
 
     bool onUpdate(double elapsedTime) override;
 
+    bool isMenu() const override {
+        return true;
+    }
+
 protected:
     explicit ScrollMenuLayer(ScrollMenuStyle menuStyle);
 

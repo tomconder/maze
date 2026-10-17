@@ -43,6 +43,12 @@ public:
         return false;
     }
 
+    // True for a menu screen. While one is active, Application runs the loop at
+    // no more than 30 frames a second.
+    virtual bool isMenu() const {
+        return false;
+    }
+
     const std::string& getName() const {
         return debugName;
     }

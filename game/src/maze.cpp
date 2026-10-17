@@ -350,6 +350,11 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         // An undecorated window can be larger than the screen.
         .decorated            = decorated,
         .throttleInBackground = !capturing,
+        .frameRateCap =
+            !capturing && Settings::getBool("video.frameRateCap", false) ?
+                Settings::getUInt32("video.maxFrameRate",
+                                    game::layer::defaultFrameRate) :
+                0,
     };
 
 #ifdef NDEBUG
