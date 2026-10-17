@@ -7,6 +7,9 @@
 namespace sponge::platform::opengl::renderer {
 
 void RendererAPI::init() const {
+    // Release builds have no debug context, and synchronous output can cost
+    // the driver its threaded submission.
+#ifndef NDEBUG
     if (glDebugMessageCallback != nullptr) {
         glDebugMessageCallback(glLogMessage, nullptr);
         glEnable(GL_DEBUG_OUTPUT);
@@ -16,6 +19,7 @@ void RendererAPI::init() const {
                               GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
                               GL_FALSE);
     }
+#endif
 
     glEnable(GL_MULTISAMPLE);
 
@@ -86,6 +90,15 @@ void RendererAPI::bindTexture(const uint32_t unit, const uint32_t texture) {
 void RendererAPI::flush() {
     SPONGE_PROFILE_SECTION("glFlush");
     glFlush();
+}
+
+void RendererAPI::pushGroup(const std::string_view name) {
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0,
+                     static_cast<GLsizei>(name.size()), name.data());
+}
+
+void RendererAPI::popGroup() {
+    glPopDebugGroup();
 }
 
 }  // namespace sponge::platform::opengl::renderer

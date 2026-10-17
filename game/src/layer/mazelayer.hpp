@@ -9,6 +9,7 @@
 #include "input/inputsnapshot.hpp"
 #include "layer/layer.hpp"
 #include "platform/opengl/debug/gputimer.hpp"
+#include "platform/opengl/renderer/rendererapi.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/scene/bloom.hpp"
 #include "platform/opengl/scene/clusteredlights.hpp"
@@ -445,7 +446,9 @@ private:
 #ifndef NDEBUG
     void recordCapture(bool fxaaActive, bool taaActive, uint32_t bloomTexId);
 #endif
+    // Names a pass in the GPU timer and in RenderDoc / Nsight captures.
     void gpuBegin(std::string_view name) const {
+        sponge::platform::opengl::renderer::RendererAPI::pushGroup(name);
         if (gpuTimer) {
             gpuTimer->begin(name);
         }
@@ -454,6 +457,7 @@ private:
         if (gpuTimer) {
             gpuTimer->end();
         }
+        sponge::platform::opengl::renderer::RendererAPI::popGroup();
     }
 
     void renderPlanarReflection(const thread::MazeRenderFrame& frame) const;
