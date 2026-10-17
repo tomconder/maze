@@ -14,6 +14,8 @@ namespace game::ui {
 
 namespace {
 constexpr float baseValueGap = 12.F;
+constexpr float trackWidth   = 200.F;
+constexpr float trackHeight  = 6.F;
 // The dots hang this far above the bottom edge of the value part.
 constexpr float            dotMargin   = 9.F;
 constexpr std::string_view fullPercent = "100%";
@@ -36,18 +38,17 @@ float dotRadius(const uint32_t fontSize) {
     return std::max(3.F, std::round(static_cast<float>(fontSize) / 12.F));
 }
 
-void layoutHeading(const YGNodeRef row, const RowText& text,
-                   const float margin) {
+void layoutHeading(const YGNodeRef row, const RowText& text) {
     if (isNew(row)) {
-        attachRowParts(row, 1, margin);
+        attachRowParts(row, 1, rowMargin);
     }
     setPartSize(row, labelPart, YGUndefined, textHeight(text));
 }
 
-void layoutSelect(const YGNodeRef row, const RowText& text, const float margin,
+void layoutSelect(const YGNodeRef row, const RowText& text,
                   const float maxValueWidth, const size_t dotCount) {
     if (isNew(row)) {
-        attachRowParts(row, 4, margin);
+        attachRowParts(row, 4, rowMargin);
 
         auto* const valueNode = YGNodeGetChild(row, selectparts::value);
         YGNodeStyleSetAlignSelf(valueNode, YGAlignStretch);
@@ -91,10 +92,10 @@ void layoutSelect(const YGNodeRef row, const RowText& text, const float margin,
     }
 }
 
-void layoutSlider(const YGNodeRef row, const RowText& text, const float margin,
-                  const SliderSizes& sizes) {
+void layoutSlider(const YGNodeRef row, const RowText& text,
+                  const float labelIndent) {
     if (isNew(row)) {
-        attachRowParts(row, 5, margin);
+        attachRowParts(row, 5, rowMargin);
     }
     const auto scale = static_cast<float>(text.fontSize) / referenceFontSize;
     YGNodeStyleSetGap(row, YGGutterColumn, baseValueGap * scale);
@@ -102,40 +103,39 @@ void layoutSlider(const YGNodeRef row, const RowText& text, const float margin,
     const auto height = textHeight(text);
     setPartSize(row, labelPart, YGUndefined, height);
     YGNodeStyleSetMargin(YGNodeGetChild(row, labelPart), YGEdgeLeft,
-                         sizes.labelIndent * scale);
+                         labelIndent * scale);
     setPartSize(row, sliderparts::leftArrow, textWidth(text, "< "), height);
-    setPartSize(row, sliderparts::track, sizes.trackWidth * scale,
-                sizes.trackHeight * scale);
+    setPartSize(row, sliderparts::track, trackWidth * scale,
+                trackHeight * scale);
     setPartSize(row, sliderparts::rightArrow, textWidth(text, " >"), height);
     setPartSize(row, sliderparts::value, textWidth(text, fullPercent, true),
                 height);
 }
 
 void layoutCheckbox(const YGNodeRef row, const RowText& text,
-                    const float margin, const float boxSize) {
+                    const float boxSize) {
     if (isNew(row)) {
-        attachRowParts(row, 2, margin);
+        attachRowParts(row, 2, rowMargin);
     }
     setPartSize(row, labelPart, YGUndefined, textHeight(text));
     setPartSize(row, checkboxparts::box, boxSize, boxSize);
 }
 
-void layoutBinding(const YGNodeRef row, const RowText& text,
-                   const float margin) {
+void layoutBinding(const YGNodeRef row, const RowText& text) {
     if (isNew(row)) {
-        attachRowParts(row, 2, margin);
+        attachRowParts(row, 2, rowMargin);
     }
     const auto height = textHeight(text);
     setPartSize(row, labelPart, YGUndefined, height);
     setPartSize(row, bindingparts::value, 0.F, height);
 }
 
-void layoutButton(const YGNodeRef box, const RowText& text, const float margin,
+void layoutButton(const YGNodeRef box, const RowText& text,
                   const std::string_view label, const bool centered) {
     if (isNew(box)) {
         YGNodeStyleSetFlexDirection(box, YGFlexDirectionRow);
         YGNodeStyleSetAlignItems(box, YGAlignCenter);
-        YGNodeStyleSetPadding(box, YGEdgeHorizontal, margin);
+        YGNodeStyleSetPadding(box, YGEdgeHorizontal, rowMargin);
         YGNodeInsertChild(box, YGNodeNew(), labelPart);
     }
     YGNodeStyleSetJustifyContent(box, centered ? YGJustifyCenter :
@@ -148,7 +148,7 @@ void layoutButton(const YGNodeRef box, const RowText& text, const float margin,
 void layoutMenuButtons(const MenuLayout& layout, const RowText& text,
                        const std::span<const std::string_view> labels) {
     for (size_t row = 0; row < labels.size(); row++) {
-        layoutButton(layout.rowNode(row), text, rowMargin, labels[row], false);
+        layoutButton(layout.rowNode(row), text, labels[row], false);
     }
 }
 

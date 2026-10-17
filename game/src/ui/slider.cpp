@@ -32,9 +32,7 @@ Slider::Slider(const SliderCreateInfo& createInfo) :
     fillColor(createInfo.fillColor),
     handleColor(createInfo.handleColor),
     handleBorderColor(createInfo.handleBorderColor),
-    quad(std::make_unique<sponge::platform::opengl::scene::Quad>()) {
-    scale = static_cast<float>(fontSize) / referenceFontSize;
-}
+    quad(std::make_unique<sponge::platform::opengl::scene::Quad>()) {}
 
 float Slider::getValue() const {
     return value;
@@ -64,7 +62,6 @@ void Slider::setFontSize(const uint32_t size) {
         return;
     }
     fontSize = size;
-    scale    = static_cast<float>(fontSize) / referenceFontSize;
 }
 
 void Slider::attach(const YGNodeRef row) {
@@ -83,7 +80,7 @@ void Slider::onUpdate(const float y, const std::string_view label) {
 
     const float trackW  = track.width;
     const float trackH  = track.height;
-    const float radius  = handleRadius * scale;
+    const float radius  = handleRadius * scale();
     const float tStartX = track.x;
     const float trackY  = track.y;
 
@@ -108,7 +105,7 @@ void Slider::onUpdate(const float y, const std::string_view label) {
     const float handleCenterY = trackY + trackH / 2.F;
     quad->render({ handleCenterX - radius, handleCenterY - radius },
                  { handleCenterX + radius, handleCenterY + radius },
-                 faded(handleColor), radius, handleBorderWidth * scale,
+                 faded(handleColor), radius, handleBorderWidth * scale(),
                  faded(handleBorderColor));
 
     const auto& color = disabled ? arrowDisabledColor : textColor;
@@ -129,7 +126,7 @@ void Slider::onUpdate(const float y, const std::string_view label) {
 
 bool Slider::isInsideTrack(const float mouseX) const {
     const auto  track  = nodeRect(YGNodeGetChild(rowNode, sliderparts::track));
-    const float radius = handleRadius * scale;
+    const float radius = handleRadius * scale();
     return mouseX >= track.x - radius &&
            mouseX <= track.x + track.width + radius;
 }

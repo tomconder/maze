@@ -82,13 +82,17 @@ public:
     int arrowAt(float mouseX) const;
 
 private:
+    // fontSize relative to the 32 px font the sizes are given for.
+    float scale() const {
+        return static_cast<float>(fontSize) / referenceFontSize;
+    }
+
     std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> font;
     uint32_t                                                     fontSize;
     glm::vec3                                                    textColor;
     glm::vec3 arrowDisabledColor;
-    float     handleRadius;  // pixels at the 32 px font; multiply by scale
+    float     handleRadius;  // pixels at the 32 px font; multiply by scale()
     float     handleBorderWidth;
-    float     scale = 1.F;  // fontSize / 32
     glm::vec4 trackColor;
     glm::vec4 fillColor;
     glm::vec4 handleColor;

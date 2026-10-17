@@ -70,8 +70,8 @@ public:
                               countdown ? YGDisplayFlex : YGDisplayNone);
         setSize(countdownNode, countdown ? text.measure(*countdown, fontSize) :
                                            TextSize{ 0.F, 0.F });
-        layoutButton(acceptNode, text, rowMargin, acceptLabel, true);
-        layoutButton(cancelNode, text, rowMargin, cancelLabel, true);
+        layoutButton(acceptNode, text, acceptLabel, true);
+        layoutButton(cancelNode, text, cancelLabel, true);
 
         YGNodeCalculateLayout(windowNode, width, height, YGDirectionLTR);
     }

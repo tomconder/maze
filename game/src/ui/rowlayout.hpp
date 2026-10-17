@@ -28,15 +28,15 @@ struct RowText {
 // The space left and right of the parts of a row.
 inline constexpr float rowMargin = 26.F;
 
-// The sizes in SliderSizes are pixels at this menu font size; the slider
-// scales them with its font size.
+// The slider sizes are pixels at this menu font size; the slider scales them
+// with its font size.
 inline constexpr float referenceFontSize = 32.F;
 
 // The radius of a dot under a select list value.
 float dotRadius(uint32_t fontSize);
 
 // A heading is a label alone: the first part, labelPart.
-void layoutHeading(YGNodeRef row, const RowText& text, float margin);
+void layoutHeading(YGNodeRef row, const RowText& text);
 
 // Label, left arrow, value (a fixed width, so the arrows stay put), right
 // arrow. The value part is as tall as the row: the text sits in the middle and
@@ -49,8 +49,8 @@ inline constexpr int rightArrow = 3;
 inline constexpr int text = 0;
 inline constexpr int dots = 1;
 }  // namespace selectparts
-void layoutSelect(YGNodeRef row, const RowText& text, float margin,
-                  float maxValueWidth, size_t dotCount);
+void layoutSelect(YGNodeRef row, const RowText& text, float maxValueWidth,
+                  size_t dotCount);
 
 // Label, left arrow, track, right arrow, value.
 namespace sliderparts {
@@ -59,32 +59,26 @@ inline constexpr int track      = 2;
 inline constexpr int rightArrow = 3;
 inline constexpr int value      = 4;
 }  // namespace sliderparts
-struct SliderSizes {
-    float trackWidth  = 200.F;
-    float trackHeight = 6.F;
-    // Space left of the label, for a row that belongs to the one above it.
-    float labelIndent = 0.F;
-};
-void layoutSlider(YGNodeRef row, const RowText& text, float margin,
-                  const SliderSizes& sizes);
+// labelIndent is the space left of the label, in pixels at the reference font
+// size, for a row that belongs to the one above it.
+void layoutSlider(YGNodeRef row, const RowText& text, float labelIndent = 0.F);
 
 // Label, then a box of boxSize.
 namespace checkboxparts {
 inline constexpr int box = 1;
 }
-void layoutCheckbox(YGNodeRef row, const RowText& text, float margin,
-                    float boxSize);
+void layoutCheckbox(YGNodeRef row, const RowText& text, float boxSize);
 
 // Label, then a value part with no width: it marks the right edge, and the
 // value text hangs left of it, so a longer text needs no layout.
 namespace bindingparts {
 inline constexpr int value = 1;
 }
-void layoutBinding(YGNodeRef row, const RowText& text, float margin);
+void layoutBinding(YGNodeRef row, const RowText& text);
 
 // The node is the button's box; the text is its only child, the first part.
-void layoutButton(YGNodeRef box, const RowText& text, float margin,
-                  std::string_view label, bool centered);
+void layoutButton(YGNodeRef box, const RowText& text, std::string_view label,
+                  bool centered);
 
 // A column of left-aligned buttons, one to a row of the menu.
 void layoutMenuButtons(const MenuLayout& layout, const RowText& text,

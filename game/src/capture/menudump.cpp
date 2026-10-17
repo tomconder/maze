@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <fstream>
+#include <functional>
 #include <optional>
 #include <span>
 #include <string>
@@ -43,12 +44,14 @@ std::string confirmTree(const bool timed, const float width, const float height,
     return yogaToPlayground(layout.root());
 }
 
+using LayoutRows =
+    std::function<void(const ui::MenuLayout&, const ui::RowText&)>;
+
 // A menu is its rows, the key hints and, on an option tab, the tab bar.
-template <typename LayoutRows>
 std::string menuTree(const size_t rows, const ui::MenuLayoutSpec& spec,
                      const std::span<const ui::KeyHint> hints, const bool tabs,
                      const float width, const float height,
-                     const ui::RowText& text, LayoutRows&& layoutRows) {
+                     const ui::RowText& text, const LayoutRows& layoutRows) {
     ui::MenuLayout layout(rows, spec, hints);
     layoutRows(layout, text);
     if (tabs) {

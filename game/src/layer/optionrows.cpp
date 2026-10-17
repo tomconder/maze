@@ -51,21 +51,19 @@ void layoutOptionRows(const ui::MenuLayout& layout, const ui::RowText& text,
         auto* const node = layout.rowNode(row);
         switch (optionRows[row].kind) {
             case OptionRowKind::Heading:
-                ui::layoutHeading(node, text, ui::rowMargin);
+                ui::layoutHeading(node, text);
                 break;
             case OptionRowKind::Cycle:
-                ui::layoutSelect(node, text, ui::rowMargin, valueWidth,
-                                 dotCount(item, data));
+                ui::layoutSelect(node, text, valueWidth, dotCount(item, data));
                 break;
             case OptionRowKind::Checkbox:
-                ui::layoutCheckbox(node, text, ui::rowMargin,
+                ui::layoutCheckbox(node, text,
                                    static_cast<float>(text.fontSize));
                 break;
             case OptionRowKind::Slider:
                 // One step of indent: the slider belongs to the checkbox
                 // above it.
-                ui::layoutSlider(node, text, ui::rowMargin,
-                                 { .labelIndent = 32.F });
+                ui::layoutSlider(node, text, 32.F);
                 break;
         }
     }

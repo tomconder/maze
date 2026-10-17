@@ -9,7 +9,7 @@ namespace game::layer {
 
 void layoutKeyMapRows(const ui::MenuLayout& layout, const ui::RowText& text) {
     for (size_t row = 0; row < keyMapRowCount; row++) {
-        ui::layoutBinding(layout.rowNode(row), text, ui::rowMargin);
+        ui::layoutBinding(layout.rowNode(row), text);
     }
 }
 

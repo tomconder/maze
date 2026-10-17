@@ -126,8 +126,8 @@ protected:
     // Builds the parts of the rows in the layout and sizes them for the font,
     // with the functions in ui/rowlayout.hpp. Runs on every layout, so it
     // builds only what is not there yet.
-    virtual void layoutRows(const ui::MenuLayout& /*layout*/,
-                            const ui::RowText& /*text*/) {}
+    virtual void layoutRows(const ui::MenuLayout& menuLayout,
+                            const ui::RowText&    text) = 0;
 
     // Runs after every window size change, once the layout follows it.
     virtual void onResized(uint32_t /*width*/, uint32_t /*height*/) {}
