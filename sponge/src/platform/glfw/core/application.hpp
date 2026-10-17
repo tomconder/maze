@@ -168,6 +168,9 @@ private:
         GLFWwindow*                            glfwWindow,
         std::chrono::steady_clock::time_point& lastFrameStart) const;
     void stopThreads(GLFWwindow* glfwWindow);
+    void startThreads(GLFWwindow* glfwWindow);
+    bool runFrame(GLFWwindow*                            glfwWindow,
+                  std::chrono::steady_clock::time_point& lastFrameStart);
 
     std::string_view                               appName = "undefined";
     std::unique_ptr<opengl::renderer::Context>     graphics;
