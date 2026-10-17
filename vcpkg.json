@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "20ceb8adbf0504d4b0d5e4058a32f9d4fc896391",
+  "builtin-baseline": "a5f736224e85b32e25a8ffc52562333180396642",
   "dependencies": [
     {
       "name": "cgltf",
@@ -32,7 +32,7 @@
     },
     {
       "name": "harfbuzz",
-      "version>=": "14.5.1",
+      "version>=": "14.6.0",
       "features": [
         "freetype"
       ]
