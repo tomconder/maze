@@ -98,9 +98,7 @@ private:
 
     void resetSelectionToCurrentState();
 
-    void renderDots(size_t count, float valueCenterX, float rowY, float rowH,
-                    size_t                       displayIdx,
-                    const std::optional<size_t>& currentIdx) const;
+    void syncResolutionDots();
 
     void renderRowLabel(size_t row, float y, std::string_view label,
                         const glm::vec3& color) const;
@@ -114,7 +112,7 @@ protected:
 
     void onClosed() override;
 
-    void renderRow(size_t row, float x, float y, float w, float h) override;
+    void renderRow(size_t row, float y) override;
 
     void onRowKeys(size_t                              row,
                    const sponge::input::InputSnapshot& input) override;

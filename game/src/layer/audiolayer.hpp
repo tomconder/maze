@@ -35,7 +35,7 @@ private:
     void applyVolume(AudioMenuItem item, bool save) const;
 
 protected:
-    void renderRow(size_t row, float x, float y, float w, float h) override;
+    void renderRow(size_t row, float y) override;
 
     void onRowKeys(size_t                              row,
                    const sponge::input::InputSnapshot& input) override;

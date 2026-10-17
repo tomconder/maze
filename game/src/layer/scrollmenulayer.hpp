@@ -75,8 +75,9 @@ public:
 protected:
     explicit ScrollMenuLayer(ScrollMenuStyle menuStyle);
 
-    // Draws a row's content over its highlight, inside the scroll clip.
-    virtual void renderRow(size_t row, float x, float y, float w, float h) = 0;
+    // Draws a row's content over its highlight, inside the scroll clip. y is
+    // where the row starts as drawn.
+    virtual void renderRow(size_t row, float y) = 0;
 
     // False for a row that is only a label, such as a heading: it is not
     // selected, hovered, clicked or highlighted, and the selection hops over
@@ -142,10 +143,6 @@ protected:
 
     uint32_t menuFontSize() const {
         return fontSize;
-    }
-
-    const sponge::platform::opengl::scene::Quad& menuQuad() const {
-        return *quad;
     }
 
 private:

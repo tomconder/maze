@@ -62,11 +62,14 @@ primitives, windowing, or platform backends itself — see
   row is a label and a zero-width value part at the right edge, with the key
   name hanging left of it (`ui/rowparts.hpp`). `ui::Button` is a node
   too: `attach(node)` adds its text as the only child, centred or left-aligned,
-  and it draws from `nodeRect()`. The nodes are sized from the
-  font, so a layer calls `onFontSizeChanged()` before `recalculateLayout()` and
-  once after attaching. `--dump-yoga` does not show the widget nodes; it has no
-  font to measure them with. The select-list dots and the scroll bar are still
-  placed by hand.
+  and it draws from `nodeRect()`. The value part of a `ui::SelectList` is as
+  tall as the row: the text sits in the middle and a strip of dots, one node per
+  item, hangs from the bottom edge. `setDotCount()` returns true when the count
+  changed, and the layer then lays out again (the Resolution list changes with
+  the aspect ratio). The nodes are sized from the font, so a layer calls
+  `onFontSizeChanged()` before `recalculateLayout()` and once after attaching.
+  `--dump-yoga` does not show the widget nodes; it has no font to measure them
+  with. The scroll bar is still placed by hand.
   The three layers scroll through `ui/menuscroll.hpp`. The setting rows are
   fixed-height Yoga column nodes laid out once; the scroll offset is subtracted from
   their computed y in `ScrollMenuLayer::rowRect()`. No screen has a

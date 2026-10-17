@@ -62,10 +62,6 @@ constexpr glm::vec3 textColor          = { 1.F, 1.F, 1.F };
 constexpr glm::vec3 arrowDisabledColor = { 0.4F, 0.4F, 0.4F };
 constexpr glm::vec3 headingColor       = { 0.6F, 0.6F, 0.6F };
 
-constexpr glm::vec4 dotColorDefault = { 0.25F, 0.25F, 0.25F, 1.F };
-constexpr glm::vec4 dotColorCurrent = { 1.F, 1.F, 1.F, 1.F };
-constexpr glm::vec4 dotColorDisplay = { 0.65F, 0.65F, 0.65F, 1.F };
-
 constexpr float textMarginLeft = 26.F;
 
 // The slider holds 0 to 1; the frame rate is that across the range.
@@ -330,6 +326,7 @@ void OptionLayer::onAttach() {
         if (auto* const list = listFor(settingRows[row].item);
             list != nullptr) {
             list->attach(rowNode(row));
+            list->setDotCount(dotState(settingRows[row].item).first);
         }
     }
 
@@ -385,33 +382,6 @@ void OptionLayer::onClosed() {
     resetSelectionToCurrentState();
 }
 
-void OptionLayer::renderDots(const size_t count, const float valueCenterX,
-                             const float rowY, const float rowH,
-                             const size_t                 displayIdx,
-                             const std::optional<size_t>& currentIdx) const {
-    if (count == 0) {
-        return;
-    }
-    const float dotRadius =
-        std::max(3.F, std::round(static_cast<float>(menuFontSize()) / 12.F));
-    const float dotSpacing = dotRadius * 3.5F;
-    const float totalW =
-        (static_cast<float>(count) - 1.F) * dotSpacing + dotRadius * 2.F;
-    float       dotX = valueCenterX - totalW / 2.F;
-    const float dotY = rowY + rowH - dotRadius * 2.F - 9.F;
-    for (size_t i = 0; i < count; i++) {
-        const bool isCurrent = currentIdx.has_value() && i == *currentIdx;
-        const bool isDisplay = i == displayIdx;
-        const auto color     = isCurrent ? dotColorCurrent :
-                               isDisplay ? dotColorDisplay :
-                                           dotColorDefault;
-        menuQuad().render({ dotX, dotY },
-                          { dotX + dotRadius * 2.F, dotY + dotRadius * 2.F },
-                          color, dotRadius);
-        dotX += dotSpacing;
-    }
-}
-
 void OptionLayer::renderRowLabel(const size_t row, const float y,
                                  const std::string_view label,
                                  const glm::vec3&       color) const {
@@ -422,18 +392,15 @@ void OptionLayer::renderRowLabel(const size_t row, const float y,
     labelFont->endPass();
 }
 
-void OptionLayer::renderRow(const size_t row, const float /*x*/, const float y,
-                            const float /*w*/, const float h) {
+void OptionLayer::renderRow(const size_t row, const float y) {
     const auto& [item, label] = settingRows[row];
     if (isHeading(item)) {
         renderRowLabel(row, y, label, headingColor);
     } else if (item == OptionMenuItem::MaxFrameRate) {
         frameRateSlider->onUpdate(y, label);
     } else if (auto* const list = listFor(item); list != nullptr) {
+        list->setAppliedIndex(dotState(item).second);
         list->onUpdate(y, label);
-        const auto [dotCount, appliedIndex] = dotState(item);
-        renderDots(dotCount, list->getValueCenterX(), y, h,
-                   list->getSelectedIndex(), appliedIndex);
     } else {
         renderRowLabel(row, y, label, textColor);
         checkboxFor(item)->onUpdate(y, *pendingFor(item));
@@ -712,11 +679,18 @@ void OptionLayer::applyFrameRate(const bool save) {
     }
 }
 
+void OptionLayer::syncResolutionDots() {
+    if (resolutionList->setDotCount(filteredResolutions.size())) {
+        recalculateLayout();
+    }
+}
+
 void OptionLayer::filterResolutions() {
     if (validAspectRatioFilters.empty()) {
         filteredResolutions.clear();
         resolutionList->setItems({});
         currentResolutionIndex = std::nullopt;
+        syncResolutionDots();
         updateChangeStatus();
         return;
     }
@@ -757,6 +731,7 @@ void OptionLayer::filterResolutions() {
         currentResolutionIndex = std::nullopt;
     }
 
+    syncResolutionDots();
     updateChangeStatus();
 }
 

@@ -172,7 +172,7 @@ bool ScrollMenuLayer::onUpdate(const double elapsedTime) {
         if (isSelectable(row)) {
             renderRowBackground(row, x, y, w, h);
         }
-        renderRow(row, x, y, w, h);
+        renderRow(row, y);
     }
     scroll.endClip();
 
