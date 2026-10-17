@@ -31,7 +31,7 @@ struct ApplicationSpecification {
     // Cap the frame rate while the window is unfocused. A capture run turns
     // it off so its timings do not depend on which window has focus.
     bool throttleInBackground = true;
-    // Most frames a second the loop runs; 0 is no cap.
+    // Most frames a second the loop runs, where 0 means no cap.
     uint32_t frameRateCap = 0;
 };
 
@@ -82,11 +82,12 @@ public:
     void setVerticalSync(bool val);
 
     // Thread-safe request to change vsync from a non-main thread (e.g. an
-    // update-thread or render-thread layer). hasVerticalSync() reflects the
-    // new value at once; glfwSwapInterval runs on the context-owning thread.
+    // update-thread or render-thread layer). hasVerticalSync() reflects the new
+    // value at once, and glfwSwapInterval runs on the context-owning thread.
     void requestVerticalSync(bool val);
 
-    // Thread-safe: the main loop reads it each frame. 0 removes the cap.
+    // Thread-safe, because the main loop reads it each frame. 0 removes the
+    // cap.
     void setFrameRateCap(const uint32_t fps) {
         frameRateCap.store(fps, std::memory_order_relaxed);
     }
@@ -136,9 +137,9 @@ public:
         return imguiManager.isEventHandled();
     }
 
-    // Wall time of each part of the frame loop, in microseconds, for the last
-    // frame that finished it. Each field has one writer thread. For finding
-    // which thread sets the frame rate.
+    // Wall time of each part of the frame loop in microseconds, for the last
+    // frame that finished it. Each field has one writer thread. Use these to
+    // find which thread sets the frame rate.
     struct LoopTimes {
         // Render thread: the whole render task, and the buffer swap in it.
         std::atomic<uint32_t> renderTaskUs{ 0 };
@@ -188,14 +189,15 @@ private:
 
     ApplicationSpecification appSpec;
 
-    // 1 update thread (game logic, no GL) + 1 render thread (owns GL context).
+    // One update thread (game logic, no GL) and one render thread (owns the GL
+    // context).
     thread::Worker renderThread;
     thread::Worker updateThread;
 
     InputManager inputManager;
 
-    // Elapsed time for render-thread layers; written by main, read by render
-    // thread.
+    // Elapsed time for render-thread layers. The main thread writes it and the
+    // render thread reads it.
     double renderElapsedTime{ 0.0 };
 
     // Render thread only: set once it has taken the GL context.
@@ -217,9 +219,8 @@ private:
     std::atomic<uint32_t> pendingResolutionW{ 0 };
     std::atomic<uint32_t> pendingResolutionH{ 0 };
 
-    // displayMode changes immediately in setDisplayMode(); the GLFW window
-    // call runs on the main thread to avoid deadlocking the Win32 message
-    // pump.
+    // displayMode changes immediately in setDisplayMode(), and the GLFW window
+    // call runs on the main thread to avoid deadlocking the Win32 message pump.
     std::atomic<bool> pendingDisplayMode{ false };
 
     // Deferred mouse-visibility change requested from update-thread layers

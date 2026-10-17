@@ -31,9 +31,10 @@
 namespace {
 sponge::core::Timer mainTimer;
 
-// A minimised window does no update and no render; the loop wakes this often
-// to pump events. An unfocused window and a menu still run, at no more than 30
-// frames a second. Neither is a setting: raise them only if a case needs it.
+// A minimised window does no update and no render, and the loop wakes this
+// often to pump events. An unfocused window and a menu still run, at no more
+// than 30 frames a second. Neither value is a setting, so raise them only if a
+// case needs it.
 constexpr double minimizedWaitSeconds = 0.1;
 constexpr auto   oneSecond = std::chrono::nanoseconds(std::chrono::seconds(1));
 constexpr auto   slowFrameInterval = oneSecond / 30;
@@ -50,8 +51,8 @@ struct MonitorMode {
     const GLFWvidmode* mode;
 };
 
-// Both null checks fail together in practice (no monitor -> no mode), but
-// GLFW's API exposes them as two separate calls.
+// Both null checks fail together in practice, because a missing monitor has no
+// mode, but GLFW exposes them as two separate calls.
 std::optional<MonitorMode> getPrimaryMonitorMode() {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     if (monitor == nullptr) {
@@ -86,8 +87,8 @@ void enterBorderless(GLFWwindow* window, const MonitorMode& mm) {
     }
 }
 
-// windowedW and windowedH are the size to restore; a size that is not positive
-// falls back to the spec, then to the current size.
+// windowedW and windowedH are the size to restore. A size that is not positive
+// falls back to the spec, and then to the current size.
 void enterWindowed(GLFWwindow* window, const MonitorMode& mm,
                    const uint32_t specW, const uint32_t specH,
                    int32_t& windowedW, int32_t& windowedH) {
@@ -98,16 +99,16 @@ void enterWindowed(GLFWwindow* window, const MonitorMode& mm,
         windowedH = static_cast<int>(specH);
     }
     // A pristine settings file gives a 0x0 spec, and GLFW rejects a 0x0 window
-    // without changing mode. Keep the current size; a pending resolution
-    // resizes it later.
+    // without changing mode, so this keeps the current size and a pending
+    // resolution resizes it later.
     if (windowedW <= 0 || windowedH <= 0) {
         glfwGetWindowSize(window, &windowedW, &windowedH);
     }
     glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
     glfwSetWindowMonitor(window, nullptr, 0, 0, windowedW, windowedH,
                          GLFW_DONT_CARE);
-    // Centre on the desktop mode read after the call: leaving full screen
-    // restores it, and it may differ from the full screen mode in mm.
+    // Centre on the desktop mode read after the call, because leaving full
+    // screen restores it and it may differ from the full screen mode in mm.
     if (const auto* desktop = glfwGetVideoMode(mm.monitor)) {
         glfwSetWindowPos(window, (desktop->width - windowedW) / 2,
                          (desktop->height - windowedH) / 2);
@@ -123,8 +124,9 @@ using opengl::renderer::Context;
 using opengl::renderer::RendererAPI;
 
 namespace {
-// GLFW otherwise fails silently, e.g. glfwSetWindowMonitor rejecting a 0x0
-// size. The callback is set before glfwInit so init errors are logged too.
+// GLFW otherwise fails silently, for example when glfwSetWindowMonitor rejects
+// a 0x0 size. The callback is set before glfwInit so that init errors are
+// logged too.
 bool initGlfw() {
     glfwSetErrorCallback([](const int code, const char* description) {
         SPONGE_CORE_ERROR("GLFW error {:#x}: {}", code, description);
@@ -237,8 +239,8 @@ bool Application::onUserCreate() {
 bool Application::onUserUpdate(const double elapsedTime) {
     SPONGE_PROFILE_SECTION("Application::onUserUpdate");
 
-    // Only update-thread layers; render-thread layers run in the render thread
-    // lambda.
+    // Only update-thread layers run here. Render-thread layers run in the
+    // render task.
     bool result = true;
 
     for (const auto& layer : *layerStack) {
@@ -335,16 +337,17 @@ void Application::setVerticalSync(const bool val) {
 }
 
 void Application::requestVerticalSync(const bool val) {
-    // vsync is authoritative immediately so hasVerticalSync() is truthful to
-    // the caller; only glfwSwapInterval is deferred to the context owner.
+    // vsync changes at once, so hasVerticalSync() is correct for the caller,
+    // and only glfwSwapInterval is deferred to the thread that owns the
+    // context.
     vsync = val;
     pendingVerticalSyncValue.store(val, std::memory_order_relaxed);
     pendingVerticalSync.store(true, std::memory_order_release);
 }
 
 void Application::setResolution(const uint32_t width, const uint32_t height) {
-    // Queue for application on main thread (GLFW window calls must originate
-    // from the thread that created/owns the window).
+    // Queue the change for the main thread, because GLFW window calls must come
+    // from the thread that created the window.
     pendingResolutionW.store(width, std::memory_order_relaxed);
     pendingResolutionH.store(height, std::memory_order_relaxed);
     pendingResolution.store(true, std::memory_order_release);
@@ -367,7 +370,8 @@ bool Application::renderFrame() {
 
     const auto taskStart = std::chrono::steady_clock::now();
 
-    // Visible via cond-var acquire fence; main thread stored before kick().
+    // The main thread stored this before kick(), and the worker's condition
+    // variable makes the value visible here.
     const double elapsed = renderElapsedTime;
 
     SPONGE_PROFILE_SECTION("RenderThread:frame");
@@ -394,8 +398,8 @@ void Application::applyRenderThreadRequests() {
         pendingViewport.store(false, std::memory_order_relaxed);
     }
 
-    // glfwSwapInterval acts on the current context, which lives on this
-    // render thread (released from main in run()) — not the main thread.
+    // glfwSwapInterval acts on the current context, which lives on this render
+    // thread (released from main in run()) and not on the main thread.
     if (pendingVerticalSync.load(std::memory_order_acquire)) {
         setVerticalSync(
             pendingVerticalSyncValue.load(std::memory_order_relaxed));
@@ -443,8 +447,8 @@ void Application::primeFrame() {
     renderElapsedTime = primeElapsed;
 }
 
-// Both workers idle: publish update-thread layer state for the next render so
-// the frame pairing is deterministic.
+// Both workers are idle here. Publish the update-thread layer state for the
+// next render so that the frame pairing is deterministic.
 void Application::frameSync() const {
     for (const auto& layer : *layerStack) {
         if (layer->isActive() && layer->runsOnUpdateThread()) {
@@ -453,10 +457,10 @@ void Application::frameSync() const {
     }
 }
 
-// glfwSetWindowMonitor from render/update threads deadlocks on Windows (Win32
-// message pump runs only on the main thread). The display mode runs before the
-// resolution so the display mode matches the actual OS state when the resize
-// branch fires.
+// glfwSetWindowMonitor deadlocks on Windows when it is called from the render
+// or update thread, because the Win32 message pump runs only on the main
+// thread. The display mode runs before the resolution so that the display mode
+// matches the actual OS state when the resize branch runs.
 void Application::applyPendingWindowRequests() {
     if (pendingDisplayMode.load(std::memory_order_acquire)) {
         applyDisplayMode();
@@ -533,10 +537,10 @@ void Application::applyResolution(const uint32_t width, const uint32_t height) {
     }
 }
 
-// The cap is the player's, and while a menu is open or the window is unfocused
-// 30 frames a second if that is slower. That also keeps vsync off or an unpaced
-// swap from spinning the loop. The sleep counts towards the next tick, so game
-// time does not slow down.
+// The frame interval is the player's cap. While a menu is open or the window is
+// unfocused it is at least 1/30 of a second, which also stops vsync off or an
+// unpaced swap from spinning the loop. The sleep counts towards the next tick,
+// so game time does not slow down.
 void Application::limitFrameRate(
     GLFWwindow*                            glfwWindow,
     std::chrono::steady_clock::time_point& lastFrameStart) const {
@@ -561,16 +565,16 @@ void Application::limitFrameRate(
     const auto target = lastFrameStart + interval;
     sponge::core::Timer::sleepUntil(target);
     // Keep to the schedule, so a late wake does not lengthen every frame after
-    // it. After a stall, start again from now: running frames back to back to
-    // catch up is no cap at all.
+    // it. After a stall, start again from now, because running frames back to
+    // back to catch up would not be a cap at all.
     const auto now = std::chrono::steady_clock::now();
     lastFrameStart = now - target > interval ? now : target;
 }
 
 void Application::stopThreads(GLFWwindow* glfwWindow) {
-    // The only exit from the loop comes after it waited for render and before
-    // it kicked render again, so render is idle and this returns at once. Kept
-    // so stop() stays safe if the loop gains an exit after the render kick.
+    // The loop exits after it waited for render and before it kicked render
+    // again, so render is idle and this returns at once. It stays so that
+    // stop() remains safe if the loop gains an exit after the render kick.
     renderThread.waitForComplete();
 
     // Only the thread that owns the context can release it. A context left
@@ -610,17 +614,18 @@ void Application::run() {
     primeFrame();
     frameSync();
 
-    // Warm up render thread (acquires GL context) before pipelined loop.
+    // Warm up the render thread, which acquires the GL context, before the main
+    // loop.
     renderThread.kick(renderTask);
     renderThread.waitForComplete();
 
     auto lastFrameStart = std::chrono::steady_clock::now();
 
-    // Pipelined loop: update[N] overlaps with render[N].
+    // Main loop: update[N] runs at the same time as render[N].
     while (true) {
         mainTimer.tick();
-        // Must finish before poll: GLFW callbacks write ImGui's
-        // InputEventsQueue; render thread reads it.
+        // Must finish before polling, because GLFW callbacks write ImGui's
+        // InputEventsQueue and the render thread reads it.
         const auto renderWaitStart = std::chrono::steady_clock::now();
         renderThread.waitForComplete();
         loopTimes.waitRenderUs.store(microsSince(renderWaitStart),
@@ -639,7 +644,7 @@ void Application::run() {
         inputManager.update();
         const double elapsed = mainTimer.getElapsedSeconds();
 
-        // Check if a render-thread layer signaled quit.
+        // Check whether a render-thread layer asked to quit.
         const bool renderQuit =
             renderThreadQuit.load(std::memory_order_acquire);
 
@@ -648,12 +653,12 @@ void Application::run() {
             break;
         }
 
-        // Minimised: nothing to show, so no update, no render and no spinning
-        // (the swap does not block for a minimised window). Both workers are
-        // idle here, so skipping the kicks keeps the frame pairing intact.
-        // The timer ticks at the top of the loop, so the first frame after a
-        // restore sees the last wait, not the whole time minimised. Audio runs
-        // on its own device thread and keeps playing.
+        // Minimised. There is nothing to show, so there is no update, no render
+        // and no spinning, because the swap does not block for a minimised
+        // window. Both workers are idle here, so skipping the kicks keeps the
+        // frame pairing intact. The timer ticks at the top of the loop, so the
+        // first frame after a restore sees the last wait and not the whole time
+        // minimised. Audio runs on its own device thread and keeps playing.
         if (glfwGetWindowAttrib(glfwWin, GLFW_ICONIFIED) == GLFW_TRUE) {
             glfwWaitEventsTimeout(minimizedWaitSeconds);
             // The update step that reads a close request does not run, so
@@ -680,7 +685,7 @@ void Application::run() {
             return result;
         });
 
-        // GPU work for frame N; overlaps with update[N].
+        // GPU work for frame N, which overlaps with update[N].
         renderThread.kick(renderTask);
     }
 
