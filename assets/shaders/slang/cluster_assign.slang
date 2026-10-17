@@ -1,13 +1,5 @@
-// cluster_assign.slang: volume tiled forward light culling (reference; see cluster_assign.comp.glsl)
-// Note: compiled as hand-written GLSL; slangc emits unsupported extensions on this driver.
+// cluster_assign.slang: volume tiled forward light culling
 #include "include/clustered.slang"
-
-struct PointLightGPU {
-    float3 color;
-    float  pad0;
-    float3 position;  // world-space
-    float  pad1;
-};
 
 // std430-compatible: explicit padding so float3 → 16-byte slot.
 // Must match ClusterAABB in clusteredlights.hpp.

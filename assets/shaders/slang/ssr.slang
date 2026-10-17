@@ -4,6 +4,8 @@
 // against the prepass depth, refine the hit with a binary search, and return
 // the scene color there with the weight in alpha. The caller alpha-blends
 // the result over the lit surface, so a miss leaves the surface as it is.
+#include "include/depth.slang"
+
 struct FSInput {
     float2 texCoords : TEXCOORD0;
 };
@@ -13,7 +15,6 @@ struct FSInput {
 [[vk::binding(2)]] Sampler2D<float4> normalTex;  // xyz view normal, w strength
 
 uniform float4x4 projection;
-uniform float4x4 invProjection;
 
 // Longest march before giving up, in screen-space strides.
 static const int maxSteps = 256;
@@ -29,12 +30,6 @@ static const float maxDistance = 100.0;
 // the ray has gone behind an object rather than landing on it, so the march
 // goes on.
 static const float thickness = 0.3;
-
-float3 viewPositionFromDepth(float2 uv, float depth) {
-    float4 clip = float4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    float4 view = mul(invProjection, clip);
-    return view.xyz / view.w;
-}
 
 // Level 0 explicitly: the march loop has no usable derivatives.
 float sceneViewZ(float2 uv) {

@@ -1,6 +1,7 @@
 // depthprepass.slang: camera-space depth-only prepass, plus the screen-space
 // velocity buffer TAA resolves through and the view-space normal buffer SSAO
 // reads. The normal alpha holds the reflection strength SSR reads.
+#include "include/alphamask.slang"
 #include "include/instance.slang"
 
 uniform float4x4 mvp;              // jittered; must match the scene pass
@@ -8,19 +9,6 @@ uniform float4x4 mvpNoJitter;      // this frame, unjittered
 uniform float4x4 prevMvpNoJitter;  // last frame, unjittered
 uniform float4x4 normalMatrix;     // transpose(inverse(view * model))
 uniform float    reflectivity;     // 0 = no reflection; read by ssr.slang
-uniform float    cubeScale;        // vertCubeMain only
-// Light cubes, one instance each: three float4 (position, previous position,
-// colour). Must match Cube::Instance in cube.hpp. vertCubeMain only.
-[[vk::binding(8)]] StructuredBuffer<float4> cubeInstances;
-// glTF MASK, the same test as pbr.slang so the prepass depth matches the scene
-// pass. Only fragMainMasked reads these; it is its own program because a
-// discard turns off early-Z for every draw of the program. The albedo texture
-// is on unit 0.
-uniform float                        alphaCutoff;     // 0 = opaque, no test
-uniform float                        baseColorAlpha;  // baseColorFactor.a
-uniform bool                         hasNoTexture;
-uniform float4                       albedoUVTransform;  // xy = offset, zw = scale
-[[vk::binding(0)]] Sampler2D<float4> albedoMap;
 
 // Same VSInput layout as pbr.slang (position/texCoord/normal/tangent), so
 // slangc assigns the same attribute locations the mesh VAO was built
@@ -112,9 +100,7 @@ FSOutput fragMain(VSOutput input, bool frontFacing : SV_IsFrontFace) {
 [shader("fragment")]
 FSOutput fragMainMasked(VSOutput input, bool frontFacing : SV_IsFrontFace) {
     // clang-format on
-    float2 uv    = input.texCoord * albedoUVTransform.zw + albedoUVTransform.xy;
-    float  alpha = (hasNoTexture ? 1.0 : albedoMap.Sample(uv).a) * baseColorAlpha;
-    if (alpha < alphaCutoff) {
+    if (maskedOut(input.texCoord)) {
         discard;
     }
     return shade(input, frontFacing);

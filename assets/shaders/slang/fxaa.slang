@@ -85,12 +85,8 @@ float4 fxaaPass(float2 uv) {
     }
     float localAvg = 0.5 * (pairN ? luma1 : luma2) + 0.5 * lumaM;
 
-    float2 posP = uv;
-    if (horzSpan) {
-        posP.y += stepLen * 0.5;
-    } else {
-        posP.x += stepLen * 0.5;
-    }
+    float2 across = horzSpan ? float2(0.0, 1.0) : float2(1.0, 0.0);
+    float2 posP   = uv + across * stepLen * 0.5;
 
     float2 offNP = horzSpan ? float2(rcpFrame.x, 0.0) : float2(0.0, rcpFrame.y);
 
@@ -128,14 +124,7 @@ float4 fxaaPass(float2 uv) {
         goodSpanP ? (0.5 - dstP / spanLen) : 0.0);
     pixelOffset = max(pixelOffset, subpixD);
 
-    float2 finalUV = uv;
-    if (horzSpan) {
-        finalUV.y += pixelOffset * stepLen;
-    } else {
-        finalUV.x += pixelOffset * stepLen;
-    }
-
-    return screenTexture.Sample(finalUV);
+    return screenTexture.Sample(uv + across * pixelOffset * stepLen);
 }
 
 struct FSInput {

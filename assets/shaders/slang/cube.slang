@@ -3,11 +3,6 @@
 #include "include/instance.slang"
 
 uniform float4x4 mvp;
-uniform float    cubeScale;
-
-// Per cube, three float4: position, previous position (the depth prepass uses
-// it) and colour, each in xyz. Must match Cube::Instance in cube.hpp.
-[[vk::binding(8)]] StructuredBuffer<float4> cubeInstances;
 
 // The cubes mark light positions, so they read as emitters. Radiance 1.0 is
 // mid-grey once tone mapped (1/(1+1) = 0.5); this keeps them near white and

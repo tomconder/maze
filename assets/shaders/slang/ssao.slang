@@ -4,6 +4,8 @@
 // resources/common/shaders/screens/ssao.frag): reconstruct view-space
 // position from depth, orient a hemisphere kernel with a random per-pixel
 // rotation, and count how many kernel samples land behind real geometry.
+#include "include/depth.slang"
+
 struct FSInput {
     float2 texCoords : TEXCOORD0;
 };
@@ -13,7 +15,6 @@ struct FSInput {
 [[vk::binding(2)]] Sampler2D<float4> noiseTex;   // 4x4 tiling rotation vectors
 
 uniform float4x4 projection;
-uniform float4x4 invProjection;
 uniform float2   noiseScale;  // screenSize / 4, tiles noiseTex across the screen
 uniform float    radius;
 
@@ -45,12 +46,6 @@ static const float3 kernel[16] = {
     float3(0.431340, 0.086597, 0.504608),
     float3(-0.219564, 0.363803, 0.202840),
 };
-
-float3 viewPositionFromDepth(float2 uv, float depth) {
-    float4 clip = float4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    float4 view = mul(invProjection, clip);
-    return view.xyz / view.w;
-}
 
 // clang-format off
 [shader("fragment")]

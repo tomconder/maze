@@ -3,13 +3,6 @@
 #include "include/shadows.slang"
 #include "include/clustered.slang"
 
-struct PointLightGPU {
-    float3 color;
-    float  pad0;
-    float3 position;
-    float  pad1;
-};
-
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU> lightBuffer;
 [[vk::binding(4)]] StructuredBuffer<uint2>         lightGrid;
 [[vk::binding(5)]] StructuredBuffer<uint>          lightIndices;
