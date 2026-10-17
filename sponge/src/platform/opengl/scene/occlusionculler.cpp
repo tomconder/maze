@@ -64,16 +64,22 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1.F, -1.F);
 
+    const sponge::scene::Frustum frustum(viewProj);
+
     for (size_t i = 0; i < worldBounds.size(); i++) {
         const auto& box = worldBounds[i];
 
         const bool eyeInside = eyePos.x >= box.min.x && eyePos.x <= box.max.x &&
                                eyePos.y >= box.min.y && eyePos.y <= box.max.y &&
                                eyePos.z >= box.min.z && eyePos.z <= box.max.z;
-        if (eyeInside) {
+        // A box outside the frustum rasterizes nothing, which reads as
+        // "occluded". Left that way, the object would stay hidden for the
+        // frames it takes a fresh result to arrive after the camera turns
+        // back, so mark it visible instead.
+        if (eyeInside || !frustum.intersects(box)) {
             visible[i] = 1;
             // Leave unissued: pollResults() then skips it until a query
-            // fired after the eye leaves the box gives a real answer.
+            // fired while the box is in view gives a real answer.
             issued[i] = 0;
             continue;
         }
