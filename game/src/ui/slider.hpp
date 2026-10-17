@@ -60,7 +60,7 @@ public:
 
     // A disabled slider is drawn dim. Whether it still takes input is the
     // layer's call, same as the rest of the interaction.
-    void setDisabled(bool value);
+    void setDisabled(bool isDisabled);
 
     // Adds the parts to the row node, which lives in the layer's layout.
     void attach(YGNodeRef row);

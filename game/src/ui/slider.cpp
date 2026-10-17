@@ -71,8 +71,8 @@ void Slider::setValueText(std::string text) {
     valueText = std::move(text);
 }
 
-void Slider::setDisabled(const bool value) {
-    disabled = value;
+void Slider::setDisabled(const bool isDisabled) {
+    disabled = isDisabled;
 }
 
 void Slider::setFontSize(const uint32_t size) {
