@@ -50,7 +50,9 @@ enum class ShadowQuality : uint32_t { Low, Medium, High, Count };
 
 class MazeLayer final : public sponge::layer::Layer {
 public:
-    MazeLayer();
+    static constexpr std::string_view defaultScenePath = "/scenes/maze.yaml";
+
+    explicit MazeLayer(std::string_view scenePath = defaultScenePath);
 
     // onUpdate() runs on the update thread (no GL); onRender() issues all GPU
     // commands.

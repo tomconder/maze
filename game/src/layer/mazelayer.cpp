@@ -33,7 +33,6 @@
 
 namespace {
 constexpr std::string_view cameraName = "maze";
-constexpr std::string_view scenePath  = "/scenes/maze.yaml";
 
 constexpr int32_t maxPointLights =
     sponge::platform::opengl::scene::ClusteredLights::maxLights;
@@ -97,7 +96,7 @@ static_assert(shadowPresets.size() ==
               static_cast<size_t>(ShadowQuality::Count));
 }  // namespace
 
-MazeLayer::MazeLayer() :
+MazeLayer::MazeLayer(const std::string_view scenePath) :
     Layer("maze"), sceneDesc(scene::loadScene(std::string(scenePath))) {
     ambientStrength  = sceneDesc.lighting.ambient.strength;
     ao               = sceneDesc.lighting.ambient.ambientOcclusion;

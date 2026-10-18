@@ -109,6 +109,10 @@ primitives, windowing, or platform backends itself — see
   `Scene`: camera, lighting and the object list. Parsed with fkYAML in the
   `MazeLayer` constructor, which `startupCore()` guarantees runs after
   logging and settings are up.
+  A scene object can carry `grid: { x, z, spacing }`: `loadScene()` expands it
+  into x by z objects on the XZ plane, each side limited to 64. Objects stay
+  plain to the rest of the game. `assets/scenes/lodtest.yaml` exists only to
+  test mesh LOD; load it with `--capture-scene=lodtest`.
 * `scene/refraction.hpp` - `SceneRefraction`, a scene object's glass values.
   It has its own header so the render frame does not include the scene
   loader.

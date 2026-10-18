@@ -11,6 +11,8 @@
 
 namespace game::scene {
 
+// loadScene expands the `grid` key into copies, so the rest of the game sees
+// only plain objects.
 struct SceneObject {
     std::string name;
     std::string path;
