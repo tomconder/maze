@@ -6,39 +6,20 @@ A game engine featuring a nice walk through a maze.
 
 ## Features
 
-* Platform portability: OpenGL and C++ for Windows and Linux
-* Physically based rendering (PBR)
-* Cook-Torrance microfacet specular BRDF
-* Specular anti-aliasing: the highlight widens with the screen-space variance of the normal, so sub-pixel highlights do not sparkle
-* glTF 2.0 materials: albedo, normal, occlusion, emissive and metallic-roughness maps, with KHR_texture_transform
-* Clear coat (KHR_materials_clearcoat): a second specular lobe over the base, with its own probe reflection (factors only, no textures)
-* Diffuse transmission (KHR_materials_diffuse_transmission): thin translucent surfaces such as leaves, paper and ceramic glow when lit from behind (strength map supported, no color map, no shadow on the transmitted light)
-* Point lights and directional light
-* Clustered (volume-tiled) light culling
-* Exponential variance shadow maps (EVSM) with Dual Kawase blur
-* Selectable tone mapping: AgX (default), ACES, Filmic or Reinhard
-* Physically based bloom, run as compute passes
-* Screen-space ambient occlusion (SSAO)
-* Screen-space reflection (SSR) for objects marked `reflective` in the scene file
-* Planar reflection for flat mirrors
-* Reflection probe with box-projected specular reflections
-* Screen-space refraction for glass objects, with index of refraction, thickness and tint (built in, switched off for now)
-* Camera frustum and hardware occlusion culling
-* Selectable anti-aliasing: FXAA or temporal (TAA)
-* Shaders written in Slang, compiled at build time into one shader pack
-* Build-time asset converter: glTF 2.0 models baked to an engine format, so the game links no asset parser
-* BC7 and BC5 texture compression with mipmaps in KTX2, encoded on every core
-* UI icons packed into a sprite atlas
-* LCD subpixel text with subpixel positioning, rasterized with FreeType and shaped with HarfBuzz at build time
-* Flexbox-based UI layout with Yoga
-* Menus that scale with the window width: the font, option rows, tab bar and key hints follow `width / 1920`
-* Options screen with Display, Keyboard and Audio tabs: display mode (windowed, full screen or borderless window), aspect ratio, resolution, vsync, anti-aliasing, shadow quality, ambient occlusion, bloom, subsurface scattering, key rebinding and volumes, with smooth scrolling
-* Audio playback with miniaudio
-* Draggable slider widget for Master/Sfx/Music volume, with mouse, keyboard and gamepad support
-* Performance profiling with Tracy
-* Gamepad support
-* Dear ImGui debug UI
-* Third-party license notices assembled at build time and shipped with the game
+* OpenGL and C++ for Windows and Linux
+* Physically based rendering with glTF 2.0 materials, clear coat and diffuse transmission
+* Point and directional lights with clustered light culling
+* Exponential variance shadow maps
+* Bloom, SSAO, screen-space and planar reflections, reflection probe, refraction
+* AgX, ACES, Filmic or Reinhard tone mapping
+* FXAA or temporal anti-aliasing
+* Frustum and occlusion culling
+* Shaders in Slang, compiled at build time into one pack
+* Build-time asset converter: glTF models to an engine format, BC7 and BC5 textures in KTX2
+* LCD subpixel text (FreeType, HarfBuzz) and Yoga flexbox UI that scales with the window
+* Options screen for display, keyboard and audio, with key rebinding and gamepad support
+* Audio with miniaudio
+* Tracy profiling and Dear ImGui debug UI
 
 ## Project Organization
 
@@ -52,5 +33,5 @@ tools/           # tools and utility scripts, including the assetconv asset conv
 
 ## Getting Started
 
-For instructions on how to build and run the application, please refer to
-the [full documentation](https://tomconder.github.io/maze/)
+For instructions on how to build and run the application, see
+the [full documentation](https://tomconder.github.io/maze/).

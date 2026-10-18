@@ -1,20 +1,20 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+about: Suggest a change or new capability
+labels: feature
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+<!-- One sentence: the problem this solves. -->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**Proposal:**
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+<!-- What should change. Name the layer: game/, sponge/src/ (engine core) or sponge/src/platform/. -->
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**Simplest version:**
+
+<!-- The smallest change that works end to end. Later steps go in their own issues. -->
+
+**Existing code, libraries or alternatives:**
+
+<!-- What already in the project or in vcpkg covers part of this, and why it does not cover all of it. Other approaches you considered. -->
