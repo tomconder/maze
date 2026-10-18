@@ -111,6 +111,18 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
         .metallicRoughnessUV =
             defaultShader->findUniform("metallicRoughnessUVTransform"),
     };
+    lod0IndexCount = static_cast<uint32_t>(numIndices);
+}
+
+void Mesh::setClusters(std::vector<sponge::scene::MeshCluster>&& meshClusters) {
+    clusters       = std::move(meshClusters);
+    lod0IndexCount = static_cast<uint32_t>(numIndices);
+    if (!clusters.empty()) {
+        lod0IndexCount = 0;
+        for (const auto& cluster : clusters) {
+            lod0IndexCount += cluster.depth == 0 ? cluster.indexCount : 0;
+        }
+    }
 }
 
 void Mesh::draw(const std::shared_ptr<Shader>& shader,
@@ -196,7 +208,7 @@ void Mesh::draw(const std::shared_ptr<Shader>& shader,
     }
 
     glDrawElementsBaseVertex(
-        GL_TRIANGLES, static_cast<GLsizei>(numIndices), GL_UNSIGNED_INT,
+        GL_TRIANGLES, static_cast<GLsizei>(lod0IndexCount), GL_UNSIGNED_INT,
         reinterpret_cast<const void*>(static_cast<std::uintptr_t>(firstIndex) *
                                       sizeof(uint32_t)),
         baseVertex);

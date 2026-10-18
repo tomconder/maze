@@ -107,7 +107,8 @@ holds a `vec4`.
 
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
-MeshEntry[]     vertex/index offsets and counts, 6 texture indices (-1 = empty),
+MeshEntry[]     vertex/index offsets and counts, cluster table offset and
+                count (MeshCluster[], at least 1), 6 texture indices (-1 = empty),
                 base color factor (rgba, linear), metallic and roughness
                 factors, clear coat factor and
                 roughness (KHR_materials_clearcoat, factors only), diffuse
@@ -130,6 +131,21 @@ run in the engine on every load, where it had no effect at all: the `Mesh`
 constructor uploads its buffers, and `optimize()` ran afterwards and only
 swapped the CPU-side vectors. It is deterministic and depends on nothing but
 the mesh, so the bake is where it belongs.
+
+Every opaque mesh also carries a cluster LOD hierarchy. `buildClusters()`
+runs after the optimizer and uses meshoptimizer's `clusterlod.h` to cut the
+mesh into clusters of up to 128 triangles, then to merge and simplify them
+level by level. The index buffer holds every level, with all of LOD0 first.
+Each `MeshCluster` is an index range, its depth, and two bounding spheres with
+the simplification error: `self` for the cluster and `parent` for the coarser
+group that replaces it. Errors are in model units, measured against LOD0. A
+mesh with `MASK` or `BLEND` alpha keeps one LOD0 cluster, because simplifying
+it changes its silhouette through the texture alpha. The vertices on an open
+edge are locked, so the border of a mesh does not move and open no crack to
+its neighbour; the UV and the normal are protected at seams. `clusterlod.h` is
+vendored in `deps/clusterlod` from meshoptimizer's `demo/` folder at the tag of
+the vcpkg port. `headeronly.cpp` asserts `MESHOPTIMIZER_VERSION`, so update the
+header and the port together. The game draws LOD0 only for now.
 
 ### Versioning
 

@@ -130,6 +130,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
     // captured before the moves below: arg evaluation order is unspecified
     const auto vertexCount = parsedMesh.vertices.size();
     const auto indexCount  = parsedMesh.indices.size();
+    auto       clusters    = std::move(parsedMesh.clusters);
 
     std::vector<std::shared_ptr<renderer::Texture>> textures;
     if (auto albedo = buildTexture(parsedMesh.albedo, images)) {
@@ -149,6 +150,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
         parsedMesh.diffuseTransmission, parsedMesh.baseColorFactor,
         parsedMesh.alphaMode, parsedMesh.alphaCutoff, parsedMesh.doubleSided,
         parsedMesh.uvTransforms);
+    mesh->setClusters(std::move(clusters));
     return mesh;
 }
 

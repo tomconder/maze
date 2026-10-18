@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cstdint>
 #include <cstring>
 #include <optional>
@@ -16,6 +17,7 @@
 #include <vector>
 
 namespace {
+using sponge::scene::MeshCluster;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
 using sponge::scene::Vertex;
@@ -153,6 +155,21 @@ std::vector<uint8_t> write(const ModelData& data) {
         appendBytes(out, mesh.indices.data(),
                     mesh.indices.size() * sizeof(uint32_t));
 
+        // A mesh the bake did not cluster draws all of its indices as LOD0.
+        const std::vector<MeshCluster> whole = {
+            { .firstIndex = 0,
+              .indexCount = entry.indexCount,
+              .depth      = 0,
+              .self       = {},
+              .parent     = { .error = FLT_MAX } }
+        };
+        const auto& clusters = mesh.clusters.empty() ? whole : mesh.clusters;
+        align(out);
+        entry.clusterOffset = static_cast<uint32_t>(out.size());
+        entry.clusterCount  = static_cast<uint32_t>(clusters.size());
+        appendBytes(out, clusters.data(),
+                    clusters.size() * sizeof(MeshCluster));
+
         std::ranges::copy(meshSlots[i], std::begin(entry.textureIndex));
         entry.baseColorFactor          = mesh.baseColorFactor;
         entry.metallicFactor           = mesh.metallicFactor;
@@ -238,6 +255,33 @@ ModelData read(const std::string& path, std::string& error) {
         mesh.indices.resize(entry.indexCount);
         std::memcpy(mesh.indices.data(), bytes.data() + entry.indexOffset,
                     indexBytes);
+
+        const auto clusterBytes = entry.clusterCount * sizeof(MeshCluster);
+        if (entry.clusterCount == 0 ||
+            entry.clusterOffset + clusterBytes > bytes.size()) {
+            error =
+                fmt::format("Baked mesh {} has no cluster table: {}", i, path);
+            return {};
+        }
+        mesh.clusters.resize(entry.clusterCount);
+        std::memcpy(mesh.clusters.data(), bytes.data() + entry.clusterOffset,
+                    clusterBytes);
+        // Every range must be inside the indices, and LOD0 must be one block
+        // at the start: Mesh draws LOD0 as one range.
+        uint32_t lod0End  = 0;
+        bool     pastLod0 = false;
+        for (const auto& cluster : mesh.clusters) {
+            const bool lod0 = cluster.depth == 0;
+            if (uint64_t{ cluster.firstIndex } + cluster.indexCount >
+                    entry.indexCount ||
+                (lod0 && (pastLod0 || cluster.firstIndex != lod0End))) {
+                error = fmt::format("Baked mesh {} has a bad cluster table: {}",
+                                    i, path);
+                return {};
+            }
+            lod0End += lod0 ? cluster.indexCount : 0;
+            pastLod0 = pastLod0 || !lod0;
+        }
 
         size_t slot = 0;
         for (auto* image : slotsOf(mesh)) {

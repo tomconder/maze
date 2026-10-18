@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <charconv>
 #include <cstddef>
 #include <cstdint>
@@ -130,6 +131,30 @@ bool writeFile(const std::string& path, const std::span<const uint8_t> bytes) {
     return file.good();
 }
 
+// The size of the cluster hierarchy of a model, to see what the bake did.
+void printClusterStats(const std::string& source, const ModelData& data) {
+    size_t clusterCount = 0;
+    size_t levels       = 0;
+    size_t lod0         = 0;
+    size_t coarsest     = 0;
+    size_t all          = 0;
+    for (const auto& mesh : data.meshes) {
+        for (const auto& cluster : mesh.clusters) {
+            clusterCount++;
+            levels = std::max<size_t>(levels, cluster.depth + 1);
+            lod0 += cluster.depth == 0 ? cluster.indexCount / 3 : 0;
+            // The cut at infinite distance: the clusters with no coarser
+            // version.
+            coarsest +=
+                cluster.parent.error == FLT_MAX ? cluster.indexCount / 3 : 0;
+        }
+        all += mesh.indices.size() / 3;
+    }
+    fmt::println("{}: {} clusters, {} levels, {} triangles at LOD0, {} at the "
+                 "coarsest cut, {} in all levels",
+                 source, clusterCount, levels, lod0, coarsest, all);
+}
+
 int convert(const std::string& source, const std::string& output) {
     auto data = import(source);
     if (data.meshes.empty()) {
@@ -141,7 +166,9 @@ int convert(const std::string& source, const std::string& output) {
     // deterministic, so the baked file carries the result instead.
     for (auto& mesh : data.meshes) {
         assetconv::optimizeMesh(mesh);
+        assetconv::buildClusters(mesh);
     }
+    printClusterStats(source, data);
 
     if (!encodeTextures(data)) {
         return 1;
@@ -165,7 +192,9 @@ int verify(const std::string& source, const std::string& output) {
     // This checks the round trip through the container, not the optimizer.
     for (auto& mesh : expected.meshes) {
         assetconv::optimizeMesh(mesh);
+        assetconv::buildClusters(mesh);
     }
+    printClusterStats(source, expected);
     std::string error;
     const auto  actual = sponge::scene::asset::read(output, error);
     if (!error.empty()) {
@@ -205,6 +234,11 @@ int verify(const std::string& source, const std::string& output) {
 
         if (want.indices != got.indices) {
             fmt::println(stderr, "FAIL {} mesh {}: indices differ", output, i);
+            return 1;
+        }
+
+        if (want.clusters != got.clusters) {
+            fmt::println(stderr, "FAIL {} mesh {}: clusters differ", output, i);
             return 1;
         }
 

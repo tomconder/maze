@@ -22,12 +22,13 @@ namespace sponge::scene::asset {
 // Eight bytes rather than a packed integer: the tag is five characters, and
 // it reads as itself in a hex dump.
 constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'A', 0, 0, 0 };
-constexpr uint32_t version  = 7;
+constexpr uint32_t version  = 8;
 
 // Bumping either of these changes the on-disk vertex layout. The asserts
 // fire on a size change or a field reorder; bump version in the same edit.
 static_assert(sizeof(Vertex) == 48);
 static_assert(offsetof(Vertex, tangent) == 32);
+static_assert(sizeof(MeshCluster) == 52);
 
 constexpr size_t textureSlots = 6;
 
@@ -45,6 +46,8 @@ struct MeshEntry {
     uint32_t         vertexCount;
     uint32_t         indexOffset;
     uint32_t         indexCount;
+    uint32_t         clusterOffset;               // MeshCluster[clusterCount]
+    uint32_t         clusterCount;                // at least 1
     int32_t          textureIndex[textureSlots];  // -1 when the slot is empty
     float            metallicFactor;
     float            roughnessFactor;

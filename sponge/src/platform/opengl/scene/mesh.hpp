@@ -100,6 +100,16 @@ public:
         baseVertex = vertexOffset;
         firstIndex = firstElement;
     }
+    // The cluster LOD hierarchy, in model space. Kept after freeGeometry():
+    // the game reads it once to build its world-space copy.
+    void setClusters(std::vector<sponge::scene::MeshCluster>&& meshClusters);
+    std::span<const sponge::scene::MeshCluster> getClusters() const {
+        return clusters;
+    }
+    // LOD0 is the first lod0IndexCount indices of this mesh's range.
+    uint32_t getLod0IndexCount() const {
+        return lod0IndexCount;
+    }
     int32_t getBaseVertex() const {
         return baseVertex;
     }
@@ -118,6 +128,9 @@ public:
     }
 
 private:
+    std::vector<sponge::scene::MeshCluster> clusters;
+    uint32_t                                lod0IndexCount = 0;
+
     static constexpr std::string_view        shaderName = "mesh";
     static uint32_t                          meshProgramId;
     static std::shared_ptr<renderer::Shader> defaultShader;

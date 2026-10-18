@@ -101,6 +101,12 @@ public:
         return meshes[index]->getBounds();
     }
 
+    // Model-space cluster table of one mesh.
+    std::span<const sponge::scene::MeshCluster>
+        getMeshClusters(const size_t index) const {
+        return meshes[index]->getClusters();
+    }
+
 protected:
     std::vector<std::shared_ptr<Mesh>> meshes;
 
