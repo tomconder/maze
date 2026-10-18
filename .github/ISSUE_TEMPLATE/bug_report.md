@@ -1,38 +1,30 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+about: Report something that is broken
+labels: bug
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+<!-- One sentence: what is wrong. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**Steps:**
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+1.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Expected:**
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Actual:**
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+<!-- Paste the log or error text. For visual bugs, add a screenshot. -->
 
-**Additional context**
-Add any other context about the problem here.
+**Build:**
+
+- Commit:
+- Preset: <!-- e.g. ci-windows-debug, windows-msvc-release -->
+- OS:
+- GPU and driver:
+
+**Evidence:**
+
+<!-- Optional. Debug build: maze.exe --capture-frames=600 --dump-nan-stats,
+attach capture_stats.txt (render) or capture_timing.txt (performance). -->
