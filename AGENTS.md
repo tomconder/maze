@@ -12,10 +12,11 @@ Do not attribute AI in code comments, commit messages and pull request descripti
 
 Also in `~/.claude/skills/writing-pr` (Claude Code skill); kept here so other agents see it.
 
-* Don't write essays. Don't mention that you ran tests. Write a concise body.
+* Don't write essays. Write a concise body.
 * Use bullet points, code snippets, and Mermaid diagrams.
 * For visual changes, show a before/after table with images.
 * For benchmarks, show before/after tables (baseline from target branch).
+* Merge with a merge commit. Every commit stays in history, so write each commit message to stand alone.
 * For large or high-risk changes, write it like a technical blog post.
 * Set the body with `gh pr create/edit --body-file <file>`. `--body -` does not read stdin; it sets the body to a literal `-`. Read the body back with `gh pr view <n> --json body -q .body`.
 
