@@ -41,6 +41,11 @@ OcclusionCuller::~OcclusionCuller() {
 void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
                             const glm::mat4&                        viewProj,
                             const glm::vec3&                        eyePos) {
+    // With no objects the constructor made no shader or queries.
+    if (queries.empty()) {
+        return;
+    }
+
     // Depth-test only: no colour, no depth write, so this can't perturb the
     // depth buffer it tests against.
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);

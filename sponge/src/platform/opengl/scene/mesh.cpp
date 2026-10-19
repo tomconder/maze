@@ -76,6 +76,14 @@ Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
     }
     bounds = { boundsMin, boundsMax };
 
+    initShader();
+}
+
+void Mesh::initShader() {
+    if (defaultShader) {
+        return;
+    }
+
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName.data(),
         .vertexShader   = "pbr.vert",
