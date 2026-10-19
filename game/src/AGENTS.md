@@ -180,10 +180,11 @@ primitives, windowing, or platform backends itself — see
   window. Keep them when reordering passes, and re-measure with the `cpu` line
   of `capture_timing.txt`.
 * Each shadow cascade is drawn again only when its own matrix in
-  `lightSpaceMatrices` changes or the map is rebuilt (`shadowCached`). A
-  camera that only turns changes no matrix, so nothing redraws. This holds
-  only while shadow casters are static. An object that moves must also
-  invalidate the cache, or its shadow freezes.
+  `lightSpaceMatrices` changes, its cluster cut changes (the cut held in
+  `shadowCachedCuts` differs from the frame's), or the map is rebuilt
+  (`shadowCached`). A camera that only turns changes no matrix, so nothing
+  redraws. This holds only while shadow casters are static. An object that
+  moves must also invalidate the cache, or its shadow freezes.
 * A refractive object is left out of the shadow map and the depth prepass.
   The glass pass runs after the opaque color and the light cubes, and before
   bloom, still in linear radiance. It samples a copy of the scene color.

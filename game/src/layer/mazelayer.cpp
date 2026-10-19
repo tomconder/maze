@@ -836,11 +836,13 @@ void MazeLayer::onRender() {
         }
         for (uint32_t c = 0; c < frame.cascadeCount; c++) {
             if (shadowCacheOff || !shadowCached[c] ||
-                frame.lightSpaceMatrices[c] != shadowCachedMatrices[c]) {
+                frame.lightSpaceMatrices[c] != shadowCachedMatrices[c] ||
+                frame.shadowCuts[c] != shadowCachedCuts[c]) {
                 gpuBegin("shadow");
                 renderSceneToDepthMap(frame, c);
                 gpuEnd();
                 shadowCachedMatrices[c] = frame.lightSpaceMatrices[c];
+                shadowCachedCuts[c]     = frame.shadowCuts[c];
                 shadowCached[c]         = true;
             }
         }

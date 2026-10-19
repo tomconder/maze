@@ -326,12 +326,19 @@ private:
     std::atomic<float>    shadowSplitLambda{ 0.7F };
 
     // Render thread only. A cascade is drawn again only when its matrix
-    // changes or the map is rebuilt. This assumes the shadow casters never
-    // move, which holds while objectModelMatrices is static after load;
-    // animated casters must invalidate it too.
+    // changes, its cluster cut changes (see shadowCachedCuts) or the map is
+    // rebuilt. This assumes the shadow casters never move, which holds
+    // while objectModelMatrices is static after load; animated casters must
+    // invalidate it too.
     sponge::platform::opengl::scene::ShadowMap::Matrices shadowCachedMatrices{};
     std::array<bool, sponge::platform::opengl::scene::ShadowMap::maxCascades>
         shadowCached{};
+    // The cut each cached cascade was drawn with. It also depends on the map
+    // resolution, which the matrix does not show. Held as shared_ptr so a
+    // freed cut's address cannot be reused by a new one.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCachedCuts;
     // The refraction setting the cached maps were drawn with: glass casts a
     // shadow only while refraction is off, so a change redraws them all.
     bool shadowCachedRefraction = true;

@@ -102,7 +102,7 @@ image sources are not read.
 
 One file per model. Textures are packed in as whole KTX2 blobs, so a model of
 any texture count is still one file. All offsets are absolute from the start of
-the file. Vertex and index blobs start on a 16-byte boundary.
+the file. Vertex, index and cluster blobs start on a 16-byte boundary.
 
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
@@ -116,7 +116,7 @@ MeshEntry[]     vertex/index offsets and counts, cluster table offset and
                 color texture), per-slot
                 UV transforms
 TextureEntry[]  offset, size
-blobs           vertices, indices, KTX2 files
+blobs           vertices, indices, cluster tables, KTX2 files
 ```
 
 A vertex is `PackedVertex`, 28 bytes: float position and UV, and the normal and
@@ -151,7 +151,8 @@ edge are locked, so the border of a mesh does not move and open no crack to
 its neighbour; the UV and the normal are protected at seams. `clusterlod.h` is
 vendored in `deps/clusterlod` from meshoptimizer's `demo/` folder at the tag of
 the vcpkg port. `headeronly.cpp` asserts `MESHOPTIMIZER_VERSION`, so update the
-header and the port together. The game draws LOD0 only for now.
+header and the port together. The game draws a cluster cut per frame in the
+camera passes and one per cascade in the shadow passes.
 
 ### Versioning
 

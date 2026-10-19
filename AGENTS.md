@@ -163,10 +163,10 @@ maze.exe --capture-frames=600 --dump-nan-stats
   value width can differ from a run on a real monitor. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
   `ssao`, `ssr`, `shadow`, `probe`, `planar`, `lod` (draw LOD0 for every
-  mesh, for an A/B of the cut). Two more names change the measurement: `shadowcache` draws the shadow map every frame (the cache would
-  otherwise draw it once and hide its cost), and `gputimer` turns the GPU timer
-  off. Without `--dump-nan-stats`, the run also writes `capture_timing.txt`
-  (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
+  mesh, for an A/B of the cut). Two more names change the measurement:
+  `shadowcache` draws the shadow map every frame (the cache would otherwise
+  draw it once and hide its cost), and `gputimer` turns the GPU timer off. Without
+  `--dump-nan-stats`, the run also writes `capture_timing.txt` (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
   with its GPU time) from the frames after a 60 frame warm-up. Pass times come
   from `GL_TIME_ELAPSED` queries, so they hold in a debug build; only the CPU
   side is slower there. `gpu frame` has two GPU clock times: the span, from

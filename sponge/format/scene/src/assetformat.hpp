@@ -35,7 +35,7 @@ constexpr size_t textureSlots = 6;
 struct Header {
     char     magic[sizeof(asset::magic)];
     uint32_t version;
-    uint32_t vertexSize;  // sizeof(Vertex) at bake time
+    uint32_t vertexSize;  // sizeof(PackedVertex) at bake time
     uint32_t meshCount;
     uint32_t textureCount;
 };

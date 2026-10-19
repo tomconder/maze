@@ -1,8 +1,7 @@
 # Mesh LOD test scene. Load it with --capture-scene=lodtest (debug builds).
 # Dense rocks at 8 to 95 units, out to the camera far plane (100), a ridge
 # that runs from near to far in one mesh, and a grid of helmets, so every
-# LOD is in view at once. See
-# docs/superpowers/plans/2026-10-18-mesh-lod.md.
+# LOD is in view at once.
 
 camera:
   position: [-10.0, 3.0, 0.0]
