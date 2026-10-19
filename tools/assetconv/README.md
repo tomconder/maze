@@ -14,7 +14,7 @@ GLSL from `shaders/shaders.spnga` and nowhere else.
 
 ```
 assetconv [--threads <n>] --manifest <manifest.yaml> <output dir> [--no-line-directives]
-          [--notices <file> [--license <name>=<path>]...]
+          [--no-debug-assets] [--notices <file> [--license <name>=<path>]...]
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
 
@@ -26,6 +26,8 @@ hardware thread. The output bytes do not depend on it.
 `--manifest` bakes every asset the manifest lists: models, textures, fonts,
 atlases and the shader pack. Sources are relative to the manifest's folder, outputs to
 the output directory. `--no-line-directives` applies to the shader pack.
+`--no-debug-assets` skips the models marked `debug: true`, such as the mesh
+LOD test scene's. The build passes it for release configurations.
 
 An output is skipped when it is newer than its sources, the manifest and
 `assetconv` itself. The converter stands in for the format headers compiled
@@ -73,7 +75,7 @@ models:
 ```
 
 `source` is relative to `assets/`, `output` to the baked asset directory.
-CMake never reads the manifest, so a new entry needs no re-configure. Editing
+Add `debug: true` to a model that only debug builds use. CMake never reads the manifest, so a new entry needs no re-configure. Editing
 the source, the manifest or `sponge/format/scene/src/assetformat.hpp` rebakes without
 a clean.
 

@@ -3,7 +3,7 @@
 // the third-party licenses into one notices file.
 //
 // Usage: assetconv [--threads <n>] --manifest <manifest.yaml> <output dir>
-//                  [--no-line-directives]
+//                  [--no-line-directives] [--no-debug-assets]
 //                  [--notices <file> [--license <name>=<path>]...]
 //        assetconv [--threads <n>] --verify <source> <output.spnga>
 
@@ -424,10 +424,12 @@ bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
 }
 
 // Sources are relative to the manifest's folder, outputs to outputDir.
+// Without debugAssets, models marked `debug: true` are not baked, and the
+// orphan sweep deletes an earlier bake of them.
 int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
-                 const bool lineDirectives, const unsigned threads,
-                 const fs::path& converter, const std::string& notices,
-                 Licenses licenses) {
+                 const bool lineDirectives, const bool debugAssets,
+                 const unsigned threads, const fs::path& converter,
+                 const std::string& notices, Licenses licenses) {
     const auto sourceRoot = fs::path(manifestPath).parent_path();
     const auto outputRoot = fs::path(outputDir);
     const auto source     = [&](const std::string& path) {
@@ -457,6 +459,10 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
         const auto    manifest = Yaml::deserialize(file);
 
         for (const auto& model : section(manifest, "models")) {
+            if (!debugAssets && model.contains("debug") &&
+                model.at("debug").get_value<bool>()) {
+                continue;
+            }
             const auto from = source(text(model, "source"));
             // A glTF file also reads the buffers and images it names.
             std::vector<fs::path> inputs{ from };
@@ -625,11 +631,14 @@ int main(const int argc, char** argv) {
 
     if (args.size() >= 3 && args[0] == "--manifest") {
         bool        lineDirectives = true;
+        bool        debugAssets    = true;
         std::string notices;
         Licenses    licenses;
         for (size_t i = 3; i < args.size(); i++) {
             if (args[i] == "--no-line-directives") {
                 lineDirectives = false;
+            } else if (args[i] == "--no-debug-assets") {
+                debugAssets = false;
             } else if (args[i] == "--notices" && i + 1 < args.size()) {
                 notices = args[++i];
             } else if (args[i] == "--license" && i + 1 < args.size() &&
@@ -644,8 +653,8 @@ int main(const int argc, char** argv) {
             }
         }
         return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
-                            lineDirectives, threads, argv[0], notices,
-                            std::move(licenses));
+                            lineDirectives, debugAssets, threads, argv[0],
+                            notices, std::move(licenses));
     }
     if (args.size() == 3 && args[0] == "--verify") {
         return verify(std::string{ args[1] }, std::string{ args[2] });
@@ -653,7 +662,7 @@ int main(const int argc, char** argv) {
 
     fmt::println(stderr,
                  "usage: assetconv [--threads <n>] --manifest <manifest.yaml> "
-                 "<output dir> [--no-line-directives]\n"
+                 "<output dir> [--no-line-directives] [--no-debug-assets]\n"
                  "           [--notices <file> [--license <name>=<path>]...]\n"
                  "       assetconv [--threads <n>] --verify <source> "
                  "<output.spnga>");

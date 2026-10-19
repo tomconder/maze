@@ -112,7 +112,8 @@ primitives, windowing, or platform backends itself — see
   A scene object can carry `grid: { x, z, spacing }`: `loadScene()` expands it
   into x by z objects on the XZ plane, each side limited to 64. Objects stay
   plain to the rest of the game. `assets/scenes/lodtest.yaml` exists only to
-  test mesh LOD; load it with `--capture-scene=lodtest`.
+  test mesh LOD; load it with `--capture-scene=lodtest`. Release builds do
+  not ship it or its models (`debug: true` in `assets/manifest.yaml`).
 * `scene/refraction.hpp` - `SceneRefraction`, a scene object's glass values.
   It has its own header so the render frame does not include the scene
   loader.
