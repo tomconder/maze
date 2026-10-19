@@ -74,7 +74,16 @@ Mesh::Mesh(std::vector<PackedVertex>&& vertices, const std::size_t numVertices,
         boundsMin = glm::min(boundsMin, vertex.position);
         boundsMax = glm::max(boundsMax, vertex.position);
     }
-    bounds = { boundsMin, boundsMax };
+    bounds         = { boundsMin, boundsMax };
+    lod0IndexCount = static_cast<uint32_t>(numIndices);
+
+    initShader();
+}
+
+void Mesh::initShader() {
+    if (defaultShader) {
+        return;
+    }
 
     const auto shaderCreateInfo = renderer::ShaderCreateInfo{
         .name           = shaderName.data(),
@@ -112,7 +121,6 @@ Mesh::Mesh(std::vector<PackedVertex>&& vertices, const std::size_t numVertices,
             defaultShader->findUniform("metallicRoughnessUVTransform"),
         .lodLevel = defaultShader->findUniform("lodLevel"),
     };
-    lod0IndexCount = static_cast<uint32_t>(numIndices);
 }
 
 void Mesh::setClusters(std::vector<sponge::scene::MeshCluster>&& meshClusters) {

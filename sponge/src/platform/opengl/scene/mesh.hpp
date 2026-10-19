@@ -130,6 +130,10 @@ public:
         return firstIndex;
     }
 
+    // Null until initShader() runs. Every Mesh calls it, so a scene with no
+    // models has to call it itself. GL thread only.
+    static void initShader();
+
     static std::shared_ptr<renderer::Shader> getShader() {
         return defaultShader;
     }

@@ -241,6 +241,8 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     camera->setOrientation(sceneDesc.camera.yaw, sceneDesc.camera.pitch);
     camera->setPosition(sceneDesc.camera.position);
 
+    // A scene with no models has built no Mesh, so the shader may not exist.
+    Mesh::initShader();
     const auto shader = Mesh::getShader();
     shader->setFloat("ao", ao);
     shader->setBoolean("ssaoEnabled", ssaoEnabled);

@@ -41,6 +41,11 @@ OcclusionCuller::~OcclusionCuller() {
 void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
                             const glm::mat4&                        viewProj,
                             const glm::vec3&                        eyePos) {
+    // With no objects the constructor made no shader or queries.
+    if (queries.empty()) {
+        return;
+    }
+
     // Depth-test only: no colour, no depth write, so this can't perturb the
     // depth buffer it tests against.
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -75,11 +80,9 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
         // A box outside the frustum rasterizes nothing, which reads as
         // "occluded". Left that way, the object would stay hidden for the
         // frames it takes a fresh result to arrive after the camera turns
-        // back, so mark it visible instead.
+        // back, so leave it unissued: pollResults() marks it visible until a
+        // query fired while the box is in view gives a real answer.
         if (eyeInside || !frustum.intersects(box)) {
-            visible[i] = 1;
-            // Leave unissued: pollResults() then skips it until a query
-            // fired while the box is in view gives a real answer.
             issued[i] = 0;
             continue;
         }
@@ -108,7 +111,10 @@ void OcclusionCuller::query(const std::vector<sponge::scene::AABB>& worldBounds,
 
 void OcclusionCuller::pollResults() {
     for (size_t i = 0; i < queries.size(); i++) {
+        // Set here and not in query(), which runs between the depth prepass
+        // and the opaque pass: both passes must see the same visibility.
         if (!issued[i]) {
+            visible[i] = 1;
             continue;
         }
 
