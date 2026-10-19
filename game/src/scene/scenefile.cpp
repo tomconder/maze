@@ -8,6 +8,7 @@
 #include <glm/trigonometric.hpp>
 #include <glm/vector_relational.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <string>
 #include <utility>
@@ -237,7 +238,35 @@ void readObjects(const node&                            root,
                 readVec3(*rotation, "axis", object.rotation.axis);
         }
 
-        objects.push_back(std::move(object));
+        // grid: { x: 8, z: 8, spacing: 4.0 } places x by z copies on the XZ
+        // plane, from translation. Each copy is its own scene object; they
+        // share one model, because AssetManager dedupes models on the path.
+        const auto* grid = find(entry, "grid");
+        if (grid == nullptr) {
+            objects.push_back(std::move(object));
+            continue;
+        }
+        if (object.planar) {
+            SPONGE_WARN("Scene object '{}' is planar, grid ignored",
+                        object.name);
+            objects.push_back(std::move(object));
+            continue;
+        }
+        constexpr int maxGridSide = 64;
+        const int   countX = std::clamp(readInt(*grid, "x", 1), 1, maxGridSide);
+        const int   countZ = std::clamp(readInt(*grid, "z", 1), 1, maxGridSide);
+        const float spacing = readFloat(*grid, "spacing", 1.F);
+        for (int x = 0; x < countX; x++) {
+            for (int z = 0; z < countZ; z++) {
+                auto copy = object;
+                copy.name = object.name + "_" + std::to_string(x) + "_" +
+                            std::to_string(z);
+                copy.translation +=
+                    glm::vec3(static_cast<float>(x) * spacing, 0.F,
+                              static_cast<float>(z) * spacing);
+                objects.push_back(std::move(copy));
+            }
+        }
     }
 }
 }  // namespace

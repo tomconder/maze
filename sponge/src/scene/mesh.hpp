@@ -17,10 +17,10 @@ public:
     }
 
 protected:
-    std::vector<Vertex>   vertices;
-    std::vector<uint32_t> indices;
-    size_t                numIndices  = 0;
-    size_t                numVertices = 0;
+    std::vector<PackedVertex> vertices;
+    std::vector<uint32_t>     indices;
+    size_t                    numIndices  = 0;
+    size_t                    numVertices = 0;
 };
 
 }  // namespace sponge::scene

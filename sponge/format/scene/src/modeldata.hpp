@@ -43,16 +43,50 @@ struct ParsedImage {
 // carried but not drawn yet, so it renders as Opaque.
 enum class AlphaMode : uint32_t { Opaque, Mask, Blend };
 
+// A sphere and the simplification error inside it, in model units. The
+// error is how far the simplified surface can be from LOD0.
+struct ClusterBounds {
+    glm::vec3 center{ 0.F };
+    float     radius{ 0.F };
+    float     error{ 0.F };
+
+    bool operator==(const ClusterBounds&) const = default;
+};
+
+// One cluster (up to 128 triangles) of a mesh's cluster LOD hierarchy: a
+// range of ParsedMesh::indices. A view draws a cluster when its error test
+// passes for self and fails for parent. self.error is 0 for a LOD0
+// cluster. parent.error is FLT_MAX for a cluster that has no coarser
+// version.
+struct MeshCluster {
+    uint32_t      firstIndex{ 0 };
+    uint32_t      indexCount{ 0 };
+    uint32_t      depth{ 0 };  // 0 is LOD0
+    ClusterBounds self;
+    ClusterBounds parent;
+
+    bool operator==(const MeshCluster&) const = default;
+};
+
 // One mesh primitive's worth of CPU-parsed data: vertices/indices plus its
 // material images, as indices into ModelData::images.
 struct ParsedMesh {
-    std::vector<Vertex>     vertices;
-    std::vector<uint32_t>   indices;
-    std::optional<uint32_t> albedo;
-    std::optional<uint32_t> normal;
-    std::optional<uint32_t> occlusion;
-    std::optional<uint32_t> emissive;
-    std::optional<uint32_t> metallicRoughness;
+    std::vector<Vertex> vertices;
+    // Exactly one of vertices or packedVertices is populated, like
+    // ParsedImage's pixels and ktx2: the glTF importer and the bake work on
+    // float vertices, and a baked .spnga carries packed ones.
+    std::vector<PackedVertex> packedVertices;
+    std::vector<uint32_t>     indices;
+    // The cluster LOD hierarchy over indices. The LOD0 clusters come first,
+    // so indices starts with all of LOD0. Empty means one LOD0 range over all
+    // of indices: the glTF importer leaves it empty, and the bake and the
+    // reader fill it.
+    std::vector<MeshCluster> clusters;
+    std::optional<uint32_t>  albedo;
+    std::optional<uint32_t>  normal;
+    std::optional<uint32_t>  occlusion;
+    std::optional<uint32_t>  emissive;
+    std::optional<uint32_t>  metallicRoughness;
     // KHR_materials_diffuse_transmission strength map; its alpha scales the
     // factor below.
     std::optional<uint32_t> diffuseTransmissionMap;

@@ -4,6 +4,7 @@
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
+#include "scene/clustercut.hpp"
 #include "scene/refraction.hpp"
 
 #include <glm/glm.hpp>
@@ -103,6 +104,11 @@ struct MazeRenderFrame {
     // needs the light frustum, not the camera one this was built from.
     std::vector<std::vector<uint8_t>> objectMeshVisible;
 
+    // The clusters each visible mesh draws in the camera passes, made once
+    // per frame in captureRenderFrame(). The depth prepass and every pass
+    // that tests against its depth must draw this same cut.
+    sponge::scene::ClusterCut cameraCut;
+
     // Same shape as objectMeshVisible, but tested against each cascade's
     // frustum (lightSpaceMatrices) instead of the camera's. Only rebuilt when
     // the shadow pass will actually run; stale otherwise since it goes
@@ -110,6 +116,14 @@ struct MazeRenderFrame {
     std::array<std::vector<std::vector<uint8_t>>,
                sponge::platform::opengl::scene::ShadowMap::maxCascades>
         objectMeshVisibleLight;
+
+    // Per cascade: the clusters each mesh draws into that cascade, made from
+    // the cascade's texel size only, so a cached cascade stays correct.
+    // Shared and never changed after it is made: the update thread makes a
+    // new one when the texel size changes. Null draws LOD0.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCuts;
 
     // Post-processing
     AntiAliasing antiAliasing{ AntiAliasing::None };

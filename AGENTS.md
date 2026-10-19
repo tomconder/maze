@@ -144,6 +144,8 @@ maze.exe --capture-frames=600 --dump-nan-stats
   near cascade redraws when the camera has moved one texel of its map.
 * `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
   the whole-scene map alone, for an A/B against the cascades.
+* `--capture-scene=<name>`: load `assets/scenes/<name>.yaml` in place of
+  `maze.yaml`. `lodtest` is the mesh LOD test scene.
 * `--capture-menu=intro|exit|display|keyboard|audio|confirm|reset`: skip the splash, show that
   menu screen for two seconds, write the back buffer as
   `capture_menu_<name>.png` (8-bit RGB) and exit. The window has no frame, so
@@ -160,11 +162,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   resolutions in place of what a monitor reports, so its dot counts and
   value width can differ from a run on a real monitor. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `planar`. Two more names change the
-  measurement: `shadowcache` draws the shadow map every frame (the cache would
-  otherwise draw it once and hide its cost), and `gputimer` turns the GPU timer
-  off. Without `--dump-nan-stats`, the run also writes `capture_timing.txt`
-  (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
+  `ssao`, `ssr`, `shadow`, `probe`, `planar`, `lod` (draw LOD0 for every
+  mesh, for an A/B of the cut). Two more names change the measurement:
+  `shadowcache` draws the shadow map every frame (the cache would otherwise
+  draw it once and hide its cost), and `gputimer` turns the GPU timer off. Without
+  `--dump-nan-stats`, the run also writes `capture_timing.txt` (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
   with its GPU time) from the frames after a 60 frame warm-up. Pass times come
   from `GL_TIME_ELAPSED` queries, so they hold in a debug build; only the CPU
   side is slower there. `gpu frame` has two GPU clock times: the span, from

@@ -3,6 +3,7 @@
 #include "modeldata.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "scene/clustercut.hpp"
 #include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
 
@@ -30,8 +31,9 @@ enum class AlphaPass : uint8_t { All, Opaque, Masked, Solid, Blended };
 class Mesh : public sponge::scene::Mesh {
 public:
     Mesh(
-        std::vector<sponge::scene::Vertex>&& vertices, std::size_t numVertices,
-        std::vector<uint32_t>&& indices, std::size_t numIndices,
+        std::vector<sponge::scene::PackedVertex>&& vertices,
+        std::size_t numVertices, std::vector<uint32_t>&& indices,
+        std::size_t                                       numIndices,
         std::vector<std::shared_ptr<renderer::Texture>>&& textures,
         std::shared_ptr<renderer::Texture> normalTexture              = nullptr,
         std::shared_ptr<renderer::Texture> occlusionTexture           = nullptr,
@@ -50,9 +52,20 @@ public:
     // PBR program always gets its full material. Any other program gets only
     // the alpha test inputs, and only when alphaTest is set: the masked depth
     // prepass and shadow programs use it, so their discards match the PBR
-    // pass.
-    void draw(const std::shared_ptr<renderer::Shader>& shader,
-              bool                                     alphaTest = false) const;
+    // pass. ranges are the clusters to draw, relative to this mesh. Empty
+    // draws LOD0. Returns the number of indices drawn.
+    size_t draw(const std::shared_ptr<renderer::Shader>&   shader,
+                bool                                       alphaTest = false,
+                std::span<const sponge::scene::IndexRange> ranges = {}) const;
+
+    // Debug view: the PBR program colors each range by its cluster depth.
+    // Render thread only.
+    static void setLodTint(const bool enabled) {
+        lodTint = enabled;
+    }
+    static bool getLodTint() {
+        return lodTint;
+    }
 
     bool isDoubleSided() const {
         return doubleSided;
@@ -83,14 +96,14 @@ public:
     }
 
     // The geometry Model packs into its shared buffers, then frees.
-    std::span<const sponge::scene::Vertex> getVertices() const {
+    std::span<const sponge::scene::PackedVertex> getVertices() const {
         return vertices;
     }
     std::span<const uint32_t> getIndices() const {
         return indices;
     }
     void freeGeometry() {
-        std::vector<sponge::scene::Vertex>().swap(vertices);
+        std::vector<sponge::scene::PackedVertex>().swap(vertices);
         std::vector<uint32_t>().swap(indices);
     }
 
@@ -99,6 +112,16 @@ public:
     void setDrawRange(const int32_t vertexOffset, const uint32_t firstElement) {
         baseVertex = vertexOffset;
         firstIndex = firstElement;
+    }
+    // The cluster LOD hierarchy, in model space. Kept after freeGeometry():
+    // the game reads it once to build its world-space copy.
+    void setClusters(std::vector<sponge::scene::MeshCluster>&& meshClusters);
+    std::span<const sponge::scene::MeshCluster> getClusters() const {
+        return clusters;
+    }
+    // LOD0 is the first lod0IndexCount indices of this mesh's range.
+    uint32_t getLod0IndexCount() const {
+        return lod0IndexCount;
     }
     int32_t getBaseVertex() const {
         return baseVertex;
@@ -122,8 +145,12 @@ public:
     }
 
 private:
+    std::vector<sponge::scene::MeshCluster> clusters;
+    uint32_t                                lod0IndexCount = 0;
+
     static constexpr std::string_view        shaderName = "mesh";
     static uint32_t                          meshProgramId;
+    static inline bool                       lodTint = false;
     static std::shared_ptr<renderer::Shader> defaultShader;
 
     // The material uniforms draw() sets on every draw, found once.
@@ -149,6 +176,7 @@ private:
         Handle diffuseTransmissionUV;
         Handle hasMetallicRoughnessMap;
         Handle metallicRoughnessUV;
+        Handle lodLevel;
     };
     static MaterialUniforms materialUniforms;
 

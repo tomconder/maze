@@ -3,7 +3,7 @@
 // the third-party licenses into one notices file.
 //
 // Usage: assetconv [--threads <n>] --manifest <manifest.yaml> <output dir>
-//                  [--no-line-directives]
+//                  [--no-line-directives] [--no-debug-assets]
 //                  [--notices <file> [--license <name>=<path>]...]
 //        assetconv [--threads <n>] --verify <source> <output.spnga>
 
@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <charconv>
 #include <cstddef>
 #include <cstdint>
@@ -130,6 +131,30 @@ bool writeFile(const std::string& path, const std::span<const uint8_t> bytes) {
     return file.good();
 }
 
+// The size of the cluster hierarchy of a model, to see what the bake did.
+void printClusterStats(const std::string& source, const ModelData& data) {
+    size_t clusterCount = 0;
+    size_t levels       = 0;
+    size_t lod0         = 0;
+    size_t coarsest     = 0;
+    size_t all          = 0;
+    for (const auto& mesh : data.meshes) {
+        for (const auto& cluster : mesh.clusters) {
+            clusterCount++;
+            levels = std::max<size_t>(levels, cluster.depth + 1);
+            lod0 += cluster.depth == 0 ? cluster.indexCount / 3 : 0;
+            // The cut at infinite distance: the clusters with no coarser
+            // version.
+            coarsest +=
+                cluster.parent.error == FLT_MAX ? cluster.indexCount / 3 : 0;
+        }
+        all += mesh.indices.size() / 3;
+    }
+    fmt::println("{}: {} clusters, {} levels, {} triangles at LOD0, {} at the "
+                 "coarsest cut, {} in all levels",
+                 source, clusterCount, levels, lod0, coarsest, all);
+}
+
 int convert(const std::string& source, const std::string& output) {
     auto data = import(source);
     if (data.meshes.empty()) {
@@ -141,7 +166,10 @@ int convert(const std::string& source, const std::string& output) {
     // deterministic, so the baked file carries the result instead.
     for (auto& mesh : data.meshes) {
         assetconv::optimizeMesh(mesh);
+        assetconv::buildClusters(mesh);
+        assetconv::packVertices(mesh);
     }
+    printClusterStats(source, data);
 
     if (!encodeTextures(data)) {
         return 1;
@@ -165,7 +193,10 @@ int verify(const std::string& source, const std::string& output) {
     // This checks the round trip through the container, not the optimizer.
     for (auto& mesh : expected.meshes) {
         assetconv::optimizeMesh(mesh);
+        assetconv::buildClusters(mesh);
+        assetconv::packVertices(mesh);
     }
+    printClusterStats(source, expected);
     std::string error;
     const auto  actual = sponge::scene::asset::read(output, error);
     if (!error.empty()) {
@@ -183,20 +214,21 @@ int verify(const std::string& source, const std::string& output) {
         const auto& want = expected.meshes[i];
         const auto& got  = actual.meshes[i];
 
-        if (want.vertices.size() != got.vertices.size() ||
+        if (want.packedVertices.size() != got.packedVertices.size() ||
             want.indices.size() != got.indices.size()) {
             fmt::println(stderr,
                          "FAIL {} mesh {}: {}/{} vertices, {}/{} indices",
-                         output, i, got.vertices.size(), want.vertices.size(),
-                         got.indices.size(), want.indices.size());
+                         output, i, got.packedVertices.size(),
+                         want.packedVertices.size(), got.indices.size(),
+                         want.indices.size());
             return 1;
         }
 
-        for (size_t v = 0; v < want.vertices.size(); v++) {
-            if (want.vertices[v].position != got.vertices[v].position ||
-                want.vertices[v].texCoords != got.vertices[v].texCoords ||
-                want.vertices[v].normal != got.vertices[v].normal ||
-                want.vertices[v].tangent != got.vertices[v].tangent) {
+        for (size_t v = 0; v < want.packedVertices.size(); v++) {
+            const auto& a = want.packedVertices[v];
+            const auto& b = got.packedVertices[v];
+            if (a.position != b.position || a.texCoords != b.texCoords ||
+                a.normal != b.normal || a.tangent != b.tangent) {
                 fmt::println(stderr, "FAIL {} mesh {}: vertex {} differs",
                              output, i, v);
                 return 1;
@@ -205,6 +237,11 @@ int verify(const std::string& source, const std::string& output) {
 
         if (want.indices != got.indices) {
             fmt::println(stderr, "FAIL {} mesh {}: indices differ", output, i);
+            return 1;
+        }
+
+        if (want.clusters != got.clusters) {
+            fmt::println(stderr, "FAIL {} mesh {}: clusters differ", output, i);
             return 1;
         }
 
@@ -387,10 +424,12 @@ bool upToDate(const fs::path& output, const std::vector<fs::path>& inputs) {
 }
 
 // Sources are relative to the manifest's folder, outputs to outputDir.
+// Without debugAssets, models marked `debug: true` are not baked, and the
+// orphan sweep deletes an earlier bake of them.
 int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
-                 const bool lineDirectives, const unsigned threads,
-                 const fs::path& converter, const std::string& notices,
-                 Licenses licenses) {
+                 const bool lineDirectives, const bool debugAssets,
+                 const unsigned threads, const fs::path& converter,
+                 const std::string& notices, Licenses licenses) {
     const auto sourceRoot = fs::path(manifestPath).parent_path();
     const auto outputRoot = fs::path(outputDir);
     const auto source     = [&](const std::string& path) {
@@ -420,6 +459,10 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
         const auto    manifest = Yaml::deserialize(file);
 
         for (const auto& model : section(manifest, "models")) {
+            if (!debugAssets && model.contains("debug") &&
+                model.at("debug").get_value<bool>()) {
+                continue;
+            }
             const auto from = source(text(model, "source"));
             // A glTF file also reads the buffers and images it names.
             std::vector<fs::path> inputs{ from };
@@ -588,11 +631,14 @@ int main(const int argc, char** argv) {
 
     if (args.size() >= 3 && args[0] == "--manifest") {
         bool        lineDirectives = true;
+        bool        debugAssets    = true;
         std::string notices;
         Licenses    licenses;
         for (size_t i = 3; i < args.size(); i++) {
             if (args[i] == "--no-line-directives") {
                 lineDirectives = false;
+            } else if (args[i] == "--no-debug-assets") {
+                debugAssets = false;
             } else if (args[i] == "--notices" && i + 1 < args.size()) {
                 notices = args[++i];
             } else if (args[i] == "--license" && i + 1 < args.size() &&
@@ -607,8 +653,8 @@ int main(const int argc, char** argv) {
             }
         }
         return bakeManifest(std::string{ args[1] }, std::string{ args[2] },
-                            lineDirectives, threads, argv[0], notices,
-                            std::move(licenses));
+                            lineDirectives, debugAssets, threads, argv[0],
+                            notices, std::move(licenses));
     }
     if (args.size() == 3 && args[0] == "--verify") {
         return verify(std::string{ args[1] }, std::string{ args[2] });
@@ -616,7 +662,7 @@ int main(const int argc, char** argv) {
 
     fmt::println(stderr,
                  "usage: assetconv [--threads <n>] --manifest <manifest.yaml> "
-                 "<output dir> [--no-line-directives]\n"
+                 "<output dir> [--no-line-directives] [--no-debug-assets]\n"
                  "           [--notices <file> [--license <name>=<path>]...]\n"
                  "       assetconv [--threads <n>] --verify <source> "
                  "<output.spnga>");

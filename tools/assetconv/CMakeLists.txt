@@ -21,16 +21,19 @@ target_include_directories(assetconv PRIVATE src)
 # and libjpeg-turbo to decode source images, bc7enc for BC7 blocks, rectpack2D
 # for the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
+# clusterlod.h @ meshoptimizer v1.3 (9e1f07b159d3cb777f1c67ed31fc11fd117986f4), demo/clusterlod.h
 # cgltf and rectpack2D come from vcpkg.
 # Own target so they take the engine's options but not its warnings.
 find_path(CGLTF_INCLUDE_DIR cgltf.h REQUIRED)
+find_package(meshoptimizer CONFIG REQUIRED)
 add_library(assetconv_deps OBJECT
         deps/bc7enc/bc7enc.cpp
         deps/headeronly.cpp)
 set_target_properties(assetconv_deps PROPERTIES CXX_STANDARD 23)
 target_include_directories(assetconv_deps PUBLIC
-        deps/bc7enc ${CGLTF_INCLUDE_DIR})
-target_link_libraries(assetconv_deps PRIVATE sponge::options)
+        deps/bc7enc deps/clusterlod ${CGLTF_INCLUDE_DIR})
+target_link_libraries(assetconv_deps PRIVATE sponge::options
+        meshoptimizer::meshoptimizer)
 target_compile_options(assetconv_deps PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
 # assetconv runs on the machine that builds the game, so the encoder and the
@@ -60,7 +63,6 @@ target_link_libraries(assetconv PRIVATE
         $<IF:$<TARGET_EXISTS:libjpeg-turbo::turbojpeg>,libjpeg-turbo::turbojpeg,libjpeg-turbo::turbojpeg-static>)
 
 # Mesh optimization is a bake step now, so meshoptimizer links here.
-find_package(meshoptimizer CONFIG REQUIRED)
 target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
 
 # SIMD for the mip filter. Header-only, so the converter builds for the

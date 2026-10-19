@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cstdint>
 #include <cstring>
 #include <optional>
@@ -16,16 +17,17 @@
 #include <vector>
 
 namespace {
+using sponge::scene::MeshCluster;
+using sponge::scene::PackedVertex;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
-using sponge::scene::Vertex;
 using sponge::scene::asset::Header;
 using sponge::scene::asset::magic;
 using sponge::scene::asset::textureSlots;
 using sponge::scene::asset::version;
 
-// Vertex holds a vec4, so blobs start on a 16-byte boundary. Readers may
-// then view the buffer in place instead of copying out.
+// Blobs start on a 16-byte boundary. Readers may then view the buffer in
+// place instead of copying out.
 constexpr size_t blobAlignment = 16;
 
 void align(std::vector<uint8_t>& out) {
@@ -76,9 +78,9 @@ const Header* validate(const std::vector<uint8_t>& bytes,
                             header->version, version, path);
         return nullptr;
     }
-    if (header->vertexSize != sizeof(Vertex)) {
+    if (header->vertexSize != sizeof(PackedVertex)) {
         error = fmt::format("Baked model vertex size {}, expected {}: {}",
-                            header->vertexSize, sizeof(Vertex), path);
+                            header->vertexSize, sizeof(PackedVertex), path);
         return nullptr;
     }
     return header;
@@ -119,7 +121,7 @@ std::vector<uint8_t> write(const ModelData& data) {
     Header               header{
         .magic        = {},
         .version      = version,
-        .vertexSize   = sizeof(Vertex),
+        .vertexSize   = sizeof(PackedVertex),
         .meshCount    = static_cast<uint32_t>(meshes.size()),
         .textureCount = static_cast<uint32_t>(textureBlobs.size()),
     };
@@ -143,15 +145,30 @@ std::vector<uint8_t> write(const ModelData& data) {
 
         align(out);
         entry.vertexOffset = static_cast<uint32_t>(out.size());
-        entry.vertexCount  = static_cast<uint32_t>(mesh.vertices.size());
-        appendBytes(out, mesh.vertices.data(),
-                    mesh.vertices.size() * sizeof(Vertex));
+        entry.vertexCount  = static_cast<uint32_t>(mesh.packedVertices.size());
+        appendBytes(out, mesh.packedVertices.data(),
+                    mesh.packedVertices.size() * sizeof(PackedVertex));
 
         align(out);
         entry.indexOffset = static_cast<uint32_t>(out.size());
         entry.indexCount  = static_cast<uint32_t>(mesh.indices.size());
         appendBytes(out, mesh.indices.data(),
                     mesh.indices.size() * sizeof(uint32_t));
+
+        // A mesh the bake did not cluster draws all of its indices as LOD0.
+        const std::vector<MeshCluster> whole = {
+            { .firstIndex = 0,
+              .indexCount = entry.indexCount,
+              .depth      = 0,
+              .self       = {},
+              .parent     = { .error = FLT_MAX } }
+        };
+        const auto& clusters = mesh.clusters.empty() ? whole : mesh.clusters;
+        align(out);
+        entry.clusterOffset = static_cast<uint32_t>(out.size());
+        entry.clusterCount  = static_cast<uint32_t>(clusters.size());
+        appendBytes(out, clusters.data(),
+                    clusters.size() * sizeof(MeshCluster));
 
         std::ranges::copy(meshSlots[i], std::begin(entry.textureIndex));
         entry.baseColorFactor          = mesh.baseColorFactor;
@@ -223,7 +240,7 @@ ModelData read(const std::string& path, std::string& error) {
         const auto& entry = meshEntries[i];
         auto&       mesh  = data.meshes[i];
 
-        const auto vertexBytes = entry.vertexCount * sizeof(Vertex);
+        const auto vertexBytes = entry.vertexCount * sizeof(PackedVertex);
         const auto indexBytes  = entry.indexCount * sizeof(uint32_t);
         if (entry.vertexOffset + vertexBytes > bytes.size() ||
             entry.indexOffset + indexBytes > bytes.size()) {
@@ -232,12 +249,39 @@ ModelData read(const std::string& path, std::string& error) {
             return {};
         }
 
-        mesh.vertices.resize(entry.vertexCount);
-        std::memcpy(mesh.vertices.data(), bytes.data() + entry.vertexOffset,
-                    vertexBytes);
+        mesh.packedVertices.resize(entry.vertexCount);
+        std::memcpy(mesh.packedVertices.data(),
+                    bytes.data() + entry.vertexOffset, vertexBytes);
         mesh.indices.resize(entry.indexCount);
         std::memcpy(mesh.indices.data(), bytes.data() + entry.indexOffset,
                     indexBytes);
+
+        const auto clusterBytes = entry.clusterCount * sizeof(MeshCluster);
+        if (entry.clusterCount == 0 ||
+            entry.clusterOffset + clusterBytes > bytes.size()) {
+            error =
+                fmt::format("Baked mesh {} has no cluster table: {}", i, path);
+            return {};
+        }
+        mesh.clusters.resize(entry.clusterCount);
+        std::memcpy(mesh.clusters.data(), bytes.data() + entry.clusterOffset,
+                    clusterBytes);
+        // Every range must be inside the indices, and LOD0 must be one block
+        // at the start: Mesh draws LOD0 as one range.
+        uint32_t lod0End  = 0;
+        bool     pastLod0 = false;
+        for (const auto& cluster : mesh.clusters) {
+            const bool lod0 = cluster.depth == 0;
+            if (uint64_t{ cluster.firstIndex } + cluster.indexCount >
+                    entry.indexCount ||
+                (lod0 && (pastLod0 || cluster.firstIndex != lod0End))) {
+                error = fmt::format("Baked mesh {} has a bad cluster table: {}",
+                                    i, path);
+                return {};
+            }
+            lod0End += lod0 ? cluster.indexCount : 0;
+            pastLod0 = pastLod0 || !lod0;
+        }
 
         size_t slot = 0;
         for (auto* image : slotsOf(mesh)) {

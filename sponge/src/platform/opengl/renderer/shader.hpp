@@ -60,6 +60,7 @@ public:
     // A setter given an invalid handle does nothing.
     UniformHandle findUniform(std::string_view name) const;
     void          setBoolean(UniformHandle handle, bool value) const;
+    void          setInteger(UniformHandle handle, int value) const;
     void          setFloat(UniformHandle handle, float value) const;
     void          setFloat3(UniformHandle handle, const glm::vec3& value) const;
     void          setFloat4(UniformHandle handle, const glm::vec4& value) const;

@@ -223,6 +223,19 @@ than calling GLFW/OpenGL/OS APIs directly.
   while the camera moves, so the history is refiltered every frame; bilinear
   compounded over a ~10-frame tail is a low-pass filter and the image goes
   soft in motion. Do not "simplify" it back to a single `Sample()`.
+* Model vertices are `PackedVertex`: float position and UV, normal and
+  tangent as `GL_INT_2_10_10_10_REV` normalized. Shaders read them as float
+  vectors and must normalize the normal and tangent before use.
+* A mesh carries a cluster LOD hierarchy over one vertex range.
+  `Model::render` draws the slice of a `ClusterCut` that the caller passes,
+  with one `glMultiDrawElementsBaseVertex` per mesh; no cut draws LOD0. The update thread makes the camera cut once per frame. The
+  depth prepass and the opaque pass must draw the same cut, because the
+  opaque pass draws with `GL_LEQUAL` and depth writes off against the
+  prepass depth. Never make a cut inside a pass.
+  Each shadow cascade draws its own cut, made from its texel size alone:
+  a cluster's world error against one texel, with no distance. That cut
+  does not depend on the camera, which keeps the shadow cache correct. Do
+  not make a shadow cut from the camera position.
 
 ## Anti-patterns
 

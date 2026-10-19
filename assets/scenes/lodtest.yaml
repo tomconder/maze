@@ -1,0 +1,94 @@
+# Mesh LOD test scene. Load it with --capture-scene=lodtest (debug builds).
+# Dense rocks at 8 to 95 units, out to the camera far plane (100), a ridge
+# that runs from near to far in one mesh, and a grid of helmets, so every
+# LOD is in view at once.
+
+camera:
+  position: [-10.0, 3.0, 0.0]
+  fov: 60.0
+  yaw: 0.0
+  pitch: -5.0
+
+lighting:
+  ambient:
+    strength: 0.5
+    # 1 = no extra attenuation. SSAO supplies real per-pixel occlusion; this
+    # is a flat multiplier on top of it.
+    ambientOcclusion: 0.25
+
+  directional:
+    enabled: true
+    castShadow: true
+    color: [1.0, 1.0, 1.0]
+    direction: [0.0, -20.0, 1.333]
+
+  # Point lights sit on a seeded ellipse, generated at runtime so the debug
+  # slider can change the count. radiusMin is the short (Z) semi-axis;
+  # radiusMin + radiusSpan is the long (X) one.
+  point:
+    count: 0
+    radiusMin: 5.0
+    radiusSpan: 20.0
+    height: 10.0
+    jitterAngle: 0.4
+    jitterRadius: 0.5
+    color: [1.0, 1.0, 1.0]
+    # Index into the attenuation distance table in game/src/scene/light.cpp.
+    attenuationIndex: 4
+    # Size of the cube drawn at each light position.
+    debugCubeScale: 0.1
+
+# Both act on linear radiance before tone mapping, so useful thresholds run
+# past 1.0. Re-derive them from a texture readback, never by scaling.
+bloom:
+  threshold: 0.8
+  intensity: 0.08
+
+objects:
+  - name: floor
+    path: /models/floor.spnga
+    scale: [12.0, 1.0, 8.0]
+    translation: [45.0, 0.0, 0.0]
+
+  - name: ridge
+    path: /models/lodtest_ridge.spnga
+    translation: [0.0, 0.0, -11.0]
+
+  - name: rock8
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [8.0, 2.3, -4.0]
+  - name: rock14
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [14.0, 2.3, 4.0]
+  - name: rock22
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [22.0, 2.3, -4.0]
+  - name: rock32
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [32.0, 2.3, 4.0]
+  - name: rock45
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [45.0, 2.3, -4.0]
+  - name: rock60
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [60.0, 2.3, 4.0]
+  - name: rock78
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [78.0, 2.3, -4.0]
+  - name: rock95
+    path: /models/lodtest_rock.spnga
+    scale: [2.5, 2.5, 2.5]
+    translation: [95.0, 2.3, 4.0]
+
+  - name: helmet
+    path: /models/helmet.spnga
+    rotation: { angle: -90.0, axis: [0.0, 1.0, 0.0] }
+    translation: [10.0, 1.2, 10.0]
+    grid: { x: 8, z: 8, spacing: 4.0 }

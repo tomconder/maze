@@ -39,6 +39,8 @@ struct CaptureOptions {
     // Non-empty skips the splash, shows that menu screen and writes one
     // capture. See MenuCaptureLayer.
     std::string menu;
+    // Non-empty loads assets/scenes/<scene>.yaml instead of maze.yaml.
+    std::string scene;
 };
 #endif
 
@@ -152,8 +154,7 @@ private:
         std::make_shared<layer::KeyMapLayer>();
     std::shared_ptr<layer::LoadingLayer> loadingLayer =
         std::make_shared<layer::LoadingLayer>();
-    std::shared_ptr<layer::MazeLayer> mazeLayer =
-        std::make_shared<layer::MazeLayer>();
+    std::shared_ptr<layer::MazeLayer>   mazeLayer;
     std::shared_ptr<layer::OptionLayer> optionLayer =
         std::make_shared<layer::OptionLayer>();
     std::shared_ptr<layer::SplashScreenLayer> splashScreenLayer =

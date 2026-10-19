@@ -56,18 +56,23 @@ public:
         buildTexture(std::optional<uint32_t>      image,
                      std::span<const ParsedImage> images);
 
-    void render(const std::shared_ptr<renderer::Shader>& shader,
-                AlphaPass pass = AlphaPass::All) const;
+    size_t render(const std::shared_ptr<renderer::Shader>& shader,
+                  AlphaPass pass = AlphaPass::All) const;
 
     // Renders only the meshes flagged visible (nonzero), same index order as
     // getMeshBounds(). An empty span renders every mesh, same as the
     // overload above — the shadow pass uses that: it needs the light
     // frustum, not the camera one this mask is built from.
+    // meshCuts[m] is the slice of ranges that mesh m draws; an empty
+    // meshCuts, or a slice of 0 ranges, draws LOD0.
     // pass selects the opaque or the masked meshes. Masked meshes pass their
     // alpha test inputs to a non-PBR shader (see Mesh::draw).
-    void render(const std::shared_ptr<renderer::Shader>& shader,
-                std::span<const uint8_t>                 meshVisible,
-                AlphaPass pass = AlphaPass::All) const;
+    // Returns the number of indices drawn.
+    size_t render(const std::shared_ptr<renderer::Shader>& shader,
+                  std::span<const uint8_t>                 meshVisible,
+                  AlphaPass                               pass = AlphaPass::All,
+                  std::span<const sponge::scene::MeshCut> meshCuts  = {},
+                  std::span<const sponge::scene::IndexRange> ranges = {}) const;
 
     bool hasMaskedMeshes() const {
         return maskedMeshes;
@@ -99,6 +104,15 @@ public:
     // Model-space; the caller transforms by its own model matrix.
     const sponge::scene::AABB& getMeshBounds(size_t index) const {
         return meshes[index]->getBounds();
+    }
+
+    // Model-space cluster table of one mesh.
+    std::span<const sponge::scene::MeshCluster>
+        getMeshClusters(const size_t index) const {
+        return meshes[index]->getClusters();
+    }
+    uint32_t getMeshLod0IndexCount(const size_t index) const {
+        return meshes[index]->getLod0IndexCount();
     }
 
 protected:

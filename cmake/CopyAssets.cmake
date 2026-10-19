@@ -23,10 +23,12 @@ file(COPY "${SRC_BAKED}/"
      DESTINATION "${DST_DIR}")
 
 # file(COPY) never deletes. Drop what an earlier run copied and neither the
-# sources nor the bake holds now, such as a model removed from the manifest.
+# sources nor the bake holds now, such as a model removed from the manifest,
+# and what the exclusions now match, such as a debug-only scene.
 file(GLOB_RECURSE DEPLOYED_FILES RELATIVE "${DST_DIR}" "${DST_DIR}/*")
 foreach (FILE IN LISTS DEPLOYED_FILES)
-    if (NOT EXISTS "${SRC_BAKED}/${FILE}" AND NOT EXISTS "${SRC_DIR}/${FILE}")
+    if ((NOT EXISTS "${SRC_BAKED}/${FILE}" AND NOT EXISTS "${SRC_DIR}/${FILE}")
+        OR "${DST_DIR}/${FILE}" MATCHES "${EXCLUDE_REGEX}")
         file(REMOVE "${DST_DIR}/${FILE}")
     endif ()
 endforeach ()

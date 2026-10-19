@@ -239,13 +239,20 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
     }
     float3 emission = params.emissive + emissiveTexColor;
 
+    // Debug tint by cluster depth: white is LOD0, depth 7 and deeper share cyan.
+    static const float3 lodColors[8] = {
+        float3(1.0, 1.0, 1.0), float3(0.3, 1.0, 0.3), float3(1.0, 1.0, 0.3), float3(1.0, 0.6, 0.2),
+        float3(1.0, 0.3, 0.3), float3(1.0, 0.3, 1.0), float3(0.3, 0.3, 1.0), float3(0.3, 1.0, 1.0)
+    };
+    float3 tint = params.lodLevel >= 0 ? lodColors[min(params.lodLevel, 7)] : float3(1.0);
+
     // Linear HDR out. Tone mapping, gamma and dither happen once in
     // tonemap.slang, after bloom has extracted from this unbounded radiance.
     if (params.alphaBlend) {
         // Premultiplied alpha, blended with (ONE, ONE_MINUS_SRC_ALPHA): the
         // diffuse light fades with alpha, a specular reflection does not get
         // fainter as the surface gets clearer, and emission is added as it is.
-        return float4((ambientDiffuse + Ld) * alpha + (ambientSpecular + Ls) + emission, alpha);
+        return float4(((ambientDiffuse + Ld) * alpha + (ambientSpecular + Ls) + emission) * tint, alpha);
     }
-    return float4((ambientDiffuse + Ld) + (ambientSpecular + Ls) + emission, 1.0);
+    return float4(((ambientDiffuse + Ld) + (ambientSpecular + Ls) + emission) * tint, 1.0);
 };

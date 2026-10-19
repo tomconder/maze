@@ -47,6 +47,14 @@ void VertexArray::addAttribute(const uint32_t location, const int32_t count,
     glVertexArrayAttribBinding(id, location, 0);
 }
 
+void VertexArray::addPackedAttribute(const uint32_t location,
+                                     const uint32_t offset) const {
+    glEnableVertexArrayAttrib(id, location);
+    glVertexArrayAttribFormat(id, location, 4, GL_INT_2_10_10_10_REV, GL_TRUE,
+                              offset);
+    glVertexArrayAttribBinding(id, location, 0);
+}
+
 void VertexArray::bind() const {
     glBindVertexArray(id);
 }

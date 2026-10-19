@@ -40,12 +40,18 @@ using sponge::platform::glfw::core::ApplicationSpecification;
 
 #ifdef NDEBUG
 Maze::Maze(ApplicationSpecification specification) :
-    Application(std::move(specification)) {
+    Application(std::move(specification)),
+    mazeLayer(std::make_shared<layer::MazeLayer>()) {
     // Base class handles singleton pattern
 }
 #else
 Maze::Maze(ApplicationSpecification specification, CaptureOptions capture) :
-    Application(std::move(specification)), capture(std::move(capture)) {
+    Application(std::move(specification)),
+    capture(std::move(capture)),
+    mazeLayer(std::make_shared<layer::MazeLayer>(
+        this->capture.scene.empty() ?
+            std::string(layer::MazeLayer::defaultScenePath) :
+            "/scenes/" + this->capture.scene + ".yaml")) {
     // Base class handles singleton pattern
 }
 #endif
@@ -199,7 +205,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
     // capture_menu_<name>.png and exit. --capture-size=WxH: the window size
     // of any capture run. --dump-yoga: with --capture-menu, write the shown
     // menu's Yoga tree as playground JSX to capture_menu_<name>.jsx and exit,
-    // with no window.
+    // with no window. --capture-scene=name: load assets/scenes/<name>.yaml
+    // instead of maze.yaml.
     constexpr std::string_view          captureFlag = "--capture-frames";
     bool                                dumpYoga    = false;
     const std::vector<std::string_view> args{ argv + 1, argv + argc };
@@ -224,6 +231,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
                             capture.walk);
         } else if (args[i].starts_with("--capture-menu=")) {
             capture.menu = std::string(args[i].substr(15));
+        } else if (args[i].starts_with("--capture-scene=")) {
+            capture.scene = std::string(args[i].substr(16));
         } else if (args[i] == "--dump-yoga") {
             dumpYoga = true;
         } else if (args[i].starts_with("--capture-size=")) {

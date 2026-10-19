@@ -25,6 +25,7 @@
 #include "platform/opengl/scene/ssao.hpp"
 #include "platform/opengl/scene/ssr.hpp"
 #include "platform/opengl/scene/taa.hpp"
+#include "scene/clustercut.hpp"
 #include "scene/frustum.hpp"
 #include "scene/gamecamera.hpp"
 #include "scene/scenefile.hpp"
@@ -50,7 +51,9 @@ enum class ShadowQuality : uint32_t { Low, Medium, High, Count };
 
 class MazeLayer final : public sponge::layer::Layer {
 public:
-    MazeLayer();
+    static constexpr std::string_view defaultScenePath = "/scenes/maze.yaml";
+
+    explicit MazeLayer(std::string_view scenePath = defaultScenePath);
 
     // onUpdate() runs on the update thread (no GL); onRender() issues all GPU
     // commands.
@@ -174,6 +177,19 @@ public:
     uint32_t getTotalMeshCount() const {
         return totalMeshCount.load(std::memory_order_relaxed);
     }
+    // Triangles in the camera cut of the meshes that passed frustum culling
+    // in the last frame. Meshes that occlusion culling removes later are
+    // still counted.
+    uint32_t getDrawnTriangleCount() const {
+        return drawnTriangleCount.load(std::memory_order_relaxed);
+    }
+    // Index ranges in the camera cut: about the number of draws the GPU gets
+    // per camera pass after the multi-draws are split.
+    uint32_t getDrawnRangeCount() const {
+        return drawnRangeCount.load(std::memory_order_relaxed);
+    }
+    void setLodTint(bool enabled);
+    bool getLodTint() const;
 
     // Wall-clock cost of the cull test itself (update thread) and of the
     // per-object CPU submission loop it feeds (render thread) — what the
@@ -217,7 +233,8 @@ public:
     // Debug capture run: renders `frames` frames while the camera turns once,
     // then the app exits. See FrameCapture. Call before the app runs.
     // `off` is a comma list of passes to disable for the run, to find which
-    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar. Two
+    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar, lod
+    // (draw LOD0 for every mesh, for an A/B of the cluster cut). Two
     // more change how the run measures: shadowcache draws the shadow map every
     // frame, and gputimer turns the per-pass GPU timer off. A non-zero `walk`
     // moves the camera that many world units per update along +X and keeps its
@@ -249,6 +266,18 @@ private:
     // objectModels — the box occlusionCuller tests each object against. Same
     // one-time computation, same reason: objects never move.
     std::vector<sponge::scene::AABB> objectWorldBounds;
+    // Every cluster of every mesh, with its spheres and errors in world
+    // units, built once in finishLoading. objectMeshClusters[i][m] is the
+    // slice of worldClusters that holds mesh m of object i.
+    std::vector<sponge::scene::MeshCluster>          worldClusters;
+    std::vector<std::vector<sponge::scene::MeshCut>> objectMeshClusters;
+    // The last shadow cut of each cascade, and the texel size it was made
+    // for. Update thread only.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCuts;
+    std::array<float, sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCutTexel{};
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
     sponge::scene::AABB sceneBounds;
@@ -297,12 +326,19 @@ private:
     std::atomic<float>    shadowSplitLambda{ 0.7F };
 
     // Render thread only. A cascade is drawn again only when its matrix
-    // changes or the map is rebuilt. This assumes the shadow casters never
-    // move, which holds while objectModelMatrices is static after load;
-    // animated casters must invalidate it too.
+    // changes, its cluster cut changes (see shadowCachedCuts) or the map is
+    // rebuilt. This assumes the shadow casters never move, which holds
+    // while objectModelMatrices is static after load; animated casters must
+    // invalidate it too.
     sponge::platform::opengl::scene::ShadowMap::Matrices shadowCachedMatrices{};
     std::array<bool, sponge::platform::opengl::scene::ShadowMap::maxCascades>
         shadowCached{};
+    // The cut each cached cascade was drawn with. It also depends on the map
+    // resolution, which the matrix does not show. Held as shared_ptr so a
+    // freed cut's address cannot be reused by a new one.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCachedCuts;
     // The refraction setting the cached maps were drawn with: glass casts a
     // shadow only while refraction is off, so a change redraws them all.
     bool shadowCachedRefraction = true;
@@ -364,6 +400,10 @@ private:
     std::atomic<uint32_t> visibleMeshCount{ 0 };
     std::atomic<uint32_t> totalMeshCount{ 0 };
     std::atomic<uint32_t> cullMicros{ 0 };
+    std::atomic<uint32_t> drawnTriangleCount{ 0 };
+    std::atomic<uint32_t> drawnRangeCount{ 0 };
+    // Set only by --capture-off=lod, before the first frame: draw LOD0 always.
+    bool lodOff = false;
     // Set from renderGameObjects(), which is const (render-thread methods
     // are const throughout this class).
     mutable std::atomic<uint32_t> submitMicros{ 0 };
@@ -422,11 +462,13 @@ private:
 
     bool onWindowResize(const sponge::event::WindowResizeEvent& event) const;
 
-    void renderDepthPrepass(const thread::MazeRenderFrame& frame) const;
+    // Returns the indices drawn for models, for the stale-cut check.
+    size_t renderDepthPrepass(const thread::MazeRenderFrame& frame) const;
 
     void renderOcclusionQueries(const thread::MazeRenderFrame& frame) const;
 
-    void renderGameObjects(const thread::MazeRenderFrame& frame) const;
+    // Returns the indices drawn for models, for the stale-cut check.
+    size_t renderGameObjects(const thread::MazeRenderFrame& frame) const;
 
     // glTF BLEND meshes, sorted back to front across every model, over the
     // finished opaque and glass passes. Depth is tested, not written.

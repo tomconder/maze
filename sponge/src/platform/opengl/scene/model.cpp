@@ -68,8 +68,8 @@ void Model::packMeshes() {
         return;
     }
 
-    std::vector<sponge::scene::Vertex> vertices;
-    std::vector<uint32_t>              indices;
+    std::vector<sponge::scene::PackedVertex> vertices;
+    std::vector<uint32_t>                    indices;
     vertices.reserve(numVertices);
     indices.reserve(numIndices);
     for (const auto& mesh : meshes) {
@@ -87,18 +87,20 @@ void Model::packMeshes() {
     }
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        vertices.data(), vertices.size() * sizeof(sponge::scene::Vertex));
+        vertices.data(), vertices.size() * sizeof(sponge::scene::PackedVertex));
     ebo = std::make_unique<renderer::IndexBuffer>(
         indices.data(), indices.size() * sizeof(uint32_t));
     vao = std::make_unique<renderer::VertexArray>();
-    vao->setVertexBuffer(*vbo, sizeof(sponge::scene::Vertex));
+    vao->setVertexBuffer(*vbo, sizeof(sponge::scene::PackedVertex));
     vao->setIndexBuffer(*ebo);
     vao->addAttribute(positionLoc, 3,
-                      offsetof(sponge::scene::Vertex, position));
+                      offsetof(sponge::scene::PackedVertex, position));
     vao->addAttribute(texCoordLoc, 2,
-                      offsetof(sponge::scene::Vertex, texCoords));
-    vao->addAttribute(normalLoc, 3, offsetof(sponge::scene::Vertex, normal));
-    vao->addAttribute(tangentLoc, 4, offsetof(sponge::scene::Vertex, tangent));
+                      offsetof(sponge::scene::PackedVertex, texCoords));
+    vao->addPackedAttribute(normalLoc,
+                            offsetof(sponge::scene::PackedVertex, normal));
+    vao->addPackedAttribute(tangentLoc,
+                            offsetof(sponge::scene::PackedVertex, tangent));
 }
 
 ModelData Model::parse(const ModelCreateInfo& createInfo) {
@@ -128,8 +130,9 @@ std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
 std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
                                        std::span<const ParsedImage> images) {
     // captured before the moves below: arg evaluation order is unspecified
-    const auto vertexCount = parsedMesh.vertices.size();
+    const auto vertexCount = parsedMesh.packedVertices.size();
     const auto indexCount  = parsedMesh.indices.size();
+    auto       clusters    = std::move(parsedMesh.clusters);
 
     std::vector<std::shared_ptr<renderer::Texture>> textures;
     if (auto albedo = buildTexture(parsedMesh.albedo, images)) {
@@ -137,7 +140,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
     }
 
     auto mesh = std::make_shared<Mesh>(
-        std::move(parsedMesh.vertices), vertexCount,
+        std::move(parsedMesh.packedVertices), vertexCount,
         std::move(parsedMesh.indices), indexCount, std::move(textures),
         buildTexture(parsedMesh.normal, images),
         buildTexture(parsedMesh.occlusion, images),
@@ -149,6 +152,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
         parsedMesh.diffuseTransmission, parsedMesh.baseColorFactor,
         parsedMesh.alphaMode, parsedMesh.alphaCutoff, parsedMesh.doubleSided,
         parsedMesh.uvTransforms);
+    mesh->setClusters(std::move(clusters));
     return mesh;
 }
 
@@ -171,34 +175,41 @@ std::shared_ptr<renderer::Texture>
     return AssetManager::createTexture(textureCreateInfo);
 }
 
-void Model::render(const std::shared_ptr<renderer::Shader>& shader,
-                   const AlphaPass                          pass) const {
-    render(shader, {}, pass);
+size_t Model::render(const std::shared_ptr<renderer::Shader>& shader,
+                     const AlphaPass                          pass) const {
+    return render(shader, {}, pass);
 }
 
-void Model::render(const std::shared_ptr<renderer::Shader>& shader,
-                   const std::span<const uint8_t>           meshVisible,
-                   const AlphaPass                          pass) const {
+size_t Model::render(
+    const std::shared_ptr<renderer::Shader>& shader,
+    const std::span<const uint8_t> meshVisible, const AlphaPass pass,
+    const std::span<const sponge::scene::MeshCut>    meshCuts,
+    const std::span<const sponge::scene::IndexRange> ranges) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model culled");
 
     if (!vao) {
-        return;
+        return 0;
     }
     vao->bind();
     // Face culling is on by default (RendererAPI). A double-sided mesh turns it
     // off for its own draw; the run ends with it back on.
-    bool culling = true;
+    bool   culling = true;
+    size_t drawn   = 0;
     for (size_t i = 0; i < meshes.size(); i++) {
         if (!meshes[i]->drawnIn(pass)) {
             continue;
         }
         if (meshVisible.empty() || meshVisible[i] != 0) {
             setCulling(culling, !meshes[i]->isDoubleSided());
-            meshes[i]->draw(shader, pass == AlphaPass::Masked);
+            const auto cut =
+                meshCuts.empty() ? sponge::scene::MeshCut{} : meshCuts[i];
+            drawn += meshes[i]->draw(shader, pass == AlphaPass::Masked,
+                                     ranges.subspan(cut.first, cut.count));
         }
     }
     setCulling(culling, true);
+    return drawn;
 }
 
 void Model::renderMesh(const std::shared_ptr<renderer::Shader>& shader,

@@ -14,7 +14,7 @@ GLSL from `shaders/shaders.spnga` and nowhere else.
 
 ```
 assetconv [--threads <n>] --manifest <manifest.yaml> <output dir> [--no-line-directives]
-          [--notices <file> [--license <name>=<path>]...]
+          [--no-debug-assets] [--notices <file> [--license <name>=<path>]...]
 assetconv [--threads <n>] --verify <source> <output.spnga>
 ```
 
@@ -26,6 +26,8 @@ hardware thread. The output bytes do not depend on it.
 `--manifest` bakes every asset the manifest lists: models, textures, fonts,
 atlases and the shader pack. Sources are relative to the manifest's folder, outputs to
 the output directory. `--no-line-directives` applies to the shader pack.
+`--no-debug-assets` skips the models marked `debug: true`, such as the mesh
+LOD test scene's. The build passes it for release configurations.
 
 An output is skipped when it is newer than its sources, the manifest and
 `assetconv` itself. The converter stands in for the format headers compiled
@@ -73,7 +75,7 @@ models:
 ```
 
 `source` is relative to `assets/`, `output` to the baked asset directory.
-CMake never reads the manifest, so a new entry needs no re-configure. Editing
+Add `debug: true` to a model that only debug builds use. CMake never reads the manifest, so a new entry needs no re-configure. Editing
 the source, the manifest or `sponge/format/scene/src/assetformat.hpp` rebakes without
 a clean.
 
@@ -102,12 +104,12 @@ image sources are not read.
 
 One file per model. Textures are packed in as whole KTX2 blobs, so a model of
 any texture count is still one file. All offsets are absolute from the start of
-the file. Vertex and index blobs start on a 16-byte boundary, because `Vertex`
-holds a `vec4`.
+the file. Vertex, index and cluster blobs start on a 16-byte boundary.
 
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
-MeshEntry[]     vertex/index offsets and counts, 6 texture indices (-1 = empty),
+MeshEntry[]     vertex/index offsets and counts, cluster table offset and
+                count (MeshCluster[], at least 1), 6 texture indices (-1 = empty),
                 base color factor (rgba, linear), metallic and roughness
                 factors, clear coat factor and
                 roughness (KHR_materials_clearcoat, factors only), diffuse
@@ -116,8 +118,15 @@ MeshEntry[]     vertex/index offsets and counts, 6 texture indices (-1 = empty),
                 color texture), per-slot
                 UV transforms
 TextureEntry[]  offset, size
-blobs           vertices, indices, KTX2 files
+blobs           vertices, indices, cluster tables, KTX2 files
 ```
+
+A vertex is `PackedVertex`, 28 bytes: float position and UV, and the normal and
+tangent as signed normalized 10:10:10:2 integers (`GL_INT_2_10_10_10_REV`).
+Positions and UVs stay float: Sponza's UVs reach 32, where a half float is off
+by 1/64 of a tile, and a per-mesh position box would need a dequantize uniform
+in every vertex shader. `packVertices()` runs last in the bake, because the
+cluster simplification reads the float normals.
 
 Texture slot order is albedo, normal, occlusion, emissive, metallic-roughness.
 An image used by more than one material is stored once and referenced by index.
@@ -130,6 +139,22 @@ run in the engine on every load, where it had no effect at all: the `Mesh`
 constructor uploads its buffers, and `optimize()` ran afterwards and only
 swapped the CPU-side vectors. It is deterministic and depends on nothing but
 the mesh, so the bake is where it belongs.
+
+Every opaque mesh also carries a cluster LOD hierarchy. `buildClusters()`
+runs after the optimizer and uses meshoptimizer's `clusterlod.h` to cut the
+mesh into clusters of up to 128 triangles, then to merge and simplify them
+level by level. The index buffer holds every level, with all of LOD0 first.
+Each `MeshCluster` is an index range, its depth, and two bounding spheres with
+the simplification error: `self` for the cluster and `parent` for the coarser
+group that replaces it. Errors are in model units, measured against LOD0. A
+mesh with `MASK` or `BLEND` alpha keeps one LOD0 cluster, because simplifying
+it changes its silhouette through the texture alpha. The vertices on an open
+edge are locked, so the border of a mesh does not move and open no crack to
+its neighbour; the UV and the normal are protected at seams. `clusterlod.h` is
+vendored in `deps/clusterlod` from meshoptimizer's `demo/` folder at the tag of
+the vcpkg port. `headeronly.cpp` asserts `MESHOPTIMIZER_VERSION`, so update the
+header and the port together. The game draws a cluster cut per frame in the
+camera passes and one per cascade in the shadow passes.
 
 ### Versioning
 
@@ -145,8 +170,8 @@ always one a rebuild replaces.
 Two asserts sit next to the version constant:
 
 ```cpp
-static_assert(sizeof(Vertex) == 48);
-static_assert(offsetof(Vertex, tangent) == 32);
+static_assert(sizeof(PackedVertex) == 28);
+static_assert(offsetof(PackedVertex, tangent) == 24);
 ```
 
 They catch a vertex size change and a field reorder. Either one fires and

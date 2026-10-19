@@ -17,6 +17,7 @@ add_custom_target(
         COMMAND assetconv --manifest "${CMAKE_SOURCE_DIR}/assets/manifest.yaml"
                 "${CMAKE_BINARY_DIR}/assets"
                 "$<$<CONFIG:Release>:--no-line-directives>"
+                "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
         USES_TERMINAL
@@ -33,8 +34,11 @@ add_custom_target(
 #   not by extension: assets/scenes/*.yaml is read at run time and ships.
 # - License files of third-party art and fonts: joined into the notices file
 #   next to the executable instead.
+# - The mesh LOD test scene, in release builds: only the debug capture flags
+#   load it, and its models are baked for debug builds only.
 #
 # CMake regexes have no case-insensitive flag, and Linux does not fold the path
-# case, so each letter is spelled as a two-case class.
+# case, so each letter is spelled as a two-case class. The value holds a
+# generator expression, so only commands and install(CODE) can use it.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")
