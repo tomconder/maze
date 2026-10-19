@@ -30,6 +30,12 @@ public:
     // about 88.
     static constexpr float evsmExponent = 40.F;
 
+    // A near cascade moves only when the camera has gone this many texels,
+    // so a walking camera redraws it that much less often. Its box grows by
+    // the same amount to still cover the view, so the cost is snapTexels /
+    // resolution of its detail. Even, so the centre stays on the texel grid.
+    static constexpr float snapTexels = 32.F;
+
     using Matrices = std::array<glm::mat4, maxCascades>;
 
     struct Camera {
@@ -69,8 +75,9 @@ public:
     // one fits sceneBounds exactly, so the frustum always covers the static
     // scene whatever its size. The nearer ones are boxes around the camera
     // eye, sized by the PSSM split distances (`splitLambda` blends the log
-    // split, 1, with the uniform one, 0) and snapped to whole texels of a
-    // `res` map, so they change only when the camera moves a texel. Anchoring
+    // split, 1, with the uniform one, 0) and snapped to steps of snapTexels
+    // texels of a `res` map, so they change only when the camera moves a
+    // step. Anchoring
     // at the eye, not at the middle of the camera frustum slice, keeps them
     // fixed while the camera only turns. All cascades share one light view
     // and one depth range, so their depths compare. Static and free of GL
