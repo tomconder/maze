@@ -728,14 +728,12 @@ void ImGuiLayer::showLogMessages(const ImGuiTextFilter&          filter,
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
-    for (const auto& [message, loggerName, level] : Maze::get().getMessages()) {
-        if (!shouldShowLogMessage(message, loggerName, level, filter,
-                                  activeLogLevel, activeCategory)) {
-            continue;
+    Maze::get().forEachMessage([&](const sponge::logging::LogItem& item) {
+        if (shouldShowLogMessage(item.message, item.loggerName, item.level,
+                                 filter, activeLogLevel, activeCategory)) {
+            renderLogMessage(item.message, item.level);
         }
-
-        renderLogMessage(message, level);
-    }
+    });
 
     ImGui::PopStyleVar();
 

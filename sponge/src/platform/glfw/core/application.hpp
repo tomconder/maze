@@ -15,6 +15,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -92,12 +93,19 @@ public:
         frameRateCap.store(fps, std::memory_order_relaxed);
     }
 
-    std::vector<LogItem>& getMessages() const {
-        return *messages;
+    // Any thread can log, so both calls lock. fn runs under the lock and must
+    // not log.
+    template <typename Fn>
+    void forEachMessage(Fn&& fn) const {
+        std::scoped_lock lock(messagesMutex);
+        for (const auto& item : messages) {
+            fn(item);
+        }
     }
 
-    void addMessage(const LogItem& item) const {
-        messages->emplace_back(item);
+    void addMessage(const LogItem& item) {
+        std::scoped_lock lock(messagesMutex);
+        messages.emplace_back(item);
     }
 
     void setMouseVisible(bool value) const;
@@ -178,7 +186,8 @@ private:
 
     std::shared_ptr<Window> window;
 
-    std::unique_ptr<std::vector<LogItem>> messages;
+    mutable std::mutex   messagesMutex;
+    std::vector<LogItem> messages;
 
     sponge::core::DisplayMode displayMode = sponge::core::DisplayMode::Windowed;
     // The mode the OS window is in; only the main loop writes it.
