@@ -102,8 +102,7 @@ image sources are not read.
 
 One file per model. Textures are packed in as whole KTX2 blobs, so a model of
 any texture count is still one file. All offsets are absolute from the start of
-the file. Vertex and index blobs start on a 16-byte boundary, because `Vertex`
-holds a `vec4`.
+the file. Vertex and index blobs start on a 16-byte boundary.
 
 ```
 Header          magic "SPNGA\0\0\0", version, vertexSize, meshCount, textureCount
@@ -119,6 +118,13 @@ MeshEntry[]     vertex/index offsets and counts, cluster table offset and
 TextureEntry[]  offset, size
 blobs           vertices, indices, KTX2 files
 ```
+
+A vertex is `PackedVertex`, 28 bytes: float position and UV, and the normal and
+tangent as signed normalized 10:10:10:2 integers (`GL_INT_2_10_10_10_REV`).
+Positions and UVs stay float: Sponza's UVs reach 32, where a half float is off
+by 1/64 of a tile, and a per-mesh position box would need a dequantize uniform
+in every vertex shader. `packVertices()` runs last in the bake, because the
+cluster simplification reads the float normals.
 
 Texture slot order is albedo, normal, occlusion, emissive, metallic-roughness.
 An image used by more than one material is stored once and referenced by index.
@@ -161,8 +167,8 @@ always one a rebuild replaces.
 Two asserts sit next to the version constant:
 
 ```cpp
-static_assert(sizeof(Vertex) == 48);
-static_assert(offsetof(Vertex, tangent) == 32);
+static_assert(sizeof(PackedVertex) == 28);
+static_assert(offsetof(PackedVertex, tangent) == 24);
 ```
 
 They catch a vertex size change and a field reorder. Either one fires and

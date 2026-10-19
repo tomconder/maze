@@ -14,4 +14,8 @@ void optimizeMesh(sponge::scene::ParsedMesh& mesh);
 // vertex order. A mesh that is not opaque gets one LOD0 cluster.
 void buildClusters(sponge::scene::ParsedMesh& mesh);
 
+// Quantizes the normals and tangents into mesh.packedVertices and frees the
+// float vertices. Run last: simplification needs the float normals.
+void packVertices(sponge::scene::ParsedMesh& mesh);
+
 }  // namespace assetconv

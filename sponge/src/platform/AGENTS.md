@@ -223,6 +223,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   while the camera moves, so the history is refiltered every frame; bilinear
   compounded over a ~10-frame tail is a low-pass filter and the image goes
   soft in motion. Do not "simplify" it back to a single `Sample()`.
+* Model vertices are `PackedVertex`: float position and UV, normal and tangent as `GL_INT_2_10_10_10_REV` normalized. Shaders read them as float vectors and must normalize the normal before use.
 * A mesh carries a cluster LOD hierarchy over one vertex range (Task 3 of
   the mesh LOD plan). `Model::render` draws the slice of a `ClusterCut` that
   the caller passes, with one `glMultiDrawElementsBaseVertex` per mesh; no

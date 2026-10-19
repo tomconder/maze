@@ -16,8 +16,21 @@
 namespace assetconv {
 using sponge::scene::ClusterBounds;
 using sponge::scene::MeshCluster;
+using sponge::scene::PackedVertex;
 using sponge::scene::ParsedMesh;
 using sponge::scene::Vertex;
+
+namespace {
+// x, y, z in 10 bits each and w in 2, in GL_INT_2_10_10_10_REV bit order.
+uint32_t packSnorm1010102(const glm::vec4& v) {
+    const auto bits = [](const float f, const int n) {
+        return static_cast<uint32_t>(meshopt_quantizeSnorm(f, n)) &
+               ((1U << n) - 1U);
+    };
+    return bits(v.x, 10) | (bits(v.y, 10) << 10) | (bits(v.z, 10) << 20) |
+           (bits(v.w, 2) << 30);
+}
+}  // namespace
 
 void optimizeMesh(ParsedMesh& mesh) {
     const auto indexCount  = mesh.indices.size();
@@ -187,6 +200,20 @@ void buildClusters(ParsedMesh& mesh) {
 
     mesh.indices  = std::move(indices);
     mesh.clusters = std::move(clusters);
+}
+
+void packVertices(ParsedMesh& mesh) {
+    mesh.packedVertices.resize(mesh.vertices.size());
+    for (size_t i = 0; i < mesh.vertices.size(); i++) {
+        const auto& v          = mesh.vertices[i];
+        mesh.packedVertices[i] = {
+            .position  = v.position,
+            .texCoords = v.texCoords,
+            .normal    = packSnorm1010102(glm::vec4(v.normal, 0.F)),
+            .tangent   = packSnorm1010102(v.tangent),
+        };
+    }
+    std::vector<Vertex>().swap(mesh.vertices);
 }
 
 }  // namespace assetconv

@@ -68,8 +68,8 @@ void Model::packMeshes() {
         return;
     }
 
-    std::vector<sponge::scene::Vertex> vertices;
-    std::vector<uint32_t>              indices;
+    std::vector<sponge::scene::PackedVertex> vertices;
+    std::vector<uint32_t>                    indices;
     vertices.reserve(numVertices);
     indices.reserve(numIndices);
     for (const auto& mesh : meshes) {
@@ -87,18 +87,20 @@ void Model::packMeshes() {
     }
 
     vbo = std::make_unique<renderer::VertexBuffer>(
-        vertices.data(), vertices.size() * sizeof(sponge::scene::Vertex));
+        vertices.data(), vertices.size() * sizeof(sponge::scene::PackedVertex));
     ebo = std::make_unique<renderer::IndexBuffer>(
         indices.data(), indices.size() * sizeof(uint32_t));
     vao = std::make_unique<renderer::VertexArray>();
-    vao->setVertexBuffer(*vbo, sizeof(sponge::scene::Vertex));
+    vao->setVertexBuffer(*vbo, sizeof(sponge::scene::PackedVertex));
     vao->setIndexBuffer(*ebo);
     vao->addAttribute(positionLoc, 3,
-                      offsetof(sponge::scene::Vertex, position));
+                      offsetof(sponge::scene::PackedVertex, position));
     vao->addAttribute(texCoordLoc, 2,
-                      offsetof(sponge::scene::Vertex, texCoords));
-    vao->addAttribute(normalLoc, 3, offsetof(sponge::scene::Vertex, normal));
-    vao->addAttribute(tangentLoc, 4, offsetof(sponge::scene::Vertex, tangent));
+                      offsetof(sponge::scene::PackedVertex, texCoords));
+    vao->addPackedAttribute(normalLoc,
+                            offsetof(sponge::scene::PackedVertex, normal));
+    vao->addPackedAttribute(tangentLoc,
+                            offsetof(sponge::scene::PackedVertex, tangent));
 }
 
 ModelData Model::parse(const ModelCreateInfo& createInfo) {
@@ -128,7 +130,7 @@ std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
 std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
                                        std::span<const ParsedImage> images) {
     // captured before the moves below: arg evaluation order is unspecified
-    const auto vertexCount = parsedMesh.vertices.size();
+    const auto vertexCount = parsedMesh.packedVertices.size();
     const auto indexCount  = parsedMesh.indices.size();
     auto       clusters    = std::move(parsedMesh.clusters);
 
@@ -138,7 +140,7 @@ std::shared_ptr<Mesh> Model::buildMesh(ParsedMesh&&                 parsedMesh,
     }
 
     auto mesh = std::make_shared<Mesh>(
-        std::move(parsedMesh.vertices), vertexCount,
+        std::move(parsedMesh.packedVertices), vertexCount,
         std::move(parsedMesh.indices), indexCount, std::move(textures),
         buildTexture(parsedMesh.normal, images),
         buildTexture(parsedMesh.occlusion, images),

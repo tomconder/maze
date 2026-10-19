@@ -25,7 +25,7 @@ constexpr uint8_t diffuseTransmissionTextureUnit = 14;
 namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 using renderer::Shader;
-using sponge::scene::Vertex;
+using sponge::scene::PackedVertex;
 
 uint32_t Mesh::meshProgramId = 0;
 
@@ -33,7 +33,7 @@ std::shared_ptr<Shader> Mesh::defaultShader;
 
 Mesh::MaterialUniforms Mesh::materialUniforms;
 
-Mesh::Mesh(std::vector<Vertex>&& vertices, const std::size_t numVertices,
+Mesh::Mesh(std::vector<PackedVertex>&& vertices, const std::size_t numVertices,
            std::vector<uint32_t>&& indices, const std::size_t numIndices,
            std::vector<std::shared_ptr<renderer::Texture>>&& textures,
            std::shared_ptr<renderer::Texture>                normalTexture,

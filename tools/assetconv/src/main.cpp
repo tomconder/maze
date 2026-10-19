@@ -167,6 +167,7 @@ int convert(const std::string& source, const std::string& output) {
     for (auto& mesh : data.meshes) {
         assetconv::optimizeMesh(mesh);
         assetconv::buildClusters(mesh);
+        assetconv::packVertices(mesh);
     }
     printClusterStats(source, data);
 
@@ -193,6 +194,7 @@ int verify(const std::string& source, const std::string& output) {
     for (auto& mesh : expected.meshes) {
         assetconv::optimizeMesh(mesh);
         assetconv::buildClusters(mesh);
+        assetconv::packVertices(mesh);
     }
     printClusterStats(source, expected);
     std::string error;
@@ -212,20 +214,21 @@ int verify(const std::string& source, const std::string& output) {
         const auto& want = expected.meshes[i];
         const auto& got  = actual.meshes[i];
 
-        if (want.vertices.size() != got.vertices.size() ||
+        if (want.packedVertices.size() != got.packedVertices.size() ||
             want.indices.size() != got.indices.size()) {
             fmt::println(stderr,
                          "FAIL {} mesh {}: {}/{} vertices, {}/{} indices",
-                         output, i, got.vertices.size(), want.vertices.size(),
-                         got.indices.size(), want.indices.size());
+                         output, i, got.packedVertices.size(),
+                         want.packedVertices.size(), got.indices.size(),
+                         want.indices.size());
             return 1;
         }
 
-        for (size_t v = 0; v < want.vertices.size(); v++) {
-            if (want.vertices[v].position != got.vertices[v].position ||
-                want.vertices[v].texCoords != got.vertices[v].texCoords ||
-                want.vertices[v].normal != got.vertices[v].normal ||
-                want.vertices[v].tangent != got.vertices[v].tangent) {
+        for (size_t v = 0; v < want.packedVertices.size(); v++) {
+            const auto& a = want.packedVertices[v];
+            const auto& b = got.packedVertices[v];
+            if (a.position != b.position || a.texCoords != b.texCoords ||
+                a.normal != b.normal || a.tangent != b.tangent) {
                 fmt::println(stderr, "FAIL {} mesh {}: vertex {} differs",
                              output, i, v);
                 return 1;

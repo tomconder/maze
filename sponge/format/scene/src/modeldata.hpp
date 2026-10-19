@@ -71,8 +71,12 @@ struct MeshCluster {
 // One mesh primitive's worth of CPU-parsed data: vertices/indices plus its
 // material images, as indices into ModelData::images.
 struct ParsedMesh {
-    std::vector<Vertex>   vertices;
-    std::vector<uint32_t> indices;
+    std::vector<Vertex> vertices;
+    // Exactly one of vertices or packedVertices is populated, like
+    // ParsedImage's pixels and ktx2: the glTF importer and the bake work on
+    // float vertices, and a baked .spnga carries packed ones.
+    std::vector<PackedVertex> packedVertices;
+    std::vector<uint32_t>     indices;
     // The cluster LOD hierarchy over indices. The LOD0 clusters come first,
     // so indices starts with all of LOD0. Empty means one LOD0 range over all
     // of indices: the glTF importer leaves it empty, and the bake and the

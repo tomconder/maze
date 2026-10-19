@@ -18,16 +18,16 @@
 
 namespace {
 using sponge::scene::MeshCluster;
+using sponge::scene::PackedVertex;
 using sponge::scene::ParsedImage;
 using sponge::scene::ParsedMesh;
-using sponge::scene::Vertex;
 using sponge::scene::asset::Header;
 using sponge::scene::asset::magic;
 using sponge::scene::asset::textureSlots;
 using sponge::scene::asset::version;
 
-// Vertex holds a vec4, so blobs start on a 16-byte boundary. Readers may
-// then view the buffer in place instead of copying out.
+// Blobs start on a 16-byte boundary. Readers may then view the buffer in
+// place instead of copying out.
 constexpr size_t blobAlignment = 16;
 
 void align(std::vector<uint8_t>& out) {
@@ -78,9 +78,9 @@ const Header* validate(const std::vector<uint8_t>& bytes,
                             header->version, version, path);
         return nullptr;
     }
-    if (header->vertexSize != sizeof(Vertex)) {
+    if (header->vertexSize != sizeof(PackedVertex)) {
         error = fmt::format("Baked model vertex size {}, expected {}: {}",
-                            header->vertexSize, sizeof(Vertex), path);
+                            header->vertexSize, sizeof(PackedVertex), path);
         return nullptr;
     }
     return header;
@@ -121,7 +121,7 @@ std::vector<uint8_t> write(const ModelData& data) {
     Header               header{
         .magic        = {},
         .version      = version,
-        .vertexSize   = sizeof(Vertex),
+        .vertexSize   = sizeof(PackedVertex),
         .meshCount    = static_cast<uint32_t>(meshes.size()),
         .textureCount = static_cast<uint32_t>(textureBlobs.size()),
     };
@@ -145,9 +145,9 @@ std::vector<uint8_t> write(const ModelData& data) {
 
         align(out);
         entry.vertexOffset = static_cast<uint32_t>(out.size());
-        entry.vertexCount  = static_cast<uint32_t>(mesh.vertices.size());
-        appendBytes(out, mesh.vertices.data(),
-                    mesh.vertices.size() * sizeof(Vertex));
+        entry.vertexCount  = static_cast<uint32_t>(mesh.packedVertices.size());
+        appendBytes(out, mesh.packedVertices.data(),
+                    mesh.packedVertices.size() * sizeof(PackedVertex));
 
         align(out);
         entry.indexOffset = static_cast<uint32_t>(out.size());
@@ -240,7 +240,7 @@ ModelData read(const std::string& path, std::string& error) {
         const auto& entry = meshEntries[i];
         auto&       mesh  = data.meshes[i];
 
-        const auto vertexBytes = entry.vertexCount * sizeof(Vertex);
+        const auto vertexBytes = entry.vertexCount * sizeof(PackedVertex);
         const auto indexBytes  = entry.indexCount * sizeof(uint32_t);
         if (entry.vertexOffset + vertexBytes > bytes.size() ||
             entry.indexOffset + indexBytes > bytes.size()) {
@@ -249,9 +249,9 @@ ModelData read(const std::string& path, std::string& error) {
             return {};
         }
 
-        mesh.vertices.resize(entry.vertexCount);
-        std::memcpy(mesh.vertices.data(), bytes.data() + entry.vertexOffset,
-                    vertexBytes);
+        mesh.packedVertices.resize(entry.vertexCount);
+        std::memcpy(mesh.packedVertices.data(),
+                    bytes.data() + entry.vertexOffset, vertexBytes);
         mesh.indices.resize(entry.indexCount);
         std::memcpy(mesh.indices.data(), bytes.data() + entry.indexOffset,
                     indexBytes);

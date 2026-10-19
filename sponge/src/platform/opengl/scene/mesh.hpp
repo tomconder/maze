@@ -31,8 +31,9 @@ enum class AlphaPass : uint8_t { All, Opaque, Masked, Solid, Blended };
 class Mesh : public sponge::scene::Mesh {
 public:
     Mesh(
-        std::vector<sponge::scene::Vertex>&& vertices, std::size_t numVertices,
-        std::vector<uint32_t>&& indices, std::size_t numIndices,
+        std::vector<sponge::scene::PackedVertex>&& vertices,
+        std::size_t numVertices, std::vector<uint32_t>&& indices,
+        std::size_t                                       numIndices,
         std::vector<std::shared_ptr<renderer::Texture>>&& textures,
         std::shared_ptr<renderer::Texture> normalTexture              = nullptr,
         std::shared_ptr<renderer::Texture> occlusionTexture           = nullptr,
@@ -95,14 +96,14 @@ public:
     }
 
     // The geometry Model packs into its shared buffers, then frees.
-    std::span<const sponge::scene::Vertex> getVertices() const {
+    std::span<const sponge::scene::PackedVertex> getVertices() const {
         return vertices;
     }
     std::span<const uint32_t> getIndices() const {
         return indices;
     }
     void freeGeometry() {
-        std::vector<sponge::scene::Vertex>().swap(vertices);
+        std::vector<sponge::scene::PackedVertex>().swap(vertices);
         std::vector<uint32_t>().swap(indices);
     }
 

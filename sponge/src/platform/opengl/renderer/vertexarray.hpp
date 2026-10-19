@@ -19,11 +19,15 @@ public:
 
     ~VertexArray();
 
-    // Setup uses one vertex buffer binding point, 0, and float attributes.
+    // Setup uses one vertex buffer binding point, 0, and float or packed
+    // attributes.
     void setVertexBuffer(const VertexBuffer& vertexBuffer,
                          uint32_t            stride) const;
     void setIndexBuffer(const IndexBuffer& indexBuffer) const;
     void addAttribute(uint32_t location, int32_t count, uint32_t offset) const;
+    // A signed normalized 10:10:10:2 attribute (GL_INT_2_10_10_10_REV). The
+    // shader reads it as a float vector in -1 to 1.
+    void addPackedAttribute(uint32_t location, uint32_t offset) const;
 
     void bind() const;
     void unbind() const;

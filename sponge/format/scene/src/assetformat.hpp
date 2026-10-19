@@ -22,12 +22,12 @@ namespace sponge::scene::asset {
 // Eight bytes rather than a packed integer: the tag is five characters, and
 // it reads as itself in a hex dump.
 constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'A', 0, 0, 0 };
-constexpr uint32_t version  = 8;
+constexpr uint32_t version  = 9;
 
 // Bumping either of these changes the on-disk vertex layout. The asserts
 // fire on a size change or a field reorder; bump version in the same edit.
-static_assert(sizeof(Vertex) == 48);
-static_assert(offsetof(Vertex, tangent) == 32);
+static_assert(sizeof(PackedVertex) == 28);
+static_assert(offsetof(PackedVertex, tangent) == 24);
 static_assert(sizeof(MeshCluster) == 52);
 
 constexpr size_t textureSlots = 6;
