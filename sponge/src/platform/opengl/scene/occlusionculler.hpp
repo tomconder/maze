@@ -36,7 +36,11 @@ public:
     // viewProj/eyePos are whatever's being tested against — a perspective
     // camera or an orthographic light.
     //
-    // An object whose box contains eyePos is skipped and left visible. This
+    // query() does not change isVisible(): it runs between passes that must
+    // agree on what is visible, so new answers wait for pollResults().
+    //
+    // An object whose box contains eyePos is skipped, and the next
+    // pollResults() marks it visible. This
     // matters for a perspective eye inside a convex box: only the far face
     // rasterizes (the near face is behind the eye, clipped away), and
     // that's always farther than the object's own nearby geometry already
@@ -46,12 +50,13 @@ public:
     // this way, so there the guard is just a harmless no-op.
     //
     // An object whose box is outside the viewProj frustum is also skipped and
-    // left visible: it would rasterize nothing and read as occluded.
+    // marked visible: it would rasterize nothing and read as occluded.
     void query(const std::vector<sponge::scene::AABB>& worldBounds,
                const glm::mat4& viewProj, const glm::vec3& eyePos);
 
     // Non-blocking: pulls in whichever queries already have a result.
-    // Objects with no result yet keep their last known visibility.
+    // Objects with no result yet keep their last known visibility; objects
+    // the last query() skipped become visible.
     void pollResults();
 
     bool isVisible(size_t index) const {
@@ -65,7 +70,7 @@ private:
     std::vector<uint32_t>                   queries;
     std::vector<uint8_t>                    visible;
     // A query that has never run has no result to read, so pollResults()
-    // skips any index query() hasn't issued yet.
+    // marks any index query() hasn't issued visible.
     std::vector<uint8_t> issued;
 };
 
