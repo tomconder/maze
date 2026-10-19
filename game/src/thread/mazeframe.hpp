@@ -4,6 +4,7 @@
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
+#include "scene/clustercut.hpp"
 #include "scene/refraction.hpp"
 
 #include <glm/glm.hpp>
@@ -102,6 +103,11 @@ struct MazeRenderFrame {
     // pass ignores it and uses objectMeshVisibleLight instead, since it
     // needs the light frustum, not the camera one this was built from.
     std::vector<std::vector<uint8_t>> objectMeshVisible;
+
+    // The clusters each visible mesh draws in the camera passes, made once
+    // per frame in captureRenderFrame(). The depth prepass and every pass
+    // that tests against its depth must draw this same cut.
+    sponge::scene::ClusterCut cameraCut;
 
     // Same shape as objectMeshVisible, but tested against each cascade's
     // frustum (lightSpaceMatrices) instead of the camera's. Only rebuilt when

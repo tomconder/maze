@@ -39,6 +39,18 @@ constexpr int32_t maxPointLights =
 
 game::scene::DirectionalLight                       directionalLight;
 std::array<game::scene::PointLight, maxPointLights> pointLights;
+
+// Largest on-screen error a cluster may have, in pixels.
+constexpr float lodPixelError = 1.F;
+
+// Scales by the largest axis scale, so a non-uniform scale gives a sphere
+// and an error that are too large, never too small.
+sponge::scene::ClusterBounds toWorld(const sponge::scene::ClusterBounds& bounds,
+                                     const glm::mat4&                    model,
+                                     const float scale) {
+    return { glm::vec3(model * glm::vec4(bounds.center, 1.F)),
+             bounds.radius * scale, bounds.error * scale };
+}
 }  // namespace
 
 namespace game::layer {
@@ -170,6 +182,25 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         }
         objectMeshWorldBounds.push_back(std::move(meshBounds));
         objectWorldBounds.push_back(objectBounds);
+
+        const float scale =
+            std::max({ glm::length(glm::vec3(modelMatrix[0])),
+                       glm::length(glm::vec3(modelMatrix[1])),
+                       glm::length(glm::vec3(modelMatrix[2])) });
+        std::vector<sponge::scene::MeshCut> meshClusters;
+        meshClusters.reserve(model->getMeshCount());
+        for (size_t m = 0; m < model->getMeshCount(); m++) {
+            const auto clusters = model->getMeshClusters(m);
+            meshClusters.push_back(
+                { static_cast<uint32_t>(worldClusters.size()),
+                  static_cast<uint32_t>(clusters.size()) });
+            for (auto cluster : clusters) {
+                cluster.self   = toWorld(cluster.self, modelMatrix, scale);
+                cluster.parent = toWorld(cluster.parent, modelMatrix, scale);
+                worldClusters.push_back(cluster);
+            }
+        }
+        objectMeshClusters.push_back(std::move(meshClusters));
     }
 
     sceneBounds = { glm::vec3(std::numeric_limits<float>::max()),
@@ -318,7 +349,11 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         for (auto& masks : frame.objectMeshVisibleLight) {
             masks.resize(objectMeshWorldBounds.size());
         }
+        // Zero slices: LOD0 until the first cull makes a cut.
+        frame.cameraCut.meshes.resize(objectMeshWorldBounds.size());
         for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+            frame.cameraCut.meshes[i].assign(objectMeshWorldBounds[i].size(),
+                                             {});
             frame.objectMeshVisible[i].assign(objectMeshWorldBounds[i].size(),
                                               1);
             for (auto& masks : frame.objectMeshVisibleLight) {
@@ -476,20 +511,58 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         // by a sub-pixel translation not worth the extra matrix.
         const sponge::scene::Frustum frustum(frame.cameraViewProj);
 
+        // proj[1][1] is 1 / tan(fovY / 2).
+        const float pixelsPerUnit = static_cast<float>(frame.screenHeight) *
+                                    frame.cameraProjection[1][1] * 0.5F;
+        const auto  passes = [&](const sponge::scene::ClusterBounds& bounds) {
+            return sponge::scene::pixelError(bounds, frame.cameraPos,
+                                             pixelsPerUnit,
+                                             frame.nearPlane) <= lodPixelError;
+        };
+        auto& cut = frame.cameraCut;
+        cut.ranges.clear();
+        uint64_t indices = 0;
+
         uint32_t visible = 0;
         uint32_t total   = 0;
         for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
             const auto& bounds  = objectMeshWorldBounds[i];
             auto&       visMask = frame.objectMeshVisible[i];
+            auto&       meshCut = cut.meshes[i];
             for (size_t m = 0; m < bounds.size(); m++) {
                 const bool vis = frustum.intersects(bounds[m]);
                 visMask[m]     = vis ? 1 : 0;
+                meshCut[m]     = {};
                 visible += vis ? 1U : 0U;
+                if (!vis) {
+                    continue;
+                }
+                if (lodOff) {
+                    indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
+                    continue;
+                }
+                const auto slice = objectMeshClusters[i][m];
+                const auto clusters =
+                    std::span(worldClusters).subspan(slice.first, slice.count);
+                meshCut[m] =
+                    sponge::scene::appendCut(clusters, passes, cut.ranges);
+                if (meshCut[m].count == 0) {
+                    // No clusters (a mesh built without a hierarchy): LOD0.
+                    indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
+                    continue;
+                }
+                for (uint32_t r = 0; r < meshCut[m].count; r++) {
+                    indices += cut.ranges[meshCut[m].first + r].indexCount;
+                }
             }
             total += static_cast<uint32_t>(bounds.size());
         }
         visibleMeshCount.store(visible, std::memory_order_relaxed);
         totalMeshCount.store(total, std::memory_order_relaxed);
+        drawnTriangleCount.store(static_cast<uint32_t>(indices / 3),
+                                 std::memory_order_relaxed);
+        drawnRangeCount.store(static_cast<uint32_t>(cut.ranges.size()),
+                              std::memory_order_relaxed);
 
         const auto cullUs =
             std::chrono::duration_cast<std::chrono::microseconds>(
@@ -738,7 +811,7 @@ void MazeLayer::onRender() {
 
     // Phase 2: depth prepass
     gpuBegin("prepass");
-    renderDepthPrepass(frame);
+    [[maybe_unused]] const size_t prepassIndices = renderDepthPrepass(frame);
     gpuEnd();
 
     // Phase 2.5: occlusion queries against the depth just rasterized —
@@ -796,7 +869,16 @@ void MazeLayer::onRender() {
         RendererAPI::setDepth(DepthFunc::LessEqual, false);
     }
 
-    renderGameObjects(frame);
+    [[maybe_unused]] const size_t opaqueIndices = renderGameObjects(frame);
+#ifndef NDEBUG
+    // Same objects, same cut: the opaque pass draws exactly what the prepass
+    // laid depth for. A difference means one of them did not use this
+    // frame's cut.
+    if (prepassIndices != opaqueIndices) {
+        SPONGE_ERROR("LOD mismatch: prepass drew {} indices, opaque pass {}",
+                     prepassIndices, opaqueIndices);
+    }
+#endif
 
     // The cubes are in the prepass too, so their depth is already in the
     // buffer — GL_LESS would reject every one of their fragments. They stay
@@ -944,6 +1026,7 @@ void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
     frameCapture.emplace(frames, stats);
     captureOff      = std::move(off);
     gpuTimerOff     = ("," + captureOff + ",").contains(",gputimer,");
+    lodOff          = ("," + captureOff + ",").contains(",lod,");
     captureWalkStep = walk;
     if (cascades != 0) {
         setShadowCascades(cascades);
@@ -1243,7 +1326,8 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
     }
 }
 
-void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
+size_t
+    MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
     SPONGE_PROFILE_SECTION("renderGameObjects");
     const auto shader = Mesh::getShader();
     shader->bind();
@@ -1251,6 +1335,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
 
     const auto submitStart      = std::chrono::steady_clock::now();
     uint32_t   occlusionVisible = 0;
+    size_t     drawn            = 0;
     for (size_t i = 0; i < frame.objectModels.size(); i++) {
         if (frame.objectRefraction[i].refractive) {
             continue;
@@ -1269,8 +1354,9 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
         shader->setMat4("normalMatrix", normalMatrix);
         shader->setFloat3("emissive", frame.objectEmissives[i]);
 
-        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i],
-                                      AlphaPass::Solid);
+        drawn += frame.objectModels[i]->render(
+            shader, frame.objectMeshVisible[i], AlphaPass::Solid,
+            frame.cameraCut.meshes[i], frame.cameraCut.ranges);
     }
     const auto submitUs = std::chrono::duration_cast<std::chrono::microseconds>(
                               std::chrono::steady_clock::now() - submitStart)
@@ -1282,6 +1368,7 @@ void MazeLayer::renderGameObjects(const thread::MazeRenderFrame& frame) const {
                               std::memory_order_relaxed);
 
     shader->unbind();
+    return drawn;
 }
 
 void MazeLayer::renderBlendedObjects(
@@ -1418,13 +1505,16 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
         shader->setFloat("ior", glass.ior);
         shader->setFloat("thickness", glass.thickness);
         shader->setFloat3("tint", glass.tint);
-        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i]);
+        frame.objectModels[i]->render(shader, frame.objectMeshVisible[i],
+                                      AlphaPass::All, frame.cameraCut.meshes[i],
+                                      frame.cameraCut.ranges);
     }
 
     shader->unbind();
 }
 
-void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
+size_t
+    MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     SPONGE_PROFILE_SECTION("renderDepthPrepass");
     // Only TAA reads the velocity target, so the other modes mask the writes
     // off. They still carry the plumbing: the RG16F attachment stays
@@ -1435,6 +1525,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
 
     depthPrepass->begin(writeVelocity);
 
+    size_t     drawn       = 0;
     const auto drawObjects = [&](const auto& shader, const AlphaPass pass) {
         shader->bind();
         for (size_t i = 0; i < frame.objectModels.size(); ++i) {
@@ -1465,8 +1556,9 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
             const bool planar = frame.planarActive && i == frame.planarIndex;
             shader->setFloat("reflectivity",
                              planar ? 0.F : frame.objectReflectivity[i]);
-            frame.objectModels[i]->render(shader, frame.objectMeshVisible[i],
-                                          pass);
+            drawn += frame.objectModels[i]->render(
+                shader, frame.objectMeshVisible[i], pass,
+                frame.cameraCut.meshes[i], frame.cameraCut.ranges);
         }
         shader->unbind();
     };
@@ -1502,6 +1594,7 @@ void MazeLayer::renderDepthPrepass(const thread::MazeRenderFrame& frame) const {
     depthPrepassCubeShader->unbind();
 
     depthPrepass->end();
+    return drawn;
 }
 
 void MazeLayer::renderOcclusionQueries(
@@ -1654,7 +1747,9 @@ void MazeLayer::renderPlanarComposite(
                                       static_cast<float>(screenHeight.load())));
     planarShader->setFloat("strength", frame.objectReflectivity[i]);
     RendererAPI::bindTexture(11, planarReflection->getTexture());
-    frame.objectModels[i]->render(planarShader, frame.objectMeshVisible[i]);
+    frame.objectModels[i]->render(planarShader, frame.objectMeshVisible[i],
+                                  AlphaPass::All, frame.cameraCut.meshes[i],
+                                  frame.cameraCut.ranges);
     planarShader->unbind();
 }
 
@@ -1845,6 +1940,14 @@ bool MazeLayer::isProbeEnabled() const {
 void MazeLayer::setProbeEnabled(const bool val) {
     std::scoped_lock lock(settingsMutex);
     probeEnabled = val;
+}
+
+void MazeLayer::setLodTint(const bool enabled) {
+    Mesh::setLodTint(enabled);
+}
+
+bool MazeLayer::getLodTint() const {
+    return Mesh::getLodTint();
 }
 
 bool MazeLayer::isImguiActive() const {

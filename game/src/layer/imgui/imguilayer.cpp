@@ -159,6 +159,22 @@ void ImGuiLayer::showInfoSection() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::Text("Triangles");
+        ImGui::TableNextColumn();
+        ImGui::Text("%u", mazeLayer->getDrawnTriangleCount());
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Cut ranges");
+        ImGui::TableNextColumn();
+        ImGui::Text("%u", mazeLayer->getDrawnRangeCount());
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Cull + cut");
+        ImGui::TableNextColumn();
+        ImGui::Text("%u us", mazeLayer->getCullMicros());
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
         ImGui::Text("Objects");
         ImGui::TableNextColumn();
         ImGui::Text("%u / %u occlusion-visible",
@@ -322,6 +338,15 @@ void ImGuiLayer::showSsaoControls() {
                 mazeLayer->setSsaoEnabled(ssaoEnabled);
                 sponge::core::Settings::set("video.ssaoEnabled", ssaoEnabled);
                 sponge::core::Settings::save();
+            }
+        });
+
+        auto lodTint = mazeLayer->getLodTint();
+        showTableRow([&] {
+            ImGui::Text("LOD tint");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##lodtint", &lodTint)) {
+                mazeLayer->setLodTint(lodTint);
             }
         });
 

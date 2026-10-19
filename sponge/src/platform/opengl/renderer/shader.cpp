@@ -413,6 +413,13 @@ void Shader::setBoolean(const UniformHandle handle, const bool value) const {
     }
 }
 
+void Shader::setInteger(const UniformHandle handle, const int value) const {
+    if (handle.valid()) {
+        writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,
+                 &value, sizeof(value));
+    }
+}
+
 void Shader::setFloat(const UniformHandle handle, const float value) const {
     if (handle.valid()) {
         writeUBO(uboBlocks[static_cast<size_t>(handle.block)], handle.offset,

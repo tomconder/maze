@@ -3,6 +3,7 @@
 #include "modeldata.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
+#include "scene/clustercut.hpp"
 #include "scene/frustum.hpp"
 #include "scene/mesh.hpp"
 
@@ -50,9 +51,20 @@ public:
     // PBR program always gets its full material. Any other program gets only
     // the alpha test inputs, and only when alphaTest is set: the masked depth
     // prepass and shadow programs use it, so their discards match the PBR
-    // pass.
-    void draw(const std::shared_ptr<renderer::Shader>& shader,
-              bool                                     alphaTest = false) const;
+    // pass. ranges are the clusters to draw, relative to this mesh. Empty
+    // draws LOD0. Returns the number of indices drawn.
+    size_t draw(const std::shared_ptr<renderer::Shader>&   shader,
+                bool                                       alphaTest = false,
+                std::span<const sponge::scene::IndexRange> ranges = {}) const;
+
+    // Debug view: the PBR program colors each range by its cluster depth.
+    // Render thread only.
+    static void setLodTint(const bool enabled) {
+        lodTint = enabled;
+    }
+    static bool getLodTint() {
+        return lodTint;
+    }
 
     bool isDoubleSided() const {
         return doubleSided;
@@ -133,6 +145,7 @@ private:
 
     static constexpr std::string_view        shaderName = "mesh";
     static uint32_t                          meshProgramId;
+    static inline bool                       lodTint = false;
     static std::shared_ptr<renderer::Shader> defaultShader;
 
     // The material uniforms draw() sets on every draw, found once.
@@ -158,6 +171,7 @@ private:
         Handle diffuseTransmissionUV;
         Handle hasMetallicRoughnessMap;
         Handle metallicRoughnessUV;
+        Handle lodLevel;
     };
     static MaterialUniforms materialUniforms;
 

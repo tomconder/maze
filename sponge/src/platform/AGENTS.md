@@ -223,6 +223,13 @@ than calling GLFW/OpenGL/OS APIs directly.
   while the camera moves, so the history is refiltered every frame; bilinear
   compounded over a ~10-frame tail is a low-pass filter and the image goes
   soft in motion. Do not "simplify" it back to a single `Sample()`.
+* A mesh carries a cluster LOD hierarchy over one vertex range (Task 3 of
+  the mesh LOD plan). `Model::render` draws the slice of a `ClusterCut` that
+  the caller passes, with one `glMultiDrawElementsBaseVertex` per mesh; no
+  cut draws LOD0. The update thread makes the camera cut once per frame. The
+  depth prepass and the opaque pass must draw the same cut, because the
+  opaque pass draws with `GL_LEQUAL` and depth writes off against the
+  prepass depth. Never make a cut inside a pass.
 
 ## Anti-patterns
 

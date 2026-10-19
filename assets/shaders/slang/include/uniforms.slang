@@ -35,6 +35,7 @@ struct PbrParams {
     float4   diffuseTransmission;  // rgb = color, w = factor; 0 = opaque
     float    ao;
     bool     ssaoEnabled;
+    int      lodLevel;             // debug: cluster depth of this draw, or -1 for no tint
     bool     translucencyEnabled;  // false ignores diffuseTransmission
     float    ambientStrength;
     float    evsmBleedThreshold;

@@ -173,34 +173,41 @@ std::shared_ptr<renderer::Texture>
     return AssetManager::createTexture(textureCreateInfo);
 }
 
-void Model::render(const std::shared_ptr<renderer::Shader>& shader,
-                   const AlphaPass                          pass) const {
-    render(shader, {}, pass);
+size_t Model::render(const std::shared_ptr<renderer::Shader>& shader,
+                     const AlphaPass                          pass) const {
+    return render(shader, {}, pass);
 }
 
-void Model::render(const std::shared_ptr<renderer::Shader>& shader,
-                   const std::span<const uint8_t>           meshVisible,
-                   const AlphaPass                          pass) const {
+size_t Model::render(
+    const std::shared_ptr<renderer::Shader>& shader,
+    const std::span<const uint8_t> meshVisible, const AlphaPass pass,
+    const std::span<const sponge::scene::MeshCut>    meshCuts,
+    const std::span<const sponge::scene::IndexRange> ranges) const {
     SPONGE_PROFILE;
     SPONGE_PROFILE_GPU("render model culled");
 
     if (!vao) {
-        return;
+        return 0;
     }
     vao->bind();
     // Face culling is on by default (RendererAPI). A double-sided mesh turns it
     // off for its own draw; the run ends with it back on.
-    bool culling = true;
+    bool   culling = true;
+    size_t drawn   = 0;
     for (size_t i = 0; i < meshes.size(); i++) {
         if (!meshes[i]->drawnIn(pass)) {
             continue;
         }
         if (meshVisible.empty() || meshVisible[i] != 0) {
             setCulling(culling, !meshes[i]->isDoubleSided());
-            meshes[i]->draw(shader, pass == AlphaPass::Masked);
+            const auto cut =
+                meshCuts.empty() ? sponge::scene::MeshCut{} : meshCuts[i];
+            drawn += meshes[i]->draw(shader, pass == AlphaPass::Masked,
+                                     ranges.subspan(cut.first, cut.count));
         }
     }
     setCulling(culling, true);
+    return drawn;
 }
 
 void Model::renderMesh(const std::shared_ptr<renderer::Shader>& shader,
