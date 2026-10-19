@@ -257,6 +257,7 @@ ShadowMap::Matrices
         std::sqrt(1.F + camera.aspect * camera.aspect) * camera.tanHalfFovY;
     const auto eyeLs = glm::vec3(lightView * glm::vec4(camera.position, 1.F));
 
+    const auto texels = static_cast<float>(std::min(res, maxResolution));
     for (uint32_t i = 0; i + 1 < count; i++) {
         const float t = static_cast<float>(i + 1) / static_cast<float>(count);
         const float logSplit =
@@ -266,15 +267,18 @@ ShadowMap::Matrices
         const float split = glm::mix(uniformSplit, logSplit, splitLambda);
         const float r     = split * std::sqrt(1.F + k * k);
 
-        // Snap the centre so the texel grid stays fixed in the light's space.
-        // Half the width is a whole number of texels for an even resolution,
-        // so the box edges land on the grid too.
-        const float texel =
-            2.F * r / static_cast<float>(std::min(res, maxResolution));
-        const float cx = std::floor(eyeLs.x / texel) * texel;
-        const float cy = std::floor(eyeLs.y / texel) * texel;
-        matrices[i] =
-            glm::ortho(cx - r, cx + r, cy - r, cy + r, zNear, zFar) * lightView;
+        // The centre moves in steps of snapTexels and sits in the middle of
+        // its step, so the eye is at most half a step from it. Half a step
+        // more of box radius keeps the slice inside: R = r + step / 2, with
+        // step = snapTexels * 2R / texels. The step is an even number of
+        // texels, so the centre and the box edges stay on the texel grid.
+        const float halfWidth = r / (1.F - snapTexels / texels);
+        const float step      = snapTexels * 2.F * halfWidth / texels;
+        const float cx        = (std::floor(eyeLs.x / step) + 0.5F) * step;
+        const float cy        = (std::floor(eyeLs.y / step) + 0.5F) * step;
+        matrices[i] = glm::ortho(cx - halfWidth, cx + halfWidth, cy - halfWidth,
+                                 cy + halfWidth, zNear, zFar) *
+                      lightView;
     }
     return matrices;
 }

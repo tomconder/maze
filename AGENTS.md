@@ -141,7 +141,8 @@ maze.exe --capture-frames=600 --dump-nan-stats
   per update along +X and keep its yaw fixed, instead of turning it. A turn
   never redraws a shadow cascade, so a walk is the way to count redraws:
   `gpu shadow calls` in `capture_timing.txt` is one per cascade redraw. A
-  near cascade redraws when the camera has moved one texel of its map.
+  near cascade redraws when the camera has moved `ShadowMap::snapTexels`
+  texels of its map.
 * `--capture-cascades=N`: use N shadow cascades (1 to 4, default 2). One is
   the whole-scene map alone, for an A/B against the cascades.
 * `--capture-scene=<name>`: load `assets/scenes/<name>.yaml` in place of
