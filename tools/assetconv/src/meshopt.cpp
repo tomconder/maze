@@ -200,6 +200,14 @@ void buildClusters(ParsedMesh& mesh) {
 
     mesh.indices  = std::move(indices);
     mesh.clusters = std::move(clusters);
+
+    // clodBuild wrote the triangles in a new order, so the fetch order from
+    // optimizeMesh() no longer holds. Only index values change, not their
+    // positions, so the cluster ranges stay valid.
+    const auto fetchVertexCount = meshopt_optimizeVertexFetch(
+        mesh.vertices.data(), mesh.indices.data(), mesh.indices.size(),
+        mesh.vertices.data(), mesh.vertices.size(), sizeof(Vertex));
+    mesh.vertices.resize(fetchVertexCount);
 }
 
 void packVertices(ParsedMesh& mesh) {

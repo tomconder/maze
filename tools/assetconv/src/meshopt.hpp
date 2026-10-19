@@ -10,8 +10,9 @@ namespace assetconv {
 void optimizeMesh(sponge::scene::ParsedMesh& mesh);
 
 // Replaces mesh.indices with a cluster LOD hierarchy and fills
-// mesh.clusters. Run after optimizeMesh(): the clusters index the final
-// vertex order. A mesh that is not opaque gets one LOD0 cluster.
+// mesh.clusters, then redoes the vertex fetch order for the new triangle
+// order. Run after optimizeMesh(). A mesh that is not opaque gets one LOD0
+// cluster.
 void buildClusters(sponge::scene::ParsedMesh& mesh);
 
 // Quantizes the normals and tangents into mesh.packedVertices and frees the
