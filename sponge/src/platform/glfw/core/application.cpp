@@ -156,7 +156,6 @@ Application::Application(ApplicationSpecification specification) :
     instance = this;
 
     layerStack = std::make_unique<layer::LayerStack>();
-    messages   = std::make_unique<std::vector<LogItem>>();
 }
 
 Application::~Application() {
