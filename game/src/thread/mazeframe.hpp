@@ -117,6 +117,14 @@ struct MazeRenderFrame {
                sponge::platform::opengl::scene::ShadowMap::maxCascades>
         objectMeshVisibleLight;
 
+    // Per cascade: the clusters each mesh draws into that cascade, made from
+    // the cascade's texel size only, so a cached cascade stays correct.
+    // Shared and never changed after it is made: the update thread makes a
+    // new one when the texel size changes. Null draws LOD0.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCuts;
+
     // Post-processing
     AntiAliasing antiAliasing{ AntiAliasing::None };
 

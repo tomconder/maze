@@ -51,6 +51,28 @@ sponge::scene::ClusterBounds toWorld(const sponge::scene::ClusterBounds& bounds,
     return { glm::vec3(model * glm::vec4(bounds.center, 1.F)),
              bounds.radius * scale, bounds.error * scale };
 }
+
+// The clusters of every mesh whose world error is at most texelSize while
+// their parent's error is over it. It does not depend on the camera.
+sponge::scene::ClusterCut makeShadowCut(
+    const std::span<const sponge::scene::MeshCluster>       worldClusters,
+    const std::vector<std::vector<sponge::scene::MeshCut>>& objectMeshClusters,
+    const float                                             texelSize) {
+    const auto passes =
+        [texelSize](const sponge::scene::ClusterBounds& bounds) {
+            return bounds.error <= texelSize;
+        };
+    sponge::scene::ClusterCut cut;
+    cut.meshes.resize(objectMeshClusters.size());
+    for (size_t i = 0; i < objectMeshClusters.size(); i++) {
+        for (const auto slice : objectMeshClusters[i]) {
+            cut.meshes[i].push_back(sponge::scene::appendCut(
+                worldClusters.subspan(slice.first, slice.count), passes,
+                cut.ranges));
+        }
+    }
+    return cut;
+}
 }  // namespace
 
 namespace game::layer {
@@ -643,6 +665,31 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
                 shadowSplitLambda.load(std::memory_order_relaxed));
 
             for (uint32_t c = 0; c < frame.cascadeCount; c++) {
+                const auto& light = frame.lightSpaceMatrices[c];
+                // Row 0 of an orthographic light matrix has length 2 / box
+                // width.
+                // Rounded to 1e-5: the box edges are cx +- r, so the width
+                // changes in the last float bit as the camera moves, and an
+                // exact compare would make the cut again on those frames.
+                const float texelSize =
+                    std::round(2.F /
+                               (glm::length(glm::vec3(light[0][0], light[1][0],
+                                                      light[2][0])) *
+                                static_cast<float>(
+                                    std::min(directionalLight.shadowMapRes,
+                                             ShadowMap::maxResolution))) *
+                               1e5F) /
+                    1e5F;
+                if (!lodOff &&
+                    (!shadowCuts[c] || shadowCutTexel[c] != texelSize)) {
+                    shadowCuts[c] =
+                        std::make_shared<const sponge::scene::ClusterCut>(
+                            makeShadowCut(worldClusters, objectMeshClusters,
+                                          texelSize));
+                    shadowCutTexel[c] = texelSize;
+                }
+                frame.shadowCuts[c] = lodOff ? nullptr : shadowCuts[c];
+
                 const sponge::scene::Frustum lightFrustum(
                     frame.lightSpaceMatrices[c]);
                 for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
@@ -1779,8 +1826,13 @@ void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
                 continue;
             }
             shader->setMat4("model", frame.objectModelMatrices[i]);
+            const auto* cut = frame.shadowCuts[cascade].get();
             frame.objectModels[i]->render(
-                shader, frame.objectMeshVisibleLight[cascade][i], pass);
+                shader, frame.objectMeshVisibleLight[cascade][i], pass,
+                cut != nullptr ? std::span(cut->meshes[i]) :
+                                 std::span<const sponge::scene::MeshCut>{},
+                cut != nullptr ? std::span(cut->ranges) :
+                                 std::span<const sponge::scene::IndexRange>{});
         }
         shader->unbind();
     };

@@ -271,6 +271,13 @@ private:
     // slice of worldClusters that holds mesh m of object i.
     std::vector<sponge::scene::MeshCluster>          worldClusters;
     std::vector<std::vector<sponge::scene::MeshCut>> objectMeshClusters;
+    // The last shadow cut of each cascade, and the texel size it was made
+    // for. Update thread only.
+    std::array<std::shared_ptr<const sponge::scene::ClusterCut>,
+               sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCuts;
+    std::array<float, sponge::platform::opengl::scene::ShadowMap::maxCascades>
+        shadowCutTexel{};
     // Union of objectMeshWorldBounds, for fitting the shadow frustum to the
     // scene. Same one-time computation as above, same reason.
     sponge::scene::AABB sceneBounds;

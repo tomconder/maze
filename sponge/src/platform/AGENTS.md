@@ -230,6 +230,10 @@ than calling GLFW/OpenGL/OS APIs directly.
   depth prepass and the opaque pass must draw the same cut, because the
   opaque pass draws with `GL_LEQUAL` and depth writes off against the
   prepass depth. Never make a cut inside a pass.
+  Each shadow cascade draws its own cut, made from its texel size alone:
+  a cluster's world error against one texel, with no distance. That cut
+  does not depend on the camera, which keeps the shadow cache correct. Do
+  not make a shadow cut from the camera position.
 
 ## Anti-patterns
 
