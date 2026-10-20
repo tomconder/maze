@@ -73,8 +73,8 @@ Use a configuration preset to compile `maze`. Possible values are:
 | `ci-osx-release`       | MacOS release build                  |
 | `ci-windows-debug`     | Windows debug build (uses sccache)   |
 | `ci-windows-release`   | Windows release build (uses sccache) |
-| `windows-msvc-debug`   | Windows MSVC debug build             |
-| `windows-msvc-release` | Windows MSVC release build           |
+| `windows-clang-debug`  | Windows clang debug build            |
+| `windows-clang-release`| Windows clang release build          |
 
 These are configure presets. The only build presets are `windows-release`,
 `osx-release` and `linux-release`, which build the matching `ci-*-release`
@@ -87,14 +87,13 @@ cmake --build out/build/ci-windows-debug
 To use the preset on Windows:
 
 ```
-cmake.exe -B build --preset windows-msvc-release
+cmake.exe -B build --preset windows-clang-release
 cmake.exe --build build --target game
 ```
 
-`windows-msvc-debug`/`windows-msvc-release` use real `cl.exe` (`ci-windows-*`
-use `clang-cl`, which warns differently) — run both commands from a Developer
-Command Prompt, or `VsDevCmd.bat` first, so `cl.exe`/`rc.exe`/`INCLUDE`/`LIB`
-are on `PATH`.
+All Windows presets use LLVM `clang` (the GNU-style driver, not `clang-cl`) —
+run both commands from a Developer Command Prompt, or `VsDevCmd.bat` first, so
+`rc.exe`/`INCLUDE`/`LIB` are on `PATH`.
 
 ## Running
 
@@ -190,7 +189,7 @@ maze.exe --capture-frames=600 --dump-nan-stats
 The `linux-sanitize` preset builds Debug with AddressSanitizer, LeakSanitizer
 and UBSan (`ENABLE_SANITIZERS`). Run the game from its build directory and
 quit normally; leaks print at exit. Windows has no leak checker, and
-`ENABLE_SANITIZERS` stops the configure on MSVC and clang-cl.
+`ENABLE_SANITIZERS` stops the configure on Windows.
 
 ```
 cmake --preset linux-sanitize

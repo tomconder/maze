@@ -105,13 +105,13 @@ Use a configuration preset to compile `maze`. Possible values are:
 | `ci-osx-release`       | MacOS release build                  |
 | `ci-windows-debug`     | Windows debug build (uses sccache)   |
 | `ci-windows-release`   | Windows release build (uses sccache) |
-| `windows-msvc-debug`   | Windows MSVC debug build             |
-| `windows-msvc-release` | Windows MSVC release build           |
+| `windows-clang-debug`  | Windows clang debug build            |
+| `windows-clang-release`| Windows clang release build          |
 
 To use the preset on Windows:
 
 ```
-cmake.exe -B build --preset windows-msvc-release
+cmake.exe -B build --preset windows-clang-release
 cmake.exe --build build --target game
 ```
 

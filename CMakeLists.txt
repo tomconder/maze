@@ -87,13 +87,6 @@ endif ()
 # Enhance error reporting and compiler messages
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-if (MSVC)
-    # This enables Edit & Continue support. See
-    # https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio#edit-and-continue-for-cmake-projects
-    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
-    add_link_options("$<$<CONFIG:Debug>:/INCREMENTAL>")
-endif ()
-
 add_subdirectory(sponge)
 
 add_subdirectory(tools/assetconv)

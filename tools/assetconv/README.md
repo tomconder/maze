@@ -355,7 +355,7 @@ Build Debug to get Slang source lines back.
 The converter builds with the project and is never installed with the game.
 
 ```
-cmake.exe -B build --preset windows-msvc-release
+cmake.exe -B build --preset windows-clang-release
 cmake.exe --build build --target assetconv
 ```
 
