@@ -132,71 +132,45 @@ include(${CMAKE_SOURCE_DIR}/cmake/ConvertAssets.cmake)
 
 add_dependencies(game convert_assets)
 
-# strip release build binaries (non-MSVC only; on MSVC, debug symbols live in PDB)
-if (NOT MSVC)
+# strip release build binaries (not on Windows, where debug symbols live in PDB)
+if (NOT WIN32)
     add_custom_command(TARGET game POST_BUILD COMMAND $<$<CONFIG:Release>:${CMAKE_STRIP}> $<$<CONFIG:Release>:$<TARGET_FILE:game>>)
 endif ()
 
 set_target_properties(game PROPERTIES OUTPUT_NAME "maze" CXX_STANDARD 23)
 
-if (MSVC)
-    # hardening
-    message(STATUS "Applying Windows hardening support")
-    target_compile_options(game PUBLIC $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
-            /guard:cf>)
+# see the implications here: https://stackoverflow.com/q/45685487
+message(STATUS "Applying fast math and SIMD support")
+target_compile_options(game PUBLIC $<$<CONFIG:RELEASE>:-ffast-math>)
 
-    # properly report what c++ version is being used
-    target_compile_options(game PUBLIC /Zc:__cplusplus)
+# do not omit frame pointers for crash dumps
+target_compile_options(game PUBLIC -fno-omit-frame-pointer)
 
-    # fast math and SIMD support
-    # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
-    message(STATUS "Applying fast math and SIMD support")
-    target_compile_options(game PUBLIC $<$<CONFIG:RELEASE>:/fp:fast>)
+# enable exception handling
+target_compile_options(game PUBLIC -fexceptions)
 
-    # do not omit frame pointers for crash dumps
-    target_compile_options(game PUBLIC /Oy-)
+# enable warnings as errors
+target_compile_options(game PUBLIC -Wall -Werror)
 
-    # enable exception handling
-    target_compile_options(game PUBLIC /EHsc)
+# disable RTTI
+message(STATUS "Disable RTTI")
+target_compile_options(game PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
-    # enable warnings as errors
-    target_compile_options(game PUBLIC /W4 /WX)
+# enable separate sections per function and data item
+target_compile_options(game
+        PUBLIC $<$<CONFIG:RELEASE>:-ffunction-sections>)
+target_compile_options(game PUBLIC $<$<CONFIG:RELEASE>:-fdata-sections>)
 
-    # disable RTTI
-    message(STATUS "Disable RTTI")
-    target_compile_options(game PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/GR->)
-else ()
-    # see the implications here: https://stackoverflow.com/q/45685487
-    message(STATUS "Applying fast math and SIMD support")
-    target_compile_options(game PUBLIC $<$<CONFIG:RELEASE>:-ffast-math>)
-
-    # do not omit frame pointers for crash dumps
-    target_compile_options(game PUBLIC -fno-omit-frame-pointer)
-
-    # enable exception handling
-    target_compile_options(game PUBLIC -fexceptions)
-
-    # enable warnings as errors
-    target_compile_options(game PUBLIC -Wall -Werror)
-
-    # disable RTTI
-    message(STATUS "Disable RTTI")
-    target_compile_options(game PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
-
-    # enable separate sections per function and data item
-    target_compile_options(game
-            PUBLIC $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(game PUBLIC $<$<CONFIG:RELEASE>:-fdata-sections>)
-
-    # discard unused sections
+# discard unused sections; lld-link does this by default in a release link
+if (NOT WIN32)
     message(STATUS "Discard unused sections")
     target_link_options(
             game PUBLIC
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
-    target_link_options(
-            game PUBLIC
-            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 endif ()
+target_link_options(
+        game PUBLIC
+        $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
 
 target_include_directories(game PUBLIC src)
 target_include_directories(game PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/include")

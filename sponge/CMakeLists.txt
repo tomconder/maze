@@ -88,7 +88,7 @@ if (APPLE)
     list(APPEND SOURCE_FILES ${OSX_SOURCES})
 endif ()
 
-if (MSVC)
+if (WIN32)
     message(STATUS "Including Windows platform files")
     file(GLOB WIN_HEADERS src/platform/windows/core/*.hpp)
     list(APPEND HEADER_FILES ${WIN_HEADERS})
@@ -108,6 +108,11 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(fkYAML CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+if (WIN32)
+    # The installed spdlog config adds /Zc:__cplusplus whenever CMake sets MSVC,
+    # which plain clang on Windows does too, and the GNU-style driver rejects it.
+    set_property(TARGET spdlog::spdlog_header_only PROPERTY INTERFACE_COMPILE_OPTIONS "")
+endif ()
 find_path(MINIAUDIO_INCLUDE_DIR miniaudio.h REQUIRED)
 
 find_package(OpenGL REQUIRED)
@@ -122,8 +127,7 @@ endif ()
 
 # Build options shared by the engine and the format library, and so by
 # assetconv through the latter. Warnings are a separate target so vendored
-# code can take the options without /W4: a per-source /W0 cannot remove a
-# target's /W4, and MSVC warns D9025 when it overrides it.
+# code can take the options without -Wall -Werror.
 add_library(sponge_options INTERFACE)
 add_library(sponge_warnings INTERFACE)
 add_library(sponge::options ALIAS sponge_options)
@@ -149,68 +153,49 @@ add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
 target_link_libraries(sponge PUBLIC sponge_format)
 
-if (MSVC)
-    # hardening
-    target_compile_options(sponge_options INTERFACE $<$<NOT:$<CONFIG:DEBUG>>:/DYNAMICBASE
-            /guard:cf>)
-
-    # properly report what c++ version is being used
-    target_compile_options(sponge_options INTERFACE /Zc:__cplusplus)
-
-    # fast math and SIMD support
-    # https://learn.microsoft.com/en-us/cpp/build/reference/fp-specify-floating-point-behavior?view=msvc-170#fast
-    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:/fp:fast>)
-
-    # do not omit frame pointers for crash dumps
-    target_compile_options(sponge_options INTERFACE /Oy-)
-
-    # enable exception handling
-    target_compile_options(sponge_options INTERFACE /EHsc)
-
-    # enable warnings as errors
-    target_compile_options(sponge_warnings INTERFACE /W4 /WX)
-
-    # disable RTTI
-    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:/GR->)
-
-    if (ENABLE_SANITIZERS)
-        # MSVC ASan cannot detect leaks and conflicts with /INCREMENTAL and /RTC
-        message(FATAL_ERROR "ENABLE_SANITIZERS is not supported with MSVC or clang-cl")
+# leak checking comes with AddressSanitizer on Linux
+if (ENABLE_SANITIZERS)
+    if (WIN32)
+        message(FATAL_ERROR "ENABLE_SANITIZERS is not supported on Windows")
     endif ()
-else ()
-    # leak checking comes with AddressSanitizer on Linux
-    if (ENABLE_SANITIZERS)
-        target_compile_options(sponge_options INTERFACE -fsanitize=address,undefined)
-        target_link_options(sponge_options INTERFACE -fsanitize=address,undefined)
-    endif ()
+    target_compile_options(sponge_options INTERFACE -fsanitize=address,undefined)
+    target_link_options(sponge_options INTERFACE -fsanitize=address,undefined)
+endif ()
 
-    # see the implications here: https://stackoverflow.com/q/45685487
-    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
+# see the implications here: https://stackoverflow.com/q/45685487
+target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-ffast-math>)
 
-    # do not omit frame pointers for crash dumps
-    target_compile_options(sponge_options INTERFACE -fno-omit-frame-pointer)
+# do not omit frame pointers for crash dumps
+target_compile_options(sponge_options INTERFACE -fno-omit-frame-pointer)
 
-    # enable exception handling
-    target_compile_options(sponge_options INTERFACE -fexceptions)
+# enable exception handling
+target_compile_options(sponge_options INTERFACE -fexceptions)
 
-    # enable warnings as errors
-    target_compile_options(sponge_warnings INTERFACE -Wall -Werror)
+# enable warnings as errors
+target_compile_options(sponge_warnings INTERFACE -Wall -Werror)
 
-    # disable RTTI
-    target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+# disable RTTI
+target_compile_options(sponge_options INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 
-    # enable separate sections per function and data item
-    target_compile_options(sponge_options
-            INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
-    target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
+# enable separate sections per function and data item
+target_compile_options(sponge_options
+        INTERFACE $<$<CONFIG:RELEASE>:-ffunction-sections>)
+target_compile_options(sponge_options INTERFACE $<$<CONFIG:RELEASE>:-fdata-sections>)
 
-    # discard unused sections
+# discard unused sections; lld-link does this by default in a release link
+if (NOT WIN32)
     target_link_options(
             sponge_options INTERFACE
             $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:Clang,GNU>:-Wl,--gc-sections>>)
-    target_link_options(
-            sponge_options INTERFACE
-            $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
+endif ()
+target_link_options(
+        sponge_options INTERFACE
+        $<$<CONFIG:RELEASE>:$<$<CXX_COMPILER_ID:AppleClang>:-Wl,-dead_strip>>)
+
+# control flow guard; the link needs the flag too, to emit the guard tables
+if (WIN32)
+    target_compile_options(sponge_options INTERFACE "$<$<NOT:$<CONFIG:DEBUG>>:SHELL:-Xclang -cfguard>")
+    target_link_options(sponge_options INTERFACE $<$<NOT:$<CONFIG:DEBUG>>:-Wl,-guard:cf>)
 endif ()
 
 set_target_properties(sponge PROPERTIES CXX_STANDARD 23)

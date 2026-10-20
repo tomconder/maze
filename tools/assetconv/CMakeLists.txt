@@ -35,15 +35,15 @@ target_include_directories(assetconv_deps PUBLIC
 target_link_libraries(assetconv_deps PRIVATE sponge::options
         meshoptimizer::meshoptimizer)
 target_compile_options(assetconv_deps PRIVATE
-        $<IF:$<CXX_COMPILER_ID:MSVC>,/W0,-w>)
+        -w)
 # assetconv runs on the machine that builds the game, so the encoder and the
 # mip filter may use AVX2 and FMA: about 6% off the bake. The baked bytes are
 # the same on every AVX2 machine, but differ from a build without it.
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64|x64|x86)$")
     target_compile_options(assetconv PRIVATE
-            $<IF:$<CXX_COMPILER_ID:MSVC>,/arch:AVX2,-mavx2$<SEMICOLON>-mfma>)
+            -mavx2$<SEMICOLON>-mfma)
     target_compile_options(assetconv_deps PRIVATE
-            $<IF:$<CXX_COMPILER_ID:MSVC>,/arch:AVX2,-mavx2$<SEMICOLON>-mfma>)
+            -mavx2$<SEMICOLON>-mfma)
 endif ()
 target_link_libraries(assetconv PRIVATE assetconv_deps)
 # Header-only; imported include directories are SYSTEM, so its warnings stay out.
@@ -97,11 +97,6 @@ if (WIN32)
                 $<TARGET_FILE_DIR:assetconv>
             COMMAND_EXPAND_LISTS)
 endif ()
-
-# fmt trips C4702 (unreachable code) inside its own headers under MSVC at
-# /W4 /WX. The vcpkg includes are already -external:W0, but C4702 comes from
-# the optimizer, and /external governs only frontend warnings.
-target_compile_options(assetconv PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/wd4702>)
 
 set_target_properties(assetconv PROPERTIES CXX_STANDARD 23)
 

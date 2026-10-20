@@ -20,7 +20,7 @@ labels: bug
 **Build:**
 
 - Commit:
-- Preset: <!-- e.g. ci-windows-debug, windows-msvc-release -->
+- Preset: <!-- e.g. ci-windows-debug, windows-clang-release -->
 - OS:
 - GPU and driver:
 

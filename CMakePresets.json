@@ -141,34 +141,38 @@
             "name": "ci-windows-debug",
             "displayName": "CI - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch, and uses sccache",
-            "inherits": ["base-windows", "debug", "imgui", "ninja", "sccache", "vcpkg"]
+            "inherits": ["base-windows", "debug", "imgui", "ninja", "clang", "sccache", "vcpkg"]
         },
         {
             "name": "ci-windows-release",
             "displayName": "CI - Windows x64 - Release",
             "description": "Sets release build type and x64 arch, and uses sccache",
-            "inherits": ["base-windows", "ninja", "release", "sccache", "vcpkg"]
+            "inherits": ["base-windows", "ninja", "release", "clang", "sccache", "vcpkg"]
         },
         {
-            "name": "msvc-cl",
-            "description": "Use real cl.exe instead of clang-cl; run from a Developer Command Prompt (VsDevCmd.bat) so cl.exe/rc.exe/INCLUDE/LIB are on PATH",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl",
-                "CMAKE_CXX_COMPILER": "cl"
-            }
+          "name": "clang",
+          "description": "Use LLVM clang with the GNU-style driver; run from a Developer Command Prompt (VsDevCmd.bat) so rc.exe/INCLUDE/LIB are on PATH",
+          "hidden": true,
+          "environment": {
+            "PATH": "C:/Program Files/LLVM/bin;$penv{PATH}"
+          },
+          "cacheVariables": {
+            "CMAKE_C_COMPILER": "clang",
+            "CMAKE_CXX_COMPILER": "clang++",
+            "CMAKE_RC_COMPILER": "llvm-rc"
+          }
         },
         {
-            "name": "windows-msvc-debug",
+            "name": "windows-clang-debug",
             "displayName": "VSCode - Windows x64 - Debug",
             "description": "Sets debug build type and x64 arch",
-            "inherits": ["base-windows", "debug", "imgui", "ninja", "msvc-cl", "vcpkg"]
+            "inherits": ["base-windows", "debug", "imgui", "ninja", "clang", "vcpkg"]
         },
         {
-            "name": "windows-msvc-release",
+            "name": "windows-clang-release",
             "displayName": "VSCode - Windows x64 - Release",
             "description": "Sets release build type",
-            "inherits": ["base-windows", "ninja", "release", "msvc-cl", "vcpkg"]
+            "inherits": ["base-windows", "ninja", "release", "clang", "vcpkg"]
         },
         {
             "name": "base-osx",
