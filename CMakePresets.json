@@ -153,6 +153,9 @@
           "name": "clang",
           "description": "Use LLVM clang with the GNU-style driver; run from a Developer Command Prompt (VsDevCmd.bat) so rc.exe/INCLUDE/LIB are on PATH",
           "hidden": true,
+          "environment": {
+            "PATH": "C:/Program Files/LLVM/bin;$penv{PATH}"
+          },
           "cacheVariables": {
             "CMAKE_C_COMPILER": "clang",
             "CMAKE_CXX_COMPILER": "clang++",
