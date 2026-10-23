@@ -11,6 +11,7 @@
 #include "atlas.hpp"
 #include "fontbake.hpp"
 #include "gltfimport.hpp"
+#include "hdrbake.hpp"
 #include "ktx2.hpp"
 #include "meshopt.hpp"
 #include "modeldata.hpp"
@@ -295,6 +296,16 @@ int convertTexture(const std::string& source, const std::string& output) {
     return 0;
 }
 
+// A Radiance .hdr environment image, as half-float KTX2. Not BC-compressed: a
+// block codec cannot hold HDR radiance, and one level is all a probe reads.
+int convertEnvironment(const std::string& source, const std::string& output) {
+    const auto file = assetconv::bakeEnvironment(source);
+    if (file.empty() || !writeFile(output, file)) {
+        return 1;
+    }
+    return 0;
+}
+
 int packShaders(const std::string&                         output,
                 const std::vector<assetconv::ShaderEntry>& entries,
                 const bool lineDirectives, const unsigned threads) {
@@ -483,6 +494,16 @@ int bakeManifest(const std::string& manifestPath, const std::string& outputDir,
             if (!bake(text(texture, "output"), { from },
                       [&](const std::string& to) {
                           return convertTexture(from, to) == 0;
+                      })) {
+                return 1;
+            }
+        }
+
+        for (const auto& environment : section(manifest, "environments")) {
+            const auto from = source(text(environment, "source"));
+            if (!bake(text(environment, "output"), { from },
+                      [&](const std::string& to) {
+                          return convertEnvironment(from, to) == 0;
                       })) {
                 return 1;
             }

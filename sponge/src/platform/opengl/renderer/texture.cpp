@@ -20,6 +20,7 @@ struct GlFormat {
     uint32_t internalFormat{ 0 };
     uint32_t format{ 0 };
     bool     compressed{ false };
+    uint32_t type{ GL_UNSIGNED_BYTE };
 };
 
 GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
@@ -29,6 +30,8 @@ GlFormat glFormatOf(const sponge::scene::ktx2::Format format) {
             return { GL_RGB8, GL_RGB, false };
         case ktx2::formatR8G8B8A8Unorm:
             return { GL_RGBA8, GL_RGBA, false };
+        case ktx2::formatR16G16B16A16Sfloat:
+            return { GL_RGBA16F, GL_RGBA, false, GL_HALF_FLOAT };
         case ktx2::formatBc5Unorm:
             return { GL_COMPRESSED_RG_RGTC2, 0, true };
         case ktx2::formatBc7Unorm:
@@ -175,7 +178,7 @@ void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
             glTextureSubImage2D(id, static_cast<GLint>(level), 0, 0,
                                 static_cast<GLsizei>(source.width),
                                 static_cast<GLsizei>(source.height),
-                                glFormat.format, GL_UNSIGNED_BYTE,
+                                glFormat.format, glFormat.type,
                                 source.bytes.data());
         }
     }

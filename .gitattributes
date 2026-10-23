@@ -113,6 +113,7 @@ TODO              text
 *.gif      binary
 *.tif      binary
 *.tiff     binary
+*.hdr      binary
 *.ico      binary
 # SVG treated as an asset (binary) by default.
 *.svg      text

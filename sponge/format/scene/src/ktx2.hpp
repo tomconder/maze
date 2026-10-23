@@ -13,8 +13,10 @@ enum Format : uint32_t {
     formatUndefined     = 0,
     formatR8G8B8Unorm   = 23,
     formatR8G8B8A8Unorm = 37,
-    formatBc5Unorm      = 141,
-    formatBc7Unorm      = 145,
+    // Half float, for HDR images such as an environment map.
+    formatR16G16B16A16Sfloat = 97,
+    formatBc5Unorm           = 141,
+    formatBc7Unorm           = 145,
 };
 
 // One mip level of a decoded KTX2 file, pointing into the caller's buffer.
