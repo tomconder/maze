@@ -141,7 +141,7 @@ void Maze::setUpCapture() {
     }
     if (capture.frames > 0) {
         mazeLayer->enableCapture(capture.frames, capture.nanStats, capture.off,
-                                 capture.walk, capture.cascades);
+                                 capture.walk, capture.cascades, capture.view);
     }
 }
 
@@ -225,6 +225,8 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
             capture.nanStats = true;
         } else if (args[i].starts_with("--capture-off=")) {
             capture.off = std::string(args[i].substr(14));
+        } else if (args[i].starts_with("--capture-view=")) {
+            capture.view = std::string(args[i].substr(15));
         } else if (args[i].starts_with("--capture-walk=")) {
             const auto value = args[i].substr(15);
             std::from_chars(value.data(), value.data() + value.size(),

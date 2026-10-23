@@ -65,8 +65,9 @@ struct PbrParams {
     float3           probePosition;  // world-space capture point
     float3           probeBoxMin;    // world-space box the probe is projected against
     float3           probeBoxMax;
-    float            probeMaxMip;  // last mip of probeMap; roughness 1 samples it
-    bool             giEnabled;    // sample irradianceMap for the ambient diffuse term
-    float            giStrength;   // scales the irradiance term only; the flat term ignores it
+    float            probeMaxMip;          // last mip of probeMap; roughness 1 samples it
+    bool             giEnabled;            // sample the irradiance maps for the ambient diffuse term
+    float            environmentExposure;  // scales the sky irradiance only; bounce and the flat term ignore it
+    bool             skyVisDebug;          // debug: output skyVisibility() as the colour
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;
