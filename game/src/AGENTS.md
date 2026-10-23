@@ -125,8 +125,9 @@ primitives, windowing, or platform backends itself — see
   object's top face (local y = 1). Only the first planar object in a scene
   is used; the others fall back to SSR with a warning.
 * `probe` (top-level, optional) sets one reflection probe: `position`,
-  `boxMin`, `boxMax`, and optional `sky` (linear radiance the capture shows
-  through an opening in the scene, default grey 0.6). The
+  `boxMin`, `boxMax`, and optional `environment` (the baked equirect image
+  the capture shows through an opening in the scene, for example
+  `textures/kloofendal_overcast_puresky_1k.ktx2`; empty is a flat grey 0.6). The
   loader drops it with a warning unless boxMin is
   below boxMax on every axis and the position is inside the box. With no
   probe, ambient is the flat `ambientStrength` term. The probe also gives the

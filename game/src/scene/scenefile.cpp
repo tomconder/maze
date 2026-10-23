@@ -86,8 +86,9 @@ void readLighting(const node& root, game::scene::SceneLighting& lighting) {
     }
 
     if (const auto* ambient = find(*map, "ambient"); ambient != nullptr) {
-        auto& dst    = lighting.ambient;
-        dst.strength = readFloat(*ambient, "strength", dst.strength);
+        auto& dst      = lighting.ambient;
+        dst.strength   = readFloat(*ambient, "strength", dst.strength);
+        dst.giStrength = readFloat(*ambient, "giStrength", dst.giStrength);
         dst.ambientOcclusion =
             readFloat(*ambient, "ambientOcclusion", dst.ambientOcclusion);
     }
@@ -133,10 +134,10 @@ void readProbe(const node&                             root,
         return;
     }
     game::scene::SceneProbe p;
-    p.position = readVec3(*map, "position", p.position);
-    p.boxMin   = readVec3(*map, "boxMin", p.boxMin);
-    p.boxMax   = readVec3(*map, "boxMax", p.boxMax);
-    p.sky      = readVec3(*map, "sky", p.sky);
+    p.position    = readVec3(*map, "position", p.position);
+    p.boxMin      = readVec3(*map, "boxMin", p.boxMin);
+    p.boxMax      = readVec3(*map, "boxMax", p.boxMax);
+    p.environment = readString(*map, "environment");
     if (!glm::all(glm::lessThan(p.boxMin, p.boxMax))) {
         SPONGE_WARN("Scene probe box needs boxMin below boxMax on every axis; "
                     "no probe");

@@ -44,6 +44,9 @@ struct SceneCamera {
 
 struct SceneAmbient {
     float strength{ .25F };
+    // Scales the probe's irradiance term only, on top of strength. The flat
+    // term, which is the fallback, ignores it.
+    float giStrength{ 1.F };
     // 1 = no extra attenuation. SSAO supplies real per-pixel occlusion; this
     // is a flat multiplier on top of it, for an artist to darken ambient
     // further without touching SSAO's radius/bias.
@@ -87,14 +90,14 @@ struct SceneBloom {
 
 // A reflection probe: the scene captured once into a cubemap at position,
 // and box-projected against [boxMin, boxMax] when surfaces sample it. The box
-// is the room the probe stands in. The sky is what the capture shows through
-// an opening in the scene, in linear radiance. It is flat grey: a tinted sky
-// tints every shadow.
+// is the room the probe stands in. The environment is a baked equirect image
+// (the manifest's environments section) that the capture shows through an
+// opening in the scene. Empty is a flat grey background.
 struct SceneProbe {
-    glm::vec3 position{ 0.F };
-    glm::vec3 boxMin{ 0.F };
-    glm::vec3 boxMax{ 0.F };
-    glm::vec3 sky{ .6F };
+    glm::vec3   position{ 0.F };
+    glm::vec3   boxMin{ 0.F };
+    glm::vec3   boxMax{ 0.F };
+    std::string environment;
 };
 
 struct Scene {

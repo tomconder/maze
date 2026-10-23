@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform/opengl/renderer/shader.hpp"
+#include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/scene/screenquad.hpp"
 
 #include <glm/glm.hpp>
@@ -8,6 +9,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace sponge::platform::opengl::scene {
 
@@ -24,17 +26,20 @@ public:
     // Irradiance is smooth, so a few texels per face are enough.
     static constexpr uint32_t irradianceSize = 32;
 
-    ReflectionProbe();
+    // environment is a baked half-float equirect image (see the manifest's
+    // environments section). Empty, or a file that does not load, leaves the
+    // capture's background a flat grey.
+    explicit ReflectionProbe(const std::string& environment);
     ~ReflectionProbe();
 
     ReflectionProbe(const ReflectionProbe&)            = delete;
     ReflectionProbe& operator=(const ReflectionProbe&) = delete;
 
     // Binds face (0..5, GL order +X -X +Y -Y +Z -Z) of the capture cubemap,
-    // clears it to sky (linear radiance, what shows through openings in the
-    // scene), and saves the caller's viewport. end() binds framebuffer 0
-    // and restores the viewport.
-    void beginFace(int face, const glm::vec3& sky) const;
+    // fills it with the environment image (linear radiance, what shows
+    // through openings in the scene), and saves the caller's viewport. end()
+    // binds framebuffer 0 and restores the viewport.
+    void beginFace(int face) const;
     void end() const;
 
     // Fills every mip level of the result cubemap and the irradiance cubemap
@@ -61,8 +66,11 @@ private:
     uint32_t                          irradianceCube = 0;
     std::shared_ptr<renderer::Shader> shader;
     std::shared_ptr<renderer::Shader> irradianceShader;
-    ScreenQuad                        quad;
-    mutable std::array<int32_t, 4>    savedViewport{};
+    std::shared_ptr<renderer::Shader> skyShader;
+    // Null when there is no usable environment image.
+    std::shared_ptr<renderer::Texture> environment;
+    ScreenQuad                         quad;
+    mutable std::array<int32_t, 4>     savedViewport{};
 };
 
 }  // namespace sponge::platform::opengl::scene
