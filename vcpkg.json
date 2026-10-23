@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "31b2524e58e7a0344552ade30b213a15734f944d",
+  "builtin-baseline": "a073c28e52d920cb2465a17512324b3b6684d03a",
   "dependencies": [
     {
       "name": "cgltf",
@@ -43,7 +43,7 @@
         "glfw-binding",
         "opengl3-binding"
       ],
-      "version>=": "1.92.9"
+      "version>=": "1.93.0"
     },
     {
       "name": "libjpeg-turbo",
@@ -67,7 +67,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2026.19"
+      "version>=": "2026.20"
     },
     {
       "name": "spdlog",
