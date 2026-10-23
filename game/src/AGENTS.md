@@ -132,8 +132,7 @@ primitives, windowing, or platform backends itself — see
   below boxMax on every axis and the position is inside the box. With no
   probe, ambient is the flat `ambientStrength` term. The probe also gives the
   diffuse indirect light (`MazeLayer::giEnabled`, the debug UI's Global
-  Illumination row, `--capture-off=gi`); `lighting.ambient.environmentExposure`
-  scales its sky part.
+  Illumination row, `--capture-off=gi`).
 
 ## Contracts & Invariants
 

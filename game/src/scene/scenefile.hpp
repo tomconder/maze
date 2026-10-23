@@ -44,9 +44,9 @@ struct SceneCamera {
 
 struct SceneAmbient {
     float strength{ .25F };
-    // Scales the sky's irradiance only, on top of strength. The scene bounce
-    // and the flat term, which is the fallback, ignore it.
-    float environmentExposure{ 1.F };
+    // Scales the probe's irradiance term only, on top of strength. The flat
+    // term, which is the fallback, ignores it.
+    float giStrength{ 1.F };
     // 1 = no extra attenuation. SSAO supplies real per-pixel occlusion; this
     // is a flat multiplier on top of it, for an artist to darken ambient
     // further without touching SSAO's radius/bias.

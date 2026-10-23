@@ -106,8 +106,6 @@ shaders:
     quad.vert: shaders/slang/rectangle.slang:vertMain
     screenquad.vert: shaders/slang/fxaa.slang:vertMain
     shadowmap.vert: shaders/slang/shadowmap.slang:vertMain
-    skyheight.frag: shaders/slang/skyheight.slang:fragMain
-    skyheight.vert: shaders/slang/skyheight.slang:vertMain
     shadowmap_evsm.frag: shaders/slang/shadowmap.slang:fragMainEVSM
     shadowmap_evsm_masked.frag: shaders/slang/shadowmap.slang:fragMainEVSMMasked
     sprite.frag: shaders/slang/sprite.slang:fragMain

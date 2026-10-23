@@ -16,7 +16,7 @@ lighting:
     # Scales the probe's irradiance only, on top of strength. Tuned so the
     # shadowed half of the frame is about as bright as with the flat term.
     # Retune it if the environment image, the lights or the probe move.
-    environmentExposure: 1.2
+    giStrength: 4.0
     # 1 = no extra attenuation. SSAO supplies real per-pixel occlusion; this
     # is a flat multiplier on top of it.
     ambientOcclusion: 0.25
