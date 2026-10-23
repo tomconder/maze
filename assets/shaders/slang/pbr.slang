@@ -2,6 +2,7 @@
 #include "include/uniforms.slang"
 #include "include/shadows.slang"
 #include "include/clustered.slang"
+#include "include/skyvis.slang"
 
 [[vk::binding(3)]] StructuredBuffer<PointLightGPU> lightBuffer;
 [[vk::binding(4)]] StructuredBuffer<uint2>         lightGrid;
@@ -44,8 +45,10 @@ VSOutput vertMain(VSInput input) {
 [[vk::binding(9)]] Sampler2D<float4>      metallicRoughnessMap;
 [[vk::binding(10)]] Sampler2D<float>      ssaoTexture;
 [[vk::binding(12)]] SamplerCube<float4>   probeMap;
+[[vk::binding(13)]] Sampler2D<float>      skyHeightMap;
 [[vk::binding(14)]] Sampler2D<float4>     diffuseTransmissionMap;
-[[vk::binding(15)]] SamplerCube<float4>   irradianceMap;
+[[vk::binding(15)]] SamplerCube<float4>   bounceIrradianceMap;
+[[vk::binding(16)]] SamplerCube<float4>   skyIrradianceMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -222,7 +225,12 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
         if (params.giEnabled) {
             // The irradiance is a mean radiance, so albedo is the whole BRDF.
             // aoTex, not ao: the flat multiplier darkens the flat term only.
-            ambientDiffuse = irradianceMap.SampleLevel(N, 0.0).rgb * albedo * aoTex * params.ambientStrength * params.giStrength;
+            // Scene bounce is lit from every side; the sky only reaches where
+            // the height map shows it.
+            float  vis     = skyVisibility(skyHeightMap, params.probeBoxMin, params.probeBoxMax, input.worldPosition, N);
+            float3 irr     = bounceIrradianceMap.SampleLevel(N, 0.0).rgb +
+                             skyIrradianceMap.SampleLevel(N, 0.0).rgb * vis * params.environmentExposure;
+            ambientDiffuse = irr * albedo * aoTex * params.ambientStrength;
         }
         ambientDiffuse *= (1.0 - F) * (1.0 - metallic);
         ambientSpecular = probe * (F0 * AB.x + AB.y) * aoTex;
@@ -243,6 +251,11 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
             float3 probe = probeMap.SampleLevel(Rc, coatRoughness * params.probeMaxMip).rgb;
             ambientSpecular += probe * (0.04 * AB.x + AB.y) * params.clearcoatFactor * aoTex;
         }
+    }
+    if (params.skyVisDebug && params.probeEnabled) {
+        return float4(float3(skyVisibility(skyHeightMap, params.probeBoxMin, params.probeBoxMax,
+                                           input.worldPosition, N)),
+                      1.0);
     }
     float3 emission = params.emissive + emissiveTexColor;
 
