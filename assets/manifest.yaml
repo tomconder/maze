@@ -89,6 +89,7 @@ shaders:
     pbr.vert: shaders/slang/pbr.slang:vertMain
     planar.frag: shaders/slang/planar.slang:fragMain
     planar.vert: shaders/slang/planar.slang:vertMain
+    probe_irradiance.frag: shaders/slang/probe_irradiance.slang:fragMain
     probe_prefilter.frag: shaders/slang/probe_prefilter.slang:fragMain
     refraction.frag: shaders/slang/refraction.slang:fragMain
     refraction.vert: shaders/slang/refraction.slang:vertMain

@@ -13,15 +13,14 @@ using renderer::AssetManager;
 
 namespace {
 // Immutable storage for every face at every level.
-uint32_t createCube(const int levels) {
+uint32_t createCube(const int levels, const uint32_t size) {
     uint32_t id = 0;
     glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &id);
     // RGBA16F, not RGB16F: RGB16F is not a required color-renderable format
     // in GL 4.5 core, and both cubes are FBO attachments that
     // glGenerateTextureMipmap must be able to render into.
-    glTextureStorage2D(id, levels, GL_RGBA16F,
-                       static_cast<GLsizei>(ReflectionProbe::faceSize),
-                       static_cast<GLsizei>(ReflectionProbe::faceSize));
+    glTextureStorage2D(id, levels, GL_RGBA16F, static_cast<GLsizei>(size),
+                       static_cast<GLsizei>(size));
     glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -37,8 +36,9 @@ ReflectionProbe::ReflectionProbe() {
 
     // The capture keeps a full mip chain: the prefilter reads coarser levels
     // for wide lobes, which removes the noise of 512 samples.
-    captureCube = createCube(std::bit_width(faceSize));
-    resultCube  = createCube(mipLevels);
+    captureCube    = createCube(std::bit_width(faceSize), faceSize);
+    resultCube     = createCube(mipLevels, faceSize);
+    irradianceCube = createCube(1, irradianceSize);
 
     glCreateRenderbuffers(1, &depthRbo);
     glNamedRenderbufferStorage(depthRbo, GL_DEPTH_COMPONENT24,
@@ -47,10 +47,15 @@ ReflectionProbe::ReflectionProbe() {
 
     glCreateFramebuffers(1, &fbo);
 
-    shader = AssetManager::createShader(renderer::ShaderCreateInfo{
+    shader           = AssetManager::createShader(renderer::ShaderCreateInfo{
         .name           = "probe_prefilter",
         .vertexShader   = "screenquad.vert",
         .fragmentShader = "probe_prefilter.frag",
+    });
+    irradianceShader = AssetManager::createShader(renderer::ShaderCreateInfo{
+        .name           = "probe_irradiance",
+        .vertexShader   = "screenquad.vert",
+        .fragmentShader = "probe_irradiance.frag",
     });
 }
 
@@ -59,9 +64,10 @@ ReflectionProbe::~ReflectionProbe() {
     glDeleteRenderbuffers(1, &depthRbo);
     glDeleteTextures(1, &captureCube);
     glDeleteTextures(1, &resultCube);
+    glDeleteTextures(1, &irradianceCube);
 }
 
-void ReflectionProbe::beginFace(const int face) const {
+void ReflectionProbe::beginFace(const int face, const glm::vec3& sky) const {
     glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     // A cube map face is layer `face` of the texture (GL 4.5).
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, captureCube, 0,
@@ -76,7 +82,11 @@ void ReflectionProbe::beginFace(const int face) const {
     glViewport(0, 0, static_cast<GLsizei>(faceSize),
                static_cast<GLsizei>(faceSize));
     glDepthMask(GL_TRUE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Not glClear: the global clear colour is grey, and the sky is data.
+    const std::array<float, 4> color{ sky.r, sky.g, sky.b, 1.F };
+    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, color.data());
+    const float depth = 1.F;
+    glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &depth);
 }
 
 void ReflectionProbe::end() const {
@@ -125,6 +135,24 @@ void ReflectionProbe::prefilter() const {
         }
     }
     shader->unbind();
+
+    // The capture's mip chain is still bound on unit 0 for the cosine lobe.
+    irradianceShader->bind();
+    irradianceShader->setFloat("faceSize", static_cast<float>(faceSize));
+    glViewport(0, 0, static_cast<GLsizei>(irradianceSize),
+               static_cast<GLsizei>(irradianceSize));
+    for (int face = 0; face < 6; face++) {
+        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0,
+                                       irradianceCube, 0, face);
+        if (face == 0 && glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER) !=
+                             GL_FRAMEBUFFER_COMPLETE) {
+            SPONGE_GL_CRITICAL(
+                "Reflection probe irradiance framebuffer is not complete!");
+        }
+        irradianceShader->setInteger("face", face);
+        quad.draw();
+    }
+    irradianceShader->unbind();
 
     glBindTextureUnit(0, 0);
     glEnable(GL_BLEND);

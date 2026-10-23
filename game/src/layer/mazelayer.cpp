@@ -730,6 +730,7 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
         frame.ssaoRadius   = ssaoRadius;
         frame.ssrEnabled   = ssrEnabled;
         frame.probeEnabled = probeEnabled && probe != nullptr;
+        frame.giEnabled    = giEnabled;
     }
 
     // Last: everything above is real per-frame state now, not finishLoading()'s
@@ -1117,6 +1118,9 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         if (has("probe")) {
             setProbeEnabled(false);
         }
+        if (has("gi")) {
+            setGiEnabled(false);
+        }
         if (has("planar")) {
             setPlanarEnabled(false);
         }
@@ -1372,8 +1376,10 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
     // again here for every pass that follows it.
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
+    shader->setBoolean("giEnabled", frame.giEnabled);
     if (useProbe) {
         RendererAPI::bindTexture(12, probe->getTexture());
+        RendererAPI::bindTexture(15, probe->getIrradiance());
     }
 }
 
@@ -1734,7 +1740,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     for (int face = 0; face < 6; face++) {
         // beginFace() clears the face. On NVIDIA, a clear with this program
         // bound recompiles its vertex shader, so bind after the clear.
-        probe->beginFace(face);
+        probe->beginFace(face, desc.sky);
         shader->bind();
         const auto viewProj =
             projection * ReflectionProbe::faceView(desc.position, face);
@@ -1996,6 +2002,15 @@ bool MazeLayer::isProbeEnabled() const {
 void MazeLayer::setProbeEnabled(const bool val) {
     std::scoped_lock lock(settingsMutex);
     probeEnabled = val;
+}
+
+bool MazeLayer::isGiEnabled() const {
+    return giEnabled;
+}
+
+void MazeLayer::setGiEnabled(const bool val) {
+    std::scoped_lock lock(settingsMutex);
+    giEnabled = val;
 }
 
 void MazeLayer::setLodTint(const bool enabled) {
