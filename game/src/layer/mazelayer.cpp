@@ -249,8 +249,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shader->setBoolean("translucencyEnabled", translucencyEnabled);
 
     shader->setFloat("ambientStrength", ambientStrength);
-    shader->setFloat("environmentExposure",
-                     sceneDesc.lighting.ambient.environmentExposure);
+    shader->setFloat("giStrength", sceneDesc.lighting.ambient.giStrength);
 
     const auto savedQuality = sponge::core::Settings::getUInt32(
         "video.shadowQuality", static_cast<uint32_t>(shadowQuality));
@@ -1076,10 +1075,8 @@ void MazeLayer::onRender() {
 #ifndef NDEBUG
 void MazeLayer::enableCapture(const uint32_t frames, const bool stats,
                               std::string off, const float walk,
-                              const uint32_t     cascades,
-                              const std::string& view) {
+                              const uint32_t cascades) {
     frameCapture.emplace(frames, stats);
-    skyVisDebug     = view == "skyvis";
     captureOff      = std::move(off);
     gpuTimerOff     = ("," + captureOff + ",").contains(",gputimer,");
     lodOff          = ("," + captureOff + ",").contains(",lod,");
@@ -1381,13 +1378,9 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
     const bool useProbe = frame.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
     shader->setBoolean("giEnabled", frame.giEnabled);
-    shader->setBoolean("skyVisDebug", skyVisDebug);
     if (useProbe) {
         RendererAPI::bindTexture(12, probe->getTexture());
-        // Unit 13 is the glass pass's probe cube; each pass binds its own.
-        RendererAPI::bindTexture(13, probe->getSkyHeight());
-        RendererAPI::bindTexture(15, probe->getBounceIrradiance());
-        RendererAPI::bindTexture(16, probe->getSkyIrradiance());
+        RendererAPI::bindTexture(15, probe->getIrradiance());
     }
 }
 
@@ -1745,25 +1738,10 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     shader->setFloat3("viewPos", desc.position);
     bindShadow(*shader, frame);
 
-    // The sky alone, for the sky irradiance: just the background of each face.
     for (int face = 0; face < 6; face++) {
-        probe->beginFace(face, ReflectionProbe::Capture::Sky);
-        probe->end();
-    }
-
-    // The scene twice: with the sky, for the reflections, and without it, for
-    // the bounce irradiance. The second draws the same lit scene on a black
-    // background.
-    for (int pass = 0; pass < 12; pass++) {
-        // The bounce capture carries no flat ambient: the sky irradiance is
-        // that light, added later with its visibility.
-        shader->setFloat("ambientStrength", pass < 6 ? ambientStrength : 0.F);
-        const int  face    = pass % 6;
-        const auto capture = pass < 6 ? ReflectionProbe::Capture::Scene :
-                                        ReflectionProbe::Capture::Bounce;
         // beginFace() clears the face. On NVIDIA, a clear with this program
         // bound recompiles its vertex shader, so bind after the clear.
-        probe->beginFace(face, capture);
+        probe->beginFace(face);
         shader->bind();
         const auto viewProj =
             projection * ReflectionProbe::faceView(desc.position, face);
@@ -1784,35 +1762,10 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
         probe->end();
     }
 
-    shader->setFloat("ambientStrength", ambientStrength);
     shader->setInteger("numLights", frame.numLights);
     shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
 
     probe->prefilter();
-
-    // The scene from above, for the sky visibility. Opaque meshes only: a
-    // masked leaf quad would count as a solid roof. The depth range is the
-    // scene's, so a roof above the probe box still shades what is below it,
-    // padded so a surface at the lowest or highest y is not on a clip plane.
-    {
-        constexpr float depthPad = 1.F;
-        const float     bottom   = sceneBounds.min.y - depthPad;
-        const auto      viewProj = ReflectionProbe::skyHeightViewProj(
-            desc.boxMin, desc.boxMax, bottom, sceneBounds.max.y + depthPad);
-        const auto heightShader = probe->getSkyHeightShader();
-        probe->beginSkyHeight(bottom);
-        heightShader->bind();
-        heightShader->setMat4("viewProj", viewProj);
-        for (size_t i = 0; i < frame.objectModels.size(); i++) {
-            if (frame.objectRefraction[i].refractive) {
-                continue;
-            }
-            heightShader->setMat4("model", frame.objectModelMatrices[i]);
-            frame.objectModels[i]->render(heightShader, AlphaPass::Opaque);
-        }
-        heightShader->unbind();
-        probe->end();
-    }
 
     shader->setFloat3("probePosition", desc.position);
     shader->setFloat3("probeBoxMin", desc.boxMin);

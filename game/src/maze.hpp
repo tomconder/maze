@@ -34,9 +34,6 @@ struct CaptureOptions {
     uint32_t    frames   = 0;
     bool        nanStats = false;
     std::string off;
-    // Non-empty draws a debug view in place of the lighting. See
-    // MazeLayer::enableCapture.
-    std::string view;
     float       walk     = 0.F;
     uint32_t    cascades = 0;
     // Non-empty skips the splash, shows that menu screen and writes one

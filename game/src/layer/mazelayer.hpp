@@ -242,13 +242,9 @@ public:
     // moves the camera that many world units per update along +X and keeps its
     // yaw fixed, instead of turning it: a walk shows how often a cascade
     // redraws, which a turn cannot.
-    // A non-zero `cascades` sets the shadow cascade count for the run. A `view`
-    // of "skyvis" draws the probe's sky visibility in place of the lighting,
-    // "bounce" lights the GI term from the bounce capture alone, and "sky"
-    // from the open sky alone.
+    // A non-zero `cascades` sets the shadow cascade count for the run.
     void enableCapture(uint32_t frames, bool stats, std::string off = {},
-                       float walk = 0.F, uint32_t cascades = 0,
-                       const std::string& view = {});
+                       float walk = 0.F, uint32_t cascades = 0);
 #endif
 
 private:
@@ -429,21 +425,18 @@ private:
     // composited after the curve, so this is roughly 1/30th of the old value
     // for the same look. Re-derive it against a measurement, never by
     // scaling the old number.
-    float bloomIntensity      = 0.08F;
-    bool  ssaoEnabled         = true;
-    float ssaoRadius          = 0.5F;
-    bool  translucencyEnabled = true;
-    bool  refractionEnabled   = false;
-    bool  ssrEnabled          = true;
-    bool  planarEnabled       = true;
-    bool  probeEnabled        = true;
-    bool  giEnabled           = true;
-    // Set only by --capture-view=skyvis, before the first frame: draw the
-    // sky visibility the probe's height map gives, in place of the lighting.
-    bool    skyVisDebug        = false;
-    bool    mouseButtonPressed = false;
-    int32_t numLights          = 0;
-    bool    isImguiOpen        = true;
+    float   bloomIntensity      = 0.08F;
+    bool    ssaoEnabled         = true;
+    float   ssaoRadius          = 0.5F;
+    bool    translucencyEnabled = true;
+    bool    refractionEnabled   = false;
+    bool    ssrEnabled          = true;
+    bool    planarEnabled       = true;
+    bool    probeEnabled        = true;
+    bool    giEnabled           = true;
+    bool    mouseButtonPressed  = false;
+    int32_t numLights           = 0;
+    bool    isImguiOpen         = true;
 
     // Capture runs only; null otherwise, which turns gpuBegin and gpuEnd into
     // no-ops.

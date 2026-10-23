@@ -86,10 +86,9 @@ void readLighting(const node& root, game::scene::SceneLighting& lighting) {
     }
 
     if (const auto* ambient = find(*map, "ambient"); ambient != nullptr) {
-        auto& dst    = lighting.ambient;
-        dst.strength = readFloat(*ambient, "strength", dst.strength);
-        dst.environmentExposure =
-            readFloat(*ambient, "environmentExposure", dst.environmentExposure);
+        auto& dst      = lighting.ambient;
+        dst.strength   = readFloat(*ambient, "strength", dst.strength);
+        dst.giStrength = readFloat(*ambient, "giStrength", dst.giStrength);
         dst.ambientOcclusion =
             readFloat(*ambient, "ambientOcclusion", dst.ambientOcclusion);
     }

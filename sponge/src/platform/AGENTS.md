@@ -135,27 +135,18 @@ than calling GLFW/OpenGL/OS APIs directly.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the
   color attachment they draw into. The prepass normal alpha is the SSR
   strength mask.
-* Diffuse indirect light has two parts, each a 32 px cosine convolution of a
-  capture from the probe point, on units 15 and 16:
-  `getBounceIrradiance()` (the lit scene on a black background, drawn with
-  `ambientStrength` 0, so the flat term is not counted twice) and
-  `getSkyIrradiance()` (the environment image alone). The GI term is
-  `(bounce + sky * skyVisibility * environmentExposure) * albedo * aoTex *
-  ambientStrength`: per-pixel occlusion only, with no flat `ambientOcclusion`,
-  so `ambientStrength` is still its slider. `environmentExposure`
-  (`lighting.ambient.environmentExposure` in `maze.yaml`) scales the sky only;
-  retune it if the environment image, the scene's lights or the probe
-  position change. The bounce is one bounce from one point: it is the same
-  across the probe box, with no local colour bleed. The flat term is the
-  fallback when there is no probe or `giEnabled` is off.
-* `skyVisibility()` (`include/skyvis.slang`) reads a top-down R32F height map
-  (`ReflectionProbe::getSkyHeight()`, 1024 px over the probe box, unit 13;
-  drawn in `captureProbe` from the opaque meshes only). It ray-marches 5
-  cosine-weighted directions per pixel; a ray that leaves the map counts as
-  open. It sees only what the map holds: the highest surface at each x, z,
-  so overhangs and the space under a roof are not separated. Five directions
-  band on smooth surfaces. `--capture-view=skyvis` (debug builds) draws the
-  visibility in place of the lighting.
+* Diffuse indirect light comes from the probe's irradiance cube
+  (`ReflectionProbe::getIrradiance()`, a 32 px cosine convolution of the same
+  capture, on unit 15), which feeds the PBR ambient diffuse term. It is one
+  bounce of what the capture saw, from one point: the light is the same
+  across the whole probe box, with no local colour bleed. The GI term is
+  `irradiance * albedo * aoTex * ambientStrength * giStrength`: per-pixel
+  occlusion only, with no flat `ambientOcclusion`, so `ambientStrength` is
+  still its slider. `giStrength` (`lighting.ambient.giStrength` in
+  `maze.yaml`, 4.0) scales this term only, so the flat fallback keeps its own
+  level. Retune it if the environment image, the scene's lights or the probe
+  position change. The flat term is the fallback when there is no probe or
+  `giEnabled` is off.
 * The probe capture fills each face with an equirect environment image
   (`ReflectionProbe::beginFace()` draws it with `probe_sky.frag`, before the
   scene, so it shows only through openings in the scene). The image is

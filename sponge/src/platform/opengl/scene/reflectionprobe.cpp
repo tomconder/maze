@@ -40,12 +40,9 @@ ReflectionProbe::ReflectionProbe(const std::string& environmentPath) {
 
     // The capture keeps a full mip chain: the prefilter reads coarser levels
     // for wide lobes, which removes the noise of 512 samples.
-    captureCube          = createCube(std::bit_width(faceSize), faceSize);
-    resultCube           = createCube(mipLevels, faceSize);
-    bounceCube           = createCube(std::bit_width(faceSize), faceSize);
-    bounceIrradianceCube = createCube(1, irradianceSize);
-    skyCube              = createCube(std::bit_width(faceSize), faceSize);
-    skyIrradianceCube    = createCube(1, irradianceSize);
+    captureCube    = createCube(std::bit_width(faceSize), faceSize);
+    resultCube     = createCube(mipLevels, faceSize);
+    irradianceCube = createCube(1, irradianceSize);
 
     glCreateRenderbuffers(1, &depthRbo);
     glNamedRenderbufferStorage(depthRbo, GL_DEPTH_COMPONENT24,
@@ -53,30 +50,6 @@ ReflectionProbe::ReflectionProbe(const std::string& environmentPath) {
                                static_cast<GLsizei>(faceSize));
 
     glCreateFramebuffers(1, &fbo);
-
-    // Nearest and clamped: a blend of a roof and the ground is no surface.
-    glCreateTextures(GL_TEXTURE_2D, 1, &skyHeightTexture);
-    glTextureStorage2D(skyHeightTexture, 1, GL_R32F,
-                       static_cast<GLsizei>(skyHeightSize),
-                       static_cast<GLsizei>(skyHeightSize));
-    glTextureParameteri(skyHeightTexture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTextureParameteri(skyHeightTexture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTextureParameteri(skyHeightTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(skyHeightTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glCreateRenderbuffers(1, &skyHeightDepth);
-    glNamedRenderbufferStorage(skyHeightDepth, GL_DEPTH_COMPONENT24,
-                               static_cast<GLsizei>(skyHeightSize),
-                               static_cast<GLsizei>(skyHeightSize));
-    glCreateFramebuffers(1, &skyHeightFbo);
-    glNamedFramebufferTexture(skyHeightFbo, GL_COLOR_ATTACHMENT0,
-                              skyHeightTexture, 0);
-    glNamedFramebufferRenderbuffer(skyHeightFbo, GL_DEPTH_ATTACHMENT,
-                                   GL_RENDERBUFFER, skyHeightDepth);
-    skyHeightShader = AssetManager::createShader(renderer::ShaderCreateInfo{
-        .name           = "skyheight",
-        .vertexShader   = "skyheight.vert",
-        .fragmentShader = "skyheight.frag",
-    });
 
     shader           = AssetManager::createShader(renderer::ShaderCreateInfo{
         .name           = "probe_prefilter",
@@ -113,29 +86,17 @@ ReflectionProbe::ReflectionProbe(const std::string& environmentPath) {
 
 ReflectionProbe::~ReflectionProbe() {
     glDeleteFramebuffers(1, &fbo);
-    glDeleteFramebuffers(1, &skyHeightFbo);
-    glDeleteRenderbuffers(1, &skyHeightDepth);
-    glDeleteTextures(1, &skyHeightTexture);
     glDeleteRenderbuffers(1, &depthRbo);
     glDeleteTextures(1, &captureCube);
     glDeleteTextures(1, &resultCube);
-    glDeleteTextures(1, &bounceCube);
-    glDeleteTextures(1, &bounceIrradianceCube);
-    glDeleteTextures(1, &skyCube);
-    glDeleteTextures(1, &skyIrradianceCube);
+    glDeleteTextures(1, &irradianceCube);
 }
 
-void ReflectionProbe::beginFace(const int face, const Capture capture) const {
-    const bool withSky = capture != Capture::Bounce;
+void ReflectionProbe::beginFace(const int face) const {
     glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     // A cube map face is layer `face` of the texture (GL 4.5).
-    uint32_t target = captureCube;
-    if (capture == Capture::Bounce) {
-        target = bounceCube;
-    } else if (capture == Capture::Sky) {
-        target = skyCube;
-    }
-    glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, target, 0, face);
+    glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, captureCube, 0,
+                                   face);
     glNamedFramebufferRenderbuffer(fbo, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
                                    depthRbo);
     if (glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER) !=
@@ -147,13 +108,11 @@ void ReflectionProbe::beginFace(const int face, const Capture capture) const {
                static_cast<GLsizei>(faceSize));
     glDepthMask(GL_TRUE);
     // Not glClear: the global clear colour is grey, and the sky is data.
-    constexpr std::array<float, 4> black{ 0.F, 0.F, 0.F, 1.F };
-    glClearNamedFramebufferfv(fbo, GL_COLOR, 0,
-                              withSky ? flatSky.data() : black.data());
+    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, flatSky.data());
     const float depth = 1.F;
     glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &depth);
 
-    if (environment && withSky) {
+    if (environment) {
         // After the clears: a clear with a program bound recompiles it on
         // NVIDIA. The image goes in behind the scene, with no depth test, so
         // it neither writes depth nor hides anything drawn after it.
@@ -170,41 +129,6 @@ void ReflectionProbe::beginFace(const int face, const Capture capture) const {
     }
 }
 
-glm::mat4 ReflectionProbe::skyHeightViewProj(const glm::vec3& boxMin,
-                                             const glm::vec3& boxMax,
-                                             const float      minY,
-                                             const float      maxY) {
-    const auto size =
-        glm::vec3(boxMax.x - boxMin.x, maxY - minY, boxMax.z - boxMin.z);
-    // x to x, z to y (flipped, so row 0 is boxMax.z and a front face keeps
-    // its winding seen from above), and a higher y to a nearer depth. glm
-    // indexes [column][row].
-    glm::mat4 m(0.F);
-    m[0][0] = 2.F / size.x;
-    m[3][0] = -2.F * boxMin.x / size.x - 1.F;
-    m[2][1] = -2.F / size.z;
-    m[3][1] = 2.F * boxMin.z / size.z + 1.F;
-    m[1][2] = -2.F / size.y;
-    m[3][2] = 2.F * maxY / size.y - 1.F;
-    m[3][3] = 1.F;
-    return m;
-}
-
-void ReflectionProbe::beginSkyHeight(const float minY) const {
-    glGetIntegerv(GL_VIEWPORT, savedViewport.data());
-    glBindFramebuffer(GL_FRAMEBUFFER, skyHeightFbo);
-    glViewport(0, 0, static_cast<GLsizei>(skyHeightSize),
-               static_cast<GLsizei>(skyHeightSize));
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
-    // Not glClear: the map is data. Below the box floor means no surface.
-    const float ground = minY - 1.F;
-    glClearNamedFramebufferfv(skyHeightFbo, GL_COLOR, 0, &ground);
-    const float depth = 1.F;
-    glClearNamedFramebufferfv(skyHeightFbo, GL_DEPTH, 0, &depth);
-}
-
 void ReflectionProbe::end() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(savedViewport[0], savedViewport[1], savedViewport[2],
@@ -213,8 +137,6 @@ void ReflectionProbe::end() const {
 
 void ReflectionProbe::prefilter() const {
     glGenerateTextureMipmap(captureCube);
-    glGenerateTextureMipmap(bounceCube);
-    glGenerateTextureMipmap(skyCube);
 
     // Roughness 0 is a mirror: mip 0 is an exact copy of the capture.
     glCopyImageSubData(captureCube, GL_TEXTURE_CUBE_MAP, 0, 0, 0, 0, resultCube,
@@ -254,25 +176,14 @@ void ReflectionProbe::prefilter() const {
     }
     shader->unbind();
 
-    convolveIrradiance(bounceCube, bounceIrradianceCube);
-    convolveIrradiance(skyCube, skyIrradianceCube);
-
-    glBindTextureUnit(0, 0);
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    end();
-}
-
-void ReflectionProbe::convolveIrradiance(const uint32_t source,
-                                         const uint32_t target) const {
-    glBindTextureUnit(0, source);
+    // The capture's mip chain is still bound on unit 0 for the cosine lobe.
     irradianceShader->bind();
     irradianceShader->setFloat("faceSize", static_cast<float>(faceSize));
     glViewport(0, 0, static_cast<GLsizei>(irradianceSize),
                static_cast<GLsizei>(irradianceSize));
     for (int face = 0; face < 6; face++) {
-        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, target, 0,
-                                       face);
+        glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0,
+                                       irradianceCube, 0, face);
         if (face == 0 && glCheckNamedFramebufferStatus(fbo, GL_FRAMEBUFFER) !=
                              GL_FRAMEBUFFER_COMPLETE) {
             SPONGE_GL_CRITICAL(
@@ -282,6 +193,11 @@ void ReflectionProbe::convolveIrradiance(const uint32_t source,
         quad.draw();
     }
     irradianceShader->unbind();
+
+    glBindTextureUnit(0, 0);
+    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    end();
 }
 
 glm::mat4 ReflectionProbe::faceView(const glm::vec3& position, const int face) {
