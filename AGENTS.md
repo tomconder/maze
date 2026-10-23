@@ -162,7 +162,8 @@ maze.exe --capture-frames=600 --dump-nan-stats
   resolutions in place of what a monitor reports, so its dot counts and
   value width can differ from a run on a real monitor. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `planar`, `lod` (draw LOD0 for every
+  `ssao`, `ssr`, `shadow`, `probe`, `gi` (flat ambient diffuse in place of
+  the probe irradiance), `planar`, `lod` (draw LOD0 for every
   mesh, for an A/B of the cut). Two more names change the measurement:
   `shadowcache` draws the shadow map every frame (the cache would otherwise
   draw it once and hide its cost), and `gputimer` turns the GPU timer off. Without

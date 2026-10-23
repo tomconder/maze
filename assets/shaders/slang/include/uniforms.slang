@@ -66,5 +66,6 @@ struct PbrParams {
     float3           probeBoxMin;    // world-space box the probe is projected against
     float3           probeBoxMax;
     float            probeMaxMip;  // last mip of probeMap; roughness 1 samples it
+    bool             giEnabled;    // sample irradianceMap for the ambient diffuse term
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;

@@ -146,6 +146,9 @@ struct MazeRenderFrame {
     // for probeCaptured before it actually samples.
     bool probeEnabled{ false };
 
+    // Light diffuse ambient from the probe's irradiance. Needs probeEnabled.
+    bool giEnabled{ false };
+
     // True when the planar mirror is drawn this frame.
     bool planarActive{ false };
     // Index of the planar mirror object; valid when planarActive.

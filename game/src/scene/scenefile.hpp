@@ -87,11 +87,14 @@ struct SceneBloom {
 
 // A reflection probe: the scene captured once into a cubemap at position,
 // and box-projected against [boxMin, boxMax] when surfaces sample it. The box
-// is the room the probe stands in.
+// is the room the probe stands in. The sky is what the capture shows through
+// an opening in the scene, in linear radiance. It is flat grey: a tinted sky
+// tints every shadow.
 struct SceneProbe {
     glm::vec3 position{ 0.F };
     glm::vec3 boxMin{ 0.F };
     glm::vec3 boxMax{ 0.F };
+    glm::vec3 sky{ .6F };
 };
 
 struct Scene {

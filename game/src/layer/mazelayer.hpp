@@ -166,6 +166,8 @@ public:
 
     bool isProbeEnabled() const;
     void setProbeEnabled(bool val);
+    bool isGiEnabled() const;
+    void setGiEnabled(bool val);
 
     bool isImguiActive() const;
 
@@ -431,6 +433,7 @@ private:
     bool    ssrEnabled          = true;
     bool    planarEnabled       = true;
     bool    probeEnabled        = true;
+    bool    giEnabled           = true;
     bool    mouseButtonPressed  = false;
     int32_t numLights           = 0;
     bool    isImguiOpen         = true;

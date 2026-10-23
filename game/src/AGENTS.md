@@ -125,9 +125,13 @@ primitives, windowing, or platform backends itself — see
   object's top face (local y = 1). Only the first planar object in a scene
   is used; the others fall back to SSR with a warning.
 * `probe` (top-level, optional) sets one reflection probe: `position`,
-  `boxMin`, `boxMax`. The loader drops it with a warning unless boxMin is
+  `boxMin`, `boxMax`, and optional `sky` (linear radiance the capture shows
+  through an opening in the scene, default grey 0.6). The
+  loader drops it with a warning unless boxMin is
   below boxMax on every axis and the position is inside the box. With no
-  probe, ambient is the flat `ambientStrength` term.
+  probe, ambient is the flat `ambientStrength` term. The probe also gives the
+  diffuse indirect light (`MazeLayer::giEnabled`, the debug UI's Global
+  Illumination row, `--capture-off=gi`).
 
 ## Contracts & Invariants
 

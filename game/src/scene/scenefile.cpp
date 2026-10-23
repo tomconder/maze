@@ -136,6 +136,7 @@ void readProbe(const node&                             root,
     p.position = readVec3(*map, "position", p.position);
     p.boxMin   = readVec3(*map, "boxMin", p.boxMin);
     p.boxMax   = readVec3(*map, "boxMax", p.boxMax);
+    p.sky      = readVec3(*map, "sky", p.sky);
     if (!glm::all(glm::lessThan(p.boxMin, p.boxMax))) {
         SPONGE_WARN("Scene probe box needs boxMin below boxMax on every axis; "
                     "no probe");

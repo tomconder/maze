@@ -396,6 +396,15 @@ void ImGuiLayer::showSsrControls() {
             }
         });
 
+        auto giEnabled = mazeLayer->isGiEnabled();
+        showTableRow([&] {
+            ImGui::Text("Global Illumination");
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("##gienabled", &giEnabled)) {
+                mazeLayer->setGiEnabled(giEnabled);
+            }
+        });
+
         ImGui::EndTable();
     }
 }

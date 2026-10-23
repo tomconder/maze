@@ -135,6 +135,25 @@ than calling GLFW/OpenGL/OS APIs directly.
   `Ssr` and the glass pass each sample `SceneTarget::copyColor()`, never the
   color attachment they draw into. The prepass normal alpha is the SSR
   strength mask.
+* Diffuse indirect light comes from the probe's irradiance cube
+  (`ReflectionProbe::getIrradiance()`, a 32 px cosine convolution of the same
+  capture, on unit 15), which feeds the PBR ambient diffuse term. It is one
+  bounce of what the capture saw, from one point: the light is the same
+  across the whole probe box, with no local colour bleed. The GI term is
+  `irradiance * albedo * aoTex * giGain * ambientStrength`: per-pixel
+  occlusion only, with no flat `ambientOcclusion`, so `ambientStrength` is
+  still its slider. `giGain` is in `pbr.slang` (5.0, so that 0.5 in
+  `maze.yaml` keeps shadowed pixels at their flat-ambient luminance). Retune
+  it if the scene's lights, the sky or the probe position change. The flat
+  term is the fallback when there is no probe or `giEnabled` is off.
+* The probe capture clears each face to one flat sky colour
+  (`ReflectionProbe::beginFace()`, `sky` in the scene's `probe:` block, grey
+  0.6), so the sky shows only through openings in the scene. A tinted sky
+  tints every shadow, so keep it grey. It has no sun disc, because the
+  directional light already lights surfaces and the capture would count it
+  twice. From the probe the sky is only a small part of the view, so it
+  cannot replace `giGain`: matching flat ambient from the sky alone needs a
+  radiance near 4. Retune `giGain` if you change `sky`.
 * resolve() takes a `ToneMapper` (Reinhard, Filmic, ACES, AgX). Every
   operator outputs linear display light and shares the one gamma encode, so
   AgX includes its own inverse transfer step. Keep `ToneMapper` in
