@@ -87,10 +87,9 @@ std::vector<uint8_t> write(const Format format, const uint32_t width,
     out.insert(out.end(), std::begin(identifier), std::end(identifier));
 
     put32(out, format);
-    // typeSize: one channel for the uncompressed formats here, and 1 by
-    // definition for block-compressed ones. Every format we write is one byte
-    // per channel either way.
-    put32(out, 1);
+    // typeSize: the size of one channel for the uncompressed formats, and 1
+    // by definition for block-compressed ones.
+    put32(out, format == formatR16G16B16A16Sfloat ? 2 : 1);
     put32(out, width);
     put32(out, height);
     put32(out, 0);  // pixelDepth

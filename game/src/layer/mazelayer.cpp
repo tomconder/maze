@@ -249,6 +249,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shader->setBoolean("translucencyEnabled", translucencyEnabled);
 
     shader->setFloat("ambientStrength", ambientStrength);
+    shader->setFloat("giStrength", sceneDesc.lighting.ambient.giStrength);
 
     const auto savedQuality = sponge::core::Settings::getUInt32(
         "video.shadowQuality", static_cast<uint32_t>(shadowQuality));
@@ -303,7 +304,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     }
 
     if (sceneDesc.probe) {
-        probe = std::make_unique<ReflectionProbe>();
+        probe = std::make_unique<ReflectionProbe>(sceneDesc.probe->environment);
     }
 
     sceneTarget =
@@ -1740,7 +1741,7 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
     for (int face = 0; face < 6; face++) {
         // beginFace() clears the face. On NVIDIA, a clear with this program
         // bound recompiles its vertex shader, so bind after the clear.
-        probe->beginFace(face, desc.sky);
+        probe->beginFace(face);
         shader->bind();
         const auto viewProj =
             projection * ReflectionProbe::faceView(desc.position, face);

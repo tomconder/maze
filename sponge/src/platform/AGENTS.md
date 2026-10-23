@@ -140,20 +140,26 @@ than calling GLFW/OpenGL/OS APIs directly.
   capture, on unit 15), which feeds the PBR ambient diffuse term. It is one
   bounce of what the capture saw, from one point: the light is the same
   across the whole probe box, with no local colour bleed. The GI term is
-  `irradiance * albedo * aoTex * giGain * ambientStrength`: per-pixel
+  `irradiance * albedo * aoTex * ambientStrength * giStrength`: per-pixel
   occlusion only, with no flat `ambientOcclusion`, so `ambientStrength` is
-  still its slider. `giGain` is in `pbr.slang` (5.0, so that 0.5 in
-  `maze.yaml` keeps shadowed pixels at their flat-ambient luminance). Retune
-  it if the scene's lights, the sky or the probe position change. The flat
-  term is the fallback when there is no probe or `giEnabled` is off.
-* The probe capture clears each face to one flat sky colour
-  (`ReflectionProbe::beginFace()`, `sky` in the scene's `probe:` block, grey
-  0.6), so the sky shows only through openings in the scene. A tinted sky
-  tints every shadow, so keep it grey. It has no sun disc, because the
-  directional light already lights surfaces and the capture would count it
-  twice. From the probe the sky is only a small part of the view, so it
-  cannot replace `giGain`: matching flat ambient from the sky alone needs a
-  radiance near 4. Retune `giGain` if you change `sky`.
+  still its slider. `giStrength` (`lighting.ambient.giStrength` in
+  `maze.yaml`, 4.0) scales this term only, so the flat fallback keeps its own
+  level. Retune it if the environment image, the scene's lights or the probe
+  position change. The flat term is the fallback when there is no probe or
+  `giEnabled` is off.
+* The probe capture fills each face with an equirect environment image
+  (`ReflectionProbe::beginFace()` draws it with `probe_sky.frag`, before the
+  scene, so it shows only through openings in the scene). The image is
+  `environment` in the scene's `probe:` block: a baked half-float KTX2
+  (`ktx2::formatR16G16B16A16Sfloat`) made by `assetconv` from a Radiance
+  `.hdr` listed under `environments` in `assets/manifest.yaml`. Without it,
+  or when the file does not load, the face is a flat grey 0.6. The shader
+  caps each texel at `maxRadiance`: the image holds a sun and bright
+  windows, the directional light already lights surfaces and would be
+  counted twice, and one texel of thousands would swamp a 32 px irradiance
+  face. The `.hdr` is a bake input, so `DEPLOY_EXCLUDE_REGEX` keeps it out of
+  the shipped assets, and `.gitattributes` marks `*.hdr` binary (an
+  LF rewrite of the file breaks its run-length rows).
 * resolve() takes a `ToneMapper` (Reinhard, Filmic, ACES, AgX). Every
   operator outputs linear display light and shares the one gamma encode, so
   AgX includes its own inverse transfer step. Keep `ToneMapper` in

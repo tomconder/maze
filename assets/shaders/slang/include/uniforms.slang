@@ -67,5 +67,6 @@ struct PbrParams {
     float3           probeBoxMax;
     float            probeMaxMip;  // last mip of probeMap; roughness 1 samples it
     bool             giEnabled;    // sample irradianceMap for the ambient diffuse term
+    float            giStrength;   // scales the irradiance term only; the flat term ignores it
 };
 [[vk::binding(2)]] ConstantBuffer<PbrParams> params;

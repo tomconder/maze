@@ -26,6 +26,12 @@ textures:
   - source: textures/blackcoffee.png
     output: textures/blackcoffee.ktx2
 
+# Radiance .hdr images, baked to half-float KTX2. The probe capture shows one
+# through the openings in the scene.
+environments:
+  - source: textures/kloofendal_overcast_puresky_1k.hdr
+    output: textures/kloofendal_overcast_puresky_1k.ktx2
+
 fonts:
   - source: fonts/inter.ttf
     output: fonts/inter.ktx2
@@ -64,6 +70,8 @@ licenses:
     files: [fonts/LICENSE.txt]
   - name: Kenney Input Prompts
     files: [textures/prompts/License.txt]
+  - name: Kloofendal Overcast HDRI
+    files: [textures/License-kloofendal.txt]
 
 # Each stage is <slang source>:<entry point>, keyed by the name the engine
 # asks for. All of them compile into one pack.
@@ -91,6 +99,7 @@ shaders:
     planar.vert: shaders/slang/planar.slang:vertMain
     probe_irradiance.frag: shaders/slang/probe_irradiance.slang:fragMain
     probe_prefilter.frag: shaders/slang/probe_prefilter.slang:fragMain
+    probe_sky.frag: shaders/slang/probe_sky.slang:fragMain
     refraction.frag: shaders/slang/refraction.slang:fragMain
     refraction.vert: shaders/slang/refraction.slang:vertMain
     quad.frag: shaders/slang/rectangle.slang:fragMain

@@ -47,13 +47,6 @@ VSOutput vertMain(VSInput input) {
 [[vk::binding(14)]] Sampler2D<float4>     diffuseTransmissionMap;
 [[vk::binding(15)]] SamplerCube<float4>   irradianceMap;
 
-// The probe sees mostly walls, with the sky through a small opening, so its
-// irradiance is lower than the flat ambient it replaces. Tuned so the shadowed
-// half of the frame keeps about its flat-ambient luminance at the scene's
-// ambientStrength of 0.5. It multiplies ambientStrength, so that stays the
-// slider for the GI term too.
-static const float giGain = 5.0;
-
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
     return uv * t.zw + t.xy;
@@ -229,7 +222,7 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
         if (params.giEnabled) {
             // The irradiance is a mean radiance, so albedo is the whole BRDF.
             // aoTex, not ao: the flat multiplier darkens the flat term only.
-            ambientDiffuse = irradianceMap.SampleLevel(N, 0.0).rgb * albedo * aoTex * giGain * params.ambientStrength;
+            ambientDiffuse = irradianceMap.SampleLevel(N, 0.0).rgb * albedo * aoTex * params.ambientStrength * params.giStrength;
         }
         ambientDiffuse *= (1.0 - F) * (1.0 - metallic);
         ambientSpecular = probe * (F0 * AB.x + AB.y) * aoTex;

@@ -28,8 +28,8 @@ add_custom_target(
 # by the install rules in game/CMakeLists.txt, both of which match a REGEX
 # against the whole path.
 #
-# - Images and fonts: every one is a bake input, and must not ship beside what
-#   it was baked into.
+# - Images (HDR too) and fonts: every one is a bake input, and must not ship
+#   beside what it was baked into.
 # - manifest.yaml: drives the bake, never read at run time. Matched by name,
 #   not by extension: assets/scenes/*.yaml is read at run time and ships.
 # - License files of third-party art and fonts: joined into the notices file
@@ -41,4 +41,4 @@ add_custom_target(
 # case, so each letter is spelled as a two-case class. The value holds a
 # generator expression, so only commands and install(CODE) can use it.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff]|[Hh][Dd][Rr])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")

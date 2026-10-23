@@ -12,6 +12,10 @@ namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
 namespace {
+// The background when there is no environment image: a flat grey, in linear
+// radiance. A tinted background would tint every shadow, so keep it grey.
+constexpr std::array<float, 4> flatSky{ .6F, .6F, .6F, 1.F };
+
 // Immutable storage for every face at every level.
 uint32_t createCube(const int levels, const uint32_t size) {
     uint32_t id = 0;
@@ -30,7 +34,7 @@ uint32_t createCube(const int levels, const uint32_t size) {
 }
 }  // namespace
 
-ReflectionProbe::ReflectionProbe() {
+ReflectionProbe::ReflectionProbe(const std::string& environmentPath) {
     // Filter across face edges, so rough mips show no seams.
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -57,6 +61,27 @@ ReflectionProbe::ReflectionProbe() {
         .vertexShader   = "screenquad.vert",
         .fragmentShader = "probe_irradiance.frag",
     });
+
+    if (!environmentPath.empty()) {
+        environment = AssetManager::createTexture(renderer::TextureCreateInfo{
+            .name = "probe_environment",
+            .path = environmentPath,
+        });
+        // A file that fails to load leaves a texture with no storage, which
+        // samples as black. Fall back to the flat grey instead.
+        if (environment->getWidth() == 0) {
+            SPONGE_GL_WARN("Probe environment {} did not load; flat sky",
+                           environmentPath);
+            environment.reset();
+        }
+    }
+    if (environment) {
+        skyShader = AssetManager::createShader(renderer::ShaderCreateInfo{
+            .name           = "probe_sky",
+            .vertexShader   = "screenquad.vert",
+            .fragmentShader = "probe_sky.frag",
+        });
+    }
 }
 
 ReflectionProbe::~ReflectionProbe() {
@@ -67,7 +92,7 @@ ReflectionProbe::~ReflectionProbe() {
     glDeleteTextures(1, &irradianceCube);
 }
 
-void ReflectionProbe::beginFace(const int face, const glm::vec3& sky) const {
+void ReflectionProbe::beginFace(const int face) const {
     glGetIntegerv(GL_VIEWPORT, savedViewport.data());
     // A cube map face is layer `face` of the texture (GL 4.5).
     glNamedFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, captureCube, 0,
@@ -83,10 +108,25 @@ void ReflectionProbe::beginFace(const int face, const glm::vec3& sky) const {
                static_cast<GLsizei>(faceSize));
     glDepthMask(GL_TRUE);
     // Not glClear: the global clear colour is grey, and the sky is data.
-    const std::array<float, 4> color{ sky.r, sky.g, sky.b, 1.F };
-    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, color.data());
+    glClearNamedFramebufferfv(fbo, GL_COLOR, 0, flatSky.data());
     const float depth = 1.F;
     glClearNamedFramebufferfv(fbo, GL_DEPTH, 0, &depth);
+
+    if (environment) {
+        // After the clears: a clear with a program bound recompiles it on
+        // NVIDIA. The image goes in behind the scene, with no depth test, so
+        // it neither writes depth nor hides anything drawn after it.
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        skyShader->bind();
+        environment->bind(0);
+        skyShader->setInteger("face", face);
+        quad.draw();
+        skyShader->unbind();
+        glBindTextureUnit(0, 0);
+        glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 void ReflectionProbe::end() const {
