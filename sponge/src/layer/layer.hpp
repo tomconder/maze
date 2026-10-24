@@ -3,11 +3,13 @@
 #include "event/event.hpp"
 
 #include <string>
+#include <utility>
 
 namespace sponge::layer {
 class Layer {
 public:
-    explicit Layer(std::string name = "undefined");
+    explicit Layer(std::string name = "undefined") :
+        debugName(std::move(name)) {}
     virtual ~Layer() = default;
 
     virtual void onAttach() {}
