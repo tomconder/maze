@@ -19,7 +19,7 @@ target_include_directories(assetconv PRIVATE src)
 
 # Every asset format lives here, not in the engine: cgltf for glTF, libspng
 # and libjpeg-turbo to decode source images, bc7enc for BC7 blocks, rectpack2D
-# for the atlases. The mip chain is src/mipfilter.cpp, vectorized with xsimd.
+# for the atlases. The mip chain is src/mipfilter.cpp.
 # bc7enc_rdo @ b9438627eef73a1157e84201b6fa6eb2ffd6d9f0
 # clusterlod.h @ meshoptimizer v1.3 (9e1f07b159d3cb777f1c67ed31fc11fd117986f4), demo/clusterlod.h
 # cgltf and rectpack2D come from vcpkg.
@@ -64,11 +64,6 @@ target_link_libraries(assetconv PRIVATE
 
 # Mesh optimization is a bake step now, so meshoptimizer links here.
 target_link_libraries(assetconv PRIVATE meshoptimizer::meshoptimizer)
-
-# SIMD for the mip filter. Header-only, so the converter builds for the
-# baseline instruction set of whatever it runs on.
-find_package(xsimd CONFIG REQUIRED)
-target_link_libraries(assetconv PRIVATE xsimd)
 
 target_link_libraries(assetconv PRIVATE sponge::format)
 
