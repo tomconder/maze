@@ -495,108 +495,72 @@ bool MazeLayer::onUpdate(const double elapsedTime) {
     return true;
 }
 
-void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
-    auto& frame = renderFrames[slotIndex];
+void MazeLayer::cullCamera(thread::MazeRenderFrame& frame) {
+    SPONGE_PROFILE_SECTION("frustum cull");
+    const auto cullStart = std::chrono::steady_clock::now();
 
-    // One locked read for the whole snapshot: the jitter branch below and
-    // frame.antiAliasing have to agree. Reading the member twice lets a mode
-    // switch land between them and tag a jittered frame as FXAA.
-    const AntiAliasing aaMode = [this] {
-        std::scoped_lock lock(settingsMutex);
-        return antiAliasing;
-    }();
+    // Unjittered: the frustum a jittered MVP implies is the same one, off
+    // by a sub-pixel translation not worth the extra matrix.
+    const sponge::scene::Frustum frustum(frame.cameraViewProj);
 
-    frame.cameraMVP      = camera->getMVP();
-    frame.cameraViewProj = frame.cameraMVP;
-    if (aaMode == AntiAliasing::Taa) {
-        const auto jitter = TAA::haltonJitter(
-            jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
-            static_cast<uint32_t>(screenHeight.load()));
-        frame.cameraMVP =
-            glm::translate(glm::mat4(1.F), glm::vec3(jitter, 0.F)) *
-            frame.cameraMVP;
-    }
-    frame.invCameraMVP       = glm::inverse(frame.cameraMVP);
-    frame.prevCameraViewProj = prevCameraViewProj;
-    prevCameraViewProj       = frame.cameraViewProj;
+    // proj[1][1] is 1 / tan(fovY / 2).
+    const float pixelsPerUnit = static_cast<float>(frame.screenHeight) *
+                                frame.cameraProjection[1][1] * 0.5F;
+    const auto  passes = [&](const sponge::scene::ClusterBounds& bounds) {
+        return sponge::scene::pixelError(bounds, frame.cameraPos, pixelsPerUnit,
+                                         frame.nearPlane) <= lodPixelError;
+    };
+    auto& cut = frame.cameraCut;
+    cut.ranges.clear();
+    uint64_t indices = 0;
 
-    frame.cameraView       = camera->getViewMatrix();
-    frame.cameraProjection = camera->getProjectionMatrix();
-    frame.cameraPos        = camera->getPosition();
-    frame.nearPlane        = camera->getNear();
-    frame.farPlane         = camera->getFar();
-    frame.screenWidth      = screenWidth;
-    frame.screenHeight     = screenHeight;
-
-    {
-        SPONGE_PROFILE_SECTION("frustum cull");
-        const auto cullStart = std::chrono::steady_clock::now();
-
-        // Unjittered: the frustum a jittered MVP implies is the same one, off
-        // by a sub-pixel translation not worth the extra matrix.
-        const sponge::scene::Frustum frustum(frame.cameraViewProj);
-
-        // proj[1][1] is 1 / tan(fovY / 2).
-        const float pixelsPerUnit = static_cast<float>(frame.screenHeight) *
-                                    frame.cameraProjection[1][1] * 0.5F;
-        const auto  passes = [&](const sponge::scene::ClusterBounds& bounds) {
-            return sponge::scene::pixelError(bounds, frame.cameraPos,
-                                             pixelsPerUnit,
-                                             frame.nearPlane) <= lodPixelError;
-        };
-        auto& cut = frame.cameraCut;
-        cut.ranges.clear();
-        uint64_t indices = 0;
-
-        uint32_t visible = 0;
-        uint32_t total   = 0;
-        for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
-            const auto& bounds  = objectMeshWorldBounds[i];
-            auto&       visMask = frame.objectMeshVisible[i];
-            auto&       meshCut = cut.meshes[i];
-            for (size_t m = 0; m < bounds.size(); m++) {
-                const bool vis = frustum.intersects(bounds[m]);
-                visMask[m]     = vis ? 1 : 0;
-                meshCut[m]     = {};
-                visible += vis ? 1U : 0U;
-                if (!vis) {
-                    continue;
-                }
-                if (lodOff) {
-                    indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
-                    continue;
-                }
-                const auto slice = objectMeshClusters[i][m];
-                const auto clusters =
-                    std::span(worldClusters).subspan(slice.first, slice.count);
-                meshCut[m] =
-                    sponge::scene::appendCut(clusters, passes, cut.ranges);
-                if (meshCut[m].count == 0) {
-                    // No clusters (a mesh built without a hierarchy): LOD0.
-                    indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
-                    continue;
-                }
-                for (uint32_t r = 0; r < meshCut[m].count; r++) {
-                    indices += cut.ranges[meshCut[m].first + r].indexCount;
-                }
+    uint32_t visible = 0;
+    uint32_t total   = 0;
+    for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+        const auto& bounds  = objectMeshWorldBounds[i];
+        auto&       visMask = frame.objectMeshVisible[i];
+        auto&       meshCut = cut.meshes[i];
+        for (size_t m = 0; m < bounds.size(); m++) {
+            const bool vis = frustum.intersects(bounds[m]);
+            visMask[m]     = vis ? 1 : 0;
+            meshCut[m]     = {};
+            visible += vis ? 1U : 0U;
+            if (!vis) {
+                continue;
             }
-            total += static_cast<uint32_t>(bounds.size());
+            if (lodOff) {
+                indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
+                continue;
+            }
+            const auto slice = objectMeshClusters[i][m];
+            const auto clusters =
+                std::span(worldClusters).subspan(slice.first, slice.count);
+            meshCut[m] = sponge::scene::appendCut(clusters, passes, cut.ranges);
+            if (meshCut[m].count == 0) {
+                // No clusters (a mesh built without a hierarchy): LOD0.
+                indices += frame.objectModels[i]->getMeshLod0IndexCount(m);
+                continue;
+            }
+            for (uint32_t r = 0; r < meshCut[m].count; r++) {
+                indices += cut.ranges[meshCut[m].first + r].indexCount;
+            }
         }
-        visibleMeshCount.store(visible, std::memory_order_relaxed);
-        totalMeshCount.store(total, std::memory_order_relaxed);
-        drawnTriangleCount.store(static_cast<uint32_t>(indices / 3),
-                                 std::memory_order_relaxed);
-        drawnRangeCount.store(static_cast<uint32_t>(cut.ranges.size()),
-                              std::memory_order_relaxed);
-
-        const auto cullUs =
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::steady_clock::now() - cullStart)
-                .count();
-        cullMicros.store(static_cast<uint32_t>(cullUs),
-                         std::memory_order_relaxed);
+        total += static_cast<uint32_t>(bounds.size());
     }
+    visibleMeshCount.store(visible, std::memory_order_relaxed);
+    totalMeshCount.store(total, std::memory_order_relaxed);
+    drawnTriangleCount.store(static_cast<uint32_t>(indices / 3),
+                             std::memory_order_relaxed);
+    drawnRangeCount.store(static_cast<uint32_t>(cut.ranges.size()),
+                          std::memory_order_relaxed);
 
+    const auto cullUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                            std::chrono::steady_clock::now() - cullStart)
+                            .count();
+    cullMicros.store(static_cast<uint32_t>(cullUs), std::memory_order_relaxed);
+}
+
+void MazeLayer::capturePlanar(thread::MazeRenderFrame& frame) {
     // Planar mirror: the camera reflected in the mirror's top face, with its
     // near plane moved onto the mirror so nothing below it is drawn. Skipped
     // when the mirror itself is frustum-culled, so a mirror behind the camera
@@ -645,94 +609,134 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
             }
         }
     }
+}
 
-    {
-        // ImGui setters mutate these from the render thread.
-        std::scoped_lock lock(settingsMutex);
+void MazeLayer::captureSettings(thread::MazeRenderFrame& frame,
+                                const AntiAliasing       aaMode) {
+    // ImGui setters mutate these from the render thread.
+    std::scoped_lock lock(settingsMutex);
 
-        frame.shadowEnabled    = directionalLight.enabled;
-        frame.shadowCastShadow = directionalLight.castShadow;
-        frame.lightDirection   = directionalLight.direction;
-        if (directionalLight.enabled && directionalLight.castShadow) {
-            frame.cascadeCount = shadowCascades.load(std::memory_order_relaxed);
-            const auto& proj   = frame.cameraProjection;
-            // Pure function: onRender() may be replacing shadowMap.
-            frame.lightSpaceMatrices = ShadowMap::fitLightSpace(
-                glm::normalize(directionalLight.direction), sceneBounds,
-                { .position    = frame.cameraPos,
-                  .nearPlane   = frame.nearPlane,
-                  .farPlane    = frame.farPlane,
-                  .tanHalfFovY = 1.F / proj[1][1],
-                  .aspect      = proj[1][1] / proj[0][0] },
-                frame.cascadeCount, directionalLight.shadowMapRes,
-                shadowSplitLambda.load(std::memory_order_relaxed));
+    frame.shadowEnabled    = directionalLight.enabled;
+    frame.shadowCastShadow = directionalLight.castShadow;
+    frame.lightDirection   = directionalLight.direction;
+    if (directionalLight.enabled && directionalLight.castShadow) {
+        frame.cascadeCount = shadowCascades.load(std::memory_order_relaxed);
+        const auto& proj   = frame.cameraProjection;
+        // Pure function: onRender() may be replacing shadowMap.
+        frame.lightSpaceMatrices = ShadowMap::fitLightSpace(
+            glm::normalize(directionalLight.direction), sceneBounds,
+            { .position    = frame.cameraPos,
+              .nearPlane   = frame.nearPlane,
+              .farPlane    = frame.farPlane,
+              .tanHalfFovY = 1.F / proj[1][1],
+              .aspect      = proj[1][1] / proj[0][0] },
+            frame.cascadeCount, directionalLight.shadowMapRes,
+            shadowSplitLambda.load(std::memory_order_relaxed));
 
-            for (uint32_t c = 0; c < frame.cascadeCount; c++) {
-                const auto& light = frame.lightSpaceMatrices[c];
-                // Row 0 of an orthographic light matrix has length 2 / box
-                // width.
-                // Rounded to 1e-5: the box edges are cx +- r, so the width
-                // changes in the last float bit as the camera moves, and an
-                // exact compare would make the cut again on those frames.
-                const float texelSize =
-                    std::round(2.F /
-                               (glm::length(glm::vec3(light[0][0], light[1][0],
-                                                      light[2][0])) *
-                                static_cast<float>(
-                                    std::min(directionalLight.shadowMapRes,
-                                             ShadowMap::maxResolution))) *
-                               1e5F) /
-                    1e5F;
-                if (!lodOff &&
-                    (!shadowCuts[c] || shadowCutTexel[c] != texelSize)) {
-                    shadowCuts[c] =
-                        std::make_shared<const sponge::scene::ClusterCut>(
-                            makeShadowCut(worldClusters, objectMeshClusters,
-                                          texelSize));
-                    shadowCutTexel[c] = texelSize;
-                }
-                frame.shadowCuts[c] = lodOff ? nullptr : shadowCuts[c];
+        for (uint32_t c = 0; c < frame.cascadeCount; c++) {
+            const auto& light = frame.lightSpaceMatrices[c];
+            // Row 0 of an orthographic light matrix has length 2 / box
+            // width.
+            // Rounded to 1e-5: the box edges are cx +- r, so the width
+            // changes in the last float bit as the camera moves, and an
+            // exact compare would make the cut again on those frames.
+            const float texelSize =
+                std::round(
+                    2.F /
+                    (glm::length(
+                         glm::vec3(light[0][0], light[1][0], light[2][0])) *
+                     static_cast<float>(std::min(directionalLight.shadowMapRes,
+                                                 ShadowMap::maxResolution))) *
+                    1e5F) /
+                1e5F;
+            if (!lodOff && (!shadowCuts[c] || shadowCutTexel[c] != texelSize)) {
+                shadowCuts[c] =
+                    std::make_shared<const sponge::scene::ClusterCut>(
+                        makeShadowCut(worldClusters, objectMeshClusters,
+                                      texelSize));
+                shadowCutTexel[c] = texelSize;
+            }
+            frame.shadowCuts[c] = lodOff ? nullptr : shadowCuts[c];
 
-                const sponge::scene::Frustum lightFrustum(
-                    frame.lightSpaceMatrices[c]);
-                for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
-                    const auto& bounds  = objectMeshWorldBounds[i];
-                    auto&       visMask = frame.objectMeshVisibleLight[c][i];
-                    for (size_t m = 0; m < bounds.size(); m++) {
-                        visMask[m] = lightFrustum.intersects(bounds[m]) ? 1 : 0;
-                    }
+            const sponge::scene::Frustum lightFrustum(
+                frame.lightSpaceMatrices[c]);
+            for (size_t i = 0; i < objectMeshWorldBounds.size(); i++) {
+                const auto& bounds  = objectMeshWorldBounds[i];
+                auto&       visMask = frame.objectMeshVisibleLight[c][i];
+                for (size_t m = 0; m < bounds.size(); m++) {
+                    visMask[m] = lightFrustum.intersects(bounds[m]) ? 1 : 0;
                 }
             }
         }
-
-        frame.numLights             = numLights;
-        frame.lightAttenuationIndex = attenuationIndex;
-        for (int32_t i = 0; i < numLights; i++) {
-            frame.lightPositions[i]     = pointLights.at(i).position;
-            frame.prevLightPositions[i] = prevLightPositions.at(i);
-            frame.lightColors[i]        = pointLights.at(i).color;
-            prevLightPositions.at(i)    = pointLights.at(i).position;
-        }
-
-        frame.antiAliasing   = aaMode;
-        frame.bloomEnabled   = bloomEnabled;
-        frame.bloomThreshold = bloomThreshold;
-        frame.bloomIntensity = bloomIntensity;
-        frame.toneMapper     = toneMapper;
-
-        frame.refractionEnabled = refractionEnabled;
-        if (refractionEnabled) {
-            frame.objectRefraction = objectRefraction;
-        } else {
-            frame.objectRefraction.assign(objectRefraction.size(), {});
-        }
-
-        frame.ssaoEnabled  = ssaoEnabled;
-        frame.ssaoRadius   = ssaoRadius;
-        frame.ssrEnabled   = ssrEnabled;
-        frame.probeEnabled = probeEnabled && probe != nullptr;
-        frame.giEnabled    = giEnabled;
     }
+
+    frame.numLights             = numLights;
+    frame.lightAttenuationIndex = attenuationIndex;
+    for (int32_t i = 0; i < numLights; i++) {
+        frame.lightPositions[i]     = pointLights.at(i).position;
+        frame.prevLightPositions[i] = prevLightPositions.at(i);
+        frame.lightColors[i]        = pointLights.at(i).color;
+        prevLightPositions.at(i)    = pointLights.at(i).position;
+    }
+
+    frame.antiAliasing   = aaMode;
+    frame.bloomEnabled   = bloomEnabled;
+    frame.bloomThreshold = bloomThreshold;
+    frame.bloomIntensity = bloomIntensity;
+    frame.toneMapper     = toneMapper;
+
+    frame.refractionEnabled = refractionEnabled;
+    if (refractionEnabled) {
+        frame.objectRefraction = objectRefraction;
+    } else {
+        frame.objectRefraction.assign(objectRefraction.size(), {});
+    }
+
+    frame.ssaoEnabled  = ssaoEnabled;
+    frame.ssaoRadius   = ssaoRadius;
+    frame.ssrEnabled   = ssrEnabled;
+    frame.probeEnabled = probeEnabled && probe != nullptr;
+    frame.giEnabled    = giEnabled;
+}
+
+void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
+    auto& frame = renderFrames[slotIndex];
+
+    // One locked read for the whole snapshot: the jitter branch below and
+    // frame.antiAliasing have to agree. Reading the member twice lets a mode
+    // switch land between them and tag a jittered frame as FXAA.
+    const AntiAliasing aaMode = [this] {
+        std::scoped_lock lock(settingsMutex);
+        return antiAliasing;
+    }();
+
+    frame.cameraMVP      = camera->getMVP();
+    frame.cameraViewProj = frame.cameraMVP;
+    if (aaMode == AntiAliasing::Taa) {
+        const auto jitter = TAA::haltonJitter(
+            jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
+            static_cast<uint32_t>(screenHeight.load()));
+        frame.cameraMVP =
+            glm::translate(glm::mat4(1.F), glm::vec3(jitter, 0.F)) *
+            frame.cameraMVP;
+    }
+    frame.invCameraMVP       = glm::inverse(frame.cameraMVP);
+    frame.prevCameraViewProj = prevCameraViewProj;
+    prevCameraViewProj       = frame.cameraViewProj;
+
+    frame.cameraView       = camera->getViewMatrix();
+    frame.cameraProjection = camera->getProjectionMatrix();
+    frame.cameraPos        = camera->getPosition();
+    frame.nearPlane        = camera->getNear();
+    frame.farPlane         = camera->getFar();
+    frame.screenWidth      = screenWidth;
+    frame.screenHeight     = screenHeight;
+
+    cullCamera(frame);
+
+    capturePlanar(frame);
+
+    captureSettings(frame, aaMode);
 
     // Last: everything above is real per-frame state now, not finishLoading()'s
     // pre-seeded defaults.
@@ -749,9 +753,7 @@ void MazeLayer::onFrameSync() {
     renderReadIndex.store(writtenSlot, std::memory_order_release);
 }
 
-void MazeLayer::onRender() {
-    SPONGE_PROFILE_SECTION("onRender");
-    // Render thread only — all GL calls here.
+void MazeLayer::applyPendingChanges() {
     if (pendingShadowRebuild.load(std::memory_order_acquire)) {
         const auto res =
             pendingShadowRebuildRes.load(std::memory_order_relaxed);
@@ -792,6 +794,77 @@ void MazeLayer::onRender() {
                                                   static_cast<float>(h)));
         pendingResize.store(false, std::memory_order_relaxed);
     }
+}
+
+void MazeLayer::renderShadowMaps(const thread::MazeRenderFrame& frame) {
+    // Phase 1: shadow map. Each cascade is drawn again only when its own
+    // matrix changed, so a camera that only turns redraws nothing.
+    if (frame.shadowEnabled && frame.shadowCastShadow) {
+        if (frame.refractionEnabled != shadowCachedRefraction) {
+            // every cascade, including ones not drawn this frame
+            shadowCached.fill(false);
+            shadowCachedRefraction = frame.refractionEnabled;
+        }
+        for (uint32_t c = 0; c < frame.cascadeCount; c++) {
+            if (shadowCacheOff || !shadowCached[c] ||
+                frame.lightSpaceMatrices[c] != shadowCachedMatrices[c] ||
+                frame.shadowCuts[c] != shadowCachedCuts[c]) {
+                gpuBegin("shadow");
+                renderSceneToDepthMap(frame, c);
+                gpuEnd();
+                shadowCachedMatrices[c] = frame.lightSpaceMatrices[c];
+                shadowCachedCuts[c]     = frame.shadowCuts[c];
+                shadowCached[c]         = true;
+            }
+        }
+    }
+}
+
+void MazeLayer::resolveToDisplay(const thread::MazeRenderFrame& frame,
+                                 const bool fxaaActive, const bool taaActive,
+                                 const uint32_t bloomTexId,
+                                 const float    bloomWeight) {
+    // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
+    // resolved image and does its own dithered write to the back buffer.
+    {
+        SPONGE_PROFILE_SECTION("resolve");
+        gpuBegin("resolve");
+        if (fxaaActive) {
+            fxaa->begin();
+        } else if (taaActive) {
+            taa->begin();
+        }
+
+        sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive,
+                             frame.toneMapper);
+        gpuEnd();
+    }
+
+    if (fxaaActive) {
+        SPONGE_PROFILE_SECTION("aa");
+        gpuBegin("aa");
+        fxaa->end();
+        fxaa->apply();
+        gpuEnd();
+    } else if (taaActive) {
+        // Simplification: TAA accumulates the tone-mapped image, which is where
+        // it already ran. Accumulating in linear with a reversible weighting
+        // curve resolves highlight edges better, but that change belongs inside
+        // TAA, not in this pass order.
+        SPONGE_PROFILE_SECTION("aa");
+        gpuBegin("aa");
+        taa->end();
+        taa->apply(depthPrepass->getDepthTexture(),
+                   depthPrepass->getVelocityTexture(), frame.invCameraMVP,
+                   frame.prevCameraViewProj);
+        gpuEnd();
+    }
+}
+
+void MazeLayer::onRender() {
+    SPONGE_PROFILE_SECTION("onRender");
+    // Render thread only — all GL calls here.
+    applyPendingChanges();
 
     // Read the latest snapshot from the update thread.
     const auto& frame =
@@ -830,27 +903,7 @@ void MazeLayer::onRender() {
         frame.planarActive && planarReflection &&
         !(occlusionCuller && !occlusionCuller->isVisible(frame.planarIndex));
 
-    // Phase 1: shadow map. Each cascade is drawn again only when its own
-    // matrix changed, so a camera that only turns redraws nothing.
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
-        if (frame.refractionEnabled != shadowCachedRefraction) {
-            // every cascade, including ones not drawn this frame
-            shadowCached.fill(false);
-            shadowCachedRefraction = frame.refractionEnabled;
-        }
-        for (uint32_t c = 0; c < frame.cascadeCount; c++) {
-            if (shadowCacheOff || !shadowCached[c] ||
-                frame.lightSpaceMatrices[c] != shadowCachedMatrices[c] ||
-                frame.shadowCuts[c] != shadowCachedCuts[c]) {
-                gpuBegin("shadow");
-                renderSceneToDepthMap(frame, c);
-                gpuEnd();
-                shadowCachedMatrices[c] = frame.lightSpaceMatrices[c];
-                shadowCachedCuts[c]     = frame.shadowCuts[c];
-                shadowCached[c]         = true;
-            }
-        }
-    }
+    renderShadowMaps(frame);
 
     // Phase 1.5: the reflection probe, once, after the shadow map it lights
     // with. Waits for the first fully populated frame: finishLoading()
@@ -1020,41 +1073,7 @@ void MazeLayer::onRender() {
         bloomWeight = frame.bloomIntensity;
     }
 
-    // Phase 6: resolve to display. Anti-aliasing, when on, consumes the
-    // resolved image and does its own dithered write to the back buffer.
-    {
-        SPONGE_PROFILE_SECTION("resolve");
-        gpuBegin("resolve");
-        if (fxaaActive) {
-            fxaa->begin();
-        } else if (taaActive) {
-            taa->begin();
-        }
-
-        sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive,
-                             frame.toneMapper);
-        gpuEnd();
-    }
-
-    if (fxaaActive) {
-        SPONGE_PROFILE_SECTION("aa");
-        gpuBegin("aa");
-        fxaa->end();
-        fxaa->apply();
-        gpuEnd();
-    } else if (taaActive) {
-        // Simplification: TAA accumulates the tone-mapped image, which is where
-        // it already ran. Accumulating in linear with a reversible weighting
-        // curve resolves highlight edges better, but that change belongs inside
-        // TAA, not in this pass order.
-        SPONGE_PROFILE_SECTION("aa");
-        gpuBegin("aa");
-        taa->end();
-        taa->apply(depthPrepass->getDepthTexture(),
-                   depthPrepass->getVelocityTexture(), frame.invCameraMVP,
-                   frame.prevCameraViewProj);
-        gpuEnd();
-    }
+    resolveToDisplay(frame, fxaaActive, taaActive, bloomTexId, bloomWeight);
 
     if (gpuTimer) {
         SPONGE_PROFILE_SECTION("gpu timer end");
