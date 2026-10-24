@@ -60,15 +60,15 @@ public:
     ASSET_MANAGER_FUNCS(Font, scene::BitmapFont, scene::FontCreateInfo,
                         fontHandler);
 
-    ASSET_MANAGER_FUNCS(Model, scene::Model, scene::ModelCreateInfo,
-                        modelHandler);
-
-    // Registers a Model built via Model(ModelData&&) (background-parsed),
-    // which bypasses createModel()'s single-shot construction, so it still
+    // Registers a Model built via Model(ModelData&&) (background-parsed), so it
     // shows up in getModels() (the ImGui debug table).
     static void registerModel(const std::string&            name,
                               std::shared_ptr<scene::Model> model) {
         modelHandler.insert(name, std::move(model));
+    }
+
+    static auto& getModels() {
+        return modelHandler.getAssets();
     }
 
     ASSET_MANAGER_FUNCS(Shader, Shader, ShaderCreateInfo, shaderHandler);
@@ -78,9 +78,11 @@ public:
 private:
     AssetManager() = default;
 
-    static AssetHandler<Shader, ShaderCreateInfo>   shaderHandler;
-    static AssetHandler<Texture, TextureCreateInfo> textureHandler;
-    static AssetHandler<scene::BitmapFont, scene::FontCreateInfo> fontHandler;
-    static AssetHandler<scene::Model, scene::ModelCreateInfo>     modelHandler;
+    inline static AssetHandler<Shader, ShaderCreateInfo>   shaderHandler;
+    inline static AssetHandler<Texture, TextureCreateInfo> textureHandler;
+    inline static AssetHandler<scene::BitmapFont, scene::FontCreateInfo>
+        fontHandler;
+    inline static AssetHandler<scene::Model, scene::ModelCreateInfo>
+        modelHandler;
 };
 }  // namespace sponge::platform::opengl::renderer
