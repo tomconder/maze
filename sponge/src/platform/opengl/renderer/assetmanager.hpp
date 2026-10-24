@@ -21,14 +21,11 @@ public:
     std::shared_ptr<T> load(const C& createInfo) {
         assert(!createInfo.name.empty());
 
-        if (assets.contains(createInfo.name)) {
-            return assets[createInfo.name];
+        const auto [it, inserted] = assets.try_emplace(createInfo.name);
+        if (inserted) {
+            it->second = std::make_shared<T>(createInfo);
         }
-
-        auto asset              = std::make_shared<T>(createInfo);
-        assets[createInfo.name] = asset;
-
-        return asset;
+        return it->second;
     }
 
     // Registers an asset built outside load()'s single-shot make_shared path
@@ -45,20 +42,15 @@ private:
     std::unordered_map<std::string, std::shared_ptr<T>> assets;
 };
 
-#define ASSET_MANAGER_FUNCS(Name, Type, CreateInfoType, Handler) \
-    static std::shared_ptr<Type> create##Name(                   \
-        const CreateInfoType& createInfo) {                      \
-        return (Handler).load(createInfo);                       \
-    }                                                            \
-                                                                 \
-    static auto& get##Name##s() {                                \
-        return (Handler).getAssets();                            \
-    }
-
 class AssetManager {
 public:
-    ASSET_MANAGER_FUNCS(Font, scene::BitmapFont, scene::FontCreateInfo,
-                        fontHandler);
+    static std::shared_ptr<scene::BitmapFont>
+        createFont(const scene::FontCreateInfo& createInfo) {
+        return fontHandler.load(createInfo);
+    }
+    static auto& getFonts() {
+        return fontHandler.getAssets();
+    }
 
     // Registers a Model built via Model(ModelData&&) (background-parsed), so it
     // shows up in getModels() (the ImGui debug table).
@@ -71,9 +63,21 @@ public:
         return modelHandler.getAssets();
     }
 
-    ASSET_MANAGER_FUNCS(Shader, Shader, ShaderCreateInfo, shaderHandler);
+    static std::shared_ptr<Shader>
+        createShader(const ShaderCreateInfo& createInfo) {
+        return shaderHandler.load(createInfo);
+    }
+    static auto& getShaders() {
+        return shaderHandler.getAssets();
+    }
 
-    ASSET_MANAGER_FUNCS(Texture, Texture, TextureCreateInfo, textureHandler);
+    static std::shared_ptr<Texture>
+        createTexture(const TextureCreateInfo& createInfo) {
+        return textureHandler.load(createInfo);
+    }
+    static auto& getTextures() {
+        return textureHandler.getAssets();
+    }
 
 private:
     AssetManager() = default;

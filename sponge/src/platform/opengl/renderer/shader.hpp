@@ -1,18 +1,29 @@
 #pragma once
 
-#include "core/stringutils.hpp"
-
 #include <glad/gl.h>
 #include <glm/glm.hpp>
 
+#include <cstddef>
 #include <functional>
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
 namespace sponge::platform::opengl::renderer {
+
+// Transparent hash so the uniform maps can be searched with a string_view
+// without allocating a std::string.
+struct TransparentStringHash {
+    using is_transparent = void;
+
+    [[nodiscard]] size_t operator()(const std::string_view str) const noexcept {
+        return std::hash<std::string_view>{}(str);
+    }
+};
+
 struct ShaderCreateInfo {
     std::string name;
     std::string vertexShader   = "";
@@ -87,7 +98,7 @@ public:
     }
 
 private:
-    mutable std::unordered_map<std::string, GLint, core::TransparentStringHash,
+    mutable std::unordered_map<std::string, GLint, TransparentStringHash,
                                std::equal_to<>>
         uniformLocations;
 
@@ -106,7 +117,7 @@ private:
         uint32_t buffer  = 0;
         uint32_t binding = 0;
         GLsizei  size    = 0;
-        std::unordered_map<std::string, GLint, core::TransparentStringHash,
+        std::unordered_map<std::string, GLint, TransparentStringHash,
                            std::equal_to<>>
                                      offsets;
         mutable std::vector<uint8_t> staging;

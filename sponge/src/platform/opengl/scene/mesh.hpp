@@ -5,7 +5,7 @@
 #include "platform/opengl/renderer/texture.hpp"
 #include "scene/clustercut.hpp"
 #include "scene/frustum.hpp"
-#include "scene/mesh.hpp"
+#include "vertex.hpp"
 
 #include <glm/glm.hpp>
 
@@ -28,7 +28,7 @@ using sponge::scene::UVTransform;
 // meshes. Blended meshes are drawn last, sorted, and cast no shadow.
 enum class AlphaPass : uint8_t { All, Opaque, Masked, Solid, Blended };
 
-class Mesh : public sponge::scene::Mesh {
+class Mesh {
 public:
     Mesh(
         std::vector<sponge::scene::PackedVertex>&& vertices,
@@ -95,6 +95,13 @@ public:
         }
     }
 
+    size_t getNumIndices() const {
+        return numIndices;
+    }
+    size_t getNumVertices() const {
+        return numVertices;
+    }
+
     // The geometry Model packs into its shared buffers, then frees.
     std::span<const sponge::scene::PackedVertex> getVertices() const {
         return vertices;
@@ -145,6 +152,11 @@ public:
     }
 
 private:
+    std::vector<sponge::scene::PackedVertex> vertices;
+    std::vector<uint32_t>                    indices;
+    size_t                                   numIndices  = 0;
+    size_t                                   numVertices = 0;
+
     std::vector<sponge::scene::MeshCluster> clusters;
     uint32_t                                lod0IndexCount = 0;
 

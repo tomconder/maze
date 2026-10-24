@@ -90,6 +90,12 @@ private:
     template <typename Func>
     static void showTableRow(Func&& func);
 
+    // A labelled row with a checkbox or a full-width float slider. Each
+    // returns true on the frame the value changes.
+    static bool checkboxRow(const char* label, const char* id, bool& value);
+    static bool sliderRow(const char* label, const char* id, float& value,
+                          float min, float max, const char* format);
+
     template <typename Container>
     static void showSimpleTable(const std::string& tableName,
                                 const Container&   container);

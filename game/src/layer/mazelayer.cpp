@@ -232,11 +232,13 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         sceneBounds.max = glm::max(sceneBounds.max, box.max);
     }
 
+    const auto width  = Maze::get().getWindow()->getWidth();
+    const auto height = Maze::get().getWindow()->getHeight();
+
     const auto gameCameraCreateInfo =
         scene::GameCameraCreateInfo{ .name = std::string(cameraName) };
     camera = std::make_shared<scene::GameCamera>(gameCameraCreateInfo);
-    camera->setViewportSize(Maze::get().getWindow()->getWidth(),
-                            Maze::get().getWindow()->getHeight());
+    camera->setViewportSize(width, height);
     camera->setFov(sceneDesc.camera.fov);
     camera->setOrientation(sceneDesc.camera.yaw, sceneDesc.camera.pitch);
     camera->setPosition(sceneDesc.camera.position);
@@ -278,25 +280,19 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     cube      = std::make_unique<Cube>();
     occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
 
-    fxaa = std::make_unique<FXAA>(Maze::get().getWindow()->getWidth(),
-                                  Maze::get().getWindow()->getHeight());
+    fxaa = std::make_unique<FXAA>(width, height);
 
-    taa = std::make_unique<TAA>(Maze::get().getWindow()->getWidth(),
-                                Maze::get().getWindow()->getHeight());
+    taa = std::make_unique<TAA>(width, height);
 
-    bloom = std::make_unique<Bloom>(Maze::get().getWindow()->getWidth(),
-                                    Maze::get().getWindow()->getHeight());
+    bloom = std::make_unique<Bloom>(width, height);
 
-    ssao = std::make_unique<Ssao>(Maze::get().getWindow()->getWidth(),
-                                  Maze::get().getWindow()->getHeight());
+    ssao = std::make_unique<Ssao>(width, height);
 
     ssr = std::make_unique<Ssr>();
 
     if (planarObject) {
-        planarReflection = std::make_unique<PlanarReflection>(
-            Maze::get().getWindow()->getWidth(),
-            Maze::get().getWindow()->getHeight());
-        planarShader = AssetManager::createShader({
+        planarReflection = std::make_unique<PlanarReflection>(width, height);
+        planarShader     = AssetManager::createShader({
             .name           = "planar",
             .vertexShader   = "planar.vert",
             .fragmentShader = "planar.frag",
@@ -307,15 +303,12 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         probe = std::make_unique<ReflectionProbe>(sceneDesc.probe->environment);
     }
 
-    sceneTarget =
-        std::make_unique<SceneTarget>(Maze::get().getWindow()->getWidth(),
-                                      Maze::get().getWindow()->getHeight());
+    sceneTarget = std::make_unique<SceneTarget>(width, height);
 
-    queueResize(Maze::get().getWindow()->getWidth(),
-                Maze::get().getWindow()->getHeight());
+    queueResize(width, height);
 
-    const auto w = static_cast<int>(Maze::get().getWindow()->getWidth());
-    const auto h = static_cast<int>(Maze::get().getWindow()->getHeight());
+    const auto w = static_cast<int>(width);
+    const auto h = static_cast<int>(height);
     screenWidth  = w;
     screenHeight = h;
     clusteredLights =
@@ -2031,14 +2024,6 @@ bool MazeLayer::isGiEnabled() const {
 void MazeLayer::setGiEnabled(const bool val) {
     std::scoped_lock lock(settingsMutex);
     giEnabled = val;
-}
-
-void MazeLayer::setLodTint(const bool enabled) {
-    Mesh::setLodTint(enabled);
-}
-
-bool MazeLayer::getLodTint() const {
-    return Mesh::getLodTint();
 }
 
 bool MazeLayer::isImguiActive() const {

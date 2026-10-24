@@ -190,8 +190,6 @@ public:
     uint32_t getDrawnRangeCount() const {
         return drawnRangeCount.load(std::memory_order_relaxed);
     }
-    void setLodTint(bool enabled);
-    bool getLodTint() const;
 
     // Wall-clock cost of the cull test itself (update thread) and of the
     // per-object CPU submission loop it feeds (render thread) — what the

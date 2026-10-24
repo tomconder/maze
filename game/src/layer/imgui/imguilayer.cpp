@@ -254,46 +254,56 @@ void ImGuiLayer::showGraphicsSection() {
     }
 }
 
+bool ImGuiLayer::checkboxRow(const char* label, const char* id, bool& value) {
+    auto changed = false;
+    showTableRow([&] {
+        ImGui::Text("%s", label);
+        ImGui::TableNextColumn();
+        changed = ImGui::Checkbox(id, &value);
+    });
+    return changed;
+}
+
+bool ImGuiLayer::sliderRow(const char* label, const char* id, float& value,
+                           const float min, const float max,
+                           const char* format) {
+    auto changed = false;
+    showTableRow([&] {
+        ImGui::Text("%s", label);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        changed = ImGui::SliderFloat(id, &value, min, max, format,
+                                     ImGuiSliderFlags_AlwaysClamp);
+    });
+    return changed;
+}
+
 void ImGuiLayer::showBloomControls() {
     if (ImGui::BeginTable("Bloom##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
         auto bloomEnabled = mazeLayer->isBloomEnabled();
-        showTableRow([&] {
-            ImGui::Text("Enabled");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##bloomenabled", &bloomEnabled)) {
-                mazeLayer->setBloomEnabled(bloomEnabled);
-                sponge::core::Settings::set("video.bloomEnabled", bloomEnabled);
-                sponge::core::Settings::save();
-            }
-        });
+        if (checkboxRow("Enabled", "##bloomenabled", bloomEnabled)) {
+            mazeLayer->setBloomEnabled(bloomEnabled);
+            sponge::core::Settings::set("video.bloomEnabled", bloomEnabled);
+            sponge::core::Settings::save();
+        }
 
+        // Radiance now, not a point on a tone curve, so useful values run
+        // past 1.0.
         auto threshold = mazeLayer->getBloomThreshold();
-        showTableRow([&] {
-            ImGui::Text("Threshold");
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            // Radiance now, not a point on a tone curve, so useful values
-            // run past 1.0.
-            if (ImGui::SliderFloat("##bloomthreshold", &threshold, 0.F, 4.F,
-                                   "%.2f", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setBloomThreshold(threshold);
-            }
-        });
+        if (sliderRow("Threshold", "##bloomthreshold", threshold, 0.F, 4.F,
+                      "%.2f")) {
+            mazeLayer->setBloomThreshold(threshold);
+        }
 
+        // Weights a linear-space radiance texture, so the whole useful range
+        // sits below 1.0.
         auto intensity = mazeLayer->getBloomIntensity();
-        showTableRow([&] {
-            ImGui::Text("Intensity");
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            // Weights a linear-space radiance texture, so the whole useful
-            // range sits below 1.0.
-            if (ImGui::SliderFloat("##bloomintensity", &intensity, 0.F, 0.5F,
-                                   "%.3f", ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setBloomIntensity(intensity);
-            }
-        });
+        if (sliderRow("Intensity", "##bloomintensity", intensity, 0.F, 0.5F,
+                      "%.3f")) {
+            mazeLayer->setBloomIntensity(intensity);
+        }
 
         ImGui::EndTable();
     }
@@ -331,35 +341,21 @@ void ImGuiLayer::showSsaoControls() {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
         auto ssaoEnabled = mazeLayer->isSsaoEnabled();
-        showTableRow([&] {
-            ImGui::Text("Enabled");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##ssaoenabled", &ssaoEnabled)) {
-                mazeLayer->setSsaoEnabled(ssaoEnabled);
-                sponge::core::Settings::set("video.ssaoEnabled", ssaoEnabled);
-                sponge::core::Settings::save();
-            }
-        });
+        if (checkboxRow("Enabled", "##ssaoenabled", ssaoEnabled)) {
+            mazeLayer->setSsaoEnabled(ssaoEnabled);
+            sponge::core::Settings::set("video.ssaoEnabled", ssaoEnabled);
+            sponge::core::Settings::save();
+        }
 
-        auto lodTint = mazeLayer->getLodTint();
-        showTableRow([&] {
-            ImGui::Text("LOD tint");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##lodtint", &lodTint)) {
-                mazeLayer->setLodTint(lodTint);
-            }
-        });
+        auto lodTint = sponge::platform::opengl::scene::Mesh::getLodTint();
+        if (checkboxRow("LOD tint", "##lodtint", lodTint)) {
+            sponge::platform::opengl::scene::Mesh::setLodTint(lodTint);
+        }
 
         auto radius = mazeLayer->getSsaoRadius();
-        showTableRow([&] {
-            ImGui::Text("Radius");
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat("##ssaoradius", &radius, 0.05F, 2.F, "%.2f",
-                                   ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setSsaoRadius(radius);
-            }
-        });
+        if (sliderRow("Radius", "##ssaoradius", radius, 0.05F, 2.F, "%.2f")) {
+            mazeLayer->setSsaoRadius(radius);
+        }
 
         ImGui::EndTable();
     }
@@ -370,40 +366,24 @@ void ImGuiLayer::showSsrControls() {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
         auto ssrEnabled = mazeLayer->isSsrEnabled();
-        showTableRow([&] {
-            ImGui::Text("Enabled");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##ssrenabled", &ssrEnabled)) {
-                mazeLayer->setSsrEnabled(ssrEnabled);
-            }
-        });
+        if (checkboxRow("Enabled", "##ssrenabled", ssrEnabled)) {
+            mazeLayer->setSsrEnabled(ssrEnabled);
+        }
 
         auto planarEnabled = mazeLayer->isPlanarEnabled();
-        showTableRow([&] {
-            ImGui::Text("Planar");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##planarenabled", &planarEnabled)) {
-                mazeLayer->setPlanarEnabled(planarEnabled);
-            }
-        });
+        if (checkboxRow("Planar", "##planarenabled", planarEnabled)) {
+            mazeLayer->setPlanarEnabled(planarEnabled);
+        }
 
         auto probeEnabled = mazeLayer->isProbeEnabled();
-        showTableRow([&] {
-            ImGui::Text("Probe");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##probeenabled", &probeEnabled)) {
-                mazeLayer->setProbeEnabled(probeEnabled);
-            }
-        });
+        if (checkboxRow("Probe", "##probeenabled", probeEnabled)) {
+            mazeLayer->setProbeEnabled(probeEnabled);
+        }
 
         auto giEnabled = mazeLayer->isGiEnabled();
-        showTableRow([&] {
-            ImGui::Text("Global Illumination");
-            ImGui::TableNextColumn();
-            if (ImGui::Checkbox("##gienabled", &giEnabled)) {
-                mazeLayer->setGiEnabled(giEnabled);
-            }
-        });
+        if (checkboxRow("Global Illumination", "##gienabled", giEnabled)) {
+            mazeLayer->setGiEnabled(giEnabled);
+        }
 
         ImGui::EndTable();
     }
@@ -416,14 +396,9 @@ void ImGuiLayer::showDirectionalLightControls() {
         auto       direction  = mazeLayer->getDirectionalLightDirection();
         auto       enabled    = mazeLayer->getDirectionalLightEnabled();
 
-        showTableRow([&] {
-            ImGui::Text("Enable");
-            ImGui::TableNextColumn();
-
-            if (ImGui::Checkbox("##directionalenable", &enabled)) {
-                mazeLayer->setDirectionalLightEnabled(enabled);
-            }
-        });
+        if (checkboxRow("Enable", "##directionalenable", enabled)) {
+            mazeLayer->setDirectionalLightEnabled(enabled);
+        }
 
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
@@ -453,14 +428,9 @@ void ImGuiLayer::showDirectionalLightControls() {
             }
         });
 
-        showTableRow([&] {
-            ImGui::Text("Cast Shadow");
-            ImGui::TableNextColumn();
-
-            if (ImGui::Checkbox("##directionalshadow", &castShadow)) {
-                mazeLayer->setDirectionalLightCastsShadow(castShadow);
-            }
-        });
+        if (checkboxRow("Cast Shadow", "##directionalshadow", castShadow)) {
+            mazeLayer->setDirectionalLightCastsShadow(castShadow);
+        }
 
         ImGui::EndTable();
     }
@@ -497,17 +467,11 @@ void ImGuiLayer::showShadowControls() {
             }
         });
 
-        showTableRow([&] {
-            ImGui::Text("Cascade Split");
-            ImGui::TableNextColumn();
-
-            auto lambda = mazeLayer->getShadowSplitLambda();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::SliderFloat("##shadowsplit", &lambda, 0.F, 1.F, "%.2f",
-                                   ImGuiSliderFlags_AlwaysClamp)) {
-                mazeLayer->setShadowSplitLambda(lambda);
-            }
-        });
+        auto lambda = mazeLayer->getShadowSplitLambda();
+        if (sliderRow("Cascade Split", "##shadowsplit", lambda, 0.F, 1.F,
+                      "%.2f")) {
+            mazeLayer->setShadowSplitLambda(lambda);
+        }
 
         ImGui::EndTable();
     }
