@@ -369,6 +369,17 @@ private:
     mutable std::atomic<uint32_t> pendingShadowRebuildRes{ 0 };
 
     void captureRenderFrame(uint32_t slotIndex);
+    void cullCamera(thread::MazeRenderFrame& frame);
+    void capturePlanar(thread::MazeRenderFrame& frame);
+    void captureSettings(thread::MazeRenderFrame& frame,
+                         thread::AntiAliasing     aaMode);
+
+    // Render thread: the pieces of onRender().
+    void applyPendingChanges();
+    void renderShadowMaps(const thread::MazeRenderFrame& frame);
+    void resolveToDisplay(const thread::MazeRenderFrame& frame, bool fxaaActive,
+                          bool taaActive, uint32_t bloomTexId,
+                          float bloomWeight);
 
     // Update-thread only: the previous snapshot's unjittered view-projection,
     // published into the next frame so TAA's camera history and object history
