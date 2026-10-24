@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "a073c28e52d920cb2465a17512324b3b6684d03a",
+  "builtin-baseline": "b42e8ed051d17a7f95b9d2a3140c1f9296423712",
   "dependencies": [
     {
       "name": "cgltf",
