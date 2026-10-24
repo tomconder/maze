@@ -2,8 +2,6 @@
 
 #include "parallel.hpp"
 
-#include <xsimd/xsimd.hpp>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -27,10 +25,7 @@ constexpr size_t doubleFloats = channels * 2;
 // used instead.
 constexpr float minAlpha = 1.0e-6F;
 
-// One RGBA texel per batch for the horizontal pass, the widest batch the
-// build targets for the vertical pass.
-using Pixel = xsimd::make_sized_batch_t<float, channels>;
-using Lane  = xsimd::batch<float>;
+using Pixel = std::array<float, channels>;
 
 // Mitchell-Netravali, B = C = 1/3. The weight is 0 from 2 on.
 float mitchell(float x) {
@@ -48,9 +43,6 @@ float mitchell(float x) {
 struct Taps {
     size_t             first{ 0 };
     std::vector<float> weights;
-    // Same weights as the texel before it, which is true almost everywhere
-    // except at the borders.
-    bool repeat{ false };
 };
 
 std::vector<Taps> makeTaps(const uint32_t srcSize, const uint32_t dstSize) {
@@ -69,7 +61,6 @@ std::vector<Taps> makeTaps(const uint32_t srcSize, const uint32_t dstSize) {
     const auto radius = 2.0F * scale;
     const auto last   = static_cast<int64_t>(srcSize) - 1;
 
-    size_t anchor = 0;
     for (uint32_t i = 0; i < dstSize; i++) {
         const auto centre = (static_cast<float>(i) + 0.5F) * scale;
         const auto lo     = static_cast<int64_t>(std::floor(centre - radius));
@@ -93,20 +84,6 @@ std::vector<Taps> makeTaps(const uint32_t srcSize, const uint32_t dstSize) {
         }
         for (auto& weight : tap.weights) {
             weight /= sum;
-        }
-
-        // Float rounding in the centre makes interior weights differ in the
-        // last bits, so "the same" allows for that. The comparison is against
-        // the texel whose weights are in use, so the difference cannot add up.
-        constexpr float sameWeight = 1.0e-6F;
-        const auto&     base       = taps[anchor].weights;
-        tap.repeat = i > 0 && base.size() == tap.weights.size() &&
-                     std::ranges::equal(base, tap.weights,
-                                        [](const float a, const float b) {
-                                            return std::abs(a - b) < sameWeight;
-                                        });
-        if (!tap.repeat) {
-            anchor = i;
         }
     }
     return taps;
@@ -163,13 +140,16 @@ void decodeRow(const uint8_t* src, const size_t width,
             const auto* in    = src + (x * channels);
             auto*       dst   = out + (x * Floats);
             const auto  alpha = static_cast<float>(in[3]) * byteScale;
-            // The lookups are scalar; the weighting by alpha is one multiply.
-            const Pixel texel(lut[in[0]], lut[in[1]], lut[in[2]], 1.0F);
+            const Pixel texel{ lut[in[0]], lut[in[1]], lut[in[2]], 1.0F };
             if constexpr (Floats == doubleFloats) {
-                Pixel(lut[in[0]], lut[in[1]], lut[in[2]], alpha)
-                    .store_unaligned(dst);
+                dst[0] = texel[0];
+                dst[1] = texel[1];
+                dst[2] = texel[2];
+                dst[3] = alpha;
             }
-            (texel * alpha).store_unaligned(dst + Floats - channels);
+            for (size_t c = 0; c < channels; c++) {
+                dst[Floats - channels + c] = texel[c] * alpha;
+            }
         }
         return;
     }
@@ -192,24 +172,19 @@ void encodeRow(const float* src, const size_t width,
             auto*       dst   = out + (x * channels);
             const auto  alpha = std::clamp(in[3], 0.0F, 1.0F);
 
-            // Undo the alpha weight, clamp and scale to table indices for all
-            // channels at once. Only the lookups are scalar.
-            Pixel unit(0.0F);
-            if (alpha >= minAlpha) {
-                unit = Pixel::load_unaligned(in + Floats - channels) *
-                       (1.0F / alpha);
-            } else if constexpr (Floats == doubleFloats) {
-                unit = Pixel::load_unaligned(in);
+            // Undo the alpha weight, clamp and scale to table indices.
+            for (size_t c = 0; c < 3; c++) {
+                float unit = 0.0F;
+                if (alpha >= minAlpha) {
+                    unit = in[Floats - channels + c] * (1.0F / alpha);
+                } else if constexpr (Floats == doubleFloats) {
+                    unit = in[c];
+                }
+                dst[c] =
+                    table[static_cast<size_t>((std::clamp(unit, 0.0F, 1.0F) *
+                                               static_cast<float>(srgbSteps)) +
+                                              0.5F)];
             }
-            const auto index = xsimd::batch_cast<int32_t>(
-                (xsimd::clip(unit, Pixel(0.0F), Pixel(1.0F)) *
-                 static_cast<float>(srgbSteps)) +
-                0.5F);
-            std::array<int32_t, channels> at{};
-            index.store_unaligned(at.data());
-            dst[0] = table[static_cast<size_t>(at[0])];
-            dst[1] = table[static_cast<size_t>(at[1])];
-            dst[2] = table[static_cast<size_t>(at[2])];
             dst[3] = toByte(alpha);
         }
         return;
@@ -220,38 +195,21 @@ void encodeRow(const float* src, const size_t width,
     }
 }
 
-// One source row, filtered across its width. `weight` holds the current
-// weights spread across a batch, redone only where they change.
+// One source row, filtered across its width.
 template <size_t Floats>
 void filterRow(const std::vector<float>& decoded, const std::vector<Taps>& taps,
-               std::vector<Pixel>& weight, float* out) {
-    constexpr size_t sets = Floats / channels;
-
+               float* out) {
     for (size_t x = 0; x < taps.size(); x++) {
-        const auto& tap   = taps[x];
-        const auto* in    = &decoded[tap.first * Floats];
-        const auto  count = tap.weights.size();
+        const auto& tap = taps[x];
+        const auto* in  = &decoded[tap.first * Floats];
 
-        if (!tap.repeat) {
-            for (size_t k = 0; k < count; k++) {
-                weight[k] = Pixel(tap.weights[k]);
+        std::array<float, Floats> acc{};
+        for (size_t k = 0; k < tap.weights.size(); k++) {
+            for (size_t i = 0; i < Floats; i++) {
+                acc[i] += in[(k * Floats) + i] * tap.weights[k];
             }
         }
-
-        std::array<Pixel, sets> acc;
-        for (size_t s = 0; s < sets; s++) {
-            acc[s] = Pixel::load_unaligned(in + (s * channels)) * weight[0];
-        }
-        for (size_t k = 1; k < count; k++) {
-            for (size_t s = 0; s < sets; s++) {
-                acc[s] +=
-                    Pixel::load_unaligned(in + (k * Floats) + (s * channels)) *
-                    weight[k];
-            }
-        }
-        for (size_t s = 0; s < sets; s++) {
-            acc[s].store_unaligned(out + (x * Floats) + (s * channels));
-        }
+        std::ranges::copy(acc, out + (x * Floats));
     }
 }
 
@@ -279,25 +237,15 @@ void halveBand(const std::span<const uint8_t> pixels, const uint32_t width,
     for (const auto& row : rows) {
         window = std::max(window, row.weights.size());
     }
-    // Rows are padded so the vertical pass has no scalar tail.
-    const auto stride =
-        (dstWidth * Floats + Lane::size - 1) / Lane::size * Lane::size;
-
-    size_t columnWindow = 0;
-    for (const auto& column : columns) {
-        columnWindow = std::max(columnWindow, column.weights.size());
-    }
+    const auto stride = dstWidth * Floats;
 
     std::vector<float> ring(window * stride);
     std::vector<float> line(stride);
     std::vector<float> decoded(static_cast<size_t>(width) * Floats);
-    std::vector<Pixel> columnWeight(columnWindow);
 
-    // The vertical window of the current output row: where each row sits in
-    // the ring, and its weight spread across a batch. Set up once per row so
-    // the inner loop does no index maths.
+    // Where each row of the current output row's vertical window sits in the
+    // ring. Set up once per row so the inner loop does no index maths.
     std::vector<const float*> source(window);
-    std::vector<Lane>         weight(window);
 
     size_t filtered = rows[yBegin].first;
     for (size_t y = yBegin; y < yEnd; y++) {
@@ -306,21 +254,20 @@ void halveBand(const std::span<const uint8_t> pixels, const uint32_t width,
         for (; filtered < tap.first + tap.weights.size(); filtered++) {
             decodeRow<Floats>(&pixels[filtered * width * channels], width,
                               space, decoded.data());
-            filterRow<Floats>(decoded, columns, columnWeight,
+            filterRow<Floats>(decoded, columns,
                               &ring[(filtered % window) * stride]);
         }
 
         const auto count = tap.weights.size();
         for (size_t k = 0; k < count; k++) {
             source[k] = &ring[((tap.first + k) % window) * stride];
-            weight[k] = Lane(tap.weights[k]);
         }
-        for (size_t i = 0; i < stride; i += Lane::size) {
-            auto acc = weight[0] * Lane::load_unaligned(source[0] + i);
-            for (size_t k = 1; k < count; k++) {
-                acc += weight[k] * Lane::load_unaligned(source[k] + i);
+        for (size_t i = 0; i < stride; i++) {
+            float acc = 0.0F;
+            for (size_t k = 0; k < count; k++) {
+                acc += tap.weights[k] * source[k][i];
             }
-            acc.store_unaligned(&line[i]);
+            line[i] = acc;
         }
 
         encodeRow<Floats>(line.data(), dstWidth, space,
