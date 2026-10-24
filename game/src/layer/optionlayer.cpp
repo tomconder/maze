@@ -707,8 +707,9 @@ void OptionLayer::syncPendingCheckboxState() {
         frameRateToSlider(sponge::core::Settings::getUInt32(
             "video.maxFrameRate", defaultFrameRate)));
     frameRateSlider->setValueText(std::to_string(frameRate()));
-    pendingAmbientOcclusion = Maze::get().getMazeLayer()->isSsaoEnabled();
-    pendingBloom            = Maze::get().isBloomEnabled();
+    pendingAmbientOcclusion =
+        Maze::get().getMazeLayer()->settings().ssaoEnabled;
+    pendingBloom = Maze::get().isBloomEnabled();
     pendingSubsurfaceScattering =
         Maze::get().getMazeLayer()->isTranslucencyEnabled();
 

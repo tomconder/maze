@@ -110,7 +110,7 @@ public:
     }
 
     thread::AntiAliasing getAntiAliasing() const {
-        return mazeLayer->getAntiAliasing();
+        return mazeLayer->settings().antiAliasing;
     }
 
     void setAntiAliasing(thread::AntiAliasing val) {
@@ -118,11 +118,11 @@ public:
     }
 
     bool isBloomEnabled() const {
-        return mazeLayer->isBloomEnabled();
+        return mazeLayer->settings().bloomEnabled;
     }
 
     void setBloomEnabled(bool val) {
-        mazeLayer->setBloomEnabled(val);
+        mazeLayer->edit([val](auto& s) { s.bloomEnabled = val; });
     }
 
     void exit() {

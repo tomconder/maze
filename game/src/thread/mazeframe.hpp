@@ -6,6 +6,7 @@
 #include "platform/opengl/scene/shadowmap.hpp"
 #include "scene/clustercut.hpp"
 #include "scene/refraction.hpp"
+#include "thread/livesettings.hpp"
 
 #include <glm/glm.hpp>
 
@@ -16,13 +17,6 @@
 #include <vector>
 
 namespace game::thread {
-
-enum class AntiAliasing : uint8_t {
-    None = 0,
-    Fxaa,
-    Taa,
-    Count,
-};
 
 // Immutable snapshot of all rendering-relevant game state for one frame.
 //
@@ -59,10 +53,13 @@ struct MazeRenderFrame {
     int       screenWidth{ 0 };
     int       screenHeight{ 0 };
 
+    // The settings as they stood when this frame was captured. One copy for
+    // the whole frame, so no pass sees a mix of old and new values. The
+    // directional light, point light count, post-processing and reflection
+    // flags are read from here.
+    LiveSettings settings;
+
     // Directional light / shadow
-    bool      shadowEnabled{ false };
-    bool      shadowCastShadow{ false };
-    glm::vec3 lightDirection{ 0.F, -1.F, 0.F };
     // One matrix per cascade in use; the last one covers the whole scene.
     std::array<glm::mat4,
                sponge::platform::opengl::scene::ShadowMap::maxCascades>
@@ -73,8 +70,6 @@ struct MazeRenderFrame {
         sponge::platform::opengl::scene::ClusteredLights::maxLights);
 
     // Point lights (one attenuation index shared by all)
-    int32_t                          numLights{ 0 };
-    int32_t                          lightAttenuationIndex{ 0 };
     std::array<glm::vec3, maxLights> lightPositions{};
     std::array<glm::vec3, maxLights> prevLightPositions{};
     std::array<glm::vec3, maxLights> lightColors{};
@@ -125,29 +120,8 @@ struct MazeRenderFrame {
                sponge::platform::opengl::scene::ShadowMap::maxCascades>
         shadowCuts;
 
-    // Post-processing
-    AntiAliasing antiAliasing{ AntiAliasing::None };
-
-    bool  bloomEnabled{ false };
-    float bloomThreshold{ 0.8F };
-    float bloomIntensity{ 0.08F };
-
-    sponge::platform::opengl::scene::ToneMapper toneMapper{
-        sponge::platform::opengl::scene::ToneMapper::Agx
-    };
-
-    bool  ssaoEnabled{ true };
-    float ssaoRadius{ 0.5F };
-
-    bool ssrEnabled{ true };
-
-    // Sample the reflection probe for ambient specular. False when the
-    // toggle is off or the scene has no probe; the render thread also waits
-    // for probeCaptured before it actually samples.
-    bool probeEnabled{ false };
-
-    // Light diffuse ambient from the probe's irradiance. Needs probeEnabled.
-    bool giEnabled{ false };
+    // settings.probeEnabled is false when the scene has no probe; the render
+    // thread also waits for probeCaptured before it actually samples.
 
     // True when the planar mirror is drawn this frame.
     bool planarActive{ false };
