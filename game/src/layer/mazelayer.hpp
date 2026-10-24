@@ -83,25 +83,35 @@ public:
 
     void setAmbientStrength(float val);
 
-    int32_t getAttenuationIndex() const;
-
-    void setAttenuationIndex(int32_t val);
-
     std::shared_ptr<scene::GameCamera> getCamera() const;
 
-    bool getDirectionalLightCastsShadow() const;
+    // The live settings. The render thread (debug UI, options screens,
+    // startup) is the only writer, so it may read settings() directly. The
+    // update thread takes one copy per frame with snapshotSettings().
+    const thread::LiveSettings& settings() const {
+        return live;
+    }
+    thread::LiveSettings snapshotSettings() const {
+        std::scoped_lock lock(settingsMutex);
+        return live;
+    }
+    // Render thread only: change fields under the lock. A setting that also
+    // needs a shader uniform or a rebuild has a setter below that does both.
+    template <typename Func>
+    void edit(Func&& func) {
+        std::scoped_lock lock(settingsMutex);
+        std::forward<Func>(func)(live);
+    }
+
+    void setAttenuationIndex(const int32_t val) {
+        edit([val](auto& s) { s.attenuationIndex = val; });
+    }
 
     void setDirectionalLightCastsShadow(bool value);
 
-    glm::vec3 getDirectionalLightColor() const;
-
     void setDirectionalLightColor(const glm::vec3& color);
 
-    glm::vec3 getDirectionalLightDirection() const;
-
     void setDirectionalLightDirection(const glm::vec3& direction);
-
-    bool getDirectionalLightEnabled() const;
 
     void setDirectionalLightEnabled(bool value);
 
@@ -112,62 +122,29 @@ public:
     }
     void setShadowQuality(ShadowQuality quality);
 
-    uint32_t getShadowCascades() const {
-        return shadowCascades.load(std::memory_order_relaxed);
-    }
     void setShadowCascades(const uint32_t count) {
-        shadowCascades.store(
-            std::clamp(count, 1U,
-                       sponge::platform::opengl::scene::ShadowMap::maxCascades),
-            std::memory_order_relaxed);
-    }
-    float getShadowSplitLambda() const {
-        return shadowSplitLambda.load(std::memory_order_relaxed);
+        edit([count](auto& s) {
+            s.shadowCascades = std::clamp(
+                count, 1U,
+                sponge::platform::opengl::scene::ShadowMap::maxCascades);
+        });
     }
     void setShadowSplitLambda(const float lambda) {
-        shadowSplitLambda.store(std::clamp(lambda, 0.F, 1.F),
-                                std::memory_order_relaxed);
+        edit([lambda](auto& s) {
+            s.shadowSplitLambda = std::clamp(lambda, 0.F, 1.F);
+        });
     }
-
-    int32_t getNumLights() const;
 
     void setNumLights(int32_t val);
 
-    thread::AntiAliasing getAntiAliasing() const;
-
     void setAntiAliasing(thread::AntiAliasing val);
 
-    bool                                        isBloomEnabled() const;
-    void                                        setBloomEnabled(bool val);
-    float                                       getBloomThreshold() const;
-    void                                        setBloomThreshold(float val);
-    float                                       getBloomIntensity() const;
-    void                                        setBloomIntensity(float val);
-    sponge::platform::opengl::scene::ToneMapper getToneMapper() const;
-    void setToneMapper(sponge::platform::opengl::scene::ToneMapper val);
-
-    bool  isSsaoEnabled() const;
-    void  setSsaoEnabled(bool val);
-    float getSsaoRadius() const;
-    void  setSsaoRadius(float val);
+    void setSsaoEnabled(bool val);
 
     // Diffuse transmission, the approximate subsurface scattering. Off lights
     // every surface as plain diffuse.
     bool isTranslucencyEnabled() const;
     void setTranslucencyEnabled(bool val);
-
-    // Off draws refractive objects as ordinary opaque ones: no glass pass.
-
-    bool isSsrEnabled() const;
-    void setSsrEnabled(bool val);
-
-    bool isPlanarEnabled() const;
-    void setPlanarEnabled(bool val);
-
-    bool isProbeEnabled() const;
-    void setProbeEnabled(bool val);
-    bool isGiEnabled() const;
-    void setGiEnabled(bool val);
 
     bool isImguiActive() const;
 
@@ -319,12 +296,6 @@ private:
     // Set and read on the render thread (options, ImGui, startup).
     ShadowQuality shadowQuality = ShadowQuality::Medium;
 
-    // Cascades in use, 1 to ShadowMap::maxCascades, and the log/uniform blend
-    // of their split distances. Read on the update thread; setShadowQuality(),
-    // ImGui and the debug capture set them from the render thread.
-    std::atomic<uint32_t> shadowCascades{ 2 };
-    std::atomic<float>    shadowSplitLambda{ 0.7F };
-
     // Render thread only. A cascade is drawn again only when its matrix
     // changes, its cluster cut changes (see shadowCachedCuts) or the map is
     // rebuilt. This assumes the shadow casters never move, which holds
@@ -368,9 +339,11 @@ private:
 
     void captureRenderFrame(uint32_t slotIndex);
     void cullCamera(thread::MazeRenderFrame& frame);
-    void capturePlanar(thread::MazeRenderFrame& frame);
-    void captureSettings(thread::MazeRenderFrame& frame,
-                         thread::AntiAliasing     aaMode);
+    void capturePlanar(thread::MazeRenderFrame&    frame,
+                       const thread::LiveSettings& s);
+    void captureSettings(thread::MazeRenderFrame&    frame,
+                         const thread::LiveSettings& s);
+    void buildPointLights(int32_t count);
 
     // Render thread: the pieces of onRender().
     void applyPendingChanges();
@@ -398,10 +371,17 @@ private:
     // Set by finishLoading(); onUpdate()/onRender() no-op until then.
     std::atomic<bool> resourcesReady{ false };
 
-    // Guards settings written by ImGui (render thread) and read by
-    // captureRenderFrame() (update thread): lights, directional light,
-    // fxaa/bloom params. Uncontended except while a debug slider is dragged.
-    mutable std::mutex settingsMutex;
+    // The settings the render thread writes (debug UI, options, startup) and
+    // captureRenderFrame() copies on the update thread. settingsMutex guards
+    // them; it is uncontended except while a debug slider is dragged.
+    thread::LiveSettings live;
+    mutable std::mutex   settingsMutex;
+
+    // Update thread only: the point lights, rebuilt from live.numLights when
+    // that count changes. builtLights is the count they were built for.
+    std::array<scene::PointLight, thread::MazeRenderFrame::maxLights>
+            pointLights;
+    int32_t builtLights = -1;
 
     std::atomic<int32_t> screenWidth{ 0 };
     std::atomic<int32_t> screenHeight{ 0 };
@@ -420,32 +400,12 @@ private:
     mutable std::atomic<uint32_t> submitMicros{ 0 };
     mutable std::atomic<uint32_t> occlusionVisibleCount{ 0 };
     mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
-    float                         ambientStrength  = .25F;
-    float                         ao               = .25F;
-    int32_t                       attenuationIndex = 4;
-    thread::AntiAliasing          antiAliasing     = thread::AntiAliasing::Taa;
-    sponge::platform::opengl::scene::ToneMapper toneMapper =
-        sponge::platform::opengl::scene::ToneMapper::Agx;
-    bool  bloomEnabled   = true;
-    float bloomThreshold = 0.8F;
-    // Additive weight for the bloom texture, applied in LINEAR space before
-    // tone mapping. The bloom texture holds radiance (measured peak ~2.6 in
-    // this scene), not the [0,1] tone-mapped values it held when bloom
-    // composited after the curve, so this is roughly 1/30th of the old value
-    // for the same look. Re-derive it against a measurement, never by
-    // scaling the old number.
-    float   bloomIntensity      = 0.08F;
-    bool    ssaoEnabled         = true;
-    float   ssaoRadius          = 0.5F;
-    bool    translucencyEnabled = true;
-    bool    refractionEnabled   = false;
-    bool    ssrEnabled          = true;
-    bool    planarEnabled       = true;
-    bool    probeEnabled        = true;
-    bool    giEnabled           = true;
-    bool    mouseButtonPressed  = false;
-    int32_t numLights           = 0;
-    bool    isImguiOpen         = true;
+    float                         ambientStrength     = .25F;
+    float                         ao                  = .25F;
+    bool                          translucencyEnabled = true;
+    bool                          refractionEnabled   = false;
+    bool                          mouseButtonPressed  = false;
+    bool                          isImguiOpen         = true;
 
     // Capture runs only; null otherwise, which turns gpuBegin and gpuEnd into
     // no-ops.

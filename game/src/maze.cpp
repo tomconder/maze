@@ -96,10 +96,11 @@ bool Maze::onUserCreate() {
     using sponge::platform::opengl::scene::ToneMapper;
     const auto savedTone = sponge::core::Settings::getUInt32(
         "video.toneMapper", static_cast<uint32_t>(ToneMapper::Agx));
-    mazeLayer->setToneMapper(savedTone <
-                                     static_cast<uint32_t>(ToneMapper::Count) ?
-                                 static_cast<ToneMapper>(savedTone) :
-                                 ToneMapper::Agx);
+    mazeLayer->edit([savedTone](auto& s) {
+        s.toneMapper = savedTone < static_cast<uint32_t>(ToneMapper::Count) ?
+                           static_cast<ToneMapper>(savedTone) :
+                           ToneMapper::Agx;
+    });
 
     // After the settings above, so the maze is configured when it loads.
 #ifndef NDEBUG

@@ -37,9 +37,6 @@ constexpr std::string_view cameraName = "maze";
 constexpr int32_t maxPointLights =
     sponge::platform::opengl::scene::ClusteredLights::maxLights;
 
-game::scene::DirectionalLight                       directionalLight;
-std::array<game::scene::PointLight, maxPointLights> pointLights;
-
 // Largest on-screen error a cluster may have, in pixels.
 constexpr float lodPixelError = 1.F;
 
@@ -132,18 +129,19 @@ static_assert(shadowPresets.size() ==
 
 MazeLayer::MazeLayer(const std::string_view scenePath) :
     Layer("maze"), sceneDesc(scene::loadScene(std::string(scenePath))) {
-    ambientStrength  = sceneDesc.lighting.ambient.strength;
-    ao               = sceneDesc.lighting.ambient.ambientOcclusion;
-    attenuationIndex = sceneDesc.lighting.point.attenuationIndex;
-    numLights = std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
-    bloomThreshold = sceneDesc.bloom.threshold;
-    bloomIntensity = sceneDesc.bloom.intensity;
+    ambientStrength       = sceneDesc.lighting.ambient.strength;
+    ao                    = sceneDesc.lighting.ambient.ambientOcclusion;
+    live.attenuationIndex = sceneDesc.lighting.point.attenuationIndex;
+    live.numLights =
+        std::clamp(sceneDesc.lighting.point.count, 0, maxPointLights);
+    live.bloomThreshold = sceneDesc.bloom.threshold;
+    live.bloomIntensity = sceneDesc.bloom.intensity;
 
     // Saved from the options screen, which opens before the maze has loaded,
     // so the values must be right here and not only after finishLoading().
     // The scene file has no say in these.
-    ssaoEnabled =
-        sponge::core::Settings::getBool("video.ssaoEnabled", ssaoEnabled);
+    live.ssaoEnabled =
+        sponge::core::Settings::getBool("video.ssaoEnabled", live.ssaoEnabled);
     translucencyEnabled = sponge::core::Settings::getBool(
         "video.translucencyEnabled", translucencyEnabled);
 }
@@ -247,7 +245,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     Mesh::initShader();
     const auto shader = Mesh::getShader();
     shader->setFloat("ao", ao);
-    shader->setBoolean("ssaoEnabled", ssaoEnabled);
+    shader->setBoolean("ssaoEnabled", live.ssaoEnabled);
     shader->setBoolean("translucencyEnabled", translucencyEnabled);
 
     shader->setFloat("ambientStrength", ambientStrength);
@@ -259,25 +257,26 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
         shadowQuality = static_cast<ShadowQuality>(savedQuality);
     }
     const auto& preset = shadowPresets[static_cast<size_t>(shadowQuality)];
-    shadowCascades.store(preset.cascades, std::memory_order_relaxed);
+    edit([&](auto& s) {
+        s.shadowCascades = preset.cascades;
+        s.directional    = {
+            .enabled      = sceneDesc.lighting.directional.enabled,
+            .castShadow   = sceneDesc.lighting.directional.castShadow,
+            .color        = sceneDesc.lighting.directional.color,
+            .direction    = sceneDesc.lighting.directional.direction,
+            .shadowMapRes = preset.resolution,
+        };
+    });
+    const auto& directional = live.directional;
 
-    directionalLight = {
-        .enabled      = sceneDesc.lighting.directional.enabled,
-        .castShadow   = sceneDesc.lighting.directional.castShadow,
-        .color        = sceneDesc.lighting.directional.color,
-        .direction    = sceneDesc.lighting.directional.direction,
-        .shadowMapRes = preset.resolution,
-    };
-
-    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
-    shader->setBoolean("directionalLight.castShadow",
-                       directionalLight.castShadow);
-    shader->setFloat3("directionalLight.direction", directionalLight.direction);
-    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->setBoolean("directionalLight.enabled", directional.enabled);
+    shader->setBoolean("directionalLight.castShadow", directional.castShadow);
+    shader->setFloat3("directionalLight.direction", directional.direction);
+    shader->setFloat3("directionalLight.color", directional.color);
     shader->setFloat("evsmBleedThreshold", 0.2F);
 
-    shadowMap = std::make_unique<ShadowMap>(directionalLight.shadowMapRes);
-    cube      = std::make_unique<Cube>();
+    shadowMap       = std::make_unique<ShadowMap>(directional.shadowMapRes);
+    cube            = std::make_unique<Cube>();
     occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
 
     fxaa = std::make_unique<FXAA>(width, height);
@@ -347,13 +346,13 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shader->setFloat2("screenSize",
                       glm::vec2(static_cast<float>(w), static_cast<float>(h)));
 
-    setNumLights(numLights);
+    setNumLights(live.numLights);
 
     // Static after this: bake into both snapshot slots once, not per frame.
     // prevObjectModelMatrices is the same data because nothing animates; if a
     // model matrix ever becomes per-frame, captureRenderFrame() must write
-    // BOTH arrays — current from this frame, previous from the last — or TAA
-    // measures motion between a live matrix and a stale one.
+    // BOTH arrays — current from this frame, previous from the last — or
+    // TAA measures motion between a live matrix and a stale one.
     for (auto& frame : renderFrames) {
         frame.objectModelMatrices     = objectModelMatrices;
         frame.prevObjectModelMatrices = objectModelMatrices;
@@ -553,17 +552,14 @@ void MazeLayer::cullCamera(thread::MazeRenderFrame& frame) {
     cullMicros.store(static_cast<uint32_t>(cullUs), std::memory_order_relaxed);
 }
 
-void MazeLayer::capturePlanar(thread::MazeRenderFrame& frame) {
+void MazeLayer::capturePlanar(thread::MazeRenderFrame&    frame,
+                              const thread::LiveSettings& s) {
     // Planar mirror: the camera reflected in the mirror's top face, with its
     // near plane moved onto the mirror so nothing below it is drawn. Skipped
     // when the mirror itself is frustum-culled, so a mirror behind the camera
     // costs nothing beyond the object it already is.
-    frame.planarActive  = false;
-    const bool planarOn = [this] {
-        std::scoped_lock lock(settingsMutex);
-        return planarEnabled;
-    }();
-    if (planarOn && planarObject &&
+    frame.planarActive = false;
+    if (s.planarEnabled && planarObject &&
         std::ranges::any_of(frame.objectMeshVisible[*planarObject],
                             [](const uint8_t v) { return v != 0; })) {
         const auto&     model = objectModelMatrices[*planarObject];
@@ -604,27 +600,24 @@ void MazeLayer::capturePlanar(thread::MazeRenderFrame& frame) {
     }
 }
 
-void MazeLayer::captureSettings(thread::MazeRenderFrame& frame,
-                                const AntiAliasing       aaMode) {
-    // ImGui setters mutate these from the render thread.
-    std::scoped_lock lock(settingsMutex);
+void MazeLayer::captureSettings(thread::MazeRenderFrame&    frame,
+                                const thread::LiveSettings& s) {
+    frame.settings              = s;
+    frame.settings.probeEnabled = s.probeEnabled && probe != nullptr;
 
-    frame.shadowEnabled    = directionalLight.enabled;
-    frame.shadowCastShadow = directionalLight.castShadow;
-    frame.lightDirection   = directionalLight.direction;
-    if (directionalLight.enabled && directionalLight.castShadow) {
-        frame.cascadeCount = shadowCascades.load(std::memory_order_relaxed);
+    const auto& directional = s.directional;
+    if (directional.enabled && directional.castShadow) {
+        frame.cascadeCount = s.shadowCascades;
         const auto& proj   = frame.cameraProjection;
         // Pure function: onRender() may be replacing shadowMap.
         frame.lightSpaceMatrices = ShadowMap::fitLightSpace(
-            glm::normalize(directionalLight.direction), sceneBounds,
+            glm::normalize(directional.direction), sceneBounds,
             { .position    = frame.cameraPos,
               .nearPlane   = frame.nearPlane,
               .farPlane    = frame.farPlane,
               .tanHalfFovY = 1.F / proj[1][1],
               .aspect      = proj[1][1] / proj[0][0] },
-            frame.cascadeCount, directionalLight.shadowMapRes,
-            shadowSplitLambda.load(std::memory_order_relaxed));
+            frame.cascadeCount, directional.shadowMapRes, s.shadowSplitLambda);
 
         for (uint32_t c = 0; c < frame.cascadeCount; c++) {
             const auto& light = frame.lightSpaceMatrices[c];
@@ -638,7 +631,7 @@ void MazeLayer::captureSettings(thread::MazeRenderFrame& frame,
                     2.F /
                     (glm::length(
                          glm::vec3(light[0][0], light[1][0], light[2][0])) *
-                     static_cast<float>(std::min(directionalLight.shadowMapRes,
+                     static_cast<float>(std::min(directional.shadowMapRes,
                                                  ShadowMap::maxResolution))) *
                     1e5F) /
                 1e5F;
@@ -663,20 +656,15 @@ void MazeLayer::captureSettings(thread::MazeRenderFrame& frame,
         }
     }
 
-    frame.numLights             = numLights;
-    frame.lightAttenuationIndex = attenuationIndex;
-    for (int32_t i = 0; i < numLights; i++) {
+    if (s.numLights != builtLights) {
+        buildPointLights(s.numLights);
+    }
+    for (int32_t i = 0; i < s.numLights; i++) {
         frame.lightPositions[i]     = pointLights.at(i).position;
         frame.prevLightPositions[i] = prevLightPositions.at(i);
         frame.lightColors[i]        = pointLights.at(i).color;
         prevLightPositions.at(i)    = pointLights.at(i).position;
     }
-
-    frame.antiAliasing   = aaMode;
-    frame.bloomEnabled   = bloomEnabled;
-    frame.bloomThreshold = bloomThreshold;
-    frame.bloomIntensity = bloomIntensity;
-    frame.toneMapper     = toneMapper;
 
     frame.refractionEnabled = refractionEnabled;
     if (refractionEnabled) {
@@ -684,28 +672,19 @@ void MazeLayer::captureSettings(thread::MazeRenderFrame& frame,
     } else {
         frame.objectRefraction.assign(objectRefraction.size(), {});
     }
-
-    frame.ssaoEnabled  = ssaoEnabled;
-    frame.ssaoRadius   = ssaoRadius;
-    frame.ssrEnabled   = ssrEnabled;
-    frame.probeEnabled = probeEnabled && probe != nullptr;
-    frame.giEnabled    = giEnabled;
 }
 
 void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
     auto& frame = renderFrames[slotIndex];
 
-    // One locked read for the whole snapshot: the jitter branch below and
-    // frame.antiAliasing have to agree. Reading the member twice lets a mode
-    // switch land between them and tag a jittered frame as FXAA.
-    const AntiAliasing aaMode = [this] {
-        std::scoped_lock lock(settingsMutex);
-        return antiAliasing;
-    }();
+    // One locked copy for the whole snapshot, so the jitter branch below, the
+    // planar mirror and every pass that reads frame.settings agree. Reading a
+    // setting twice would let a change land between the reads.
+    const auto settings = snapshotSettings();
 
     frame.cameraMVP      = camera->getMVP();
     frame.cameraViewProj = frame.cameraMVP;
-    if (aaMode == AntiAliasing::Taa) {
+    if (settings.antiAliasing == AntiAliasing::Taa) {
         const auto jitter = TAA::haltonJitter(
             jitterIndex++, static_cast<uint32_t>(screenWidth.load()),
             static_cast<uint32_t>(screenHeight.load()));
@@ -727,9 +706,9 @@ void MazeLayer::captureRenderFrame(const uint32_t slotIndex) {
 
     cullCamera(frame);
 
-    capturePlanar(frame);
+    capturePlanar(frame, settings);
 
-    captureSettings(frame, aaMode);
+    captureSettings(frame, settings);
 
     // Last: everything above is real per-frame state now, not finishLoading()'s
     // pre-seeded defaults.
@@ -792,7 +771,8 @@ void MazeLayer::applyPendingChanges() {
 void MazeLayer::renderShadowMaps(const thread::MazeRenderFrame& frame) {
     // Phase 1: shadow map. Each cascade is drawn again only when its own
     // matrix changed, so a camera that only turns redraws nothing.
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
+    if (frame.settings.directional.enabled &&
+        frame.settings.directional.castShadow) {
         if (frame.refractionEnabled != shadowCachedRefraction) {
             // every cascade, including ones not drawn this frame
             shadowCached.fill(false);
@@ -829,7 +809,7 @@ void MazeLayer::resolveToDisplay(const thread::MazeRenderFrame& frame,
         }
 
         sceneTarget->resolve(bloomTexId, bloomWeight, !fxaaActive && !taaActive,
-                             frame.toneMapper);
+                             frame.settings.toneMapper);
         gpuEnd();
     }
 
@@ -929,32 +909,35 @@ void MazeLayer::onRender() {
     }
 
     // Phase 3: light culling
-    if (clusteredLights && frame.numLights > 0) {
+    if (clusteredLights && frame.settings.numLights > 0) {
         SPONGE_PROFILE_SECTION("lightcull");
         gpuBegin("lightcull");
-        clusteredLights->update(frame.lightPositions.data(),
-                                frame.lightColors.data(),
-                                frame.lightAttenuationIndex, frame.numLights,
-                                frame.cameraView, frame.cameraProjection);
+        clusteredLights->update(
+            frame.lightPositions.data(), frame.lightColors.data(),
+            frame.settings.attenuationIndex, frame.settings.numLights,
+            frame.cameraView, frame.cameraProjection);
         gpuEnd();
     }
 
     // Phase 3.5: SSAO, against the depth prepass's depth + view-space normal.
     // Skipped when disabled: renderGameObjects() also gates the shader's read
-    // of the texture on frame.ssaoEnabled, so a stale/unrun texture is never
-    // sampled.
-    if (frame.ssaoEnabled && ssao) {
+    // of the texture on frame.settings.ssaoEnabled, so a stale/unrun texture is
+    // never sampled.
+    if (frame.settings.ssaoEnabled && ssao) {
         SPONGE_PROFILE_SECTION("ssao");
         gpuBegin("ssao");
         ssao->process(depthPrepass->getDepthTexture(),
                       depthPrepass->getNormalTexture(), frame.cameraProjection,
-                      glm::inverse(frame.cameraProjection), frame.ssaoRadius);
+                      glm::inverse(frame.cameraProjection),
+                      frame.settings.ssaoRadius);
         gpuEnd();
     }
 
     // Phase 4: opaque pass, into the linear HDR scene target.
-    const bool fxaaActive = frame.antiAliasing == AntiAliasing::Fxaa && fxaa;
-    const bool taaActive  = frame.antiAliasing == AntiAliasing::Taa && taa;
+    const bool fxaaActive =
+        frame.settings.antiAliasing == AntiAliasing::Fxaa && fxaa;
+    const bool taaActive =
+        frame.settings.antiAliasing == AntiAliasing::Taa && taa;
 
     gpuBegin("opaque");
     {
@@ -998,7 +981,7 @@ void MazeLayer::onRender() {
         return frame.objectReflectivity[i] > 0.F &&
                !(frame.planarActive && i == frame.planarIndex);
     };
-    if (frame.ssrEnabled && ssr &&
+    if (frame.settings.ssrEnabled && ssr &&
         std::ranges::any_of(
             std::views::iota(size_t{ 0 }, frame.objectReflectivity.size()),
             usesSsr)) {
@@ -1057,13 +1040,14 @@ void MazeLayer::onRender() {
     // only ever see it through the snapshot.
     uint32_t bloomTexId  = 0;
     float    bloomWeight = 0.F;
-    if (frame.bloomEnabled && bloom) {
+    if (frame.settings.bloomEnabled && bloom) {
         SPONGE_PROFILE_SECTION("bloom");
         gpuBegin("bloom");
-        bloom->process(sceneTarget->getTexture(), frame.bloomThreshold);
+        bloom->process(sceneTarget->getTexture(),
+                       frame.settings.bloomThreshold);
         gpuEnd();
         bloomTexId  = bloom->getBloomTexture();
-        bloomWeight = frame.bloomIntensity;
+        bloomWeight = frame.settings.bloomIntensity;
     }
 
     resolveToDisplay(frame, fxaaActive, taaActive, bloomTexId, bloomWeight);
@@ -1117,25 +1101,25 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
             setAntiAliasing(AntiAliasing::None);
         }
         if (has("bloom")) {
-            setBloomEnabled(false);
+            edit([](auto& s) { s.bloomEnabled = false; });
         }
         if (has("ssao")) {
             setSsaoEnabled(false);
         }
         if (has("ssr")) {
-            setSsrEnabled(false);
+            edit([](auto& s) { s.ssrEnabled = false; });
         }
         if (has("shadow")) {
             setDirectionalLightCastsShadow(false);
         }
         if (has("probe")) {
-            setProbeEnabled(false);
+            edit([](auto& s) { s.probeEnabled = false; });
         }
         if (has("gi")) {
-            setGiEnabled(false);
+            edit([](auto& s) { s.giEnabled = false; });
         }
         if (has("planar")) {
-            setPlanarEnabled(false);
+            edit([](auto& s) { s.planarEnabled = false; });
         }
         captureOff.clear();
     }
@@ -1189,125 +1173,84 @@ void MazeLayer::setAmbientStrength(const float val) {
     shader->setFloat("ambientStrength", ambientStrength);
 }
 
-int32_t MazeLayer::getAttenuationIndex() const {
-    return attenuationIndex;
-}
-
-void MazeLayer::setAttenuationIndex(const int32_t val) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        attenuationIndex = val;
-    }
-    setNumLights(numLights);
-}
-
 std::shared_ptr<scene::GameCamera> MazeLayer::getCamera() const {
     return camera;
 }
 
-bool MazeLayer::getDirectionalLightCastsShadow() const {
-    return directionalLight.castShadow;
-}
-
 void MazeLayer::setDirectionalLightCastsShadow(const bool value) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        directionalLight.castShadow = value;
-    }
+    edit([value](auto& s) { s.directional.castShadow = value; });
 
     const auto shader = Mesh::getShader();
-    shader->setBoolean("directionalLight.castShadow",
-                       directionalLight.castShadow);
-}
-
-glm::vec3 MazeLayer::getDirectionalLightColor() const {
-    return directionalLight.color;
+    shader->setBoolean("directionalLight.castShadow", value);
 }
 
 void MazeLayer::setDirectionalLightColor(const glm::vec3& color) {
-    directionalLight.color = color;
+    edit([&color](auto& s) { s.directional.color = color; });
 
     const auto shader = Mesh::getShader();
-    shader->setFloat3("directionalLight.color", directionalLight.color);
-}
-
-glm::vec3 MazeLayer::getDirectionalLightDirection() const {
-    return directionalLight.direction;
+    shader->setFloat3("directionalLight.color", color);
 }
 
 void MazeLayer::setDirectionalLightDirection(const glm::vec3& direction) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        directionalLight.direction = direction;
-    }
+    edit([&direction](auto& s) { s.directional.direction = direction; });
 
     const auto shader = Mesh::getShader();
-    shader->setFloat3("directionalLight.direction", directionalLight.direction);
-}
-
-bool MazeLayer::getDirectionalLightEnabled() const {
-    return directionalLight.enabled;
+    shader->setFloat3("directionalLight.direction", direction);
 }
 
 void MazeLayer::setDirectionalLightEnabled(const bool value) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        directionalLight.enabled = value;
-    }
+    edit([value](auto& s) { s.directional.enabled = value; });
 
     const auto shader = Mesh::getShader();
-    shader->setBoolean("directionalLight.enabled", directionalLight.enabled);
+    shader->setBoolean("directionalLight.enabled", value);
 }
 
 void MazeLayer::setShadowQuality(const ShadowQuality quality) {
     shadowQuality      = quality;
     const auto& preset = shadowPresets[static_cast<size_t>(quality)];
     setShadowCascades(preset.cascades);
-    if (preset.resolution != directionalLight.shadowMapRes) {
-        directionalLight.shadowMapRes = preset.resolution;
+    if (preset.resolution != live.directional.shadowMapRes) {
+        edit([&preset](auto& s) {
+            s.directional.shadowMapRes = preset.resolution;
+        });
         pendingShadowRebuildRes.store(preset.resolution,
                                       std::memory_order_relaxed);
         pendingShadowRebuild.store(true, std::memory_order_release);
     }
 }
 
-int32_t MazeLayer::getNumLights() const {
-    return numLights;
-}
-
 void MazeLayer::setNumLights(const int32_t val) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        numLights = std::clamp(val, 0, maxPointLights);
-
-        const auto& params = sceneDesc.lighting.point;
-
-        // NOLINTNEXTLINE(bugprone-random-generator-seed) fixed layout
-        std::mt19937                   rng(42U);
-        std::uniform_real_distribution jitterAngle(-params.jitterAngle,
-                                                   params.jitterAngle);
-        std::uniform_real_distribution jitterRadius(-params.jitterRadius,
-                                                    params.jitterRadius);
-
-        // Lights sit on a fixed ellipse: radiusMin is the short (Z) semi-axis,
-        // radiusMin + radiusSpan the long (X) one — the same two knobs that
-        // used to bound the spiral now shape the oval.
-        const float radiusX = params.radiusMin + params.radiusSpan;
-        const float radiusZ = params.radiusMin;
-
-        for (int32_t i = 0; i < numLights; i++) {
-            const float angle =
-                glm::two_pi<float>() * i / numLights + jitterAngle(rng);
-            auto& light    = pointLights.at(i);
-            light.color    = params.color;
-            light.position = glm::vec3(
-                (radiusX + jitterRadius(rng)) * glm::sin(angle), params.height,
-                -(radiusZ + jitterRadius(rng)) * glm::cos(angle));
-        }
-    }
+    edit([val](auto& s) { s.numLights = std::clamp(val, 0, maxPointLights); });
 
     const auto shader = Mesh::getShader();
-    shader->setInteger("numLights", numLights);
+    shader->setInteger("numLights", live.numLights);
+}
+
+void MazeLayer::buildPointLights(const int32_t count) {
+    const auto& params = sceneDesc.lighting.point;
+
+    // NOLINTNEXTLINE(bugprone-random-generator-seed) fixed layout
+    std::mt19937                   rng(42U);
+    std::uniform_real_distribution jitterAngle(-params.jitterAngle,
+                                               params.jitterAngle);
+    std::uniform_real_distribution jitterRadius(-params.jitterRadius,
+                                                params.jitterRadius);
+
+    // Lights sit on a fixed ellipse: radiusMin is the short (Z) semi-axis,
+    // radiusMin + radiusSpan the long (X) one — the same two knobs that
+    // used to bound the spiral now shape the oval.
+    const float radiusX = params.radiusMin + params.radiusSpan;
+    const float radiusZ = params.radiusMin;
+
+    for (int32_t i = 0; i < count; i++) {
+        const float angle = glm::two_pi<float>() * i / count + jitterAngle(rng);
+        auto&       light = pointLights.at(i);
+        light.color       = params.color;
+        light.position    = glm::vec3(
+            (radiusX + jitterRadius(rng)) * glm::sin(angle), params.height,
+            -(radiusZ + jitterRadius(rng)) * glm::cos(angle));
+    }
+    builtLights = count;
 }
 
 void MazeLayer::onWindowFocus(const WindowFocusEvent& event) {
@@ -1377,7 +1320,7 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
     shader->setFloat3("viewForward",
                       -glm::vec3(frame.cameraView[0][2], frame.cameraView[1][2],
                                  frame.cameraView[2][2]));
-    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
+    shader->setInteger("attenuationIndex", frame.settings.attenuationIndex);
 
     bindShadow(*shader, frame);
 
@@ -1387,9 +1330,9 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
 
     // Unit 12 is also the glass pass's depth texture, so the probe is bound
     // again here for every pass that follows it.
-    const bool useProbe = frame.probeEnabled && probeCaptured;
+    const bool useProbe = frame.settings.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
-    shader->setBoolean("giEnabled", frame.giEnabled);
+    shader->setBoolean("giEnabled", frame.settings.giEnabled);
     if (useProbe) {
         RendererAPI::bindTexture(12, probe->getTexture());
         RendererAPI::bindTexture(15, probe->getIrradiance());
@@ -1528,20 +1471,24 @@ void MazeLayer::renderRefractiveObjects(const thread::MazeRenderFrame& frame,
                                 static_cast<float>(frame.screenHeight)));
     shader->setFloat("clusterNear", ClusteredLights::clusterNear);
     shader->setFloat("farPlane", frame.farPlane);
-    shader->setInteger("numLights", frame.numLights);
-    shader->setInteger("attenuationIndex", frame.lightAttenuationIndex);
+    shader->setInteger("numLights", frame.settings.numLights);
+    shader->setInteger("attenuationIndex", frame.settings.attenuationIndex);
     shader->setFloat("evsmBleedThreshold", 0.2F);
-    shader->setBoolean("directionalLight.enabled", frame.shadowEnabled);
-    shader->setBoolean("directionalLight.castShadow", frame.shadowCastShadow);
-    shader->setFloat3("directionalLight.direction", frame.lightDirection);
-    shader->setFloat3("directionalLight.color", directionalLight.color);
+    shader->setBoolean("directionalLight.enabled",
+                       frame.settings.directional.enabled);
+    shader->setBoolean("directionalLight.castShadow",
+                       frame.settings.directional.castShadow);
+    shader->setFloat3("directionalLight.direction",
+                      frame.settings.directional.direction);
+    shader->setFloat3("directionalLight.color",
+                      frame.settings.directional.color);
 
     bindShadow(*shader, frame);
 
     RendererAPI::bindTexture(11, sceneCopy);
     RendererAPI::bindTexture(12, depthPrepass->getDepthTexture());
 
-    const bool useProbe = frame.probeEnabled && probeCaptured;
+    const bool useProbe = frame.settings.probeEnabled && probeCaptured;
     shader->setBoolean("probeEnabled", useProbe);
     if (useProbe) {
         const auto& desc = *sceneDesc.probe;
@@ -1591,7 +1538,7 @@ size_t
     // allocated and the prepass shader still computes both clip-space
     // varyings. Cheap, but not free — measure before assuming parity with the
     // old depth-only pass.
-    const bool writeVelocity = frame.antiAliasing == AntiAliasing::Taa;
+    const bool writeVelocity = frame.settings.antiAliasing == AntiAliasing::Taa;
 
     depthPrepass->begin(writeVelocity);
 
@@ -1638,9 +1585,10 @@ size_t
     // Light cubes: one instanced draw. Including them here is what gives them
     // depth coverage and motion vectors. The instance buffer filled here is
     // also what renderLightCubes draws.
-    if (frame.numLights > 0) {
+    if (frame.settings.numLights > 0) {
         std::array<Cube::Instance, Cube::maxInstances> instances;
-        const auto count = std::min(frame.numLights, Cube::maxInstances);
+        const auto                                     count =
+            std::min(frame.settings.numLights, Cube::maxInstances);
         for (int32_t i = 0; i < count; i++) {
             instances[i] = { .position =
                                  glm::vec4(frame.lightPositions[i], 1.F),
@@ -1684,7 +1632,7 @@ void MazeLayer::renderOcclusionQueries(
 
 void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
     SPONGE_PROFILE_SECTION("renderLightCubes");
-    if (frame.numLights == 0) {
+    if (frame.settings.numLights == 0) {
         return;
     }
 
@@ -1693,7 +1641,7 @@ void MazeLayer::renderLightCubes(const thread::MazeRenderFrame& frame) const {
 
     shader->setFloat("cubeScale", sceneDesc.lighting.point.debugCubeScale);
     shader->setMat4("mvp", frame.cameraMVP);
-    cube->renderInstanced(frame.numLights);
+    cube->renderInstanced(frame.settings.numLights);
 
     shader->unbind();
 }
@@ -1728,8 +1676,8 @@ void MazeLayer::renderPlanarReflection(
         frame.objectModels[i]->render(shader, AlphaPass::Solid);
     }
 
-    shader->setInteger("numLights", frame.numLights);
-    shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
+    shader->setInteger("numLights", frame.settings.numLights);
+    shader->setBoolean("ssaoEnabled", frame.settings.ssaoEnabled);
     shader->unbind();
 
     planarReflection->end();
@@ -1774,8 +1722,8 @@ void MazeLayer::captureProbe(const thread::MazeRenderFrame& frame) const {
         probe->end();
     }
 
-    shader->setInteger("numLights", frame.numLights);
-    shader->setBoolean("ssaoEnabled", frame.ssaoEnabled);
+    shader->setInteger("numLights", frame.settings.numLights);
+    shader->setBoolean("ssaoEnabled", frame.settings.ssaoEnabled);
 
     probe->prefilter();
 
@@ -1829,7 +1777,8 @@ void MazeLayer::bindShadow(const Shader&                  shader,
         "lightSpaceMatrices",
         std::span(frame.lightSpaceMatrices).first(frame.cascadeCount));
     shader.setInteger("cascadeCount", static_cast<int>(frame.cascadeCount));
-    if (frame.shadowEnabled && frame.shadowCastShadow) {
+    if (frame.settings.directional.enabled &&
+        frame.settings.directional.castShadow) {
         shadowMap->bindTexture(1);
     }
 }
@@ -1896,66 +1845,16 @@ void MazeLayer::updateCamera(const InputSnapshot& snap,
     }
 }
 
-AntiAliasing MazeLayer::getAntiAliasing() const {
-    return antiAliasing;
-}
-
 void MazeLayer::setAntiAliasing(const AntiAliasing val) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        antiAliasing = val;
-    }
+    edit([val](auto& s) { s.antiAliasing = val; });
     if (taa) {
         // The accumulated history belongs to whatever was on screen before.
         taa->invalidateHistory();
     }
 }
 
-bool MazeLayer::isBloomEnabled() const {
-    return bloomEnabled;
-}
-
-void MazeLayer::setBloomEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    bloomEnabled = val;
-}
-
-float MazeLayer::getBloomThreshold() const {
-    return bloomThreshold;
-}
-
-void MazeLayer::setBloomThreshold(const float val) {
-    std::scoped_lock lock(settingsMutex);
-    bloomThreshold = val;
-}
-
-float MazeLayer::getBloomIntensity() const {
-    return bloomIntensity;
-}
-
-void MazeLayer::setBloomIntensity(const float val) {
-    std::scoped_lock lock(settingsMutex);
-    bloomIntensity = val;
-}
-
-ToneMapper MazeLayer::getToneMapper() const {
-    return toneMapper;
-}
-
-void MazeLayer::setToneMapper(const ToneMapper val) {
-    std::scoped_lock lock(settingsMutex);
-    toneMapper = val;
-}
-
-bool MazeLayer::isSsaoEnabled() const {
-    return ssaoEnabled;
-}
-
 void MazeLayer::setSsaoEnabled(const bool val) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        ssaoEnabled = val;
-    }
+    edit([val](auto& s) { s.ssaoEnabled = val; });
 
     // The mesh shader does not exist until the maze has loaded; finishLoading()
     // sends it the stored value then.
@@ -1964,66 +1863,18 @@ void MazeLayer::setSsaoEnabled(const bool val) {
     }
 }
 
-float MazeLayer::getSsaoRadius() const {
-    return ssaoRadius;
-}
-
-void MazeLayer::setSsaoRadius(const float val) {
-    std::scoped_lock lock(settingsMutex);
-    ssaoRadius = val;
-}
-
 bool MazeLayer::isTranslucencyEnabled() const {
     return translucencyEnabled;
 }
 
 void MazeLayer::setTranslucencyEnabled(const bool val) {
-    {
-        std::scoped_lock lock(settingsMutex);
-        translucencyEnabled = val;
-    }
+    translucencyEnabled = val;
 
     // A shader uniform, so it needs no per-frame copy in the snapshot. Before
     // the maze has loaded there is no shader; finishLoading() sends the value.
     if (const auto shader = Mesh::getShader()) {
         shader->setBoolean("translucencyEnabled", val);
     }
-}
-
-bool MazeLayer::isSsrEnabled() const {
-    return ssrEnabled;
-}
-
-void MazeLayer::setSsrEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    ssrEnabled = val;
-}
-
-bool MazeLayer::isPlanarEnabled() const {
-    return planarEnabled;
-}
-
-void MazeLayer::setPlanarEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    planarEnabled = val;
-}
-
-bool MazeLayer::isProbeEnabled() const {
-    return probeEnabled;
-}
-
-void MazeLayer::setProbeEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    probeEnabled = val;
-}
-
-bool MazeLayer::isGiEnabled() const {
-    return giEnabled;
-}
-
-void MazeLayer::setGiEnabled(const bool val) {
-    std::scoped_lock lock(settingsMutex);
-    giEnabled = val;
 }
 
 bool MazeLayer::isImguiActive() const {

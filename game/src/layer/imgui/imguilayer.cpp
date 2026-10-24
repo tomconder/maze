@@ -282,27 +282,27 @@ void ImGuiLayer::showBloomControls() {
     if (ImGui::BeginTable("Bloom##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
-        auto bloomEnabled = mazeLayer->isBloomEnabled();
+        auto bloomEnabled = mazeLayer->settings().bloomEnabled;
         if (checkboxRow("Enabled", "##bloomenabled", bloomEnabled)) {
-            mazeLayer->setBloomEnabled(bloomEnabled);
+            mazeLayer->edit([&](auto& s) { s.bloomEnabled = bloomEnabled; });
             sponge::core::Settings::set("video.bloomEnabled", bloomEnabled);
             sponge::core::Settings::save();
         }
 
         // Radiance now, not a point on a tone curve, so useful values run
         // past 1.0.
-        auto threshold = mazeLayer->getBloomThreshold();
+        auto threshold = mazeLayer->settings().bloomThreshold;
         if (sliderRow("Threshold", "##bloomthreshold", threshold, 0.F, 4.F,
                       "%.2f")) {
-            mazeLayer->setBloomThreshold(threshold);
+            mazeLayer->edit([&](auto& s) { s.bloomThreshold = threshold; });
         }
 
         // Weights a linear-space radiance texture, so the whole useful range
         // sits below 1.0.
-        auto intensity = mazeLayer->getBloomIntensity();
+        auto intensity = mazeLayer->settings().bloomIntensity;
         if (sliderRow("Intensity", "##bloomintensity", intensity, 0.F, 0.5F,
                       "%.3f")) {
-            mazeLayer->setBloomIntensity(intensity);
+            mazeLayer->edit([&](auto& s) { s.bloomIntensity = intensity; });
         }
 
         ImGui::EndTable();
@@ -316,16 +316,17 @@ void ImGuiLayer::showToneMapControls() {
     if (ImGui::BeginTable("ToneMap##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
-        auto current = static_cast<int>(mazeLayer->getToneMapper());
+        auto current = static_cast<int>(mazeLayer->settings().toneMapper);
         showTableRow([&] {
             ImGui::Text("Operator");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::Combo("##tonemapper", &current, names.data(),
                              static_cast<int>(names.size()))) {
-                mazeLayer->setToneMapper(
-                    static_cast<sponge::platform::opengl::scene::ToneMapper>(
-                        current));
+                mazeLayer->edit([current](auto& s) {
+                    s.toneMapper = static_cast<
+                        sponge::platform::opengl::scene::ToneMapper>(current);
+                });
                 sponge::core::Settings::set("video.toneMapper",
                                             static_cast<uint32_t>(current));
                 sponge::core::Settings::save();
@@ -340,7 +341,7 @@ void ImGuiLayer::showSsaoControls() {
     if (ImGui::BeginTable("Ssao##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
-        auto ssaoEnabled = mazeLayer->isSsaoEnabled();
+        auto ssaoEnabled = mazeLayer->settings().ssaoEnabled;
         if (checkboxRow("Enabled", "##ssaoenabled", ssaoEnabled)) {
             mazeLayer->setSsaoEnabled(ssaoEnabled);
             sponge::core::Settings::set("video.ssaoEnabled", ssaoEnabled);
@@ -352,9 +353,9 @@ void ImGuiLayer::showSsaoControls() {
             sponge::platform::opengl::scene::Mesh::setLodTint(lodTint);
         }
 
-        auto radius = mazeLayer->getSsaoRadius();
+        auto radius = mazeLayer->settings().ssaoRadius;
         if (sliderRow("Radius", "##ssaoradius", radius, 0.05F, 2.F, "%.2f")) {
-            mazeLayer->setSsaoRadius(radius);
+            mazeLayer->edit([&](auto& s) { s.ssaoRadius = radius; });
         }
 
         ImGui::EndTable();
@@ -365,24 +366,24 @@ void ImGuiLayer::showSsrControls() {
     if (ImGui::BeginTable("Ssr##Table", 2, tableFlags)) {
         const auto mazeLayer = Maze::get().getMazeLayer();
 
-        auto ssrEnabled = mazeLayer->isSsrEnabled();
+        auto ssrEnabled = mazeLayer->settings().ssrEnabled;
         if (checkboxRow("Enabled", "##ssrenabled", ssrEnabled)) {
-            mazeLayer->setSsrEnabled(ssrEnabled);
+            mazeLayer->edit([&](auto& s) { s.ssrEnabled = ssrEnabled; });
         }
 
-        auto planarEnabled = mazeLayer->isPlanarEnabled();
+        auto planarEnabled = mazeLayer->settings().planarEnabled;
         if (checkboxRow("Planar", "##planarenabled", planarEnabled)) {
-            mazeLayer->setPlanarEnabled(planarEnabled);
+            mazeLayer->edit([&](auto& s) { s.planarEnabled = planarEnabled; });
         }
 
-        auto probeEnabled = mazeLayer->isProbeEnabled();
+        auto probeEnabled = mazeLayer->settings().probeEnabled;
         if (checkboxRow("Probe", "##probeenabled", probeEnabled)) {
-            mazeLayer->setProbeEnabled(probeEnabled);
+            mazeLayer->edit([&](auto& s) { s.probeEnabled = probeEnabled; });
         }
 
-        auto giEnabled = mazeLayer->isGiEnabled();
+        auto giEnabled = mazeLayer->settings().giEnabled;
         if (checkboxRow("Global Illumination", "##gienabled", giEnabled)) {
-            mazeLayer->setGiEnabled(giEnabled);
+            mazeLayer->edit([&](auto& s) { s.giEnabled = giEnabled; });
         }
 
         ImGui::EndTable();
@@ -392,9 +393,9 @@ void ImGuiLayer::showSsrControls() {
 void ImGuiLayer::showDirectionalLightControls() {
     if (ImGui::BeginTable("DirectionalLights##Table", 2, tableFlags)) {
         const auto mazeLayer  = Maze::get().getMazeLayer();
-        auto       castShadow = mazeLayer->getDirectionalLightCastsShadow();
-        auto       direction  = mazeLayer->getDirectionalLightDirection();
-        auto       enabled    = mazeLayer->getDirectionalLightEnabled();
+        auto       castShadow = mazeLayer->settings().directional.castShadow;
+        auto       direction  = mazeLayer->settings().directional.direction;
+        auto       enabled    = mazeLayer->settings().directional.enabled;
 
         if (checkboxRow("Enable", "##directionalenable", enabled)) {
             mazeLayer->setDirectionalLightEnabled(enabled);
@@ -402,7 +403,7 @@ void ImGuiLayer::showDirectionalLightControls() {
 
         static auto colorEditFlags =
             ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel;
-        auto dirColor = mazeLayer->getDirectionalLightColor();
+        auto dirColor = mazeLayer->settings().directional.color;
         auto color    = ImVec4(dirColor.r, dirColor.g, dirColor.b, 1.F);
         showTableRow([&] {
             ImGui::Text("Color");
@@ -467,7 +468,7 @@ void ImGuiLayer::showShadowControls() {
             }
         });
 
-        auto lambda = mazeLayer->getShadowSplitLambda();
+        auto lambda = mazeLayer->settings().shadowSplitLambda;
         if (sliderRow("Cascade Split", "##shadowsplit", lambda, 0.F, 1.F,
                       "%.2f")) {
             mazeLayer->setShadowSplitLambda(lambda);
@@ -479,8 +480,8 @@ void ImGuiLayer::showShadowControls() {
 
 void ImGuiLayer::showPointLightControls() {
     const auto mazeLayer        = Maze::get().getMazeLayer();
-    auto       numLights        = mazeLayer->getNumLights();
-    int32_t    attenuationIndex = mazeLayer->getAttenuationIndex();
+    auto       numLights        = mazeLayer->settings().numLights;
+    int32_t    attenuationIndex = mazeLayer->settings().attenuationIndex;
     if (ImGui::SliderInt(
             "Lights ", &numLights, 0,
             static_cast<int>(thread::MazeRenderFrame::maxLights))) {
