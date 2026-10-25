@@ -52,10 +52,6 @@ option(ENABLE_PROFILING "Enables compilation with the Tracy profiler" OFF)
 if (ENABLE_PROFILING)
     message(STATUS "Enabling Tracy")
     add_definitions(-DENABLE_PROFILING)
-
-    option(TRACY_STATIC "" OFF)
-    option(TRACY_ENABLE "" ON)
-    option(TRACY_ON_DEMAND "" ON)
 endif (ENABLE_PROFILING)
 
 option(ENABLE_SANITIZERS
