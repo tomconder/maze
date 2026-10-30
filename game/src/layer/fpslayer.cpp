@@ -53,6 +53,7 @@ bool FpsLayer::onUpdate(const double elapsedTime) {
             GameAction::ToggleFps)) {
         visible = !visible;
         sponge::core::Settings::set(std::string(settingsKey), visible);
+        sponge::core::Settings::save();
     }
 
     sample(elapsedTime);
