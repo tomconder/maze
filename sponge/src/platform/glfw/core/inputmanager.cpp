@@ -792,6 +792,20 @@ void InputManager::buildDefaultBindings() {
             .axisScale = 1.f,
         },
     };
+    menu[+GameAction::ToggleFps] = {
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_F3,
+            .axisScale = 1.f,
+        },
+    };
+    gameplay[+GameAction::ToggleFps] = {
+        InputBinding{
+            .type      = BindingType::Key,
+            .rawCode   = +KeyCode::SpongeKey_F3,
+            .axisScale = 1.f,
+        },
+    };
 
     applyBindingOverrides();
 }

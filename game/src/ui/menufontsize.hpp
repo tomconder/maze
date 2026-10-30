@@ -16,8 +16,9 @@ inline constexpr std::array<uint32_t, 9> bakedFontSizes = { 16, 18, 21, 24, 27,
 // from this size. The font holds only baked sizes, so the result snaps to the
 // nearest one; sizes between steps need the font renderer to scale a baked
 // size.
-inline uint32_t menuFontSizeForWidth(const uint32_t windowWidth) {
-    const auto target = 32.F * static_cast<float>(windowWidth) / 1920.F;
+inline uint32_t menuFontSizeForWidth(const uint32_t windowWidth,
+                                     const float    sizeAt1920 = 32.F) {
+    const auto target = sizeAt1920 * static_cast<float>(windowWidth) / 1920.F;
     auto       best   = bakedFontSizes.front();
     for (const auto size : bakedFontSizes) {
         if (std::abs(static_cast<float>(size) - target) <

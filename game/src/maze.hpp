@@ -5,6 +5,7 @@
 #include "layer/audiolayer.hpp"
 #include "layer/confirmlayer.hpp"
 #include "layer/exitlayer.hpp"
+#include "layer/fpslayer.hpp"
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
 #include "layer/loadinglayer.hpp"
@@ -146,6 +147,8 @@ private:
         std::make_shared<layer::ConfirmLayer>();
     std::shared_ptr<layer::ExitLayer> exitLayer =
         std::make_shared<layer::ExitLayer>();
+    std::shared_ptr<layer::FpsLayer> fpsLayer =
+        std::make_shared<layer::FpsLayer>();
     std::shared_ptr<layer::imgui::ImGuiLayer> imguiLayer =
         std::make_shared<layer::imgui::ImGuiLayer>();
     std::shared_ptr<layer::IntroLayer> introLayer =

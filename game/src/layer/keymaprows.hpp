@@ -19,6 +19,7 @@ enum class KeyMapItem : uint8_t {
     MoveRight,
     Pause,
     ToggleDebugUI,
+    ToggleFps,
     Count,
 };
 
@@ -45,6 +46,7 @@ inline constexpr std::array<BindingRow, keyMapRowCount> bindingRows = {
     BindingRow{ sponge::input::GameAction::MoveRight, "Move Right" },
     BindingRow{ sponge::input::GameAction::Pause, "Pause" },
     BindingRow{ sponge::input::GameAction::ToggleDebugUI, "Debug UI" },
+    BindingRow{ sponge::input::GameAction::ToggleFps, "FPS Counter" },
 };
 
 // Every row of the keyboard tab is a label and a value. Needs no window.
