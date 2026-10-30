@@ -21,6 +21,9 @@ constexpr std::string_view settingsKey = "video.showFps";
 // The font size in pixels at 1920 wide. It snaps to a baked size.
 constexpr float textSizeAt1920 = 20.F;
 
+// The widest text the box is sized for.
+constexpr std::string_view widestText = "000 FPS";
+
 constexpr glm::vec3 textColor{ 1.F, 1.F, 1.F };
 constexpr glm::vec4 backgroundColor{ 0.F, 0.F, 0.F, 0.5F };
 }  // namespace
@@ -77,22 +80,23 @@ void FpsLayer::draw() const {
 
     const auto size =
         ui::menuFontSizeForWidth(orthoCamera->getWidth(), textSizeAt1920);
-    // Tabular figures keep the digits from shifting as the figure changes.
+    // Tabular figures keep the digits the same width; the box is sized for
+    // three digits, so it does not resize when the figure gains one.
     const auto textWidth =
         static_cast<float>(font->getLength(text, size, true));
+    const auto boxWidth = std::max(
+        textWidth, static_cast<float>(font->getLength(widestText, size, true)));
     const auto textHeight = static_cast<float>(font->getHeight(size));
     const auto margin     = static_cast<float>(size) / 2.F;
 
-    const glm::vec2 textPosition{
-        static_cast<float>(orthoCamera->getWidth()) - margin - textWidth,
-        margin,
-    };
+    const auto boxRight = static_cast<float>(orthoCamera->getWidth()) - margin;
+    const glm::vec2 textPosition{ boxRight - textWidth, margin };
     const glm::vec2 pad{ margin / 2.F, margin / 4.F };
 
-    const glm::vec2 textSize{ textWidth, textHeight };
+    const glm::vec2 boxMin{ boxRight - boxWidth, margin };
+    const glm::vec2 boxMax{ boxRight, margin + textHeight };
 
-    quad->render(textPosition - pad, textPosition + textSize + pad,
-                 backgroundColor);
+    quad->render(boxMin - pad, boxMax + pad, backgroundColor);
 
     font->beginPass(size);
     font->render(text, textPosition, textColor, true);
