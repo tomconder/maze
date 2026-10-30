@@ -105,6 +105,11 @@ primitives, windowing, or platform backends itself — see
   `GLFWManager`/`NoopManager` in `../../sponge/src/platform/glfw/imgui/`.
   Never link imgui into release: keep the `imgui::imgui` link and the
   `layer/imgui/*.cpp` glob behind `ENABLE_IMGUI`.
+* `layer/fpslayer.hpp` / `.cpp` - the FPS counter in the upper right corner,
+  in every build. F3 (`GameAction::ToggleFps`, rebindable on the Keyboard tab)
+  shows or hides it and saves `video.showFps`. It stays active so it can read
+  the key. The figure is the mean of the last 60 frame times, the same as
+  ImGui's `io.Framerate`.
 * `scene/scenefile.hpp` / `.cpp` - reads `assets/scenes/maze.yaml` into a
   `Scene`: camera, lighting and the object list. Parsed with fkYAML in the
   `MazeLayer` constructor, which `startupCore()` guarantees runs after

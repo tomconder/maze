@@ -66,6 +66,7 @@ bool Maze::onUserCreate() {
     pushOverlay(keyMapLayer);
     pushOverlay(audioLayer);
     pushOverlay(confirmLayer);
+    pushOverlay(fpsLayer);
 
     pushLayer(mazeLayer);
     pushLayer(loadingLayer);
