@@ -702,7 +702,7 @@ void OptionLayer::syncPendingCheckboxState() {
     // Settings holds the cap and its value; the slider keeps its own value
     // while the cap is off.
     pendingFrameRateCap =
-        sponge::core::Settings::getBool("video.frameRateCap", false);
+        sponge::core::Settings::getBool("video.frameRateCap", true);
     frameRateSlider->setValue(
         frameRateToSlider(sponge::core::Settings::getUInt32(
             "video.maxFrameRate", defaultFrameRate)));

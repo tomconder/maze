@@ -162,6 +162,13 @@ Application::~Application() {
     instance = nullptr;
 }
 
+uint32_t Application::getRefreshRate() {
+    const auto monitorMode = getPrimaryMonitorMode();
+    return monitorMode ? static_cast<uint32_t>(
+                             std::max(monitorMode->mode->refreshRate, 0)) :
+                         0;
+}
+
 bool Application::start() {
     SPONGE_PROFILE_SECTION("Application::start");
 

@@ -231,7 +231,7 @@ primitives, windowing, or platform backends itself — see
   constructor, and its setters must skip a null `Mesh::getShader()`;
   `finishLoading()` sends the stored values to the shader.
 * The Display tab's Frame Rate Cap checkbox and Maximum Frame Rate slider save
-  `video.frameRateCap` and `video.maxFrameRate` (30 to 240, default 60) and
+  `video.frameRateCap` and `video.maxFrameRate` (30 to 240, default 60 or the monitor rate if lower; the cap is on by default) and
   apply at once through `Application::setFrameRateCap()`; `createApplication()`
   reads both at start, and a capture run never caps. The slider keeps its value
   while the cap is off. It is drawn dim, and `isSelectable()` makes it a label,

@@ -16,6 +16,7 @@
 #include "layer/introlayer.hpp"
 #include "layer/keymaplayer.hpp"
 #include "layer/optionlayer.hpp"
+#include "layer/optionrows.hpp"
 #include "layer/scrollmenulayer.hpp"
 #include "ui/confirmlayout.hpp"
 #include "ui/keyhints.hpp"
@@ -23,6 +24,7 @@
 #include "ui/menulayout.hpp"
 #include "version.hpp"
 
+#include <algorithm>
 #include <charconv>
 #include <cstdint>
 #include <cstdio>
@@ -57,6 +59,20 @@ Maze::Maze(ApplicationSpecification specification, CaptureOptions capture) :
 #endif
 
 bool Maze::onUserCreate() {
+    // createApplication() runs before GLFW starts and cannot see the monitor.
+    // With no saved rate, the default is 60, or the refresh rate if lower. The
+    // options screen reads it back from the settings.
+    if (sponge::core::Settings::getUInt32("video.maxFrameRate", 0) == 0) {
+        const auto refresh = getRefreshRate();
+        const auto rate    = refresh > 0 ?
+                                 (std::min)(layer::defaultFrameRate, refresh) :
+                                 layer::defaultFrameRate;
+        sponge::core::Settings::set("video.maxFrameRate", rate);
+        if (getFrameRateCap() > 0) {
+            setFrameRateCap(rate);
+        }
+    }
+
     pushOverlay(imguiLayer);
     imguiLayer->setActive(false);
 
@@ -292,7 +308,7 @@ std::unique_ptr<sponge::platform::glfw::core::Application>
         .decorated            = decorated,
         .throttleInBackground = !capturing,
         .frameRateCap =
-            !capturing && Settings::getBool("video.frameRateCap", false) ?
+            !capturing && Settings::getBool("video.frameRateCap", true) ?
                 Settings::getUInt32("video.maxFrameRate",
                                     game::layer::defaultFrameRate) :
                 0,
