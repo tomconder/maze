@@ -16,9 +16,11 @@ namespace {
 constexpr float baseValueGap = 12.F;
 constexpr float trackWidth   = 200.F;
 constexpr float trackHeight  = 6.F;
-// The dots hang this far above the bottom edge of the value part.
-constexpr float            dotMargin   = 9.F;
-constexpr std::string_view fullPercent = "100%";
+// The dots hang this far above the bottom edge of the value part, in pixels at
+// the 21 px menu font; it scales with the font size.
+constexpr float            dotMargin     = 9.F;
+constexpr float            dotMarginFont = 21.F;
+constexpr std::string_view fullPercent   = "100%";
 
 float textHeight(const RowText& text) {
     return text.measure("", text.fontSize).height;
@@ -60,7 +62,6 @@ void layoutSelect(const YGNodeRef row, const RowText& text,
         YGNodeStyleSetPositionType(dotsNode, YGPositionTypeAbsolute);
         YGNodeStyleSetPosition(dotsNode, YGEdgeLeft, 0.F);
         YGNodeStyleSetPosition(dotsNode, YGEdgeRight, 0.F);
-        YGNodeStyleSetPosition(dotsNode, YGEdgeBottom, dotMargin);
         YGNodeStyleSetFlexDirection(dotsNode, YGFlexDirectionRow);
         YGNodeStyleSetJustifyContent(dotsNode, YGJustifyCenter);
         YGNodeInsertChild(valueNode, dotsNode, selectparts::dots);
@@ -86,6 +87,9 @@ void layoutSelect(const YGNodeRef row, const RowText& text,
         YGNodeInsertChild(dotsNode, YGNodeNew(), YGNodeGetChildCount(dotsNode));
     }
     const auto radius = dotRadius(text.fontSize);
+    YGNodeStyleSetPosition(dotsNode, YGEdgeBottom,
+                           dotMargin * static_cast<float>(text.fontSize) /
+                               dotMarginFont);
     YGNodeStyleSetGap(dotsNode, YGGutterColumn, radius * 1.5F);
     for (size_t i = 0; i < dotCount; i++) {
         setPartSize(dotsNode, static_cast<int>(i), radius * 2.F, radius * 2.F);

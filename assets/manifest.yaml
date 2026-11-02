@@ -37,7 +37,7 @@ fonts:
     output: fonts/inter.ktx2
     # Every size the game draws text at. The font holds only these. Keep in
     # step with bakedFontSizes in game/src/ui/menufontsize.hpp.
-    sizes: [16, 18, 21, 24, 27, 32, 43, 48, 56]
+    sizes: [12, 14, 16, 18, 21, 24, 27, 32, 43, 48, 56]
 
 atlases:
   # The sprite name is what the engine looks up, so it stays stable if the

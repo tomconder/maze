@@ -12,7 +12,9 @@
 
 #include <glm/glm.hpp>
 
+#include <algorithm>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <span>
@@ -32,11 +34,13 @@ struct Metrics {
 };
 
 Metrics metricsFor(const float windowWidth) {
-    // one step below the menu size, and only sizes the atlas bakes
-    // (18, 24, 32, 48) — an unbaked size renders no glyphs
+    // one baked step below the menu size, or the smallest baked size; an
+    // unbaked size renders no glyphs
     const auto menuSize =
         game::ui::menuFontSizeForWidth(static_cast<uint32_t>(windowWidth));
-    const uint32_t size = menuSize <= 24 ? 18 : menuSize <= 32 ? 24 : 32;
+    const auto     at = std::ranges::find(game::ui::bakedFontSizes, menuSize);
+    const uint32_t size =
+        at == game::ui::bakedFontSizes.begin() ? *at : *std::prev(at);
 
     // the prompt art is inset in its sprite, so it needs more room than the
     // label text to read at the same weight
