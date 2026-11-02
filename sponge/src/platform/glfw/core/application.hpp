@@ -93,6 +93,10 @@ public:
         frameRateCap.store(fps, std::memory_order_relaxed);
     }
 
+    // Refresh rate of the primary monitor in Hz, or 0 if unknown. Call after
+    // start(), from the main thread.
+    [[nodiscard]] static uint32_t getRefreshRate();
+
     // Any thread can log, so both calls lock. fn runs under the lock and must
     // not log.
     template <typename Fn>
