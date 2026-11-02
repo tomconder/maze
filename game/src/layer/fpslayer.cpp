@@ -19,7 +19,7 @@ constexpr std::string_view fontPath    = "/fonts/inter.ktx2";
 constexpr std::string_view settingsKey = "video.showFps";
 
 // The font size in pixels at 1920 wide. It snaps to a baked size.
-constexpr float textSizeAt1920 = 20.F;
+constexpr float textSizeAt1920 = 18.F;
 
 // The widest text the box is sized for.
 constexpr std::string_view widestText = "000 FPS";

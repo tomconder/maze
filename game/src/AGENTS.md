@@ -244,7 +244,7 @@ primitives, windowing, or platform backends itself — see
   leaves the casters.
 
 * Menu scale follows the window width. `ui::menuFontSizeForWidth()` returns the
-  baked font size nearest to `32 * width / 1920`, and the option rows, tab
+  baked font size nearest to `27 * width / 1920`, and the option rows, tab
   bar and key hints derive from it. Checked with `--capture-menu` (all four
   screens) at 1024x768 and 3840x2160, and by screenshot at 1280x720 and
   1920x1080. `ui::Slider` scales its track, handle and gaps from its font size
