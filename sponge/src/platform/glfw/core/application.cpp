@@ -163,8 +163,10 @@ Application::~Application() {
 }
 
 uint32_t Application::getRefreshRate() {
-    const auto mm = getPrimaryMonitorMode();
-    return mm ? static_cast<uint32_t>(std::max(mm->mode->refreshRate, 0)) : 0;
+    const auto monitorMode = getPrimaryMonitorMode();
+    return monitorMode ? static_cast<uint32_t>(
+                             std::max(monitorMode->mode->refreshRate, 0)) :
+                         0;
 }
 
 bool Application::start() {

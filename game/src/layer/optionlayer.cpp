@@ -558,8 +558,6 @@ void OptionLayer::togglePending(const OptionMenuItem item) {
             Maze::get().setFrameRateCap(pendingFrameRateCap ? frameRate() : 0);
             sponge::core::Settings::set("video.frameRateCap",
                                         pendingFrameRateCap);
-            // Keep the shown value, so the next start uses the same cap.
-            sponge::core::Settings::set("video.maxFrameRate", frameRate());
             break;
         case OptionMenuItem::AmbientOcclusion:
             Maze::get().getMazeLayer()->setSsaoEnabled(pendingAmbientOcclusion);
@@ -704,15 +702,10 @@ void OptionLayer::syncPendingCheckboxState() {
     // Settings holds the cap and its value; the slider keeps its own value
     // while the cap is off.
     pendingFrameRateCap =
-        sponge::core::Settings::getBool("video.frameRateCap", false);
-    // The default is 60, or the monitor's rate if that is lower.
-    const auto refresh =
-        sponge::platform::glfw::core::Application::getRefreshRate();
+        sponge::core::Settings::getBool("video.frameRateCap", true);
     frameRateSlider->setValue(
         frameRateToSlider(sponge::core::Settings::getUInt32(
-            "video.maxFrameRate", refresh > 0 ?
-                                      std::min(defaultFrameRate, refresh) :
-                                      defaultFrameRate)));
+            "video.maxFrameRate", defaultFrameRate)));
     frameRateSlider->setValueText(std::to_string(frameRate()));
     pendingAmbientOcclusion =
         Maze::get().getMazeLayer()->settings().ssaoEnabled;
