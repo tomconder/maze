@@ -402,7 +402,7 @@ private:
     mutable std::atomic<uint32_t> occlusionTotalCount{ 0 };
     float                         ambientStrength     = .25F;
     float                         ao                  = .25F;
-    bool                          translucencyEnabled = true;
+    bool                          translucencyEnabled = false;
     bool                          refractionEnabled   = false;
     bool                          mouseButtonPressed  = false;
     bool                          isImguiOpen         = true;

@@ -28,7 +28,7 @@ private:
     bool pendingFrameRateCap         = false;
     bool pendingAmbientOcclusion     = true;
     bool pendingBloom                = true;
-    bool pendingSubsurfaceScattering = true;
+    bool pendingSubsurfaceScattering = false;
     int  pendingDisplayModeIndex     = 0;
     int  pendingAaIndex              = 0;
     int  pendingShadowQualityIndex   = 1;
