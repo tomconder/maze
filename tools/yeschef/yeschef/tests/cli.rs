@@ -122,3 +122,48 @@ fn errors_come_in_manifest_order_for_any_thread_count() {
     assert!(first < one.find("m11.spnga").unwrap());
     assert!(one.contains("12 of the assets failed"));
 }
+
+#[test]
+fn shaders_are_compiled_into_a_readable_pack() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("shaders");
+    fs::create_dir_all(&source).unwrap();
+    fs::write(
+        source.join("t.slang"),
+        "[shader(\"compute\")]\n[numthreads(1, 1, 1)]\nvoid main(uint3 id : SV_DispatchThreadID) {}\n",
+    )
+    .unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    fs::write(
+        &manifest,
+        "shaders:\n  output: shaders.spnga\n  stages:\n    t.comp: shaders/t.slang:main\n",
+    )
+    .unwrap();
+    let out = dir.path().join("out");
+
+    let run = yeschef(&[
+        "--manifest",
+        path(&manifest),
+        path(&out),
+        "--no-line-directives",
+    ]);
+    assert!(run.status.success(), "{run:?}");
+    assert!(String::from_utf8_lossy(&run.stdout).contains("1 shaders ->"));
+
+    let pack =
+        yeschef_format::shaderpack::read(&fs::read(out.join("shaders.spnga")).unwrap()).unwrap();
+    let glsl = &pack["t.comp"];
+    assert!(glsl.starts_with("#version 450"), "{glsl}");
+    assert!(!glsl.contains("#line"));
+
+    // A missing entry point fails the bake and leaves no output.
+    fs::write(
+        &manifest,
+        "shaders:\n  output: shaders.spnga\n  stages:\n    t.comp: shaders/t.slang:nothing\n",
+    )
+    .unwrap();
+    let run = yeschef(&["--manifest", path(&manifest), path(&out)]);
+    assert_eq!(run.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&run.stderr).contains("nothing"));
+    assert!(!out.join("shaders.spnga").exists());
+}

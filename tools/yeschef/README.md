@@ -32,8 +32,19 @@ The converter binary. It takes the command line of `assetconv`: `--manifest <man
 
 Done: manifest parsing, up-to-date checks, orphan deletion and the notices file. The notices output is byte-identical to `assetconv`.
 
-Not done: the converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
+Shader pack: done. `yeschef/src/shaders.rs` compiles the manifest's Slang stages to GLSL 450 and writes the pack with `format/src/shaderpack.rs`. Against `assetconv` the pack is byte-identical, with and without line directives, when both use the same Slang version.
+
+Not done: the other converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
 
 Exit codes: 0 success, 1 failure, 2 usage or manifest error.
 
 CMake builds it with `-DENABLE_YESCHEF=ON`. CI runs `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test`.
+
+### Building with Slang
+
+yeschef links Slang through the `shader-slang` crate, so a build needs the Slang SDK and libclang (bindgen):
+
+- Set `SLANG_DIR` to a Slang release folder that holds `include/` and `lib/`, or set `VULKAN_SDK`.
+- Put the Slang `bin` folder (Windows) or `lib` folder (Linux) on `PATH` or `LD_LIBRARY_PATH` to run it.
+- Use the Slang version in `vcpkg.json`. A different version prints the same GLSL with different float digits and `#line` numbers.
+- Set `LIBCLANG_PATH` if bindgen cannot find libclang.

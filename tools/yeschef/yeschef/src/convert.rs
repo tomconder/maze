@@ -5,8 +5,6 @@ use anyhow::Result;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
-use crate::manifest::ShaderStage;
-
 /// A converter that does not exist yet. A bake that fails with this keeps the
 /// output it found, because nothing was converted.
 #[derive(Debug)]
@@ -38,14 +36,6 @@ pub fn font(_from: &Path, _to: &Path, _sizes: &[u32]) -> Result<()> {
 
 pub fn atlas(_sprites: &[(String, PathBuf)], _to: &Path) -> Result<()> {
     Err(NotImplemented("atlas packing").into())
-}
-
-pub fn shaders(
-    _stages: &[(ShaderStage<'_>, PathBuf)],
-    _to: &Path,
-    _line_directives: bool,
-) -> Result<()> {
-    Err(NotImplemented("shader compilation").into())
 }
 
 pub fn verify(_source: &Path, _baked: &Path) -> Result<()> {

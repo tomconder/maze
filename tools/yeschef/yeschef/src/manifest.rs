@@ -176,6 +176,15 @@ mod tests {
     }
 
     #[test]
+    fn a_repeated_stage_name_is_not_dropped() {
+        // A repeated key must not silently drop a stage.
+        let text = "shaders:\n  output: s.spnga\n  stages:\n    a.vert: a.slang:one\n    a.vert: b.slang:two\n";
+        if let Ok(manifest) = Manifest::parse(text) {
+            assert_eq!(manifest.shaders.unwrap().stages().unwrap().len(), 2);
+        }
+    }
+
+    #[test]
     fn a_stage_splits_at_the_last_colon() {
         let text = "shaders:\n  output: s.spnga\n  stages:\n    a.vert: c:/a.slang:main\n";
         let shaders = Manifest::parse(text).unwrap().shaders.unwrap();

@@ -12,6 +12,8 @@
 //! meaning of a field or the texture reference convention. The engine rejects
 //! a version it does not know.
 
+pub mod shaderpack;
+
 use std::mem::{offset_of, size_of};
 
 /// Number of texture slots in a mesh entry. The order is albedo, normal,

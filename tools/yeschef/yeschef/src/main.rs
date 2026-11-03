@@ -5,6 +5,7 @@ mod bake;
 mod convert;
 mod manifest;
 mod notices;
+mod shaders;
 
 use anyhow::Result;
 use bake::{Baker, Job, collect_files};
@@ -214,7 +215,7 @@ fn bake_all(
             collect_files(folder, &mut inputs)?;
         }
         jobs.push(Job::new(&shaders.output, inputs, move |to| {
-            convert::shaders(&stages, to, line_directives)
+            shaders::pack(&stages, to, line_directives)
         }));
     }
 
