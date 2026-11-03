@@ -1,6 +1,6 @@
 # yeschef
 
-Rust workspace for the asset pipeline. It will replace `tools/assetconv`. Today it holds one crate.
+Rust workspace for the asset pipeline. It will replace `tools/assetconv`. It holds two crates, `format` and `yeschef`.
 
 ## format
 
@@ -25,3 +25,15 @@ YESCHEF_BAKED_DIR=<bake output dir> cargo test
 Without the variable, that test passes without checking anything.
 
 Not covered yet: the font tables (`Glyph` in `font.hpp`) and the KTX2 files.
+
+## yeschef
+
+The converter binary. It takes the command line of `assetconv`: `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify`. `--threads` is accepted and ignored for now.
+
+Done: manifest parsing, up-to-date checks, orphan deletion and the notices file. The notices output is byte-identical to `assetconv`.
+
+Not done: the converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
+
+Exit codes: 0 success, 1 failure, 2 usage or manifest error.
+
+CMake builds it with `-DENABLE_YESCHEF=ON`. CI runs `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test`.

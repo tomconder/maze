@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["format"]
+members = ["format", "yeschef"]
 
 [workspace.package]
 edition = "2024"
