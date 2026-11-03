@@ -3,6 +3,7 @@
 
 mod bake;
 mod convert;
+mod hdr;
 mod manifest;
 mod notices;
 mod shaders;
@@ -171,7 +172,7 @@ fn bake_all(
         jobs.push(Job::new(
             &environment.output,
             vec![from.clone()],
-            move |to| convert::environment(&from, to),
+            move |to| hdr::convert(&from, to),
         ));
     }
 

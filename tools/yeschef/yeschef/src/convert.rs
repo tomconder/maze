@@ -26,10 +26,6 @@ pub fn texture(_from: &Path, _to: &Path) -> Result<()> {
     Err(NotImplemented("texture conversion").into())
 }
 
-pub fn environment(_from: &Path, _to: &Path) -> Result<()> {
-    Err(NotImplemented("environment conversion").into())
-}
-
 pub fn font(_from: &Path, _to: &Path, _sizes: &[u32]) -> Result<()> {
     Err(NotImplemented("font conversion").into())
 }

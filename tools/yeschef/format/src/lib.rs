@@ -12,6 +12,7 @@
 //! meaning of a field or the texture reference convention. The engine rejects
 //! a version it does not know.
 
+pub mod ktx2;
 pub mod shaderpack;
 
 use std::mem::{offset_of, size_of};
