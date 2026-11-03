@@ -4,6 +4,9 @@
 mod bake;
 mod convert;
 mod hdr;
+// The texture and glTF converters use it, and they come next.
+#[allow(dead_code)]
+mod image;
 mod manifest;
 mod notices;
 mod shaders;

@@ -36,6 +36,8 @@ Shader pack: done. `yeschef/src/shaders.rs` compiles the manifest's Slang stages
 
 Environment maps: done. `yeschef/src/hdr.rs` bakes Radiance `.hdr` to half float KTX2 with the KTX2 writer in `format/src/ktx2.rs`. The output is byte-identical to `assetconv`.
 
+Image decode: done, not used yet. `yeschef/src/image.rs` decodes PNG (`png` crate) and JPEG (`zune-jpeg`) to RGBA8. On the 5 PNG files and 70 JPEG files in the game's glTF files and textures, PNG output is identical to libspng's rules and JPEG output is within 4 of 255 of libjpeg-turbo (Pillow), 0.008 on average. The converters that need it come next.
+
 Not done: the other converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
 
 Exit codes: 0 success, 1 failure, 2 usage or manifest error.
