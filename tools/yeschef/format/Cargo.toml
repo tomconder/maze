@@ -1,0 +1,10 @@
+[package]
+name = "yeschef-format"
+version = "0.1.0"
+description = "On-disk layout of the baked asset files. The C++ engine reads it through a generated header."
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dev-dependencies]
+cbindgen = { version = "0.29", default-features = false }

@@ -131,8 +131,9 @@ cluster simplification reads the float normals.
 Texture slot order is albedo, normal, occlusion, emissive, metallic-roughness.
 An image used by more than one material is stored once and referenced by index.
 
-`sponge/format/scene/src/assetformat.hpp` is the single definition of this layout and
-is compiled into both the converter and the engine, so the two cannot disagree.
+The layout is defined in Rust, in `tools/yeschef/format`. cbindgen turns it into
+`sponge/format/scene/src/assetlayout.generated.hpp`, which `assetformat.hpp` includes. That
+header is compiled into both the converter and the engine, so the two cannot disagree.
 
 Vertices are written vertex-cache, overdraw and fetch optimized. That used to
 run in the engine on every load, where it had no effect at all: the `Mesh`
@@ -167,15 +168,9 @@ what it found. There is no migration path and no backward-compatible reader:
 baked files never ship independently of the executable, so a rejected file is
 always one a rebuild replaces.
 
-Two asserts sit next to the version constant:
-
-```cpp
-static_assert(sizeof(PackedVertex) == 28);
-static_assert(offsetof(PackedVertex, tangent) == 24);
-```
-
-They catch a vertex size change and a field reorder. Either one fires and
-forces the version bump in the same edit.
+The version constants and the size asserts sit together in
+`tools/yeschef/format/src/lib.rs`. They catch a size change and a field reorder.
+Either one fires and forces the version bump in the same edit.
 
 ## Textures
 

@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -23,7 +24,7 @@ std::vector<uint8_t> write(const Sources& sources) {
         .version = version,
         .count   = static_cast<uint32_t>(sorted.size()),
     };
-    std::memcpy(header.magic, magic, sizeof(magic));
+    std::ranges::copy(magic, std::begin(header.magic));
 
     std::vector<uint8_t> out(sizeof(Header) + (sizeof(Entry) * sorted.size()));
     std::vector<Entry>   entries(sorted.size());
@@ -63,7 +64,7 @@ Sources read(const std::string& path, std::string& error) {
 
     Header header{};
     std::memcpy(&header, bytes.data(), sizeof(Header));
-    if (std::memcmp(header.magic, magic, sizeof(magic)) != 0) {
+    if (std::memcmp(header.magic, magic.data(), magic.size()) != 0) {
         error = fmt::format("Not a shader pack: {}", path);
         return {};
     }

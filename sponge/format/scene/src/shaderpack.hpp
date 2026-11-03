@@ -1,5 +1,9 @@
 #pragma once
 
+#include "assetlayout.generated.hpp"
+
+#include <array>
+#include <bit>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -10,25 +14,19 @@
 //
 // Own magic and version, separate from the model container, so a change to
 // one layout does not invalidate the other's baked files. magic and version
-// stay at offsets 0 and 8, as in assetformat.hpp.
+// stay at offsets 0 and 8, as in assetformat.hpp. The byte layout is defined
+// in Rust, in tools/yeschef/format, and reaches this code as
+// assetlayout.generated.hpp.
 namespace sponge::scene::shaderpack {
 
-constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'S', 'H', 0, 0 };
-constexpr uint32_t version  = 1;
+static_assert(std::endian::native == std::endian::little);
 
-struct Header {
-    char     magic[sizeof(shaderpack::magic)];
-    uint32_t version;
-    uint32_t count;
-};
+using Header = layout::ShaderPackHeader;
+using Entry  = layout::ShaderPackEntry;
 
-// Byte offsets are absolute from the start of the file.
-struct Entry {
-    uint32_t nameOffset;
-    uint32_t nameSize;
-    uint32_t sourceOffset;
-    uint32_t sourceSize;
-};
+constexpr auto magic =
+    std::bit_cast<std::array<uint8_t, 8>>(layout::SHADERPACK_MAGIC);
+constexpr uint32_t version = layout::SHADERPACK_VERSION;
 
 // read() and write() index the file with these sizes.
 static_assert(sizeof(Header) == 16);

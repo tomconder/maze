@@ -13,6 +13,7 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -47,6 +48,17 @@ void appendBytes(std::vector<uint8_t>& out, const void* data,
     out.insert(out.end(), bytes, bytes + size);
 }
 
+// A glm type and its plain-array twin in the generated header hold the same
+// floats in the same order. The static_asserts in assetformat.hpp pin the
+// sizes and offsets.
+template <typename To, typename From>
+void copyBytes(To& to, const From& from) {
+    static_assert(sizeof(To) == sizeof(From));
+    static_assert(std::is_trivially_copyable_v<To>);
+    static_assert(std::is_trivially_copyable_v<From>);
+    std::memcpy(&to, &from, sizeof(To));
+}
+
 // Texture slot order in MeshEntry::textureIndex. Works for const and
 // non-const meshes.
 template <typename M>
@@ -69,7 +81,7 @@ const Header* validate(const std::vector<uint8_t>& bytes,
     }
 
     const auto* header = reinterpret_cast<const Header*>(bytes.data());
-    if (std::memcmp(header->magic, magic, sizeof(magic)) != 0) {
+    if (std::memcmp(header->magic, magic.data(), magic.size()) != 0) {
         error = fmt::format("Not a baked model: {}", path);
         return nullptr;
     }
@@ -125,7 +137,7 @@ std::vector<uint8_t> write(const ModelData& data) {
         .meshCount    = static_cast<uint32_t>(meshes.size()),
         .textureCount = static_cast<uint32_t>(textureBlobs.size()),
     };
-    std::memcpy(header.magic, magic, sizeof(magic));
+    std::ranges::copy(magic, std::begin(header.magic));
     append(out, header);
 
     // Entry tables are fixed size, so their file offsets are known before
@@ -171,7 +183,7 @@ std::vector<uint8_t> write(const ModelData& data) {
                     clusters.size() * sizeof(MeshCluster));
 
         std::ranges::copy(meshSlots[i], std::begin(entry.textureIndex));
-        entry.baseColorFactor          = mesh.baseColorFactor;
+        copyBytes(entry.baseColorFactor, mesh.baseColorFactor);
         entry.metallicFactor           = mesh.metallicFactor;
         entry.roughnessFactor          = mesh.roughnessFactor;
         entry.clearcoatFactor          = mesh.clearcoatFactor;
@@ -179,8 +191,8 @@ std::vector<uint8_t> write(const ModelData& data) {
         entry.alphaMode                = static_cast<uint32_t>(mesh.alphaMode);
         entry.alphaCutoff              = mesh.alphaCutoff;
         entry.doubleSided              = mesh.doubleSided ? 1 : 0;
-        entry.diffuseTransmission      = mesh.diffuseTransmission;
-        entry.uvTransforms             = mesh.uvTransforms;
+        copyBytes(entry.diffuseTransmission, mesh.diffuseTransmission);
+        copyBytes(entry.uvTransforms, mesh.uvTransforms);
     }
 
     for (size_t i = 0; i < textureBlobs.size(); i++) {
@@ -292,7 +304,7 @@ ModelData read(const std::string& path, std::string& error) {
             slot++;
         }
 
-        mesh.baseColorFactor          = entry.baseColorFactor;
+        copyBytes(mesh.baseColorFactor, entry.baseColorFactor);
         mesh.metallicFactor           = entry.metallicFactor;
         mesh.roughnessFactor          = entry.roughnessFactor;
         mesh.clearcoatFactor          = entry.clearcoatFactor;
@@ -302,11 +314,11 @@ ModelData read(const std::string& path, std::string& error) {
             entry.alphaMode <= static_cast<uint32_t>(AlphaMode::Blend) ?
                 static_cast<AlphaMode>(entry.alphaMode) :
                 AlphaMode::Opaque;
-        mesh.alphaCutoff         = entry.alphaCutoff;
-        mesh.doubleSided         = entry.doubleSided != 0;
-        mesh.doubleSided         = entry.doubleSided != 0;
-        mesh.diffuseTransmission = entry.diffuseTransmission;
-        mesh.uvTransforms        = entry.uvTransforms;
+        mesh.alphaCutoff = entry.alphaCutoff;
+        mesh.doubleSided = entry.doubleSided != 0;
+        mesh.doubleSided = entry.doubleSided != 0;
+        copyBytes(mesh.diffuseTransmission, entry.diffuseTransmission);
+        copyBytes(mesh.uvTransforms, entry.uvTransforms);
     }
 
     return data;
