@@ -1,11 +1,36 @@
 //! Up-to-date checks, the clean-up of a failed output, and the orphan sweep.
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
+use rayon::prelude::*;
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::convert::NotImplemented;
+
+type Run<'a> = Box<dyn FnOnce(&Path) -> Result<()> + Send + 'a>;
+
+/// One output to bake: its name under the output folder, the files it reads,
+/// and the conversion that writes it.
+pub struct Job<'a> {
+    pub name: String,
+    pub inputs: Vec<PathBuf>,
+    pub run: Run<'a>,
+}
+
+impl<'a> Job<'a> {
+    pub fn new(
+        name: &str,
+        inputs: Vec<PathBuf>,
+        run: impl FnOnce(&Path) -> Result<()> + Send + 'a,
+    ) -> Self {
+        Self {
+            name: name.to_string(),
+            inputs,
+            run: Box::new(run),
+        }
+    }
+}
 
 pub struct Baker {
     manifest: PathBuf,
@@ -33,18 +58,40 @@ impl Baker {
         self.source_root.join(relative)
     }
 
-    /// Runs `run` unless the output named `name` is newer than `inputs`, the
-    /// manifest and the converter. A failed run deletes its output, so a
-    /// partial file never looks current. The exception is a converter that
-    /// does not exist yet: nothing was converted, so the output stays.
-    pub fn bake(
-        &mut self,
-        name: &str,
-        mut inputs: Vec<PathBuf>,
-        run: impl FnOnce(&Path) -> Result<()>,
-    ) -> Result<()> {
-        let output = self.output_root.join(name);
-        self.outputs.insert(output.clone());
+    /// Bakes every job on the rayon pool, so assets run side by side and a
+    /// converter that splits its own work shares the same threads. Every job
+    /// runs even if one fails. Errors come back in job order, so the report
+    /// does not depend on the thread count or on timing.
+    pub fn run(&mut self, jobs: Vec<Job<'_>>) -> Result<()> {
+        for job in &jobs {
+            self.outputs.insert(self.output_root.join(&job.name));
+        }
+        let baker = &*self;
+        let results: Vec<Result<()>> = jobs
+            .into_par_iter()
+            .map(|job| {
+                let name = job.name.clone();
+                baker.bake(job).with_context(|| name)
+            })
+            .collect();
+        let mut failed = 0;
+        for error in results.into_iter().filter_map(Result::err) {
+            eprintln!("yeschef: {error:#}");
+            failed += 1;
+        }
+        if failed > 0 {
+            bail!("{failed} of the assets failed");
+        }
+        Ok(())
+    }
+
+    /// Runs the job unless its output is newer than its inputs, the manifest
+    /// and the converter. A failed run deletes its output, so a partial file
+    /// never looks current. The exception is a converter that does not exist
+    /// yet: nothing was converted, so the output stays.
+    fn bake(&self, job: Job<'_>) -> Result<()> {
+        let output = self.output_root.join(&job.name);
+        let mut inputs = job.inputs;
         inputs.push(self.manifest.clone());
         inputs.push(self.converter.clone());
         if up_to_date(&output, &inputs) {
@@ -54,7 +101,7 @@ impl Baker {
             fs::create_dir_all(parent)
                 .with_context(|| format!("unable to create {}", parent.display()))?;
         }
-        run(&output).inspect_err(|error| {
+        (job.run)(&output).inspect_err(|error| {
             if error.downcast_ref::<NotImplemented>().is_none() {
                 let _ = fs::remove_file(&output);
             }
@@ -103,7 +150,7 @@ fn normalize(path: &Path) -> PathBuf {
     fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
-fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
+pub fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
     for entry in
         fs::read_dir(folder).with_context(|| format!("unable to read {}", folder.display()))?
     {
@@ -120,6 +167,7 @@ fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::{Duration, SystemTime};
 
     fn write_at(path: &Path, offset_seconds: i64) {
@@ -145,6 +193,10 @@ mod tests {
         Baker::new(&manifest, &dir.join("out")).unwrap()
     }
 
+    fn job<'a>(name: &str, run: impl FnOnce(&Path) -> Result<()> + Send + 'a) -> Job<'a> {
+        Job::new(name, vec![], run)
+    }
+
     #[test]
     fn newer_than_every_input_is_current() {
         let dir = tempfile::tempdir().unwrap();
@@ -168,21 +220,17 @@ mod tests {
     fn a_current_output_is_not_rebuilt() {
         let dir = tempfile::tempdir().unwrap();
         let mut baker = baker(dir.path());
-        let mut runs = 0;
-        baker
-            .bake("a.bin", vec![], |to| {
-                runs += 1;
-                write_at(to, 3600);
-                Ok(())
-            })
-            .unwrap();
-        baker
-            .bake("a.bin", vec![], |_| {
-                runs += 1;
-                Ok(())
-            })
-            .unwrap();
-        assert_eq!(runs, 1);
+        let runs = AtomicUsize::new(0);
+        for _ in 0..2 {
+            baker
+                .run(vec![job("a.bin", |to| {
+                    runs.fetch_add(1, Ordering::SeqCst);
+                    write_at(to, 3600);
+                    Ok(())
+                })])
+                .unwrap();
+        }
+        assert_eq!(runs.load(Ordering::SeqCst), 1);
     }
 
     #[test]
@@ -190,24 +238,28 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut baker = baker(dir.path());
         write_at(&dir.path().join("out/a.bin"), -7200);
-        let mut runs = 0;
+        let runs = AtomicUsize::new(0);
         baker
-            .bake("a.bin", vec![], |_| {
-                runs += 1;
+            .run(vec![job("a.bin", |_| {
+                runs.fetch_add(1, Ordering::SeqCst);
                 Ok(())
-            })
+            })])
             .unwrap();
-        assert_eq!(runs, 1, "the manifest is newer than the output");
+        assert_eq!(
+            runs.load(Ordering::SeqCst),
+            1,
+            "the manifest is newer than the output"
+        );
     }
 
     #[test]
     fn a_failed_run_deletes_its_output() {
         let dir = tempfile::tempdir().unwrap();
         let mut baker = baker(dir.path());
-        let result = baker.bake("a.bin", vec![], |to| {
+        let result = baker.run(vec![job("a.bin", |to| {
             fs::write(to, "partial").unwrap();
             anyhow::bail!("broken")
-        });
+        })]);
         assert!(result.is_err());
         assert!(!dir.path().join("out/a.bin").exists());
     }
@@ -218,9 +270,31 @@ mod tests {
         let mut baker = baker(dir.path());
         let output = dir.path().join("out/a.bin");
         write_at(&output, -7200);
-        let result = baker.bake("a.bin", vec![], |_| Err(NotImplemented("test").into()));
+        let result = baker.run(vec![job("a.bin", |_| Err(NotImplemented("test").into()))]);
         assert!(result.is_err());
         assert!(output.exists());
+    }
+
+    #[test]
+    fn one_failure_does_not_stop_the_other_jobs() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut baker = baker(dir.path());
+        let jobs = (0..16)
+            .map(|i| {
+                job(&format!("{i}.bin"), move |to| {
+                    if i == 3 {
+                        anyhow::bail!("broken")
+                    }
+                    write_at(to, 3600);
+                    Ok(())
+                })
+            })
+            .collect();
+        let error = baker.run(jobs).unwrap_err();
+        assert!(error.to_string().contains("1 of the assets failed"));
+        for i in (0..16).filter(|&i| i != 3) {
+            assert!(dir.path().join(format!("out/{i}.bin")).exists());
+        }
     }
 
     #[test]
@@ -228,10 +302,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let mut baker = baker(dir.path());
         baker
-            .bake("models/a.bin", vec![], |to| {
+            .run(vec![job("models/a.bin", |to| {
                 write_at(to, 3600);
                 Ok(())
-            })
+            })])
             .unwrap();
         let orphan = dir.path().join("out/old/b.bin");
         write_at(&orphan, 0);

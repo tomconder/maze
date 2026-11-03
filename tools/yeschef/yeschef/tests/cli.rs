@@ -94,3 +94,31 @@ fn usage_errors_exit_2() {
 fn verify_is_not_implemented() {
     assert_eq!(yeschef(&["--verify", "a", "b"]).status.code(), Some(1));
 }
+
+#[test]
+fn errors_come_in_manifest_order_for_any_thread_count() {
+    let dir = tempfile::tempdir().unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    let models: String = (0..12)
+        .map(|i| format!("  - source: {i}.glb\n    output: m{i:02}.spnga\n"))
+        .collect();
+    fs::write(&manifest, format!("models:\n{models}")).unwrap();
+    let out = dir.path().join("out");
+
+    let stderr = |threads: &str| {
+        let run = yeschef(&[
+            "--threads",
+            threads,
+            "--manifest",
+            path(&manifest),
+            path(&out),
+        ]);
+        assert_eq!(run.status.code(), Some(1));
+        String::from_utf8(run.stderr).unwrap()
+    };
+    let one = stderr("1");
+    assert_eq!(one, stderr("8"));
+    let first = one.find("m00.spnga").unwrap();
+    assert!(first < one.find("m11.spnga").unwrap());
+    assert!(one.contains("12 of the assets failed"));
+}

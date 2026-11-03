@@ -7,12 +7,11 @@ mod manifest;
 mod notices;
 
 use anyhow::Result;
-use bake::Baker;
+use bake::{Baker, Job, collect_files};
 use clap::{ArgGroup, Parser};
 use manifest::Manifest;
 use notices::{Licenses, write_notices};
 use std::collections::BTreeSet;
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -21,10 +20,7 @@ use std::process::ExitCode;
 #[command(version, group(ArgGroup::new("mode").required(true).args(["manifest", "verify"])))]
 struct Cli {
     /// Threads for conversion. The default is one per hardware thread.
-    // Accepted so the command line matches assetconv. The converters that
-    // split work across threads read it, and they come in a later stage.
     #[arg(long, value_name = "N", value_parser = clap::value_parser!(u32).range(1..))]
-    #[allow(dead_code)]
     threads: Option<u32>,
 
     /// Bake every asset the manifest lists. An output is skipped when it is
@@ -72,6 +68,16 @@ enum Failure {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
+    // One pool for the whole run. Without --threads rayon uses one thread per
+    // hardware thread.
+    if let Some(threads) = cli.threads
+        && let Err(error) = rayon::ThreadPoolBuilder::new()
+            .num_threads(threads as usize)
+            .build_global()
+    {
+        eprintln!("yeschef: {error}");
+        return ExitCode::FAILURE;
+    }
     let outcome = match (&cli.manifest, &cli.verify) {
         (Some(paths), _) => bake_manifest(&cli, &paths[0], &paths[1]),
         (_, Some(paths)) => convert::verify(&paths[0], &paths[1]).map_err(Failure::Bake),
@@ -132,42 +138,47 @@ fn bake_manifest(cli: &Cli, manifest_path: &Path, output_dir: &Path) -> Result<(
     Ok(())
 }
 
-/// Bakes in the order the sections appear in the manifest.
+/// Lists a job per output in the order the sections appear in the manifest,
+/// then runs them all on the pool.
 fn bake_all(
     baker: &mut Baker,
     manifest: &Manifest,
     line_directives: bool,
     debug_assets: bool,
 ) -> Result<()> {
+    let mut jobs = Vec::new();
+
     for model in &manifest.models {
         if !debug_assets && model.debug {
             continue;
         }
         let from = baker.source(&model.source);
-        baker.bake(&model.output, vec![from.clone()], |to| {
+        jobs.push(Job::new(&model.output, vec![from.clone()], move |to| {
             convert::model(&from, to)
-        })?;
+        }));
     }
 
     for texture in &manifest.textures {
         let from = baker.source(&texture.source);
-        baker.bake(&texture.output, vec![from.clone()], |to| {
+        jobs.push(Job::new(&texture.output, vec![from.clone()], move |to| {
             convert::texture(&from, to)
-        })?;
+        }));
     }
 
     for environment in &manifest.environments {
         let from = baker.source(&environment.source);
-        baker.bake(&environment.output, vec![from.clone()], |to| {
-            convert::environment(&from, to)
-        })?;
+        jobs.push(Job::new(
+            &environment.output,
+            vec![from.clone()],
+            move |to| convert::environment(&from, to),
+        ));
     }
 
     for font in &manifest.fonts {
         let from = baker.source(&font.source);
-        baker.bake(&font.output, vec![from.clone()], |to| {
+        jobs.push(Job::new(&font.output, vec![from.clone()], move |to| {
             convert::font(&from, to, &font.sizes)
-        })?;
+        }));
     }
 
     for atlas in &manifest.atlases {
@@ -177,7 +188,9 @@ fn bake_all(
             .map(|(name, path)| (name.clone(), baker.source(path)))
             .collect();
         let inputs = sprites.iter().map(|(_, path)| path.clone()).collect();
-        baker.bake(&atlas.output, inputs, |to| convert::atlas(&sprites, to))?;
+        jobs.push(Job::new(&atlas.output, inputs, move |to| {
+            convert::atlas(&sprites, to)
+        }));
     }
 
     if let Some(shaders) = &manifest.shaders {
@@ -200,24 +213,12 @@ fn bake_all(
         for folder in folders {
             collect_files(folder, &mut inputs)?;
         }
-        baker.bake(&shaders.output, inputs, |to| {
+        jobs.push(Job::new(&shaders.output, inputs, move |to| {
             convert::shaders(&stages, to, line_directives)
-        })?;
+        }));
     }
-    Ok(())
-}
 
-fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in fs::read_dir(folder)? {
-        let entry = entry?;
-        let kind = entry.file_type()?;
-        if kind.is_dir() {
-            collect_files(&entry.path(), files)?;
-        } else if kind.is_file() {
-            files.push(entry.path());
-        }
-    }
-    Ok(())
+    baker.run(jobs)
 }
 
 #[cfg(test)]
