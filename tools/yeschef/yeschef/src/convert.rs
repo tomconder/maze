@@ -3,7 +3,7 @@
 
 use anyhow::Result;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 /// A converter that does not exist yet. A bake that fails with this keeps the
 /// output it found, because nothing was converted.
@@ -28,10 +28,6 @@ pub fn texture(_from: &Path, _to: &Path) -> Result<()> {
 
 pub fn font(_from: &Path, _to: &Path, _sizes: &[u32]) -> Result<()> {
     Err(NotImplemented("font conversion").into())
-}
-
-pub fn atlas(_sprites: &[(String, PathBuf)], _to: &Path) -> Result<()> {
-    Err(NotImplemented("atlas packing").into())
 }
 
 pub fn verify(_source: &Path, _baked: &Path) -> Result<()> {

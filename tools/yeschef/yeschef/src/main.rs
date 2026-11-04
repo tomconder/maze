@@ -1,6 +1,7 @@
 //! yeschef, the build-time asset converter. It takes the command line of
 //! `assetconv` and will replace it.
 
+mod atlas;
 mod bake;
 mod convert;
 mod hdr;
@@ -12,6 +13,7 @@ mod manifest;
 #[allow(dead_code)]
 mod mip;
 mod notices;
+mod pack;
 mod shaders;
 
 use anyhow::Result;
@@ -197,7 +199,7 @@ fn bake_all(
             .collect();
         let inputs = sprites.iter().map(|(_, path)| path.clone()).collect();
         jobs.push(Job::new(&atlas.output, inputs, move |to| {
-            convert::atlas(&sprites, to)
+            atlas::convert(&sprites, to)
         }));
     }
 
