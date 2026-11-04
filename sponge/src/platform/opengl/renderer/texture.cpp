@@ -191,8 +191,8 @@ void Texture::loadFromKtx2(const std::span<const uint8_t> bytes,
         glTextureParameteri(id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else {
         // The file decides the mip chain; the driver is never asked to
-        // invent one. A sprite atlas ships a single level on purpose,
-        // because generated mips blend neighbouring sprites together.
+        // invent one. A sprite atlas bakes its own short chain, with cells
+        // aligned so that no level blends neighbouring sprites.
         glTextureParameteri(id, GL_TEXTURE_MIN_FILTER,
                             image.levels.size() == 1 ? GL_LINEAR :
                                                        GL_LINEAR_MIPMAP_LINEAR);
