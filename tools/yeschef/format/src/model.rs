@@ -37,7 +37,7 @@ fn blob(out: &mut Vec<u8>, bytes: &[u8]) -> Result<u32, String> {
 
 /// The bytes of the container. `textures` are whole KTX2 files, and the
 /// `texture_index` of each entry points into them. Fails when the file would
-/// pass 4 GiB, which the 32 bit offsets cannot address.
+/// exceed 4 GiB, which the 32 bit offsets cannot address.
 pub fn write(meshes: &[Mesh], textures: &[&[u8]]) -> Result<Vec<u8>, String> {
     let header = AssetHeader {
         magic: ASSET_MAGIC.to_le_bytes(),
@@ -112,7 +112,7 @@ pub struct Parsed<'a> {
 }
 
 /// The bytes at `offset`, `count` items of `size` each, or an error when they
-/// pass the end of the file.
+/// go past the end of the file.
 fn range<'a>(
     bytes: &'a [u8],
     offset: u32,

@@ -269,7 +269,7 @@ fn encode_textures(model: &Model) -> Result<EncodedTextures> {
     // image picks its kind.
     let mut kinds: Vec<Option<TextureKind>> = vec![None; model.images.len()];
     // The alpha a texel of an image needs to pass its MASK material's test:
-    // the cutoff over the base colour alpha that scales it. A shared image
+    // the cutoff over the base color alpha that scales it. A shared image
     // keeps the first masked use.
     let mut cutoffs = vec![0.0f32; model.images.len()];
     let mut ids: HashMap<u32, i32> = HashMap::new();

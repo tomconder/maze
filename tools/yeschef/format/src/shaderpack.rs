@@ -13,7 +13,7 @@ const ENTRY: usize = size_of::<ShaderPackEntry>();
 /// Shader name to GLSL source.
 pub type Sources = BTreeMap<String, String>;
 
-/// The bytes of the pack. Fails when the file would pass 4 GiB, which the
+/// The bytes of the pack. Fails when the file would exceed 4 GiB, which the
 /// 32 bit offsets cannot address.
 pub fn write(sources: &Sources) -> Result<Vec<u8>, String> {
     let mut out = Vec::with_capacity(HEADER + ENTRY * sources.len());

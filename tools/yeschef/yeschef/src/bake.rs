@@ -1,4 +1,5 @@
-//! Up-to-date checks, the clean-up of a failed output, and the orphan sweep.
+//! Up-to-date checks, the clean-up of a failed output, and the removal of
+//! outputs the manifest does not list.
 
 use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
@@ -140,7 +141,7 @@ pub fn up_to_date(output: &Path, inputs: &[PathBuf]) -> bool {
     })
 }
 
-/// The same path for every spelling of it that exists.
+/// The canonical form of a path, or the path itself if it does not exist.
 fn normalize(path: &Path) -> PathBuf {
     fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }

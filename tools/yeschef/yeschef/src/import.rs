@@ -11,7 +11,7 @@
 //!   the meshes that used it lose that texture.
 //!
 //! Two cases need a choice. A primitive with no normals gets flat
-//! normals on unwelded vertices, so shared vertices shade right. A material
+//! normals on unwelded vertices, so shared vertices shade correctly. A material
 //! with no `pbrMetallicRoughness` object takes the glTF defaults (metallic 1,
 //! roughness 1) because the `gltf` crate does not say whether the object was
 //! there. A primitive with no material keeps the `Mesh` defaults.
@@ -191,7 +191,8 @@ fn supported(extension: &str) -> bool {
 }
 
 /// Parses and validates. The `gltf` crate rejects every required extension it
-/// has no type for, so this runs its validation and judges those itself.
+/// has no type for, so this runs the validation, skips those errors, and
+/// checks the required extensions against `supported()` itself.
 fn parse(bytes: &[u8]) -> Result<gltf::Gltf> {
     use gltf::json::validation::{Error, Validate};
     let gltf = gltf::Gltf::from_slice_without_validation(bytes)?;

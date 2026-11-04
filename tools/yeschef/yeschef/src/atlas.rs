@@ -25,7 +25,7 @@ const ALIGN: u32 = 1 << (LEVELS - 1);
 
 /// Each sprite is surrounded by a border holding a copy of its edge pixels. A
 /// linear sample at the very edge of a sprite then reads that copy instead of
-/// the neighbouring sprite. The mip filter reaches four texels, so the border
+/// the neighboring sprite. The mip filter reaches four texels, so the border
 /// is wide enough that no level reads past it.
 const GUTTER: u32 = 8;
 
@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn mips_do_not_mix_neighbouring_sprites() {
+    fn mips_do_not_mix_neighboring_sprites() {
         let sprites = [
             ("red", sprite(10, 10, [255, 0, 0, 255])),
             ("green", sprite(10, 10, [0, 255, 0, 255])),

@@ -136,7 +136,7 @@ fn compress(surface: &Surface, kind: TextureKind) -> Vec<u8> {
     out
 }
 
-/// Half size resample. Colour is filtered as sRGB, and everything else is data
+/// Half size resample. Color is filtered as sRGB, and everything else is data
 /// that must be filtered as it is, or the mips shift in brightness.
 fn halve(surface: &Surface, kind: TextureKind) -> Surface {
     let space = if kind == TextureKind::Color {
@@ -166,7 +166,7 @@ fn format_for(kind: TextureKind) -> Format {
 ///
 /// `alpha_cutoff` is the alpha a texel needs to pass a glTF MASK test, 0 for
 /// none. Each mip then has its alpha scaled so the share of passing texels
-/// matches level 0, which keeps foliage from thinning with distance. Colour
+/// matches level 0, which keeps foliage from thinning with distance. Color
 /// only.
 pub fn encode(image: &Rgba, kind: TextureKind, alpha_cutoff: f32) -> Result<Vec<u8>> {
     if image.width == 0 || image.height == 0 || image.pixels.is_empty() {

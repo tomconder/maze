@@ -10,14 +10,14 @@ use std::sync::LazyLock;
 const CHANNELS: usize = 4;
 
 /// Floats per texel while filtering. Opaque or linear data needs R, G, B and
-/// A. Colour with transparent texels also carries the plain R, G and B beside
+/// A. Color with transparent texels also carries the plain R, G and B beside
 /// the alpha weighted ones, as R G B A Rw Gw Bw Aw. Where the weighted alpha
-/// is 0 only the plain colour has a value, and the engine draws albedo without
+/// is 0 only the plain color has a value, and the engine draws albedo without
 /// alpha, so dropping it would turn foliage cards black.
 const SINGLE: usize = CHANNELS;
 const DOUBLE: usize = CHANNELS * 2;
 
-/// Below this the weighted alpha is rounding noise and the plain colour is
+/// Below this the weighted alpha is rounding noise and the plain color is
 /// used instead.
 const MIN_ALPHA: f32 = 1.0e-6;
 
@@ -30,8 +30,8 @@ const SRGB_STEPS: usize = 16384;
 /// How the channels of a mip level are averaged.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum MipSpace {
-    /// sRGB colour: filtered in linear light and weighted by alpha, so
-    /// transparent texels add no colour. Alpha is filtered as it is.
+    /// sRGB color: filtered in linear light and weighted by alpha, so
+    /// transparent texels add no color. Alpha is filtered as it is.
     Srgb,
     /// Every channel is data, alpha included, with no decode and no weighting.
     Linear,
@@ -73,16 +73,16 @@ fn make_taps(src_size: u32, dst_size: u32) -> Vec<Taps> {
 
     (0..dst_size)
         .map(|i| {
-            let centre = (i as f32 + 0.5) * scale;
-            let lo = (centre - radius).floor() as i64;
-            let hi = (centre + radius).ceil() as i64;
+            let center = (i as f32 + 0.5) * scale;
+            let lo = (center - radius).floor() as i64;
+            let hi = (center + radius).ceil() as i64;
             let first = lo.clamp(0, last);
             let mut weights = vec![0.0f32; (hi.clamp(0, last) - first + 1) as usize];
 
             // Taps past the border use the edge texel.
             let mut sum = 0.0f32;
             for k in lo..=hi {
-                let weight = mitchell((k as f32 + 0.5 - centre) / scale);
+                let weight = mitchell((k as f32 + 0.5 - center) / scale);
                 weights[(k.clamp(0, last) - first) as usize] += weight;
                 sum += weight;
             }
@@ -125,7 +125,7 @@ static LINEAR_TO_SRGB: LazyLock<Vec<u8>> = LazyLock::new(|| {
         .collect()
 });
 
-/// Source row to floats. Colour is decoded and multiplied by alpha, and kept
+/// Source row to floats. Color is decoded and multiplied by alpha, and kept
 /// plain as well when there are two sets of channels.
 fn decode_row<const F: usize>(src: &[u8], space: MipSpace, out: &mut [f32]) {
     const BYTE_SCALE: f32 = 1.0 / 255.0;
@@ -155,8 +155,8 @@ fn decode_row<const F: usize>(src: &[u8], space: MipSpace, out: &mut [f32]) {
     }
 }
 
-/// Output row back to bytes. Colour is divided by alpha and encoded. Where
-/// alpha is 0 the plain colour is used, if there is one.
+/// Output row back to bytes. Color is divided by alpha and encoded. Where
+/// alpha is 0 the plain color is used, if there is one.
 fn encode_row<const F: usize>(src: &[f32], space: MipSpace, out: &mut [u8]) {
     if space == MipSpace::Srgb {
         let table = &*LINEAR_TO_SRGB;
@@ -201,9 +201,9 @@ fn has_transparency(pixels: &[u8]) -> bool {
 }
 
 /// Output rows `y_begin..y_end` of a halved image. Source rows are filtered
-/// across once, in order, and kept in a circular buffer just big enough for the widest
-/// vertical window. Whole image intermediates would cost hundreds of MB on a
-/// 4K texture.
+/// across once, in order, and kept in a circular buffer just big enough for
+/// the widest vertical window. Whole image intermediates would cost hundreds
+/// of MB on a 4K texture.
 fn halve_band<const F: usize>(
     pixels: &[u8],
     width: usize,
@@ -259,7 +259,7 @@ fn halve<const F: usize>(pixels: &[u8], width: u32, height: u32, space: MipSpace
 
     // Output rows are independent, so each band is filtered on its own
     // thread. A band starts by filtering the few source rows its first window
-    // needs, which its neighbour also filters, so the bytes are the same as one
+    // needs, which its neighbor also filters, so the bytes are the same as one
     // pass over the whole image.
     (0..bands)
         .into_par_iter()
@@ -276,7 +276,7 @@ fn halve<const F: usize>(pixels: &[u8], width: u32, height: u32, space: MipSpace
 /// need no special case. Edge texels repeat past the border.
 pub fn halve_mip(pixels: &[u8], width: u32, height: u32, space: MipSpace) -> Vec<u8> {
     assert_eq!(pixels.len(), width as usize * height as usize * CHANNELS);
-    // Only colour with transparent texels needs the second set of channels.
+    // Only color with transparent texels needs the second set of channels.
     if space == MipSpace::Srgb && has_transparency(pixels) {
         halve::<DOUBLE>(pixels, width, height, space)
     } else {
@@ -306,7 +306,7 @@ pub fn alpha_coverage(pixels: &[u8], threshold: u8) -> f64 {
 }
 
 /// Scales the alpha of a mip so that the fraction passing the test is as close
-/// to `target` as 8 bits allow, never below it. Colour is left alone. Does
+/// to `target` as 8 bits allow, never below it. Color is left alone. Does
 /// nothing when `target` is 0 or 1: nothing, or everything, passes at every
 /// scale.
 pub fn scale_alpha_coverage(pixels: &mut [u8], threshold: u8, target: f64) {
@@ -367,7 +367,7 @@ mod tests {
 
     #[test]
     fn srgb_averages_in_linear_light() {
-        // Black and white average to a mid grey in linear light, which is
+        // Black and white average to a mid gray in linear light, which is
         // much brighter once encoded than the plain byte average.
         let mut pixels = Vec::new();
         for x in 0..4 {
@@ -401,7 +401,7 @@ mod tests {
         let out = halve_mip(&pixels, 8, 1, MipSpace::Srgb);
         // The first output texel sees only red.
         assert_eq!(&out[..4], [255, 0, 0, 255]);
-        // The last sees only clear texels, so the plain colour stays.
+        // The last sees only clear texels, so the plain color stays.
         assert_eq!(&out[12..16], [0, 255, 0, 0]);
     }
 
