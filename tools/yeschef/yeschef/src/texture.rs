@@ -16,7 +16,8 @@ const BC4_BLOCK_BYTES: usize = 8;
 const CHANNELS: usize = 4;
 
 /// BC7F encoder flags. Measured on the six largest Sponza and helmet textures
-/// against `assetconv`'s bc7enc (39.35 dB mean, 5.5 s): `Default` gave 39.11 dB
+/// against bc7enc, the encoder of the C++ converter this tool replaced
+/// (39.35 dB mean, 5.5 s): `Default` gave 39.11 dB
 /// in 1.0 s, this preset 39.88 dB in 1.2 s and `DefaultNonAnalytical` 40.32 dB
 /// in 2.0 s. Take the non-analytical preset if bake time stops mattering.
 const BC7_FLAGS: u32 = cPackBC7FlagDefaultPartiallyAnalytical;

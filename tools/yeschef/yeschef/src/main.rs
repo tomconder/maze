@@ -1,5 +1,5 @@
-//! yeschef, the build-time asset converter. It takes the command line of
-//! `assetconv` and will replace it.
+//! yeschef, the build-time asset converter. It bakes everything the asset
+//! manifest lists, and `--verify` checks a baked model.
 
 mod atlas;
 mod bake;

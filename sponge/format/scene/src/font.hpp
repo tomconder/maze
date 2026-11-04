@@ -59,8 +59,6 @@ struct ShapedGlyph {
     float    xAdvance;  // pixels
 };
 
-std::vector<uint8_t> write(const Font& font);
-
 // On failure, returns a Font with no sizes and sets error. error is left
 // alone on success, so pass an empty string.
 Font read(std::span<const uint8_t> bytes, std::string& error);

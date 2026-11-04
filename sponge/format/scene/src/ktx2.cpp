@@ -33,18 +33,6 @@ size_t padTo4(const size_t size) {
     return (size + kvAlignment - 1) / kvAlignment * kvAlignment;
 }
 
-void put32(std::vector<uint8_t>& out, const uint32_t value) {
-    for (int shift = 0; shift < 32; shift += 8) {
-        out.push_back(static_cast<uint8_t>(value >> shift));
-    }
-}
-
-void put64(std::vector<uint8_t>& out, const uint64_t value) {
-    for (int shift = 0; shift < 64; shift += 8) {
-        out.push_back(static_cast<uint8_t>(value >> shift));
-    }
-}
-
 uint32_t get32(const std::span<const uint8_t> bytes, const size_t offset) {
     uint32_t value = 0;
     std::memcpy(&value, bytes.data() + offset, sizeof(value));
@@ -59,73 +47,6 @@ uint64_t get64(const std::span<const uint8_t> bytes, const size_t offset) {
 }  // namespace
 
 namespace sponge::scene::ktx2 {
-
-std::vector<uint8_t> write(const Format format, const uint32_t width,
-                           const uint32_t                              height,
-                           const std::span<const std::vector<uint8_t>> levels,
-                           const std::span<const KeyValue> keyValues) {
-    const auto levelCount = levels.size();
-
-    // Layout: header, level index, key/value data, then level data largest
-    // first. Offsets are absolute from the start of the file.
-    size_t kvdSize = 0;
-    for (const auto& [key, value] : keyValues) {
-        kvdSize += padTo4(sizeof(uint32_t) + key.size() + 1 + value.size());
-    }
-    const auto kvdOffset =
-        kvdSize == 0 ? 0 : headerSize + (levelEntrySize * levelCount);
-
-    std::vector<uint64_t> offsets(levelCount);
-    auto cursor = headerSize + (levelEntrySize * levelCount) + kvdSize;
-    for (size_t i = 0; i < levelCount; i++) {
-        offsets[i] = cursor;
-        cursor += levels[i].size();
-    }
-
-    std::vector<uint8_t> out;
-    out.reserve(cursor);
-    out.insert(out.end(), std::begin(identifier), std::end(identifier));
-
-    put32(out, format);
-    // typeSize: the size of one channel for the uncompressed formats, and 1
-    // by definition for block-compressed ones.
-    put32(out, format == formatR16G16B16A16Sfloat ? 2 : 1);
-    put32(out, width);
-    put32(out, height);
-    put32(out, 0);  // pixelDepth
-    put32(out, 0);  // layerCount
-    put32(out, 1);  // faceCount
-    put32(out, static_cast<uint32_t>(levelCount));
-    put32(out, 0);  // supercompressionScheme: none
-
-    put32(out, 0);  // dfdByteOffset
-    put32(out, 0);  // dfdByteLength
-    put32(out, static_cast<uint32_t>(kvdOffset));
-    put32(out, static_cast<uint32_t>(kvdSize));
-    put64(out, 0);  // sgdByteOffset
-    put64(out, 0);  // sgdByteLength
-
-    for (size_t i = 0; i < levelCount; i++) {
-        put64(out, offsets[i]);
-        put64(out, levels[i].size());
-        put64(out, levels[i].size());  // uncompressedByteLength
-    }
-
-    for (const auto& [key, value] : keyValues) {
-        const auto entry = sizeof(uint32_t) + key.size() + 1 + value.size();
-        put32(out, static_cast<uint32_t>(key.size() + 1 + value.size()));
-        out.insert(out.end(), key.begin(), key.end());
-        out.push_back(0);
-        out.insert(out.end(), value.begin(), value.end());
-        out.resize(out.size() + padTo4(entry) - entry);
-    }
-
-    for (const auto& level : levels) {
-        out.insert(out.end(), level.begin(), level.end());
-    }
-
-    return out;
-}
 
 Image read(const std::span<const uint8_t> bytes, std::string& error) {
     if (bytes.size() < headerSize ||

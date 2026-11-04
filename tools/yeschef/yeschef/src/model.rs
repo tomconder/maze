@@ -1,7 +1,7 @@
 //! Bakes a glTF or GLB to a `.spnga` model: tangents, vertex order, the
 //! cluster LOD hierarchy, packed vertices and BC7 or BC5 textures.
 //!
-//! The steps follow `assetconv`, one mesh per task on the pool:
+//! The steps, one mesh per task on the pool:
 //! 1. Generate tangents when the file has none.
 //! 2. Weld, then order vertices and triangles for the cache, the overdraw and
 //!    the fetch.

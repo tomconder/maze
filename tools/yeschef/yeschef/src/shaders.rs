@@ -15,7 +15,8 @@ use crate::manifest::ShaderStage;
 
 /// Slang creates a global session in about 0.2 s and a session holds about
 /// 170 MB, so past a few of them the start-up costs more than the extra
-/// threads save. Measured with `assetconv` on 25 stages: 3 threads took 1.3 s,
+/// threads save. Measured with the C++ converter this tool replaced, on 25
+/// stages: 3 threads took 1.3 s,
 /// 4 took 1.4 s and 8 took 1.8 s. Raise it when the shaders grow enough that
 /// compiling outweighs the start-up.
 const MAX_SESSIONS: usize = 3;

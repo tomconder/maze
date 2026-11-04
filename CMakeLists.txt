@@ -85,11 +85,6 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 add_subdirectory(sponge)
 
-add_subdirectory(tools/assetconv)
-
-option(ENABLE_YESCHEF "Builds yeschef, the Rust asset converter, with cargo" OFF)
-if (ENABLE_YESCHEF)
-    add_subdirectory(tools/yeschef)
-endif ()
+add_subdirectory(tools/yeschef)
 
 add_subdirectory(game)

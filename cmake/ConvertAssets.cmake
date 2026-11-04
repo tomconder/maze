@@ -1,8 +1,8 @@
 # Bakes the assets listed in assets/manifest.yaml to the engine format.
 # Nothing is converted by globbing: the manifest is the only list.
 #
-# assetconv reads the manifest and converts everything in it. It skips an
-# output newer than its sources, the manifest and assetconv itself, so the
+# yeschef reads the manifest and converts everything in it. It skips an
+# output newer than its sources, the manifest and yeschef itself, so the
 # target runs on every build and an edit rebakes only what it touches.
 #
 # It also joins the asset licenses in the manifest and THIRD_PARTY_LICENSES
@@ -14,7 +14,7 @@ endforeach ()
 
 add_custom_target(
         convert_assets ALL
-        COMMAND assetconv --manifest "${CMAKE_SOURCE_DIR}/assets/manifest.yaml"
+        COMMAND ${YESCHEF_COMMAND} --manifest "${CMAKE_SOURCE_DIR}/assets/manifest.yaml"
                 "${CMAKE_BINARY_DIR}/assets"
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
@@ -23,6 +23,7 @@ add_custom_target(
         USES_TERMINAL
         VERBATIM
         COMMAND_EXPAND_LISTS)
+add_dependencies(convert_assets yeschef)
 
 # Files under assets/ that must not deploy. Consumed by CopyAssets.cmake and
 # by the install rules in game/CMakeLists.txt, both of which match a REGEX

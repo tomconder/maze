@@ -14,46 +14,6 @@
 
 namespace sponge::scene::shaderpack {
 
-std::vector<uint8_t> write(const Sources& sources) {
-    // Sorted, so the same shaders always bake to the same bytes.
-    const std::map<std::string, std::string> sorted{ sources.begin(),
-                                                     sources.end() };
-
-    Header header{
-        .magic   = {},
-        .version = version,
-        .count   = static_cast<uint32_t>(sorted.size()),
-    };
-    std::ranges::copy(magic, std::begin(header.magic));
-
-    std::vector<uint8_t> out(sizeof(Header) + (sizeof(Entry) * sorted.size()));
-    std::vector<Entry>   entries(sorted.size());
-
-    const auto appendString = [&out](const std::string& s) {
-        const auto offset = static_cast<uint32_t>(out.size());
-        out.insert(out.end(), s.begin(), s.end());
-        return offset;
-    };
-
-    auto entry = entries.begin();
-    for (const auto& [name, source] : sorted) {
-        entry->nameOffset   = appendString(name);
-        entry->nameSize     = static_cast<uint32_t>(name.size());
-        entry->sourceOffset = appendString(source);
-        entry->sourceSize   = static_cast<uint32_t>(source.size());
-        entry++;
-    }
-
-    if (out.size() > std::numeric_limits<uint32_t>::max()) {
-        return {};
-    }
-
-    std::memcpy(out.data(), &header, sizeof(Header));
-    std::memcpy(out.data() + sizeof(Header), entries.data(),
-                sizeof(Entry) * entries.size());
-    return out;
-}
-
 Sources read(const std::string& path, std::string& error) {
     const auto bytes = readBytes(path);
     if (bytes.size() < sizeof(Header)) {

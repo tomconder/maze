@@ -1,12 +1,12 @@
 # yeschef
 
-yeschef is the Rust asset converter for the game. It will replace `tools/assetconv`, which stays until one release of parity. The workspace has two crates, `format` and `yeschef`.
+yeschef is the asset converter for the game. It replaced the C++ converter `assetconv`, and the build runs it through CMake. The workspace has two crates, `format` and `yeschef`.
 
 ## format
 
 `format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the font tables. The structs are `repr(C)`, and compile-time asserts pin their sizes.
 
-cbindgen turns the structs into `sponge/format/scene/src/assetlayout.generated.hpp`. The engine and `assetconv` include that header, so they use the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
+cbindgen turns the structs into `sponge/format/scene/src/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
 
 To change the layout:
 
@@ -16,7 +16,7 @@ To change the layout:
 
 `cargo test` fails when the checked-in header differs from what cbindgen makes.
 
-To check the structs against real baked files, bake with `assetconv`, then run this command. Without the variable, that test passes without checking anything.
+To check the structs against real baked files, bake the assets, then run this command. Without the variable, that test passes without checking anything.
 
 ```
 YESCHEF_BAKED_DIR=<bake output dir> cargo test
@@ -26,11 +26,11 @@ The font tables (`format/src/font.rs`, stored under the `spongeFont` key of the 
 
 ## yeschef
 
-yeschef takes the command line of `assetconv`: `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify`. It also accepts `--threads <n>`, and without it the pool has one thread per hardware thread.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify`. It also accepts `--threads <n>`, and without it the pool has one thread per hardware thread.
 
 Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output. The sweep that deletes files no bake listed runs only after every bake succeeds.
 
-Each converter below is done. Where a converter has an `assetconv` counterpart, the text says how the output compares.
+Each converter below was checked against `assetconv`, the C++ converter that yeschef replaced. The text says how the output compared.
 
 - Manifest, up-to-date checks, orphan deletion and notices: the notices file is byte-identical to the `assetconv` one.
 - Shader pack: `yeschef/src/shaders.rs` compiles the manifest's Slang stages to GLSL 450 and writes the pack with `format/src/shaderpack.rs`. The pack is byte-identical to the `assetconv` one, with and without line directives, when both use the same Slang version.
@@ -44,7 +44,7 @@ Each converter below is done. Where a converter has an `assetconv` counterpart, 
 - Models: `yeschef/src/model.rs` bakes a glTF or GLB. It makes tangents with `meshopt` when the file has none, then welds, orders vertices for the cache, overdraw and fetch, and builds the cluster LOD hierarchy (`meshopt`'s `clusterlod`, 128 triangles per cluster, open mesh borders locked). It then packs normals and tangents as 10:10:10:2 and bakes the textures through `texture.rs`. It runs one mesh per task on the pool. The container writer is in `format/src/model.rs`.
 - `--verify <source> <baked>`: it imports the source again, runs the same steps as a bake and compares the result with the baked `.spnga` read back through `format/src/model.rs`. `read` checks magic, version, ranges and cluster blocks. The comparison covers mesh count, vertex and index counts, vertices, indices, clusters, texture presence per slot and texture size. It exits 1 on a difference.
 
-### Comparison with assetconv
+### Comparison with assetconv before it was removed
 
 Models: on the five game models, Sponza, both `lodtest` meshes and the floor have vertex, index and cluster blobs that are byte-identical to the `assetconv` ones in every mesh, and the same file size. The helmet has the same vertices to within 2e-6, but its rotated node rounds differently in `glam` than in `glm`, so the optimizer orders them differently (278 clusters against 275, same LOD0). Two differences come from the importer. A primitive with no normals gets flat normals on unwelded vertices, and a material with no `pbrMetallicRoughness` object takes the glTF defaults.
 
@@ -64,11 +64,11 @@ Screenshots: Sponza and the `lodtest` scene, with TAA off at 1600x900, differ fr
 
 ## Building
 
-CMake builds it with `-DENABLE_YESCHEF=ON`. CI runs `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test`.
+The game build runs yeschef. CMake builds it with cargo (`tools/yeschef/CMakeLists.txt`) and `cmake/ConvertAssets.cmake` bakes `assets/manifest.yaml` with it. It skips every output that is newer than its sources, the manifest and the yeschef binary. CI runs `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test` in the `yeschef` job.
 
-yeschef links Slang through the `shader-slang` crate, so a build needs the Slang SDK and libclang (for bindgen).
+yeschef links Slang through the `shader-slang` crate, so a build needs Rust, libclang (for bindgen) and the Slang SDK. A CMake build takes the SDK from the vcpkg install, so `shader-slang` in `vcpkg.json` is the one place that pins the Slang version. For a plain `cargo` build in this folder:
 
-- Set `SLANG_DIR` to a Slang release folder that holds `include/` and `lib/`, or set `VULKAN_SDK`.
+- Set `SLANG_DIR` to a Slang release folder that holds `include/` and `lib/`, or set `VULKAN_SDK`. The vcpkg install folder for your triplet works.
 - Put the Slang `bin` folder (Windows) or `lib` folder (Linux) on `PATH` or `LD_LIBRARY_PATH` to run it.
 - Use the Slang version in `vcpkg.json`. A different version prints the same GLSL with different float digits and `#line` numbers.
 - Set `LIBCLANG_PATH` if bindgen cannot find libclang.

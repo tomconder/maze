@@ -125,16 +125,14 @@ if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
-# Build options shared by the engine and the format library, and so by
-# assetconv through the latter. Warnings are a separate target so vendored
-# code can take the options without -Wall -Werror.
+# Build options shared by the engine and the format library. Warnings are a
+# separate target so vendored code can take the options without -Wall -Werror.
 add_library(sponge_options INTERFACE)
 add_library(sponge_warnings INTERFACE)
 add_library(sponge::options ALIAS sponge_options)
 
-# Baked asset formats: readers for the engine, writers for assetconv. No
-# logging and no engine headers, so an engine edit does not relink assetconv
-# and rebake every asset.
+# Baked asset formats: readers for the engine. The writers are in
+# tools/yeschef. No logging and no engine headers.
 find_package(fmt CONFIG REQUIRED)
 file(
         GLOB FORMAT_FILES

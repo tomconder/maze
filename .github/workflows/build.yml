@@ -109,8 +109,9 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-            # yeschef links Slang through the shader-slang crate. Keep this
-            # version in step with shader-slang in vcpkg.json.
+            # yeschef links Slang through the shader-slang crate. The build job
+            # gets Slang from vcpkg, so keep this version in step with
+            # shader-slang in vcpkg.json.
             - name: Install Slang
               shell: bash
               env:
@@ -214,6 +215,17 @@ jobs:
 
             - name: Cache the build
               uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+
+            # CMake builds yeschef with cargo and bakes the assets with it. The
+            # Slang SDK comes from the vcpkg install. bindgen needs libclang,
+            # which is not on the Windows runner's PATH.
+            - name: Set up the yeschef build
+              shell: bash
+              run: |
+                  echo "RUSTC_WRAPPER=sccache" >> "${GITHUB_ENV}"
+                  if [[ "${RUNNER_OS}" == "Windows" ]]; then
+                      echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "${GITHUB_ENV}"
+                  fi
 
             - name: Setup vcpkg
               uses: lukka/run-vcpkg@d4e6061274d7ffb3e33694898aed9fb6ece66310 # v11

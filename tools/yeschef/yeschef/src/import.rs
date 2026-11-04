@@ -1,7 +1,7 @@
 //! glTF and GLB import. It reads a model into float vertices, materials and
 //! decoded images. Tangents, packing and the cluster LOD are in `model.rs`.
 //!
-//! The rules follow `assetconv`:
+//! The rules:
 //! - Every node that has a mesh bakes its world transform into the vertices.
 //!   Nodes are visited in index order, whether or not a scene lists them.
 //! - Only triangle lists are read, and only `TEXCOORD_0`.
@@ -10,7 +10,7 @@
 //! - An image that cannot be read or decoded is dropped with a message, and
 //!   the meshes that used it lose that texture.
 //!
-//! Two differences from `assetconv`. A primitive with no normals gets flat
+//! Two cases need a choice. A primitive with no normals gets flat
 //! normals on unwelded vertices, so shared vertices shade right. A material
 //! with no `pbrMetallicRoughness` object takes the glTF defaults (metallic 1,
 //! roughness 1) because the `gltf` crate does not say whether the object was

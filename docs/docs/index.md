@@ -29,7 +29,7 @@ A game engine featuring a nice walk through a maze.
 * Build-time asset converter: glTF 2.0 models baked to an engine format, so the game links no asset parser
 * BC7 and BC5 texture compression with mipmaps in KTX2, encoded on every core
 * UI icons packed into a sprite atlas
-* LCD subpixel text with subpixel positioning, rasterized with FreeType and shaped with HarfBuzz at build time
+* LCD subpixel text with subpixel positioning, rasterized with skrifa and shaped with HarfRust at build time
 * Flexbox-based UI layout with Yoga
 * Menus that scale with the window width: the font, option rows, tab bar and key hints follow `width / 1920`
 * Options screen with Display, Keyboard and Audio tabs: display mode (windowed, full screen or borderless window), aspect ratio, resolution, vsync, anti-aliasing, shadow quality, ambient occlusion, bloom, subsurface scattering, key rebinding and volumes, with smooth scrolling
@@ -47,7 +47,7 @@ assets/          # game assets
 docs/            # documentation
 game/            # source files for maze
 sponge/          # source files for sponge game engine
-tools/           # tools and utility scripts, including the assetconv asset converter
+tools/           # tools and utility scripts, including the yeschef asset converter
 ```
 
 ## Installing

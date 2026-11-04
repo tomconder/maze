@@ -16,7 +16,7 @@ A game engine featuring a nice walk through a maze.
 * Frustum and occlusion culling
 * Shaders in Slang, compiled at build time into one pack
 * Build-time asset converter: glTF models to an engine format, BC7 and BC5 textures in KTX2
-* LCD subpixel text (FreeType, HarfBuzz) and Yoga flexbox UI that scales with the window
+* LCD subpixel text (skrifa, HarfRust) and Yoga flexbox UI that scales with the window
 * Options screen for display, keyboard and audio, with key rebinding and gamepad support
 * Audio with miniaudio
 * Tracy profiling and Dear ImGui debug UI
@@ -28,7 +28,7 @@ assets/          # game assets
 docs/            # documentation
 game/            # source files for maze
 sponge/          # source files for sponge game engine
-tools/           # tools and utility scripts, including the assetconv asset converter
+tools/           # tools and utility scripts, including the yeschef asset converter
 ```
 
 ## Getting Started

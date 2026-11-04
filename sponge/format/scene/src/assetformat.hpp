@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-// Baked model container (.spnga). Written by tools/assetconv, read by
+// Baked model container (.spnga). Written by tools/yeschef, read by
 // Model::parse(). One fread, then views over the buffer.
 //
 // The byte layout is defined in Rust, in tools/yeschef/format, and reaches
@@ -90,11 +90,6 @@ static_assert(offsetof(MeshUVTransforms, diffuseTransmission) ==
               offsetof(layout::MeshUvTransforms, diffuseTransmission));
 
 static_assert(sizeof(glm::vec4) == sizeof(float[4]));
-
-// Assembles the bytes of a .spnga file. Every image a mesh uses must carry
-// KTX2 bytes. Images are stored in the order the meshes first use them, and
-// an image no mesh uses is left out.
-std::vector<uint8_t> write(const ModelData& data);
 
 // Reads a .spnga file into the same ModelData form the importers produce, so
 // buildMesh() does not care which path a model came from.

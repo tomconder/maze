@@ -3,7 +3,7 @@
 //!
 //! This crate owns the layout. `cbindgen` turns it into
 //! `sponge/format/scene/src/assetlayout.generated.hpp`, which the C++ readers
-//! and writers include, so the converter and the engine cannot disagree.
+//! include, so the converter and the engine cannot disagree.
 //! Every struct is `repr(C)` and little endian. All offsets are absolute from
 //! the start of the file.
 //!

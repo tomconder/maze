@@ -27,27 +27,6 @@ using KerningEntry = sponge::scene::layout::FontKerningEntry;
 
 static_assert(sizeof(Glyph) == 32);
 
-template <typename T>
-void append(std::vector<uint8_t>& out, const T* items, const size_t count) {
-    const auto offset = out.size();
-    out.resize(offset + (sizeof(T) * count));
-    if (count != 0) {
-        std::memcpy(out.data() + offset, items, sizeof(T) * count);
-    }
-}
-
-template <typename T>
-void append(std::vector<uint8_t>& out, const T& item) {
-    append(out, &item, 1);
-}
-
-void appendSlots(std::vector<uint8_t>&               out,
-                 const std::map<char32_t, uint32_t>& slots) {
-    for (const auto& [codepoint, slot] : slots) {
-        append(out, SlotEntry{ .codepoint = codepoint, .slot = slot });
-    }
-}
-
 // Reads trivially copyable records in order, refusing to run past the end.
 class Reader {
 public:
@@ -130,36 +109,6 @@ char32_t nextCodepoint(const std::string_view text, size_t& at) {
 }  // namespace
 
 namespace sponge::scene::font {
-
-std::vector<uint8_t> write(const Font& font) {
-    std::vector<uint8_t> out;
-    append(out, Header{
-                    .version      = version,
-                    .slotCount    = font.slotCount,
-                    .slotMapCount = static_cast<uint32_t>(font.slots.size()),
-                    .tabularMapCount =
-                        static_cast<uint32_t>(font.tabularSlots.size()),
-                    .sizeCount = static_cast<uint32_t>(font.sizes.size()),
-                });
-    appendSlots(out, font.slots);
-    appendSlots(out, font.tabularSlots);
-
-    for (const auto& size : font.sizes) {
-        append(out,
-               SizeHeader{
-                   .pixels       = size.pixels,
-                   .lineHeight   = size.lineHeight,
-                   .ascender     = size.ascender,
-                   .kerningCount = static_cast<uint32_t>(size.kerning.size()),
-               });
-        append(out, size.advances.data(), size.advances.size());
-        append(out, size.glyphs.data(), size.glyphs.size());
-        for (const auto& [pair, adjustment] : size.kerning) {
-            append(out, KerningEntry{ .pair = pair, .adjustment = adjustment });
-        }
-    }
-    return out;
-}
 
 Font read(const std::span<const uint8_t> bytes, std::string& error) {
     Reader reader{ bytes };

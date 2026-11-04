@@ -448,8 +448,8 @@ mod tests {
 }
 
 /// Reads RGBA8 files named by `YESCHEF_MIP_IN` (a folder of `<w>x<h>.rgba`
-/// raw files) and writes both halvings beside them, to compare with the C++
-/// filter. Run with `cargo test dump_mips -- --ignored`.
+/// raw files) and writes both halvings beside them, to compare with another
+/// implementation. Run with `cargo test dump_mips -- --ignored`.
 #[cfg(test)]
 #[test]
 #[ignore]
