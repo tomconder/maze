@@ -27,7 +27,11 @@ use std::process::ExitCode;
 
 /// Bakes the models, textures, fonts, atlases and shaders a manifest lists.
 #[derive(Parser)]
-#[command(version, group(ArgGroup::new("mode").required(true).args(["manifest", "verify"])))]
+#[command(
+    version,
+    help_template = "{name} {version}\n{about-with-newline}\n{usage-heading} {usage}\n\n{all-args}",
+    group(ArgGroup::new("mode").required(true).args(["manifest", "verify"]))
+)]
 struct Cli {
     /// Bake every asset the manifest lists. An output is skipped when it is
     /// newer than its sources, the manifest and this program. Files in the

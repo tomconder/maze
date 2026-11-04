@@ -84,6 +84,14 @@ fn a_bad_manifest_exits_2() {
 }
 
 #[test]
+fn help_starts_with_the_name_and_version() {
+    let run = yeschef(&["--help"]);
+    assert_eq!(run.status.code(), Some(0));
+    let help = String::from_utf8(run.stdout).unwrap();
+    assert!(help.starts_with(concat!("yeschef ", env!("CARGO_PKG_VERSION"), "\n")));
+}
+
+#[test]
 fn usage_errors_exit_2() {
     assert_eq!(yeschef(&[]).status.code(), Some(2));
 }
