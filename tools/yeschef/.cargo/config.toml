@@ -1,0 +1,10 @@
+# Clang on Windows defaults to the static C runtime, but Rust's MSVC target
+# links the dynamic one, so a C++ build script compiled with clang (CC and CXX
+# pointing at it) fails to link with LNK2038. Ask for the dynamic runtime.
+# The variables name the Windows targets only, so other compilers never see
+# the flag. Run cargo from this folder for the file to apply.
+[env]
+CFLAGS_x86_64_pc_windows_msvc = "-fms-runtime-lib=dll"
+CXXFLAGS_x86_64_pc_windows_msvc = "-fms-runtime-lib=dll"
+CFLAGS_aarch64_pc_windows_msvc = "-fms-runtime-lib=dll"
+CXXFLAGS_aarch64_pc_windows_msvc = "-fms-runtime-lib=dll"

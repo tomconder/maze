@@ -1,0 +1,37 @@
+language = "C++"
+namespace = "sponge::scene::layout"
+pragma_once = true
+no_includes = true
+sys_includes = ["cstdint", "cstddef"]
+usize_is_size_t = true
+documentation = true
+documentation_style = "cxx"
+include_version = false
+header = """// Generated from tools/yeschef/format by cbindgen. Do not edit.
+// To change the layout, edit the Rust source and run
+//   UPDATE_LAYOUT_HEADER=1 cargo test
+// in tools/yeschef."""
+
+[struct]
+rename_fields = "CamelCase"
+derive_eq = false
+
+[export]
+# Nothing here has an extern function, so every struct is listed.
+include = [
+    "ClusterBounds",
+    "MeshCluster",
+    "PackedVertex",
+    "UvTransform",
+    "MeshUvTransforms",
+    "AssetHeader",
+    "MeshEntry",
+    "TextureEntry",
+    "ShaderPackHeader",
+    "ShaderPackEntry",
+    "FontHeader",
+    "FontSlotEntry",
+    "FontSizeHeader",
+    "FontKerningEntry",
+    "FontGlyph",
+]

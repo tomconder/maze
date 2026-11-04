@@ -85,6 +85,6 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 add_subdirectory(sponge)
 
-add_subdirectory(tools/assetconv)
+add_subdirectory(tools/yeschef)
 
 add_subdirectory(game)

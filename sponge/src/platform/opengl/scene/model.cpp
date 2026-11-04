@@ -165,8 +165,7 @@ std::shared_ptr<renderer::Texture>
     assert(*image < images.size());
     const auto& parsed = images[*image];
 
-    // Every image in a baked model is a whole KTX2 file; the raw-pixel
-    // fields of ParsedImage are the converter's side of the struct.
+    // Every image in a baked model is a whole KTX2 file.
     const renderer::TextureCreateInfo textureCreateInfo{
         .name = parsed.name,
         .path = "",

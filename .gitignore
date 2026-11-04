@@ -2,6 +2,7 @@ site/
 /build/
 /venv/
 vcpkg_installed/
+/tools/yeschef/target/
 
 # slang
 .slangbuild.log

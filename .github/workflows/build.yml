@@ -81,6 +81,68 @@ jobs:
               with:
                   extra_args: cpplint --all-files
 
+    yeschef:
+        needs: changed
+        if: needs.changed.outputs.should_skip != 'true'
+        name: yeschef checks (${{matrix.os}})
+        runs-on: ${{matrix.os}}
+
+        timeout-minutes: 30
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      slang-archive: slang-2026.20-linux-x86_64.tar.gz
+                      slang-sha256: e863e568c204810d6e8bc31852f056aef6763c55ea9925db2db7affa060347c9
+
+                    - os: windows-latest
+                      slang-archive: slang-2026.20-windows-x86_64.zip
+                      slang-sha256: e6dd32bbddf1720ebb4e679d55e9635ce792865a5bd84f3d2cd9af28647c0174
+
+        defaults:
+            run:
+                working-directory: tools/yeschef
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            # yeschef links Slang through the shader-slang crate. The build job
+            # gets Slang from vcpkg, so keep this version in step with
+            # shader-slang in vcpkg.json.
+            - name: Install Slang
+              shell: bash
+              env:
+                  SLANG_ARCHIVE: ${{matrix.slang-archive}}
+                  SLANG_SHA256: ${{matrix.slang-sha256}}
+              run: |
+                  curl -fsSL -o "${RUNNER_TEMP}/${SLANG_ARCHIVE}" "https://github.com/shader-slang/slang/releases/download/v2026.20/${SLANG_ARCHIVE}"
+                  echo "${SLANG_SHA256}  ${RUNNER_TEMP}/${SLANG_ARCHIVE}" | sha256sum --check
+                  mkdir "${RUNNER_TEMP}/slang"
+                  cd "${RUNNER_TEMP}/slang"
+                  if [[ "${SLANG_ARCHIVE}" == *.zip ]]; then
+                      7z x -y "${RUNNER_TEMP}/${SLANG_ARCHIVE}" > /dev/null
+                  else
+                      tar -xzf "${RUNNER_TEMP}/${SLANG_ARCHIVE}"
+                  fi
+                  echo "SLANG_DIR=${RUNNER_TEMP}/slang" >> "${GITHUB_ENV}"
+                  echo "${RUNNER_TEMP}/slang/bin" >> "${GITHUB_PATH}"
+                  echo "LD_LIBRARY_PATH=${RUNNER_TEMP}/slang/lib" >> "${GITHUB_ENV}"
+                  if [[ "${RUNNER_OS}" == "Windows" ]]; then
+                      echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "${GITHUB_ENV}"
+                  fi
+
+            - name: Check format
+              run: cargo fmt --check
+
+            - name: Clippy
+              run: cargo clippy --locked --all-targets -- -D warnings
+
+            - name: Test
+              run: cargo test --locked
+
     build:
         needs: changed
         if: needs.changed.outputs.should_skip != 'true'
@@ -153,6 +215,17 @@ jobs:
 
             - name: Cache the build
               uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba # v0.0.11
+
+            # CMake builds yeschef with cargo and bakes the assets with it. The
+            # Slang SDK comes from the vcpkg install. bindgen needs libclang,
+            # which is not on the Windows runner's PATH.
+            - name: Set up the yeschef build
+              shell: bash
+              run: |
+                  echo "RUSTC_WRAPPER=sccache" >> "${GITHUB_ENV}"
+                  if [[ "${RUNNER_OS}" == "Windows" ]]; then
+                      echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> "${GITHUB_ENV}"
+                  fi
 
             - name: Setup vcpkg
               uses: lukka/run-vcpkg@d4e6061274d7ffb3e33694898aed9fb6ece66310 # v11

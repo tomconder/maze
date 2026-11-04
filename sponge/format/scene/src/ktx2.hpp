@@ -36,19 +36,6 @@ struct Image {
     std::vector<std::pair<std::string, std::span<const uint8_t>>> keyValues;
 };
 
-using KeyValue = std::pair<std::string, std::vector<uint8_t>>;
-
-// Wraps already-encoded level data in a KTX2 container. levels[0] is the
-// full-size image. Uncompressed formats only need rowPitch = width * texel
-// size; block formats pass their own packed sizes.
-//
-// The data format descriptor is left empty: this writer's only reader is
-// read() below, which needs vkFormat alone. External KTX tooling wants a
-// DFD, so add one if these files ever leave the build.
-std::vector<uint8_t> write(Format format, uint32_t width, uint32_t height,
-                           std::span<const std::vector<uint8_t>> levels,
-                           std::span<const KeyValue> keyValues = {});
-
 // Parses a KTX2 file. Levels point into bytes, so bytes must outlive the
 // result. On failure, returns an Image with no levels and sets error. error is
 // left alone on success, so pass an empty string.

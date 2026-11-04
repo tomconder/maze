@@ -27,15 +27,10 @@ struct MeshUVTransforms {
     UVTransform diffuseTransmission;
 };
 
-// A CPU-side texture, no GL object yet. Exactly one of pixels or ktx2 is
-// populated: the glTF importer decodes to pixels, a baked .spnga carries
-// whole KTX2 files. Safe to build on any thread.
+// A CPU-side texture, no GL object yet: a whole KTX2 file from a baked
+// .spnga. Safe to build on any thread.
 struct ParsedImage {
     std::string          name;
-    uint32_t             width{ 0 };
-    uint32_t             height{ 0 };
-    uint32_t             bytesPerPixel{ 0 };
-    std::vector<uint8_t> pixels;
     std::vector<uint8_t> ktx2;
 };
 
@@ -71,16 +66,11 @@ struct MeshCluster {
 // One mesh primitive's worth of CPU-parsed data: vertices/indices plus its
 // material images, as indices into ModelData::images.
 struct ParsedMesh {
-    std::vector<Vertex> vertices;
-    // Exactly one of vertices or packedVertices is populated, like
-    // ParsedImage's pixels and ktx2: the glTF importer and the bake work on
-    // float vertices, and a baked .spnga carries packed ones.
     std::vector<PackedVertex> packedVertices;
     std::vector<uint32_t>     indices;
     // The cluster LOD hierarchy over indices. The LOD0 clusters come first,
     // so indices starts with all of LOD0. Empty means one LOD0 range over all
-    // of indices: the glTF importer leaves it empty, and the bake and the
-    // reader fill it.
+    // of indices.
     std::vector<MeshCluster> clusters;
     std::optional<uint32_t>  albedo;
     std::optional<uint32_t>  normal;

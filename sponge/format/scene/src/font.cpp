@@ -20,53 +20,12 @@ using sponge::scene::font::Size;
 using sponge::scene::font::subpixelPhases;
 using sponge::scene::font::version;
 
-struct Header {
-    uint32_t version;
-    uint32_t slotCount;
-    uint32_t slotMapCount;
-    uint32_t tabularMapCount;
-    uint32_t sizeCount;
-};
-
-struct SlotEntry {
-    uint32_t codepoint;
-    uint32_t slot;
-};
-
-struct SizeHeader {
-    uint32_t pixels;
-    float    lineHeight;
-    float    ascender;
-    uint32_t kerningCount;
-};
-
-struct KerningEntry {
-    uint32_t pair;
-    int32_t  adjustment;
-};
+using Header       = sponge::scene::layout::FontHeader;
+using SlotEntry    = sponge::scene::layout::FontSlotEntry;
+using SizeHeader   = sponge::scene::layout::FontSizeHeader;
+using KerningEntry = sponge::scene::layout::FontKerningEntry;
 
 static_assert(sizeof(Glyph) == 32);
-
-template <typename T>
-void append(std::vector<uint8_t>& out, const T* items, const size_t count) {
-    const auto offset = out.size();
-    out.resize(offset + (sizeof(T) * count));
-    if (count != 0) {
-        std::memcpy(out.data() + offset, items, sizeof(T) * count);
-    }
-}
-
-template <typename T>
-void append(std::vector<uint8_t>& out, const T& item) {
-    append(out, &item, 1);
-}
-
-void appendSlots(std::vector<uint8_t>&               out,
-                 const std::map<char32_t, uint32_t>& slots) {
-    for (const auto& [codepoint, slot] : slots) {
-        append(out, SlotEntry{ .codepoint = codepoint, .slot = slot });
-    }
-}
 
 // Reads trivially copyable records in order, refusing to run past the end.
 class Reader {
@@ -150,36 +109,6 @@ char32_t nextCodepoint(const std::string_view text, size_t& at) {
 }  // namespace
 
 namespace sponge::scene::font {
-
-std::vector<uint8_t> write(const Font& font) {
-    std::vector<uint8_t> out;
-    append(out, Header{
-                    .version      = version,
-                    .slotCount    = font.slotCount,
-                    .slotMapCount = static_cast<uint32_t>(font.slots.size()),
-                    .tabularMapCount =
-                        static_cast<uint32_t>(font.tabularSlots.size()),
-                    .sizeCount = static_cast<uint32_t>(font.sizes.size()),
-                });
-    appendSlots(out, font.slots);
-    appendSlots(out, font.tabularSlots);
-
-    for (const auto& size : font.sizes) {
-        append(out,
-               SizeHeader{
-                   .pixels       = size.pixels,
-                   .lineHeight   = size.lineHeight,
-                   .ascender     = size.ascender,
-                   .kerningCount = static_cast<uint32_t>(size.kerning.size()),
-               });
-        append(out, size.advances.data(), size.advances.size());
-        append(out, size.glyphs.data(), size.glyphs.size());
-        for (const auto& [pair, adjustment] : size.kerning) {
-            append(out, KerningEntry{ .pair = pair, .adjustment = adjustment });
-        }
-    }
-    return out;
-}
 
 Font read(const std::span<const uint8_t> bytes, std::string& error) {
     Reader reader{ bytes };

@@ -1,75 +1,95 @@
 #pragma once
 
+#include "assetlayout.generated.hpp"
 #include "modeldata.hpp"
 #include "vertex.hpp"
 
+#include <array>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
-// Baked model container (.spnga). Written by tools/assetconv, read by
+// Baked model container (.spnga). Written by tools/yeschef, read by
 // Model::parse(). One fread, then views over the buffer.
 //
-// magic and version are the first two fields and stay at offsets 0 and 8
-// forever, so any future revision can identify any file before trusting a
-// single other byte. Bump version for ANY change to layout, field order,
-// semantics or texture-reference convention: the runtime rejects a mismatch
-// rather than migrating, which is safe because baked files never ship
-// independently of the executable.
+// The byte layout is defined in Rust, in tools/yeschef/format, and reaches
+// this code as assetlayout.generated.hpp. Edit the Rust source, not that
+// header. magic and version are the first two fields and stay at offsets 0
+// and 8 forever, so any future revision can identify any file before trusting
+// a single other byte. The runtime rejects a version mismatch rather than
+// migrating, which is safe because baked files never ship independently of the
+// executable.
 namespace sponge::scene::asset {
 
-// Eight bytes rather than a packed integer: the tag is five characters, and
-// it reads as itself in a hex dump.
-constexpr char     magic[8] = { 'S', 'P', 'N', 'G', 'A', 0, 0, 0 };
-constexpr uint32_t version  = 9;
+static_assert(std::endian::native == std::endian::little);
 
-// Bumping either of these changes the on-disk vertex layout. The asserts
-// fire on a size change or a field reorder; bump version in the same edit.
-static_assert(sizeof(PackedVertex) == 28);
-static_assert(offsetof(PackedVertex, tangent) == 24);
-static_assert(sizeof(MeshCluster) == 52);
+using Header       = layout::AssetHeader;
+using MeshEntry    = layout::MeshEntry;
+using TextureEntry = layout::TextureEntry;
 
-constexpr size_t textureSlots = 6;
+// The magic is eight bytes rather than a packed integer in the file: the tag
+// is five characters, and it reads as itself in a hex dump.
+constexpr auto magic =
+    std::bit_cast<std::array<uint8_t, 8>>(layout::ASSET_MAGIC);
+constexpr uint32_t version      = layout::ASSET_VERSION;
+constexpr size_t   textureSlots = layout::TEXTURE_SLOTS;
 
-struct Header {
-    char     magic[sizeof(asset::magic)];
-    uint32_t version;
-    uint32_t vertexSize;  // sizeof(PackedVertex) at bake time
-    uint32_t meshCount;
-    uint32_t textureCount;
-};
+// write() and read() copy these types to and from the file as raw bytes, so
+// each must match its twin in the generated header, field by field. glm types
+// have no cbindgen form, which is why the twins exist.
+static_assert(sizeof(PackedVertex) == sizeof(layout::PackedVertex));
+static_assert(offsetof(PackedVertex, position) ==
+              offsetof(layout::PackedVertex, position));
+static_assert(offsetof(PackedVertex, texCoords) ==
+              offsetof(layout::PackedVertex, texCoords));
+static_assert(offsetof(PackedVertex, normal) ==
+              offsetof(layout::PackedVertex, normal));
+static_assert(offsetof(PackedVertex, tangent) ==
+              offsetof(layout::PackedVertex, tangent));
 
-// Byte offsets are absolute from the start of the file.
-struct MeshEntry {
-    uint32_t         vertexOffset;
-    uint32_t         vertexCount;
-    uint32_t         indexOffset;
-    uint32_t         indexCount;
-    uint32_t         clusterOffset;               // MeshCluster[clusterCount]
-    uint32_t         clusterCount;                // at least 1
-    int32_t          textureIndex[textureSlots];  // -1 when the slot is empty
-    float            metallicFactor;
-    float            roughnessFactor;
-    float            clearcoatFactor;
-    float            clearcoatRoughnessFactor;
-    uint32_t         alphaMode;    // AlphaMode
-    float            alphaCutoff;  // glTF MASK cutoff, else 0
-    uint32_t         doubleSided;  // 0 or 1
-    glm::vec4        baseColorFactor;
-    glm::vec4        diffuseTransmission;  // rgb = color, w = factor
-    MeshUVTransforms uvTransforms;
-};
+static_assert(sizeof(ClusterBounds) == sizeof(layout::ClusterBounds));
+static_assert(offsetof(ClusterBounds, center) ==
+              offsetof(layout::ClusterBounds, center));
+static_assert(offsetof(ClusterBounds, radius) ==
+              offsetof(layout::ClusterBounds, radius));
+static_assert(offsetof(ClusterBounds, error) ==
+              offsetof(layout::ClusterBounds, error));
 
-struct TextureEntry {
-    uint32_t offset;
-    uint32_t size;
-};
+static_assert(sizeof(MeshCluster) == sizeof(layout::MeshCluster));
+static_assert(offsetof(MeshCluster, firstIndex) ==
+              offsetof(layout::MeshCluster, firstIndex));
+static_assert(offsetof(MeshCluster, indexCount) ==
+              offsetof(layout::MeshCluster, indexCount));
+static_assert(offsetof(MeshCluster, depth) ==
+              offsetof(layout::MeshCluster, depth));
+static_assert(offsetof(MeshCluster, self) ==
+              offsetof(layout::MeshCluster, bounds));
+static_assert(offsetof(MeshCluster, parent) ==
+              offsetof(layout::MeshCluster, parent));
 
-// Assembles the bytes of a .spnga file. Every image a mesh uses must carry
-// KTX2 bytes. Images are stored in the order the meshes first use them, and
-// an image no mesh uses is left out.
-std::vector<uint8_t> write(const ModelData& data);
+static_assert(sizeof(UVTransform) == sizeof(layout::UvTransform));
+static_assert(offsetof(UVTransform, offset) ==
+              offsetof(layout::UvTransform, offset));
+static_assert(offsetof(UVTransform, scale) ==
+              offsetof(layout::UvTransform, scale));
+
+static_assert(sizeof(MeshUVTransforms) == sizeof(layout::MeshUvTransforms));
+static_assert(offsetof(MeshUVTransforms, albedo) ==
+              offsetof(layout::MeshUvTransforms, albedo));
+static_assert(offsetof(MeshUVTransforms, normal) ==
+              offsetof(layout::MeshUvTransforms, normal));
+static_assert(offsetof(MeshUVTransforms, occlusion) ==
+              offsetof(layout::MeshUvTransforms, occlusion));
+static_assert(offsetof(MeshUVTransforms, emissive) ==
+              offsetof(layout::MeshUvTransforms, emissive));
+static_assert(offsetof(MeshUVTransforms, metallicRoughness) ==
+              offsetof(layout::MeshUvTransforms, metallicRoughness));
+static_assert(offsetof(MeshUVTransforms, diffuseTransmission) ==
+              offsetof(layout::MeshUvTransforms, diffuseTransmission));
+
+static_assert(sizeof(glm::vec4) == sizeof(float[4]));
 
 // Reads a .spnga file into the same ModelData form the importers produce, so
 // buildMesh() does not care which path a model came from.

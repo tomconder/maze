@@ -5,14 +5,6 @@
 #include <cstdint>
 
 namespace sponge::scene {
-struct Vertex {
-    glm::vec3 position;
-    glm::vec2 texCoords;
-    glm::vec3 normal;
-    // xyz = tangent, w = bitangent handedness sign (glTF convention)
-    glm::vec4 tangent{ 0.F, 0.F, 0.F, 1.F };
-};
-
 // What a baked model stores and what the GPU reads: 28 bytes, not 48.
 // normal and tangent are signed normalized 10:10:10:2 integers
 // (GL_INT_2_10_10_10_REV). The GPU turns them back into floats on fetch,

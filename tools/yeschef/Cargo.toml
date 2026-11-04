@@ -1,0 +1,7 @@
+[workspace]
+resolver = "3"
+members = ["format", "yeschef"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"

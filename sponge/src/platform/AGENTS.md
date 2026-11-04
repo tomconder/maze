@@ -151,7 +151,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   (`ReflectionProbe::beginFace()` draws it with `probe_sky.frag`, before the
   scene, so it shows only through openings in the scene). The image is
   `environment` in the scene's `probe:` block: a baked half-float KTX2
-  (`ktx2::formatR16G16B16A16Sfloat`) made by `assetconv` from a Radiance
+  (`ktx2::formatR16G16B16A16Sfloat`) made by `yeschef` from a Radiance
   `.hdr` listed under `environments` in `assets/manifest.yaml`. Without it,
   or when the file does not load, the face is a flat grey 0.6. The shader
   caps each texel at `maxRadiance`: the image holds a sun and bright
@@ -176,7 +176,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   a discard does not turn off early-Z for opaque meshes: `Model::render` draws
   `AlphaPass::Opaque` with one and `AlphaPass::Masked` with the other. The
   masked program reads the albedo on unit 0, and `Mesh::draw` sets its inputs.
-  `assetconv` scales each mip's alpha of a masked
+  `yeschef` scales each mip's alpha of a masked
   albedo so the share of texels passing the cutoff matches level 0; the
   cutoff is part of the baked pixels, so changing a material's cutoff needs a
   rebake.

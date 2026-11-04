@@ -1,4 +1,4 @@
-# Build manifest for assetconv. Nothing is baked by globbing: an asset that is
+# Build manifest for yeschef. Nothing is baked by globbing: an asset that is
 # not listed here is not converted and does not ship.
 #
 # source paths are relative to assets/, output paths to the baked asset
