@@ -446,29 +446,3 @@ mod tests {
         assert_eq!(pixels, solid(2, 2, [0, 0, 0, 100]));
     }
 }
-
-/// Reads RGBA8 files named by `YESCHEF_MIP_IN` (a folder of `<w>x<h>.rgba`
-/// raw files) and writes both halvings beside them, to compare with another
-/// implementation. Run with `cargo test dump_mips -- --ignored`.
-#[cfg(test)]
-#[test]
-#[ignore]
-fn dump_mips() {
-    let dir = std::path::PathBuf::from(std::env::var("YESCHEF_MIP_IN").unwrap());
-    for entry in std::fs::read_dir(&dir).unwrap() {
-        let path = entry.unwrap().path();
-        let Some(name) = path.file_stem().and_then(|n| n.to_str()) else {
-            continue;
-        };
-        if path.extension().is_none_or(|e| e != "rgba") || name.contains('.') {
-            continue;
-        }
-        let (w, h) = name.split_once('x').unwrap();
-        let (w, h): (u32, u32) = (w.parse().unwrap(), h.parse().unwrap());
-        let pixels = std::fs::read(&path).unwrap();
-        for (tag, space) in [("srgb", MipSpace::Srgb), ("linear", MipSpace::Linear)] {
-            let out = halve_mip(&pixels, w, h, space);
-            std::fs::write(dir.join(format!("{name}.{tag}.rust")), out).unwrap();
-        }
-    }
-}
