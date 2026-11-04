@@ -39,9 +39,22 @@ fn header_is_current() {
     let have = fs::read_to_string(&path)
         .unwrap_or_default()
         .replace("\r\n", "\n");
+    let first_difference = have
+        .lines()
+        .zip(want.lines())
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+        .map(|(n, (a, b))| format!("line {}: checked in `{a}`, generated `{b}`", n + 1))
+        .unwrap_or_else(|| {
+            format!(
+                "{} lines checked in, {} generated",
+                have.lines().count(),
+                want.lines().count()
+            )
+        });
     assert!(
         have == want,
-        "{} is stale. Run `UPDATE_LAYOUT_HEADER=1 cargo test` in tools/yeschef.",
+        "{} is stale ({first_difference}). Run `UPDATE_LAYOUT_HEADER=1 cargo test` in tools/yeschef.",
         path.display()
     );
 }

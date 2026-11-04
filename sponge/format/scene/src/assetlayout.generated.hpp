@@ -17,14 +17,14 @@ constexpr static const size_t TEXTURE_SLOTS = 6;
 /// Model container version.
 constexpr static const uint32_t ASSET_VERSION = 9;
 
-/// Model container magic: the bytes `SPNGA\0\0\0`, read as a little endian
+/// Model container magic, the bytes `SPNGA\0\0\0` read as a little endian
 /// integer.
 constexpr static const uint64_t ASSET_MAGIC = 280369188947;
 
 /// Shader pack version.
 constexpr static const uint32_t SHADERPACK_VERSION = 1;
 
-/// Shader pack magic: the bytes `SPNGSH\0\0`, read as a little endian
+/// Shader pack magic, the bytes `SPNGSH\0\0` read as a little endian
 /// integer.
 constexpr static const uint64_t SHADERPACK_MAGIC = 79522515800147;
 
