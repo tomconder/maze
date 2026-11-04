@@ -52,6 +52,12 @@ Models: done. `yeschef/src/model.rs` bakes a glTF or GLB: tangents (`meshopt`, w
 
 `--verify <source> <baked>`: done. It imports the source again, runs the same steps as a bake and compares the result with the baked `.spnga` read back through `format/src/model.rs` (`read` checks magic, version, ranges and cluster blocks): mesh count, vertex and index counts, vertices, indices, clusters, texture presence per slot and texture size. It exits 1 on a difference. The orphan sweep runs only after every bake succeeds.
 
+Measured against `assetconv` (release builds, clean output):
+
+- Time: a full bake of `assets/manifest.yaml` takes 5.2 to 5.4 s against 11.7 to 12.2 s, three runs each.
+- Texture quality: PSNR against the decoded source, mip 0. Mean over the helmet 50.49 dB against 51.24 dB, the floor 46.26 against 47.15, Sponza 46.02 against 45.42. Most textures differ by about 1 dB or less in either direction. BC5 normal maps are within 1.2 dB.
+- Screenshots: Sponza and the `lodtest` scene, TAA off, 1600x900, differ from the `assetconv` bake by 0.33 and 0.22 of 255 on average. About 0.25% of pixels differ by more than 8, mostly speckle on foliage edges.
+
 Exit codes: 0 success, 1 failure, 2 usage or manifest error.
 
 CMake builds it with `-DENABLE_YESCHEF=ON`. CI runs `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test`.
