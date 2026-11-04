@@ -13,6 +13,7 @@
 //! a version it does not know.
 
 pub mod ktx2;
+pub mod model;
 pub mod shaderpack;
 
 use std::mem::{offset_of, size_of};
@@ -38,7 +39,7 @@ pub const SHADERPACK_MAGIC: u64 = 0x0000_4853_474E_5053;
 /// A sphere and the simplification error inside it, in model units. The error
 /// is how far the simplified surface can be from LOD0.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ClusterBounds {
     pub center: [f32; 3],
     pub radius: f32,
@@ -50,7 +51,7 @@ pub struct ClusterBounds {
 /// for `parent`. `bounds.error` is 0 for a LOD0 cluster. `parent.error` is
 /// `FLT_MAX` for a cluster with no coarser version.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct MeshCluster {
     pub first_index: u32,
     pub index_count: u32,
@@ -64,7 +65,7 @@ pub struct MeshCluster {
 /// are signed normalized 10:10:10:2 integers (`GL_INT_2_10_10_10_REV`).
 /// Positions and UVs stay float.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct PackedVertex {
     pub position: [f32; 3],
     pub tex_coords: [f32; 2],
@@ -76,14 +77,14 @@ pub struct PackedVertex {
 
 /// KHR_texture_transform offset and scale. Rotation is not supported.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct UvTransform {
     pub offset: [f32; 2],
     pub scale: [f32; 2],
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct MeshUvTransforms {
     pub albedo: UvTransform,
     pub normal: UvTransform,
@@ -95,7 +96,7 @@ pub struct MeshUvTransforms {
 
 /// Start of a model container.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct AssetHeader {
     /// The bytes of `ASSET_MAGIC`.
     pub magic: [u8; 8],
@@ -109,7 +110,7 @@ pub struct AssetHeader {
 /// One mesh. The `mesh_count` entries follow the header. Vertex, index and
 /// cluster blobs start on a 16-byte boundary.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct MeshEntry {
     pub vertex_offset: u32,
     pub vertex_count: u32,
@@ -141,7 +142,7 @@ pub struct MeshEntry {
 /// One KTX2 file stored whole. The `texture_count` entries follow the mesh
 /// entries.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct TextureEntry {
     pub offset: u32,
     pub size: u32,
@@ -149,7 +150,7 @@ pub struct TextureEntry {
 
 /// Start of a shader pack.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ShaderPackHeader {
     /// The bytes of `SHADERPACK_MAGIC`.
     pub magic: [u8; 8],
@@ -159,7 +160,7 @@ pub struct ShaderPackHeader {
 
 /// One shader. The `count` entries follow the header, sorted by name.
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ShaderPackEntry {
     pub name_offset: u32,
     pub name_size: u32,

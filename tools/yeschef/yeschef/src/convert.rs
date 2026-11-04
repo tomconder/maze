@@ -18,10 +18,6 @@ impl fmt::Display for NotImplemented {
 
 impl std::error::Error for NotImplemented {}
 
-pub fn model(_from: &Path, _to: &Path) -> Result<()> {
-    Err(NotImplemented("model conversion").into())
-}
-
 pub fn verify(_source: &Path, _baked: &Path) -> Result<()> {
     Err(NotImplemented("verify").into())
 }

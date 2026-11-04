@@ -19,7 +19,7 @@
 use crate::image::{self, Rgba};
 use anyhow::{Context, Result, bail};
 use base64::Engine as _;
-use glam::{Mat3, Mat4, Vec2, Vec3, Vec4};
+use glam::{Mat3, Mat4, Vec3};
 use gltf::json::Value;
 use indexmap::IndexMap;
 use rayon::prelude::*;
@@ -31,14 +31,17 @@ const TEXTURE_TRANSFORM: &str = "KHR_texture_transform";
 const CLEARCOAT: &str = "KHR_materials_clearcoat";
 const DIFFUSE_TRANSMISSION: &str = "KHR_materials_diffuse_transmission";
 
+/// Plain floats with no padding, so the mesh optimizer can compare vertices
+/// byte by byte.
+#[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vertex {
-    pub position: Vec3,
-    pub normal: Vec3,
+    pub position: [f32; 3],
+    pub normal: [f32; 3],
     /// xyz; w is the bitangent sign. Zero until the tangent stage runs, when
     /// the mesh has `needs_tangents`.
-    pub tangent: Vec4,
-    pub tex_coords: Vec2,
+    pub tangent: [f32; 4],
+    pub tex_coords: [f32; 2],
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -62,6 +65,19 @@ pub struct Textures {
 }
 
 impl Textures {
+    /// The slots in the order of the baked file: albedo, normal, occlusion,
+    /// emissive, metallic-roughness, diffuse transmission.
+    pub fn slots(&self) -> [Option<u32>; 6] {
+        [
+            self.albedo,
+            self.normal,
+            self.occlusion,
+            self.emissive,
+            self.metallic_roughness,
+            self.diffuse_transmission,
+        ]
+    }
+
     fn slots_mut(&mut self) -> [&mut Option<u32>; 6] {
         [
             &mut self.albedo,
@@ -478,19 +494,21 @@ fn parse_primitive(
     let mut vertices: Vec<Vertex> = (0..count)
         .map(|i| {
             let mut vertex = Vertex {
-                position: world.transform_point3(Vec3::from(positions[i])),
+                position: world.transform_point3(Vec3::from(positions[i])).to_array(),
                 ..Vertex::default()
             };
             if let Some(coords) = &tex_coords {
-                vertex.tex_coords = Vec2::from(coords[i]);
+                vertex.tex_coords = coords[i];
             }
             if let Some(normals) = &normals {
-                vertex.normal = (normal_matrix * Vec3::from(normals[i])).normalize_or_zero();
+                vertex.normal = (normal_matrix * Vec3::from(normals[i]))
+                    .normalize_or_zero()
+                    .to_array();
             }
             if let (Some(tangents), Some(_)) = (&tangents, &normals) {
                 let [x, y, z, w] = tangents[i];
                 let direction = (tangent_matrix * Vec3::new(x, y, z)).normalize_or_zero();
-                vertex.tangent = direction.extend(w);
+                vertex.tangent = direction.extend(w).to_array();
             }
             vertex
         })
@@ -501,8 +519,10 @@ fn parse_primitive(
         vertices = indices.iter().map(|&i| vertices[i as usize]).collect();
         indices = (0..vertices.len() as u32).collect();
         for triangle in vertices.as_chunks_mut::<3>().0 {
-            let edge = |a: usize, b: usize| triangle[b].position - triangle[a].position;
-            let normal = edge(0, 1).cross(edge(0, 2)).normalize_or_zero();
+            let edge = |a: usize, b: usize| {
+                Vec3::from(triangle[b].position) - Vec3::from(triangle[a].position)
+            };
+            let normal = edge(0, 1).cross(edge(0, 2)).normalize_or_zero().to_array();
             for vertex in triangle {
                 vertex.normal = normal;
             }
@@ -755,9 +775,9 @@ mod tests {
         let model = load(&path).unwrap();
         assert_eq!(model.meshes.len(), 1);
         let mesh = &model.meshes[0];
-        assert_eq!(mesh.vertices[1].position, Vec3::new(3.0, 2.0, 3.0));
-        assert_eq!(mesh.vertices[2].position, Vec3::new(1.0, 4.0, 3.0));
-        assert!(mesh.vertices.iter().all(|v| v.normal == Vec3::Z));
+        assert_eq!(mesh.vertices[1].position, [3.0, 2.0, 3.0]);
+        assert_eq!(mesh.vertices[2].position, [1.0, 4.0, 3.0]);
+        assert!(mesh.vertices.iter().all(|v| v.normal == [0.0, 0.0, 1.0]));
         assert_eq!(mesh.indices, [0, 1, 2]);
         assert!(mesh.needs_tangents);
         // No material: the mesh defaults.
@@ -890,8 +910,8 @@ mod tests {
         let model = load(&path).unwrap();
         let mesh = &model.meshes[0];
         assert!(!mesh.needs_tangents);
-        assert_eq!(mesh.vertices[0].normal, Vec3::Z);
-        assert_eq!(mesh.vertices[0].tangent, Vec4::new(1.0, 0.0, 0.0, -1.0));
+        assert_eq!(mesh.vertices[0].normal, [0.0, 0.0, 1.0]);
+        assert_eq!(mesh.vertices[0].tangent, [1.0, 0.0, 0.0, -1.0]);
         assert_eq!(mesh.vertices.len(), 3);
     }
 
@@ -940,9 +960,9 @@ mod tests {
         let path = write(dir.path(), "a.gltf", json.as_bytes());
         let model = load(&path).unwrap();
         let mesh = &model.meshes[0];
-        assert_eq!(mesh.vertices[1].position, Vec3::new(0.0, 2.0, 0.0));
-        assert_eq!(mesh.vertices[2].position, Vec3::new(2.0, 0.0, 0.0));
-        assert!(mesh.vertices.iter().all(|v| v.normal == Vec3::Z));
+        assert_eq!(mesh.vertices[1].position, [0.0, 2.0, 0.0]);
+        assert_eq!(mesh.vertices[2].position, [2.0, 0.0, 0.0]);
+        assert!(mesh.vertices.iter().all(|v| v.normal == [0.0, 0.0, 1.0]));
         assert!(mesh.needs_tangents);
     }
 

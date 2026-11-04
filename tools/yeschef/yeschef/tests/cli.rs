@@ -54,7 +54,7 @@ fn licenses_only_manifest_writes_notices_and_removes_orphans() {
 }
 
 #[test]
-fn a_missing_converter_fails_and_keeps_existing_outputs() {
+fn a_failed_conversion_removes_its_output_and_skips_the_sweep() {
     let dir = tempfile::tempdir().unwrap();
     let manifest = dir.path().join("manifest.yaml");
     fs::write(
@@ -69,8 +69,8 @@ fn a_missing_converter_fails_and_keeps_existing_outputs() {
 
     let run = yeschef(&["--manifest", path(&manifest), path(&out)]);
     assert_eq!(run.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&run.stderr).contains("not implemented"));
-    assert_eq!(fs::read_to_string(out.join("a.spnga")).unwrap(), "baked");
+    assert!(String::from_utf8_lossy(&run.stderr).contains("unable to read"));
+    assert!(!out.join("a.spnga").exists(), "a stale output is not kept");
     assert!(out.join("other.bin").exists(), "no sweep after a failure");
 }
 
