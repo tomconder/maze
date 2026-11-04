@@ -21,17 +21,14 @@ use skrifa::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use yeschef_format::font::{FONT_KEY, FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables};
 use yeschef_format::ktx2::{self, Format};
 use zeno::{Command, Mask, Point};
 
 use crate::darken::{self, div_fix, mul_fix};
 use crate::pack;
 
-const FONT_KEY: &str = "spongeFont";
-/// Increase when the layout or `PHASES` changes. Matches `font.hpp`.
-const VERSION: u32 = 1;
-/// Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
-const PHASES: usize = 4;
+const PHASES: usize = SUBPIXEL_PHASES as usize;
 const CHANNELS: usize = 3;
 const MAX_SIDE: u32 = 2048;
 
@@ -150,88 +147,6 @@ impl Slots {
 }
 
 // ----------------------------------------------------------------- tables
-
-/// Atlas placement of one glyph at one size and phase. A width or height of 0
-/// means nothing to draw.
-#[derive(Clone, Copy, Default)]
-struct Glyph {
-    uv_left: f32,
-    uv_top: f32,
-    uv_width: f32,
-    uv_height: f32,
-    bearing_x: i32,
-    bearing_y: i32,
-    width: i32,
-    height: i32,
-}
-
-struct SizeTable {
-    pixels: u32,
-    line_height: f32,
-    ascender: f32,
-    /// 26.6 pixels, per slot.
-    advances: Vec<i32>,
-    /// `slot * PHASES + phase`.
-    glyphs: Vec<Glyph>,
-    /// `(first slot << 16 | second slot)` to the change in the first advance,
-    /// 26.6 pixels.
-    kerning: BTreeMap<u32, i32>,
-}
-
-struct Tables {
-    slot_count: u32,
-    plain: BTreeMap<u32, u32>,
-    tabular: BTreeMap<u32, u32>,
-    sizes: Vec<SizeTable>,
-}
-
-fn put(out: &mut Vec<u8>, value: u32) {
-    out.extend_from_slice(&value.to_le_bytes());
-}
-
-fn put_f32(out: &mut Vec<u8>, value: f32) {
-    out.extend_from_slice(&value.to_le_bytes());
-}
-
-/// The bytes of `font.cpp`'s `write`: little endian, in this order.
-fn write_tables(tables: &Tables) -> Vec<u8> {
-    let mut out = Vec::new();
-    put(&mut out, VERSION);
-    put(&mut out, tables.slot_count);
-    put(&mut out, tables.plain.len() as u32);
-    put(&mut out, tables.tabular.len() as u32);
-    put(&mut out, tables.sizes.len() as u32);
-    for map in [&tables.plain, &tables.tabular] {
-        for (&codepoint, &slot) in map {
-            put(&mut out, codepoint);
-            put(&mut out, slot);
-        }
-    }
-    for size in &tables.sizes {
-        put(&mut out, size.pixels);
-        put_f32(&mut out, size.line_height);
-        put_f32(&mut out, size.ascender);
-        put(&mut out, size.kerning.len() as u32);
-        for &advance in &size.advances {
-            put(&mut out, advance as u32);
-        }
-        for glyph in &size.glyphs {
-            put_f32(&mut out, glyph.uv_left);
-            put_f32(&mut out, glyph.uv_top);
-            put_f32(&mut out, glyph.uv_width);
-            put_f32(&mut out, glyph.uv_height);
-            put(&mut out, glyph.bearing_x as u32);
-            put(&mut out, glyph.bearing_y as u32);
-            put(&mut out, glyph.width as u32);
-            put(&mut out, glyph.height as u32);
-        }
-        for (&pair, &adjustment) in &size.kerning {
-            put(&mut out, pair);
-            put(&mut out, adjustment as u32);
-        }
-    }
-    out
-}
 
 /// What the engine does at run time: a slot per codepoint, an advance per
 /// slot, kerning from the pair before. Advances are in pixels.
@@ -695,7 +610,7 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
         .par_iter()
         .try_for_each(|size| check_against_shaper(&shaper_font, &slots, &tables, size))?;
 
-    let key_values = [(FONT_KEY.to_string(), write_tables(&tables))];
+    let key_values = [(FONT_KEY.to_string(), tables.to_bytes())];
     let file = ktx2::write(Format::R8G8B8Unorm, width, height, &[pixels], &key_values);
     Ok((file, (width, height)))
 }
@@ -745,7 +660,10 @@ mod tests {
             u32_at(tables, 12),
             u32_at(tables, 16),
         );
-        assert_eq!((version, plain, tabular, sizes), (VERSION, 96, 96, 1));
+        assert_eq!(
+            (version, plain, tabular, sizes),
+            (yeschef_format::font::FONT_VERSION, 96, 96, 1)
+        );
         // Printable ASCII, the multiplication sign, the missing glyph, and a
         // few tabular figure forms.
         assert!((96..=140).contains(&slots), "{slots} slots");

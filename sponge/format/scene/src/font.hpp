@@ -1,5 +1,7 @@
 #pragma once
 
+#include "assetlayout.generated.hpp"
+
 #include <cstdint>
 #include <map>
 #include <span>
@@ -8,8 +10,10 @@
 #include <vector>
 
 // Baked font tables. A font bakes to one KTX2 file: the glyph atlas as its
-// image, and these tables under the fontKey key/value entry. Written by
-// tools/assetconv, read by BitmapFont.
+// image, and these tables under the fontKey key/value entry. Written by the
+// converter, read by BitmapFont. The byte layout is defined in Rust
+// (tools/yeschef/format/src/font.rs) and generated into
+// assetlayout.generated.hpp.
 //
 // Shaping is table lookup. The converter shapes with HarfBuzz with ligatures
 // and contextual alternates off, and records what it gets: a glyph per
@@ -20,23 +24,14 @@ namespace sponge::scene::font {
 
 constexpr std::string_view fontKey = "spongeFont";
 // Increase when the layout or subpixelPhases changes.
-constexpr uint32_t version = 1;
+constexpr uint32_t version = layout::FONT_VERSION;
 
 // Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
-constexpr uint32_t subpixelPhases = 4;
+constexpr uint32_t subpixelPhases = layout::SUBPIXEL_PHASES;
 
 // Atlas placement of one glyph at one size and phase. width and height of 0
 // mean nothing to draw.
-struct Glyph {
-    float   uvLeft;
-    float   uvTop;
-    float   uvWidth;
-    float   uvHeight;
-    int32_t bearingX;
-    int32_t bearingY;
-    int32_t width;
-    int32_t height;
-};
+using Glyph = layout::FontGlyph;
 
 // Advances and kerning are 26.6 fixed point, as HarfBuzz reports them.
 struct Size {

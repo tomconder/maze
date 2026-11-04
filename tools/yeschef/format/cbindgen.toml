@@ -29,4 +29,9 @@ include = [
     "TextureEntry",
     "ShaderPackHeader",
     "ShaderPackEntry",
+    "FontHeader",
+    "FontSlotEntry",
+    "FontSizeHeader",
+    "FontKerningEntry",
+    "FontGlyph",
 ]

@@ -1,5 +1,5 @@
-//! On-disk layout of the baked asset files: the model container (`.spnga`)
-//! and the shader pack (`shaders.spnga`).
+//! On-disk layout of the baked asset files: the model container (`.spnga`),
+//! the shader pack (`shaders.spnga`) and the font tables (see [`font`]).
 //!
 //! This crate owns the layout. `cbindgen` turns it into
 //! `sponge/format/scene/src/assetlayout.generated.hpp`, which the C++ readers
@@ -12,6 +12,7 @@
 //! meaning of a field or the texture reference convention. The engine rejects
 //! a version it does not know.
 
+pub mod font;
 pub mod ktx2;
 pub mod model;
 pub mod shaderpack;

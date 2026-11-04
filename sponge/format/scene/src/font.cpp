@@ -20,30 +20,10 @@ using sponge::scene::font::Size;
 using sponge::scene::font::subpixelPhases;
 using sponge::scene::font::version;
 
-struct Header {
-    uint32_t version;
-    uint32_t slotCount;
-    uint32_t slotMapCount;
-    uint32_t tabularMapCount;
-    uint32_t sizeCount;
-};
-
-struct SlotEntry {
-    uint32_t codepoint;
-    uint32_t slot;
-};
-
-struct SizeHeader {
-    uint32_t pixels;
-    float    lineHeight;
-    float    ascender;
-    uint32_t kerningCount;
-};
-
-struct KerningEntry {
-    uint32_t pair;
-    int32_t  adjustment;
-};
+using Header       = sponge::scene::layout::FontHeader;
+using SlotEntry    = sponge::scene::layout::FontSlotEntry;
+using SizeHeader   = sponge::scene::layout::FontSizeHeader;
+using KerningEntry = sponge::scene::layout::FontKerningEntry;
 
 static_assert(sizeof(Glyph) == 32);
 

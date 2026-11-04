@@ -28,6 +28,13 @@ constexpr static const uint32_t SHADERPACK_VERSION = 1;
 /// integer.
 constexpr static const uint64_t SHADERPACK_MAGIC = 79522515800147;
 
+/// Font tables version. Increase when the layout or [`SUBPIXEL_PHASES`]
+/// changes.
+constexpr static const uint32_t FONT_VERSION = 1;
+
+/// Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
+constexpr static const uint32_t SUBPIXEL_PHASES = 4;
+
 /// A sphere and the simplification error inside it, in model units. The error
 /// is how far the simplified surface can be from LOD0.
 struct ClusterBounds {
@@ -138,6 +145,49 @@ struct ShaderPackEntry {
   uint32_t nameSize;
   uint32_t sourceOffset;
   uint32_t sourceSize;
+};
+
+/// Start of the font tables.
+struct FontHeader {
+  uint32_t version;
+  uint32_t slotCount;
+  uint32_t slotMapCount;
+  uint32_t tabularMapCount;
+  uint32_t sizeCount;
+};
+
+/// A codepoint and its glyph slot.
+struct FontSlotEntry {
+  uint32_t codepoint;
+  uint32_t slot;
+};
+
+/// Start of one size.
+struct FontSizeHeader {
+  uint32_t pixels;
+  float lineHeight;
+  float ascender;
+  uint32_t kerningCount;
+};
+
+/// The change in the first advance of a glyph pair.
+struct FontKerningEntry {
+  /// `first slot << 16 | second slot`.
+  uint32_t pair;
+  int32_t adjustment;
+};
+
+/// Atlas placement of one glyph at one size and phase. A width or height of 0
+/// means nothing to draw.
+struct FontGlyph {
+  float uvLeft;
+  float uvTop;
+  float uvWidth;
+  float uvHeight;
+  int32_t bearingX;
+  int32_t bearingY;
+  int32_t width;
+  int32_t height;
 };
 
 }  // namespace sponge::scene::layout
