@@ -4,10 +4,13 @@
 mod bake;
 mod convert;
 mod hdr;
-// The texture and glTF converters use it, and they come next.
+// The image decoder and the mip filter are used by the texture and glTF
+// converters, which come next.
 #[allow(dead_code)]
 mod image;
 mod manifest;
+#[allow(dead_code)]
+mod mip;
 mod notices;
 mod shaders;
 
