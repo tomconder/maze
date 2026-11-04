@@ -125,7 +125,6 @@ KeyHintOrder keyHintOrder(const std::span<const KeyHint> hints) {
 
 std::vector<KeyHintSize> keyHintSizes(const std::span<const KeyHint> hints,
                                       const float        windowWidth,
-                                      const bool         gamepad,
                                       const TextMeasure& measure) {
     const auto metrics = metricsFor(windowWidth);
 

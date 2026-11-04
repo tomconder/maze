@@ -182,10 +182,6 @@ bool ScrollMenuLayer::onUpdate(const double elapsedTime) {
     ui::renderTabBar(menuStyle.tab, font, camera->getProjection(), width,
                      layout->tabBarRects());
 
-    // the prompts change size with the device
-    if (layout->keyHintsStale()) {
-        recalculateLayout();
-    }
     ui::renderKeyHints(menuStyle.keyHints, font, camera->getProjection(), width,
                        layout->keyHintRects(), hoveredHint);
 
@@ -240,11 +236,10 @@ void ScrollMenuLayer::clearHoveredItems() {
 void ScrollMenuLayer::recalculateLayout() {
     const auto width   = static_cast<float>(camera->getWidth());
     const auto measure = ui::fontMeasure(font);
-    const auto gamepad = ui::usingGamepad();
     layoutRows(*layout, { measure, fontSize });
     layout->setTabLabelSizes(ui::tabLabelSizes(width, measure));
     layout->setKeyHintSizes(
-        ui::keyHintSizes(menuStyle.keyHints, width, gamepad, measure), gamepad);
+        ui::keyHintSizes(menuStyle.keyHints, width, measure));
     scroll.layout(*layout, width, static_cast<float>(camera->getHeight()));
 }
 

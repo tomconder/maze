@@ -57,8 +57,7 @@ std::string menuTree(const size_t rows, const ui::MenuLayoutSpec& spec,
     if (tabs) {
         layout.setTabLabelSizes(ui::tabLabelSizes(width, text.measure));
     }
-    layout.setKeyHintSizes(ui::keyHintSizes(hints, width, false, text.measure),
-                           false);
+    layout.setKeyHintSizes(ui::keyHintSizes(hints, width, text.measure));
     layout.calculate(width, height);
     return yogaToPlayground(layout.root());
 }
