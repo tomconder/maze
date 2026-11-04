@@ -19,6 +19,7 @@ add_custom_target(yeschef ALL
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         BYPRODUCTS "${YESCHEF_EXE}"
         COMMENT "Building yeschef"
+        USES_TERMINAL
         VERBATIM)
 
 # Slang loads its GLSL module and glslang by name at run time, from the folder
