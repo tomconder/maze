@@ -50,15 +50,6 @@ Metrics metricsFor(const float windowWidth) {
              windowWidth * 0.03F, iconSize * 0.3F };
 }
 
-// Single-key prompts fill 48 px of their 64 px sprite, the arrow clusters only
-// 30 px, so single keys draw smaller to match the arrows.
-float iconScale(const std::string_view icon) {
-    return icon == "keyboard_enter" || icon == "keyboard_escape" ||
-                   icon == "keyboard_r" ?
-               30.F / 48.F :
-               1.F;
-}
-
 std::string_view iconOf(const game::ui::KeyHint& hint, const bool gamepad) {
     return gamepad ? hint.padIcon : hint.keyIcon;
 }
@@ -140,8 +131,8 @@ std::vector<KeyHintSize> keyHintSizes(const std::span<const KeyHint> hints,
 
     std::vector<KeyHintSize> sizes;
     for (const auto& hint : hints) {
-        sizes.push_back({ metrics.iconSize * iconScale(iconOf(hint, gamepad)),
-                          measure(hint.label, metrics.size) });
+        sizes.push_back(
+            { metrics.iconSize, measure(hint.label, metrics.size) });
     }
     return sizes;
 }
