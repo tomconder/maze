@@ -91,7 +91,7 @@ fn usage_errors_exit_2() {
 }
 
 #[test]
-fn verify_is_not_implemented() {
+fn verify_of_missing_files_fails() {
     assert_eq!(yeschef(&["--verify", "a", "b"]).status.code(), Some(1));
 }
 

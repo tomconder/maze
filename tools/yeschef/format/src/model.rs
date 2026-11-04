@@ -95,6 +95,145 @@ pub fn write(meshes: &[Mesh], textures: &[&[u8]]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+/// One mesh read back from a container.
+#[derive(Debug)]
+pub struct ParsedMesh {
+    pub vertices: Vec<PackedVertex>,
+    pub indices: Vec<u32>,
+    pub clusters: Vec<MeshCluster>,
+    pub entry: MeshEntry,
+}
+
+/// A container read back. `textures` are whole KTX2 files.
+#[derive(Debug)]
+pub struct Parsed<'a> {
+    pub meshes: Vec<ParsedMesh>,
+    pub textures: Vec<&'a [u8]>,
+}
+
+/// The bytes at `offset`, `count` items of `size` each, or an error when they
+/// pass the end of the file.
+fn range<'a>(
+    bytes: &'a [u8],
+    offset: u32,
+    count: u32,
+    size: usize,
+    what: &str,
+) -> Result<&'a [u8], String> {
+    let start = offset as usize;
+    let end = (count as usize)
+        .checked_mul(size)
+        .and_then(|len| len.checked_add(start))
+        .filter(|&end| end <= bytes.len());
+    end.map(|end| &bytes[start..end])
+        .ok_or_else(|| format!("{what} runs past the end of the file"))
+}
+
+/// Reads and checks a container: magic, version, vertex size, that every blob
+/// is inside the file, and that the clusters are in the indices with LOD0 as
+/// one block at the start.
+pub fn read(bytes: &[u8]) -> Result<Parsed<'_>, String> {
+    let header_bytes = bytes
+        .get(..size_of::<AssetHeader>())
+        .ok_or("the model is truncated")?;
+    let header: AssetHeader = bytemuck::pod_read_unaligned(header_bytes);
+    if header.magic != ASSET_MAGIC.to_le_bytes() {
+        return Err("not a baked model".into());
+    }
+    if header.version != ASSET_VERSION {
+        return Err(format!(
+            "baked model version {}, expected {ASSET_VERSION}",
+            header.version
+        ));
+    }
+    if header.vertex_size as usize != size_of::<PackedVertex>() {
+        return Err(format!(
+            "baked model vertex size {}, expected {}",
+            header.vertex_size,
+            size_of::<PackedVertex>()
+        ));
+    }
+
+    let mesh_entries: Vec<MeshEntry> = bytemuck::pod_collect_to_vec(range(
+        bytes,
+        size_of::<AssetHeader>() as u32,
+        header.mesh_count,
+        size_of::<MeshEntry>(),
+        "the mesh table",
+    )?);
+    let textures_at = size_of::<AssetHeader>() + size_of::<MeshEntry>() * mesh_entries.len();
+    let texture_entries: Vec<TextureEntry> = bytemuck::pod_collect_to_vec(range(
+        bytes,
+        textures_at as u32,
+        header.texture_count,
+        size_of::<TextureEntry>(),
+        "the texture table",
+    )?);
+
+    let textures = texture_entries
+        .iter()
+        .enumerate()
+        .map(|(i, t)| range(bytes, t.offset, t.size, 1, &format!("texture {i}")))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut meshes = Vec::with_capacity(mesh_entries.len());
+    for (i, entry) in mesh_entries.iter().enumerate() {
+        let vertices = range(
+            bytes,
+            entry.vertex_offset,
+            entry.vertex_count,
+            size_of::<PackedVertex>(),
+            "vertices",
+        );
+        let indices = range(bytes, entry.index_offset, entry.index_count, 4, "indices");
+        let clusters = range(
+            bytes,
+            entry.cluster_offset,
+            entry.cluster_count,
+            size_of::<MeshCluster>(),
+            "clusters",
+        );
+        let (vertices, indices, clusters) = (
+            vertices.map_err(|e| format!("mesh {i}: {e}"))?,
+            indices.map_err(|e| format!("mesh {i}: {e}"))?,
+            clusters.map_err(|e| format!("mesh {i}: {e}"))?,
+        );
+        let clusters: Vec<MeshCluster> = bytemuck::pod_collect_to_vec(clusters);
+        if clusters.is_empty() {
+            return Err(format!("mesh {i} has no cluster table"));
+        }
+        let (mut lod0_end, mut past_lod0) = (0u32, false);
+        for cluster in &clusters {
+            let lod0 = cluster.depth == 0;
+            let end = u64::from(cluster.first_index) + u64::from(cluster.index_count);
+            if end > u64::from(entry.index_count)
+                || (lod0 && (past_lod0 || cluster.first_index != lod0_end))
+            {
+                return Err(format!("mesh {i} has a bad cluster table"));
+            }
+            lod0_end += if lod0 { cluster.index_count } else { 0 };
+            past_lod0 |= !lod0;
+        }
+        if entry.alpha_mode > 2 || entry.double_sided > 1 {
+            return Err(format!("mesh {i} has a bad material"));
+        }
+        if entry
+            .texture_index
+            .iter()
+            .any(|&id| id < -1 || id >= header.texture_count as i32)
+        {
+            return Err(format!("mesh {i} refers to a missing texture"));
+        }
+        meshes.push(ParsedMesh {
+            vertices: bytemuck::pod_collect_to_vec(vertices),
+            indices: bytemuck::pod_collect_to_vec(indices),
+            clusters,
+            entry: *entry,
+        });
+    }
+    Ok(Parsed { meshes, textures })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,6 +261,19 @@ mod tests {
             },
         };
         let bytes = write(&[mesh], &[texture]).unwrap();
+
+        let parsed = read(&bytes).unwrap();
+        assert_eq!(parsed.meshes[0].vertices, vertices);
+        assert_eq!(parsed.meshes[0].indices, indices);
+        assert_eq!(parsed.meshes[0].clusters.len(), 1);
+        assert_eq!(parsed.textures, [&texture[..]]);
+        assert!(
+            read(&bytes[..bytes.len() - 40]).is_err(),
+            "a truncated file"
+        );
+        let mut wrong = bytes.clone();
+        wrong[8] ^= 1;
+        assert!(read(&wrong).unwrap_err().contains("version"));
 
         let header: AssetHeader = bytemuck::pod_read_unaligned(&bytes[..size_of::<AssetHeader>()]);
         assert_eq!(header.magic, ASSET_MAGIC.to_le_bytes());

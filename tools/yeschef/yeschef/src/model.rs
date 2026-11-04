@@ -12,7 +12,7 @@
 
 use crate::import::{self, AlphaMode, Mesh, Model, Vertex};
 use crate::texture::{self, TextureKind};
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use meshopt::{
     ClodBounds, ClodMesh, SimplifyVertex, TangentOptions, VertexDataAdapter, clod_build,
     clod_default_config, generate_position_remap, generate_tangents, generate_vertex_remap,
@@ -22,6 +22,7 @@ use meshopt::{
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::path::Path;
+use yeschef_format::ktx2;
 use yeschef_format::model::{self as container, Mesh as FileMesh};
 use yeschef_format::{ClusterBounds, MeshCluster, MeshEntry, PackedVertex};
 
@@ -404,6 +405,93 @@ pub fn convert(from: &Path, to: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Imports `source` again and compares it with the baked `output`. This
+/// catches a layout or offset bug in the file itself, not a bad optimizer: the
+/// expected meshes go through the same steps as a bake.
+pub fn verify(source: &Path, output: &Path) -> Result<()> {
+    let model = import::load(source)?;
+    let expected: Vec<Baked> = model.meshes.par_iter().map(prepare).collect();
+    println!("{}: {}", source.display(), cluster_stats(&expected));
+
+    let bytes =
+        std::fs::read(output).with_context(|| format!("unable to read {}", output.display()))?;
+    let actual = container::read(&bytes)
+        .map_err(anyhow::Error::msg)
+        .with_context(|| format!("FAIL {}", output.display()))?;
+    let fail = |mesh: usize, what: &str| anyhow!("FAIL {} mesh {mesh}: {what}", output.display());
+
+    if expected.len() != actual.meshes.len() {
+        bail!(
+            "FAIL {}: {} meshes baked, source has {}",
+            output.display(),
+            actual.meshes.len(),
+            expected.len()
+        );
+    }
+    for (i, ((want, got), mesh)) in expected
+        .iter()
+        .zip(&actual.meshes)
+        .zip(&model.meshes)
+        .enumerate()
+    {
+        if want.vertices.len() != got.vertices.len() || want.indices.len() != got.indices.len() {
+            return Err(fail(
+                i,
+                &format!(
+                    "{}/{} vertices, {}/{} indices",
+                    got.vertices.len(),
+                    want.vertices.len(),
+                    got.indices.len(),
+                    want.indices.len()
+                ),
+            ));
+        }
+        if let Some(v) = want
+            .vertices
+            .iter()
+            .zip(&got.vertices)
+            .position(|(a, b)| a != b)
+        {
+            return Err(fail(i, &format!("vertex {v} differs")));
+        }
+        if want.indices != got.indices {
+            return Err(fail(i, "indices differ"));
+        }
+        // A mesh with no clusters is written as one LOD0 range.
+        if !want.clusters.is_empty() && want.clusters != got.clusters {
+            return Err(fail(i, "clusters differ"));
+        }
+
+        for (slot, image) in mesh.textures.slots().into_iter().enumerate() {
+            let id = got.entry.texture_index[slot];
+            if image.is_some() != (id >= 0) {
+                return Err(fail(i, &format!("texture slot {slot} presence differs")));
+            }
+            if let Some(image) = image {
+                let source = &model.images[image as usize].rgba;
+                let baked =
+                    ktx2::read(actual.textures[id as usize]).map_err(|error| fail(i, &error))?;
+                if (baked.width, baked.height) != (source.width, source.height) {
+                    return Err(fail(
+                        i,
+                        &format!(
+                            "texture slot {slot} is {}x{}, source is {}x{}",
+                            baked.width, baked.height, source.width, source.height
+                        ),
+                    ));
+                }
+            }
+        }
+    }
+    println!(
+        "OK {}: {} meshes match {}",
+        output.display(),
+        actual.meshes.len(),
+        source.display()
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -566,6 +654,40 @@ mod tests {
             let texture: TextureEntry = read(&bytes[at..at + size_of::<TextureEntry>()]);
             assert_eq!(&bytes[texture.offset as usize + 1..][..3], b"KTX");
         }
+    }
+
+    #[test]
+    fn verify_accepts_a_bake_and_rejects_a_changed_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let positions = [0.0f32, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];
+        let bin: Vec<u8> = positions.iter().flat_map(|v| v.to_le_bytes()).collect();
+        let uri = format!(
+            "data:application/octet-stream;base64,{}",
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &bin)
+        );
+        let json = format!(
+            r#"{{"asset":{{"version":"2.0"}},
+            "buffers":[{{"byteLength":36,"uri":"{uri}"}}],
+            "bufferViews":[{{"buffer":0,"byteLength":36}}],
+            "accessors":[{{"bufferView":0,"componentType":5126,"count":3,"type":"VEC3",
+                "min":[0,0,0],"max":[1,1,0]}}],
+            "meshes":[{{"primitives":[{{"attributes":{{"POSITION":0}}}}]}}],
+            "nodes":[{{"mesh":0}}]}}"#
+        );
+        let from = dir.path().join("a.gltf");
+        std::fs::write(&from, json).unwrap();
+        let to = dir.path().join("a.spnga");
+        convert(&from, &to).unwrap();
+        verify(&from, &to).unwrap();
+
+        // Flip a byte of the first vertex.
+        let mut bytes = std::fs::read(&to).unwrap();
+        let parsed = container::read(&bytes).unwrap();
+        let first = parsed.meshes[0].entry.vertex_offset as usize;
+        bytes[first] ^= 0x40;
+        std::fs::write(&to, &bytes).unwrap();
+        let error = verify(&from, &to).unwrap_err();
+        assert!(error.to_string().contains("vertex"), "{error}");
     }
 
     #[test]

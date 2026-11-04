@@ -3,7 +3,6 @@
 
 mod atlas;
 mod bake;
-mod convert;
 mod darken;
 mod font;
 mod hdr;
@@ -91,7 +90,7 @@ fn main() -> ExitCode {
     }
     let outcome = match (&cli.manifest, &cli.verify) {
         (Some(paths), _) => bake_manifest(&cli, &paths[0], &paths[1]),
-        (_, Some(paths)) => convert::verify(&paths[0], &paths[1]).map_err(Failure::Bake),
+        (_, Some(paths)) => model::verify(&paths[0], &paths[1]).map_err(Failure::Bake),
         _ => unreachable!("clap requires one mode"),
     };
     match outcome {

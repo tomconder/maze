@@ -6,8 +6,6 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::convert::NotImplemented;
-
 type Run<'a> = Box<dyn FnOnce(&Path) -> Result<()> + Send + 'a>;
 
 /// One output to bake: its name under the output folder, the files it reads,
@@ -87,8 +85,7 @@ impl Baker {
 
     /// Runs the job unless its output is newer than its inputs, the manifest
     /// and the converter. A failed run deletes its output, so a partial file
-    /// never looks current. The exception is a converter that does not exist
-    /// yet: nothing was converted, so the output stays.
+    /// never looks current.
     fn bake(&self, job: Job<'_>) -> Result<()> {
         let output = self.output_root.join(&job.name);
         let mut inputs = job.inputs;
@@ -101,10 +98,8 @@ impl Baker {
             fs::create_dir_all(parent)
                 .with_context(|| format!("unable to create {}", parent.display()))?;
         }
-        (job.run)(&output).inspect_err(|error| {
-            if error.downcast_ref::<NotImplemented>().is_none() {
-                let _ = fs::remove_file(&output);
-            }
+        (job.run)(&output).inspect_err(|_| {
+            let _ = fs::remove_file(&output);
         })
     }
 
@@ -262,17 +257,6 @@ mod tests {
         })]);
         assert!(result.is_err());
         assert!(!dir.path().join("out/a.bin").exists());
-    }
-
-    #[test]
-    fn a_missing_converter_keeps_the_output() {
-        let dir = tempfile::tempdir().unwrap();
-        let mut baker = baker(dir.path());
-        let output = dir.path().join("out/a.bin");
-        write_at(&output, -7200);
-        let result = baker.run(vec![job("a.bin", |_| Err(NotImplemented("test").into()))]);
-        assert!(result.is_err());
-        assert!(output.exists());
     }
 
     #[test]

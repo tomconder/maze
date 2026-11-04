@@ -31,7 +31,7 @@ paths and repeated logs.
 * `game/` — maze application (layers, UI, cameras). CMake target `game`; Windows exe `maze.exe`.
 * `sponge/src/{core,debug,event,input,layer,logging,scene,thread}` — platform-agnostic engine.
 * `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
-* `tools/yeschef/` — Rust workspace. `format` defines the baked file layout (see Global Invariants). `yeschef` is the planned replacement for `tools/assetconv`: CLI, manifest, up-to-date checks, notices, the rayon job pool and every converter work; only `--verify` is a stub. Building it needs the Slang SDK (`SLANG_DIR`) and libclang; see `tools/yeschef/README.md`. Build it with `-DENABLE_YESCHEF=ON`. Until parity, `assetconv` is the converter the build uses.
+* `tools/yeschef/` — Rust workspace. `format` defines the baked file layout (see Global Invariants). `yeschef` is the planned replacement for `tools/assetconv`: CLI, manifest, up-to-date checks, notices, the rayon job pool, every converter and `--verify` work. Building it needs the Slang SDK (`SLANG_DIR`) and libclang; see `tools/yeschef/README.md`. Build it with `-DENABLE_YESCHEF=ON`. Until parity, `assetconv` is the converter the build uses.
 * `assets/shaders/slang/` — Slang sources. `assetconv --manifest` compiles every stage listed under `shaders` in `assets/manifest.yaml` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
 * C++23, vcpkg manifest (`vcpkg.json`). Optional CMake flags: `ENABLE_IMGUI`, `ENABLE_PROFILING` (Tracy).
 * No automated test suite. Verify with compile + run + `pre-commit.exe run --all-files`.

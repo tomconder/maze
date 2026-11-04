@@ -50,7 +50,7 @@ glTF import: done, not used yet. `yeschef/src/import.rs` reads `.gltf` and `.glb
 
 Models: done. `yeschef/src/model.rs` bakes a glTF or GLB: tangents (`meshopt`, when the file has none), weld, vertex cache, overdraw and fetch order, the cluster LOD hierarchy (`meshopt`'s `clusterlod`, 128 triangles per cluster, open mesh borders locked), 10:10:10:2 packed normals and tangents, and the textures through `texture.rs`. One mesh per task on the pool. The container writer is in `format/src/model.rs`. On the five game models, Sponza, both lodtest meshes and the floor have vertex, index and cluster blobs byte-identical to `assetconv`'s in every mesh, and the same file size. The helmet has the same vertices to within 2e-6, but its rotated node rounds differently in `glam` than in `glm`, so the optimizer orders them differently (278 clusters against 275, same LOD0). Baking the five models takes 3.0 s against 8.3 to 10 s for `assetconv`. The output is the same on every run.
 
-Not done: `--verify` (`yeschef/src/convert.rs`). It fails with "not implemented yet". The orphan sweep runs only after every bake succeeds.
+`--verify <source> <baked>`: done. It imports the source again, runs the same steps as a bake and compares the result with the baked `.spnga` read back through `format/src/model.rs` (`read` checks magic, version, ranges and cluster blocks): mesh count, vertex and index counts, vertices, indices, clusters, texture presence per slot and texture size. It exits 1 on a difference. The orphan sweep runs only after every bake succeeds.
 
 Exit codes: 0 success, 1 failure, 2 usage or manifest error.
 
