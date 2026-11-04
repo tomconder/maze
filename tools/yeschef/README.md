@@ -40,7 +40,7 @@ Image decode: done, not used yet. `yeschef/src/image.rs` decodes PNG (`png` crat
 
 Mip filter: done, not used yet. `yeschef/src/mip.rs` ports the Mitchell halving filter and the alpha coverage helpers, with bands on the rayon pool. Its output is byte-identical to `assetconv`'s `halveMip` on 9 inputs in both color spaces (real textures up to 2048x2048 and odd-sized images with alpha).
 
-Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest bin of any shape). Every sprite and gutter texel matches `assetconv`'s; the bin shape and sprite positions differ, because the engine reads the positions from the table. The game's 14 sprites pack into a 66x924 strip, the least area possible, where `assetconv` made 264x264.
+Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest square bin). On the game's 14 sprites the atlas is byte-identical to `assetconv`'s (264x264). Other sprite sets may pack differently, because the engine reads the positions from the table.
 
 Textures: done. `yeschef/src/texture.rs` compresses an image to BC7 (the `ctt-bc7f` crate, preset `DefaultPartiallyAnalytical`) or BC5 for normal maps (a port of the BC4 code), with a full mip chain through `mip.rs`, and bakes the manifest's `textures`. The glTF converter will use the normal and linear kinds. Against `assetconv`'s bc7enc, on the six largest Sponza and helmet textures: 39.88 dB against 39.35 dB mean PSNR, and 1.2 s against 5.5 s. BC7F is not bit-identical to bc7enc, so the files differ.
 
