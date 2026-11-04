@@ -42,6 +42,8 @@ Mip filter: done, not used yet. `yeschef/src/mip.rs` ports the Mitchell halving 
 
 Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest bin of any shape). Every sprite and gutter texel matches `assetconv`'s; the bin shape and sprite positions differ, because the engine reads the positions from the table. The game's 14 sprites pack into a 66x924 strip, the least area possible, where `assetconv` made 264x264.
 
+Textures: done. `yeschef/src/texture.rs` compresses an image to BC7 (the `ctt-bc7f` crate, preset `DefaultPartiallyAnalytical`) or BC5 for normal maps (a port of the BC4 code), with a full mip chain through `mip.rs`, and bakes the manifest's `textures`. The glTF converter will use the normal and linear kinds. Against `assetconv`'s bc7enc, on the six largest Sponza and helmet textures: 39.88 dB against 39.35 dB mean PSNR, and 1.2 s against 5.5 s. BC7F is not bit-identical to bc7enc, so the files differ.
+
 Not done: the other converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
 
 Exit codes: 0 success, 1 failure, 2 usage or manifest error.
@@ -56,3 +58,4 @@ yeschef links Slang through the `shader-slang` crate, so a build needs the Slang
 - Put the Slang `bin` folder (Windows) or `lib` folder (Linux) on `PATH` or `LD_LIBRARY_PATH` to run it.
 - Use the Slang version in `vcpkg.json`. A different version prints the same GLSL with different float digits and `#line` numbers.
 - Set `LIBCLANG_PATH` if bindgen cannot find libclang.
+- Building also needs a C++ compiler, for the BC7F encoder (`ctt-bc7f`). With clang on Windows, run cargo from `tools/yeschef` so `.cargo/config.toml` applies: it asks for the dynamic C runtime, which Rust's MSVC target links.

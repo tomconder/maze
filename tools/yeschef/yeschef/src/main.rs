@@ -15,6 +15,9 @@ mod mip;
 mod notices;
 mod pack;
 mod shaders;
+// The glTF converter will use the normal and linear kinds.
+#[allow(dead_code)]
+mod texture;
 
 use anyhow::Result;
 use bake::{Baker, Job, collect_files};
@@ -171,7 +174,7 @@ fn bake_all(
     for texture in &manifest.textures {
         let from = baker.source(&texture.source);
         jobs.push(Job::new(&texture.output, vec![from.clone()], move |to| {
-            convert::texture(&from, to)
+            texture::convert(&from, to)
         }));
     }
 
