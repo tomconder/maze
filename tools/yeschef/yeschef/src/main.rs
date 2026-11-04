@@ -29,10 +29,6 @@ use std::process::ExitCode;
 #[derive(Parser)]
 #[command(version, group(ArgGroup::new("mode").required(true).args(["manifest", "verify"])))]
 struct Cli {
-    /// Threads for conversion. The default is one per hardware thread.
-    #[arg(long, value_name = "N", value_parser = clap::value_parser!(u32).range(1..))]
-    threads: Option<u32>,
-
     /// Bake every asset the manifest lists. An output is skipped when it is
     /// newer than its sources, the manifest and this program. Files in the
     /// output directory that the manifest does not list are deleted.
@@ -78,16 +74,6 @@ enum Failure {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    // One pool for the whole run. Without --threads rayon uses one thread per
-    // hardware thread.
-    if let Some(threads) = cli.threads
-        && let Err(error) = rayon::ThreadPoolBuilder::new()
-            .num_threads(threads as usize)
-            .build_global()
-    {
-        eprintln!("yeschef: {error}");
-        return ExitCode::FAILURE;
-    }
     let outcome = match (&cli.manifest, &cli.verify) {
         (Some(paths), _) => bake_manifest(&cli, &paths[0], &paths[1]),
         (_, Some(paths)) => model::verify(&paths[0], &paths[1]).map_err(Failure::Bake),

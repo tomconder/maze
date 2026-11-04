@@ -86,8 +86,6 @@ fn a_bad_manifest_exits_2() {
 #[test]
 fn usage_errors_exit_2() {
     assert_eq!(yeschef(&[]).status.code(), Some(2));
-    let run = yeschef(&["--threads", "0", "--manifest", "m", "o"]);
-    assert_eq!(run.status.code(), Some(2));
 }
 
 #[test]
@@ -106,13 +104,11 @@ fn errors_come_in_manifest_order_for_any_thread_count() {
     let out = dir.path().join("out");
 
     let stderr = |threads: &str| {
-        let run = yeschef(&[
-            "--threads",
-            threads,
-            "--manifest",
-            path(&manifest),
-            path(&out),
-        ]);
+        let run = Command::new(env!("CARGO_BIN_EXE_yeschef"))
+            .env("RAYON_NUM_THREADS", threads)
+            .args(["--manifest", path(&manifest), path(&out)])
+            .output()
+            .unwrap();
         assert_eq!(run.status.code(), Some(1));
         String::from_utf8(run.stderr).unwrap()
     };

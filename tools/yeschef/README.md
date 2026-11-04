@@ -20,7 +20,7 @@ The font tables (`format/src/font.rs`, stored under the `spongeFont` key of the 
 
 ## yeschef
 
-yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...`, `--threads <n>` and `--verify <source> <baked>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify <source> <baked>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
 
 Converters, in `yeschef/src`:
 
