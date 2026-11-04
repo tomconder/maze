@@ -40,7 +40,7 @@ Image decode: done, not used yet. `yeschef/src/image.rs` decodes PNG (`png` crat
 
 Mip filter: done, not used yet. `yeschef/src/mip.rs` ports the Mitchell halving filter and the alpha coverage helpers, with bands on the rayon pool. Its output is byte-identical to `assetconv`'s `halveMip` on 9 inputs in both color spaces (real textures up to 2048x2048 and odd-sized images with alpha).
 
-Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest square bin). On the game's 14 sprites the atlas is byte-identical to `assetconv`'s (264x264). Other sprite sets may pack differently, because the engine reads the positions from the table.
+Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest bin of any shape). Every sprite and gutter texel matches `assetconv`'s; the bin shape and sprite positions differ, because the engine reads the positions from the table. The game's 14 sprites pack into a 66x924 strip, the least area possible, where `assetconv` made 264x264.
 
 Not done: the other converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
 
