@@ -7,6 +7,9 @@ mod convert;
 mod darken;
 mod font;
 mod hdr;
+// The model converter will use the importer.
+#[allow(dead_code)]
+mod import;
 // The image decoder and the mip filter are used by the texture and glTF
 // converters, which come next.
 #[allow(dead_code)]
@@ -168,7 +171,10 @@ fn bake_all(
             continue;
         }
         let from = baker.source(&model.source);
-        jobs.push(Job::new(&model.output, vec![from.clone()], move |to| {
+        // External buffers and images are inputs too.
+        let mut inputs = vec![from.clone()];
+        inputs.extend(import::dependencies(&from));
+        jobs.push(Job::new(&model.output, inputs, move |to| {
             convert::model(&from, to)
         }));
     }
