@@ -18,9 +18,8 @@ const CHANNELS: usize = 4;
 /// instead of the neighbouring sprite.
 const GUTTER: u32 = 1;
 
-/// The atlas is as small as the packer can make it, up to this side. If the
-/// sprites do not fit, the atlas is being asked to hold something that should
-/// be its own texture.
+/// The atlas is as small as the packer can make it, up to this side. A set of
+/// sprites that does not fit belongs in its own texture, not in an atlas.
 const MAX_SIDE: u32 = 2048;
 
 /// Copies a sprite in at `(x, y)` and extends its edge pixels into the gutter.
@@ -40,8 +39,8 @@ fn blit(atlas: &mut [u8], atlas_width: u32, source: &Rgba, x: u32, y: u32) {
     }
 }
 
-/// `name x y w h` per line. Text because it is inspectable in a hex dump of
-/// the container, and the table is fourteen lines long.
+/// `name x y w h` per line. The table is text so it can be read in a hex dump
+/// of the container, and it is short.
 fn rect_table(names: &[&str], sizes: &[(u32, u32)], places: &[pack::Placement]) -> Vec<u8> {
     let mut table = String::new();
     for ((name, &(w, h)), place) in names.iter().zip(sizes).zip(places) {
@@ -80,8 +79,8 @@ pub fn pack_atlas(sprites: &[(&str, Rgba)]) -> Result<(Vec<u8>, u32, u32)> {
         .iter()
         .map(|(_, image)| (image.width, image.height))
         .collect();
-    // One level, and UNORM rather than sRGB: this is what the engine uploaded
-    // for these images before they were baked. Mips would bleed between
+    // One level, and UNORM rather than sRGB, which is what the engine uploaded
+    // for these images before they were baked. Mips would mix neighbouring
     // sprites anyway, and UI is drawn at native size.
     let key_values = [(
         "spongeAtlas".to_string(),
@@ -161,7 +160,7 @@ mod tests {
 
     #[test]
     fn the_gutter_copies_the_edge_texels() {
-        // A 2x1 sprite, red then blue: the gutter left of it is red and the
+        // A 2x1 sprite, red then blue. The gutter left of it is red and the
         // gutter right of it is blue.
         let mut image = sprite(2, 1, [255, 0, 0, 255]);
         image.pixels[4..].copy_from_slice(&[0, 0, 255, 255]);

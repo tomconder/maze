@@ -1,4 +1,4 @@
-//! Rectangle packing for the sprite atlas and, later, the font atlas.
+//! Rectangle packing for the sprite atlas and the font atlas.
 
 use rectangle_pack::{
     GroupedRectsToPlace, RectToInsert, TargetBin, contains_smallest_box, pack_rects,
@@ -16,12 +16,13 @@ pub struct Placement {
 /// Packs the `(width, height)` rectangles into the smallest square bin that
 /// fits them, of at most `max_side`. Returns the bounding size of what was
 /// placed and a placement for each input rectangle. Returns `None` when they
-/// do not fit. Rectangles never rotate: sprites and glyphs are sampled axis
-/// aligned.
+/// do not fit. Rectangles never rotate, because sprites and glyphs are sampled
+/// axis aligned.
 ///
 /// The bin side is found by bisection, which assumes that a bin that fits
 /// the rectangles stays big enough as it grows. The packer is greedy, so that
-/// can fail in theory; the result is then a little bigger than the best one.
+/// can fail in theory, and the result is then a little bigger than the best
+/// one.
 pub fn pack(sizes: &[(u32, u32)], max_side: u32) -> Option<((u32, u32), Vec<Placement>)> {
     if sizes.is_empty() {
         return Some(((0, 0), Vec::new()));

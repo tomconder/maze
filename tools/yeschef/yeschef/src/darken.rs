@@ -4,7 +4,7 @@
 //!
 //! The curve and the embolden follow FreeType's autofitter. Its output on
 //! Inter at 12 to 27 px grows stems by about half of what that code computes,
-//! in proportion to the size, and nothing explains it. `FIT` scales the
+//! in proportion to the size, and the cause is unknown. `FIT` scales the
 //! computed amount to the measured growth. Remove it if a FreeType source
 //! check ever finds the cause.
 use zeno::{Command, Point};
@@ -88,8 +88,8 @@ fn norm_len(v: &mut (i64, i64)) -> i64 {
     len.round() as i64
 }
 
-/// Moves the points of one contour (26.6) outward in x, the way FreeType's
-/// outline embolden does with a zero y strength.
+/// Moves the points of one contour (26.6) outward in x, as FreeType's outline
+/// embolden does with a zero y strength.
 fn embolden_contour(pts: &mut [(i64, i64)], xs: i64, truetype: bool) {
     let (first, last) = (0usize, pts.len() - 1);
     let next = |j: usize| if j < last { j + 1 } else { first };

@@ -1,7 +1,7 @@
 //! Radiance `.hdr` (RGBE) environment images, baked to half float KTX2.
 //!
-//! Not block compressed: a block codec cannot hold HDR radiance, and a probe
-//! reads one level only.
+//! The image is not block compressed, because a block codec cannot hold HDR
+//! radiance and a probe reads one level only.
 
 use anyhow::{Context, Result, bail};
 use std::path::Path;
@@ -81,7 +81,7 @@ pub fn bake(bytes: &[u8]) -> Result<(Vec<u8>, u32, u32)> {
     if !read_line(bytes, &mut cursor).is_some_and(|line| line.starts_with(b"#?")) {
         bail!("not a Radiance image");
     }
-    // The header ends at a blank line; the resolution follows.
+    // The header ends at a blank line, and the resolution follows.
     let mut rgbe = false;
     while let Some(line) = read_line(bytes, &mut cursor) {
         if line.is_empty() {

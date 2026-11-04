@@ -1,7 +1,7 @@
 //! Mip level filtering for RGBA8 textures.
 
 // The chunk sizes are constants, but several are generic over the float count,
-// where `as_chunks` does not apply; one style reads better than two.
+// where `as_chunks` does not apply, so one style reads better than two.
 #![allow(clippy::chunks_exact_to_as_chunks)]
 
 use rayon::prelude::*;
@@ -9,11 +9,11 @@ use std::sync::LazyLock;
 
 const CHANNELS: usize = 4;
 
-/// Floats per texel while filtering. Opaque or linear data needs R G B A.
-/// Colour with transparent texels also carries the plain R G B beside the
-/// alpha weighted one, as R G B A Rw Gw Bw Aw: where the weighted alpha is 0
-/// only the plain colour says anything, and the engine draws albedo without
-/// alpha, so dropping it turns foliage cards black.
+/// Floats per texel while filtering. Opaque or linear data needs R, G, B and
+/// A. Colour with transparent texels also carries the plain R, G and B beside
+/// the alpha weighted ones, as R G B A Rw Gw Bw Aw. Where the weighted alpha
+/// is 0 only the plain colour has a value, and the engine draws albedo without
+/// alpha, so dropping it would turn foliage cards black.
 const SINGLE: usize = CHANNELS;
 const DOUBLE: usize = CHANNELS * 2;
 
@@ -21,10 +21,10 @@ const DOUBLE: usize = CHANNELS * 2;
 /// used instead.
 const MIN_ALPHA: f32 = 1.0e-6;
 
-/// Linear light to an sRGB byte is looked up by `linear * SRGB_STEPS`. A
-/// table, because `powf` per texel costs more than the whole filter. The steps
-/// are fine enough that a lookup is within one level of the exact curve, even
-/// in the darks where the curve is steep.
+/// A table converts linear light to an sRGB byte, looked up by
+/// `linear * SRGB_STEPS`, because `powf` per texel costs more than the whole
+/// filter. The steps are fine enough that a lookup is within one level of the
+/// exact curve, even in the darks where the curve is steep.
 const SRGB_STEPS: usize = 16384;
 
 /// How the channels of a mip level are averaged.
@@ -33,7 +33,7 @@ pub enum MipSpace {
     /// sRGB colour: filtered in linear light and weighted by alpha, so
     /// transparent texels add no colour. Alpha is filtered as it is.
     Srgb,
-    /// Every channel is data, alpha included: no decode, no weighting.
+    /// Every channel is data, alpha included, with no decode and no weighting.
     Linear,
 }
 
@@ -79,7 +79,7 @@ fn make_taps(src_size: u32, dst_size: u32) -> Vec<Taps> {
             let first = lo.clamp(0, last);
             let mut weights = vec![0.0f32; (hi.clamp(0, last) - first + 1) as usize];
 
-            // Taps past the border fold into the edge texel.
+            // Taps past the border use the edge texel.
             let mut sum = 0.0f32;
             for k in lo..=hi {
                 let weight = mitchell((k as f32 + 0.5 - centre) / scale);
@@ -201,7 +201,7 @@ fn has_transparency(pixels: &[u8]) -> bool {
 }
 
 /// Output rows `y_begin..y_end` of a halved image. Source rows are filtered
-/// across once, in order, and kept in a ring just big enough for the widest
+/// across once, in order, and kept in a circular buffer just big enough for the widest
 /// vertical window. Whole image intermediates would cost hundreds of MB on a
 /// 4K texture.
 fn halve_band<const F: usize>(
@@ -259,7 +259,7 @@ fn halve<const F: usize>(pixels: &[u8], width: u32, height: u32, space: MipSpace
 
     // Output rows are independent, so each band is filtered on its own
     // thread. A band starts by filtering the few source rows its first window
-    // needs, which its neighbour also filters; the bytes are the same as one
+    // needs, which its neighbour also filters, so the bytes are the same as one
     // pass over the whole image.
     (0..bands)
         .into_par_iter()

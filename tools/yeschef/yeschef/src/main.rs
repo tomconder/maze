@@ -126,8 +126,8 @@ fn bake_manifest(cli: &Cli, manifest_path: &Path, output_dir: &Path) -> Result<(
         );
     }
 
-    // Asset licenses come from the manifest, code licenses from the command
-    // line: only the build knows what the game links.
+    // Asset licenses come from the manifest and code licenses from the command
+    // line, because only the build knows what the game links.
     if let Some(notices) = &cli.notices {
         let mut licenses = Licenses::new();
         for (name, path) in &cli.licenses {

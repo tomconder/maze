@@ -1,5 +1,5 @@
 //! glTF and GLB import. It reads a model into float vertices, materials and
-//! decoded images. Tangents, packing and the cluster LOD come later.
+//! decoded images. Tangents, packing and the cluster LOD are in `model.rs`.
 //!
 //! The rules follow `assetconv`:
 //! - Every node that has a mesh bakes its world transform into the vertices.
@@ -780,7 +780,7 @@ mod tests {
         assert!(mesh.vertices.iter().all(|v| v.normal == [0.0, 0.0, 1.0]));
         assert_eq!(mesh.indices, [0, 1, 2]);
         assert!(mesh.needs_tangents);
-        // No material: the mesh defaults.
+        // No material, so the mesh defaults apply.
         assert_eq!(mesh.roughness_factor, 0.5);
     }
 
@@ -845,7 +845,7 @@ mod tests {
         let path = write(dir.path(), "a.gltf", json.as_bytes());
         let model = load(&path).unwrap();
 
-        // tex.png is listed twice and decodes once; bad.png is gone.
+        // tex.png is listed twice and decodes once. bad.png is gone.
         assert_eq!(model.images.len(), 1);
         assert_eq!(
             (model.images[0].rgba.width, model.images[0].rgba.height),

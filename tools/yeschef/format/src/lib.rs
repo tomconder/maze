@@ -26,14 +26,14 @@ pub const TEXTURE_SLOTS: usize = 6;
 /// Model container version.
 pub const ASSET_VERSION: u32 = 9;
 
-/// Model container magic: the bytes `SPNGA\0\0\0`, read as a little endian
+/// Model container magic, the bytes `SPNGA\0\0\0` read as a little endian
 /// integer.
 pub const ASSET_MAGIC: u64 = 0x0000_0041_474E_5053;
 
 /// Shader pack version.
 pub const SHADERPACK_VERSION: u32 = 1;
 
-/// Shader pack magic: the bytes `SPNGSH\0\0`, read as a little endian
+/// Shader pack magic, the bytes `SPNGSH\0\0` read as a little endian
 /// integer.
 pub const SHADERPACK_MAGIC: u64 = 0x0000_4853_474E_5053;
 

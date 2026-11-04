@@ -57,8 +57,6 @@ fn text_of(codepoints: &[u32]) -> String {
         .collect()
 }
 
-// ---------------------------------------------------------------- shaping
-
 /// A glyph from the shaper: advance and offsets are 26.6 pixels.
 struct Shaped {
     glyph: u32,
@@ -73,9 +71,9 @@ fn shaper(font: &harfrust::Font, pixels: u32) -> ShaperFont<'_, '_> {
     ShaperFont::new(font).with_scale(i32::try_from(pixels * 64).expect("size fits"))
 }
 
-/// Ligatures and contextual alternates are off: shaping must never ask for a
-/// glyph the atlas does not hold (Inter's `calt` swaps multiply for
-/// multiply.case). `tnum` only on request.
+/// Ligatures and contextual alternates are off, because shaping must never
+/// ask for a glyph the atlas does not hold (Inter's `calt` swaps multiply for
+/// multiply.case). `tnum` is on only on request.
 fn shape(shaper: &ShaperFont, text: &str, tabular: bool) -> Result<Vec<Shaped>> {
     let features = [
         Feature::new(Tag::new(b"liga"), 0, ..),
@@ -145,8 +143,6 @@ impl Slots {
         if tabular { &self.tabular } else { &self.plain }
     }
 }
-
-// ----------------------------------------------------------------- tables
 
 /// What the engine does at run time: a slot per codepoint, an advance per
 /// slot, kerning from the pair before. Advances are in pixels.
@@ -231,7 +227,7 @@ fn size_tables(
 struct Random(u64);
 
 impl Random {
-    /// A fixed sequence: the bake must be reproducible.
+    /// A fixed sequence, so the bake is reproducible.
     fn below(&mut self, bound: usize) -> usize {
         self.0 = self
             .0
@@ -279,8 +275,8 @@ fn check_against_shaper(
     Ok(())
 }
 
-/// The line height and ascender FreeType reports for a pixel size: the ascent
-/// rounded up, the line height rounded to a whole pixel.
+/// The line height and ascender FreeType reports for a pixel size. It rounds
+/// the ascent up and the line height to a whole pixel.
 fn line_metrics(font: &FontRef, pixels: u32) -> Result<(f32, f32)> {
     let hhea = font.hhea().context("font has no hhea table")?;
     let upem = i64::from(
@@ -297,8 +293,6 @@ fn line_metrics(font: &FontRef, pixels: u32) -> Result<(f32, f32)> {
     let height = (mul_fix(ascent - descent + gap, scale) + 32) & !63;
     Ok(((height >> 6) as f32, (ascender >> 6) as f32))
 }
-
-// ---------------------------------------------------------------- drawing
 
 struct Pen(Vec<Command>);
 
@@ -453,8 +447,6 @@ fn draw_size(
     Ok(drawn)
 }
 
-// ------------------------------------------------------------------ atlas
-
 /// Packs every drawn bitmap into one atlas, each with a zero texel border on
 /// its right and bottom. Returns the atlas and the glyph table by
 /// `(size index, glyph, phase)`.
@@ -510,11 +502,10 @@ fn build_atlas(
     Ok(((width, height), pixels, placed))
 }
 
-// ---------------------------------------------------------------- convert
-
 /// The width of the vertical stems of "o" in font units, which sets how much
-/// the font darkens. FreeType finds this by analysing the same glyph's edges;
-/// the stroke thickness at mid height is the same measure to a few units.
+/// the font darkens. FreeType finds this by analysing the same glyph's edges,
+/// and the stroke thickness at mid height gives the same value to within a few
+/// units.
 fn standard_width(font: &FontRef) -> i64 {
     let Some(glyph) = font.charmap().map('o') else {
         return 0;
@@ -722,7 +713,7 @@ mod tests {
             sizes: Vec::new(),
         };
         let shaped = table_shape(&tables, &size, &[65, 66, 67], false);
-        // A kerns with B; C is unknown and takes slot 0.
+        // A kerns with B, and C is unknown and takes slot 0.
         assert_eq!(shaped, vec![(1, 9.0), (2, 5.0), (0, 10.0)]);
     }
 

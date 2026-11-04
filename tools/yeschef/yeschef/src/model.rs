@@ -26,7 +26,7 @@ use yeschef_format::ktx2;
 use yeschef_format::model::{self as container, Mesh as FileMesh};
 use yeschef_format::{ClusterBounds, MeshCluster, MeshEntry, PackedVertex};
 
-/// Triangles per cluster: the `clusterlod` default for rasterization.
+/// Triangles per cluster, the `clusterlod` default for rasterization.
 const CLUSTER_TRIANGLES: usize = 128;
 
 /// The normals steer the simplifier, with the weight the meshoptimizer docs
@@ -35,7 +35,8 @@ const NORMAL_WEIGHTS: [f32; 3] = [0.5; 3];
 
 /// `clusterlod` simplifies in permissive mode, which may collapse across a
 /// seam unless the attribute that splits it is protected. Protect all five
-/// floats (normal and UV): UV seams and hard normal edges stay where they are.
+/// floats (normal and UV), so UV seams and hard normal edges stay where they
+/// are.
 const PROTECTED_ATTRIBUTES: u32 = 0b11111;
 
 /// Overdraw may cost this much vertex cache efficiency.
@@ -92,7 +93,7 @@ fn optimize(vertices: &mut Vec<Vertex>, indices: &mut Vec<u32>) {
 }
 
 /// Orders the vertices by first use. The count it keeps can be lower than the
-/// remapped count; the tail is unused and must not ship.
+/// remapped count, and the tail is unused and must not ship.
 fn fetch_order(vertices: &mut Vec<Vertex>, indices: &mut [u32]) {
     let used = optimize_vertex_fetch_in_place(indices, vertices);
     vertices.truncate(used);
@@ -106,7 +107,8 @@ fn to_bounds(bounds: ClodBounds) -> ClusterBounds {
     }
 }
 
-/// Locks every vertex on an open edge: an edge that only one triangle uses.
+/// Locks every vertex on an open edge, which is an edge that only one triangle
+/// uses.
 /// Edges are counted by position, so a UV seam is not an open edge.
 /// `clusterlod` locks the borders between its own groups, but not the border
 /// of the mesh, and Sponza's meshes meet along those borders. A border vertex

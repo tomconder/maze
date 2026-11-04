@@ -21,8 +21,8 @@ const CHANNELS: usize = 4;
 /// in 2.0 s. Take the non-analytical preset if bake time stops mattering.
 const BC7_FLAGS: u32 = cPackBC7FlagDefaultPartiallyAnalytical;
 
-/// What a texture is for. Decides the block format and whether the mip chain
-/// is filtered in sRGB or linear space.
+/// What a texture is for. The kind decides the block format and whether the
+/// mip chain is filtered in sRGB or linear space.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum TextureKind {
     /// Albedo and emissive: three or four channels through BC7.
@@ -44,9 +44,9 @@ struct Surface {
     pixels: Vec<u8>,
 }
 
-/// Copies one 4x4 block out of a surface. Blocks that hang off the right or
+/// Copies one 4x4 block out of a surface. Blocks that extend past the right or
 /// bottom edge repeat the last row and column rather than reading past the
-/// buffer; the decoder never samples those texels.
+/// buffer, and the decoder never samples those texels.
 fn read_block(surface: &Surface, block_x: u32, block_y: u32) -> Block {
     let mut block = [0u8; TEXELS_IN_BLOCK * CHANNELS];
     for y in 0..BLOCK {
@@ -135,8 +135,8 @@ fn compress(surface: &Surface, kind: TextureKind) -> Vec<u8> {
     out
 }
 
-/// Half size resample. Colour is filtered as sRGB; everything else is data and
-/// must be filtered as it is, or the mips shift in brightness.
+/// Half size resample. Colour is filtered as sRGB, and everything else is data
+/// that must be filtered as it is, or the mips shift in brightness.
 fn halve(surface: &Surface, kind: TextureKind) -> Surface {
     let space = if kind == TextureKind::Color {
         MipSpace::Srgb
@@ -151,9 +151,9 @@ fn halve(surface: &Surface, kind: TextureKind) -> Surface {
 }
 
 fn format_for(kind: TextureKind) -> Format {
-    // BC7 UNORM, not SRGB: this matches the GL_RGBA8 the engine uploaded
-    // before baking existed, so compression is the only change. Switching
-    // albedo to sRGB is a separate, visible change.
+    // BC7 UNORM, not SRGB, to match the GL_RGBA8 the engine uploaded before
+    // baking existed, so compression is the only change. Switching albedo to
+    // sRGB is a separate, visible change.
     if kind == TextureKind::Normal {
         Format::Bc5Unorm
     } else {
@@ -214,9 +214,9 @@ pub fn encode(image: &Rgba, kind: TextureKind, alpha_cutoff: f32) -> Result<Vec<
     ))
 }
 
-/// One image, BC7 with a full mip chain. For UI art that is too big to share
-/// a sprite sheet: a single large image forces the whole sheet up to the next
-/// size.
+/// One image, BC7 with a full mip chain, for UI art that is too big to share
+/// a sprite sheet, because a single large image forces the whole sheet up to
+/// the next size.
 pub fn convert(from: &Path, to: &Path) -> Result<()> {
     let bytes =
         std::fs::read(from).with_context(|| format!("unable to read {}", from.display()))?;
@@ -253,7 +253,7 @@ mod tests {
         let file = encode(&solid(9, 5, [10, 20, 30, 255]), TextureKind::Color, 0.0).unwrap();
         let image = ktx2::read(&file).unwrap();
         assert_eq!(image.vk_format, 145);
-        // 9x5, 4x2, 2x1, 1x1: each level at least one block.
+        // 9x5, 4x2, 2x1, 1x1. Each level is at least one block.
         let sizes: Vec<usize> = image.levels.iter().map(|l| l.len()).collect();
         assert_eq!(sizes, [3 * 2 * 16, 16, 16, 16]);
     }
