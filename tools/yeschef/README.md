@@ -16,12 +16,6 @@ To change the layout:
 
 `cargo test` fails when the checked-in header differs from what cbindgen makes.
 
-To check the structs against real baked files, bake the assets, then run this command. Without the variable, that test passes without checking anything.
-
-```
-YESCHEF_BAKED_DIR=<bake output dir> cargo test
-```
-
 The font tables (`format/src/font.rs`, stored under the `spongeFont` key of the font KTX2 file) are in the header too. The KTX2 container is a standard format. `format/src/ktx2.rs` writes and reads it, and it is not in the header.
 
 ## yeschef

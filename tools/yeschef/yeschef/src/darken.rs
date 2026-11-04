@@ -222,15 +222,20 @@ pub fn embolden_x(cmds: &[Command], strength: i64) -> Vec<Command> {
 /// standard width. Measured as the stroke thickness at mid height.
 pub fn standard_width(outline: &[Command]) -> i64 {
     let mut ys = (f32::MAX, f32::MIN);
+    let mut extend = |p: Point| ys = (ys.0.min(p.y), ys.1.max(p.y));
     for c in outline {
-        let ps: Vec<Point> = match *c {
-            Command::MoveTo(p) | Command::LineTo(p) => vec![p],
-            Command::QuadTo(a, b) => vec![a, b],
-            Command::CurveTo(a, b, c) => vec![a, b, c],
-            Command::Close => vec![],
-        };
-        for p in ps {
-            ys = (ys.0.min(p.y), ys.1.max(p.y));
+        match *c {
+            Command::MoveTo(p) | Command::LineTo(p) => extend(p),
+            Command::QuadTo(a, b) => {
+                extend(a);
+                extend(b);
+            }
+            Command::CurveTo(a, b, c) => {
+                extend(a);
+                extend(b);
+                extend(c);
+            }
+            Command::Close => {}
         }
     }
     let mid = (ys.0 + ys.1) / 2.0;

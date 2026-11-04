@@ -25,11 +25,13 @@ add_custom_target(yeschef ALL
 # of the Slang library. Windows finds the DLLs beside the exe, and the other
 # platforms through the library path.
 if (WIN32)
-    file(GLOB SLANG_DLLS "${SLANG_PREFIX}/bin/slang*.dll")
     add_custom_command(TARGET yeschef POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SLANG_DLLS}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${SLANG_PREFIX}/bin/slang.dll"
+            "${SLANG_PREFIX}/bin/slang-compiler.dll"
+            "${SLANG_PREFIX}/bin/slang-glsl-module.dll"
+            "${SLANG_PREFIX}/bin/slang-glslang.dll"
             "${YESCHEF_TARGET_DIR}/release"
-            COMMAND_EXPAND_LISTS
             VERBATIM)
     set(YESCHEF_COMMAND "${YESCHEF_EXE}" PARENT_SCOPE)
 else ()
