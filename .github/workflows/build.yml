@@ -84,7 +84,7 @@ jobs:
     yeschef:
         needs: changed
         if: needs.changed.outputs.should_skip != 'true'
-        name: yeschef (${{matrix.os}})
+        name: yeschef checks (${{matrix.os}})
         runs-on: ${{matrix.os}}
 
         timeout-minutes: 30
