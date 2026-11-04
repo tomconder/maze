@@ -24,7 +24,7 @@ YESCHEF_BAKED_DIR=<bake output dir> cargo test
 
 Without the variable, that test passes without checking anything.
 
-Not covered yet: the font tables (`Glyph` in `font.hpp`) and the KTX2 files.
+Not covered yet: the font tables (`Glyph` in `font.hpp`) and the KTX2 files. `yeschef/src/font.rs` writes the font tables by hand to match `font.cpp`, and the glyph atlas is a plain KTX2 file.
 
 ## yeschef
 
@@ -43,6 +43,8 @@ Mip filter: done, not used yet. `yeschef/src/mip.rs` ports the Mitchell halving 
 Sprite atlas: done. `yeschef/src/atlas.rs` blits the sprites with a one texel edge gutter and writes the rect table, using `pack.rs` (the `rectangle-pack` crate plus a search for the smallest square bin). On the game's 14 sprites the atlas is byte-identical to `assetconv`'s (264x264). Other sprite sets may pack differently, because the engine reads the positions from the table.
 
 Textures: done. `yeschef/src/texture.rs` compresses an image to BC7 (the `ctt-bc7f` crate, preset `DefaultPartiallyAnalytical`) or BC5 for normal maps (a port of the BC4 code), with a full mip chain through `mip.rs`, and bakes the manifest's `textures`. The glTF converter will use the normal and linear kinds. Against `assetconv`'s bc7enc, on the six largest Sponza and helmet textures: 39.88 dB against 39.35 dB mean PSNR, and 1.2 s against 5.5 s. BC7F is not bit-identical to bc7enc, so the files differ.
+
+Fonts: done. `yeschef/src/font.rs` shapes with `harfrust` (a HarfBuzz port) and draws with `skrifa`'s light autohinter and `zeno` coverage, three times as wide and filtered into LCD subpixels, four phases per glyph. It checks 256 random strings per size against the shaper, as `assetconv` does. `darken.rs` adds the stem darkening FreeType applies at small sizes. Against `assetconv` on Inter at the 11 game sizes: the slot tables, all 1064 kerning pairs per size, every advance, line height and ascender are identical. Glyph bitmaps differ a little: 86% have the same size and bearings, the rest are within one pixel, and coverage is within 3% at 12 to 27 px and the same above that. The darkening amount is a measured fit, not FreeType's own number (see `darken.rs`). The atlas is 1443x1443 against 1398x1401, because `pack.rs` uses a square bin. The bake takes 2.2 s. Menu screenshots (display, keyboard, audio at 1600x900) differ from `assetconv`'s by 0.02 to 0.06 of 255 on average.
 
 Not done: the other converters in `yeschef/src/convert.rs`. Each one fails with "not implemented yet" and leaves the existing output alone, and the orphan sweep runs only after every bake succeeds. Pointing yeschef at an `assetconv` output directory therefore deletes nothing. A manifest with only `licenses` works fully.
 

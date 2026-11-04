@@ -4,6 +4,8 @@
 mod atlas;
 mod bake;
 mod convert;
+mod darken;
+mod font;
 mod hdr;
 // The image decoder and the mip filter are used by the texture and glTF
 // converters, which come next.
@@ -190,7 +192,7 @@ fn bake_all(
     for font in &manifest.fonts {
         let from = baker.source(&font.source);
         jobs.push(Job::new(&font.output, vec![from.clone()], move |to| {
-            convert::font(&from, to, &font.sizes)
+            font::convert(&from, to, &font.sizes)
         }));
     }
 
