@@ -138,10 +138,6 @@ bool ButtonMenuLayer::onUpdate(const double elapsedTime) {
         buttons[i]->onUpdate(elapsedTime);
     }
 
-    // the prompts change size with the device
-    if (layout->keyHintsStale()) {
-        recalculateLayout();
-    }
     ui::renderKeyHints(menuStyle.keyHints, font, camera->getProjection(), width,
                        layout->keyHintRects());
 
@@ -166,10 +162,9 @@ void ButtonMenuLayer::clearHoveredItems() const {
 
 void ButtonMenuLayer::recalculateLayout() {
     const auto width   = static_cast<float>(camera->getWidth());
-    const auto gamepad = ui::usingGamepad();
     const auto measure = ui::fontMeasure(font);
     layout->setKeyHintSizes(
-        ui::keyHintSizes(menuStyle.keyHints, width, gamepad, measure), gamepad);
+        ui::keyHintSizes(menuStyle.keyHints, width, measure));
     ui::layoutMenuButtons(
         *layout, { measure, ui::menuFontSizeForWidth(camera->getWidth()) },
         menuStyle.labels);

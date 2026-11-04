@@ -275,8 +275,8 @@ fn check_against_shaper(
     Ok(())
 }
 
-/// The line height and ascender FreeType reports for a pixel size. It rounds
-/// the ascent up and the line height to a whole pixel.
+/// The line height and ascender FreeType reports for a pixel size. The ascent
+/// rounds up and the line height rounds to the nearest whole pixel.
 fn line_metrics(font: &FontRef, pixels: u32) -> Result<(f32, f32)> {
     let hhea = font.hhea().context("font has no hhea table")?;
     let upem = i64::from(
@@ -503,7 +503,7 @@ fn build_atlas(
 }
 
 /// The width of the vertical stems of "o" in font units, which sets how much
-/// the font darkens. FreeType finds this by analysing the same glyph's edges,
+/// the font darkens. FreeType finds this by analyzing the same glyph's edges,
 /// and the stroke thickness at mid height gives the same value to within a few
 /// units.
 fn standard_width(font: &FontRef) -> i64 {

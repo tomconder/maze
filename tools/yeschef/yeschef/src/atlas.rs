@@ -1,7 +1,8 @@
 //! Packs several small images into one KTX2 sprite sheet. The rect table goes
 //! in the container's key/value data, so an atlas is still one file.
 //!
-//! Only for UI art: clamp to edge, no tiling, drawn at or near native size.
+//! Only for UI art: clamp to edge, no tiling. The atlas carries a short mip
+//! chain, so a sprite drawn well below native size does not alias.
 //! Model textures cannot be atlased, because they repeat.
 
 use anyhow::{Context, Result, bail};
@@ -9,31 +10,40 @@ use std::path::{Path, PathBuf};
 use yeschef_format::ktx2::{self, Format};
 
 use crate::image::{self, Rgba};
+use crate::mip::{self, MipSpace};
 use crate::pack;
 
 const CHANNELS: usize = 4;
 
-/// Each sprite is surrounded by a one texel border holding a copy of its edge
-/// pixels. A linear sample at the very edge of a sprite then reads that copy
-/// instead of the neighbouring sprite.
-const GUTTER: u32 = 1;
+/// Mip levels written, the full size one included. Sprites drawn down to a
+/// quarter of their size stay clean.
+const LEVELS: u32 = 3;
+
+/// Cells sit on multiples of this, so every texel of the last mip level lies
+/// inside one cell and averages only that sprite and its own gutter.
+const ALIGN: u32 = 1 << (LEVELS - 1);
+
+/// Each sprite is surrounded by a border holding a copy of its edge pixels. A
+/// linear sample at the very edge of a sprite then reads that copy instead of
+/// the neighboring sprite. The mip filter reaches four texels, so the border
+/// is wide enough that no level reads past it.
+const GUTTER: u32 = 8;
 
 /// The atlas is as small as the packer can make it, up to this side. A set of
 /// sprites that does not fit belongs in its own texture, not in an atlas.
 const MAX_SIDE: u32 = 2048;
 
-/// Copies a sprite in at `(x, y)` and extends its edge pixels into the gutter.
-fn blit(atlas: &mut [u8], atlas_width: u32, source: &Rgba, x: u32, y: u32) {
-    let (width, height) = (source.width as i64, source.height as i64);
-    let gutter = i64::from(GUTTER);
-    for row in -gutter..height + gutter {
-        let source_row = row.clamp(0, height - 1) as usize;
-        for col in -gutter..width + gutter {
-            let source_col = col.clamp(0, width - 1) as usize;
-            let from = (source_row * source.width as usize + source_col) * CHANNELS;
-            let to = ((i64::from(y) + row) as usize * atlas_width as usize
-                + (i64::from(x) + col) as usize)
-                * CHANNELS;
+/// Copies a sprite into its `cell` (width, height) at `(x, y)`, where the
+/// sprite starts `GUTTER` texels in, and extends its edge pixels over the rest
+/// of the cell.
+fn blit(atlas: &mut [u8], atlas_width: u32, source: &Rgba, x: u32, y: u32, cell: (u32, u32)) {
+    let (width, height) = (source.width as usize, source.height as usize);
+    for row in 0..cell.1 as usize {
+        let source_row = row.saturating_sub(GUTTER as usize).min(height - 1);
+        for col in 0..cell.0 as usize {
+            let source_col = col.saturating_sub(GUTTER as usize).min(width - 1);
+            let from = (source_row * width + source_col) * CHANNELS;
+            let to = ((y as usize + row) * atlas_width as usize + x as usize + col) * CHANNELS;
             atlas[to..to + CHANNELS].copy_from_slice(&source.pixels[from..from + CHANNELS]);
         }
     }
@@ -44,7 +54,11 @@ fn blit(atlas: &mut [u8], atlas_width: u32, source: &Rgba, x: u32, y: u32) {
 fn rect_table(names: &[&str], sizes: &[(u32, u32)], places: &[pack::Placement]) -> Vec<u8> {
     let mut table = String::new();
     for ((name, &(w, h)), place) in names.iter().zip(sizes).zip(places) {
-        table += &format!("{name} {} {} {w} {h}\n", place.x + GUTTER, place.y + GUTTER);
+        table += &format!(
+            "{name} {} {} {w} {h}\n",
+            place.x * ALIGN + GUTTER,
+            place.y * ALIGN + GUTTER
+        );
     }
     table.into_bytes()
 }
@@ -52,26 +66,45 @@ fn rect_table(names: &[&str], sizes: &[(u32, u32)], places: &[pack::Placement]) 
 /// Packs the sprites, given as a name and a source image each, into a KTX2
 /// file.
 pub fn pack_atlas(sprites: &[(&str, Rgba)]) -> Result<(Vec<u8>, u32, u32)> {
-    let padded: Vec<(u32, u32)> = sprites
+    // Packed in units of ALIGN, so every cell lands on the grid.
+    let cells: Vec<(u32, u32)> = sprites
         .iter()
-        .map(|(_, image)| (image.width + GUTTER * 2, image.height + GUTTER * 2))
+        .map(|(_, image)| {
+            (
+                (image.width + GUTTER * 2).div_ceil(ALIGN),
+                (image.height + GUTTER * 2).div_ceil(ALIGN),
+            )
+        })
         .collect();
-    let Some(((width, height), places)) = pack::pack(&padded, MAX_SIDE) else {
+    let Some(((units_wide, units_high), places)) = pack::pack(&cells, MAX_SIDE / ALIGN) else {
         bail!(
             "{} sprites do not fit in a {MAX_SIDE}x{MAX_SIDE} atlas",
             sprites.len()
         );
     };
+    let (width, height) = (units_wide * ALIGN, units_high * ALIGN);
 
     let mut pixels = vec![0u8; width as usize * height as usize * CHANNELS];
-    for ((_, image), place) in sprites.iter().zip(&places) {
+    for (((_, image), place), cell) in sprites.iter().zip(&places).zip(&cells) {
         blit(
             &mut pixels,
             width,
             image,
-            place.x + GUTTER,
-            place.y + GUTTER,
+            place.x * ALIGN,
+            place.y * ALIGN,
+            (cell.0 * ALIGN, cell.1 * ALIGN),
         );
+    }
+
+    let mut levels = vec![pixels];
+    for level in 1..LEVELS {
+        let previous = &levels[level as usize - 1];
+        levels.push(mip::halve_mip(
+            previous,
+            width >> (level - 1),
+            height >> (level - 1),
+            MipSpace::Srgb,
+        ));
     }
 
     let names: Vec<&str> = sprites.iter().map(|(name, _)| *name).collect();
@@ -79,14 +112,13 @@ pub fn pack_atlas(sprites: &[(&str, Rgba)]) -> Result<(Vec<u8>, u32, u32)> {
         .iter()
         .map(|(_, image)| (image.width, image.height))
         .collect();
-    // One level, and UNORM rather than sRGB, which is what the engine uploaded
-    // for these images before they were baked. Mips would mix neighbouring
-    // sprites anyway, and UI is drawn at native size.
+    // UNORM rather than sRGB, which is what the engine uploaded for these
+    // images before they were baked.
     let key_values = [(
         "spongeAtlas".to_string(),
         rect_table(&names, &sizes, &places),
     )];
-    let file = ktx2::write(Format::R8G8B8A8Unorm, width, height, &[pixels], &key_values);
+    let file = ktx2::write(Format::R8G8B8A8Unorm, width, height, &levels, &key_values);
     Ok((file, width, height))
 }
 
@@ -135,7 +167,7 @@ mod tests {
         let image = ktx2::read(&file).unwrap();
         assert_eq!((image.width, image.height), (width, height));
         assert_eq!(image.vk_format, 37);
-        assert_eq!(image.levels.len(), 1);
+        assert_eq!(image.levels.len(), LEVELS as usize);
 
         let (key, table) = &image.key_values[0];
         assert_eq!(key, "spongeAtlas");
@@ -167,13 +199,48 @@ mod tests {
         let (file, width, _) = pack_atlas(&[("a", image)]).unwrap();
         let level = ktx2::read(&file).unwrap().levels[0].to_vec();
         let texel = |x: usize, y: usize| level[(y * width as usize + x) * 4..][..4].to_vec();
-        assert_eq!(texel(0, 1), [255, 0, 0, 255]);
-        assert_eq!(texel(3, 1), [0, 0, 255, 255]);
+        assert_eq!(texel(0, 0), [255, 0, 0, 255]);
+        let right = GUTTER as usize + 2;
+        assert_eq!(texel(right, 0), [0, 0, 255, 255]);
+        assert_eq!(texel(right + GUTTER as usize - 1, 0), [0, 0, 255, 255]);
     }
 
     #[test]
     fn sprites_that_cannot_fit_are_an_error() {
         let huge = sprite(MAX_SIDE, 1, [0; 4]);
         assert!(pack_atlas(&[("big", huge)]).is_err());
+    }
+
+    #[test]
+    fn mips_do_not_mix_neighboring_sprites() {
+        let sprites = [
+            ("red", sprite(10, 10, [255, 0, 0, 255])),
+            ("green", sprite(10, 10, [0, 255, 0, 255])),
+            ("blue", sprite(10, 10, [0, 0, 255, 255])),
+        ];
+        let (file, width, _) = pack_atlas(&sprites).unwrap();
+        let image = ktx2::read(&file).unwrap();
+        let table = String::from_utf8(image.key_values[0].1.to_vec()).unwrap();
+        let level = LEVELS as usize - 1;
+        let side = (width >> level) as usize;
+        let scale = ALIGN as usize;
+        for (line, (_, sprite)) in table.lines().zip(&sprites) {
+            let f: Vec<usize> = line
+                .split(' ')
+                .skip(1)
+                .map(|v| v.parse().unwrap())
+                .collect();
+            // Every texel a linear sample of this sprite can read: its rect,
+            // widened by one texel of the last level.
+            for row in f[1] / scale - 1..(f[1] + f[3]).div_ceil(scale) + 1 {
+                for col in f[0] / scale - 1..(f[0] + f[2]).div_ceil(scale) + 1 {
+                    let at = (row * side + col) * CHANNELS;
+                    for c in 0..CHANNELS {
+                        let got = image.levels[level][at + c];
+                        assert!(got.abs_diff(sprite.pixels[c]) <= 1, "texel {col},{row}");
+                    }
+                }
+            }
+        }
     }
 }

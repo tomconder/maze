@@ -12,8 +12,8 @@ pub type Licenses = BTreeMap<String, Vec<PathBuf>>;
 /// lists each under its file name, as `vcpkg_install_copyright` does.
 ///
 /// The file is rewritten only when its text changes, because the list comes
-/// partly from the command line, which has no timestamp. Returns the byte count if it
-/// wrote.
+/// partly from the command line, which has no timestamp. Returns the byte
+/// count if it wrote.
 pub fn write_notices(output: &Path, licenses: &Licenses) -> Result<Option<usize>> {
     let rule = "=".repeat(80);
     let mut text: Vec<u8> = Vec::new();

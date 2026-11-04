@@ -83,8 +83,8 @@ primitives, windowing, or platform backends itself — see
   The key hint bar (`ui/keyhints.hpp`) is a row of Yoga nodes below the menu
   (an icon and a label per hint, sized by `keyHintSizes()`, drawn where
   `MenuLayout::keyHintRects()` says). It puts Back at the left margin, then any
-  hint with `leftAligned` set, and right-aligns the rest. The layers lay out
-  again when the active device changes, because the prompt sizes differ. Reset to Defaults is
+  hint with `leftAligned` set, and right-aligns the rest. Every prompt has the
+  same size, so a device change needs no new layout. Reset to Defaults is
   a left-aligned hint on the Keyboard tab: the `MenuReset` action (R, gamepad
   Y), or a click on the hint (`hitTestKeyHints()`), opens a `ConfirmLayer`
   prompt with Cancel selected and no countdown. Only Accept calls

@@ -169,16 +169,9 @@ public:
         labelSizes = sizes;
     }
 
-    // One size per hint, in the order of the hints the layout was built with,
-    // measured for the prompts of the keyboard or the gamepad.
-    void setKeyHintSizes(std::vector<KeyHintSize> sizes, const bool gamepad) {
-        hintSizes   = std::move(sizes);
-        hintsPadded = gamepad;
-    }
-
-    // True once the active device is not the one the sizes were measured for.
-    bool keyHintsStale() const {
-        return usingGamepad() != hintsPadded;
+    // One size per hint, in the order of the hints the layout was built with.
+    void setKeyHintSizes(std::vector<KeyHintSize> sizes) {
+        hintSizes = std::move(sizes);
     }
 
     // Where the nodes of every hint are, in window pixels, in the order of the
@@ -289,7 +282,6 @@ private:
     std::array<TextSize, tabCount> labelSizes{};
     std::vector<YGNodeRef>         hintNodes;  // by hint index
     std::vector<KeyHintSize>       hintSizes;
-    bool                           hintsPadded = false;
 };
 
 }  // namespace game::ui

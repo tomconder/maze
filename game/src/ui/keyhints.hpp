@@ -38,7 +38,7 @@ float keyHintMarginX(float windowWidth);
 float keyHintGap(float windowWidth);
 
 // True while the gamepad is the device in use; its prompts replace the
-// keyboard ones, and some are drawn at another size.
+// keyboard ones.
 bool usingGamepad();
 
 // Measures a text with the font.
@@ -62,8 +62,8 @@ struct KeyHintSize {
 };
 
 std::vector<KeyHintSize> keyHintSizes(std::span<const KeyHint> hints,
-                                      float windowWidth, bool gamepad,
-                                      const TextMeasure& measure);
+                                      float                    windowWidth,
+                                      const TextMeasure&       measure);
 
 // Where the nodes of a hint ended up, in window pixels.
 struct KeyHintRects {
