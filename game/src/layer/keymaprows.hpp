@@ -18,7 +18,9 @@ enum class KeyMapItem : uint8_t {
     MoveLeft,
     MoveRight,
     Pause,
+#ifdef ENABLE_IMGUI
     ToggleDebugUI,
+#endif
     ToggleFps,
     Count,
 };
@@ -45,7 +47,9 @@ inline constexpr std::array<BindingRow, keyMapRowCount> bindingRows = {
     BindingRow{ sponge::input::GameAction::MoveLeft, "Move Left" },
     BindingRow{ sponge::input::GameAction::MoveRight, "Move Right" },
     BindingRow{ sponge::input::GameAction::Pause, "Pause" },
+#ifdef ENABLE_IMGUI
     BindingRow{ sponge::input::GameAction::ToggleDebugUI, "Debug UI" },
+#endif
     BindingRow{ sponge::input::GameAction::ToggleFps, "FPS Counter" },
 };
 
