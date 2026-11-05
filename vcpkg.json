@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "dca572232787975b25d0e517a46619f9a7d5301a",
+  "builtin-baseline": "5d68747adeb88f05aac8ca4d18d29e50296509b1",
   "dependencies": [
     {
       "name": "fkyaml",
@@ -33,11 +33,11 @@
     },
     {
       "name": "miniaudio",
-      "version>=": "0.11.25"
+      "version>=": "0.11.26"
     },
     {
       "name": "shader-slang",
-      "version>=": "2026.20"
+      "version>=": "2026.21"
     },
     {
       "name": "spdlog",
