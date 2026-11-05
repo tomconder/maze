@@ -1,12 +1,12 @@
 #pragma once
 
 #include "core/file.hpp"
-#include "font.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
+#include "scene/format/font.hpp"
 
 #include <glm/glm.hpp>
 

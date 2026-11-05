@@ -1,8 +1,8 @@
 #pragma once
 
-#include "assetlayout.generated.hpp"
-#include "modeldata.hpp"
-#include "vertex.hpp"
+#include "scene/format/assetlayout.generated.hpp"
+#include "scene/format/modeldata.hpp"
+#include "scene/format/vertex.hpp"
 
 #include <array>
 #include <bit>

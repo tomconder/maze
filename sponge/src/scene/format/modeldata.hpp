@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex.hpp"
+#include "scene/format/vertex.hpp"
 
 #include <glm/glm.hpp>
 

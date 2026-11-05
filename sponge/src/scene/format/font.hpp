@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assetlayout.generated.hpp"
+#include "scene/format/assetlayout.generated.hpp"
 
 #include <cstdint>
 #include <map>

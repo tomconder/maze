@@ -20,7 +20,6 @@ add_custom_target(
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
-        USES_TERMINAL
         VERBATIM
         COMMAND_EXPAND_LISTS)
 add_dependencies(convert_assets yeschef)

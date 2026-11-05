@@ -1,6 +1,6 @@
-#include "shaderpack.hpp"
+#include "scene/format/shaderpack.hpp"
 
-#include "readbytes.hpp"
+#include "scene/format/readbytes.hpp"
 
 #include <fmt/format.h>
 

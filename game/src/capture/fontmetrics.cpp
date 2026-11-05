@@ -1,7 +1,7 @@
 #include "capture/fontmetrics.hpp"
 
-#include "ktx2.hpp"
-#include "readbytes.hpp"
+#include "scene/format/ktx2.hpp"
+#include "scene/format/readbytes.hpp"
 
 #include <algorithm>
 #include <cmath>

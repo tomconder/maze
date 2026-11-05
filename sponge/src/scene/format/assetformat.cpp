@@ -1,8 +1,8 @@
-#include "assetformat.hpp"
+#include "scene/format/assetformat.hpp"
 
-#include "modeldata.hpp"
-#include "readbytes.hpp"
-#include "vertex.hpp"
+#include "scene/format/modeldata.hpp"
+#include "scene/format/readbytes.hpp"
+#include "scene/format/vertex.hpp"
 
 #include <fmt/format.h>
 

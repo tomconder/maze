@@ -1,5 +1,5 @@
 //! Bakes a font into one KTX2 file: an RGB atlas of LCD coverage and, beside
-//! it, the shaping tables the engine reads (`sponge/format/scene/src/font.hpp`
+//! it, the shaping tables the engine reads (`sponge/src/scene/format/font.hpp`
 //! has the layout and the reasoning).
 //!
 //! Shaping at run time is table lookup: a glyph per codepoint, an advance per

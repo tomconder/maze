@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modeldata.hpp"
+#include "scene/format/modeldata.hpp"
 
 #include <glm/glm.hpp>
 
