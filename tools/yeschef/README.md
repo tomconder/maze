@@ -6,13 +6,13 @@ yeschef is the asset converter for the game. It replaced the C++ converter `asse
 
 `format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the font tables. The structs are `repr(C)`, and compile-time asserts pin their sizes.
 
-cbindgen turns the structs into `sponge/format/scene/src/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
+cbindgen turns the structs into `sponge/src/scene/format/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
 
 To change the layout:
 
 1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION` or `SHADERPACK_VERSION` if the layout changes.
 2. Run `UPDATE_LAYOUT_HEADER=1 cargo test` here to rewrite the header.
-3. Rebuild the C++ side. The asserts in `sponge/format/scene/src/assetformat.hpp` fail if a hand-written glm twin no longer matches.
+3. Rebuild the C++ side. The asserts in `sponge/src/scene/format/assetformat.hpp` fail if a hand-written glm twin no longer matches.
 
 `cargo test` fails when the checked-in header differs from what cbindgen makes.
 

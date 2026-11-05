@@ -1,10 +1,10 @@
 #include "platform/opengl/scene/spriteatlas.hpp"
 
 #include "core/file.hpp"
-#include "ktx2.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
-#include "readbytes.hpp"
+#include "scene/format/ktx2.hpp"
+#include "scene/format/readbytes.hpp"
 
 #include <glm/glm.hpp>
 

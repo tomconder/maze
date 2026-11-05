@@ -1,12 +1,12 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 
-#include "font.hpp"
-#include "ktx2.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/texture.hpp"
-#include "readbytes.hpp"
+#include "scene/format/font.hpp"
+#include "scene/format/ktx2.hpp"
+#include "scene/format/readbytes.hpp"
 
 #include <algorithm>
 #include <array>

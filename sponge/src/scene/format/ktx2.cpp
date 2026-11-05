@@ -1,4 +1,4 @@
-#include "ktx2.hpp"
+#include "scene/format/ktx2.hpp"
 
 #include <fmt/format.h>
 

@@ -3,7 +3,7 @@
 
 #include "core/file.hpp"
 #include "logging/log.hpp"
-#include "shaderpack.hpp"
+#include "scene/format/shaderpack.hpp"
 
 #include <string>
 #include <string_view>

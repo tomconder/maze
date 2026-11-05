@@ -13,6 +13,7 @@ file(
         src/layer/*.hpp
         src/logging/*.hpp
         src/scene/*.hpp
+        src/scene/format/*.hpp
         src/thread/*.hpp)
 
 file(
@@ -20,7 +21,7 @@ file(
         CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         src/core/*.cpp src/event/*.cpp src/input/*.cpp src/layer/*.cpp
-        src/logging/*.cpp src/scene/*.cpp src/thread/*.cpp)
+        src/logging/*.cpp src/scene/*.cpp src/scene/format/*.cpp src/thread/*.cpp)
 
 # OpenGL
 message(STATUS "Including OpenGL platform files")
@@ -125,31 +126,18 @@ if (ENABLE_PROFILING)
     find_package(Tracy CONFIG REQUIRED)
 endif ()
 
-# Build options shared by the engine and the format library. Warnings are a
+# Build options shared by the engine. Warnings are a
 # separate target so vendored code can take the options without -Wall -Werror.
 add_library(sponge_options INTERFACE)
 add_library(sponge_warnings INTERFACE)
 add_library(sponge::options ALIAS sponge_options)
 
-# Baked asset formats: readers for the engine. The writers are in
-# tools/yeschef. No logging and no engine headers.
 find_package(fmt CONFIG REQUIRED)
-file(
-        GLOB FORMAT_FILES
-        CONFIGURE_DEPENDS
-        LIST_DIRECTORIES false
-        format/scene/src/*.cpp format/scene/src/*.hpp)
-add_library(sponge_format STATIC ${FORMAT_FILES})
-add_library(sponge::format ALIAS sponge_format)
-set_target_properties(sponge_format PROPERTIES CXX_STANDARD 23)
-target_include_directories(sponge_format PUBLIC format/scene/src)
-target_link_libraries(sponge_format PUBLIC sponge_options sponge_warnings
-        glm::glm-header-only)
-target_link_libraries(sponge_format PRIVATE fmt::fmt)
 
 add_library(sponge ${HEADER_FILES} ${SOURCE_FILES})
 add_library(sponge::sponge ALIAS sponge)
-target_link_libraries(sponge PUBLIC sponge_format)
+target_link_libraries(sponge PUBLIC sponge_options sponge_warnings)
+target_link_libraries(sponge PRIVATE fmt::fmt)
 
 # leak checking comes with AddressSanitizer on Linux
 if (ENABLE_SANITIZERS)

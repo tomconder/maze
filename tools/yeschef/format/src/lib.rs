@@ -2,7 +2,7 @@
 //! the shader pack (`shaders.spnga`) and the font tables (see [`font`]).
 //!
 //! This crate owns the layout. `cbindgen` turns it into
-//! `sponge/format/scene/src/assetlayout.generated.hpp`, which the C++ readers
+//! `sponge/src/scene/format/assetlayout.generated.hpp`, which the C++ readers
 //! include, so the converter and the engine cannot disagree.
 //! Every struct is `repr(C)` and little endian. All offsets are absolute from
 //! the start of the file.

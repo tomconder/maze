@@ -2,7 +2,7 @@
 //! fonts and environment maps.
 //!
 //! KTX2 is a standard format, so it stays out of cbindgen. The C++ reader in
-//! `sponge/format/scene/src/ktx2.cpp` reads what this writes. The data format
+//! `sponge/src/scene/format/ktx2.cpp` reads what this writes. The data format
 //! descriptor is left empty because that reader needs `vkFormat` alone. Add a
 //! descriptor if these files ever leave the build for outside KTX tools.
 

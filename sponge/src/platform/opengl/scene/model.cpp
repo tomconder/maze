@@ -1,10 +1,10 @@
 #include "platform/opengl/scene/model.hpp"
 
-#include "assetformat.hpp"
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
+#include "scene/format/assetformat.hpp"
 
 #include <cassert>
 #include <cstddef>

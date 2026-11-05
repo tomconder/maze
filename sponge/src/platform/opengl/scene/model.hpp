@@ -1,11 +1,11 @@
 #pragma once
 
-#include "modeldata.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "platform/opengl/renderer/vertexarray.hpp"
 #include "platform/opengl/renderer/vertexbuffer.hpp"
 #include "platform/opengl/scene/mesh.hpp"
+#include "scene/format/modeldata.hpp"
 #include "scene/frustum.hpp"
 
 #include <glm/glm.hpp>

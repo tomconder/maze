@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 fn header_path() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../sponge/format/scene/src/assetlayout.generated.hpp")
+        .join("../../../sponge/src/scene/format/assetlayout.generated.hpp")
 }
 
 fn generate() -> String {
