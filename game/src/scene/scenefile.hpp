@@ -60,19 +60,28 @@ struct SceneDirectionalLight {
     glm::vec3 direction{ 0.F, -20.F, 1.333F };
 };
 
-// Point lights are placed by a seeded spiral rather than authored one by one,
-// so the light count stays adjustable at run time without the file and the
-// count disagreeing about positions.
-struct ScenePointLights {
-    int32_t   count{ 0 };
-    float     radiusMin{ 1.5F };
-    float     radiusSpan{ 13.5F };
-    float     height{ 10.F };
-    float     jitterAngle{ .4F };
-    float     jitterRadius{ .5F };
+// One authored point light.
+struct ScenePointLight {
+    glm::vec3 position{ 0.F };
     glm::vec3 color{ 1.F };
-    int32_t   attenuationIndex{ 4 };
-    float     debugCubeScale{ .1F };
+};
+
+// Point lights come from `lights` when the file lists any: the first
+// `lights.size()` lights sit where it says. Lights past that (the debug slider
+// can raise the count) and a file with no list use a seeded ellipse built from
+// the fields below, so the count stays adjustable at run time.
+struct ScenePointLights {
+    // Without a `count` key, the number of authored lights.
+    int32_t                      count{ 0 };
+    std::vector<ScenePointLight> lights;
+    float                        radiusMin{ 1.5F };
+    float                        radiusSpan{ 13.5F };
+    float                        height{ 10.F };
+    float                        jitterAngle{ .4F };
+    float                        jitterRadius{ .5F };
+    glm::vec3                    color{ 1.F };
+    int32_t                      attenuationIndex{ 4 };
+    float                        debugCubeScale{ .1F };
 };
 
 struct SceneLighting {
