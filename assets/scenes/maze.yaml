@@ -4,10 +4,10 @@
 # game/src/scene/scenefile.hpp. Angles are in degrees.
 
 camera:
-  position: [-16.0, 4.0, 0.0]
+  position: [-16.0, 1.7, 0.0]
   fov: 60.0
   # Degrees. Yaw 0 looks down +X; pitch is clamped to +/-89.
-  yaw: 0.0
+  yaw: 180.0
   pitch: 0.0
 
 lighting:
@@ -27,11 +27,39 @@ lighting:
     color: [1.0, 1.0, 1.0]
     direction: [0.0, -20.0, 1.333]
 
-  # Point lights sit on a seeded ellipse, generated at runtime so the debug
-  # slider can change the count. radiusMin is the short (Z) semi-axis;
-  # radiusMin + radiusSpan is the long (X) one.
+  # Point lights. `lights` places them by hand (world position, linear
+  # colour). Each sits at the centre of a 4 m maze cell, so no wall is in the
+  # way: z is minus the generator's y, and a cell (i, j) is centred at
+  # x = (i - 6) * 4, z = (6 - j) * 4. The cave (cells with i + j < 13.2) has a
+  # 3.5 m ceiling, so its lights hang at 2.6 m. Without `count`, the count is
+  # the length of the list. A higher count from the debug slider adds lights on
+  # a seeded ellipse (radiusMin is its short (Z) semi-axis, radiusMin +
+  # radiusSpan the long (X) one).
   point:
-    count: 0
+    lights:
+      # Cave: a warm lamp at the start, a cool glow at the crystal (cell 4,4)
+      # and a dim one over the pool (cell 2,2), a lamp in the middle.
+      - position: [-16.0, 2.6, 0.0]
+        color: [3.0, 1.75, 0.9]
+      - position: [-8.0, 1.8, 8.0]
+        color: [1.2, 2.5, 4.5]
+      - position: [-16.0, 2.0, 16.0]
+        color: [0.5, 1.25, 2.25]
+      - position: [0.0, 2.6, 0.0]
+        color: [3.0, 1.75, 0.9]
+      # Castle: warm torches, and a gold one over the metal plate (cell 9,9).
+      - position: [0.0, 2.4, -8.0]
+        color: [3.0, 1.65, 0.65]
+      - position: [-4.0, 2.4, -16.0]
+        color: [3.0, 1.65, 0.65]
+      - position: [8.0, 2.4, -20.0]
+        color: [3.0, 1.65, 0.65]
+      - position: [12.0, 2.8, -12.0]
+        color: [3.0, 2.25, 0.9]
+      - position: [16.0, 2.4, 4.0]
+        color: [3.0, 1.65, 0.65]
+      - position: [20.0, 2.4, -8.0]
+        color: [3.0, 1.65, 0.65]
     radiusMin: 5.0
     radiusSpan: 20.0
     height: 10.0
@@ -39,7 +67,8 @@ lighting:
     jitterRadius: 0.5
     color: [1.0, 1.0, 1.0]
     # Index into the attenuation distance table in game/src/scene/light.cpp.
-    attenuationIndex: 4
+    # 2 is 9 m: a light reaches about two cells.
+    attenuationIndex: 2
     # Size of the cube drawn at each light position.
     debugCubeScale: 0.1
 
@@ -55,9 +84,9 @@ bloom:
 # leave it out for a flat grey. Leave the block out for flat ambient.
 probe:
   environment: textures/kloofendal_overcast_puresky_1k.ktx2
-  position: [-1.94, 4.0, -1.24]
-  boxMin: [-37.66, -0.08, -12.22]
-  boxMax: [33.78, 25.83, 9.75]
+  position: [-16.0, 1.7, 0.0]
+  boxMin: [-26.0, -0.08, -22.0]
+  boxMax: [22.0, 3.5, 26.0]
 
 objects:
   # The commented cube and mirror entries need their models/gltf sources
@@ -92,8 +121,7 @@ objects:
   - name: helmet
     path: /models/helmet.spnga
     rotation: { angle: -75.0, axis: [0.0, 1.0, 0.0] }
-    translation: [2.0, 2.5, 0.0]
+    translation: [-20.0, 1.5, 0.0]
 
-  - name: sponza
-    path: /models/sponza.spnga
-    scale: [4.0, 4.0, 4.0]
+  - name: maze
+    path: /models/maze_map.spnga
