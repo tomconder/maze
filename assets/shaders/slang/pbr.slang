@@ -36,16 +36,17 @@ VSOutput vertMain(VSInput input) {
     return output;
 };
 
-[[vk::binding(0)]] Sampler2D<float4>      texture_diffuse1;
-[[vk::binding(1)]] Sampler2DArray<float4> shadowMap;
-[[vk::binding(6)]] Sampler2D<float4>      normalMap;
-[[vk::binding(7)]] Sampler2D<float4>      occlusionMap;
-[[vk::binding(8)]] Sampler2D<float4>      emissiveMap;
-[[vk::binding(9)]] Sampler2D<float4>      metallicRoughnessMap;
-[[vk::binding(10)]] Sampler2D<float>      ssaoTexture;
-[[vk::binding(12)]] SamplerCube<float4>   probeMap;
-[[vk::binding(14)]] Sampler2D<float4>     diffuseTransmissionMap;
-[[vk::binding(15)]] SamplerCube<float4>   irradianceMap;
+[[vk::binding(0)]] Sampler2D<float4>         texture_diffuse1;
+[[vk::binding(1)]] Sampler2DArray<float4>    shadowMap;
+[[vk::binding(6)]] Sampler2D<float4>         normalMap;
+[[vk::binding(7)]] Sampler2D<float4>         occlusionMap;
+[[vk::binding(8)]] Sampler2D<float4>         emissiveMap;
+[[vk::binding(9)]] Sampler2D<float4>         metallicRoughnessMap;
+[[vk::binding(10)]] Sampler2D<float>         ssaoTexture;
+[[vk::binding(12)]] SamplerCube<float4>      probeMap;
+[[vk::binding(13)]] SamplerCubeArray<float4> pointShadowMap;
+[[vk::binding(14)]] Sampler2D<float4>        diffuseTransmissionMap;
+[[vk::binding(15)]] SamplerCube<float4>      irradianceMap;
 
 // KHR_texture_transform: t.xy = offset, t.zw = scale (no rotation support)
 float2 applyUVTransform(float2 uv, float4 t) {
@@ -195,8 +196,16 @@ float4 fragMain(VSOutput input, float4 fragCoord : SV_Position, bool frontFacing
             SurfaceLight contrib = evaluatePBR(pl, input.worldPosition, albedo, N, V,
                                                metallic, roughness,
                                                Nc, params.clearcoatFactor, coatRoughness, transmission);
-            Ld += contrib.diffuse;
-            Ls += contrib.specular;
+            // Only the first maxPointShadows lights have a cube map, and the
+            // slot is the light's index.
+            float visible = 1.0;
+            if (int(li) < params.pointShadowCount) {
+                visible = 1.0 - shadowPoint(pointShadowMap, int(li), gpu.position,
+                                            input.worldPosition, N,
+                                            attenuationRadius[params.attenuationIndex]);
+            }
+            Ld += contrib.diffuse * visible;
+            Ls += contrib.specular * visible;
             if (transmission > 0.0) {
                 Ld += evaluateTransmission(pl, input.worldPosition, albedo, N,
                                            transmissionTint, transmission);

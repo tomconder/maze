@@ -53,6 +53,7 @@ paths and repeated logs.
 * Cluster grid and max-lights constants in `assets/shaders/slang/include/clustered.slang` must match `sponge/src/platform/opengl/scene/clusteredlights.hpp`.
 * `maxCascades` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::maxCascades` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
 * `evsmExponent` in `assets/shaders/slang/include/shadows.slang` must match `ShadowMap::evsmExponent` in `sponge/src/platform/opengl/scene/shadowmap.hpp`.
+* `maxPointShadows` in `assets/shaders/slang/include/shadows.slang` must match `PointShadowMap::maxLights` in `sponge/src/platform/opengl/scene/pointshadowmap.hpp`.
 * `bakedFontSizes` in `game/src/ui/menufontsize.hpp` must match `fonts[].sizes` in `assets/manifest.yaml`. The font holds only those sizes; a text size outside the list draws nothing.
 * Don't edit generated files in `out/` or 3rd-party files in `sponge/deps`.
 * The baked-format readers in `sponge/src/scene/format/` (`assetformat`, `font`, `ktx2`, `modeldata`, `readbytes`, `shaderpack`, `vertex`) must not include logging or other engine headers. They are plain readers of the files `yeschef` writes.
@@ -166,11 +167,11 @@ maze.exe --capture-frames=600 --dump-nan-stats
   resolutions in place of what a monitor reports, so its dot counts and
   value width can differ from a run on a real monitor. Debug builds only.
 * `--capture-off=a,b`: turn passes off for the run. Names: `aa`, `bloom`,
-  `ssao`, `ssr`, `shadow`, `probe`, `gi` (flat ambient diffuse in place of
+  `ssao`, `ssr`, `shadow`, `pointshadow`, `probe`, `gi` (flat ambient diffuse in place of
   the probe irradiance), `planar`, `lod` (draw LOD0 for every
   mesh, for an A/B of the cut). Two more names change the measurement:
-  `shadowcache` draws the shadow map every frame (the cache would otherwise
-  draw it once and hide its cost), and `gputimer` turns the GPU timer off. Without
+  `shadowcache` draws the shadow map and the point light cubes every frame (the
+  cache would otherwise draw them once and hide their cost), and `gputimer` turns the GPU timer off. Without
   `--dump-nan-stats`, the run also writes `capture_timing.txt` (mean, p50, p95 frame time, a `gpu frame` line, and one `gpu` line per pass
   with its GPU time) from the frames after a 60 frame warm-up. Pass times come
   from `GL_TIME_ELAPSED` queries, so they hold in a debug build; only the CPU

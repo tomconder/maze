@@ -19,6 +19,7 @@
 #include "platform/opengl/scene/model.hpp"
 #include "platform/opengl/scene/occlusionculler.hpp"
 #include "platform/opengl/scene/planarreflection.hpp"
+#include "platform/opengl/scene/pointshadowmap.hpp"
 #include "platform/opengl/scene/reflectionprobe.hpp"
 #include "platform/opengl/scene/scenetarget.hpp"
 #include "platform/opengl/scene/shadowmap.hpp"
@@ -210,14 +211,14 @@ public:
     // Debug capture run: renders `frames` frames while the camera turns once,
     // then the app exits. See FrameCapture. Call before the app runs.
     // `off` is a comma list of passes to disable for the run, to find which
-    // one costs frame time: aa, bloom, ssao, ssr, shadow, probe, planar, lod
-    // (draw LOD0 for every mesh, for an A/B of the cluster cut). Two
-    // more change how the run measures: shadowcache draws the shadow map every
-    // frame, and gputimer turns the per-pass GPU timer off. A non-zero `walk`
-    // moves the camera that many world units per update along +X and keeps its
-    // yaw fixed, instead of turning it: a walk shows how often a cascade
-    // redraws, which a turn cannot.
-    // A non-zero `cascades` sets the shadow cascade count for the run.
+    // one costs frame time: aa, bloom, ssao, ssr, shadow, pointshadow, probe,
+    // planar, lod (draw LOD0 for every mesh, for an A/B of the cluster cut).
+    // Two more change how the run measures: shadowcache draws the shadow map
+    // and the point light cubes every frame, and gputimer turns the per-pass
+    // GPU timer off. A non-zero `walk` moves the camera that many world units
+    // per update along +X and keeps its yaw fixed, instead of turning it: a
+    // walk shows how often a cascade redraws, which a turn cannot. A non-zero
+    // `cascades` sets the shadow cascade count for the run.
     void enableCapture(uint32_t frames, bool stats, std::string off = {},
                        float walk = 0.F, uint32_t cascades = 0);
 #endif
@@ -292,6 +293,8 @@ private:
     std::unique_ptr<sponge::platform::opengl::scene::Ssr>          ssr;
     std::unique_ptr<sponge::platform::opengl::scene::SceneTarget>  sceneTarget;
     std::unique_ptr<sponge::platform::opengl::scene::ShadowMap>    shadowMap;
+    std::unique_ptr<sponge::platform::opengl::scene::PointShadowMap>
+        pointShadowMap;
 
     // Set and read on the render thread (options, ImGui, startup).
     ShadowQuality shadowQuality = ShadowQuality::Medium;
@@ -315,6 +318,19 @@ private:
     bool shadowCachedRefraction = true;
     // Debug capture only: draw the shadow map every frame, to time it.
     bool shadowCacheOff = false;
+
+    // Point light cubes are drawn again only when their light moves or the
+    // range changes. Like the cascades, this assumes the casters are static.
+    std::array<glm::vec3,
+               sponge::platform::opengl::scene::PointShadowMap::maxLights>
+        pointShadowCachedPositions{};
+    std::array<bool, sponge::platform::opengl::scene::PointShadowMap::maxLights>
+          pointShadowCached{};
+    float pointShadowCachedRange      = 0.F;
+    bool  pointShadowCachedRefraction = true;
+    // Debug capture only: pointshadow turns the point shadows off, and
+    // shadowcache draws them every frame too.
+    bool pointShadowOff = false;
 
     // Double-buffered snapshots: update writes, render reads, no overlap.
     std::array<thread::MazeRenderFrame, 2> renderFrames;
@@ -348,6 +364,7 @@ private:
     // Render thread: the pieces of onRender().
     void applyPendingChanges();
     void renderShadowMaps(const thread::MazeRenderFrame& frame);
+    void renderPointShadows(const thread::MazeRenderFrame& frame);
     void resolveToDisplay(const thread::MazeRenderFrame& frame, bool fxaaActive,
                           bool taaActive, uint32_t bloomTexId,
                           float bloomWeight);
@@ -483,6 +500,14 @@ private:
     // Draws one cascade into the shadow map, then blurs it.
     void renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
                                uint32_t                       cascade) const;
+
+    // Draws the six faces of one point light's cube.
+    void renderPointLightToCube(const thread::MazeRenderFrame& frame,
+                                uint32_t light, float range) const;
+
+    // How many point lights have a cube map: the first ones, up to
+    // PointShadowMap::maxLights.
+    uint32_t pointShadowCount(const thread::MazeRenderFrame& frame) const;
 
     // Sets the cascade matrices and count on a lit shader and binds the
     // shadow array on unit 1.
