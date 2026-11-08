@@ -26,6 +26,7 @@ than calling GLFW/OpenGL/OS APIs directly.
   `AssetManager`.
 * `opengl/scene/` - render features built on the primitives: `Model`, `Mesh`,
   `Cube`, `Sprite`, `BitmapFont`, `Quad`, `ClusteredLights`, `ShadowMap`,
+  `PointShadowMap`,
   `SceneTarget`, `DepthPrepass`, `Ssao`, `Ssr`, `PlanarReflection`,
   `ReflectionProbe`, `OcclusionCuller`, `Bloom`, `FXAA`, `TAA`.
   `RendererAPI` also has the static state calls game code needs between
@@ -79,6 +80,24 @@ than calling GLFW/OpenGL/OS APIs directly.
   FBO rebuilds are deferred to the render thread the same way viewport resize
   is (pending-flag pattern above) — never rebuild the FBO from the thread
   that requested the change.
+* `PointShadowMap` shadows the first `maxLights` (8) point lights, one cube
+  map each, in one `GL_TEXTURE_CUBE_MAP_ARRAY` (R16F, 512 px a face, about
+  25 MB). A texel is the distance from the light to the nearest surface,
+  divided by the light's range, so a lookup needs only the direction and the
+  clear value of 1 reads as lit. The lit shader (`shadowPoint()` in
+  `shadows.slang`) compares it with a bias that grows with distance, a
+  normal offset and four taps. The slot of a light is its index, so
+  `PointLightGPU` and the light buffer do not change; lights past `maxLights`
+  are not shadowed, and so are the point light transmission term and the
+  glass pass. The cubes are on unit 13 of `pbr.slang`, which the glass
+  pass also uses for its probe, so `bindLitShader()` binds them again for
+  every lit pass. A cube is drawn again only when its light moves, the range
+  changes or refraction toggles, and it draws every mesh at LOD0, so it does
+  not depend on the camera. That holds only while shadow casters are static.
+  The faces use `ReflectionProbe::faceView()`, and the draw runs with
+  `GL_BLEND` off and clears with `glClearNamedFramebufferfv`, like the
+  cascades. The probe capture and the planar mirror draw with no point lights,
+  so they need no cubes.
 * `ShadowMap` is a stack of cascades, one layer each of a
   `GL_TEXTURE_2D_ARRAY`. Cascade 0 is the finest; the last cascade in use
   covers the whole scene, so it is the fallback and never changes while the

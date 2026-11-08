@@ -56,6 +56,7 @@ struct PbrParams {
     float3           emissive;
     DirectionalLight directionalLight;
     int              numLights;
+    int              pointShadowCount;  // lights 0 to this - 1 have a cube map
     int              attenuationIndex;  // shared by all point lights
     float            clusterNear;       // near bound of the cluster grid
     float            farPlane;

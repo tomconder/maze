@@ -102,6 +102,7 @@ using sponge::platform::opengl::scene::Model;
 using sponge::platform::opengl::scene::ModelCreateInfo;
 using sponge::platform::opengl::scene::OcclusionCuller;
 using sponge::platform::opengl::scene::PlanarReflection;
+using sponge::platform::opengl::scene::PointShadowMap;
 using sponge::platform::opengl::scene::ReflectionProbe;
 using sponge::platform::opengl::scene::SceneTarget;
 using sponge::platform::opengl::scene::ShadowMap;
@@ -276,6 +277,7 @@ void MazeLayer::finishLoading(std::vector<std::shared_ptr<Model>> builtModels) {
     shader->setFloat("evsmBleedThreshold", 0.2F);
 
     shadowMap       = std::make_unique<ShadowMap>(directional.shadowMapRes);
+    pointShadowMap  = std::make_unique<PointShadowMap>();
     cube            = std::make_unique<Cube>();
     occlusionCuller = std::make_unique<OcclusionCuller>(objectModels.size());
 
@@ -791,6 +793,39 @@ void MazeLayer::renderShadowMaps(const thread::MazeRenderFrame& frame) {
             }
         }
     }
+    renderPointShadows(frame);
+}
+
+uint32_t
+    MazeLayer::pointShadowCount(const thread::MazeRenderFrame& frame) const {
+    if (pointShadowOff) {
+        return 0;
+    }
+    return std::min(static_cast<uint32_t>(frame.settings.numLights),
+                    PointShadowMap::maxLights);
+}
+
+void MazeLayer::renderPointShadows(const thread::MazeRenderFrame& frame) {
+    // One attenuation index for every light, so one range for every cube.
+    const auto range =
+        scene::Light::getAttenuationDistance(frame.settings.attenuationIndex);
+    if (range != pointShadowCachedRange ||
+        frame.refractionEnabled != pointShadowCachedRefraction) {
+        // glass casts a shadow only while refraction is off
+        pointShadowCached.fill(false);
+        pointShadowCachedRange      = range;
+        pointShadowCachedRefraction = frame.refractionEnabled;
+    }
+    for (uint32_t l = 0; l < pointShadowCount(frame); l++) {
+        if (shadowCacheOff || !pointShadowCached[l] ||
+            frame.lightPositions[l] != pointShadowCachedPositions[l]) {
+            gpuBegin("pointshadow");
+            renderPointLightToCube(frame, l, range);
+            gpuEnd();
+            pointShadowCachedPositions[l] = frame.lightPositions[l];
+            pointShadowCached[l]          = true;
+        }
+    }
 }
 
 void MazeLayer::resolveToDisplay(const thread::MazeRenderFrame& frame,
@@ -1097,6 +1132,9 @@ void MazeLayer::recordCapture(const bool fxaaActive, const bool taaActive,
         if (has("shadowcache")) {
             shadowCacheOff = true;
         }
+        if (has("pointshadow")) {
+            pointShadowOff = true;
+        }
         if (has("aa")) {
             setAntiAliasing(AntiAliasing::None);
         }
@@ -1332,6 +1370,11 @@ void MazeLayer::bindLitShader(const std::shared_ptr<Shader>& shader,
     shader->setInteger("attenuationIndex", frame.settings.attenuationIndex);
 
     bindShadow(*shader, frame);
+    // Unit 13 is also the glass pass's probe, so the cubes are bound again
+    // here for every lit pass that follows it.
+    shader->setInteger("pointShadowCount",
+                       static_cast<int>(pointShadowCount(frame)));
+    pointShadowMap->bindTexture(13);
 
     if (ssao) {
         RendererAPI::bindTexture(10, ssao->getTexture());
@@ -1824,6 +1867,40 @@ void MazeLayer::renderSceneToDepthMap(const thread::MazeRenderFrame& frame,
     gpuEnd();
     gpuBegin("shadowblur");
     shadowMap->unbind(cascade);
+}
+
+void MazeLayer::renderPointLightToCube(const thread::MazeRenderFrame& frame,
+                                       const uint32_t                 light,
+                                       const float range) const {
+    SPONGE_PROFILE_SECTION("renderPointLightToCube");
+    const auto& position = frame.lightPositions[light];
+
+    for (uint32_t face = 0; face < 6; face++) {
+        pointShadowMap->bind(light, face);
+        const auto viewProj =
+            PointShadowMap::faceViewProj(position, face, range);
+
+        // Every mesh, at LOD0: the cube does not depend on the camera.
+        const auto drawObjects = [&](const auto& shader, const AlphaPass pass) {
+            shader->bind();
+            shader->setMat4("viewProj", viewProj);
+            shader->setFloat3("lightPos", position);
+            shader->setFloat("lightRange", range);
+            for (size_t i = 0; i < frame.objectModels.size(); i++) {
+                if (frame.objectRefraction[i].refractive ||
+                    (pass == AlphaPass::Masked &&
+                     !frame.objectModels[i]->hasMaskedMeshes())) {
+                    continue;
+                }
+                shader->setMat4("model", frame.objectModelMatrices[i]);
+                frame.objectModels[i]->render(shader, pass);
+            }
+            shader->unbind();
+        };
+        drawObjects(pointShadowMap->getShader(), AlphaPass::Opaque);
+        drawObjects(pointShadowMap->getMaskedShader(), AlphaPass::Masked);
+        pointShadowMap->unbind();
+    }
 }
 
 void MazeLayer::updateCamera(const InputSnapshot& snap,
