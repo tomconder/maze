@@ -50,7 +50,7 @@ primitives, windowing, or platform backends itself — see
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
   (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
-  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says, and each tab is a Yoga row of a marker dot and its label (`layoutTab()`): its box is the highlight, and only the active tab draws the dot. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
+  the two prompt icons around one node per tab. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. Each tab is a Yoga row of a marker dot and its label (`layoutTab()`): its box is the highlight, and only the active tab draws the dot. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and

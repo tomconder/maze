@@ -47,7 +47,7 @@ Metrics metricsFor(const float windowWidth) {
     const auto fSize = static_cast<float>(size);
 
     // the prompt art is inset in its sprite, so it needs more room than text
-    return { size, fSize * 2.F, fSize * 2.4F, fSize * 0.4F, fSize * 0.4F };
+    return { size, fSize * 2.F, fSize * 2.4F, fSize * 0.4F, fSize * 0.8F };
 }
 
 // Highlight quad, built on first use — construction needs a GL context.
