@@ -4,8 +4,9 @@ Blender script to generate a 3D maze map for the game engine.
 - Ends in a ruined castle (mortar stone walls)
 - Material features that survive glTF export: top coat (clearcoat) and
   reflection (metallic / low roughness). The engine refracts a whole scene
-  object (`refractive` in the scene file), not a material, so the water pool
-  and the crystal go to their own files, water_pool.glb and crystal.glb.
+  object (`refractive` and `reflective` in the scene file), not a material,
+  so the water pool, the crystal and the metal plate go to their own files
+  (water_pool.glb, crystal.glb and metal_floor.glb).
   Subsurface and volume absorption are set up for Blender but the glTF
   exporter drops them: the GLB has no KHR_materials_volume or subsurface data.
 
@@ -376,7 +377,11 @@ def add_showcase_objects(materials):
 
 # ==================== MAIN ====================
 # Objects exported to their own file, by object name.
-GLASS_FILES = {"water_pool": "water_pool.glb", "crystal_sss": "crystal.glb"}
+OWN_FILES = {
+    "water_pool": "water_pool.glb",
+    "crystal_sss": "crystal.glb",
+    "metal_floor": "metal_floor.glb",
+}
 
 def build_and_export():
     clear_scene()
@@ -416,11 +421,11 @@ def build_and_export():
         if obj.type == 'MESH':
             obj.modifiers.new("Triangulate", 'TRIANGULATE')
 
-    # These are exported alone: the engine refracts a whole object, so glass
-    # inside maze_map.glb could only be opaque.
-    glass = [bpy.data.objects[name] for name in GLASS_FILES]
+    # These are exported alone: the engine refracts and reflects a whole
+    # object, so inside maze_map.glb they could only be plain surfaces.
+    own = [bpy.data.objects[name] for name in OWN_FILES]
     bpy.ops.object.select_all(action='SELECT')
-    for obj in glass:
+    for obj in own:
         obj.select_set(False)
 
     # Export
@@ -437,13 +442,13 @@ def build_and_export():
         export_tangents=True,
         export_image_format='AUTO',
     )
-    for obj in glass:
+    for obj in own:
         # At the origin: assets/scenes/maze.yaml places it.
         obj.location = (0, 0, 0)
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(True)
         bpy.ops.export_scene.gltf(
-            filepath=os.path.join(OUTPUT_DIR, GLASS_FILES[obj.name]),
+            filepath=os.path.join(OUTPUT_DIR, OWN_FILES[obj.name]),
             export_format='GLB',
             use_selection=True,
             export_apply=True,

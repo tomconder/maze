@@ -245,7 +245,8 @@ primitives, windowing, or platform backends itself — see
   When it is off, `captureRenderFrame()` blanks `objectRefraction`, so glass
   takes the opaque path (prepass, shadows, opaque color) and the glass pass is
   skipped. Only an object with `refractive: true` in the scene file refracts;
-  the water pool and the crystal are their own objects for that reason. The
+  the water pool and the crystal are their own objects for that reason, and so
+  is the metal plate, which needs its own `reflective`. The
   shadow cache is cleared if the flag changes, because glass then joins or
   leaves the casters.
 
