@@ -31,6 +31,11 @@ float textWidth(const RowText& text, const std::string_view string,
     return text.measure(string, text.fontSize, tabularFigures).width;
 }
 
+// The space left and right of the parts of a row.
+void padRow(const YGNodeRef row, const RowText& text) {
+    YGNodeStyleSetPadding(row, YGEdgeHorizontal, menuEm(26.F, text.fontSize));
+}
+
 bool isNew(const YGNodeRef row) {
     return YGNodeGetChildCount(row) == 0;
 }
@@ -42,15 +47,16 @@ float dotRadius(const uint32_t fontSize) {
 
 void layoutHeading(const YGNodeRef row, const RowText& text) {
     if (isNew(row)) {
-        attachRowParts(row, 1, rowMargin);
+        attachRowParts(row, 1);
     }
+    padRow(row, text);
     setPartSize(row, labelPart, YGUndefined, textHeight(text));
 }
 
 void layoutSelect(const YGNodeRef row, const RowText& text,
                   const float maxValueWidth, const size_t dotCount) {
     if (isNew(row)) {
-        attachRowParts(row, 4, rowMargin);
+        attachRowParts(row, 4);
 
         auto* const valueNode = YGNodeGetChild(row, selectparts::value);
         YGNodeStyleSetAlignSelf(valueNode, YGAlignStretch);
@@ -66,6 +72,7 @@ void layoutSelect(const YGNodeRef row, const RowText& text,
         YGNodeStyleSetJustifyContent(dotsNode, YGJustifyCenter);
         YGNodeInsertChild(valueNode, dotsNode, selectparts::dots);
     }
+    padRow(row, text);
 
     const auto height = textHeight(text);
     setPartSize(row, labelPart, YGUndefined, height);
@@ -99,8 +106,9 @@ void layoutSelect(const YGNodeRef row, const RowText& text,
 void layoutSlider(const YGNodeRef row, const RowText& text,
                   const float labelIndent) {
     if (isNew(row)) {
-        attachRowParts(row, 5, rowMargin);
+        attachRowParts(row, 5);
     }
+    padRow(row, text);
     const auto scale = static_cast<float>(text.fontSize) / referenceFontSize;
     YGNodeStyleSetGap(row, YGGutterColumn, baseValueGap * scale);
 
@@ -119,16 +127,18 @@ void layoutSlider(const YGNodeRef row, const RowText& text,
 void layoutCheckbox(const YGNodeRef row, const RowText& text,
                     const float boxSize) {
     if (isNew(row)) {
-        attachRowParts(row, 2, rowMargin);
+        attachRowParts(row, 2);
     }
+    padRow(row, text);
     setPartSize(row, labelPart, YGUndefined, textHeight(text));
     setPartSize(row, checkboxparts::box, boxSize, boxSize);
 }
 
 void layoutBinding(const YGNodeRef row, const RowText& text) {
     if (isNew(row)) {
-        attachRowParts(row, 2, rowMargin);
+        attachRowParts(row, 2);
     }
+    padRow(row, text);
     const auto height = textHeight(text);
     setPartSize(row, labelPart, YGUndefined, height);
     setPartSize(row, bindingparts::value, 0.F, height);
@@ -139,9 +149,9 @@ void layoutButton(const YGNodeRef box, const RowText& text,
     if (isNew(box)) {
         YGNodeStyleSetFlexDirection(box, YGFlexDirectionRow);
         YGNodeStyleSetAlignItems(box, YGAlignCenter);
-        YGNodeStyleSetPadding(box, YGEdgeHorizontal, rowMargin);
         YGNodeInsertChild(box, YGNodeNew(), labelPart);
     }
+    padRow(box, text);
     YGNodeStyleSetJustifyContent(box, centered ? YGJustifyCenter :
                                                  YGJustifyFlexStart);
     // The text is centred on the font size, not the line height.

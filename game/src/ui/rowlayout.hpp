@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "ui/layouttypes.hpp"
+#include "ui/menufontsize.hpp"
 #include "ui/menulayout.hpp"
 #include "ui/rowparts.hpp"
 
@@ -24,9 +25,6 @@ struct RowText {
     const TextMeasure& measure;
     uint32_t           fontSize;
 };
-
-// The space left and right of the parts of a row.
-inline constexpr float rowMargin = 26.F;
 
 // The slider sizes are pixels at this menu font size; the slider scales them
 // with its font size.

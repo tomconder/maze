@@ -17,9 +17,6 @@
 
 namespace game::ui {
 
-// Space around the panel that holds the rows.
-inline constexpr float panelMargin = 10.F;
-
 // Rows track the menu font, which steps with the window width.
 inline float menuRowHeight(const float windowWidth) {
     return static_cast<float>(
@@ -67,7 +64,6 @@ public:
             tabBarNode = YGNodeNew();
             YGNodeStyleSetFlexDirection(tabBarNode, YGFlexDirectionRow);
             YGNodeStyleSetAlignItems(tabBarNode, YGAlignCenter);
-            YGNodeStyleSetMargin(tabBarNode, YGEdgeLeft, panelMargin);
             // prompt, one node per label, prompt
             for (size_t i = 0; i < tabCount + 2; i++) {
                 YGNodeInsertChild(tabBarNode, YGNodeNew(), static_cast<int>(i));
@@ -85,7 +81,6 @@ public:
         YGNodeInsertChild(rootNode, menuNode,
                           static_cast<int>(YGNodeGetChildCount(rootNode)));
 
-        YGNodeStyleSetMargin(backgroundNode, YGEdgeAll, panelMargin);
         YGNodeStyleSetWidthPercent(backgroundNode, spec.backgroundWidthPercent);
         YGNodeInsertChild(menuNode, backgroundNode, 0);
 
@@ -95,23 +90,27 @@ public:
             rows.push_back(row);
         }
 
-        // Back and the left group, a spacer that takes the rest of the width,
-        // then the right group. A hint is an icon beside its label.
+        // Back and the left group, then the right group, pushed apart by
+        // space-between. A hint is an icon beside its label.
         YGNodeStyleSetFlexDirection(hintBarNode, YGFlexDirectionRow);
         YGNodeStyleSetAlignItems(hintBarNode, YGAlignCenter);
+        YGNodeStyleSetJustifyContent(hintBarNode, YGJustifySpaceBetween);
         YGNodeInsertChild(windowNode, hintBarNode, 1);
+        for (auto* const group : { leftGroupNode, rightGroupNode }) {
+            YGNodeStyleSetFlexDirection(group, YGFlexDirectionRow);
+            YGNodeStyleSetAlignItems(group, YGAlignCenter);
+            YGNodeInsertChild(
+                hintBarNode, group,
+                static_cast<int>(YGNodeGetChildCount(hintBarNode)));
+        }
 
         hintNodes.resize(hints.size());
         const auto order = keyHintOrder(hints);
         for (const auto index : order.left) {
-            addHint(index);
+            addHint(leftGroupNode, index);
         }
-        auto* const spacer = YGNodeNew();
-        YGNodeStyleSetFlexGrow(spacer, 1.F);
-        YGNodeInsertChild(hintBarNode, spacer,
-                          static_cast<int>(YGNodeGetChildCount(hintBarNode)));
         for (const auto index : order.right) {
-            addHint(index);
+            addHint(rightGroupNode, index);
         }
     }
 
@@ -127,7 +126,12 @@ public:
     // not at construction, because the window width is only known once the
     // layout runs.
     void calculate(const float width, const float height) {
+        // space around the panel that holds the rows
+        const auto margin =
+            menuEm(10.F, menuFontSizeForWidth(static_cast<uint32_t>(width)));
+        YGNodeStyleSetMargin(backgroundNode, YGEdgeAll, margin);
         if (tabBarNode != nullptr) {
+            YGNodeStyleSetMargin(tabBarNode, YGEdgeLeft, margin);
             sizeTabBar(width);
         }
         for (auto* const row : rows) {
@@ -181,7 +185,9 @@ public:
             getNodeLayout(hintBarNode, 0.F, 0.F);
         std::vector<KeyHintRects> rects;
         for (auto* const node : hintNodes) {
-            const auto hint = nodeRect(node, barX, barY);
+            const auto [groupX, groupY, groupW, groupH] =
+                getNodeLayout(YGNodeGetParent(node), barX, barY);
+            const auto hint = nodeRect(node, groupX, groupY);
             rects.push_back(
                 { hint, nodeRect(YGNodeGetChild(node, 0), hint.x, hint.y),
                   nodeRect(YGNodeGetChild(node, 1), hint.x, hint.y) });
@@ -201,7 +207,12 @@ public:
         TabBarRects rects{};
         rects.prev = rectOf(0);
         for (uint32_t i = 0; i < tabCount; i++) {
-            rects.labels[i] = rectOf(i + 1);
+            rects.tabs[i]   = rectOf(i + 1);
+            auto* const tab = YGNodeGetChild(tabBarNode, i + 1);
+            rects.dots[i]   = nodeRect(YGNodeGetChild(tab, tabparts::dot),
+                                       rects.tabs[i].x, rects.tabs[i].y);
+            rects.labels[i] = nodeRect(YGNodeGetChild(tab, tabparts::label),
+                                       rects.tabs[i].x, rects.tabs[i].y);
         }
         rects.next = rectOf(tabCount + 1);
         return rects;
@@ -222,14 +233,14 @@ private:
         return { left, top, w, h };
     }
 
-    void addHint(const size_t index) {
+    void addHint(const YGNodeRef group, const size_t index) {
         auto* const hint = YGNodeNew();
         YGNodeStyleSetFlexDirection(hint, YGFlexDirectionRow);
         YGNodeStyleSetAlignItems(hint, YGAlignCenter);
         YGNodeInsertChild(hint, YGNodeNew(), 0);  // icon
         YGNodeInsertChild(hint, YGNodeNew(), 1);  // label
-        YGNodeInsertChild(hintBarNode, hint,
-                          static_cast<int>(YGNodeGetChildCount(hintBarNode)));
+        YGNodeInsertChild(group, hint,
+                          static_cast<int>(YGNodeGetChildCount(group)));
         hintNodes[index] = hint;
     }
 
@@ -237,7 +248,9 @@ private:
         YGNodeStyleSetHeight(hintBarNode, keyHintBarHeight(width));
         YGNodeStyleSetPadding(hintBarNode, YGEdgeHorizontal,
                               keyHintMarginX(width));
-        YGNodeStyleSetGap(hintBarNode, YGGutterColumn, keyHintGap(width) * 2.F);
+        for (auto* const group : { leftGroupNode, rightGroupNode }) {
+            YGNodeStyleSetGap(group, YGGutterColumn, keyHintGap(width) * 2.F);
+        }
 
         for (size_t i = 0; i < hintNodes.size(); i++) {
             auto* const node = hintNodes[i];
@@ -264,9 +277,7 @@ private:
             YGNodeStyleSetHeight(node, icon);
         }
         for (uint32_t i = 0; i < tabCount; i++) {
-            auto* const node = YGNodeGetChild(tabBarNode, i + 1);
-            YGNodeStyleSetWidth(node, labelSizes[i].width);
-            YGNodeStyleSetHeight(node, labelSizes[i].height);
+            layoutTab(YGNodeGetChild(tabBarNode, i + 1), width, labelSizes[i]);
         }
     }
 
@@ -274,6 +285,8 @@ private:
     YGNodeRef              windowNode     = YGNodeNew();
     YGNodeRef              rootNode       = YGNodeNew();
     YGNodeRef              hintBarNode    = YGNodeNew();
+    YGNodeRef              leftGroupNode  = YGNodeNew();
+    YGNodeRef              rightGroupNode = YGNodeNew();
     YGNodeRef              tabBarNode     = nullptr;
     YGNodeRef              menuNode       = YGNodeNew();
     YGNodeRef              backgroundNode = YGNodeNew();

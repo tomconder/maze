@@ -50,7 +50,7 @@ primitives, windowing, or platform backends itself — see
   Only one is ever active; `ui/tabbar.hpp` draws the shared tab strip and owns
   the swap (`showOptionTab`) and the wraparound next/prev order
   (`cycleTab`). The tab strip is a row of five nodes at the top of the Yoga root (`MenuLayoutSpec::optionTab`):
-  the two prompt icons around one node per label. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
+  the two prompt icons around one node per tab. Label sizes come from the font (`setTabLabelSizes()`), and `renderTabBar()` draws where `MenuLayout::tabBarRects()` says. Each tab is a Yoga row of a marker dot and its label (`layoutTab()`): its box is the highlight, and only the active tab draws the dot. The headless `--dump-yoga` measures them with `capture/fontmetrics.hpp`, which needs no GL. `KeyMapLayer` rebinds keys through
   `InputManager::requestRebind()`; the key capture and the settings write both
   happen on the main thread, never in the layer. `AudioLayer`'s volume rows
   are `ui::Slider` (drag, click-to-jump, clicks on the arrows, and
@@ -248,10 +248,8 @@ primitives, windowing, or platform backends itself — see
   bar and key hints derive from it. Checked with `--capture-menu` (all four
   screens) at 1024x768 and 3840x2160, and by screenshot at 1280x720 and
   1920x1080. `ui::Slider` scales its track, handle and gaps from its font size
-  (its `SliderCreateInfo` sizes are pixels at the 32 px font). These do not
-  scale yet:
-  * The 10 px margin in `MenuLayout`.
-  Scale these from the font size when one of them needs the fix.
+  (its `SliderCreateInfo` sizes are pixels at the 32 px font). The panel margin,
+  row margin and key hint margin come from `menuEm()` (`ui/menufontsize.hpp`): pixels at the 21 px font at 1920 wide, scaled with the menu font.
 * The font snaps to the nearest baked size, about 10 to 15% apart, so a width
   between two steps gets the nearest one. Exact scaling needs `BitmapFont` to
   scale a baked size at draw time.
