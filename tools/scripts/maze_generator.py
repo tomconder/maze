@@ -360,7 +360,9 @@ def add_showcase_objects(materials):
 
     # Reflective metal plate in castle
     mx, my = cell_center(9, 9)
-    create_plane("metal_floor", (mx, my, 0.05), (2.5, 2.5, 1), materials['metal'])
+    # A cube spanning -1 to 1: a planar mirror reflects in the top face at
+    # local y = 1, and assets/scenes/maze.yaml scales it into a thin plate.
+    create_cube("metal_floor", (mx, my, 0.05), (2, 2, 2), materials['metal'])
 
     # Ruined pillars in castle, one per cell
     for i, (px, py) in enumerate([(8, 8), (9, 7), (7, 9)]):

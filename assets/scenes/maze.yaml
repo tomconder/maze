@@ -145,8 +145,12 @@ objects:
     thickness: 0.6
     tint: [1.0, 0.45, 0.6]
 
-  # The gold plate in castle cell (9, 9), 2.5 m square, 5 cm above the floor.
+  # The gold plate in castle cell (9, 9): 2.5 m square, 2 cm thick, top face
+  # 5 cm above the floor. The mesh spans -1 to 1, so the scale is half the
+  # size. Planar: a mirrored render of the scene, with no screen-edge misses.
   - name: metal_floor
     path: /models/metal_floor.spnga
-    translation: [12.0, 0.05, -12.0]
+    scale: [1.25, 0.01, 1.25]
+    translation: [12.0, 0.04, -12.0]
     reflective: 0.8
+    planar: true
