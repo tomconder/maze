@@ -2,8 +2,10 @@
 Blender script to generate a 3D maze map for the game engine.
 - Starts in a cave (rocky walls, dirt floor, ceiling)
 - Ends in a ruined castle (mortar stone walls)
-- Material features that survive glTF export: refraction (transmission + IOR),
-  top coat (clearcoat), reflection (metallic / low roughness).
+- Material features that survive glTF export: top coat (clearcoat) and
+  reflection (metallic / low roughness). The engine refracts a whole scene
+  object (`refractive` in the scene file), not a material, so the water pool
+  goes to its own file, water_pool.glb.
   Subsurface and volume absorption are set up for Blender but the glTF
   exporter drops them: the GLB has no KHR_materials_volume or subsurface data.
 
@@ -411,13 +413,18 @@ def build_and_export():
         if obj.type == 'MESH':
             obj.modifiers.new("Triangulate", 'TRIANGULATE')
 
+    # The pool is exported alone: the engine refracts a whole object, so a
+    # pool inside maze_map.glb could only be opaque.
+    pool = bpy.data.objects["water_pool"]
     bpy.ops.object.select_all(action='SELECT')
+    pool.select_set(False)
 
     # Export
     export_path = os.path.join(OUTPUT_DIR, "maze_map.glb")
     print(f"Exporting to {export_path}...")
     bpy.ops.export_scene.gltf(
         filepath=export_path,
+        use_selection=True,
         export_format='GLB',
         export_apply=True,
         export_materials='EXPORT',
@@ -425,6 +432,20 @@ def build_and_export():
         export_normals=True,
         export_tangents=True,
         export_image_format='AUTO',
+    )
+    # At the origin: assets/scenes/maze.yaml places the pool.
+    pool.location = (0, 0, 0)
+    bpy.ops.object.select_all(action='DESELECT')
+    pool.select_set(True)
+    bpy.ops.export_scene.gltf(
+        filepath=os.path.join(OUTPUT_DIR, "water_pool.glb"),
+        export_format='GLB',
+        use_selection=True,
+        export_apply=True,
+        export_materials='EXPORT',
+        export_texcoords=True,
+        export_normals=True,
+        export_tangents=True,
     )
     print("Done! Maze map generated and exported.")
     print(f"GLB: {export_path}")

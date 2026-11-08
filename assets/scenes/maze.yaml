@@ -125,3 +125,13 @@ objects:
 
   - name: maze
     path: /models/maze_map.spnga
+
+  # Refracts the floor under it. The pool mesh is centred on the origin, so
+  # the translation is its place in the maze: cave cell (2, 2), 5 cm up.
+  - name: water_pool
+    path: /models/water_pool.spnga
+    translation: [-16.0, 0.05, 16.0]
+    refractive: true
+    ior: 1.33
+    thickness: 0.3
+    tint: [0.6, 0.85, 1.0]

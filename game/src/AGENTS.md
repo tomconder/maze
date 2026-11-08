@@ -241,9 +241,11 @@ primitives, windowing, or platform backends itself — see
   while the cap is off. It is drawn dim, and `isSelectable()` makes it a label,
   until the cap is on. Keys and arrow clicks move it 5 frames a second; the
   track and a drag move it 1.
-* Refraction has no option and is off (`MazeLayer::refractionEnabled`, false).
-  `captureRenderFrame()` blanks `objectRefraction`, so glass takes the opaque
-  path (prepass, shadows, opaque color) and the glass pass is skipped. The
+* Refraction has no option and is on (`MazeLayer::refractionEnabled`, true).
+  When it is off, `captureRenderFrame()` blanks `objectRefraction`, so glass
+  takes the opaque path (prepass, shadows, opaque color) and the glass pass is
+  skipped. Only an object with `refractive: true` in the scene file refracts;
+  the water pool is its own object for that reason. The
   shadow cache is cleared if the flag changes, because glass then joins or
   leaves the casters.
 
