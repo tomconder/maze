@@ -82,3 +82,45 @@ float shadowCascaded(
     int last = max(cascadeCount - 1, 0);
     return shadowEVSM(shadowMap, mul(lightSpace[last], p), last, evsmBleedThreshold);
 }
+
+// Must match PointShadowMap::maxLights in pointshadowmap.hpp.
+static const int maxPointShadows = 8;
+
+// Shadow bias for a point light, in metres: a fixed part, plus a part that
+// grows with the distance, since a texel covers more of the world far from the
+// light. The surface is also moved along its normal by the same fixed part.
+static const float pointShadowBias      = 0.04;
+static const float pointShadowSlopeBias = 0.01;
+
+// Half-width of the filter, in the cube lookup direction. A texel is 2 / 512.
+static const float pointShadowFilter = 0.006;
+
+// Shadow factor of one point light, where 1 = fully shadowed. The cube holds
+// distance / range, so the lookup is by direction alone. Four taps around the
+// direction soften the edge.
+float shadowPoint(
+    SamplerCubeArray<float4> pointShadowMap,
+    int                      slot,
+    float3                   lightPos,
+    float3                   worldPos,
+    float3                   normal,
+    float                    range) {
+    float3 toFrag = worldPos + normal * pointShadowBias - lightPos;
+    float  dist   = length(toFrag);
+    if (dist >= range) {
+        return 0.0;
+    }
+    float3 dir  = toFrag / dist;
+    float  ref  = (dist - pointShadowBias - pointShadowSlopeBias * dist) / range;
+    float3 up   = abs(dir.y) < 0.99 ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
+    float3 side = normalize(cross(dir, up));
+    float3 high = cross(dir, side);
+
+    float lit = 0.0;
+    for (int i = 0; i < 4; i++) {
+        float2 o      = float2((i & 1) == 0 ? -1.0 : 1.0, (i & 2) == 0 ? -1.0 : 1.0) * pointShadowFilter;
+        float  stored = pointShadowMap.SampleLevel(float4(dir + side * o.x + high * o.y, float(slot)), 0.0).r;
+        lit += ref <= stored ? 1.0 : 0.0;
+    }
+    return 1.0 - lit * 0.25;
+}

@@ -97,6 +97,9 @@ shaders:
     pbr.vert: shaders/slang/pbr.slang:vertMain
     planar.frag: shaders/slang/planar.slang:fragMain
     planar.vert: shaders/slang/planar.slang:vertMain
+    pointshadow.vert: shaders/slang/pointshadow.slang:vertMain
+    pointshadow.frag: shaders/slang/pointshadow.slang:fragMain
+    pointshadow_masked.frag: shaders/slang/pointshadow.slang:fragMainMasked
     probe_irradiance.frag: shaders/slang/probe_irradiance.slang:fragMain
     probe_prefilter.frag: shaders/slang/probe_prefilter.slang:fragMain
     probe_sky.frag: shaders/slang/probe_sky.slang:fragMain
