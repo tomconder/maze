@@ -4,6 +4,7 @@
 #include "ui/layouttypes.hpp"
 
 #include <glm/glm.hpp>
+#include <yoga/Yoga.h>
 
 #include <array>
 #include <cstddef>
@@ -27,12 +28,22 @@ constexpr std::array<std::string_view, tabCount> optionTabLabels{
 };
 
 // Where the tab bar nodes of a layout ended up, in window pixels: the prompt
-// that goes to the previous tab, the three labels and the next tab prompt.
+// that goes to the previous tab, the three tabs and the next tab prompt. A tab
+// is a marker dot beside its label; its box is the highlight of the active
+// tab, and only the active tab draws the dot.
 struct TabBarRects {
     Rect                       prev;
+    std::array<Rect, tabCount> tabs;
+    std::array<Rect, tabCount> dots;
     std::array<Rect, tabCount> labels;
     Rect                       next;
 };
+
+// The children of a tab node.
+namespace tabparts {
+inline constexpr int dot   = 0;
+inline constexpr int label = 1;
+}  // namespace tabparts
 
 // Next (direction = 1) or previous (direction = -1) tab, wrapping at both
 // ends. Any direction works: the second % folds a negative remainder back.
@@ -50,6 +61,10 @@ float tabBarHeight(float windowWidth);
 float tabIconSize(float windowWidth);
 
 float tabGap(float windowWidth);
+
+// Builds the dot and label nodes of a tab the first time and sizes them every
+// time. Needs the window width and the label size, no GL.
+void layoutTab(YGNodeRef tab, float windowWidth, const TextSize& label);
 
 // The size of every tab label at the menu font size for the window width.
 std::array<TextSize, tabCount> tabLabelSizes(float              windowWidth,

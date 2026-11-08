@@ -12,12 +12,11 @@ inline constexpr int labelPart = 0;
 
 // A widget in a row of a menu is a run of parts, left to right. The first part
 // is the label and takes the width the others leave; the row keeps a margin on
-// both sides.
-inline void attachRowParts(const YGNodeRef row, const int count,
-                           const float margin) {
+// both sides, which the caller sets as padding each time the font size may
+// have changed.
+inline void attachRowParts(const YGNodeRef row, const int count) {
     YGNodeStyleSetFlexDirection(row, YGFlexDirectionRow);
     YGNodeStyleSetAlignItems(row, YGAlignCenter);
-    YGNodeStyleSetPadding(row, YGEdgeHorizontal, margin);
     for (int part = 0; part < count; part++) {
         YGNodeInsertChild(row, YGNodeNew(), part);
     }

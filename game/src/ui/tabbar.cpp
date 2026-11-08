@@ -70,6 +70,33 @@ float tabGap(const float windowWidth) {
     return metricsFor(windowWidth).gap;
 }
 
+void layoutTab(const YGNodeRef tab, const float windowWidth,
+               const TextSize& label) {
+    const auto metrics = metricsFor(windowWidth);
+
+    if (YGNodeGetChildCount(tab) == 0) {
+        YGNodeStyleSetFlexDirection(tab, YGFlexDirectionRow);
+        YGNodeStyleSetAlignItems(tab, YGAlignCenter);
+        YGNodeInsertChild(tab, YGNodeNew(), tabparts::dot);
+        YGNodeInsertChild(tab, YGNodeNew(), tabparts::label);
+    }
+
+    // the box of the tab is the highlight of the active one
+    YGNodeStyleSetPadding(tab, YGEdgeHorizontal, metrics.padX);
+    YGNodeStyleSetPadding(tab, YGEdgeVertical, metrics.marginY);
+    YGNodeStyleSetGap(tab, YGGutterColumn, metrics.padX);
+
+    // a square, drawn as a circle
+    const auto  dotSize = static_cast<float>(metrics.size) * 0.25F;
+    auto* const dot     = YGNodeGetChild(tab, tabparts::dot);
+    YGNodeStyleSetWidth(dot, dotSize);
+    YGNodeStyleSetHeight(dot, dotSize);
+
+    auto* const text = YGNodeGetChild(tab, tabparts::label);
+    YGNodeStyleSetWidth(text, label.width);
+    YGNodeStyleSetHeight(text, label.height);
+}
+
 std::array<TextSize, tabCount> tabLabelSizes(const float        windowWidth,
                                              const TextMeasure& measure) {
     const auto size = metricsFor(windowWidth).size;
@@ -93,22 +120,19 @@ void renderTabBar(const OptionTab                    active,
                   const TabBarRects& rects) {
     const auto metrics = metricsFor(windowWidth);
 
-    const auto& rect    = rects.labels[static_cast<size_t>(active)];
-    const auto  dotSize = static_cast<float>(metrics.size) * 0.25F;
+    const auto  index     = static_cast<size_t>(active);
+    const auto& highlight = rects.tabs[index];
+    const auto& dot       = rects.dots[index];
 
-    // the highlight makes room on the left for the marker dot
     highlightQuad().render(
-        { rect.x - metrics.padX * 2.F - dotSize, rect.y - metrics.marginY },
-        { rect.x + rect.width + metrics.padX,
-          rect.y + rect.height + metrics.marginY },
+        { highlight.x, highlight.y },
+        { highlight.x + highlight.width, highlight.y + highlight.height },
         activeFillColor);
 
     // a square with a half-width radius is a circle
-    const auto dotLeft = rect.x - metrics.padX - dotSize;
-    const auto dotTop  = rect.y + (rect.height - dotSize) / 2.F;
-    highlightQuad().render({ dotLeft, dotTop },
-                           { dotLeft + dotSize, dotTop + dotSize },
-                           activeDotColor, dotSize / 2.F);
+    highlightQuad().render({ dot.x, dot.y },
+                           { dot.x + dot.width, dot.y + dot.height },
+                           activeDotColor, dot.width / 2.F);
 
     font->beginPass(metrics.size);
     for (size_t i = 0; i < tabCount; i++) {
@@ -141,8 +165,8 @@ std::optional<OptionTab> tabBarHitTest(const TabBarRects& rects,
     }
 
     for (size_t i = 0; i < tabCount; i++) {
-        if (position.x >= rects.labels[i].x &&
-            position.x <= rects.labels[i].x + rects.labels[i].width) {
+        if (position.x >= rects.tabs[i].x &&
+            position.x <= rects.tabs[i].x + rects.tabs[i].width) {
             return static_cast<OptionTab>(i);
         }
     }

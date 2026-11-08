@@ -47,7 +47,7 @@ Metrics metricsFor(const float windowWidth) {
     const auto iconSize = static_cast<float>(size) * 2.5F;
 
     return { size, iconSize, static_cast<float>(size) * 0.5F,
-             windowWidth * 0.03F, iconSize * 0.3F };
+             game::ui::menuEm(57.6F, menuSize), iconSize * 0.3F };
 }
 
 std::string_view iconOf(const game::ui::KeyHint& hint, const bool gamepad) {
