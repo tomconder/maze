@@ -136,10 +136,10 @@ pub fn convert(sprites: &[(String, PathBuf)], to: &Path) -> Result<()> {
     }
     let (file, width, height) = pack_atlas(&images)?;
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
-    println!(
+    crate::progress::say!(
         "{} sprites -> {} ({width}x{height}, {} bytes)",
         sprites.len(),
-        to.to_string_lossy().replace('\\', "/"),
+        crate::progress::display(to),
         file.len()
     );
     Ok(())

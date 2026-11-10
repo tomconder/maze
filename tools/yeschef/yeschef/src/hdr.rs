@@ -155,9 +155,9 @@ pub fn convert(from: &Path, to: &Path) -> Result<()> {
     }
     let (file, width, height) = bake(&bytes).with_context(|| from.display().to_string())?;
     std::fs::write(to, file).with_context(|| format!("unable to write {}", to.display()))?;
-    println!(
+    crate::progress::say!(
         "{} ({width}x{height} RGBE) -> half float",
-        from.to_string_lossy().replace('\\', "/")
+        crate::progress::display(from)
     );
     Ok(())
 }

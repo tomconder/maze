@@ -395,9 +395,9 @@ pub fn convert(from: &Path, to: &Path) -> Result<()> {
     }
     let (bytes, stats) = bake(&model)?;
     std::fs::write(to, &bytes).with_context(|| format!("unable to write {}", to.display()))?;
-    let name = |path: &Path| path.to_string_lossy().replace('\\', "/");
-    println!("{}: {stats}", name(from));
-    println!(
+    let name = crate::progress::display;
+    crate::progress::say!("{}: {stats}", name(from));
+    crate::progress::say!(
         "{} -> {} ({} meshes, {} bytes)",
         name(from),
         name(to),

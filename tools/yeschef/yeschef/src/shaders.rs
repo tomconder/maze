@@ -92,10 +92,10 @@ pub fn pack(
     let bytes = shaderpack::write(&sources).map_err(|error| anyhow!(error))?;
     std::fs::write(output, &bytes)
         .with_context(|| format!("unable to write {}", output.display()))?;
-    println!(
+    crate::progress::say!(
         "{} shaders -> {} ({} bytes)",
         sources.len(),
-        output.display(),
+        crate::progress::display(output),
         bytes.len()
     );
     Ok(())

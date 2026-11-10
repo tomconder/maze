@@ -611,10 +611,10 @@ pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
     let (file, (width, height)) =
         bake(&data, sizes).with_context(|| format!("unable to bake {}", from.display()))?;
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
-    println!(
+    crate::progress::say!(
         "{} sizes -> {} ({width}x{height}, {} bytes)",
         sizes.len(),
-        to.to_string_lossy().replace('\\', "/"),
+        crate::progress::display(to),
         file.len()
     );
     Ok(())

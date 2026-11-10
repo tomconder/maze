@@ -13,6 +13,7 @@ mod mip;
 mod model;
 mod notices;
 mod pack;
+mod progress;
 mod shaders;
 mod texture;
 
