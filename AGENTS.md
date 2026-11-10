@@ -33,7 +33,6 @@ paths and repeated logs.
 * `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
 * `tools/yeschef/` — Rust workspace. `format` defines the baked file layout (see Global Invariants). `yeschef` is the asset converter the build runs: CLI, manifest, up-to-date checks, notices, the rayon job pool, every converter and `--verify`. CMake builds it with cargo, so a build needs Rust, libclang and the Slang from vcpkg; see `tools/yeschef/README.md`.
 * `assets/shaders/slang/` — Slang sources. `yeschef --manifest` compiles every stage listed under `shaders` in `assets/manifest.yaml` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
-* C++23, vcpkg manifest (`vcpkg.json`). Optional CMake flags: `ENABLE_IMGUI`, `ENABLE_PROFILING` (Tracy).
 * No automated test suite. Verify with compile + run + `pre-commit.exe run --all-files`.
 
 ## Intent Layer
@@ -68,18 +67,7 @@ user should see it.
 
 ## Building
 
-Use a configuration preset to compile `maze`. Possible values are:
-
-| Preset                 | Description                          |
-|------------------------|--------------------------------------|
-| `ci-linux-debug`       | Linux debug build                    |
-| `ci-linux-release`     | Linux release build                  |
-| `ci-osx-debug`         | MacOS debug build                    |
-| `ci-osx-release`       | MacOS release build                  |
-| `ci-windows-debug`     | Windows debug build (uses sccache)   |
-| `ci-windows-release`   | Windows release build (uses sccache) |
-| `windows-clang-debug`  | Windows clang debug build            |
-| `windows-clang-release`| Windows clang release build          |
+Use a configuration preset to compile `maze` (list in `CMakePresets.json`).
 
 These are configure presets. The only build presets are `windows-release`,
 `osx-release` and `linux-release`, which build the matching `ci-*-release`
