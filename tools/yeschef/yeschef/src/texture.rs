@@ -226,10 +226,10 @@ pub fn convert(from: &Path, to: &Path) -> Result<()> {
     let file =
         encode(&decoded, TextureKind::Color, 0.0).with_context(|| from.display().to_string())?;
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
-    println!(
+    crate::progress::say!(
         "{} -> {} ({}x{}, {} bytes)",
-        from.to_string_lossy().replace('\\', "/"),
-        to.to_string_lossy().replace('\\', "/"),
+        crate::progress::display(from),
+        crate::progress::display(to),
         decoded.width,
         decoded.height,
         file.len()

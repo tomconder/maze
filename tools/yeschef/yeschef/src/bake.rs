@@ -1,6 +1,7 @@
 //! Up-to-date checks, the clean-up of a failed output, and the removal of
 //! outputs the manifest does not list.
 
+use crate::progress::Progress;
 use anyhow::{Context, Result, bail};
 use rayon::prelude::*;
 use std::collections::BTreeSet;
@@ -66,11 +67,16 @@ impl Baker {
             self.outputs.insert(self.output_root.join(&job.name));
         }
         let baker = &*self;
+        let progress = Progress::new(
+            jobs.len(),
+            vec![self.source_root.clone(), self.output_root.clone()],
+        );
+        let progress = &progress;
         let results: Vec<Result<()>> = jobs
             .into_par_iter()
             .map(|job| {
                 let name = job.name.clone();
-                baker.bake(job).with_context(|| name)
+                baker.bake(job, progress).with_context(|| name)
             })
             .collect();
         let mut failed = 0;
@@ -87,21 +93,28 @@ impl Baker {
     /// Runs the job unless its output is newer than its inputs, the manifest
     /// and the converter. A failed run deletes its output, so a partial file
     /// never looks current.
-    fn bake(&self, job: Job<'_>) -> Result<()> {
+    fn bake(&self, job: Job<'_>, progress: &Progress) -> Result<()> {
         let output = self.output_root.join(&job.name);
         let mut inputs = job.inputs;
         inputs.push(self.manifest.clone());
         inputs.push(self.converter.clone());
         if up_to_date(&output, &inputs) {
+            progress.skip();
             return Ok(());
         }
+        progress.start(&job.name);
         if let Some(parent) = output.parent() {
             fs::create_dir_all(parent)
                 .with_context(|| format!("unable to create {}", parent.display()))?;
         }
-        (job.run)(&output).inspect_err(|_| {
+        let result = (job.run)(&output).inspect_err(|_| {
             let _ = fs::remove_file(&output);
-        })
+        });
+        match result {
+            Ok(()) => progress.done(&job.name),
+            Err(_) => progress.failed(&job.name),
+        }
+        result
     }
 
     /// Deletes the files in the output folder that no bake listed, so an entry
