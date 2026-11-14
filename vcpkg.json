@@ -1,7 +1,7 @@
 {
   "name": "maze",
   "version-string": "latest",
-  "builtin-baseline": "ec48c11eae9448c8c6e7739d93e06fa2433aa95f",
+  "builtin-baseline": "91f0baffae4e06a68a961d7f6493e8a1ca6775eb",
   "dependencies": [
     {
       "name": "fkyaml",
@@ -9,7 +9,7 @@
     },
     {
       "name": "fmt",
-      "version>=": "12.2.0"
+      "version>=": "12.2.1"
     },
     {
       "name": "glfw3",
@@ -37,7 +37,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2026.21"
+      "version>=": "2026.22"
     },
     {
       "name": "spdlog",
@@ -51,7 +51,7 @@
       "features": [
         "on-demand"
       ],
-      "version>=": "0.14.1"
+      "version>=": "0.15.0"
     },
     {
       "name": "yoga",

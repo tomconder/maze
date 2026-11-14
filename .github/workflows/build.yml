@@ -94,12 +94,12 @@ jobs:
             matrix:
                 include:
                     - os: ubuntu-latest
-                      slang-archive: slang-2026.20-linux-x86_64.tar.gz
-                      slang-sha256: e863e568c204810d6e8bc31852f056aef6763c55ea9925db2db7affa060347c9
+                      slang-archive: slang-2026.22-linux-x86_64.tar.gz
+                      slang-sha256: a877b75c6ec515f5d8bf66ea4bae4f0a5ba85050b9540c2046670285808347e6
 
                     - os: windows-latest
-                      slang-archive: slang-2026.20-windows-x86_64.zip
-                      slang-sha256: e6dd32bbddf1720ebb4e679d55e9635ce792865a5bd84f3d2cd9af28647c0174
+                      slang-archive: slang-2026.22-windows-x86_64.zip
+                      slang-sha256: dd0c4a86bd44cdb7e9cf712af0c8ebf2fff1bba19fa5e3c128ff87384e8ff17b
 
         defaults:
             run:
@@ -118,7 +118,7 @@ jobs:
                   SLANG_ARCHIVE: ${{matrix.slang-archive}}
                   SLANG_SHA256: ${{matrix.slang-sha256}}
               run: |
-                  curl -fsSL -o "${RUNNER_TEMP}/${SLANG_ARCHIVE}" "https://github.com/shader-slang/slang/releases/download/v2026.20/${SLANG_ARCHIVE}"
+                  curl -fsSL -o "${RUNNER_TEMP}/${SLANG_ARCHIVE}" "https://github.com/shader-slang/slang/releases/download/v2026.22/${SLANG_ARCHIVE}"
                   echo "${SLANG_SHA256}  ${RUNNER_TEMP}/${SLANG_ARCHIVE}" | sha256sum --check
                   mkdir "${RUNNER_TEMP}/slang"
                   cd "${RUNNER_TEMP}/slang"
