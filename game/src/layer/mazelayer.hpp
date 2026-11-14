@@ -420,7 +420,7 @@ private:
     float                         ambientStrength     = .25F;
     float                         ao                  = .25F;
     bool                          translucencyEnabled = false;
-    bool                          refractionEnabled   = false;
+    bool                          refractionEnabled   = true;
     bool                          mouseButtonPressed  = false;
     bool                          isImguiOpen         = true;
 
