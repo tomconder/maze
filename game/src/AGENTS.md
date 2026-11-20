@@ -171,9 +171,13 @@ primitives, windowing, or platform backends itself — see
   together (`shadowPresets` in `mazelayer.cpp`); the options row and the debug
   combo both call `MazeLayer::setShadowQuality()`. The scene file has no
   shadow size. The debug UI keeps only Cascade Split as a free control.
-* Point lights are placed by the seeded spiral in `setNumLights()`, not
-  authored one by one, so the debug slider can change the count at run
-  time. The scene file carries the generator's inputs, not positions.
+* Point lights: `lighting.point.lights` in the scene file lists each light's
+  `position` and `color`. With no `count` key, the count is the list length.
+  `MazeLayer::buildPointLights()` first fills every light from the seeded
+  ellipse, then overwrites the first `lights.size()` with the authored ones,
+  so the debug slider can still raise the count past the list. `count` is
+  clamped to `ClusteredLights::maxLights`. A scene with no list uses the
+  ellipse alone.
 * Scene object paths come from YAML, so a typo reaches run time.
   `loadScene()` drops entries with an empty name or path, which is what
   keeps `objectModels`, `objectModelMatrices` and `objectEmissives`
@@ -237,9 +241,12 @@ primitives, windowing, or platform backends itself — see
   while the cap is off. It is drawn dim, and `isSelectable()` makes it a label,
   until the cap is on. Keys and arrow clicks move it 5 frames a second; the
   track and a drag move it 1.
-* Refraction has no option and is off (`MazeLayer::refractionEnabled`, false).
-  `captureRenderFrame()` blanks `objectRefraction`, so glass takes the opaque
-  path (prepass, shadows, opaque color) and the glass pass is skipped. The
+* Refraction has no option and is on (`MazeLayer::refractionEnabled`, true).
+  When it is off, `captureRenderFrame()` blanks `objectRefraction`, so glass
+  takes the opaque path (prepass, shadows, opaque color) and the glass pass is
+  skipped. Only an object with `refractive: true` in the scene file refracts;
+  the water pool and the crystal are their own objects for that reason, and so
+  is the metal plate, which needs its own `reflective`. The
   shadow cache is cleared if the flag changes, because glass then joins or
   leaves the casters.
 

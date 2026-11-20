@@ -1288,6 +1288,15 @@ void MazeLayer::buildPointLights(const int32_t count) {
             (radiusX + jitterRadius(rng)) * glm::sin(angle), params.height,
             -(radiusZ + jitterRadius(rng)) * glm::cos(angle));
     }
+
+    // Authored lights replace the first of the ellipse, so a count above the
+    // list still gets lights, just not placed by hand.
+    const auto authored =
+        std::min(static_cast<size_t>(count), params.lights.size());
+    for (size_t i = 0; i < authored; i++) {
+        pointLights.at(i).position = params.lights[i].position;
+        pointLights.at(i).color    = params.lights[i].color;
+    }
     builtLights = count;
 }
 

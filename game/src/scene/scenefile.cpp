@@ -79,6 +79,34 @@ void readCamera(const node& root, game::scene::SceneCamera& camera) {
     camera.pitch    = readFloat(*map, "pitch", camera.pitch);
 }
 
+// `lights: [{ position: [x, y, z], color: [r, g, b] }, ...]`. An entry with
+// no position is dropped, because a light at the origin is never what a typo
+// meant. Radiance is linear and feeds bloom, so a negative colour is clamped.
+void readPointLightList(const node& point, game::scene::ScenePointLights& dst) {
+    const auto* sequence = find(point, "lights");
+    if (sequence == nullptr || !sequence->is_sequence()) {
+        return;
+    }
+    for (const auto& entry : *sequence) {
+        if (find(entry, "position") == nullptr) {
+            SPONGE_WARN("Skipping scene point light without a position");
+            continue;
+        }
+        game::scene::ScenePointLight light;
+        light.position = readVec3(entry, "position", light.position);
+        light.color    = readVec3(entry, "color", dst.color);
+        if (glm::any(glm::lessThan(light.color, glm::vec3(0.F)))) {
+            SPONGE_WARN("Scene point light color clamped to 0");
+            light.color = glm::max(light.color, glm::vec3(0.F));
+        }
+        dst.lights.push_back(light);
+    }
+    // MazeLayer clamps the count to the engine's light limit.
+    if (!dst.lights.empty() && find(point, "count") == nullptr) {
+        dst.count = static_cast<int32_t>(dst.lights.size());
+    }
+}
+
 void readLighting(const node& root, game::scene::SceneLighting& lighting) {
     const auto* map = find(root, "lighting");
     if (map == nullptr) {
@@ -115,6 +143,7 @@ void readLighting(const node& root, game::scene::SceneLighting& lighting) {
             readInt(*point, "attenuationIndex", dst.attenuationIndex);
         dst.debugCubeScale =
             readFloat(*point, "debugCubeScale", dst.debugCubeScale);
+        readPointLightList(*point, dst);
     }
 }
 
