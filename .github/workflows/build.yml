@@ -208,14 +208,18 @@ jobs:
             - name: Install LLVM 22
               if: runner.os == 'Windows'
               shell: pwsh
+              env:
+                  LLVM_VERSION: 22.1.8
+                  LLVM_SHA256: 16e5709785fef73c854646241c4a92c5cd574318d1b33c63330dd7721903e55c
               run: |
-                  # choco exits 0 when its feed returns 503, so check the installed version.
-                  $clang = "C:\Program Files\LLVM\bin\clang++.exe"
-                  for ($i = 1; $i -le 3; $i++) {
-                      choco upgrade llvm --version=22.1.8 --allow-downgrade -y --no-progress
-                      if ((& $clang --version | Select-Object -First 1) -match 'version 22\.') { break }
-                      Start-Sleep -Seconds (15 * $i)
+                  $installer = Join-Path $env:RUNNER_TEMP "LLVM-$env:LLVM_VERSION-win64.exe"
+                  $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$env:LLVM_VERSION/LLVM-$env:LLVM_VERSION-win64.exe"
+                  Invoke-WebRequest -Uri $url -OutFile $installer -MaximumRetryCount 5 -RetryIntervalSec 10
+                  if ((Get-FileHash $installer -Algorithm SHA256).Hash -ne $env:LLVM_SHA256) {
+                      throw "LLVM installer checksum mismatch"
                   }
+                  Start-Process $installer -ArgumentList '/S', '/D=C:\Program Files\LLVM' -Wait
+                  $clang = "C:\Program Files\LLVM\bin\clang++.exe"
                   & $clang --version
                   if ((& $clang --version | Select-Object -First 1) -notmatch 'version 22\.') {
                       throw "LLVM 22 install failed"
