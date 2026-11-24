@@ -203,6 +203,16 @@ jobs:
                   key: vcpkg-bin-linux-${{hashFiles('vcpkg.json', 'CMakePresets.json')}}
                   restore-keys: vcpkg-bin-linux-
 
+            # The MSVC STL on the runner needs Clang 22 or newer. This replaces
+            # the older LLVM in C:\Program Files\LLVM, which LIBCLANG_PATH uses.
+            - name: Install LLVM 22
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: |
+                  choco upgrade llvm --version=22.1.8 --allow-downgrade -y --no-progress
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                  & "C:\Program Files\LLVM\bin\clang++.exe" --version
+
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
