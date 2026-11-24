@@ -8,6 +8,14 @@ vcpkg_installed/
 .slangbuild.log
 buildlog.txt
 
+# secrets
+.env
+.env.*
+*.pem
+*.key
+*.tfstate
+*.tfstate.*
+
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 

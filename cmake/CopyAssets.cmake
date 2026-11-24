@@ -9,6 +9,12 @@
 # left there is either an input or unused - shipping it either way is waste.
 #
 # Required variables: SRC_DIR, DST_DIR, SRC_BAKED, EXCLUDE_REGEX
+foreach (REQUIRED SRC_DIR DST_DIR SRC_BAKED)
+    if (NOT ${REQUIRED})
+        message(FATAL_ERROR "CopyAssets: ${REQUIRED} is empty")
+    endif ()
+endforeach ()
+
 file(COPY "${SRC_DIR}/"
      DESTINATION "${DST_DIR}"
      FILES_MATCHING
@@ -29,6 +35,7 @@ file(GLOB_RECURSE DEPLOYED_FILES RELATIVE "${DST_DIR}" "${DST_DIR}/*")
 foreach (FILE IN LISTS DEPLOYED_FILES)
     if ((NOT EXISTS "${SRC_BAKED}/${FILE}" AND NOT EXISTS "${SRC_DIR}/${FILE}")
         OR "${DST_DIR}/${FILE}" MATCHES "${EXCLUDE_REGEX}")
+        message(STATUS "CopyAssets: removing stale ${DST_DIR}/${FILE}")
         file(REMOVE "${DST_DIR}/${FILE}")
     endif ()
 endforeach ()
