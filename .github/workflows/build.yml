@@ -209,9 +209,17 @@ jobs:
               if: runner.os == 'Windows'
               shell: pwsh
               run: |
-                  choco upgrade llvm --version=22.1.8 --allow-downgrade -y --no-progress
-                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                  & "C:\Program Files\LLVM\bin\clang++.exe" --version
+                  # choco exits 0 when its feed returns 503, so check the installed version.
+                  $clang = "C:\Program Files\LLVM\bin\clang++.exe"
+                  for ($i = 1; $i -le 3; $i++) {
+                      choco upgrade llvm --version=22.1.8 --allow-downgrade -y --no-progress
+                      if ((& $clang --version | Select-Object -First 1) -match 'version 22\.') { break }
+                      Start-Sleep -Seconds (15 * $i)
+                  }
+                  & $clang --version
+                  if ((& $clang --version | Select-Object -First 1) -notmatch 'version 22\.') {
+                      throw "LLVM 22 install failed"
+                  }
 
             - name: Setup MSVC toolchain
               if: runner.os == 'Windows'
