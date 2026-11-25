@@ -56,7 +56,7 @@ void Diagnostics::log() {
             const std::string ext = extPtr ? extPtr : "";
             ss << fmt::format(" {:49}", ext);
         }
-        SPONGE_GL_DEBUG(ss.str());
+        SPONGE_GL_DEBUG("{}", ss.str());
     }
 }
 }  // namespace sponge::platform::opengl::debug

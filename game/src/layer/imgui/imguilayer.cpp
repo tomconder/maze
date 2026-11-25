@@ -703,9 +703,10 @@ void ImGuiLayer::showLogMessages(const ImGuiTextFilter&          filter,
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
 
     Maze::get().forEachMessage([&](const sponge::logging::LogItem& item) {
-        if (shouldShowLogMessage(item.message, item.loggerName, item.level,
-                                 filter, activeLogLevel, activeCategory)) {
-            renderLogMessage(item.message, item.level);
+        const auto level = static_cast<spdlog::level::level_enum>(item.level);
+        if (shouldShowLogMessage(item.message, item.loggerName, level, filter,
+                                 activeLogLevel, activeCategory)) {
+            renderLogMessage(item.message, level);
         }
     });
 

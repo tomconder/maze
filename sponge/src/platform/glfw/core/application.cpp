@@ -12,7 +12,6 @@
 #include "platform/opengl/renderer/rendererapi.hpp"
 
 #include <GLFW/glfw3.h>
-#include <fmt/format.h>
 #include <glm/glm.hpp>
 
 #include <algorithm>
@@ -136,8 +135,7 @@ bool initGlfw() {
         const char* descCStr = nullptr;
         glfwGetError(&descCStr);
         const std::string description = descCStr ? descCStr : "Unknown error";
-        SPONGE_CORE_CRITICAL(
-            fmt::format("Unable to initialize glfw: {}", description));
+        SPONGE_CORE_CRITICAL("Unable to initialize glfw: {}", description);
         return false;
     }
     return true;

@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cassert>
 #include <cstdint>
 #include <filesystem>
 #include <span>

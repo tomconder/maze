@@ -1,20 +1,25 @@
 #pragma once
 
-#include "spdlog/spdlog.h"
-
-// include custom log formatters
-// ReSharper disable once CppUnusedIncludeDirective
-#include "logging/logcustom.hpp"
+// spdlog.h is slow to compile, so only log.cpp and the log sinks include it
+#include <fmt/base.h>
 
 #include <memory>
 #include <string>
-#include <vector>
+
+namespace spdlog::sinks {
+class sink;
+}  // namespace spdlog::sinks
 
 namespace sponge::logging {
+enum class Channel { App, Core, Gl };
+
+// values match spdlog::level::level_enum and SPDLOG_ACTIVE_LEVEL
+enum class Level { Trace, Debug, Info, Warn, Error, Critical };
+
 struct LogItem {
-    std::string               message;
-    std::string               loggerName;
-    spdlog::level::level_enum level;
+    std::string message;
+    std::string loggerName;
+    Level       level;
 };
 
 class Log {
@@ -23,20 +28,16 @@ public:
 
     static void shutdown();
 
-    static std::shared_ptr<spdlog::logger> getAppLogger() {
-        return appLogger;
-    }
+    static void addSink(const std::shared_ptr<spdlog::sinks::sink>& sink,
+                        const std::string&                          pattern);
 
-    static std::shared_ptr<spdlog::logger> getCoreLogger() {
-        return coreLogger;
+    template <typename... Args>
+    static void print(const Channel channel, const Level level,
+                      const char* file, const int line, const char* function,
+                      fmt::format_string<Args...> format, Args&&... args) {
+        write(channel, level, file, line, function, format.get(),
+              fmt::make_format_args(args...));
     }
-
-    static std::shared_ptr<spdlog::logger> getGlLogger() {
-        return glLogger;
-    }
-
-    static void addSink(const spdlog::sink_ptr& sink,
-                        const std::string&      pattern);
 
     static constexpr const char* colorFormatPattern =
         "%^%L%m%d %T.%f %7t %s:%# [%n] %v%$";
@@ -44,51 +45,76 @@ public:
         "%L%m%d %T.%f %7t %s:%# [%n] %v";
 
 private:
-    static std::shared_ptr<spdlog::logger> appLogger;
-    static std::shared_ptr<spdlog::logger> coreLogger;
-    static std::shared_ptr<spdlog::logger> glLogger;
-
-    static std::shared_ptr<spdlog::logger>
-        registerLogger(const std::string&                   name,
-                       const std::vector<spdlog::sink_ptr>& sinks);
+    static void write(Channel channel, Level level, const char* file, int line,
+                      const char* function, fmt::string_view format,
+                      fmt::format_args args);
 };
-
-#define SPONGE_CORE_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(logging::Log::getCoreLogger(), __VA_ARGS__)
-#define SPONGE_CORE_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(logging::Log::getCoreLogger(), __VA_ARGS__)
-#define SPONGE_CORE_INFO(...) \
-    SPDLOG_LOGGER_INFO(logging::Log::getCoreLogger(), __VA_ARGS__)
-#define SPONGE_CORE_WARN(...) \
-    SPDLOG_LOGGER_WARN(logging::Log::getCoreLogger(), __VA_ARGS__)
-#define SPONGE_CORE_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(logging::Log::getCoreLogger(), __VA_ARGS__)
-#define SPONGE_CORE_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(logging::Log::getCoreLogger(), __VA_ARGS__)
-
-#define SPONGE_GL_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_INFO(...) \
-    SPDLOG_LOGGER_INFO(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_WARN(...) \
-    SPDLOG_LOGGER_WARN(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
-#define SPONGE_GL_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getGlLogger(), __VA_ARGS__)
 }  // namespace sponge::logging
 
-#define SPONGE_TRACE(...) \
-    SPDLOG_LOGGER_TRACE(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_DEBUG(...) \
-    SPDLOG_LOGGER_DEBUG(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_INFO(...) \
-    SPDLOG_LOGGER_INFO(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_WARN(...) \
-    SPDLOG_LOGGER_WARN(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_ERROR(...) \
-    SPDLOG_LOGGER_ERROR(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
-#define SPONGE_CRITICAL(...) \
-    SPDLOG_LOGGER_CRITICAL(sponge::logging::Log::getAppLogger(), __VA_ARGS__)
+#define SPONGE_LOG(channel, level, ...)                                       \
+    ::sponge::logging::Log::print(                                            \
+        ::sponge::logging::Channel::channel, ::sponge::logging::Level::level, \
+        __FILE__, __LINE__, static_cast<const char*>(__FUNCTION__),           \
+        __VA_ARGS__)
+
+// Levels below SPDLOG_ACTIVE_LEVEL compile to nothing. It must be a number:
+// the preprocessor reads an spdlog level name as 0 without spdlog/common.h.
+static_assert(SPDLOG_ACTIVE_LEVEL >= 0 && SPDLOG_ACTIVE_LEVEL <= 6);
+
+#if SPDLOG_ACTIVE_LEVEL <= 0
+#define SPONGE_LOG_TRACE(channel, ...) SPONGE_LOG(channel, Trace, __VA_ARGS__)
+#else
+#define SPONGE_LOG_TRACE(channel, ...) (void)0
+#endif
+
+#if SPDLOG_ACTIVE_LEVEL <= 1
+#define SPONGE_LOG_DEBUG(channel, ...) SPONGE_LOG(channel, Debug, __VA_ARGS__)
+#else
+#define SPONGE_LOG_DEBUG(channel, ...) (void)0
+#endif
+
+#if SPDLOG_ACTIVE_LEVEL <= 2
+#define SPONGE_LOG_INFO(channel, ...) SPONGE_LOG(channel, Info, __VA_ARGS__)
+#else
+#define SPONGE_LOG_INFO(channel, ...) (void)0
+#endif
+
+#if SPDLOG_ACTIVE_LEVEL <= 3
+#define SPONGE_LOG_WARN(channel, ...) SPONGE_LOG(channel, Warn, __VA_ARGS__)
+#else
+#define SPONGE_LOG_WARN(channel, ...) (void)0
+#endif
+
+#if SPDLOG_ACTIVE_LEVEL <= 4
+#define SPONGE_LOG_ERROR(channel, ...) SPONGE_LOG(channel, Error, __VA_ARGS__)
+#else
+#define SPONGE_LOG_ERROR(channel, ...) (void)0
+#endif
+
+#if SPDLOG_ACTIVE_LEVEL <= 5
+#define SPONGE_LOG_CRITICAL(channel, ...) \
+    SPONGE_LOG(channel, Critical, __VA_ARGS__)
+#else
+#define SPONGE_LOG_CRITICAL(channel, ...) (void)0
+#endif
+
+#define SPONGE_CORE_TRACE(...)    SPONGE_LOG_TRACE(Core, __VA_ARGS__)
+#define SPONGE_CORE_DEBUG(...)    SPONGE_LOG_DEBUG(Core, __VA_ARGS__)
+#define SPONGE_CORE_INFO(...)     SPONGE_LOG_INFO(Core, __VA_ARGS__)
+#define SPONGE_CORE_WARN(...)     SPONGE_LOG_WARN(Core, __VA_ARGS__)
+#define SPONGE_CORE_ERROR(...)    SPONGE_LOG_ERROR(Core, __VA_ARGS__)
+#define SPONGE_CORE_CRITICAL(...) SPONGE_LOG_CRITICAL(Core, __VA_ARGS__)
+
+#define SPONGE_GL_TRACE(...)    SPONGE_LOG_TRACE(Gl, __VA_ARGS__)
+#define SPONGE_GL_DEBUG(...)    SPONGE_LOG_DEBUG(Gl, __VA_ARGS__)
+#define SPONGE_GL_INFO(...)     SPONGE_LOG_INFO(Gl, __VA_ARGS__)
+#define SPONGE_GL_WARN(...)     SPONGE_LOG_WARN(Gl, __VA_ARGS__)
+#define SPONGE_GL_ERROR(...)    SPONGE_LOG_ERROR(Gl, __VA_ARGS__)
+#define SPONGE_GL_CRITICAL(...) SPONGE_LOG_CRITICAL(Gl, __VA_ARGS__)
+
+#define SPONGE_TRACE(...)    SPONGE_LOG_TRACE(App, __VA_ARGS__)
+#define SPONGE_DEBUG(...)    SPONGE_LOG_DEBUG(App, __VA_ARGS__)
+#define SPONGE_INFO(...)     SPONGE_LOG_INFO(App, __VA_ARGS__)
+#define SPONGE_WARN(...)     SPONGE_LOG_WARN(App, __VA_ARGS__)
+#define SPONGE_ERROR(...)    SPONGE_LOG_ERROR(App, __VA_ARGS__)
+#define SPONGE_CRITICAL(...) SPONGE_LOG_CRITICAL(App, __VA_ARGS__)

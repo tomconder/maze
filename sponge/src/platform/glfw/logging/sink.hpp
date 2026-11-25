@@ -28,7 +28,7 @@ void Sink<Mutex>::sink_it_(const spdlog::details::log_msg& msg) {
     const LogItem it{
         .message    = formattedText,
         .loggerName = msg.logger_name.data(),
-        .level      = msg.level,
+        .level      = static_cast<logging::Level>(msg.level),
     };
 
     core::Application::get().addMessage(it);
