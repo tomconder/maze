@@ -19,7 +19,7 @@
 
 namespace {
 constexpr std::string_view fontName = "inter";
-constexpr std::string_view fontPath = "/fonts/inter.ktx2";
+constexpr std::string_view fontPath = "/fonts/inter.spnga";
 
 constexpr glm::vec4 backgroundColor = { 0.F, 0.F, 0.F, 1.F };
 constexpr glm::vec4 rowColor        = { 0.F, 0.F, 0.F, 0.F };

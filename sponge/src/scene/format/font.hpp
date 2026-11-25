@@ -9,10 +9,9 @@
 #include <string_view>
 #include <vector>
 
-// Baked font tables. A font bakes to one KTX2 file: the glyph atlas as its
-// image, and these tables under the fontKey key/value entry. Written by the
-// converter, read by BitmapFont. The byte layout is defined in Rust
-// (tools/yeschef/format/src/font.rs) and generated into
+// Baked font file (.spnga): the shaping tables and the glyph atlas as a whole
+// KTX2 file. Written by the converter, read by BitmapFont. The byte layout is
+// defined in Rust (tools/yeschef/format/src/font.rs) and generated into
 // assetlayout.generated.hpp.
 //
 // Shaping is table lookup. The converter shapes with HarfBuzz with ligatures
@@ -22,7 +21,6 @@
 // than pair kerning fails the bake.
 namespace sponge::scene::font {
 
-constexpr std::string_view fontKey = "spongeFont";
 // Increase when the layout or subpixelPhases changes.
 constexpr uint32_t version = layout::FONT_VERSION;
 
@@ -59,9 +57,11 @@ struct ShapedGlyph {
     float    xAdvance;  // pixels
 };
 
-// On failure, returns a Font with no sizes and sets error. error is left
-// alone on success, so pass an empty string.
-Font read(std::span<const uint8_t> bytes, std::string& error);
+// atlas is set to the KTX2 file, which points into bytes. On failure, returns
+// a Font with no sizes and sets error. error is left alone on success, so pass
+// an empty string.
+Font read(std::span<const uint8_t> bytes, std::span<const uint8_t>& atlas,
+          std::string& error);
 
 // Returns nullptr when the font was not baked at this size.
 const Size* sizeOf(const Font& font, uint32_t pixels);

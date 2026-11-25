@@ -1,6 +1,6 @@
-//! Bakes a font into one KTX2 file: an RGB atlas of LCD coverage and, beside
-//! it, the shaping tables the engine reads (`sponge/src/scene/format/font.hpp`
-//! has the layout and the reasoning).
+//! Bakes a font into one `.spnga` file: the shaping tables the engine reads
+//! and an RGB atlas of LCD coverage as a KTX2 file
+//! (`sponge/src/scene/format/font.hpp` has the reasoning).
 //!
 //! Shaping at run time is table lookup: a glyph per codepoint, an advance per
 //! glyph and a kerning adjustment per glyph pair. The bake shapes with
@@ -21,7 +21,7 @@ use skrifa::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
-use yeschef_format::font::{FONT_KEY, FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables};
+use yeschef_format::font::{FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables};
 use yeschef_format::ktx2::{self, Format};
 use zeno::{Command, Mask, Point};
 
@@ -523,7 +523,7 @@ fn standard_width(font: &FontRef) -> i64 {
     }
 }
 
-/// Bakes the font at each size. Returns the KTX2 file and the atlas size.
+/// Bakes the font at each size. Returns the font file and the atlas size.
 pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
     ensure!(!sizes.is_empty(), "no font sizes");
     ensure!(sizes.iter().all(|&s| s > 0), "a font size is 0");
@@ -601,9 +601,8 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
         .par_iter()
         .try_for_each(|size| check_against_shaper(&shaper_font, &slots, &tables, size))?;
 
-    let key_values = [(FONT_KEY.to_string(), tables.to_bytes())];
-    let file = ktx2::write(Format::R8G8B8Unorm, width, height, &[pixels], &key_values);
-    Ok((file, (width, height)))
+    let atlas = ktx2::write(Format::R8G8B8Unorm, width, height, &[pixels], &[]);
+    Ok((tables.to_file(&atlas), (width, height)))
 }
 
 pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
@@ -623,6 +622,9 @@ pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use yeschef_format::font::FontHeader;
+
+    const HEADER: usize = size_of::<FontHeader>();
 
     fn inter() -> Vec<u8> {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../assets/fonts/inter.ttf");
@@ -636,23 +638,20 @@ mod tests {
     #[test]
     fn a_baked_font_has_the_tables_the_engine_reads() {
         let (file, (width, height)) = bake(&inter(), &[12]).unwrap();
-        let image = ktx2::read(&file).unwrap();
+        let header: FontHeader = bytemuck::pod_read_unaligned(&file[..HEADER]);
+        let (tables, atlas) = file.split_at(header.ktx2_offset as usize);
+        assert_eq!(atlas.len(), header.ktx2_size as usize);
+        let image = ktx2::read(atlas).unwrap();
+        assert!(image.key_values.is_empty());
         assert_eq!(image.vk_format, Format::R8G8B8Unorm as u32);
         assert_eq!((image.width, image.height), (width, height));
         assert_eq!(image.levels[0].len(), (width * height) as usize * CHANNELS);
         assert!(image.levels[0].iter().any(|&texel| texel != 0));
 
-        let (key, tables) = &image.key_values[0];
-        assert_eq!(key, FONT_KEY);
-        let (version, slots, plain, tabular, sizes) = (
-            u32_at(tables, 0),
-            u32_at(tables, 4) as usize,
-            u32_at(tables, 8),
-            u32_at(tables, 12),
-            u32_at(tables, 16),
-        );
+        let slots = header.slot_count as usize;
+        let (plain, tabular) = (header.slot_map_count, header.tabular_map_count);
         assert_eq!(
-            (version, plain, tabular, sizes),
+            (header.version, plain, tabular, header.size_count),
             (yeschef_format::font::FONT_VERSION, 96, 96, 1)
         );
         // Printable ASCII, the multiplication sign, the missing glyph, and a
@@ -661,7 +660,7 @@ mod tests {
 
         // Size header: pixels, line height 15 and ascender 12 for Inter at
         // 12 px, as FreeType reports them.
-        let size_at = 20 + 8 * (plain + tabular) as usize;
+        let size_at = HEADER + 8 * (plain + tabular) as usize;
         assert_eq!(u32_at(tables, size_at), 12);
         assert_eq!(f32::from_bits(u32_at(tables, size_at + 4)), 15.0);
         assert_eq!(f32::from_bits(u32_at(tables, size_at + 8)), 12.0);
@@ -673,10 +672,9 @@ mod tests {
     #[test]
     fn bigger_sizes_have_bigger_advances() {
         let (file, _) = bake(&inter(), &[12, 24]).unwrap();
-        let image = ktx2::read(&file).unwrap();
-        let tables = image.key_values[0].1;
-        let slots = u32_at(tables, 4) as usize;
-        let first = 20 + 8 * 192;
+        let tables = &file[..];
+        let slots = u32_at(tables, 12) as usize;
+        let first = HEADER + 8 * 192;
         let kerning_12 = u32_at(tables, first + 12) as usize;
         let second = first + 16 + 4 * slots + 32 * PHASES * slots + 8 * kerning_12;
         assert_eq!(u32_at(tables, second), 24);

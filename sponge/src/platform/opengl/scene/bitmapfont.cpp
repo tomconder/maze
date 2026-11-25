@@ -5,7 +5,6 @@
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "scene/format/font.hpp"
-#include "scene/format/ktx2.hpp"
 #include "scene/format/readbytes.hpp"
 
 #include <algorithm>
@@ -13,6 +12,7 @@
 #include <cassert>
 #include <cmath>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -74,22 +74,9 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
         return;
     }
 
-    std::string error;
-    const auto  image = sponge::scene::ktx2::read(bytes, error);
-    if (image.levels.empty()) {
-        SPONGE_GL_ERROR("{}: {}", path, error);
-        return;
-    }
-
-    const auto tables =
-        std::ranges::find_if(image.keyValues, [](const auto& entry) {
-            return entry.first == sponge::scene::font::fontKey;
-        });
-    if (tables == image.keyValues.end()) {
-        SPONGE_GL_ERROR("Font {} carries no glyph tables", path);
-        return;
-    }
-    font = sponge::scene::font::read(tables->second, error);
+    std::string              error;
+    std::span<const uint8_t> atlas;
+    font = sponge::scene::font::read(bytes, atlas, error);
     if (!error.empty()) {
         SPONGE_GL_ERROR("{}: {}", path, error);
         return;
@@ -101,7 +88,7 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     const renderer::TextureCreateInfo textureCreateInfo{
         .name     = createInfo.name,
         .path     = "",
-        .ktx2     = bytes,
+        .ktx2     = atlas,
         .loadFlag = renderer::Pixelated,
     };
     texture = std::make_unique<renderer::Texture>(textureCreateInfo);

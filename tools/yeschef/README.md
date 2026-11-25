@@ -4,19 +4,19 @@ yeschef is the asset converter for the game. It replaced the C++ converter `asse
 
 ## format
 
-`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the font tables. The structs are `repr(C)`, and compile-time asserts pin their sizes.
+`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the `.spnga` font file. The structs are `repr(C)`, and compile-time asserts pin their sizes.
 
 cbindgen turns the structs into `sponge/src/scene/format/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
 
 To change the layout:
 
-1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION` or `SHADERPACK_VERSION` if the layout changes.
+1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION`, `SHADERPACK_VERSION` or `FONT_VERSION` if the layout changes.
 2. Run `UPDATE_LAYOUT_HEADER=1 cargo test` here to rewrite the header.
 3. Rebuild the C++ side. The asserts in `sponge/src/scene/format/assetformat.hpp` fail if a hand-written glm twin no longer matches.
 
 `cargo test` fails when the checked-in header differs from what cbindgen makes.
 
-The font tables (`format/src/font.rs`, stored under the `spongeFont` key of the font KTX2 file) are in the header too. The KTX2 container is a standard format. `format/src/ktx2.rs` writes and reads it, and it is not in the header.
+The font file (`format/src/font.rs`: the shaping tables, then the atlas as a whole KTX2 file) is in the header too. The KTX2 container is a standard format. `format/src/ktx2.rs` writes and reads it, and it is not in the header.
 
 ## yeschef
 

@@ -28,9 +28,12 @@ constexpr static const uint32_t SHADERPACK_VERSION = 1;
 /// integer.
 constexpr static const uint64_t SHADERPACK_MAGIC = 79522515800147;
 
-/// Font tables version. Increase when the layout or [`SUBPIXEL_PHASES`]
+/// Font file magic, the bytes `SPNGF\0\0\0` read as a little endian integer.
+constexpr static const uint64_t FONT_MAGIC = 301844025427;
+
+/// Font file version. Increase when the layout or [`SUBPIXEL_PHASES`]
 /// changes.
-constexpr static const uint32_t FONT_VERSION = 1;
+constexpr static const uint32_t FONT_VERSION = 2;
 
 /// Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
 constexpr static const uint32_t SUBPIXEL_PHASES = 4;
@@ -147,13 +150,18 @@ struct ShaderPackEntry {
   uint32_t sourceSize;
 };
 
-/// Start of the font tables.
+/// Start of a font file.
 struct FontHeader {
+  /// The bytes of `FONT_MAGIC`.
+  uint8_t magic[8];
   uint32_t version;
   uint32_t slotCount;
   uint32_t slotMapCount;
   uint32_t tabularMapCount;
   uint32_t sizeCount;
+  /// The KTX2 atlas, from the start of the file.
+  uint32_t ktx2Offset;
+  uint32_t ktx2Size;
 };
 
 /// A codepoint and its glyph slot.

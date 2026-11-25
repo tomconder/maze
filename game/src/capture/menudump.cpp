@@ -121,7 +121,7 @@ std::optional<std::string> dumpMenuYoga(const std::string_view screen,
 bool writeMenuYoga(const std::string_view screen, const uint32_t width,
                    const uint32_t height) {
     FontMetrics metrics(sponge::core::File::getResourceDir() +
-                        "/fonts/inter.ktx2");
+                        "/fonts/inter.spnga");
     const auto  tree = dumpMenuYoga(screen, width, height, metrics.measure());
     if (!tree) {
         return false;
