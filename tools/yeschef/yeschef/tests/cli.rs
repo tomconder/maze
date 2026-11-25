@@ -61,13 +61,16 @@ fn a_saved_atlas_is_baked_until_the_layout_changes() {
     let out = dir.path().join("out");
     let font = out.join("inter.spnga");
     let saved = dir.path().join("saved.ktx2");
-    let bake = |sizes: &str, atlas: &str| {
+    let bake_with = |sizes: &str, atlas: &str, flags: &[&str]| {
         let text = format!(
             "fonts:\n  - source: inter.ttf\n    output: inter.spnga\n    sizes: {sizes}\n{atlas}"
         );
         fs::write(&manifest, text).unwrap();
-        yeschef(&["--manifest", path(&manifest), path(&out)])
+        let mut args = vec!["--manifest", path(&manifest), path(&out)];
+        args.extend(flags);
+        yeschef(&args)
     };
+    let bake = |sizes: &str, atlas: &str| bake_with(sizes, atlas, &[]);
     let entry =
         |layout: &str| format!("    atlas:\n      file: saved.ktx2\n      layout: \"{layout}\"\n");
 
@@ -94,6 +97,31 @@ fn a_saved_atlas_is_baked_until_the_layout_changes() {
         assert!(String::from_utf8_lossy(&run.stderr).contains("different layout"));
         assert!(!font.exists(), "no font with a stale or a drawn atlas");
     }
+
+    // The debug flag uses the drawn atlas and warns on every run.
+    let flags = ["--allow-stale-atlas"];
+    for _ in 0..2 {
+        let run = bake_with("[12, 14]", &entry(&layout), &flags);
+        assert!(run.status.success(), "{run:?}");
+        let stdout = String::from_utf8_lossy(&run.stdout);
+        assert!(
+            stdout.contains("warning: using the drawn atlas"),
+            "{stdout}"
+        );
+        assert!(!fs::read(&font).unwrap().ends_with(&edited));
+    }
+    // A strict run in the same folder does not accept that font as current.
+    // The manifest keeps its time, so only the age of the font forces a bake.
+    let run = yeschef(&["--manifest", path(&manifest), path(&out)]);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
+
+    // A broken or missing atlas fails with the flag too.
+    fs::write(&saved, "not a KTX2 file").unwrap();
+    let run = bake_with("[12, 14]", &entry(&layout), &flags);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
+    fs::remove_file(&saved).unwrap();
+    let run = bake_with("[12, 14]", &entry(&layout), &flags);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
 }
 
 #[test]

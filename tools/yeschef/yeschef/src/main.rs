@@ -60,6 +60,12 @@ struct Cli {
     #[arg(long, num_args = 2, value_names = ["KTX2", "FONT"])]
     insert_atlas: Option<Vec<PathBuf>>,
 
+    /// When a saved font atlas was made for another layout, warn and use the
+    /// drawn atlas in place of failing. The font then bakes again every time.
+    /// For debug builds.
+    #[arg(long, requires = "manifest")]
+    allow_stale_atlas: bool,
+
     /// Leave `#line` directives out of the shader pack.
     #[arg(long, requires = "manifest")]
     no_line_directives: bool,
@@ -129,6 +135,7 @@ fn bake_manifest(cli: &Cli, manifest_path: &Path, output_dir: &Path) -> Result<(
         &manifest,
         !cli.no_line_directives,
         !cli.no_debug_assets,
+        cli.allow_stale_atlas,
     )
     .map_err(Failure::Bake)?;
 
@@ -168,6 +175,7 @@ fn bake_all(
     manifest: &Manifest,
     line_directives: bool,
     debug_assets: bool,
+    allow_stale_atlas: bool,
 ) -> Result<()> {
     let mut jobs = Vec::new();
 
@@ -209,7 +217,7 @@ fn bake_all(
         let mut inputs = vec![from.clone()];
         inputs.extend(saved.iter().map(|saved| saved.file.clone()));
         jobs.push(Job::new(&font.output, inputs, move |to| {
-            font::convert(&from, to, &font.sizes, saved.as_ref())
+            font::convert(&from, to, &font.sizes, saved.as_ref(), allow_stale_atlas)
         }));
     }
 

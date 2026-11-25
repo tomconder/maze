@@ -21,6 +21,7 @@ use skrifa::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime};
 use yeschef_format::font::{
     FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables, hash, layout_id, replace_atlas, split,
 };
@@ -614,33 +615,69 @@ pub struct Saved {
     pub layout: String,
 }
 
-pub fn convert(from: &Path, to: &Path, sizes: &[u32], saved: Option<&Saved>) -> Result<()> {
+/// Bakes the font to `to`. `allow_stale` decides what happens when the saved
+/// atlas was made for another layout: the bake fails, or it keeps the drawn
+/// atlas, warns and leaves the output out of date.
+pub fn convert(
+    from: &Path,
+    to: &Path,
+    sizes: &[u32],
+    saved: Option<&Saved>,
+    allow_stale: bool,
+) -> Result<()> {
     let data = read_file(from)?;
     let (mut file, (width, height)) =
         bake(&data, sizes).with_context(|| format!("unable to bake {}", from.display()))?;
+    let mut note = "";
+    let mut stale = None;
     if let Some(saved) = saved {
-        // No fallback to the drawn atlas: that would drop the edit unnoticed.
-        // The new ID is left out, so it cannot be copied without a new edit.
-        ensure!(
-            layout_id(&file).map_err(|e| anyhow!(e))? == saved.layout,
-            "the saved atlas {} was made for a different layout than {} now has. Remove \
-             `atlas` from the manifest, build, extract the atlas, make the edit again, then \
-             set `layout` to the ID that --extract-atlas prints",
-            saved.file.display(),
-            from.display()
-        );
-        file = with_atlas(&file, &read_file(&saved.file)?)
-            .with_context(|| format!("unable to use {}", saved.file.display()))?;
+        let atlas = read_file(&saved.file)?;
+        let unusable = || format!("unable to use {}", saved.file.display());
+        if layout_id(&file).map_err(|e| anyhow!(e))? == saved.layout {
+            file = with_atlas(&file, &atlas).with_context(unusable)?;
+            note = ", saved atlas";
+        } else {
+            // The size may differ with the layout, so only the file itself is
+            // checked here. A broken atlas fails every build.
+            ktx2::read(&atlas)
+                .map_err(|e| anyhow!(e))
+                .with_context(unusable)?;
+            // The new ID is left out, so it cannot be copied without a new edit.
+            let message = format!(
+                "the saved atlas {} was made for a different layout than {} now has. Remove \
+                 `atlas` from the manifest, build, extract the atlas, make the edit again, \
+                 then set `layout` to the ID that --extract-atlas prints",
+                saved.file.display(),
+                from.display()
+            );
+            ensure!(allow_stale, "{message}");
+            note = ", drawn atlas";
+            stale = Some(message);
+        }
     }
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
+    if let Some(message) = stale {
+        backdate(to).with_context(|| format!("unable to date {}", to.display()))?;
+        crate::progress::say!("warning: using the drawn atlas: {message}");
+    }
     crate::progress::say!(
-        "{} sizes{} -> {} ({width}x{height}, {} bytes)",
+        "{} sizes{note} -> {} ({width}x{height}, {} bytes)",
         sizes.len(),
-        if saved.is_some() { ", saved atlas" } else { "" },
         crate::progress::display(to),
         file.len()
     );
     Ok(())
+}
+
+/// Makes a file older than its inputs, so every later bake, in any
+/// configuration, runs again. The time still differs from bake to bake, which
+/// the asset copy needs to see a change.
+fn backdate(path: &Path) -> std::io::Result<()> {
+    const TEN_YEARS: Duration = Duration::from_secs(10 * 365 * 24 * 60 * 60);
+    std::fs::File::options()
+        .write(true)
+        .open(path)?
+        .set_modified(SystemTime::now() - TEN_YEARS)
 }
 
 fn read_file(path: &Path) -> Result<Vec<u8>> {

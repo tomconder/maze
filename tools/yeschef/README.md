@@ -20,7 +20,7 @@ The font file (`format/src/font.rs`: the shaping tables, then the atlas as a who
 
 ## yeschef
 
-yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--allow-stale-atlas`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
 
 Converters, in `yeschef/src`:
 
@@ -71,7 +71,7 @@ fonts:
       layout: "<ID from --extract-atlas>"
 ```
 
-The bake still draws the font, then stores the saved atlas in place of the drawn one. The ID covers the font file, the sizes and the glyph tables. When it changes, the bake fails. Then remove `atlas`, build, make the edit again on a newly extracted atlas, and set the new ID. While a saved atlas is in use, a drawing change in yeschef that keeps the tables has no effect.
+The bake still draws the font, then stores the saved atlas in place of the drawn one. The ID covers the font file, the sizes and the glyph tables. When it changes, the bake fails. A `Debug` build passes `--allow-stale-atlas`: it warns and uses the drawn atlas instead, and bakes the font again on every build until the mismatch is fixed. Other configurations fail. A missing or broken atlas file fails every build. To fix a mismatch, remove `atlas`, build, make the edit again on a newly extracted atlas, and set the new ID. While a saved atlas is in use, a drawing change in yeschef that keeps the tables has no effect.
 
 A `.ktx2` file in `assets/fonts/` does not ship with the game.
 

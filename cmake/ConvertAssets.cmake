@@ -5,6 +5,9 @@
 # output newer than its sources, the manifest and yeschef itself, so the
 # target runs on every build and an edit rebakes only what it touches.
 #
+# A saved font atlas that no longer matches its font fails the bake, except in
+# Debug, which warns and uses the drawn atlas.
+#
 # It also joins the asset licenses in the manifest and THIRD_PARTY_LICENSES
 # into NOTICES_FILE, both set by game/CMakeLists.txt.
 set(LICENSE_ARGS "")
@@ -18,6 +21,7 @@ add_custom_target(
                 "${CMAKE_BINARY_DIR}/assets"
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
+                "$<$<CONFIG:Debug>:--allow-stale-atlas>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
         VERBATIM
