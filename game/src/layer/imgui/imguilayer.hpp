@@ -4,6 +4,7 @@
 #include "layer/layer.hpp"
 #include "layer/layerstack.hpp"
 #include "logging/log.hpp"
+#include <spdlog/common.h>
 
 #include <array>
 #include <cstdint>
