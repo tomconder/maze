@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::process::{Command, Output};
+use yeschef_format::font::Tables;
+use yeschef_format::ktx2;
 
 fn yeschef(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_yeschef"))
@@ -11,6 +14,41 @@ fn yeschef(args: &[&str]) -> Output {
 
 fn path(p: &Path) -> &str {
     p.to_str().unwrap()
+}
+
+#[test]
+fn a_font_atlas_extracts_and_inserts() {
+    let atlas = |side: u32, texel: u8| {
+        let level = vec![texel; (side * side * 3) as usize];
+        ktx2::write(ktx2::Format::R8G8B8Unorm, side, side, &[level], &[])
+    };
+    let tables = Tables {
+        slot_count: 0,
+        plain: BTreeMap::new(),
+        tabular: BTreeMap::new(),
+        sizes: Vec::new(),
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let font = dir.path().join("font.spnga");
+    let edit = dir.path().join("atlas.ktx2");
+    let original = tables.to_file(&atlas(4, 1));
+    fs::write(&font, &original).unwrap();
+
+    let run = yeschef(&["--extract-atlas", path(&font), path(&edit)]);
+    assert!(run.status.success(), "{run:?}");
+    assert_eq!(fs::read(&edit).unwrap(), atlas(4, 1));
+
+    for bad in [atlas(8, 2), b"not a KTX2 file".to_vec()] {
+        fs::write(&edit, bad).unwrap();
+        let run = yeschef(&["--insert-atlas", path(&edit), path(&font)]);
+        assert_eq!(run.status.code(), Some(1), "{run:?}");
+        assert_eq!(fs::read(&font).unwrap(), original);
+    }
+
+    fs::write(&edit, atlas(4, 2)).unwrap();
+    let run = yeschef(&["--insert-atlas", path(&edit), path(&font)]);
+    assert!(run.status.success(), "{run:?}");
+    assert_eq!(fs::read(&font).unwrap(), tables.to_file(&atlas(4, 2)));
 }
 
 #[test]

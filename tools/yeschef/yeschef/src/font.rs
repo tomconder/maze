@@ -21,7 +21,9 @@ use skrifa::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
-use yeschef_format::font::{FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables};
+use yeschef_format::font::{
+    FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables, replace_atlas, split,
+};
 use yeschef_format::ktx2::{self, Format};
 use zeno::{Command, Mask, Point};
 
@@ -617,6 +619,64 @@ pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
         file.len()
     );
     Ok(())
+}
+
+fn read_file(path: &Path) -> Result<Vec<u8>> {
+    std::fs::read(path).with_context(|| format!("unable to read {}", path.display()))
+}
+
+/// Writes the KTX2 atlas of a baked font to its own file.
+pub fn extract_atlas(font: &Path, to: &Path) -> Result<()> {
+    let file = read_file(font)?;
+    let (_, atlas) = split(&file)
+        .map_err(|e| anyhow!(e))
+        .with_context(|| font.display().to_string())?;
+    std::fs::write(to, atlas).with_context(|| format!("unable to write {}", to.display()))
+}
+
+/// Replaces the atlas of a baked font. The glyph tables hold fixed pixel
+/// positions and the engine loads only some formats, so the new atlas must
+/// have the format and size of the old one. The font is written only when
+/// every check passes.
+pub fn insert_atlas(from: &Path, font: &Path) -> Result<()> {
+    let atlas = read_file(from)?;
+    let file = read_file(font)?;
+    let (_, old) = split(&file)
+        .map_err(|e| anyhow!(e))
+        .with_context(|| font.display().to_string())?;
+    let old = ktx2::read(old)
+        .map_err(|e| anyhow!(e))
+        .with_context(|| font.display().to_string())?;
+    let new = ktx2::read(&atlas)
+        .map_err(|e| anyhow!(e))
+        .with_context(|| from.display().to_string())?;
+
+    ensure!(
+        new.vk_format == old.vk_format,
+        "the atlas has vkFormat {}, but the font needs {}",
+        new.vk_format,
+        old.vk_format
+    );
+    ensure!(
+        (new.width, new.height) == (old.width, old.height),
+        "the atlas is {}x{}, but the font needs {}x{}",
+        new.width,
+        new.height,
+        old.width,
+        old.height
+    );
+    ensure!(
+        new.levels.len() == old.levels.len()
+            && new
+                .levels
+                .iter()
+                .zip(&old.levels)
+                .all(|(new, old)| new.len() == old.len()),
+        "the atlas does not have the same mip levels as the font"
+    );
+
+    let out = replace_atlas(&file, &atlas).map_err(|e| anyhow!(e))?;
+    std::fs::write(font, out).with_context(|| format!("unable to write {}", font.display()))
 }
 
 #[cfg(test)]

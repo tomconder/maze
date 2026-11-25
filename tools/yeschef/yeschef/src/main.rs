@@ -1,5 +1,6 @@
 //! yeschef, the build-time asset converter. It bakes everything the asset
-//! manifest lists, and `--verify` checks a baked model.
+//! manifest lists, `--verify` checks a baked model, and `--extract-atlas` and
+//! `--insert-atlas` take the atlas out of a baked font and put it back.
 
 mod atlas;
 mod bake;
@@ -31,7 +32,11 @@ use std::process::ExitCode;
 #[command(
     version,
     help_template = "{name} {version}\n{about-with-newline}\n{usage-heading} {usage}\n\n{all-args}",
-    group(ArgGroup::new("mode").required(true).args(["manifest", "verify"]))
+    group(
+        ArgGroup::new("mode")
+            .required(true)
+            .args(["manifest", "verify", "extract_atlas", "insert_atlas"])
+    )
 )]
 struct Cli {
     /// Bake every asset the manifest lists. An output is skipped when it is
@@ -43,6 +48,16 @@ struct Cli {
     /// Import SOURCE again and compare it with the baked OUTPUT.
     #[arg(long, num_args = 2, value_names = ["SOURCE", "OUTPUT"])]
     verify: Option<Vec<PathBuf>>,
+
+    /// Write the KTX2 atlas of the baked FONT to the file KTX2.
+    #[arg(long, num_args = 2, value_names = ["FONT", "KTX2"])]
+    extract_atlas: Option<Vec<PathBuf>>,
+
+    /// Replace the atlas of the baked FONT with the file KTX2, which must have
+    /// the same format, size and mip levels and no supercompression. The next
+    /// bake of the font overwrites it.
+    #[arg(long, num_args = 2, value_names = ["KTX2", "FONT"])]
+    insert_atlas: Option<Vec<PathBuf>>,
 
     /// Leave `#line` directives out of the shader pack.
     #[arg(long, requires = "manifest")]
@@ -79,10 +94,16 @@ enum Failure {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let outcome = match (&cli.manifest, &cli.verify) {
-        (Some(paths), _) => bake_manifest(&cli, &paths[0], &paths[1]),
-        (_, Some(paths)) => model::verify(&paths[0], &paths[1]).map_err(Failure::Bake),
-        _ => unreachable!("clap requires one mode"),
+    let outcome = if let Some(paths) = &cli.manifest {
+        bake_manifest(&cli, &paths[0], &paths[1])
+    } else if let Some(paths) = &cli.verify {
+        model::verify(&paths[0], &paths[1]).map_err(Failure::Bake)
+    } else if let Some(paths) = &cli.extract_atlas {
+        font::extract_atlas(&paths[0], &paths[1]).map_err(Failure::Bake)
+    } else if let Some(paths) = &cli.insert_atlas {
+        font::insert_atlas(&paths[0], &paths[1]).map_err(Failure::Bake)
+    } else {
+        unreachable!("clap requires one mode")
     };
     match outcome {
         Ok(()) => ExitCode::SUCCESS,

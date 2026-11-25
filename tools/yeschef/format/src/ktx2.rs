@@ -228,13 +228,17 @@ pub fn read(bytes: &[u8]) -> Result<Image<'_>, String> {
     }
 
     let level_count = word(40)?.max(1) as usize;
+    // A 32 bit image has at most 32 mip levels.
+    if level_count > 32 {
+        return Err(format!("KTX2 level count {level_count} is not valid"));
+    }
     let mut levels = Vec::with_capacity(level_count);
     for i in 0..level_count {
         let entry = HEADER + LEVEL_ENTRY * i;
         let (offset, length) = (long(entry)?, long(entry + 8)?);
         levels.push(
             bytes
-                .get(offset..offset + length)
+                .get(offset..offset.saturating_add(length))
                 .ok_or(format!("KTX2 level {i} runs past the end of the file"))?,
         );
     }

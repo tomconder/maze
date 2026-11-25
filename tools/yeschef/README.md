@@ -20,7 +20,7 @@ The font file (`format/src/font.rs`: the shaping tables, then the atlas as a who
 
 ## yeschef
 
-yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify <source> <baked>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
 
 Converters, in `yeschef/src`:
 
@@ -41,6 +41,21 @@ Converters, in `yeschef/src`:
 - Textures: BC7F does not give the bits of bc7enc. PSNR against the source, mean at mip 0: helmet 50.49 dB against 51.24 dB, floor 46.26 against 47.15, Sponza 46.02 against 45.42.
 - Fonts: slots, advances and kerning were identical. 86% of glyph bitmaps had the same size, the rest were within one pixel, and the darkening amount is a measured fit.
 - Screenshots: Sponza and the `lodtest` scene, TAA off, differed by 0.33 and 0.22 of 255 on average, mostly as speckle on foliage edges.
+
+## Editing a font atlas
+
+`ktx` is the [KTX-Software](https://github.com/KhronosGroup/KTX-Software) command line tool. `yeschef` is in `out/build/<preset>/tools/yeschef/cargo/release/` after a game build.
+
+1. `yeschef --extract-atlas <font> atlas.ktx2`
+2. `ktx extract atlas.ktx2 atlas.png`
+3. Edit `atlas.png`. Keep its size, and keep each glyph where it is, because the font tables hold its position.
+4. `ktx create --format R8G8B8_UNORM --assign-tf linear atlas.png edited.ktx2`
+5. `yeschef --insert-atlas edited.ktx2 <font>`
+6. Build the game.
+
+Keep `--assign-tf linear`. Without it, `ktx create` treats the PNG as sRGB and converts the coverage values. It only prints a warning, and the insert cannot detect the change. Do not use `--convert-tf`, which also converts them. The insert refuses a different format, size or mip count, and supercompression.
+
+`<font>` is the baked file, `out/build/<preset>/assets/fonts/inter.spnga`. Do not edit the copy beside the game, because the build overwrites it with the baked one. The edit exists only in the build folder. It is lost when the font bakes again: after a change to the font source, the manifest or yeschef, or in a clean build.
 
 ## Building
 

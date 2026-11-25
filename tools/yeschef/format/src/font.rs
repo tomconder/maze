@@ -147,6 +147,41 @@ impl Tables {
     }
 }
 
+/// Splits a font file into the bytes before the atlas and the KTX2 atlas.
+pub fn split(file: &[u8]) -> Result<(&[u8], &[u8]), String> {
+    let header: FontHeader = file
+        .get(..size_of::<FontHeader>())
+        .map(bytemuck::pod_read_unaligned)
+        .ok_or("the font file is truncated")?;
+    if header.magic != FONT_MAGIC.to_le_bytes() {
+        return Err("not a font file".into());
+    }
+    if header.version != FONT_VERSION {
+        return Err(format!(
+            "font file version {}, expected {FONT_VERSION}",
+            header.version
+        ));
+    }
+    let offset = header.ktx2_offset as usize;
+    if offset < size_of::<FontHeader>()
+        || offset > file.len()
+        || header.ktx2_size as usize != file.len() - offset
+    {
+        return Err("the font atlas does not end the file".into());
+    }
+    Ok(file.split_at(offset))
+}
+
+/// The font file with `ktx2` in place of its atlas. The tables do not change.
+pub fn replace_atlas(file: &[u8], ktx2: &[u8]) -> Result<Vec<u8>, String> {
+    let (tables, _) = split(file)?;
+    let mut header: FontHeader = bytemuck::pod_read_unaligned(&tables[..size_of::<FontHeader>()]);
+    header.ktx2_size = u32::try_from(ktx2.len()).map_err(|_| "the atlas is over 4 GiB")?;
+    let mut out = [tables, ktx2].concat();
+    out[..size_of::<FontHeader>()].copy_from_slice(bytemuck::bytes_of(&header));
+    Ok(out)
+}
+
 const _: () = {
     assert!(FONT_MAGIC == u64::from_le_bytes(*b"SPNGF\0\0\0"));
     assert!(size_of::<FontHeader>() == 36);
@@ -155,6 +190,22 @@ const _: () = {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_atlas_can_be_replaced() {
+        let tables = Tables {
+            slot_count: 0,
+            plain: BTreeMap::new(),
+            tabular: BTreeMap::new(),
+            sizes: Vec::new(),
+        };
+        let file = tables.to_file(b"old");
+        let replaced = replace_atlas(&file, b"longer").unwrap();
+        assert_eq!(replaced, tables.to_file(b"longer"));
+        assert_eq!(split(&replaced).unwrap().1, b"longer");
+        assert!(split(&file[..file.len() - 1]).is_err());
+        assert!(split(b"short").is_err());
+    }
 
     #[test]
     fn size_of_the_bytes_follows_the_layout() {
