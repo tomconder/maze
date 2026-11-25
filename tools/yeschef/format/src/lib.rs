@@ -1,5 +1,6 @@
 //! On-disk layout of the baked asset files: the model container (`.spnga`),
-//! the shader pack (`shaders.spnga`) and the font file (see [`font`]).
+//! the shader pack (`shaders.spnga`), the font file (see [`font`]) and the
+//! asset pack (see [`archive`]).
 //!
 //! This crate owns the layout. `cbindgen` turns it into
 //! `sponge/src/scene/format/assetlayout.generated.hpp`, which the C++ readers
@@ -7,11 +8,12 @@
 //! Every struct is `repr(C)` and little endian. All offsets are absolute from
 //! the start of the file.
 //!
-//! `magic` sits at offset 0 and `version` at offset 8 in all three, and they
-//! stay there. Bump the version for any change to a layout, a field order, the
+//! `magic` sits at offset 0 and `version` at offset 8 in each file header, and
+//! they stay there. Bump the version for any change to a layout, a field order, the
 //! meaning of a field or the texture reference convention. The engine rejects
 //! a version it does not know.
 
+pub mod archive;
 pub mod font;
 pub mod ktx2;
 pub mod model;

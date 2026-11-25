@@ -34,4 +34,7 @@ include = [
     "FontSizeHeader",
     "FontKerningEntry",
     "FontGlyph",
+    "ArchiveHeader",
+    "ArchiveEntry",
+    "ArchiveDataHeader",
 ]
