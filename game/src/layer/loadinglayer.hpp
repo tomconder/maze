@@ -21,8 +21,8 @@ namespace game::layer {
 // Shown between IntroLayer and MazeLayer while the maze's models load.
 // Kicks a background thread to parse models (CPU-only: file I/O, glTF
 // parsing, image decode — see Model::parse()), then uploads them to the GPU
-// one mesh per frame on the render thread (Model::buildMesh()) so the
-// loading screen keeps animating instead of one big stall. Progress is
+// on the render thread (Model::buildMesh()), as many meshes per frame as a
+// time budget permits, so the loading screen keeps animating. Progress is
 // tracked per mesh (not per model) so a model with many meshes — e.g.
 // sponza — still moves the bar smoothly instead of appearing to freeze.
 class LoadingLayer final : public sponge::layer::Layer {
@@ -60,9 +60,10 @@ private:
     // it skips parse and build and reuses that model once built.
     std::vector<std::size_t> buildOwner;
 
-    // Upload cursor: builds one mesh of parsedData[buildModelIndex] per
-    // frame; buildingMeshes accumulates that model's built meshes until all
-    // of them are ready, then becomes a Model and moves to the next one.
+    // Upload cursor: the next mesh is buildMeshIndex of
+    // parsedData[buildModelIndex]; buildingMeshes accumulates that model's
+    // built meshes until all of them are ready, then becomes a Model and moves
+    // to the next one.
     std::vector<std::shared_ptr<sponge::platform::opengl::scene::Mesh>>
                 buildingMeshes;
     std::size_t buildModelIndex = 0;
@@ -75,6 +76,10 @@ private:
     std::atomic<uint32_t> completedSteps{ 0 };
     uint32_t              totalSteps = 0;
     std::atomic<bool>     parseDone{ false };
+
+    // One unit of GPU build work: reuse a duplicate model, build one mesh, or
+    // complete a model.
+    void buildStep();
 
     void renderProgress() const;
 
