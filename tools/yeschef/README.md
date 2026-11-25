@@ -4,23 +4,23 @@ yeschef is the asset converter for the game. It replaced the C++ converter `asse
 
 ## format
 
-`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the font tables. The structs are `repr(C)`, and compile-time asserts pin their sizes.
+`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the `.spnga` font file. The structs are `repr(C)`, and compile-time asserts pin their sizes.
 
 cbindgen turns the structs into `sponge/src/scene/format/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
 
 To change the layout:
 
-1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION` or `SHADERPACK_VERSION` if the layout changes.
+1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION`, `SHADERPACK_VERSION` or `FONT_VERSION` if the layout changes.
 2. Run `UPDATE_LAYOUT_HEADER=1 cargo test` here to rewrite the header.
 3. Rebuild the C++ side. The asserts in `sponge/src/scene/format/assetformat.hpp` fail if a hand-written glm twin no longer matches.
 
 `cargo test` fails when the checked-in header differs from what cbindgen makes.
 
-The font tables (`format/src/font.rs`, stored under the `spongeFont` key of the font KTX2 file) are in the header too. The KTX2 container is a standard format. `format/src/ktx2.rs` writes and reads it, and it is not in the header.
+The font file (`format/src/font.rs`: the shaping tables, then the atlas as a whole KTX2 file) is in the header too. The KTX2 container is a standard format. `format/src/ktx2.rs` writes and reads it, and it is not in the header.
 
 ## yeschef
 
-yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--notices <file> [--license NAME=PATH]...` and `--verify <source> <baked>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--allow-stale-atlas`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
 
 Converters, in `yeschef/src`:
 
@@ -41,6 +41,39 @@ Converters, in `yeschef/src`:
 - Textures: BC7F does not give the bits of bc7enc. PSNR against the source, mean at mip 0: helmet 50.49 dB against 51.24 dB, floor 46.26 against 47.15, Sponza 46.02 against 45.42.
 - Fonts: slots, advances and kerning were identical. 86% of glyph bitmaps had the same size, the rest were within one pixel, and the darkening amount is a measured fit.
 - Screenshots: Sponza and the `lodtest` scene, TAA off, differed by 0.33 and 0.22 of 255 on average, mostly as speckle on foliage edges.
+
+## Editing a font atlas
+
+`ktx` is the [KTX-Software](https://github.com/KhronosGroup/KTX-Software) command line tool. `yeschef` is in `out/build/<preset>/tools/yeschef/cargo/release/` after a game build.
+
+1. `yeschef --extract-atlas <font> atlas.ktx2`
+2. `ktx extract atlas.ktx2 atlas.png`
+3. Edit `atlas.png`. Keep its size, and keep each glyph where it is, because the font tables hold its position.
+4. `ktx create --format R8G8B8_UNORM --assign-tf linear atlas.png edited.ktx2`
+5. `yeschef --insert-atlas edited.ktx2 <font>`
+6. Build the game.
+
+Keep `--assign-tf linear`. Without it, `ktx create` treats the PNG as sRGB and converts the coverage values. It only prints a warning, and the insert cannot detect the change. Do not use `--convert-tf`, which also converts them. The insert refuses a different format, size or mip count, and supercompression.
+
+`<font>` is the baked file, `out/build/<preset>/assets/fonts/inter.spnga`. Do not edit the copy beside the game, because the build overwrites it with the baked one. An inserted edit exists only in the build folder. It is lost when the font bakes again: after a change to the font source, the manifest or yeschef, or in a clean build.
+
+### Keeping an edit
+
+To keep an edit, let the manifest name the atlas. Save the file from step 4 as `assets/fonts/inter.ktx2`, and add the ID that step 1 printed:
+
+```yaml
+fonts:
+  - source: fonts/inter.ttf
+    output: fonts/inter.spnga
+    sizes: [12, 14, 16, 18, 21, 24, 27, 32, 43, 48, 56] # keep the current list
+    atlas:
+      file: fonts/inter.ktx2
+      layout: "<ID from --extract-atlas>"
+```
+
+The bake still draws the font, then stores the saved atlas in place of the drawn one. The ID covers the font file, the sizes and the glyph tables. When it changes, the bake fails. A `Debug` build passes `--allow-stale-atlas`: it warns and uses the drawn atlas instead, and bakes the font again on every build until the mismatch is fixed. Other configurations fail. A missing or broken atlas file fails every build. To fix a mismatch, remove `atlas`, build, make the edit again on a newly extracted atlas, and set the new ID. While a saved atlas is in use, a drawing change in yeschef that keeps the tables has no effect.
+
+A `.ktx2` file in `assets/fonts/` does not ship with the game.
 
 ## Building
 

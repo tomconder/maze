@@ -1,24 +1,17 @@
 #include "capture/fontmetrics.hpp"
 
-#include "scene/format/ktx2.hpp"
 #include "scene/format/readbytes.hpp"
 
-#include <algorithm>
 #include <cmath>
+#include <span>
 
 namespace game::capture {
 
 FontMetrics::FontMetrics(const std::string& path) {
-    const auto  bytes = sponge::scene::readBytes(path);
-    std::string error;
-    const auto  image = sponge::scene::ktx2::read(bytes, error);
-    const auto  tables =
-        std::ranges::find_if(image.keyValues, [](const auto& entry) {
-            return entry.first == sponge::scene::font::fontKey;
-        });
-    if (tables != image.keyValues.end()) {
-        font = sponge::scene::font::read(tables->second, error);
-    }
+    const auto               bytes = sponge::scene::readBytes(path);
+    std::span<const uint8_t> atlas;
+    std::string              error;
+    font = sponge::scene::font::read(bytes, atlas, error);
 }
 
 uint32_t FontMetrics::length(const std::string_view text, const uint32_t size,

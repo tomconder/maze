@@ -16,7 +16,7 @@
 
 namespace {
 constexpr std::string_view fontName  = "inter";
-constexpr std::string_view fontPath  = "/fonts/inter.ktx2";
+constexpr std::string_view fontPath  = "/fonts/inter.spnga";
 constexpr glm::vec3        textColor = { 1.F, 1.F, 1.F };
 }  // namespace
 

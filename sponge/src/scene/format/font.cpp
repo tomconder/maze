@@ -110,11 +110,16 @@ char32_t nextCodepoint(const std::string_view text, size_t& at) {
 
 namespace sponge::scene::font {
 
-Font read(const std::span<const uint8_t> bytes, std::string& error) {
-    Reader reader{ bytes };
+Font read(const std::span<const uint8_t> bytes, std::span<const uint8_t>& atlas,
+          std::string& error) {
     Header header{};
-    if (!reader.take(&header, 1)) {
+    if (!Reader{ bytes }.take(&header, 1)) {
         error = "Font tables are truncated";
+        return {};
+    }
+    if (std::memcmp(header.magic, &sponge::scene::layout::FONT_MAGIC,
+                    sizeof(header.magic)) != 0) {
+        error = "Not a font file";
         return {};
     }
     if (header.version != version) {
@@ -130,6 +135,16 @@ Font read(const std::span<const uint8_t> bytes, std::string& error) {
                             header.slotCount, header.sizeCount);
         return {};
     }
+
+    // The atlas ends the file. The tables are everything before it.
+    if (header.ktx2Offset < sizeof(Header) ||
+        header.ktx2Offset > bytes.size() ||
+        header.ktx2Size != bytes.size() - header.ktx2Offset) {
+        error = "Font atlas does not end the file";
+        return {};
+    }
+    Reader reader{ bytes.first(header.ktx2Offset) };
+    reader.take(&header, 1);
 
     Font font;
     font.slotCount = header.slotCount;
@@ -169,6 +184,7 @@ Font read(const std::span<const uint8_t> bytes, std::string& error) {
         return {};
     }
 
+    atlas      = bytes.subspan(header.ktx2Offset);
     font.sizes = std::move(sizes);
     return font;
 }

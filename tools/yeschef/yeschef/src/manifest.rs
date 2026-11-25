@@ -4,7 +4,8 @@
 //! and outputs to the output directory. A misspelled key is an error, not a
 //! silently skipped asset. The atlas sprites and the shader stages keep their
 //! file order, because the atlas and the shader pack lay out their entries in
-//! that order.
+//! that order. A font can name a saved atlas, which the bake uses in place of
+//! the one it draws.
 
 use anyhow::{Context, Result, bail};
 use indexmap::IndexMap;
@@ -53,6 +54,18 @@ pub struct Font {
     pub source: String,
     pub output: String,
     pub sizes: Vec<u32>,
+    pub atlas: Option<SavedAtlas>,
+}
+
+/// An edited font atlas that is kept with the sources.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SavedAtlas {
+    /// A KTX2 file.
+    pub file: String,
+    /// The layout ID `--extract-atlas` printed for the font the atlas came
+    /// from. The bake fails when the font no longer has it.
+    pub layout: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -156,6 +169,20 @@ mod tests {
         let manifest = Manifest::parse("licenses: []\n").unwrap();
         assert!(manifest.models.is_empty());
         assert!(manifest.shaders.is_none());
+    }
+
+    #[test]
+    fn a_saved_atlas_needs_a_file_and_a_layout() {
+        let font = "fonts:\n  - source: a.ttf\n    output: a.spnga\n    sizes: [12]\n";
+        assert!(Manifest::parse(font).unwrap().fonts[0].atlas.is_none());
+
+        let saved = format!("{font}    atlas:\n      file: a.ktx2\n      layout: \"0012\"\n");
+        let manifest = Manifest::parse(&saved).unwrap();
+        let atlas = manifest.fonts[0].atlas.as_ref().unwrap();
+        assert_eq!((&*atlas.file, &*atlas.layout), ("a.ktx2", "0012"));
+
+        let no_layout = format!("{font}    atlas:\n      file: a.ktx2\n");
+        assert!(Manifest::parse(&no_layout).is_err());
     }
 
     #[test]

@@ -15,7 +15,7 @@
 
 namespace {
 constexpr std::string_view fontName    = "inter";
-constexpr std::string_view fontPath    = "/fonts/inter.ktx2";
+constexpr std::string_view fontPath    = "/fonts/inter.spnga";
 constexpr std::string_view settingsKey = "video.showFps";
 
 // The font size in pixels at 1920 wide. It snaps to a baked size.

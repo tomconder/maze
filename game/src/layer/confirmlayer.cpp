@@ -16,7 +16,7 @@
 
 namespace {
 constexpr std::string_view fontName = "inter";
-constexpr std::string_view fontPath = "/fonts/inter.ktx2";
+constexpr std::string_view fontPath = "/fonts/inter.spnga";
 
 std::shared_ptr<sponge::platform::opengl::scene::BitmapFont> menuFont;
 std::shared_ptr<game::scene::OrthoCamera>                    orthoCamera;

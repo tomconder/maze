@@ -18,7 +18,7 @@
 namespace {
 constexpr std::string_view cameraName = "loading";
 constexpr std::string_view fontName   = "inter";
-constexpr std::string_view fontPath   = "/fonts/inter.ktx2";
+constexpr std::string_view fontPath   = "/fonts/inter.spnga";
 
 constexpr float barWidth  = 400.F;
 constexpr float barHeight = 24.F;

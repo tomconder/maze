@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::process::{Command, Output};
+use yeschef_format::font::Tables;
+use yeschef_format::ktx2;
 
 fn yeschef(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_yeschef"))
@@ -11,6 +14,114 @@ fn yeschef(args: &[&str]) -> Output {
 
 fn path(p: &Path) -> &str {
     p.to_str().unwrap()
+}
+
+#[test]
+fn a_font_atlas_extracts_and_inserts() {
+    let atlas = |side: u32, texel: u8| {
+        let level = vec![texel; (side * side * 3) as usize];
+        ktx2::write(ktx2::Format::R8G8B8Unorm, side, side, &[level], &[])
+    };
+    let tables = Tables {
+        source_hash: 0,
+        slot_count: 0,
+        plain: BTreeMap::new(),
+        tabular: BTreeMap::new(),
+        sizes: Vec::new(),
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let font = dir.path().join("font.spnga");
+    let edit = dir.path().join("atlas.ktx2");
+    let original = tables.to_file(&atlas(4, 1));
+    fs::write(&font, &original).unwrap();
+
+    let run = yeschef(&["--extract-atlas", path(&font), path(&edit)]);
+    assert!(run.status.success(), "{run:?}");
+    assert_eq!(fs::read(&edit).unwrap(), atlas(4, 1));
+
+    for bad in [atlas(8, 2), b"not a KTX2 file".to_vec()] {
+        fs::write(&edit, bad).unwrap();
+        let run = yeschef(&["--insert-atlas", path(&edit), path(&font)]);
+        assert_eq!(run.status.code(), Some(1), "{run:?}");
+        assert_eq!(fs::read(&font).unwrap(), original);
+    }
+
+    fs::write(&edit, atlas(4, 2)).unwrap();
+    let run = yeschef(&["--insert-atlas", path(&edit), path(&font)]);
+    assert!(run.status.success(), "{run:?}");
+    assert_eq!(fs::read(&font).unwrap(), tables.to_file(&atlas(4, 2)));
+}
+
+#[test]
+fn a_saved_atlas_is_baked_until_the_layout_changes() {
+    let dir = tempfile::tempdir().unwrap();
+    let inter = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../assets/fonts/inter.ttf");
+    fs::copy(inter, dir.path().join("inter.ttf")).unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    let out = dir.path().join("out");
+    let font = out.join("inter.spnga");
+    let saved = dir.path().join("saved.ktx2");
+    let bake_with = |sizes: &str, atlas: &str, flags: &[&str]| {
+        let text = format!(
+            "fonts:\n  - source: inter.ttf\n    output: inter.spnga\n    sizes: {sizes}\n{atlas}"
+        );
+        fs::write(&manifest, text).unwrap();
+        let mut args = vec!["--manifest", path(&manifest), path(&out)];
+        args.extend(flags);
+        yeschef(&args)
+    };
+    let bake = |sizes: &str, atlas: &str| bake_with(sizes, atlas, &[]);
+    let entry =
+        |layout: &str| format!("    atlas:\n      file: saved.ktx2\n      layout: \"{layout}\"\n");
+
+    let run = bake("[12]", "");
+    assert!(run.status.success(), "{run:?}");
+    let run = yeschef(&["--extract-atlas", path(&font), path(&saved)]);
+    assert!(run.status.success(), "{run:?}");
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let layout = stdout.trim().strip_prefix("layout ").unwrap().to_string();
+
+    // Edit one texel of the saved atlas.
+    let mut edited = fs::read(&saved).unwrap();
+    let last = edited.len() - 1;
+    edited[last] ^= 0xFF;
+    fs::write(&saved, &edited).unwrap();
+
+    let run = bake("[12]", &entry(&layout));
+    assert!(run.status.success(), "{run:?}");
+    assert!(fs::read(&font).unwrap().ends_with(&edited));
+
+    for (sizes, id) in [("[12, 14]", layout.as_str()), ("[12]", "0000000000000000")] {
+        let run = bake(sizes, &entry(id));
+        assert_eq!(run.status.code(), Some(1), "{run:?}");
+        assert!(String::from_utf8_lossy(&run.stderr).contains("different layout"));
+        assert!(!font.exists(), "no font with a stale or a drawn atlas");
+    }
+
+    // The debug flag uses the drawn atlas and warns on every run.
+    let flags = ["--allow-stale-atlas"];
+    for _ in 0..2 {
+        let run = bake_with("[12, 14]", &entry(&layout), &flags);
+        assert!(run.status.success(), "{run:?}");
+        let stdout = String::from_utf8_lossy(&run.stdout);
+        assert!(
+            stdout.contains("warning: using the drawn atlas"),
+            "{stdout}"
+        );
+        assert!(!fs::read(&font).unwrap().ends_with(&edited));
+    }
+    // A strict run in the same folder does not accept that font as current.
+    // The manifest keeps its time, so only the age of the font forces a bake.
+    let run = yeschef(&["--manifest", path(&manifest), path(&out)]);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
+
+    // A broken or missing atlas fails with the flag too.
+    fs::write(&saved, "not a KTX2 file").unwrap();
+    let run = bake_with("[12, 14]", &entry(&layout), &flags);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
+    fs::remove_file(&saved).unwrap();
+    let run = bake_with("[12, 14]", &entry(&layout), &flags);
+    assert_eq!(run.status.code(), Some(1), "{run:?}");
 }
 
 #[test]

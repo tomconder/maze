@@ -2,9 +2,9 @@
 //! fonts and environment maps.
 //!
 //! KTX2 is a standard format, so it stays out of cbindgen. The C++ reader in
-//! `sponge/src/scene/format/ktx2.cpp` reads what this writes. The data format
-//! descriptor is left empty because that reader needs `vkFormat` alone. Add a
-//! descriptor if these files ever leave the build for outside KTX tools.
+//! `sponge/src/scene/format/ktx2.cpp` reads what this writes. That reader needs
+//! `vkFormat` alone. The data format descriptor and the level layout are there
+//! for outside KTX tools. Check them with `ktx validate`.
 
 const IDENTIFIER: [u8; 12] = [
     0xAB, 0x4B, 0x54, 0x58, 0x20, 0x32, 0x30, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A,
@@ -27,6 +27,70 @@ pub enum Format {
     Bc7Unorm = 145,
 }
 
+impl Format {
+    /// Bytes in one texel, or in one 4x4 block of a compressed format.
+    fn block_size(self) -> usize {
+        match self {
+            Format::R8G8B8Unorm => 3,
+            Format::R8G8B8A8Unorm => 4,
+            Format::R16G16B16A16Sfloat => 8,
+            Format::Bc5Unorm | Format::Bc7Unorm => 16,
+        }
+    }
+}
+
+/// The data format descriptor: its total size, then one basic descriptor block
+/// as the Khronos Data Format Specification lays it out. Primaries are BT.709
+/// and the transfer function is linear, as every format here is UNORM or float.
+fn descriptor(format: Format) -> Vec<u8> {
+    // Color models.
+    const RGBSDA: u32 = 1;
+    const BC5: u32 = 132;
+    const BC7: u32 = 134;
+    // Channel ids. Alpha is 15 in the RGBSDA model.
+    const RGBA: [u32; 4] = [0, 1, 2, 15];
+    // Qualifiers of a signed float channel.
+    const SIGNED_FLOAT: u32 = 0xC0;
+
+    // A sample is (bit offset, bit length, channel, lower, upper).
+    let channels = |count: usize, bits: u32, flags: u32, lower: u32, upper: u32| {
+        (0..count)
+            .map(|i| (i as u32 * bits, bits, RGBA[i] | flags, lower, upper))
+            .collect::<Vec<_>>()
+    };
+    let (model, block_side, samples) = match format {
+        Format::R8G8B8Unorm => (RGBSDA, 1, channels(3, 8, 0, 0, 255)),
+        Format::R8G8B8A8Unorm => (RGBSDA, 1, channels(4, 8, 0, 0, 255)),
+        Format::R16G16B16A16Sfloat => (
+            RGBSDA,
+            1,
+            channels(4, 16, SIGNED_FLOAT, (-1.0f32).to_bits(), 1.0f32.to_bits()),
+        ),
+        Format::Bc5Unorm => (BC5, 4, channels(2, 64, 0, 0, u32::MAX)),
+        Format::Bc7Unorm => (BC7, 4, channels(1, 128, 0, 0, u32::MAX)),
+    };
+
+    let block_bytes = 24 + 16 * samples.len() as u32;
+    let mut words = vec![
+        4 + block_bytes,
+        0,                       // Khronos vendor, basic descriptor type
+        2 | (block_bytes << 16), // version 1.3
+        model | (1 << 8) | (1 << 16),
+        (block_side - 1) | ((block_side - 1) << 8),
+        format.block_size() as u32, // bytes in plane 0
+        0,
+    ];
+    for (offset, bits, channel, lower, upper) in samples {
+        words.extend([
+            offset | ((bits - 1) << 16) | (channel << 24),
+            0,
+            lower,
+            upper,
+        ]);
+    }
+    words.iter().flat_map(|word| word.to_le_bytes()).collect()
+}
+
 /// A key and its value, in the container's own place for metadata.
 pub type KeyValue = (String, Vec<u8>);
 
@@ -35,8 +99,9 @@ fn pad_to_4(size: usize) -> usize {
 }
 
 /// Wraps encoded level data in a KTX2 container. `levels[0]` is the full size
-/// image. The layout is the header, the level index, the key/value data, then
-/// the levels largest first. Offsets count from the start of the file.
+/// image. The layout is the header, the level index, the data format
+/// descriptor, the key/value data, then the levels smallest first, as KTX2
+/// requires. Offsets count from the start of the file.
 pub fn write(
     format: Format,
     width: u32,
@@ -48,14 +113,26 @@ pub fn write(
         .iter()
         .map(|(key, value)| pad_to_4(4 + key.len() + 1 + value.len()))
         .sum();
+    let descriptor = descriptor(format);
+    let descriptor_offset = HEADER + LEVEL_ENTRY * levels.len();
     let key_value_offset = if key_value_size == 0 {
         0
     } else {
-        HEADER + LEVEL_ENTRY * levels.len()
+        descriptor_offset + descriptor.len()
     };
 
-    let mut cursor = HEADER + LEVEL_ENTRY * levels.len() + key_value_size;
-    let mut out = Vec::with_capacity(cursor + levels.iter().map(Vec::len).sum::<usize>());
+    // Each level starts on a multiple of both the block size and 4.
+    let alignment = match format.block_size() {
+        3 => 12,
+        size => size.max(4),
+    };
+    let mut cursor = descriptor_offset + descriptor.len() + key_value_size;
+    let mut offsets = vec![0; levels.len()];
+    for (offset, level) in offsets.iter_mut().zip(levels).rev() {
+        *offset = cursor.next_multiple_of(alignment);
+        cursor = *offset + level.len();
+    }
+    let mut out = Vec::with_capacity(cursor);
     out.extend_from_slice(&IDENTIFIER);
 
     let put32 = |out: &mut Vec<u8>, value: usize| {
@@ -84,19 +161,19 @@ pub fn write(
     put32(&mut out, levels.len());
     put32(&mut out, 0); // supercompressionScheme: none
 
-    put32(&mut out, 0); // dfdByteOffset
-    put32(&mut out, 0); // dfdByteLength
+    put32(&mut out, descriptor_offset);
+    put32(&mut out, descriptor.len());
     put32(&mut out, key_value_offset);
     put32(&mut out, key_value_size);
     put64(&mut out, 0); // sgdByteOffset
     put64(&mut out, 0); // sgdByteLength
 
-    for level in levels {
-        put64(&mut out, cursor);
+    for (level, &offset) in levels.iter().zip(&offsets) {
+        put64(&mut out, offset);
         put64(&mut out, level.len());
         put64(&mut out, level.len()); // uncompressedByteLength
-        cursor += level.len();
     }
+    out.extend_from_slice(&descriptor);
 
     // Each entry is a length, a NUL terminated key, the value, then padding to
     // the next 4 bytes.
@@ -109,7 +186,8 @@ pub fn write(
         out.resize(out.len() + pad_to_4(entry) - entry, 0);
     }
 
-    for level in levels {
+    for (level, &offset) in levels.iter().zip(&offsets).rev() {
+        out.resize(offset, 0);
         out.extend_from_slice(level);
     }
     out
@@ -150,13 +228,17 @@ pub fn read(bytes: &[u8]) -> Result<Image<'_>, String> {
     }
 
     let level_count = word(40)?.max(1) as usize;
+    // A 32 bit image has at most 32 mip levels.
+    if level_count > 32 {
+        return Err(format!("KTX2 level count {level_count} is not valid"));
+    }
     let mut levels = Vec::with_capacity(level_count);
     for i in 0..level_count {
         let entry = HEADER + LEVEL_ENTRY * i;
         let (offset, length) = (long(entry)?, long(entry + 8)?);
         levels.push(
             bytes
-                .get(offset..offset + length)
+                .get(offset..offset.saturating_add(length))
                 .ok_or(format!("KTX2 level {i} runs past the end of the file"))?,
         );
     }
@@ -215,9 +297,28 @@ mod tests {
         assert_eq!(u32::from_le_bytes(bytes[12..16].try_into().unwrap()), 97);
         assert_eq!(u32::from_le_bytes(bytes[16..20].try_into().unwrap()), 2); // typeSize
         assert_eq!(u32::from_le_bytes(bytes[40..44].try_into().unwrap()), 1); // levelCount
-        // The only level starts right after the one level entry.
-        assert_eq!(u64::from_le_bytes(bytes[80..88].try_into().unwrap()), 104);
-        assert_eq!(bytes.len(), 104 + 16);
+        // The descriptor follows the one level entry: 28 bytes of sizes and
+        // fields, then 4 samples of 16 bytes.
+        assert_eq!(u32::from_le_bytes(bytes[48..52].try_into().unwrap()), 104);
+        assert_eq!(u32::from_le_bytes(bytes[52..56].try_into().unwrap()), 92);
+        assert_eq!(u32::from_le_bytes(bytes[104..108].try_into().unwrap()), 92);
+        // The level starts at the next multiple of its 8 byte texel.
+        assert_eq!(u64::from_le_bytes(bytes[80..88].try_into().unwrap()), 200);
+        assert_eq!(bytes.len(), 200 + 16);
+    }
+
+    #[test]
+    fn levels_are_aligned_and_stored_smallest_first() {
+        let levels = vec![vec![1u8; 48], vec![2u8; 12], vec![3u8; 3]];
+        let pairs = vec![("k".to_string(), vec![9u8])];
+        let bytes = write(Format::R8G8B8Unorm, 4, 4, &levels, &pairs);
+        let word = |at: usize| u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap()) as usize;
+        // The key/value data follows the descriptor.
+        assert_eq!(word(56), word(48) + word(52));
+        let offsets: Vec<usize> = (0..3).map(|i| word(80 + 24 * i)).collect();
+        assert!(offsets[2] < offsets[1] && offsets[1] < offsets[0]);
+        assert!(offsets.iter().all(|offset| offset % 12 == 0));
+        assert_eq!(read(&bytes).unwrap().levels, levels);
     }
 
     #[test]

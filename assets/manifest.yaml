@@ -34,7 +34,7 @@ environments:
 
 fonts:
   - source: fonts/inter.ttf
-    output: fonts/inter.ktx2
+    output: fonts/inter.spnga
     # Every size the game draws text at. The font holds only these. Keep in
     # step with bakedFontSizes in game/src/ui/menufontsize.hpp.
     sizes: [12, 14, 16, 18, 21, 24, 27, 32, 43, 48, 56]

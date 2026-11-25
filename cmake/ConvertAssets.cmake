@@ -5,6 +5,9 @@
 # output newer than its sources, the manifest and yeschef itself, so the
 # target runs on every build and an edit rebakes only what it touches.
 #
+# A saved font atlas that no longer matches its font fails the bake, except in
+# Debug, which warns and uses the drawn atlas.
+#
 # It also joins the asset licenses in the manifest and THIRD_PARTY_LICENSES
 # into NOTICES_FILE, both set by game/CMakeLists.txt.
 set(LICENSE_ARGS "")
@@ -18,6 +21,7 @@ add_custom_target(
                 "${CMAKE_BINARY_DIR}/assets"
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
+                "$<$<CONFIG:Debug>:--allow-stale-atlas>"
                 --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
         VERBATIM
@@ -29,7 +33,8 @@ add_dependencies(convert_assets yeschef)
 # against the whole path.
 #
 # - Images (HDR too) and fonts: every one is a bake input, and must not ship
-#   beside what it was baked into.
+#   beside what it was baked into. The same for a saved font atlas, a .ktx2 in
+#   fonts/. Other .ktx2 files are baked outputs, which must stay.
 # - manifest.yaml: drives the bake, never read at run time. Matched by name,
 #   not by extension: assets/scenes/*.yaml is read at run time and ships.
 # - License files of third-party art and fonts: joined into the notices file
@@ -41,4 +46,4 @@ add_dependencies(convert_assets yeschef)
 # case, so each letter is spelled as a two-case class. The value holds a
 # generator expression, so only commands and install(CODE) can use it.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff]|[Hh][Dd][Rr])$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff]|[Hh][Dd][Rr])$|/[Ff][Oo][Nn][Tt][Ss]/[^/]*\\.[Kk][Tt][Xx]2$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")

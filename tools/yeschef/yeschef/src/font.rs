@@ -1,6 +1,6 @@
-//! Bakes a font into one KTX2 file: an RGB atlas of LCD coverage and, beside
-//! it, the shaping tables the engine reads (`sponge/src/scene/format/font.hpp`
-//! has the layout and the reasoning).
+//! Bakes a font into one `.spnga` file: the shaping tables the engine reads
+//! and an RGB atlas of LCD coverage as a KTX2 file
+//! (`sponge/src/scene/format/font.hpp` has the reasoning).
 //!
 //! Shaping at run time is table lookup: a glyph per codepoint, an advance per
 //! glyph and a kerning adjustment per glyph pair. The bake shapes with
@@ -20,8 +20,11 @@ use skrifa::{
     raw::TableProvider,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
-use yeschef_format::font::{FONT_KEY, FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables};
+use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime};
+use yeschef_format::font::{
+    FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables, hash, layout_id, replace_atlas, split,
+};
 use yeschef_format::ktx2::{self, Format};
 use zeno::{Command, Mask, Point};
 
@@ -523,7 +526,7 @@ fn standard_width(font: &FontRef) -> i64 {
     }
 }
 
-/// Bakes the font at each size. Returns the KTX2 file and the atlas size.
+/// Bakes the font at each size. Returns the font file and the atlas size.
 pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
     ensure!(!sizes.is_empty(), "no font sizes");
     ensure!(sizes.iter().all(|&s| s > 0), "a font size is 0");
@@ -591,6 +594,7 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
         .collect::<Result<Vec<_>>>()?;
 
     let tables = Tables {
+        source_hash: hash(data),
         slot_count: u32::try_from(slots.glyphs.len())?,
         plain: slots.plain.clone(),
         tabular: slots.tabular.clone(),
@@ -601,18 +605,63 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
         .par_iter()
         .try_for_each(|size| check_against_shaper(&shaper_font, &slots, &tables, size))?;
 
-    let key_values = [(FONT_KEY.to_string(), tables.to_bytes())];
-    let file = ktx2::write(Format::R8G8B8Unorm, width, height, &[pixels], &key_values);
-    Ok((file, (width, height)))
+    let atlas = ktx2::write(Format::R8G8B8Unorm, width, height, &[pixels], &[]);
+    Ok((tables.to_file(&atlas), (width, height)))
 }
 
-pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
-    let data = std::fs::read(from).with_context(|| format!("unable to read {}", from.display()))?;
-    let (file, (width, height)) =
+/// An atlas kept with the sources, and the layout ID it was made for.
+pub struct Saved {
+    pub file: PathBuf,
+    pub layout: String,
+}
+
+/// Bakes the font to `to`. `allow_stale` decides what happens when the saved
+/// atlas was made for another layout: the bake fails, or it keeps the drawn
+/// atlas, warns and leaves the output out of date.
+pub fn convert(
+    from: &Path,
+    to: &Path,
+    sizes: &[u32],
+    saved: Option<&Saved>,
+    allow_stale: bool,
+) -> Result<()> {
+    let data = read_file(from)?;
+    let (mut file, (width, height)) =
         bake(&data, sizes).with_context(|| format!("unable to bake {}", from.display()))?;
+    let mut note = "";
+    let mut stale = None;
+    if let Some(saved) = saved {
+        let atlas = read_file(&saved.file)?;
+        let unusable = || format!("unable to use {}", saved.file.display());
+        if layout_id(&file).map_err(|e| anyhow!(e))? == saved.layout {
+            file = with_atlas(&file, &atlas).with_context(unusable)?;
+            note = ", saved atlas";
+        } else {
+            // The size may differ with the layout, so only the file itself is
+            // checked here. A broken atlas fails every build.
+            ktx2::read(&atlas)
+                .map_err(|e| anyhow!(e))
+                .with_context(unusable)?;
+            // The new ID is left out, so it cannot be copied without a new edit.
+            let message = format!(
+                "the saved atlas {} was made for a different layout than {} now has. Remove \
+                 `atlas` from the manifest, build, extract the atlas, make the edit again, \
+                 then set `layout` to the ID that --extract-atlas prints",
+                saved.file.display(),
+                from.display()
+            );
+            ensure!(allow_stale, "{message}");
+            note = ", drawn atlas";
+            stale = Some(message);
+        }
+    }
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
+    if let Some(message) = stale {
+        backdate(to).with_context(|| format!("unable to date {}", to.display()))?;
+        crate::progress::say!("warning: using the drawn atlas: {message}");
+    }
     crate::progress::say!(
-        "{} sizes -> {} ({width}x{height}, {} bytes)",
+        "{} sizes{note} -> {} ({width}x{height}, {} bytes)",
         sizes.len(),
         crate::progress::display(to),
         file.len()
@@ -620,9 +669,85 @@ pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
     Ok(())
 }
 
+/// Makes a file older than its inputs, so every later bake, in any
+/// configuration, runs again. The time still differs from bake to bake, which
+/// the asset copy needs to see a change.
+fn backdate(path: &Path) -> std::io::Result<()> {
+    const TEN_YEARS: Duration = Duration::from_secs(10 * 365 * 24 * 60 * 60);
+    std::fs::File::options()
+        .write(true)
+        .open(path)?
+        .set_modified(SystemTime::now() - TEN_YEARS)
+}
+
+fn read_file(path: &Path) -> Result<Vec<u8>> {
+    std::fs::read(path).with_context(|| format!("unable to read {}", path.display()))
+}
+
+/// Writes the KTX2 atlas of a baked font to its own file and prints the layout
+/// ID of the font.
+pub fn extract_atlas(font: &Path, to: &Path) -> Result<()> {
+    let file = read_file(font)?;
+    let (atlas, layout) = split(&file)
+        .and_then(|(_, atlas)| Ok((atlas, layout_id(&file)?)))
+        .map_err(|e| anyhow!(e))
+        .with_context(|| font.display().to_string())?;
+    std::fs::write(to, atlas).with_context(|| format!("unable to write {}", to.display()))?;
+    println!("layout {layout}");
+    Ok(())
+}
+
+/// The font file with `atlas` in place of its own. The glyph tables hold fixed
+/// pixel positions and the engine loads only some formats, so the new atlas
+/// must have the format and size of the old one.
+fn with_atlas(file: &[u8], atlas: &[u8]) -> Result<Vec<u8>> {
+    let (_, old) = split(file).map_err(|e| anyhow!(e))?;
+    let old = ktx2::read(old)
+        .map_err(|e| anyhow!(e))
+        .context("the atlas in the font")?;
+    let new = ktx2::read(atlas).map_err(|e| anyhow!(e))?;
+
+    ensure!(
+        new.vk_format == old.vk_format,
+        "the atlas has vkFormat {}, but the font needs {}",
+        new.vk_format,
+        old.vk_format
+    );
+    ensure!(
+        (new.width, new.height) == (old.width, old.height),
+        "the atlas is {}x{}, but the font needs {}x{}",
+        new.width,
+        new.height,
+        old.width,
+        old.height
+    );
+    ensure!(
+        new.levels.len() == old.levels.len()
+            && new
+                .levels
+                .iter()
+                .zip(&old.levels)
+                .all(|(new, old)| new.len() == old.len()),
+        "the atlas does not have the same mip levels as the font"
+    );
+
+    replace_atlas(file, atlas).map_err(|e| anyhow!(e))
+}
+
+/// Replaces the atlas of a baked font. The font is written only when every
+/// check passes.
+pub fn insert_atlas(from: &Path, font: &Path) -> Result<()> {
+    let out = with_atlas(&read_file(font)?, &read_file(from)?)
+        .with_context(|| format!("unable to put {} in {}", from.display(), font.display()))?;
+    std::fs::write(font, out).with_context(|| format!("unable to write {}", font.display()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use yeschef_format::font::FontHeader;
+
+    const HEADER: usize = size_of::<FontHeader>();
 
     fn inter() -> Vec<u8> {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../assets/fonts/inter.ttf");
@@ -636,23 +761,20 @@ mod tests {
     #[test]
     fn a_baked_font_has_the_tables_the_engine_reads() {
         let (file, (width, height)) = bake(&inter(), &[12]).unwrap();
-        let image = ktx2::read(&file).unwrap();
+        let header: FontHeader = bytemuck::pod_read_unaligned(&file[..HEADER]);
+        let (tables, atlas) = file.split_at(header.ktx2_offset as usize);
+        assert_eq!(atlas.len(), header.ktx2_size as usize);
+        let image = ktx2::read(atlas).unwrap();
+        assert!(image.key_values.is_empty());
         assert_eq!(image.vk_format, Format::R8G8B8Unorm as u32);
         assert_eq!((image.width, image.height), (width, height));
         assert_eq!(image.levels[0].len(), (width * height) as usize * CHANNELS);
         assert!(image.levels[0].iter().any(|&texel| texel != 0));
 
-        let (key, tables) = &image.key_values[0];
-        assert_eq!(key, FONT_KEY);
-        let (version, slots, plain, tabular, sizes) = (
-            u32_at(tables, 0),
-            u32_at(tables, 4) as usize,
-            u32_at(tables, 8),
-            u32_at(tables, 12),
-            u32_at(tables, 16),
-        );
+        let slots = header.slot_count as usize;
+        let (plain, tabular) = (header.slot_map_count, header.tabular_map_count);
         assert_eq!(
-            (version, plain, tabular, sizes),
+            (header.version, plain, tabular, header.size_count),
             (yeschef_format::font::FONT_VERSION, 96, 96, 1)
         );
         // Printable ASCII, the multiplication sign, the missing glyph, and a
@@ -661,7 +783,7 @@ mod tests {
 
         // Size header: pixels, line height 15 and ascender 12 for Inter at
         // 12 px, as FreeType reports them.
-        let size_at = 20 + 8 * (plain + tabular) as usize;
+        let size_at = HEADER + 8 * (plain + tabular) as usize;
         assert_eq!(u32_at(tables, size_at), 12);
         assert_eq!(f32::from_bits(u32_at(tables, size_at + 4)), 15.0);
         assert_eq!(f32::from_bits(u32_at(tables, size_at + 8)), 12.0);
@@ -673,10 +795,9 @@ mod tests {
     #[test]
     fn bigger_sizes_have_bigger_advances() {
         let (file, _) = bake(&inter(), &[12, 24]).unwrap();
-        let image = ktx2::read(&file).unwrap();
-        let tables = image.key_values[0].1;
-        let slots = u32_at(tables, 4) as usize;
-        let first = 20 + 8 * 192;
+        let tables = &file[..];
+        let slots = u32_at(tables, 12) as usize;
+        let first = HEADER + 8 * 192;
         let kerning_12 = u32_at(tables, first + 12) as usize;
         let second = first + 16 + 4 * slots + 32 * PHASES * slots + 8 * kerning_12;
         assert_eq!(u32_at(tables, second), 24);
@@ -707,6 +828,7 @@ mod tests {
             kerning: BTreeMap::from([((1 << 16) | 2, -64)]),
         };
         let tables = Tables {
+            source_hash: 0,
             slot_count: 3,
             plain: BTreeMap::from([(65, 1), (66, 2)]),
             tabular: BTreeMap::new(),
