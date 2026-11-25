@@ -23,6 +23,7 @@ fn a_font_atlas_extracts_and_inserts() {
         ktx2::write(ktx2::Format::R8G8B8Unorm, side, side, &[level], &[])
     };
     let tables = Tables {
+        source_hash: 0,
         slot_count: 0,
         plain: BTreeMap::new(),
         tabular: BTreeMap::new(),
@@ -49,6 +50,50 @@ fn a_font_atlas_extracts_and_inserts() {
     let run = yeschef(&["--insert-atlas", path(&edit), path(&font)]);
     assert!(run.status.success(), "{run:?}");
     assert_eq!(fs::read(&font).unwrap(), tables.to_file(&atlas(4, 2)));
+}
+
+#[test]
+fn a_saved_atlas_is_baked_until_the_layout_changes() {
+    let dir = tempfile::tempdir().unwrap();
+    let inter = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../assets/fonts/inter.ttf");
+    fs::copy(inter, dir.path().join("inter.ttf")).unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    let out = dir.path().join("out");
+    let font = out.join("inter.spnga");
+    let saved = dir.path().join("saved.ktx2");
+    let bake = |sizes: &str, atlas: &str| {
+        let text = format!(
+            "fonts:\n  - source: inter.ttf\n    output: inter.spnga\n    sizes: {sizes}\n{atlas}"
+        );
+        fs::write(&manifest, text).unwrap();
+        yeschef(&["--manifest", path(&manifest), path(&out)])
+    };
+    let entry =
+        |layout: &str| format!("    atlas:\n      file: saved.ktx2\n      layout: \"{layout}\"\n");
+
+    let run = bake("[12]", "");
+    assert!(run.status.success(), "{run:?}");
+    let run = yeschef(&["--extract-atlas", path(&font), path(&saved)]);
+    assert!(run.status.success(), "{run:?}");
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let layout = stdout.trim().strip_prefix("layout ").unwrap().to_string();
+
+    // Edit one texel of the saved atlas.
+    let mut edited = fs::read(&saved).unwrap();
+    let last = edited.len() - 1;
+    edited[last] ^= 0xFF;
+    fs::write(&saved, &edited).unwrap();
+
+    let run = bake("[12]", &entry(&layout));
+    assert!(run.status.success(), "{run:?}");
+    assert!(fs::read(&font).unwrap().ends_with(&edited));
+
+    for (sizes, id) in [("[12, 14]", layout.as_str()), ("[12]", "0000000000000000")] {
+        let run = bake(sizes, &entry(id));
+        assert_eq!(run.status.code(), Some(1), "{run:?}");
+        assert!(String::from_utf8_lossy(&run.stderr).contains("different layout"));
+        assert!(!font.exists(), "no font with a stale or a drawn atlas");
+    }
 }
 
 #[test]

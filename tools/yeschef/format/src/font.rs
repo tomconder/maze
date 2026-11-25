@@ -22,7 +22,7 @@ pub const FONT_MAGIC: u64 = 0x0000_0046_474E_5053;
 
 /// Font file version. Increase when the layout or [`SUBPIXEL_PHASES`]
 /// changes.
-pub const FONT_VERSION: u32 = 2;
+pub const FONT_VERSION: u32 = 3;
 
 /// Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
 pub const SUBPIXEL_PHASES: u32 = 4;
@@ -41,6 +41,8 @@ pub struct FontHeader {
     /// The KTX2 atlas, from the start of the file.
     pub ktx2_offset: u32,
     pub ktx2_size: u32,
+    /// [`hash`] of the source font file, little endian.
+    pub source_hash: [u8; 8],
 }
 
 /// A codepoint and its glyph slot.
@@ -99,6 +101,8 @@ pub struct SizeTable {
 }
 
 pub struct Tables {
+    /// [`hash`] of the source font file.
+    pub source_hash: u64,
     pub slot_count: u32,
     /// Codepoint to slot.
     pub plain: BTreeMap<u32, u32>,
@@ -140,11 +144,31 @@ impl Tables {
             size_count: self.sizes.len() as u32,
             ktx2_offset: u32::try_from(out.len()).expect("fits in 32 bits"),
             ktx2_size: u32::try_from(ktx2.len()).expect("fits in 32 bits"),
+            source_hash: self.source_hash.to_le_bytes(),
         };
         out[..size_of::<FontHeader>()].copy_from_slice(bytemuck::bytes_of(&header));
         out.extend_from_slice(ktx2);
         out
     }
+}
+
+/// 64 bit FNV-1a. Saved IDs depend on it, so it must not change, which rules
+/// out the standard library hasher.
+pub fn hash<'a>(bytes: impl IntoIterator<Item = &'a u8>) -> u64 {
+    bytes
+        .into_iter()
+        .fold(0xcbf2_9ce4_8422_2325, |hash, &byte| {
+            (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
+        })
+}
+
+/// Identifies what an atlas was drawn for: the source font, the sizes and every
+/// glyph table. The atlas itself does not count, so an edit keeps the ID.
+pub fn layout_id(file: &[u8]) -> Result<String, String> {
+    let (tables, _) = split(file)?;
+    let size_at = std::mem::offset_of!(FontHeader, ktx2_size);
+    let kept = tables[..size_at].iter().chain(&tables[size_at + 4..]);
+    Ok(format!("{:016x}", hash(kept)))
 }
 
 /// Splits a font file into the bytes before the atlas and the KTX2 atlas.
@@ -184,7 +208,7 @@ pub fn replace_atlas(file: &[u8], ktx2: &[u8]) -> Result<Vec<u8>, String> {
 
 const _: () = {
     assert!(FONT_MAGIC == u64::from_le_bytes(*b"SPNGF\0\0\0"));
-    assert!(size_of::<FontHeader>() == 36);
+    assert!(size_of::<FontHeader>() == 44);
 };
 
 #[cfg(test)]
@@ -194,6 +218,7 @@ mod tests {
     #[test]
     fn the_atlas_can_be_replaced() {
         let tables = Tables {
+            source_hash: 0,
             slot_count: 0,
             plain: BTreeMap::new(),
             tabular: BTreeMap::new(),
@@ -205,11 +230,24 @@ mod tests {
         assert_eq!(split(&replaced).unwrap().1, b"longer");
         assert!(split(&file[..file.len() - 1]).is_err());
         assert!(split(b"short").is_err());
+
+        assert_eq!(layout_id(&file).unwrap(), layout_id(&replaced).unwrap());
+        let other = Tables {
+            source_hash: 1,
+            ..tables
+        };
+        assert_ne!(
+            layout_id(&file).unwrap(),
+            layout_id(&other.to_file(b"old")).unwrap()
+        );
+        // The published FNV-1a value of "a".
+        assert_eq!(hash(b"a"), 0xaf63_dc4c_8601_ec8c);
     }
 
     #[test]
     fn size_of_the_bytes_follows_the_layout() {
         let tables = Tables {
+            source_hash: 0,
             slot_count: 2,
             plain: BTreeMap::from([(65, 1)]),
             tabular: BTreeMap::from([(48, 1)]),

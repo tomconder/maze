@@ -20,9 +20,9 @@ use skrifa::{
     raw::TableProvider,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use yeschef_format::font::{
-    FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables, replace_atlas, split,
+    FontGlyph as Glyph, SUBPIXEL_PHASES, SizeTable, Tables, hash, layout_id, replace_atlas, split,
 };
 use yeschef_format::ktx2::{self, Format};
 use zeno::{Command, Mask, Point};
@@ -593,6 +593,7 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
         .collect::<Result<Vec<_>>>()?;
 
     let tables = Tables {
+        source_hash: hash(data),
         slot_count: u32::try_from(slots.glyphs.len())?,
         plain: slots.plain.clone(),
         tabular: slots.tabular.clone(),
@@ -607,14 +608,35 @@ pub fn bake(data: &[u8], sizes: &[u32]) -> Result<(Vec<u8>, (u32, u32))> {
     Ok((tables.to_file(&atlas), (width, height)))
 }
 
-pub fn convert(from: &Path, to: &Path, sizes: &[u32]) -> Result<()> {
-    let data = std::fs::read(from).with_context(|| format!("unable to read {}", from.display()))?;
-    let (file, (width, height)) =
+/// An atlas kept with the sources, and the layout ID it was made for.
+pub struct Saved {
+    pub file: PathBuf,
+    pub layout: String,
+}
+
+pub fn convert(from: &Path, to: &Path, sizes: &[u32], saved: Option<&Saved>) -> Result<()> {
+    let data = read_file(from)?;
+    let (mut file, (width, height)) =
         bake(&data, sizes).with_context(|| format!("unable to bake {}", from.display()))?;
+    if let Some(saved) = saved {
+        // No fallback to the drawn atlas: that would drop the edit unnoticed.
+        // The new ID is left out, so it cannot be copied without a new edit.
+        ensure!(
+            layout_id(&file).map_err(|e| anyhow!(e))? == saved.layout,
+            "the saved atlas {} was made for a different layout than {} now has. Remove \
+             `atlas` from the manifest, build, extract the atlas, make the edit again, then \
+             set `layout` to the ID that --extract-atlas prints",
+            saved.file.display(),
+            from.display()
+        );
+        file = with_atlas(&file, &read_file(&saved.file)?)
+            .with_context(|| format!("unable to use {}", saved.file.display()))?;
+    }
     std::fs::write(to, &file).with_context(|| format!("unable to write {}", to.display()))?;
     crate::progress::say!(
-        "{} sizes -> {} ({width}x{height}, {} bytes)",
+        "{} sizes{} -> {} ({width}x{height}, {} bytes)",
         sizes.len(),
+        if saved.is_some() { ", saved atlas" } else { "" },
         crate::progress::display(to),
         file.len()
     );
@@ -625,31 +647,28 @@ fn read_file(path: &Path) -> Result<Vec<u8>> {
     std::fs::read(path).with_context(|| format!("unable to read {}", path.display()))
 }
 
-/// Writes the KTX2 atlas of a baked font to its own file.
+/// Writes the KTX2 atlas of a baked font to its own file and prints the layout
+/// ID of the font.
 pub fn extract_atlas(font: &Path, to: &Path) -> Result<()> {
     let file = read_file(font)?;
-    let (_, atlas) = split(&file)
+    let (atlas, layout) = split(&file)
+        .and_then(|(_, atlas)| Ok((atlas, layout_id(&file)?)))
         .map_err(|e| anyhow!(e))
         .with_context(|| font.display().to_string())?;
-    std::fs::write(to, atlas).with_context(|| format!("unable to write {}", to.display()))
+    std::fs::write(to, atlas).with_context(|| format!("unable to write {}", to.display()))?;
+    println!("layout {layout}");
+    Ok(())
 }
 
-/// Replaces the atlas of a baked font. The glyph tables hold fixed pixel
-/// positions and the engine loads only some formats, so the new atlas must
-/// have the format and size of the old one. The font is written only when
-/// every check passes.
-pub fn insert_atlas(from: &Path, font: &Path) -> Result<()> {
-    let atlas = read_file(from)?;
-    let file = read_file(font)?;
-    let (_, old) = split(&file)
-        .map_err(|e| anyhow!(e))
-        .with_context(|| font.display().to_string())?;
+/// The font file with `atlas` in place of its own. The glyph tables hold fixed
+/// pixel positions and the engine loads only some formats, so the new atlas
+/// must have the format and size of the old one.
+fn with_atlas(file: &[u8], atlas: &[u8]) -> Result<Vec<u8>> {
+    let (_, old) = split(file).map_err(|e| anyhow!(e))?;
     let old = ktx2::read(old)
         .map_err(|e| anyhow!(e))
-        .with_context(|| font.display().to_string())?;
-    let new = ktx2::read(&atlas)
-        .map_err(|e| anyhow!(e))
-        .with_context(|| from.display().to_string())?;
+        .context("the atlas in the font")?;
+    let new = ktx2::read(atlas).map_err(|e| anyhow!(e))?;
 
     ensure!(
         new.vk_format == old.vk_format,
@@ -675,7 +694,14 @@ pub fn insert_atlas(from: &Path, font: &Path) -> Result<()> {
         "the atlas does not have the same mip levels as the font"
     );
 
-    let out = replace_atlas(&file, &atlas).map_err(|e| anyhow!(e))?;
+    replace_atlas(file, atlas).map_err(|e| anyhow!(e))
+}
+
+/// Replaces the atlas of a baked font. The font is written only when every
+/// check passes.
+pub fn insert_atlas(from: &Path, font: &Path) -> Result<()> {
+    let out = with_atlas(&read_file(font)?, &read_file(from)?)
+        .with_context(|| format!("unable to put {} in {}", from.display(), font.display()))?;
     std::fs::write(font, out).with_context(|| format!("unable to write {}", font.display()))
 }
 
@@ -765,6 +791,7 @@ mod tests {
             kerning: BTreeMap::from([((1 << 16) | 2, -64)]),
         };
         let tables = Tables {
+            source_hash: 0,
             slot_count: 3,
             plain: BTreeMap::from([(65, 1), (66, 2)]),
             tabular: BTreeMap::new(),

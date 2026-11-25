@@ -33,7 +33,7 @@ constexpr static const uint64_t FONT_MAGIC = 301844025427;
 
 /// Font file version. Increase when the layout or [`SUBPIXEL_PHASES`]
 /// changes.
-constexpr static const uint32_t FONT_VERSION = 2;
+constexpr static const uint32_t FONT_VERSION = 3;
 
 /// Horizontal subpixel positions baked per glyph, in 1/4 pixel steps.
 constexpr static const uint32_t SUBPIXEL_PHASES = 4;
@@ -162,6 +162,8 @@ struct FontHeader {
   /// The KTX2 atlas, from the start of the file.
   uint32_t ktx2Offset;
   uint32_t ktx2Size;
+  /// [`hash`] of the source font file, little endian.
+  uint8_t sourceHash[8];
 };
 
 /// A codepoint and its glyph slot.

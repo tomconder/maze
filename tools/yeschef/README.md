@@ -55,7 +55,25 @@ Converters, in `yeschef/src`:
 
 Keep `--assign-tf linear`. Without it, `ktx create` treats the PNG as sRGB and converts the coverage values. It only prints a warning, and the insert cannot detect the change. Do not use `--convert-tf`, which also converts them. The insert refuses a different format, size or mip count, and supercompression.
 
-`<font>` is the baked file, `out/build/<preset>/assets/fonts/inter.spnga`. Do not edit the copy beside the game, because the build overwrites it with the baked one. The edit exists only in the build folder. It is lost when the font bakes again: after a change to the font source, the manifest or yeschef, or in a clean build.
+`<font>` is the baked file, `out/build/<preset>/assets/fonts/inter.spnga`. Do not edit the copy beside the game, because the build overwrites it with the baked one. An inserted edit exists only in the build folder. It is lost when the font bakes again: after a change to the font source, the manifest or yeschef, or in a clean build.
+
+### Keeping an edit
+
+To keep an edit, let the manifest name the atlas. Save the file from step 4 as `assets/fonts/inter.ktx2`, and add the ID that step 1 printed:
+
+```yaml
+fonts:
+  - source: fonts/inter.ttf
+    output: fonts/inter.spnga
+    sizes: [12, 14, 16, 18, 21, 24, 27, 32, 43, 48, 56] # keep the current list
+    atlas:
+      file: fonts/inter.ktx2
+      layout: "<ID from --extract-atlas>"
+```
+
+The bake still draws the font, then stores the saved atlas in place of the drawn one. The ID covers the font file, the sizes and the glyph tables. When it changes, the bake fails. Then remove `atlas`, build, make the edit again on a newly extracted atlas, and set the new ID. While a saved atlas is in use, a drawing change in yeschef that keeps the tables has no effect.
+
+A `.ktx2` file in `assets/fonts/` does not ship with the game.
 
 ## Building
 

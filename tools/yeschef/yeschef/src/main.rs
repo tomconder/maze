@@ -49,13 +49,14 @@ struct Cli {
     #[arg(long, num_args = 2, value_names = ["SOURCE", "OUTPUT"])]
     verify: Option<Vec<PathBuf>>,
 
-    /// Write the KTX2 atlas of the baked FONT to the file KTX2.
+    /// Write the KTX2 atlas of the baked FONT to the file KTX2 and print the
+    /// layout ID that a manifest `atlas` entry needs.
     #[arg(long, num_args = 2, value_names = ["FONT", "KTX2"])]
     extract_atlas: Option<Vec<PathBuf>>,
 
     /// Replace the atlas of the baked FONT with the file KTX2, which must have
     /// the same format, size and mip levels and no supercompression. The next
-    /// bake of the font overwrites it.
+    /// bake of the font overwrites it unless the manifest names the atlas.
     #[arg(long, num_args = 2, value_names = ["KTX2", "FONT"])]
     insert_atlas: Option<Vec<PathBuf>>,
 
@@ -201,8 +202,14 @@ fn bake_all(
 
     for font in &manifest.fonts {
         let from = baker.source(&font.source);
-        jobs.push(Job::new(&font.output, vec![from.clone()], move |to| {
-            font::convert(&from, to, &font.sizes)
+        let saved = font.atlas.as_ref().map(|atlas| font::Saved {
+            file: baker.source(&atlas.file),
+            layout: atlas.layout.clone(),
+        });
+        let mut inputs = vec![from.clone()];
+        inputs.extend(saved.iter().map(|saved| saved.file.clone()));
+        jobs.push(Job::new(&font.output, inputs, move |to| {
+            font::convert(&from, to, &font.sizes, saved.as_ref())
         }));
     }
 
