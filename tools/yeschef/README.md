@@ -4,13 +4,13 @@ yeschef is the asset converter for the game. It replaced the C++ converter `asse
 
 ## format
 
-`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack and the `.spnga` font file. The structs are `repr(C)`, and compile-time asserts pin their sizes.
+`format` (`yeschef-format`) defines the byte layout of the baked files, which are the `.spnga` model container, the `shaders.spnga` shader pack, the `.spnga` font file and the asset pack index. The structs are `repr(C)`, and compile-time asserts pin their sizes.
 
 cbindgen turns the structs into `sponge/src/scene/format/assetlayout.generated.hpp`. The engine includes that header, so it uses the layout that Rust defines. The header is checked in, and the C++ build does not run Rust.
 
 To change the layout:
 
-1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. Bump `ASSET_VERSION`, `SHADERPACK_VERSION` or `FONT_VERSION` if the layout changes.
+1. Edit `format/src/lib.rs`, or `format/src/font.rs` for the font tables. The asset pack layout is in `format/src/archive.rs`. Bump `ASSET_VERSION`, `SHADERPACK_VERSION`, `FONT_VERSION` or `ARCHIVE_VERSION` if the layout changes.
 2. Run `UPDATE_LAYOUT_HEADER=1 cargo test` here to rewrite the header.
 3. Rebuild the C++ side. The asserts in `sponge/src/scene/format/assetformat.hpp` fail if a hand-written glm twin no longer matches.
 
@@ -20,7 +20,7 @@ The font file (`format/src/font.rs`: the shaping tables, then the atlas as a who
 
 ## yeschef
 
-yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--allow-stale-atlas`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
+yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`, `--no-debug-assets`, `--allow-stale-atlas`, `--pack <dir>`, `--notices <file> [--license NAME=PATH]...`, `--verify <source> <baked>`, `--extract-atlas <font> <ktx2>` and `--insert-atlas <ktx2> <font>`. Exit codes are 0 for success, 1 for a failure and 2 for a usage or manifest error. A failed bake deletes its output, and the sweep that deletes files no bake listed runs only after every bake succeeds. The pool has one thread per hardware thread, and `RAYON_NUM_THREADS` changes that.
 
 Converters, in `yeschef/src`:
 
@@ -41,6 +41,15 @@ Converters, in `yeschef/src`:
 - Textures: BC7F does not give the bits of bc7enc. PSNR against the source, mean at mip 0: helmet 50.49 dB against 51.24 dB, floor 46.26 against 47.15, Sponza 46.02 against 45.42.
 - Fonts: slots, advances and kerning were identical. 86% of glyph bitmaps had the same size, the rest were within one pixel, and the darkening amount is a measured fit.
 - Screenshots: Sponza and the `lodtest` scene, TAA off, differed by 0.33 and 0.22 of 255 on average, mostly as speckle on foliage edges.
+
+## Asset pack
+
+`--pack <dir>` also writes every baked output into one pack in `<dir>`. The pack is an index, `assets.spnidx`, and data files, `assets_000.spndat` and up. The engine does not read it yet. `<dir>` cannot be the output directory or a folder in it, because the orphan sweep would delete the pack.
+
+- Each entry is one complete baked file on a 4096 byte boundary, in name order, with no compression.
+- `pack.max_file_size` in the manifest is the largest data file, in bytes. The default is 1 GiB and the minimum is 8192. A larger asset has a data file of its own, and yeschef prints a warning.
+- yeschef writes the whole pack again when a job ran, or when the pack does not match the baked files, the manifest or yeschef. A write deletes every `.spndat` file in `<dir>` first.
+- The index is deleted first and written last, so a write that stops leaves no index, and the next bake writes the pack again.
 
 ## Editing a font atlas
 

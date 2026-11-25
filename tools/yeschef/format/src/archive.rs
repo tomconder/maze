@@ -103,6 +103,16 @@ pub fn data_file_name(index: u32) -> String {
     format!("assets_{index:03}.spndat")
 }
 
+/// The bytes that start data file `data_file`.
+pub fn data_header(data_file: u32, build_id: u64) -> [u8; size_of::<ArchiveDataHeader>()] {
+    bytemuck::cast(ArchiveDataHeader {
+        magic: ARCHIVE_DATA_MAGIC.to_le_bytes(),
+        version: ARCHIVE_VERSION,
+        data_file,
+        build_id,
+    })
+}
+
 /// The bytes of the index. It sets `name_offset` and `name_size`. The caller
 /// gives the entries in name order. Panics when a count or the names pass what
 /// 32 bits can hold.
@@ -258,6 +268,15 @@ mod tests {
     // Where the parts of the sample start.
     const FIRST_ENTRY: usize = HEADER + 8 * 2;
     const NAMES: usize = FIRST_ENTRY + ENTRY * 2;
+
+    #[test]
+    fn a_data_header_has_the_documented_layout() {
+        let bytes = data_header(2, 0x0123_4567_89AB_CDEF);
+        assert_eq!(&bytes[..8], b"SPNGPD\0\0");
+        assert_eq!(bytes[8..12], ARCHIVE_VERSION.to_le_bytes());
+        assert_eq!(bytes[12..16], 2_u32.to_le_bytes());
+        assert_eq!(bytes[16..], 0x0123_4567_89AB_CDEF_u64.to_le_bytes());
+    }
 
     #[test]
     fn an_index_reads_back() {

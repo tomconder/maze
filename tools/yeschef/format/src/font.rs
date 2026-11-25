@@ -155,11 +155,14 @@ impl Tables {
 /// 64 bit FNV-1a. Saved IDs depend on it, so it must not change, which rules
 /// out the standard library hasher.
 pub fn hash<'a>(bytes: impl IntoIterator<Item = &'a u8>) -> u64 {
-    bytes
-        .into_iter()
-        .fold(0xcbf2_9ce4_8422_2325, |hash, &byte| {
-            (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
-        })
+    hash_from(0xcbf2_9ce4_8422_2325, bytes)
+}
+
+/// Continues `state`, a result of [`hash`], over more bytes.
+pub fn hash_from<'a>(state: u64, bytes: impl IntoIterator<Item = &'a u8>) -> u64 {
+    bytes.into_iter().fold(state, |hash, &byte| {
+        (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
+    })
 }
 
 /// Identifies what an atlas was drawn for: the source font, the sizes and every
@@ -214,6 +217,15 @@ const _: () = {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_hash_is_fnv_1a_and_can_continue() {
+        // Published test values of 64 bit FNV-1a.
+        assert_eq!(hash(b""), 0xcbf2_9ce4_8422_2325);
+        assert_eq!(hash(b"a"), 0xaf63_dc4c_8601_ec8c);
+        assert_eq!(hash(b"foobar"), 0x8594_4171_f739_67e8);
+        assert_eq!(hash_from(hash(b"foo"), b"bar"), hash(b"foobar"));
+    }
 
     #[test]
     fn the_atlas_can_be_replaced() {

@@ -1,7 +1,9 @@
 //! yeschef, the build-time asset converter. It bakes everything the asset
-//! manifest lists, `--verify` checks a baked model, and `--extract-atlas` and
-//! `--insert-atlas` take the atlas out of a baked font and put it back.
+//! manifest lists and can pack the outputs, `--verify` checks a baked model,
+//! and `--extract-atlas` and `--insert-atlas` take the atlas out of a baked
+//! font and put it back.
 
+mod archive;
 mod atlas;
 mod bake;
 mod darken;
@@ -59,6 +61,12 @@ struct Cli {
     /// bake of the font overwrites it unless the manifest names the atlas.
     #[arg(long, num_args = 2, value_names = ["KTX2", "FONT"])]
     insert_atlas: Option<Vec<PathBuf>>,
+
+    /// After the bake, write the outputs into one asset pack in DIR, which
+    /// cannot be the output directory or a folder in it. The pack is written
+    /// again only when an output changed.
+    #[arg(long, value_name = "DIR", requires = "manifest")]
+    pack: Option<PathBuf>,
 
     /// When a saved font atlas was made for another layout, warn and use the
     /// drawn atlas in place of failing. The font then bakes again every time.
@@ -128,6 +136,10 @@ fn main() -> ExitCode {
 fn bake_manifest(cli: &Cli, manifest_path: &Path, output_dir: &Path) -> Result<(), Failure> {
     let manifest = Manifest::load(manifest_path)
         .map_err(|error| Failure::Manifest(error.context(manifest_path.display().to_string())))?;
+    // A bad --pack is a bad command line, so it fails before the bake.
+    if let Some(pack) = &cli.pack {
+        archive::check_folder(pack, output_dir).map_err(Failure::Manifest)?;
+    }
     let mut baker = Baker::new(manifest_path, output_dir).map_err(Failure::Bake)?;
 
     bake_all(
@@ -144,6 +156,16 @@ fn bake_manifest(cli: &Cli, manifest_path: &Path, output_dir: &Path) -> Result<(
             "removed orphan {}",
             orphan.to_string_lossy().replace('\\', "/")
         );
+    }
+
+    if let Some(pack) = &cli.pack {
+        let cap = manifest.pack.max_file_size;
+        if let Some(warnings) = archive::update(&baker, pack, cap).map_err(Failure::Bake)? {
+            for warning in warnings {
+                eprintln!("yeschef: warning: {warning}");
+            }
+            println!("asset pack -> {}", pack.display());
+        }
     }
 
     // Asset licenses come from the manifest and code licenses from the command

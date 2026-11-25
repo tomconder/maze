@@ -165,6 +165,34 @@ fn licenses_only_manifest_writes_notices_and_removes_orphans() {
 }
 
 #[test]
+fn a_pack_goes_outside_the_output_folder() {
+    let dir = tempfile::tempdir().unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    fs::write(&manifest, "licenses: []\n").unwrap();
+    let out = dir.path().join("out");
+    let bake = |pack: &Path| {
+        yeschef(&[
+            "--manifest",
+            path(&manifest),
+            path(&out),
+            "--pack",
+            path(pack),
+        ])
+    };
+
+    for inside in [out.clone(), out.join("pack")] {
+        let run = bake(&inside);
+        assert_eq!(run.status.code(), Some(2), "{run:?}");
+        assert!(!inside.join("assets.spnidx").exists());
+    }
+
+    let pack = dir.path().join("pack");
+    let run = bake(&pack);
+    assert!(run.status.success(), "{run:?}");
+    assert!(pack.join("assets.spnidx").exists());
+}
+
+#[test]
 fn a_failed_conversion_removes_its_output_and_skips_the_sweep() {
     let dir = tempfile::tempdir().unwrap();
     let manifest = dir.path().join("manifest.yaml");

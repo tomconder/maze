@@ -73,6 +73,11 @@ licenses:
   - name: Kloofendal Overcast HDRI
     files: [textures/License-kloofendal.txt]
 
+# How `yeschef --pack` splits the asset pack. A data file is at most this many
+# bytes, except that a larger asset has a data file of its own.
+pack:
+  max_file_size: 1073741824 # 1 GiB
+
 # Each stage is <slang source>:<entry point>, keyed by the name the engine
 # asks for. All of them compile into one pack.
 shaders:
