@@ -36,8 +36,8 @@ public:
     // calling thread. Must be called on the GL thread.
     explicit Model(const ModelCreateInfo& createInfo);
 
-    // Assembles a model from meshes already built (via buildMesh(), e.g. one
-    // per frame on the GL thread). Must be called on the GL thread.
+    // Assembles a model from meshes already built (via buildMesh(), e.g. over
+    // several frames on the GL thread). Must be called on the GL thread.
     explicit Model(std::vector<std::shared_ptr<Mesh>>&& builtMeshes);
 
     // CPU-only parse, no GL/AssetManager touch — safe on any thread.

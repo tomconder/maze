@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -32,6 +33,11 @@ constexpr glm::vec4 backgroundColor{ 0.05F, 0.05F, 0.05F, 1.F };
 constexpr glm::vec4 trackColor{ 0.2F, 0.2F, 0.2F, 1.F };
 constexpr glm::vec4 fillColor{ 0.8F, 0.8F, 0.8F, 1.F };
 constexpr glm::vec3 percentTextColor{ 1.F, 1.F, 1.F };
+
+// CPU time for mesh builds in one loading frame. A step is not divided, so a
+// frame can run longer by one step. GL uploads that the driver completes later
+// do not count.
+constexpr std::chrono::milliseconds buildBudget{ 8 };
 }  // namespace
 
 namespace game::layer {
@@ -162,40 +168,51 @@ bool LoadingLayer::onUpdate(const double) {
     }
 
     if (buildModelIndex < parsedData.size()) {
-        if (buildOwner[buildModelIndex] != buildModelIndex) {
-            // Duplicate path: the owner already built and registered this
-            // model (owner index < this one, so it ran first). Reuse it.
-            builtModels.emplace_back(builtModels[buildOwner[buildModelIndex]]);
-            buildModelIndex++;
-            buildMeshIndex = 0;
-            return true;
-        }
-
-        auto& data = parsedData[buildModelIndex];
-
-        if (buildMeshIndex < data.meshes.size()) {
-            buildingMeshes.emplace_back(Model::buildMesh(
-                std::move(data.meshes[buildMeshIndex]), data.images));
-            completedSteps.fetch_add(1, std::memory_order_relaxed);
-            buildMeshIndex++;
-            return true;
-        }
-
-        // The textures are on the GPU now, so the parsed copy can go.
-        data = {};
-
-        auto model = std::make_shared<Model>(std::move(buildingMeshes));
-        AssetManager::registerModel(requests[buildModelIndex].name, model);
-        builtModels.emplace_back(std::move(model));
-        buildingMeshes.clear();
-        buildModelIndex++;
-        buildMeshIndex = 0;
+        const auto deadline = std::chrono::steady_clock::now() + buildBudget;
+        // At least one step in each call, so the load always moves forward.
+        do {
+            buildStep();
+        } while (buildModelIndex < parsedData.size() &&
+                 std::chrono::steady_clock::now() < deadline);
         return true;
     }
 
+    // A frame of its own, so the bar shows the completed build before the
+    // stall in finishLoading().
     Maze::get().getMazeLayer()->finishLoading(std::move(builtModels));
     setActive(false);
     return true;
+}
+
+void LoadingLayer::buildStep() {
+    if (buildOwner[buildModelIndex] != buildModelIndex) {
+        // Duplicate path: the owner already built and registered this
+        // model (owner index < this one, so it ran first). Reuse it.
+        builtModels.emplace_back(builtModels[buildOwner[buildModelIndex]]);
+        buildModelIndex++;
+        buildMeshIndex = 0;
+        return;
+    }
+
+    auto& data = parsedData[buildModelIndex];
+
+    if (buildMeshIndex < data.meshes.size()) {
+        buildingMeshes.emplace_back(Model::buildMesh(
+            std::move(data.meshes[buildMeshIndex]), data.images));
+        completedSteps.fetch_add(1, std::memory_order_relaxed);
+        buildMeshIndex++;
+        return;
+    }
+
+    // The textures are on the GPU now, so the parsed copy can go.
+    data = {};
+
+    auto model = std::make_shared<Model>(std::move(buildingMeshes));
+    AssetManager::registerModel(requests[buildModelIndex].name, model);
+    builtModels.emplace_back(std::move(model));
+    buildingMeshes.clear();
+    buildModelIndex++;
+    buildMeshIndex = 0;
 }
 
 void LoadingLayer::renderProgress() const {
