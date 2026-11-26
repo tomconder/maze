@@ -44,7 +44,7 @@ Converters, in `yeschef/src`:
 
 ## Asset pack
 
-`--pack <dir>` also writes every baked output into one pack in `<dir>`. The pack is an index, `assets.spnidx`, and data files, `assets_000.spndat` and up. The engine does not read it yet. `<dir>` cannot be the output directory or a folder in it, because the orphan sweep would delete the pack.
+`--pack <dir>` also writes every baked output into one pack in `<dir>`. The pack is an index, `assets.spnidx`, and data files, `assets_000.spndat` and up. The engine reads a pack when `assets.spnidx` is in its asset folder, and then loads no loose baked file. No game build makes or deploys a pack yet. `<dir>` cannot be the output directory or a folder in it, because the orphan sweep would delete the pack.
 
 - Each entry is one complete baked file on a 4096 byte boundary, in name order, with no compression.
 - `pack.max_file_size` in the manifest is the largest data file, in bytes. The default is 1 GiB and the minimum is 8192. A larger asset has a data file of its own, and yeschef prints a warning.

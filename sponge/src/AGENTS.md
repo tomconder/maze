@@ -10,6 +10,7 @@ Does NOT own maze gameplay — see `../../game/src/AGENTS.md`.
 * `layer/layer.hpp` — `Layer` lifecycle: `onAttach` / `onDetach` / `onEvent` / `onUpdate` / `onRender` / `onFrameSync`.
 * `layer/layerstack.hpp` — `pushLayer` (game) vs `pushOverlay` (on top).
 * `thread/worker.hpp` — `Worker`: `kick` then `waitForComplete`. Application owns two: update + render.
+* `core/assetfiles.hpp` — `core::assets::read(name)` for every baked asset. If the resource folder has `assets.spnidx`, the asset pack is the only source, with no loose fallback. If not, assets are loose files. Names are relative to the asset root. The pack is case sensitive, so spell a name as the manifest does. Scene YAML and audio are not baked, and are always loose.
 * `core/settings.hpp` — process-global key/value store; not thread-safe.
 * `input/gameaction.hpp`, `input/inputsnapshot.hpp` — game-facing actions. Physical devices bind in GLFW `InputManager`.
 

@@ -1,15 +1,13 @@
 #include "platform/opengl/scene/spriteatlas.hpp"
 
-#include "core/file.hpp"
+#include "core/assetfiles.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "scene/format/ktx2.hpp"
-#include "scene/format/readbytes.hpp"
 
 #include <glm/glm.hpp>
 
 #include <cstdint>
-#include <filesystem>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -25,17 +23,14 @@ namespace sponge::platform::opengl::scene {
 using renderer::AssetManager;
 
 SpriteAtlas::SpriteAtlas(const std::string& name, const std::string& path) {
-    const auto fullPath =
-        (std::filesystem::path(core::File::getResourceDir()) / path).string();
-
-    const auto bytes = sponge::scene::readBytes(fullPath);
-    if (bytes.empty()) {
-        SPONGE_GL_ERROR("Unable to read atlas: {}", path);
+    std::string error;
+    const auto  bytes = sponge::core::assets::read(path, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("Unable to read atlas: {}", error);
         return;
     }
 
-    std::string error;
-    const auto  image = sponge::scene::ktx2::read(bytes, error);
+    const auto image = sponge::scene::ktx2::read(bytes, error);
     if (image.levels.empty()) {
         SPONGE_GL_ERROR("{}: {}", path, error);
         return;

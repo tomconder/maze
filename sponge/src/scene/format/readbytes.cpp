@@ -28,4 +28,30 @@ std::vector<uint8_t> readBytes(const std::string& path,
     return bytes;
 }
 
+std::vector<uint8_t> readRange(const std::string& path, const uint64_t offset,
+                               const std::size_t size) {
+    std::ifstream file{ path, std::ios::binary | std::ios::ate };
+    if (!file) {
+        return {};
+    }
+
+    // Checked before the allocation, in a form that cannot overflow.
+    const std::streamoff end = file.tellg();
+    if (end < 0) {
+        return {};
+    }
+    const auto fileSize = static_cast<uint64_t>(end);
+    if (offset > fileSize || size > fileSize - offset) {
+        return {};
+    }
+
+    file.seekg(static_cast<std::streamoff>(offset));
+    std::vector<uint8_t> bytes(size);
+    if (!file.read(reinterpret_cast<char*>(bytes.data()),
+                   static_cast<std::streamsize>(size))) {
+        return {};
+    }
+    return bytes;
+}
+
 }  // namespace sponge::scene

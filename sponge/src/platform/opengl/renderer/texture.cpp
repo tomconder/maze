@@ -1,15 +1,14 @@
 #include "platform/opengl/renderer/texture.hpp"
 
+#include "core/assetfiles.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "scene/format/ktx2.hpp"
-#include "scene/format/readbytes.hpp"
 
 #include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cstdint>
-#include <filesystem>
 #include <span>
 #include <string>
 #include <vector>
@@ -55,16 +54,7 @@ Texture::Texture(const TextureCreateInfo& createInfo) {
         SPONGE_GL_INFO("Loading texture file: [{}, {}]", createInfo.name,
                        createInfo.path);
 
-        const bool excludeAssetsFolder =
-            (createInfo.loadFlag & ExcludeAssetsFolder) == ExcludeAssetsFolder;
-        const std::string texturePath =
-            excludeAssetsFolder ?
-                createInfo.path :
-                (std::filesystem::path(createInfo.assetsFolder) /
-                 createInfo.path)
-                    .string();
-
-        loadFromFile(texturePath, createInfo.loadFlag);
+        loadFromFile(createInfo.path, createInfo.loadFlag);
     } else if (createInfo.data != nullptr) {
         SPONGE_GL_INFO("Creating texture from memory: [{}, {}x{}]",
                        createInfo.name, createInfo.width, createInfo.height);
@@ -131,12 +121,13 @@ void Texture::generate(const uint32_t textureWidth,
     }
 }
 
-void Texture::loadFromFile(const std::string& path, const uint8_t flag) {
-    assert(!path.empty());
+void Texture::loadFromFile(const std::string& assetName, const uint8_t flag) {
+    assert(!assetName.empty());
 
-    const auto bytes = sponge::scene::readBytes(path);
-    if (bytes.empty()) {
-        SPONGE_GL_ERROR("Unable to read texture, path = {}", path);
+    std::string error;
+    const auto  bytes = sponge::core::assets::read(assetName, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("Unable to read texture: {}", error);
         return;
     }
 

@@ -8,11 +8,12 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
 // Baked model container (.spnga). Written by tools/yeschef, read by
-// Model::parse(). One fread, then views over the buffer.
+// Model::parse(). One read of the whole file, then views over the buffer.
 //
 // The byte layout is defined in Rust, in tools/yeschef/format, and reaches
 // this code as assetlayout.generated.hpp. Edit the Rust source, not that
@@ -91,14 +92,16 @@ static_assert(offsetof(MeshUVTransforms, diffuseTransmission) ==
 
 static_assert(sizeof(glm::vec4) == sizeof(float[4]));
 
-// Reads a .spnga file into the same ModelData form the importers produce, so
-// buildMesh() does not care which path a model came from.
-// On failure, returns an empty ModelData and sets error. error is left
-// alone on success, so pass an empty string.
-ModelData read(const std::string& path, std::string& error);
+// Reads the bytes of a .spnga file into the same ModelData form the importers
+// produce, so buildMesh() does not care which path a model came from. `name` is
+// for messages and image names. On failure, returns an empty ModelData and sets
+// error. error is left alone on success, so pass an empty string.
+ModelData read(std::span<const uint8_t> bytes, const std::string& name,
+               std::string& error);
 
-// Mesh count from the header alone, for progress-bar sizing. On failure,
-// returns 0 and sets error.
-std::size_t readMeshCount(const std::string& path, std::string& error);
+// Mesh count from the header alone, for progress-bar sizing, so `bytes` can
+// hold only the header. On failure, returns 0 and sets error.
+std::size_t readMeshCount(std::span<const uint8_t> bytes,
+                          const std::string& name, std::string& error);
 
 }  // namespace sponge::scene::asset

@@ -1,5 +1,6 @@
 #include "platform/opengl/scene/model.hpp"
 
+#include "core/assetfiles.hpp"
 #include "debug/profiler.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/debug/profiler.hpp"
@@ -109,8 +110,11 @@ ModelData Model::parse(const ModelCreateInfo& createInfo) {
                    createInfo.path);
 
     std::string error;
-    auto        data = sponge::scene::asset::read(
-        createInfo.assetsFolder + createInfo.path, error);
+    const auto  bytes = sponge::core::assets::read(createInfo.path, error);
+    ModelData   data;
+    if (error.empty()) {
+        data = sponge::scene::asset::read(bytes, createInfo.path, error);
+    }
     if (!error.empty()) {
         SPONGE_GL_ERROR("{}", error);
     }
@@ -119,8 +123,13 @@ ModelData Model::parse(const ModelCreateInfo& createInfo) {
 
 std::size_t Model::countMeshes(const ModelCreateInfo& createInfo) {
     std::string error;
-    const auto  count = sponge::scene::asset::readMeshCount(
-        createInfo.assetsFolder + createInfo.path, error);
+    const auto  bytes = sponge::core::assets::read(
+        createInfo.path, error, sizeof(sponge::scene::asset::Header));
+    std::size_t count = 0;
+    if (error.empty()) {
+        count =
+            sponge::scene::asset::readMeshCount(bytes, createInfo.path, error);
+    }
     if (!error.empty()) {
         SPONGE_GL_ERROR("{}", error);
     }
