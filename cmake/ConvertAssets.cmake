@@ -10,6 +10,24 @@
 #
 # It also joins the asset licenses in the manifest and THIRD_PARTY_LICENSES
 # into NOTICES_FILE, both set by game/CMakeLists.txt.
+#
+# With MAZE_PACK_ASSETS, yeschef also writes the baked assets as pack files, and
+# DEPLOY_BAKED_DIR, which game/CMakeLists.txt deploys, holds only the pack. Debug
+# defaults to loose files, so a changed asset needs no new pack. The default
+# comes from CMAKE_BUILD_TYPE, which a single-configuration generator sets.
+set(PACK_DEFAULT ON)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(PACK_DEFAULT OFF)
+endif ()
+option(MAZE_PACK_ASSETS "Ship the baked assets as pack files" ${PACK_DEFAULT})
+
+set(PACK_ARGS "")
+set(DEPLOY_BAKED_DIR "${CMAKE_BINARY_DIR}/assets")
+if (MAZE_PACK_ASSETS)
+    set(PACK_ARGS --pack "${CMAKE_BINARY_DIR}/assets-pack")
+    set(DEPLOY_BAKED_DIR "${CMAKE_BINARY_DIR}/assets-pack")
+endif ()
+
 set(LICENSE_ARGS "")
 foreach (LICENSE IN LISTS THIRD_PARTY_LICENSES)
     list(APPEND LICENSE_ARGS --license "${LICENSE}")
@@ -22,7 +40,7 @@ add_custom_target(
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
                 "$<$<CONFIG:Debug>:--allow-stale-atlas>"
-                --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
+                --notices "${NOTICES_FILE}" ${LICENSE_ARGS} ${PACK_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
         VERBATIM
         COMMAND_EXPAND_LISTS)
