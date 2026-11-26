@@ -193,14 +193,16 @@ fn a_pack_goes_outside_the_output_folder() {
 }
 
 #[test]
-fn a_scene_is_copied_once_and_a_debug_scene_only_for_debug() {
+fn scenes_and_audio_are_copied_once_and_a_debug_scene_only_for_debug() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(dir.path().join("a.yaml"), "objects: []\r\n").unwrap();
     fs::write(dir.path().join("test.yaml"), "objects: []\n").unwrap();
+    fs::write(dir.path().join("a.wav"), [0u8, 13, 10, 255]).unwrap();
     let manifest = dir.path().join("manifest.yaml");
     fs::write(
         &manifest,
-        "scenes:\n  - source: a.yaml\n    output: scenes/a.yaml\n  - source: test.yaml\n    \
+        "audio:\n  - source: a.wav\n    output: audio/a.wav\n\
+         scenes:\n  - source: a.yaml\n    output: scenes/a.yaml\n  - source: test.yaml\n    \
          output: scenes/test.yaml\n    debug: true\n",
     )
     .unwrap();
@@ -226,6 +228,10 @@ fn a_scene_is_copied_once_and_a_debug_scene_only_for_debug() {
         b"objects: []\r\n"
     );
     assert!(out.join("scenes/test.yaml").exists());
+    assert_eq!(
+        fs::read(out.join("audio/a.wav")).unwrap(),
+        [0u8, 13, 10, 255]
+    );
 
     // A copy that kept the time of its source would run again.
     let again = bake(&[]);

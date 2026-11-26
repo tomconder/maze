@@ -23,6 +23,9 @@ models:
     debug: true
 
 # The engine reads these as it reads the baked assets, so they go in the pack.
+audio:
+  - source: audio/click.wav
+    output: audio/click.wav
 scenes:
   - source: scenes/maze.yaml
     output: scenes/maze.yaml

@@ -1,6 +1,5 @@
 #include "ui/button.hpp"
 
-#include "core/file.hpp"
 #include "platform/audio/audio.hpp"
 #include "ui/rowparts.hpp"
 #include "ui/yogarect.hpp"
@@ -99,8 +98,7 @@ void updateMenuButtonVisuals(Button* button, const bool selected,
 }
 
 void playHoverClick() {
-    sponge::platform::audio::Audio::play(sponge::core::File::getResourceDir() +
-                                         "/audio/click.wav");
+    sponge::platform::audio::Audio::play("audio/click.wav");
 }
 
 void updateButtonHover(Button* button, const glm::vec2& pos) {

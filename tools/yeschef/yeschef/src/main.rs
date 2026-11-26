@@ -256,12 +256,12 @@ fn bake_all(
         }));
     }
 
-    for scene in &manifest.scenes {
-        if !debug_assets && scene.debug {
+    for file in manifest.scenes.iter().chain(&manifest.audio) {
+        if !debug_assets && file.debug {
             continue;
         }
-        let from = baker.source(&scene.source);
-        jobs.push(Job::new(&scene.output, vec![from.clone()], move |to| {
+        let from = baker.source(&file.source);
+        jobs.push(Job::new(&file.output, vec![from.clone()], move |to| {
             // Not fs::copy, which on Windows keeps the time of the source. The
             // output would then look old, and the job would run on every build.
             let bytes =

@@ -27,7 +27,9 @@ pub struct Manifest {
     #[serde(default)]
     pub atlases: Vec<Atlas>,
     #[serde(default)]
-    pub scenes: Vec<Scene>,
+    pub scenes: Vec<Verbatim>,
+    #[serde(default)]
+    pub audio: Vec<Verbatim>,
     #[serde(default)]
     pub licenses: Vec<License>,
     pub shaders: Option<Shaders>,
@@ -65,13 +67,14 @@ pub struct Model {
     pub debug: bool,
 }
 
-/// A scene file. The bake copies it unchanged, so that it is in the pack.
+/// A scene or audio file. The bake copies it unchanged, so that it is in the
+/// pack.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Scene {
+pub struct Verbatim {
     pub source: String,
     pub output: String,
-    /// Only debug builds use the scene.
+    /// Only debug builds use the file.
     #[serde(default)]
     pub debug: bool,
 }
@@ -185,6 +188,7 @@ mod tests {
         assert!(!manifest.licenses.is_empty());
         assert!(manifest.scenes.iter().any(|s| !s.debug));
         assert!(manifest.scenes.iter().any(|s| s.debug));
+        assert!(!manifest.audio.is_empty());
 
         // File order survives the parse.
         let atlas = &manifest.atlases[0];

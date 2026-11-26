@@ -13,6 +13,10 @@ than calling GLFW/OpenGL/OS APIs directly.
 * `audio/` - miniaudio playback (`Audio::init` / `shutdown` / `play` /
   `setMasterVolume` / `setSfxVolume` / `setMusicVolume`). Init and shutdown
   from `Application`; game code calls `play` and the volume setters.
+  `play` takes an asset name, such as `audio/click.wav`. It reads the file
+  through `core::assets::read()`, so a sound must be listed under `audio` in
+  `assets/manifest.yaml`. The file stays in memory until `shutdown`. A long
+  music track would need a miniaudio file system that reads ranges.
   `init` seeds all three volumes from `Settings` (`audio.masterVolume` /
   `audio.sfxVolume` / `audio.musicVolume`, 0-100, default 100) — it runs after
   `startupCore()` has loaded `Settings`, so the values are already on disk by

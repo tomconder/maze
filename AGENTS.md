@@ -33,7 +33,7 @@ paths and repeated logs.
 * `sponge/src/platform/` — GLFW, OpenGL, OS file I/O.
 * `tools/yeschef/` — Rust workspace. `format` defines the baked file layout (see Global Invariants). `yeschef` is the asset converter the build runs: CLI, manifest, up-to-date checks, notices, the rayon job pool, every converter and `--verify`. CMake builds it with cargo, so a build needs Rust, libclang and the Slang from vcpkg; see `tools/yeschef/README.md`.
 * `assets/shaders/slang/` — Slang sources. `yeschef --manifest` compiles every stage listed under `shaders` in `assets/manifest.yaml` to GLSL 450, column-major, into one `shaders/shaders.spnga`. `Shader` looks stages up by manifest name (`"pbr.vert"`), not by path.
-* `MAZE_PACK_ASSETS` (CMake option, off by default in Debug and on in other build types): yeschef also writes the baked assets to `<build>/assets-pack` as `assets.spnidx` and `assets_NNN.spndat`, and that folder deploys in place of the loose baked files. Scene YAML is in the pack. Audio is always loose. CMake caches the value the first time it configures a build folder with this option, and a later change of build type does not change it.
+* `MAZE_PACK_ASSETS` (CMake option, off by default in Debug and on in other build types): yeschef also writes the baked assets to `<build>/assets-pack` as `assets.spnidx` and `assets_NNN.spndat`, and that folder deploys in place of the loose baked files. Scene YAML and audio are in the pack. CMake caches the value the first time it configures a build folder with this option, and a later change of build type does not change it.
 * No automated test suite. Verify with compile + run + `pre-commit.exe run --all-files`.
 
 ## Intent Layer
