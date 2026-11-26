@@ -27,6 +27,8 @@ pub struct Manifest {
     #[serde(default)]
     pub atlases: Vec<Atlas>,
     #[serde(default)]
+    pub scenes: Vec<Scene>,
+    #[serde(default)]
     pub licenses: Vec<License>,
     pub shaders: Option<Shaders>,
     #[serde(default)]
@@ -59,6 +61,17 @@ pub struct Model {
     pub source: String,
     pub output: String,
     /// Only debug builds use the model.
+    #[serde(default)]
+    pub debug: bool,
+}
+
+/// A scene file. The bake copies it unchanged, so that it is in the pack.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Scene {
+    pub source: String,
+    pub output: String,
+    /// Only debug builds use the scene.
     #[serde(default)]
     pub debug: bool,
 }
@@ -170,6 +183,8 @@ mod tests {
         assert!(manifest.models.iter().any(|m| m.debug));
         assert!(!manifest.fonts[0].sizes.is_empty());
         assert!(!manifest.licenses.is_empty());
+        assert!(manifest.scenes.iter().any(|s| !s.debug));
+        assert!(manifest.scenes.iter().any(|s| s.debug));
 
         // File order survives the parse.
         let atlas = &manifest.atlases[0];

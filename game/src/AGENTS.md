@@ -113,7 +113,10 @@ primitives, windowing, or platform backends itself — see
 * `scene/scenefile.hpp` / `.cpp` - reads `assets/scenes/maze.yaml` into a
   `Scene`: camera, lighting and the object list. Parsed with fkYAML in the
   `MazeLayer` constructor, which `startupCore()` guarantees runs after
-  logging and settings are up.
+  logging and settings are up. It reads the file through
+  `core::assets::read()`, so a scene must be listed under `scenes` in
+  `assets/manifest.yaml`. The game reads the baked copy, so build after an
+  edit.
   A scene object can carry `grid: { x, z, spacing }`: `loadScene()` expands it
   into x by z objects on the XZ plane, each side limited to 64. Objects stay
   plain to the rest of the game. `assets/scenes/lodtest.yaml` exists only to

@@ -193,6 +193,50 @@ fn a_pack_goes_outside_the_output_folder() {
 }
 
 #[test]
+fn a_scene_is_copied_once_and_a_debug_scene_only_for_debug() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("a.yaml"), "objects: []\r\n").unwrap();
+    fs::write(dir.path().join("test.yaml"), "objects: []\n").unwrap();
+    let manifest = dir.path().join("manifest.yaml");
+    fs::write(
+        &manifest,
+        "scenes:\n  - source: a.yaml\n    output: scenes/a.yaml\n  - source: test.yaml\n    \
+         output: scenes/test.yaml\n    debug: true\n",
+    )
+    .unwrap();
+    let out = dir.path().join("out");
+    let pack = dir.path().join("pack");
+    let bake = |flags: &[&str]| {
+        let mut args = vec![
+            "--manifest",
+            path(&manifest),
+            path(&out),
+            "--pack",
+            path(&pack),
+        ];
+        args.extend(flags);
+        let run = yeschef(&args);
+        assert!(run.status.success(), "{run:?}");
+        String::from_utf8(run.stdout).unwrap()
+    };
+
+    assert!(bake(&[]).contains("asset pack ->"));
+    assert_eq!(
+        fs::read(out.join("scenes/a.yaml")).unwrap(),
+        b"objects: []\r\n"
+    );
+    assert!(out.join("scenes/test.yaml").exists());
+
+    // A copy that kept the time of its source would run again.
+    let again = bake(&[]);
+    assert!(!again.contains("asset pack ->"), "{again}");
+
+    bake(&["--no-debug-assets"]);
+    assert!(out.join("scenes/a.yaml").exists());
+    assert!(!out.join("scenes/test.yaml").exists());
+}
+
+#[test]
 fn a_failed_conversion_removes_its_output_and_skips_the_sweep() {
     let dir = tempfile::tempdir().unwrap();
     let manifest = dir.path().join("manifest.yaml");

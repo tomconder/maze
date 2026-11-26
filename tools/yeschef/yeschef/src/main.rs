@@ -20,12 +20,13 @@ mod progress;
 mod shaders;
 mod texture;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bake::{Baker, Job, collect_files};
 use clap::{ArgGroup, Parser};
 use manifest::Manifest;
 use notices::{Licenses, write_notices};
 use std::collections::BTreeSet;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -252,6 +253,20 @@ fn bake_all(
         let inputs = sprites.iter().map(|(_, path)| path.clone()).collect();
         jobs.push(Job::new(&atlas.output, inputs, move |to| {
             atlas::convert(&sprites, to)
+        }));
+    }
+
+    for scene in &manifest.scenes {
+        if !debug_assets && scene.debug {
+            continue;
+        }
+        let from = baker.source(&scene.source);
+        jobs.push(Job::new(&scene.output, vec![from.clone()], move |to| {
+            // Not fs::copy, which on Windows keeps the time of the source. The
+            // output would then look old, and the job would run on every build.
+            let bytes =
+                fs::read(&from).with_context(|| format!("unable to read {}", from.display()))?;
+            fs::write(to, bytes).with_context(|| format!("unable to write {}", to.display()))
         }));
     }
 

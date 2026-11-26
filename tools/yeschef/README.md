@@ -24,6 +24,7 @@ yeschef takes `--manifest <manifest.yaml> <output dir>`, `--no-line-directives`,
 
 Converters, in `yeschef/src`:
 
+- The manifest's `scenes` are copied unchanged, so that they are in the pack. A scene with `debug: true` is left out with `--no-debug-assets`.
 - `shaders.rs`: compiles the manifest's Slang stages to GLSL 450 and writes the shader pack.
 - `hdr.rs`: bakes Radiance `.hdr` to half float KTX2.
 - `texture.rs`: compresses an image to BC7 (`ctt-bc7f`) or, for normal maps, BC5, with a full mip chain from `mip.rs`. `image.rs` decodes PNG and JPEG.
@@ -46,7 +47,7 @@ Converters, in `yeschef/src`:
 
 `--pack <dir>` also writes every baked output into one pack in `<dir>`. The pack is an index, `assets.spnidx`, and data files, `assets_000.spndat` and up. The engine reads a pack when `assets.spnidx` is in its asset folder, and then loads no loose baked file. `<dir>` cannot be the output directory or a folder in it, because the orphan sweep would delete the pack.
 
-The game build passes `--pack <build>/assets-pack` and deploys that folder in place of the loose baked files when the CMake option `MAZE_PACK_ASSETS` is on. The option is off by default in a Debug build and on in the other build types. CMake caches the value the first time it configures a build folder with this option, and a later change of build type does not change it. Scene YAML and audio are not in the pack, and deploy as loose files.
+The game build passes `--pack <build>/assets-pack` and deploys that folder in place of the loose baked files when the CMake option `MAZE_PACK_ASSETS` is on. The option is off by default in a Debug build and on in the other build types. CMake caches the value the first time it configures a build folder with this option, and a later change of build type does not change it. Audio is not in the pack, and deploys as loose files.
 
 - Each entry is one complete baked file on a 4096 byte boundary, in name order, with no compression.
 - `pack.max_file_size` in the manifest is the largest data file, in bytes. The default is 1 GiB and the minimum is 8192. A larger asset has a data file of its own, and yeschef prints a warning.

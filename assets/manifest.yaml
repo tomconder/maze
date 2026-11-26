@@ -22,6 +22,14 @@ models:
     output: models/floor.spnga
     debug: true
 
+# The engine reads these as it reads the baked assets, so they go in the pack.
+scenes:
+  - source: scenes/maze.yaml
+    output: scenes/maze.yaml
+  - source: scenes/lodtest.yaml
+    output: scenes/lodtest.yaml
+    debug: true
+
 textures:
   - source: textures/blackcoffee.png
     output: textures/blackcoffee.ktx2

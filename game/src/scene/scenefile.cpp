@@ -1,6 +1,6 @@
 #include "scene/scenefile.hpp"
 
-#include "core/file.hpp"
+#include "core/assetfiles.hpp"
 #include "logging/log.hpp"
 
 #include <fkYAML/node.hpp>
@@ -9,7 +9,6 @@
 #include <glm/vector_relational.hpp>
 
 #include <algorithm>
-#include <fstream>
 #include <string>
 #include <utility>
 
@@ -278,17 +277,20 @@ namespace game::scene {
 Scene loadScene(const std::string& path) {
     Scene scene;
 
-    const auto    filename = sponge::core::File::getResourceDir() + path;
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        SPONGE_ERROR("Unable to open scene file: {}", filename);
+    std::string error;
+    const auto  bytes = sponge::core::assets::read(path, error);
+    if (!error.empty()) {
+        SPONGE_ERROR("Unable to open scene file: {}", error);
         return scene;
     }
+    std::string text(bytes.begin(), bytes.end());
+    // The file can have Windows line endings.
+    std::erase(text, '\r');
 
-    SPONGE_INFO("Loading scene file: {}", filename);
+    SPONGE_INFO("Loading scene file: {}", path);
 
     try {
-        const auto root = node::deserialize(file);
+        const auto root = node::deserialize(text);
         readCamera(root, scene.camera);
         readLighting(root, scene.lighting);
         readBloom(root, scene.bloom);
@@ -297,7 +299,7 @@ Scene loadScene(const std::string& path) {
     } catch (const std::exception& e) {
         // Keep whatever parsed before the fault plus the defaults: a bad file
         // must not take the game down on the way up.
-        SPONGE_ERROR("Unable to parse scene file {}: {}", filename, e.what());
+        SPONGE_ERROR("Unable to parse scene file {}: {}", path, e.what());
     }
 
     return scene;
