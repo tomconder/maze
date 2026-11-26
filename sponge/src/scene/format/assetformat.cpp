@@ -1,7 +1,6 @@
 #include "scene/format/assetformat.hpp"
 
 #include "scene/format/modeldata.hpp"
-#include "scene/format/readbytes.hpp"
 #include "scene/format/vertex.hpp"
 
 #include <fmt/format.h>
@@ -12,6 +11,7 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -51,7 +51,7 @@ auto slotsOf(M& mesh) {
 }
 
 // Checks magic, version and vertex layout. Returns nullptr on rejection.
-const Header* validate(const std::vector<uint8_t>& bytes,
+const Header* validate(const std::span<const uint8_t> bytes,
                        const std::string& path, std::string& error) {
     if (bytes.size() < sizeof(Header)) {
         error = fmt::format(
@@ -80,8 +80,8 @@ const Header* validate(const std::vector<uint8_t>& bytes,
 
 namespace sponge::scene::asset {
 
-ModelData read(const std::string& path, std::string& error) {
-    const auto  bytes  = readBytes(path);
+ModelData read(const std::span<const uint8_t> bytes, const std::string& path,
+               std::string& error) {
     const auto* header = validate(bytes, path, error);
     if (header == nullptr) {
         return {};
@@ -194,10 +194,8 @@ ModelData read(const std::string& path, std::string& error) {
     return data;
 }
 
-std::size_t readMeshCount(const std::string& path, std::string& error) {
-    // Header only: this is called before the load to size a progress bar, and
-    // read() below pulls the rest.
-    const auto  bytes  = readBytes(path, sizeof(Header));
+std::size_t readMeshCount(const std::span<const uint8_t> bytes,
+                          const std::string& path, std::string& error) {
     const auto* header = validate(bytes, path, error);
     return header == nullptr ? 0 : header->meshCount;
 }

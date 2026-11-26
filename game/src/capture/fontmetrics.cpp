@@ -1,16 +1,16 @@
 #include "capture/fontmetrics.hpp"
 
-#include "scene/format/readbytes.hpp"
+#include "core/assetfiles.hpp"
 
 #include <cmath>
 #include <span>
 
 namespace game::capture {
 
-FontMetrics::FontMetrics(const std::string& path) {
-    const auto               bytes = sponge::scene::readBytes(path);
+FontMetrics::FontMetrics(const std::string_view assetName) {
+    std::string error;
+    const auto  bytes = sponge::core::assets::read(assetName, error);
     std::span<const uint8_t> atlas;
-    std::string              error;
     font = sponge::scene::font::read(bytes, atlas, error);
 }
 

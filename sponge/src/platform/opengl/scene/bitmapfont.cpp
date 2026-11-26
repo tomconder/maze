@@ -1,11 +1,11 @@
 #include "platform/opengl/scene/bitmapfont.hpp"
 
+#include "core/assetfiles.hpp"
 #include "logging/log.hpp"
 #include "platform/opengl/renderer/assetmanager.hpp"
 #include "platform/opengl/renderer/gl.hpp"
 #include "platform/opengl/renderer/texture.hpp"
 #include "scene/format/font.hpp"
-#include "scene/format/readbytes.hpp"
 
 #include <algorithm>
 #include <array>
@@ -67,14 +67,14 @@ BitmapFont::BitmapFont(const FontCreateInfo& createInfo) {
     constexpr uint32_t pos = 0;
     vao->addAttribute(pos, 4, 0);
 
-    const auto path  = createInfo.assetsFolder + createInfo.path;
-    const auto bytes = sponge::scene::readBytes(path);
-    if (bytes.empty()) {
-        SPONGE_GL_ERROR("Unable to read font: {}", path);
+    const auto& path = createInfo.path;
+    std::string error;
+    const auto  bytes = sponge::core::assets::read(path, error);
+    if (!error.empty()) {
+        SPONGE_GL_ERROR("Unable to read font: {}", error);
         return;
     }
 
-    std::string              error;
     std::span<const uint8_t> atlas;
     font = sponge::scene::font::read(bytes, atlas, error);
     if (!error.empty()) {

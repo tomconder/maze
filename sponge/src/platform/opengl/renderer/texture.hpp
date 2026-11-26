@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/base.hpp"
-#include "core/file.hpp"
 
 #include <cstdint>
 #include <span>
@@ -10,17 +9,17 @@
 namespace sponge::platform::opengl::renderer {
 
 enum LoadFlag : uint8_t {
-    None                = 0,
-    ExcludeAssetsFolder = BIT(0),
-    GammaCorrection     = BIT(1),
+    None            = 0,
+    GammaCorrection = BIT(0),
     // Sample exactly: nearest, clamped, no mip chain. For atlases and UI
     // sheets, where a filtered or wrapped sample crosses into a neighbouring
     // glyph.
-    Pixelated = BIT(2),
+    Pixelated = BIT(1),
 };
 
 struct TextureCreateInfo {
-    std::string    name;
+    std::string name;
+    // An asset name, relative to the asset root.
     std::string    path;
     uint32_t       width         = 0;
     uint32_t       height        = 0;
@@ -30,8 +29,7 @@ struct TextureCreateInfo {
     // chain come from the container, so loadFlag's GammaCorrection does not
     // apply.
     std::span<const uint8_t> ktx2{};
-    const LoadFlag           loadFlag     = None;
-    std::string              assetsFolder = core::File::getResourceDir();
+    const LoadFlag           loadFlag = None;
 };
 
 class Texture final {
@@ -56,7 +54,7 @@ private:
     uint32_t width  = 0;
     uint32_t height = 0;
 
-    void loadFromFile(const std::string& path, uint8_t flag);
+    void loadFromFile(const std::string& assetName, uint8_t flag);
     void loadFromKtx2(std::span<const uint8_t> bytes, uint8_t flag);
     void generate(uint32_t textureWidth, uint32_t textureHeight,
                   uint32_t bytesPerPixel, const uint8_t* data, uint8_t flag);

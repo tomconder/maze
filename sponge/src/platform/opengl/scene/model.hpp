@@ -26,8 +26,8 @@ using sponge::scene::ParsedMesh;
 
 struct ModelCreateInfo {
     std::string name;
+    // An asset name, relative to the asset root.
     std::string path;
-    std::string assetsFolder = core::File::getResourceDir();
 };
 
 class Model {

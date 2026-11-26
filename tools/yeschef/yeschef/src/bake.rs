@@ -7,6 +7,8 @@ use rayon::prelude::*;
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use yeschef_format::archive::normalize_name;
 
 type Run<'a> = Box<dyn FnOnce(&Path) -> Result<()> + Send + 'a>;
 
@@ -38,6 +40,7 @@ pub struct Baker {
     source_root: PathBuf,
     output_root: PathBuf,
     outputs: BTreeSet<PathBuf>,
+    ran: AtomicBool,
 }
 
 impl Baker {
@@ -51,7 +54,42 @@ impl Baker {
             source_root: manifest.parent().unwrap_or(Path::new("")).to_path_buf(),
             output_root: output_root.to_path_buf(),
             outputs: BTreeSet::new(),
+            ran: AtomicBool::new(false),
         })
+    }
+
+    pub fn output_root(&self) -> &Path {
+        &self.output_root
+    }
+
+    /// The files that every output depends on.
+    pub fn shared_inputs(&self) -> [PathBuf; 2] {
+        [self.manifest.clone(), self.converter.clone()]
+    }
+
+    /// The name of every listed output under the output folder, in the one
+    /// spelling of an asset name, in byte order.
+    pub fn output_names(&self) -> Result<Vec<String>> {
+        let mut names = Vec::new();
+        for output in &self.outputs {
+            let name = output
+                .strip_prefix(&self.output_root)
+                .ok()
+                .and_then(Path::to_str)
+                .with_context(|| format!("{} has no asset name", output.display()))?;
+            names.push(normalize_name(name).map_err(anyhow::Error::msg)?);
+        }
+        // Paths sort by component, which is not the order of the name bytes.
+        names.sort();
+        if let Some(pair) = names.windows(2).find(|pair| pair[0] == pair[1]) {
+            bail!("two outputs have the asset name {}", pair[0]);
+        }
+        Ok(names)
+    }
+
+    /// True when a job ran in place of being skipped.
+    pub fn ran_any(&self) -> bool {
+        self.ran.load(Ordering::Relaxed)
     }
 
     pub fn source(&self, relative: &str) -> PathBuf {
@@ -96,12 +134,12 @@ impl Baker {
     fn bake(&self, job: Job<'_>, progress: &Progress) -> Result<()> {
         let output = self.output_root.join(&job.name);
         let mut inputs = job.inputs;
-        inputs.push(self.manifest.clone());
-        inputs.push(self.converter.clone());
+        inputs.extend(self.shared_inputs());
         if up_to_date(&output, &inputs) {
             progress.skip();
             return Ok(());
         }
+        self.ran.store(true, Ordering::Relaxed);
         progress.start(&job.name);
         if let Some(parent) = output.parent() {
             fs::create_dir_all(parent)
@@ -176,7 +214,7 @@ pub fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::AtomicUsize;
     use std::time::{Duration, SystemTime};
 
     fn write_at(path: &Path, offset_seconds: i64) {
@@ -311,6 +349,32 @@ mod tests {
         assert_eq!(removed, vec![orphan.clone()]);
         assert!(!orphan.exists());
         assert!(dir.path().join("out/models/a.bin").exists());
+    }
+
+    #[test]
+    fn output_names_are_in_byte_order() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut baker = baker(dir.path());
+        let jobs = ["a/b", "a.b"]
+            .map(|name| job(name, |to| Ok(fs::write(to, "x")?)))
+            .into();
+        baker.run(jobs).unwrap();
+        // As paths, "a/b" sorts first. As bytes, '.' is before '/'.
+        assert_eq!(baker.output_names().unwrap(), ["a.b", "a/b"]);
+        assert!(baker.ran_any());
+    }
+
+    #[test]
+    fn two_spellings_of_one_asset_name_are_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut baker = baker(dir.path());
+        baker.outputs.insert(baker.output_root.join("x\\y"));
+        baker.outputs.insert(baker.output_root.join("x/y"));
+        // On Windows both are one path. Elsewhere they are two paths that
+        // give one name.
+        if baker.outputs.len() == 2 {
+            assert!(baker.output_names().is_err());
+        }
     }
 
     #[test]

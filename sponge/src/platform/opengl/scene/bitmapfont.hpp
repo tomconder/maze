@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/file.hpp"
 #include "platform/opengl/renderer/indexbuffer.hpp"
 #include "platform/opengl/renderer/shader.hpp"
 #include "platform/opengl/renderer/texture.hpp"
@@ -20,8 +19,8 @@ namespace sponge::platform::opengl::scene {
 
 struct FontCreateInfo {
     std::string name;
+    // An asset name, relative to the asset root.
     std::string path;
-    std::string assetsFolder = core::File::getResourceDir();
 };
 
 class BitmapFont {

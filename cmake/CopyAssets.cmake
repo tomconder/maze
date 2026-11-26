@@ -4,9 +4,11 @@
 # EXCLUDE_REGEX is DEPLOY_EXCLUDE_REGEX from ConvertAssets.cmake, which lists
 # what it drops and why.
 #
-# assets/models is excluded wholesale instead, because it holds nothing but
-# source art. Every model the runtime loads comes from the bake, so a file
-# left there is either an input or unused - shipping it either way is waste.
+# assets/models, assets/scenes and assets/audio are excluded wholesale instead.
+# Every model, scene and sound the runtime loads comes from the bake, so a file
+# left there is either an input or unused - shipping it either way is waste. A
+# scene or a sound bakes to its own name, and with a pack the baked folder does
+# not hold it.
 #
 # Required variables: SRC_DIR, DST_DIR, SRC_BAKED, EXCLUDE_REGEX
 foreach (REQUIRED SRC_DIR DST_DIR SRC_BAKED)
@@ -21,7 +23,9 @@ file(COPY "${SRC_DIR}/"
      PATTERN "*"
      REGEX "${EXCLUDE_REGEX}" EXCLUDE
      PATTERN ".clang-format" EXCLUDE
+     PATTERN "audio" EXCLUDE
      PATTERN "models" EXCLUDE
+     PATTERN "scenes" EXCLUDE
      PATTERN "slang" EXCLUDE)
 
 # Baked assets last: they overlay the raw sources they were built from.
@@ -30,10 +34,12 @@ file(COPY "${SRC_BAKED}/"
 
 # file(COPY) never deletes. Drop what an earlier run copied and neither the
 # sources nor the bake holds now, such as a model removed from the manifest,
-# and what the exclusions now match, such as a debug-only scene.
+# and what the exclusions now match. A source scene or sound does not keep a
+# deployed one, so only the bake counts for them.
 file(GLOB_RECURSE DEPLOYED_FILES RELATIVE "${DST_DIR}" "${DST_DIR}/*")
 foreach (FILE IN LISTS DEPLOYED_FILES)
-    if ((NOT EXISTS "${SRC_BAKED}/${FILE}" AND NOT EXISTS "${SRC_DIR}/${FILE}")
+    if ((NOT EXISTS "${SRC_BAKED}/${FILE}"
+         AND (NOT EXISTS "${SRC_DIR}/${FILE}" OR FILE MATCHES "^(audio|scenes)/"))
         OR "${DST_DIR}/${FILE}" MATCHES "${EXCLUDE_REGEX}")
         message(STATUS "CopyAssets: removing stale ${DST_DIR}/${FILE}")
         file(REMOVE "${DST_DIR}/${FILE}")

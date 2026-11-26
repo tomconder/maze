@@ -10,6 +10,24 @@
 #
 # It also joins the asset licenses in the manifest and THIRD_PARTY_LICENSES
 # into NOTICES_FILE, both set by game/CMakeLists.txt.
+#
+# With MAZE_PACK_ASSETS, yeschef also writes the baked assets as pack files, and
+# DEPLOY_BAKED_DIR, which game/CMakeLists.txt deploys, holds only the pack. Debug
+# defaults to loose files, so a changed asset needs no new pack. The default
+# comes from CMAKE_BUILD_TYPE, which a single-configuration generator sets.
+set(PACK_DEFAULT ON)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(PACK_DEFAULT OFF)
+endif ()
+option(MAZE_PACK_ASSETS "Ship the baked assets as pack files" ${PACK_DEFAULT})
+
+set(PACK_ARGS "")
+set(DEPLOY_BAKED_DIR "${CMAKE_BINARY_DIR}/assets")
+if (MAZE_PACK_ASSETS)
+    set(PACK_ARGS --pack "${CMAKE_BINARY_DIR}/assets-pack")
+    set(DEPLOY_BAKED_DIR "${CMAKE_BINARY_DIR}/assets-pack")
+endif ()
+
 set(LICENSE_ARGS "")
 foreach (LICENSE IN LISTS THIRD_PARTY_LICENSES)
     list(APPEND LICENSE_ARGS --license "${LICENSE}")
@@ -22,7 +40,7 @@ add_custom_target(
                 "$<$<CONFIG:Release>:--no-line-directives>"
                 "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:--no-debug-assets>"
                 "$<$<CONFIG:Debug>:--allow-stale-atlas>"
-                --notices "${NOTICES_FILE}" ${LICENSE_ARGS}
+                --notices "${NOTICES_FILE}" ${LICENSE_ARGS} ${PACK_ARGS}
         COMMENT "Converting the assets in assets/manifest.yaml"
         VERBATIM
         COMMAND_EXPAND_LISTS)
@@ -35,15 +53,11 @@ add_dependencies(convert_assets yeschef)
 # - Images (HDR too) and fonts: every one is a bake input, and must not ship
 #   beside what it was baked into. The same for a saved font atlas, a .ktx2 in
 #   fonts/. Other .ktx2 files are baked outputs, which must stay.
-# - manifest.yaml: drives the bake, never read at run time. Matched by name,
-#   not by extension: assets/scenes/*.yaml is read at run time and ships.
+# - manifest.yaml: drives the bake, never read at run time.
 # - License files of third-party art and fonts: joined into the notices file
 #   next to the executable instead.
-# - The mesh LOD test scene, in release builds: only the debug capture flags
-#   load it, and its models are baked for debug builds only.
 #
 # CMake regexes have no case-insensitive flag, and Linux does not fold the path
-# case, so each letter is spelled as a two-case class. The value holds a
-# generator expression, so only commands and install(CODE) can use it.
+# case, so each letter is spelled as a two-case class.
 set(DEPLOY_EXCLUDE_REGEX
-        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff]|[Hh][Dd][Rr])$|/[Ff][Oo][Nn][Tt][Ss]/[^/]*\\.[Kk][Tt][Xx]2$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:|/scenes/lodtest\\.yaml$>")
+        "\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Tt][Tt][Ff]|[Oo][Tt][Ff]|[Hh][Dd][Rr])$|/[Ff][Oo][Nn][Tt][Ss]/[^/]*\\.[Kk][Tt][Xx]2$|manifest\\.yaml$|/[Ll][Ii][Cc][Ee][Nn][CcSs][Ee][^/]*$")

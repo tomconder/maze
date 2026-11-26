@@ -5,6 +5,7 @@
 #include <array>
 #include <bit>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -34,8 +35,9 @@ static_assert(sizeof(Entry) == 16);
 
 using Sources = std::unordered_map<std::string, std::string>;
 
-// On failure, returns an empty map and sets error. error is left alone on
-// success, so pass an empty string.
-Sources read(const std::string& path, std::string& error);
+// `name` is for messages. On failure, returns an empty map and sets error.
+// error is left alone on success, so pass an empty string.
+Sources read(std::span<const uint8_t> bytes, const std::string& name,
+             std::string& error);
 
 }  // namespace sponge::scene::shaderpack

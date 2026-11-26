@@ -22,6 +22,17 @@ models:
     output: models/floor.spnga
     debug: true
 
+# The engine reads these as it reads the baked assets, so they go in the pack.
+audio:
+  - source: audio/click.wav
+    output: audio/click.wav
+scenes:
+  - source: scenes/maze.yaml
+    output: scenes/maze.yaml
+  - source: scenes/lodtest.yaml
+    output: scenes/lodtest.yaml
+    debug: true
+
 textures:
   - source: textures/blackcoffee.png
     output: textures/blackcoffee.ktx2
@@ -72,6 +83,11 @@ licenses:
     files: [textures/prompts/License.txt]
   - name: Kloofendal Overcast HDRI
     files: [textures/License-kloofendal.txt]
+
+# How `yeschef --pack` splits the asset pack. A data file is at most this many
+# bytes, except that a larger asset has a data file of its own.
+pack:
+  max_file_size: 1073741824 # 1 GiB
 
 # Each stage is <slang source>:<entry point>, keyed by the name the engine
 # asks for. All of them compile into one pack.

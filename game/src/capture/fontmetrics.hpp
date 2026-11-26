@@ -15,7 +15,8 @@ namespace game::capture {
 // the file cannot be read.
 class FontMetrics {
 public:
-    explicit FontMetrics(const std::string& path);
+    // `assetName` is relative to the asset root.
+    explicit FontMetrics(std::string_view assetName);
 
     uint32_t length(std::string_view text, uint32_t size,
                     bool tabularFigures = false);

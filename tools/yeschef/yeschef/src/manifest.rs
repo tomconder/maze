@@ -11,6 +11,7 @@ use anyhow::{Context, Result, bail};
 use indexmap::IndexMap;
 use serde::Deserialize;
 use std::path::Path;
+use yeschef_format::archive::ARCHIVE_ALIGNMENT;
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -26,9 +27,35 @@ pub struct Manifest {
     #[serde(default)]
     pub atlases: Vec<Atlas>,
     #[serde(default)]
+    pub scenes: Vec<Verbatim>,
+    #[serde(default)]
+    pub audio: Vec<Verbatim>,
+    #[serde(default)]
     pub licenses: Vec<License>,
     pub shaders: Option<Shaders>,
+    #[serde(default)]
+    pub pack: Pack,
 }
+
+/// How `--pack` splits the asset pack.
+#[derive(Debug, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Pack {
+    /// The largest data file, in bytes. A larger entry has a data file of its
+    /// own.
+    pub max_file_size: u64,
+}
+
+impl Default for Pack {
+    fn default() -> Self {
+        Self {
+            max_file_size: 1 << 30,
+        }
+    }
+}
+
+/// The header and one aligned entry need this many bytes.
+const MIN_PACK_FILE_SIZE: u64 = 2 * ARCHIVE_ALIGNMENT;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -36,6 +63,18 @@ pub struct Model {
     pub source: String,
     pub output: String,
     /// Only debug builds use the model.
+    #[serde(default)]
+    pub debug: bool,
+}
+
+/// A scene or audio file. The bake copies it unchanged, so that it is in the
+/// pack.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Verbatim {
+    pub source: String,
+    pub output: String,
+    /// Only debug builds use the file.
     #[serde(default)]
     pub debug: bool,
 }
@@ -121,6 +160,10 @@ impl Manifest {
         if let Some(shaders) = &manifest.shaders {
             shaders.stages()?;
         }
+        let cap = manifest.pack.max_file_size;
+        if cap < MIN_PACK_FILE_SIZE {
+            bail!("pack max_file_size is {cap}, less than {MIN_PACK_FILE_SIZE}");
+        }
         Ok(manifest)
     }
 
@@ -143,6 +186,9 @@ mod tests {
         assert!(manifest.models.iter().any(|m| m.debug));
         assert!(!manifest.fonts[0].sizes.is_empty());
         assert!(!manifest.licenses.is_empty());
+        assert!(manifest.scenes.iter().any(|s| !s.debug));
+        assert!(manifest.scenes.iter().any(|s| s.debug));
+        assert!(!manifest.audio.is_empty());
 
         // File order survives the parse.
         let atlas = &manifest.atlases[0];
@@ -169,6 +215,17 @@ mod tests {
         let manifest = Manifest::parse("licenses: []\n").unwrap();
         assert!(manifest.models.is_empty());
         assert!(manifest.shaders.is_none());
+    }
+
+    #[test]
+    fn the_pack_cap_defaults_to_1_gib_and_has_a_minimum() {
+        let cap = |text: &str| Manifest::parse(text).map(|m| m.pack.max_file_size);
+        assert_eq!(cap("licenses: []\n").unwrap(), 1 << 30);
+        assert_eq!(cap("pack: {}\n").unwrap(), 1 << 30);
+        assert_eq!(cap("pack:\n  max_file_size: 8192\n").unwrap(), 8192);
+        let error = cap("pack:\n  max_file_size: 8191\n").unwrap_err();
+        assert!(error.to_string().contains("less than 8192"), "{error}");
+        assert!(cap("pack:\n  max_size: 8192\n").is_err(), "misspelled key");
     }
 
     #[test]

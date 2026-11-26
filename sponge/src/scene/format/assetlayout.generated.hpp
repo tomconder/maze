@@ -28,6 +28,21 @@ constexpr static const uint32_t SHADERPACK_VERSION = 1;
 /// integer.
 constexpr static const uint64_t SHADERPACK_MAGIC = 79522515800147;
 
+/// Asset pack version.
+constexpr static const uint32_t ARCHIVE_VERSION = 1;
+
+/// Index magic, the bytes `SPNGPK\0\0` read as a little endian integer.
+constexpr static const uint64_t ARCHIVE_MAGIC = 82808165781587;
+
+/// Data file magic, the bytes `SPNGPD\0\0` read as a little endian integer.
+constexpr static const uint64_t ARCHIVE_DATA_MAGIC = 75111584387155;
+
+/// Each entry starts on a multiple of this many bytes in its data file.
+constexpr static const uint64_t ARCHIVE_ALIGNMENT = 4096;
+
+/// The only compression value that the readers accept.
+constexpr static const uint32_t ARCHIVE_COMPRESSION_NONE = 0;
+
 /// Font file magic, the bytes `SPNGF\0\0\0` read as a little endian integer.
 constexpr static const uint64_t FONT_MAGIC = 301844025427;
 
@@ -198,6 +213,42 @@ struct FontGlyph {
   int32_t bearingY;
   int32_t width;
   int32_t height;
+};
+
+/// Start of the index.
+struct ArchiveHeader {
+  /// The bytes of `ARCHIVE_MAGIC`.
+  uint8_t magic[8];
+  uint32_t version;
+  uint32_t entryCount;
+  uint32_t dataFileCount;
+  uint32_t namesSize;
+  /// The same value in the index and in each data file of one build.
+  uint64_t buildId;
+};
+
+/// One asset in the index.
+struct ArchiveEntry {
+  /// From the start of the names block.
+  uint32_t nameOffset;
+  uint32_t nameSize;
+  uint32_t dataFile;
+  uint32_t compression;
+  /// From the start of the data file.
+  uint64_t offset;
+  /// Stored bytes.
+  uint64_t size;
+  /// Equals `size` when `compression` is 0.
+  uint64_t rawSize;
+};
+
+/// Start of a data file.
+struct ArchiveDataHeader {
+  /// The bytes of `ARCHIVE_DATA_MAGIC`.
+  uint8_t magic[8];
+  uint32_t version;
+  uint32_t dataFile;
+  uint64_t buildId;
 };
 
 }  // namespace sponge::scene::layout

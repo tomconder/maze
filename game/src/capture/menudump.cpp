@@ -2,7 +2,6 @@
 
 #include "capture/fontmetrics.hpp"
 #include "capture/yogadump.hpp"
-#include "core/file.hpp"
 
 #include <array>
 #include <cstddef>
@@ -120,8 +119,7 @@ std::optional<std::string> dumpMenuYoga(const std::string_view screen,
 
 bool writeMenuYoga(const std::string_view screen, const uint32_t width,
                    const uint32_t height) {
-    FontMetrics metrics(sponge::core::File::getResourceDir() +
-                        "/fonts/inter.spnga");
+    FontMetrics metrics("fonts/inter.spnga");
     const auto  tree = dumpMenuYoga(screen, width, height, metrics.measure());
     if (!tree) {
         return false;

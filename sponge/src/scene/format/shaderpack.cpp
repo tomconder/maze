@@ -1,7 +1,5 @@
 #include "scene/format/shaderpack.hpp"
 
-#include "scene/format/readbytes.hpp"
-
 #include <fmt/format.h>
 
 #include <algorithm>
@@ -9,13 +7,14 @@
 #include <cstring>
 #include <limits>
 #include <map>
+#include <span>
 #include <string>
 #include <vector>
 
 namespace sponge::scene::shaderpack {
 
-Sources read(const std::string& path, std::string& error) {
-    const auto bytes = readBytes(path);
+Sources read(const std::span<const uint8_t> bytes, const std::string& path,
+             std::string& error) {
     if (bytes.size() < sizeof(Header)) {
         error = fmt::format(
             "Unable to read shader pack, or it is truncated: {}", path);
